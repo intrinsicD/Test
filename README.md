@@ -1,5 +1,3 @@
-
-
 # 3G Rendering and Geometry Processing Engine
 
 This repository hosts the scaffold for a highly modular rendering and geometry processing engine. The layout is organized to separate platform, runtime, rendering, geometry, and tooling concerns so that each subsystem can evolve independently.
@@ -20,6 +18,8 @@ This repository hosts the scaffold for a highly modular rendering and geometry p
 │   │   ├── src/
 │   │   ├── samples/
 │   │   └── shaders/
+│   ├── math/
+│   │   └── include/
 │   ├── compute/
 │   │   ├── include/
 │   │   ├── src/
@@ -112,7 +112,15 @@ cmake -S . -B build
 cmake --build build
 ```
 
-The root CMake configuration produces a shared library for every engine subsystem (animation, assets, compute, core, geometry, IO, physics, platform, rendering, scene, and the aggregate runtime). The compute subsystem wraps the CUDA module so GPU-accelerated code can be consumed by rendering, geometry processing, or any other part of the engine without being constrained to the rendering backend hierarchy.
+The root CMake configuration produces a shared library for every engine subsystem (animation, assets, compute, core, geometry, IO, math, physics, platform, rendering, scene, and the aggregate runtime). The math module is header-only and feeds both CPU code and the CUDA backend so a single set of primitives remains consistent across devices. The compute subsystem wraps the CUDA module so GPU-accelerated code can be consumed by rendering, geometry processing, or any other part of the engine without being constrained to the rendering backend hierarchy.
+
+### Math Primitives
+
+The `engine/math` module offers lightweight vector and matrix types designed to replace GLM and Eigen in both host and device code. The templates ship as header-only utilities, using `ENGINE_MATH_HD` annotations to compile cleanly with NVCC while remaining drop-in friendly for ordinary C++ translation units. Key features include:
+
+* `math::vector<T, N>` with common aliases such as `math::vec3` and helpers like `dot`, `cross`, `length`, and `normalize`.
+* `math::matrix<T, R, C>` with helpers for identity, transpose, translation, and scale construction, plus overloaded multiplication for vector and matrix products.
+* Shared usage across CPU and CUDA targets—`engine_compute_cuda` links against `engine_math` and exposes functions that return math types, ensuring GPU kernels and host orchestration use the same data layout.
 
 ### Python Interoperability
 

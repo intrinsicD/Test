@@ -13,3 +13,8 @@ target_compile_definitions(${target_name}
     PRIVATE
         ENGINE_COMPUTE_CUDA_EXPORTS
 )
+
+target_link_libraries(${target_name}
+    PUBLIC
+        engine_math
+)

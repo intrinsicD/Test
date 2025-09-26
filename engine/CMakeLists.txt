@@ -1,4 +1,5 @@
 set(ENGINE_MODULES
+    math
     animation
     assets
     compute

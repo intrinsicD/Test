@@ -2,6 +2,8 @@
 
 #include <string_view>
 
+#include "engine/math/math.hpp"
+
 #if defined(_WIN32)
 #  if defined(ENGINE_COMPUTE_EXPORTS)
 #    define ENGINE_COMPUTE_API __declspec(dllexport)
@@ -15,6 +17,8 @@
 namespace engine::compute {
 
 [[nodiscard]] std::string_view module_name() noexcept;
+
+[[nodiscard]] ENGINE_COMPUTE_API math::mat4 identity_transform() noexcept;
 
 }  // namespace engine::compute
 
