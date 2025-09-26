@@ -9,6 +9,11 @@ target_include_directories(${target_name}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_compile_definitions(${target_name}
+    PRIVATE
+        ENGINE_SCENE_EXPORTS
+)
+
 # Scene graph relies on core systems.
 target_link_libraries(${target_name}
     PUBLIC

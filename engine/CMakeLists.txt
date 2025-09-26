@@ -9,6 +9,7 @@ set(ENGINE_MODULES
     platform
     rendering
     scene
+    runtime
 )
 
 foreach(module ${ENGINE_MODULES})
