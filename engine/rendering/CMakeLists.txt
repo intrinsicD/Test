@@ -9,6 +9,11 @@ target_include_directories(${target_name}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_compile_definitions(${target_name}
+    PRIVATE
+        ENGINE_RENDERING_EXPORTS
+)
+
 # Rendering depends on core platform layers.
 target_link_libraries(${target_name}
     PUBLIC

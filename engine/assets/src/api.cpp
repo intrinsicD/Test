@@ -7,3 +7,7 @@ std::string_view module_name() noexcept {
 }
 
 }  // namespace engine::assets
+
+extern "C" ENGINE_ASSETS_API const char* engine_assets_module_name() noexcept {
+    return engine::assets::module_name().data();
+}

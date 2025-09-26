@@ -8,3 +8,8 @@ target_include_directories(${target_name}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+target_compile_definitions(${target_name}
+    PRIVATE
+        ENGINE_CORE_EXPORTS
+)

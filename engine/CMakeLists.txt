@@ -1,4 +1,5 @@
 set(ENGINE_MODULES
+    math
     animation
     assets
     compute
@@ -9,6 +10,7 @@ set(ENGINE_MODULES
     platform
     rendering
     scene
+    runtime
 )
 
 foreach(module ${ENGINE_MODULES})
