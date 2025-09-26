@@ -7,3 +7,7 @@ std::string_view module_name() noexcept {
 }
 
 }  // namespace engine::geometry
+
+extern "C" ENGINE_GEOMETRY_API const char* engine_geometry_module_name() noexcept {
+    return engine::geometry::module_name().data();
+}
