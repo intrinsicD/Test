@@ -29,3 +29,7 @@ target_compile_definitions(${target_name}
     PRIVATE
         ENGINE_RUNTIME_EXPORTS
 )
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
