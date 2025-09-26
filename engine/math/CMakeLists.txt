@@ -7,3 +7,7 @@ target_include_directories(engine_math
 
 # Enable CUDA consumption by marking host/device capable headers.
 # Consumers can include this target without linking additional objects.
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

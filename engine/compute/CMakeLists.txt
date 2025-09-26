@@ -21,3 +21,7 @@ target_link_libraries(${target_name}
         engine_math
         engine_compute_cuda
 )
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
