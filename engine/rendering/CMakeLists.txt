@@ -20,3 +20,7 @@ target_link_libraries(${target_name}
         engine_core
         engine_platform
 )
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
