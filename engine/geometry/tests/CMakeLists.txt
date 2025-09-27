@@ -1,5 +1,6 @@
 add_executable(engine_geometry_tests
     test_module.cpp
+    test_shapes.cpp
 )
 
 set_target_properties(engine_geometry_tests PROPERTIES
