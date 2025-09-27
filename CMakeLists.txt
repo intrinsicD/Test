@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(Modular3GEngine LANGUAGES CXX)
+project(Modular3GEngine LANGUAGES CXX C)
 
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
