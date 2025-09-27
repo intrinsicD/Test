@@ -2,7 +2,16 @@ set(target_name engine_geometry)
 
 add_library(${target_name}
     src/api.cpp
-    src/shapes.cpp
+    src/shapes/aabb.cpp
+    src/shapes/cylinder.cpp
+    src/shapes/ellipsoid.cpp
+    src/shapes/line.cpp
+    src/shapes/obb.cpp
+    src/shapes/plane.cpp
+    src/shapes/ray.cpp
+    src/shapes/segment.cpp
+    src/shapes/sphere.cpp
+    src/shapes/triangle.cpp
 )
 
 target_include_directories(${target_name}

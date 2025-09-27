@@ -1,0 +1,13 @@
+# Exporters
+
+## Purpose
+- Engine source tree.
+- Input/output subsystems.
+- Asset exporters.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.
