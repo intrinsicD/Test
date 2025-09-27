@@ -2,6 +2,7 @@ set(target_name engine_geometry)
 
 add_library(${target_name}
     src/api.cpp
+    src/property_registry.cpp
     src/shapes/aabb.cpp
     src/shapes/cylinder.cpp
     src/shapes/ellipsoid.cpp

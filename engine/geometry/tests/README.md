@@ -1,15 +1,5 @@
-# Tests
+# engine/geometry/tests
 
-## Purpose
-- Engine source tree.
-- Geometric primitives and operations.
-- Automated test suites.
-
-### Files
-- `CMakeLists.txt` – CMake build configuration.
-- `test_module.cpp` – Implementation for Test Module.
-- `test_shapes.cpp` – Unit coverage for shape utilities.
-
-## TODO
-- [ ] Grow the automated coverage for this area.
-- [ ] Add usage notes or examples for the listed files.
+This directory collects the C++ engine source tree, the geometry subsystem for meshes, primitives, and spatial algorithms, automated tests validating this layer.
+It now includes coverage for the property registry to guarantee optional-based lookup semantics, default value propagation, and removal bookkeeping.
+Future additions should place additional contributions to automated tests validating this layer here to keep related work easy to discover.
