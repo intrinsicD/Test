@@ -1,4 +1,14 @@
-# engine/tests/unit
+# Unit
 
-This directory collects the C++ engine source tree, cross-module integration, unit, and performance tests, unit test suites.
-Future additions should place additional contributions to unit test suites here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Automated test suites.
+- Unit tests.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Grow the automated coverage for this area.
+- [ ] Add usage notes or examples for the listed files.

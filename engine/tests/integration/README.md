@@ -1,4 +1,14 @@
-# engine/tests/integration
+# Integration
 
-This directory collects the C++ engine source tree, cross-module integration, unit, and performance tests, integration test scenarios.
-Future additions should place additional contributions to integration test scenarios here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Automated test suites.
+- Integration tests.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Grow the automated coverage for this area.
+- [ ] Add usage notes or examples for the listed files.

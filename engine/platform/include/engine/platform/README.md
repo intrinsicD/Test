@@ -1,4 +1,13 @@
-# engine/platform/include/engine/platform
+# Platform
 
-This directory collects the C++ engine source tree, platform abstraction layers for windowing, input, and file systems, public headers defining the subsystem API.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Platform abstraction layers.
+- Public headers.
+
+### Files
+- `api.hpp` – Header for API.
+
+## TODO
+- [ ] Extend the public headers as new APIs emerge.
+- [ ] Add usage notes or examples for the listed files.

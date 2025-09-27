@@ -1,4 +1,12 @@
-# engine/rendering/visibility
+# Visibility
 
-This directory collects the C++ engine source tree, the rendering subsystem covering GPU pipelines, shading, and visual resources, culling and visibility structures.
-Future additions should place additional contributions to culling and visibility structures here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Rendering pipeline and resources.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

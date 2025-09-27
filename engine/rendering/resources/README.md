@@ -1,4 +1,18 @@
-# engine/rendering/resources
+# Resources
 
-This directory collects the C++ engine source tree, the rendering subsystem covering GPU pipelines, shading, and visual resources, resource descriptions and supporting data.
-Future additions should place additional contributions to resource descriptions and supporting data here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Rendering pipeline and resources.
+- GPU resource management.
+
+### Subdirectories
+- `buffers/` – Buffer resources.
+- `samplers/` – Sampler resources.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Document ownership and responsibilities for each subfolder.
+- [ ] Add usage notes or examples for the listed files.

@@ -1,4 +1,17 @@
-# engine/math
+# Math
 
-This directory collects the C++ engine source tree, the math support library shared across the engine.
-Future additions should place additional contributions to the math support library shared across the engine here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Math helpers shared across the engine.
+
+### Subdirectories
+- `include/` – Public headers.
+- `tests/` – Automated test suites.
+
+### Files
+- `CMakeLists.txt` – CMake build configuration.
+
+## TODO
+- [ ] Keep this overview up to date with new additions.
+- [ ] Document ownership and responsibilities for each subfolder.
+- [ ] Add usage notes or examples for the listed files.

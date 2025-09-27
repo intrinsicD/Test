@@ -1,4 +1,13 @@
-# python/engine3g
+# Engine3G
 
-This directory collects Python tooling and bindings, Python entry points and packaging for the engine bindings.
-Future additions should place additional contributions to Python entry points and packaging for the engine bindings here to keep related work easy to discover.
+## Purpose
+- Python bindings and tools.
+- Python-side engine helpers.
+
+### Files
+- `__init__.py` – Python module for Init.
+- `loader.py` – Python module for Loader.
+
+## TODO
+- [ ] Keep this overview up to date with new additions.
+- [ ] Add usage notes or examples for the listed files.

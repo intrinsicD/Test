@@ -1,4 +1,13 @@
-# engine/geometry/decimation
+# Decimation
 
-This directory collects the C++ engine source tree, the geometry subsystem for meshes, primitives, and spatial algorithms, mesh simplification strategies.
-Future additions should place additional contributions to mesh simplification strategies here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Geometric primitives and operations.
+- Geometry simplification pipelines.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

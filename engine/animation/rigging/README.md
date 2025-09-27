@@ -1,4 +1,13 @@
-# engine/animation/rigging
+# Rigging
 
-This directory collects the C++ engine source tree, the animation subsystem for rigging, deformation, and playback, rigging assets and helpers.
-Future additions should place additional contributions to rigging assets and helpers here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Animation systems and tooling.
+- Rigging helpers.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

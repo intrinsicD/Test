@@ -1,4 +1,14 @@
-# engine/assets/shaders
+# Shaders
 
-This directory collects the C++ engine source tree, the asset pipeline and runtime asset data, shader source code and related includes.
-Future additions should place additional contributions to shader source code and related includes here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Asset management and import pipelines.
+- Shader code.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Provide representative shader examples.
+- [ ] Add usage notes or examples for the listed files.

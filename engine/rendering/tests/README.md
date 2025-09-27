@@ -1,4 +1,14 @@
-# engine/rendering/tests
+# Tests
 
-This directory collects the C++ engine source tree, the rendering subsystem covering GPU pipelines, shading, and visual resources, automated tests validating this layer.
-Future additions should place additional contributions to automated tests validating this layer here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Rendering pipeline and resources.
+- Automated test suites.
+
+### Files
+- `CMakeLists.txt` – CMake build configuration.
+- `test_module.cpp` – Implementation for Test Module.
+
+## TODO
+- [ ] Grow the automated coverage for this area.
+- [ ] Add usage notes or examples for the listed files.

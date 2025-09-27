@@ -1,4 +1,13 @@
-# engine/tools/profiling
+# Profiling
 
-This directory collects the C++ engine source tree, developer tools, editors, and productivity pipelines, profiling utilities.
-Future additions should place additional contributions to profiling utilities here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Developer tooling.
+- Performance profiling utilities.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

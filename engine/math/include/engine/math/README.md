@@ -1,4 +1,17 @@
-# engine/math/include/engine/math
+# Math
 
-This directory collects the C++ engine source tree, the math support library shared across the engine, public headers defining the subsystem API.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Math helpers shared across the engine.
+- Public headers.
+
+### Files
+- `common.hpp` – Header for Common.
+- `math.hpp` – Header for Math.
+- `matrix.hpp` – Header for Matrix.
+- `quaternion.hpp` – Header for Quaternion.
+- `vector.hpp` – Header for Vector.
+
+## TODO
+- [ ] Extend the public headers as new APIs emerge.
+- [ ] Add usage notes or examples for the listed files.

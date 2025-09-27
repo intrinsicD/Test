@@ -1,4 +1,12 @@
-# third_party/googletest/src
+# Src
 
-This directory collects external dependencies and vendored libraries, the googletest module, C++ implementation files.
-Future additions should place additional contributions to C++ implementation files here to keep related work easy to discover.
+## Purpose
+- External dependencies.
+- Source files.
+
+### Files
+- `gtest_main.cpp` – Implementation for Gtest Main.
+
+## TODO
+- [ ] Expand the runtime features supported here.
+- [ ] Add usage notes or examples for the listed files.

@@ -1,4 +1,18 @@
-# engine/runtime
+# Runtime
 
-This directory collects the C++ engine source tree, runtime integration glue for packaging and deployment.
-Future additions should place additional contributions to runtime integration glue for packaging and deployment here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Runtime glue and integration.
+
+### Subdirectories
+- `include/` – Public headers.
+- `src/` – Source files.
+- `tests/` – Automated test suites.
+
+### Files
+- `CMakeLists.txt` – CMake build configuration.
+
+## TODO
+- [ ] Keep this overview up to date with new additions.
+- [ ] Document ownership and responsibilities for each subfolder.
+- [ ] Add usage notes or examples for the listed files.

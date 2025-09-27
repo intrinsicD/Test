@@ -1,4 +1,13 @@
-# engine/io/exporters
+# Exporters
 
-This directory collects the C++ engine source tree, the input/output subsystem for importers, exporters, and data caches, data export pipelines.
-Future additions should place additional contributions to data export pipelines here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Input/output subsystems.
+- Asset exporters.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

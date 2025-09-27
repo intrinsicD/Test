@@ -1,4 +1,12 @@
-# third_party/googletest/include/gtest
+# Gtest
 
-This directory collects external dependencies and vendored libraries, the public include namespace gtest, the googletest module, public headers defining the subsystem API.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+## Purpose
+- External dependencies.
+- Public headers.
+
+### Files
+- `gtest.h` – Header for Gtest.
+
+## TODO
+- [ ] Extend the public headers as new APIs emerge.
+- [ ] Add usage notes or examples for the listed files.

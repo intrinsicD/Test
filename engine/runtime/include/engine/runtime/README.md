@@ -1,4 +1,13 @@
-# engine/runtime/include/engine/runtime
+# Runtime
 
-This directory collects the C++ engine source tree, runtime integration glue for packaging and deployment, public headers defining the subsystem API.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Runtime glue and integration.
+- Public headers.
+
+### Files
+- `api.hpp` – Header for API.
+
+## TODO
+- [ ] Extend the public headers as new APIs emerge.
+- [ ] Add usage notes or examples for the listed files.

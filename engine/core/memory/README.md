@@ -1,4 +1,12 @@
-# engine/core/memory
+# Memory
 
-This directory collects the C++ engine source tree, the core runtime, memory, and application infrastructure, memory allocators and strategies.
-Future additions should place additional contributions to memory allocators and strategies here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Core runtime services.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

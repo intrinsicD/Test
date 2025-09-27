@@ -1,4 +1,13 @@
-# engine/geometry/mesh
+# Mesh
 
-This directory collects the C++ engine source tree, the geometry subsystem for meshes, primitives, and spatial algorithms, mesh processing utilities and data.
-Future additions should place additional contributions to mesh processing utilities and data here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Geometric primitives and operations.
+- Mesh processing helpers.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

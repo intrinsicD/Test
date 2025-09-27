@@ -1,4 +1,13 @@
-# engine/rendering/pipeline
+# Pipeline
 
-This directory collects the C++ engine source tree, the rendering subsystem covering GPU pipelines, shading, and visual resources, graphics pipeline orchestration.
-Future additions should place additional contributions to graphics pipeline orchestration here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Rendering pipeline and resources.
+- Render pipeline configuration.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

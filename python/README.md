@@ -1,4 +1,11 @@
-# python
+# Python
 
-This directory collects Python tooling and bindings.
-Future additions should place additional contributions to Python tooling and bindings here to keep related work easy to discover.
+## Purpose
+- Python bindings and tools.
+
+### Subdirectories
+- `engine3g/` – Python-side engine helpers.
+
+## TODO
+- [ ] Keep this overview up to date with new additions.
+- [ ] Document ownership and responsibilities for each subfolder.

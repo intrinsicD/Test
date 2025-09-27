@@ -1,4 +1,13 @@
-# engine/rendering/include/engine/rendering
+# Rendering
 
-This directory collects the C++ engine source tree, the rendering subsystem covering GPU pipelines, shading, and visual resources, public headers defining the subsystem API.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Rendering pipeline and resources.
+- Public headers.
+
+### Files
+- `api.hpp` – Header for API.
+
+## TODO
+- [ ] Extend the public headers as new APIs emerge.
+- [ ] Add usage notes or examples for the listed files.

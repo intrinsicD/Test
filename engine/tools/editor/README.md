@@ -1,4 +1,13 @@
-# engine/tools/editor
+# Editor
 
-This directory collects the C++ engine source tree, developer tools, editors, and productivity pipelines, editor tooling.
-Future additions should place additional contributions to editor tooling here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Developer tooling.
+- Editor tooling.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

@@ -1,4 +1,14 @@
-# engine/rendering/backend/metal
+# Metal
 
-This directory collects the C++ engine source tree, the rendering subsystem covering GPU pipelines, shading, and visual resources, backend-specific implementations, Metal backend glue.
-Future additions should place additional contributions to Metal backend glue here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Rendering pipeline and resources.
+- Graphics API backends.
+- Metal backend glue.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

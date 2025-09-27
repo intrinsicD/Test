@@ -1,4 +1,13 @@
-# engine/animation/include/engine/animation
+# Animation
 
-This directory collects the C++ engine source tree, the animation subsystem for rigging, deformation, and playback, public headers defining the subsystem API.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Animation systems and tooling.
+- Public headers.
+
+### Files
+- `api.hpp` – Header for API.
+
+## TODO
+- [ ] Extend the public headers as new APIs emerge.
+- [ ] Add usage notes or examples for the listed files.

@@ -1,4 +1,13 @@
-# engine/io/include/engine/io
+# Io
 
-This directory collects the C++ engine source tree, the input/output subsystem for importers, exporters, and data caches, public headers defining the subsystem API.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Input/output subsystems.
+- Public headers.
+
+### Files
+- `api.hpp` – Header for API.
+
+## TODO
+- [ ] Extend the public headers as new APIs emerge.
+- [ ] Add usage notes or examples for the listed files.

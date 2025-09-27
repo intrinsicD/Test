@@ -1,4 +1,12 @@
-# engine/scene/systems
+# Systems
 
-This directory collects the C++ engine source tree, the scene management and entity component system, runtime systems operating on components.
-Future additions should place additional contributions to runtime systems operating on components here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Scene graph and component systems.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

@@ -1,4 +1,12 @@
-# scripts/ci
+# Ci
 
-This directory collects automation scripts and developer tooling, continuous integration automation.
-Future additions should place additional contributions to continuous integration automation here to keep related work easy to discover.
+## Purpose
+- Automation scripts.
+- Continuous integration scripts.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

@@ -1,4 +1,19 @@
-# engine/compute/cuda
+# Cuda
 
-This directory collects the C++ engine source tree, the general compute subsystem, including CPU and GPU acceleration paths, CUDA-specific compute paths.
-Future additions should place additional contributions to CUDA-specific compute paths here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- GPU and parallel compute utilities.
+- CUDA powered compute.
+
+### Subdirectories
+- `include/` – Public headers.
+- `src/` – Source files.
+- `tests/` – Automated test suites.
+
+### Files
+- `CMakeLists.txt` – CMake build configuration.
+
+## TODO
+- [ ] Keep this overview up to date with new additions.
+- [ ] Document ownership and responsibilities for each subfolder.
+- [ ] Add usage notes or examples for the listed files.

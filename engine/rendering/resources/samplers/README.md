@@ -1,4 +1,14 @@
-# engine/rendering/resources/samplers
+# Samplers
 
-This directory collects the C++ engine source tree, the rendering subsystem covering GPU pipelines, shading, and visual resources, resource descriptions and supporting data, sampler definitions and presets.
-Future additions should place additional contributions to sampler definitions and presets here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Rendering pipeline and resources.
+- GPU resource management.
+- Sampler resources.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

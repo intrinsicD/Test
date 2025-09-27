@@ -1,4 +1,11 @@
-# third_party
+# Third Party
 
-This directory collects external dependencies and vendored libraries.
-Future additions should place additional contributions to external dependencies and vendored libraries here to keep related work easy to discover.
+## Purpose
+- External dependencies.
+
+### Subdirectories
+- `googletest/` – Googletest resources.
+
+## TODO
+- [ ] Keep this overview up to date with new additions.
+- [ ] Document ownership and responsibilities for each subfolder.

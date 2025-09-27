@@ -1,4 +1,16 @@
-# engine/rendering/materials/shaders/glsl
+# Glsl
 
-This directory collects the C++ engine source tree, the rendering subsystem covering GPU pipelines, shading, and visual resources, material and shader authoring assets, shader source code and related includes, GLSL shaders.
-Future additions should place additional contributions to GLSL shaders here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Rendering pipeline and resources.
+- Material definitions and shaders.
+- Shader code.
+- GLSL shader code.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Provide representative shader examples.
+- [ ] Add usage notes or examples for the listed files.

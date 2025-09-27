@@ -1,4 +1,13 @@
-# engine/assets/include/engine/assets
+# Assets
 
-This directory collects the C++ engine source tree, the asset pipeline and runtime asset data, public headers defining the subsystem API.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Asset management and import pipelines.
+- Public headers.
+
+### Files
+- `api.hpp` – Header for API.
+
+## TODO
+- [ ] Extend the public headers as new APIs emerge.
+- [ ] Add usage notes or examples for the listed files.

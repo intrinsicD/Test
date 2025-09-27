@@ -1,4 +1,13 @@
-# engine/io/src
+# Src
 
-This directory collects the C++ engine source tree, the input/output subsystem for importers, exporters, and data caches, C++ implementation files.
-Future additions should place additional contributions to C++ implementation files here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Input/output subsystems.
+- Source files.
+
+### Files
+- `api.cpp` – Implementation for API.
+
+## TODO
+- [ ] Expand the runtime features supported here.
+- [ ] Add usage notes or examples for the listed files.

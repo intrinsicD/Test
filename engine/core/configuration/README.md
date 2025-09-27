@@ -1,4 +1,12 @@
-# engine/core/configuration
+# Configuration
 
-This directory collects the C++ engine source tree, the core runtime, memory, and application infrastructure, configuration loading and validation.
-Future additions should place additional contributions to configuration loading and validation here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Core runtime services.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

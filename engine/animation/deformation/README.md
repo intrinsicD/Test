@@ -1,4 +1,13 @@
-# engine/animation/deformation
+# Deformation
 
-This directory collects the C++ engine source tree, the animation subsystem for rigging, deformation, and playback, deformation workflows.
-Future additions should place additional contributions to deformation workflows here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Animation systems and tooling.
+- Deformation workflows.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

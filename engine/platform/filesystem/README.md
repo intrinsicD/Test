@@ -1,4 +1,13 @@
-# engine/platform/filesystem
+# Filesystem
 
-This directory collects the C++ engine source tree, platform abstraction layers for windowing, input, and file systems, filesystem adapters.
-Future additions should place additional contributions to filesystem adapters here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Platform abstraction layers.
+- Filesystem abstractions.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

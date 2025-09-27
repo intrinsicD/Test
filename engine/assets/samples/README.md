@@ -1,4 +1,13 @@
-# engine/assets/samples
+# Samples
 
-This directory collects the C++ engine source tree, the asset pipeline and runtime asset data, the samples module.
-Future additions should place additional contributions to samples resources here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Asset management and import pipelines.
+- Sample content.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

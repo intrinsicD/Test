@@ -1,4 +1,13 @@
-# engine/platform/input
+# Input
 
-This directory collects the C++ engine source tree, platform abstraction layers for windowing, input, and file systems, input device abstraction.
-Future additions should place additional contributions to input device abstraction here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Platform abstraction layers.
+- Input handling.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

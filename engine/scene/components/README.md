@@ -1,4 +1,13 @@
-# engine/scene/components
+# Components
 
-This directory collects the C++ engine source tree, the scene management and entity component system, entity component definitions.
-Future additions should place additional contributions to entity component definitions here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Scene graph and component systems.
+- Scene components.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+
+## TODO
+- [ ] Replace the placeholder with real content.
+- [ ] Add usage notes or examples for the listed files.

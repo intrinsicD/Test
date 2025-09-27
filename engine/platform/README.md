@@ -1,4 +1,22 @@
-# engine/platform
+# Platform
 
-This directory collects the C++ engine source tree, platform abstraction layers for windowing, input, and file systems.
-Future additions should place additional contributions to platform abstraction layers for windowing, input, and file systems here to keep related work easy to discover.
+## Purpose
+- Engine source tree.
+- Platform abstraction layers.
+
+### Subdirectories
+- `filesystem/` – Filesystem abstractions.
+- `include/` – Public headers.
+- `input/` – Input handling.
+- `src/` – Source files.
+- `tests/` – Automated test suites.
+- `windowing/` – Window system integration.
+
+### Files
+- `.gitkeep` – Placeholder to keep the directory in git.
+- `CMakeLists.txt` – CMake build configuration.
+
+## TODO
+- [ ] Keep this overview up to date with new additions.
+- [ ] Document ownership and responsibilities for each subfolder.
+- [ ] Add usage notes or examples for the listed files.
