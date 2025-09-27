@@ -1,4 +1,5 @@
 #include <array>
+#include <cmath>
 #include <type_traits>
 
 #include <gtest/gtest.h>
@@ -7,6 +8,7 @@
 #include "engine/math/math.hpp"
 #include "engine/math/matrix.hpp"
 #include "engine/math/vector.hpp"
+#include "engine/math/quaternion.hpp"
 
 using namespace engine::math;
 
@@ -17,6 +19,14 @@ void ExpectVectorEqual(const vector<T, N>& value, const std::array<T, N>& expect
     for (std::size_t i = 0; i < N; ++i) {
         EXPECT_EQ(value[i], expected[i]);
     }
+}
+
+template <typename T>
+void ExpectQuaternionEqual(const quaternion<T>& value, const std::array<T, 4>& expected) {
+    EXPECT_EQ(value.w, expected[0]);
+    EXPECT_EQ(value.x, expected[1]);
+    EXPECT_EQ(value.y, expected[2]);
+    EXPECT_EQ(value.z, expected[3]);
 }
 
 }  // namespace
@@ -199,6 +209,62 @@ TEST(Matrix, MatrixMatrixMultiplication) {
     const matrix<int, 2, 2> result = lhs * rhs;
     ExpectVectorEqual(result[0], {58, 64});
     ExpectVectorEqual(result[1], {139, 154});
+}
+
+TEST(Quaternion, DefaultConstructedIsZeroInitialized) {
+    quaternion<int> value;
+    ExpectQuaternionEqual(value, {0, 0, 0, 0});
+}
+
+TEST(Quaternion, ComponentConstructorAssignsValues) {
+    const quaternion<float> value(1.0F, 2.0F, 3.0F, 4.0F);
+    ExpectQuaternionEqual(value, {1.0F, 2.0F, 3.0F, 4.0F});
+}
+
+TEST(Quaternion, ArithmeticOperators) {
+    const quaternion<float> lhs(1.0F, 2.0F, 3.0F, 4.0F);
+    const quaternion<float> rhs(0.5F, 1.0F, -1.0F, 2.0F);
+
+    ExpectQuaternionEqual(lhs + rhs, {1.5F, 3.0F, 2.0F, 6.0F});
+    ExpectQuaternionEqual(lhs - rhs, {0.5F, 1.0F, 4.0F, 2.0F});
+    ExpectQuaternionEqual(lhs * 2.0F, {2.0F, 4.0F, 6.0F, 8.0F});
+    ExpectQuaternionEqual(2.0F * lhs, {2.0F, 4.0F, 6.0F, 8.0F});
+    ExpectQuaternionEqual(lhs / 2.0F, {0.5F, 1.0F, 1.5F, 2.0F});
+}
+
+TEST(Quaternion, HamiltonProduct) {
+    const quaternion<float> identity(1.0F, 0.0F, 0.0F, 0.0F);
+    const quaternion<float> value(0.0F, 1.0F, 0.0F, 0.0F);
+    const quaternion<float> other(0.0F, 0.0F, 1.0F, 0.0F);
+
+    EXPECT_TRUE(identity * value == value);
+    const quaternion<float> result = value * other;
+    ExpectQuaternionEqual(result, {-0.0F, 0.0F, 0.0F, 1.0F});
+}
+
+TEST(Quaternion, ConjugateLengthNormalizeAndInverse) {
+    const quaternion<double> value(1.0, 2.0, 3.0, 4.0);
+
+    const quaternion<double> conjugated = conjugate(value);
+    ExpectQuaternionEqual(conjugated, {1.0, -2.0, -3.0, -4.0});
+
+    const double tolerance = 1e-12;
+    EXPECT_TRUE(std::abs(length_squared(value) - 30.0) <= tolerance);
+    EXPECT_TRUE(std::abs(length(value) - std::sqrt(30.0)) <= tolerance);
+
+    const quaternion<double> normalized = normalize(value);
+    const double inv_len = 1.0 / std::sqrt(30.0);
+    EXPECT_TRUE(std::abs(normalized.w - 1.0 * inv_len) <= tolerance);
+    EXPECT_TRUE(std::abs(normalized.x - 2.0 * inv_len) <= tolerance);
+    EXPECT_TRUE(std::abs(normalized.y - 3.0 * inv_len) <= tolerance);
+    EXPECT_TRUE(std::abs(normalized.z - 4.0 * inv_len) <= tolerance);
+
+    const quaternion<double> inverse_value = inverse(value);
+    const quaternion<double> identity = value * inverse_value;
+    EXPECT_TRUE(std::abs(identity.w - 1.0) <= tolerance);
+    EXPECT_TRUE(std::abs(identity.x) <= tolerance);
+    EXPECT_TRUE(std::abs(identity.y) <= tolerance);
+    EXPECT_TRUE(std::abs(identity.z) <= tolerance);
 }
 
 TEST(Matrix, Transpose) {
