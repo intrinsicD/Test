@@ -136,8 +136,8 @@ private:
         VertexHandle v1{};
     };
 
-    MeshPropertySet vertex_props_;
-    MeshPropertySet edge_props_;
+    PropertySet vertex_props_;
+    PropertySet edge_props_;
 
     std::vector<EdgeRecord> edges_;
     std::vector<std::vector<EdgeHandle>> adjacency_;

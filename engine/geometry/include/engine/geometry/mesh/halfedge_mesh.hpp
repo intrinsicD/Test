@@ -699,10 +699,10 @@ private:
     friend void read_pmp(HalfedgeMesh&, const std::filesystem::path&);
     friend void write_pmp(const HalfedgeMesh&, const std::filesystem::path&, const IOFlags&);
 
-    MeshPropertySet vertex_props_;
-    MeshPropertySet halfedge_props_;
-    MeshPropertySet edge_props_;
-    MeshPropertySet face_props_;
+    PropertySet vertex_props_;
+    PropertySet halfedge_props_;
+    PropertySet edge_props_;
+    PropertySet face_props_;
 
     VertexProperty<Point3> vertex_points_;
     VertexProperty<VertexConnectivity> vertex_connectivity_;

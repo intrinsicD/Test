@@ -46,9 +46,9 @@ public:
     [[nodiscard]] decltype(auto) operator[](HandleT handle) const { return Property<T>::operator[](handle.index()); }
 };
 
-class MeshPropertySet {
+class PropertySet {
 public:
-    MeshPropertySet() = default;
+    PropertySet() = default;
 
     [[nodiscard]] std::size_t size() const noexcept { return registry_.size(); }
 
@@ -84,48 +84,48 @@ private:
     PropertyRegistry registry_;
 };
 
-inline void MeshPropertySet::clear()
+inline void PropertySet::clear()
 {
     registry_.clear();
 }
 
-inline void MeshPropertySet::reserve(std::size_t n)
+inline void PropertySet::reserve(std::size_t n)
 {
     registry_.reserve(n);
 }
 
-inline void MeshPropertySet::resize(std::size_t n)
+inline void PropertySet::resize(std::size_t n)
 {
     registry_.resize(n);
 }
 
-inline void MeshPropertySet::push_back()
+inline void PropertySet::push_back()
 {
     registry_.push_back();
 }
 
-inline void MeshPropertySet::swap(std::size_t i0, std::size_t i1)
+inline void PropertySet::swap(std::size_t i0, std::size_t i1)
 {
     registry_.swap(i0, i1);
 }
 
-inline void MeshPropertySet::shrink_to_fit()
+inline void PropertySet::shrink_to_fit()
 {
     registry_.shrink_to_fit();
 }
 
-inline bool MeshPropertySet::exists(std::string_view name) const
+inline bool PropertySet::exists(std::string_view name) const
 {
     return registry_.contains(name);
 }
 
-inline std::vector<std::string> MeshPropertySet::properties() const
+inline std::vector<std::string> PropertySet::properties() const
 {
     return registry_.property_names();
 }
 
 template <class T>
-inline Property<T> MeshPropertySet::add(std::string name, T default_value)
+inline Property<T> PropertySet::add(std::string name, T default_value)
 {
     if (auto handle = registry_.add<T>(std::move(name), std::move(default_value)))
     {
@@ -135,7 +135,7 @@ inline Property<T> MeshPropertySet::add(std::string name, T default_value)
 }
 
 template <class T>
-inline Property<T> MeshPropertySet::get(std::string_view name)
+inline Property<T> PropertySet::get(std::string_view name)
 {
     if (auto handle = registry_.get<T>(name))
     {
@@ -145,24 +145,26 @@ inline Property<T> MeshPropertySet::get(std::string_view name)
 }
 
 template <class T>
-inline Property<T> MeshPropertySet::get(std::string_view name) const
+inline Property<T> PropertySet::get(std::string_view name) const
 {
-    return const_cast<MeshPropertySet*>(this)->get<T>(name);
+    return const_cast<PropertySet*>(this)->get<T>(name);
 }
 
 template <class T>
-inline Property<T> MeshPropertySet::get_or_add(std::string name, T default_value)
+inline Property<T> PropertySet::get_or_add(std::string name, T default_value)
 {
     auto handle = registry_.get_or_add<T>(std::move(name), std::move(default_value));
     return Property<T>(handle);
 }
 
 template <class T>
-inline void MeshPropertySet::remove(Property<T>& property)
+inline void PropertySet::remove(Property<T>& property)
 {
     registry_.remove(property.handle());
     property.reset();
 }
+
+using MeshPropertySet [[deprecated("Use PropertySet instead")]] = PropertySet;
 
 } // namespace engine::geometry
 
