@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/geometry/property_set.hpp"
+#include "../properties/property_set.hpp"
 #include "engine/math/vector.hpp"
 
 #include <compare>

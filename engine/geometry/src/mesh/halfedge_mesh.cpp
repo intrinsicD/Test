@@ -4,234 +4,6 @@
 
 namespace engine::geometry {
 
-std::ostream& operator<<(std::ostream& os, VertexHandle v)
-{
-    return os << 'v' << v.index();
-}
-
-std::ostream& operator<<(std::ostream& os, HalfedgeHandle h)
-{
-    return os << 'h' << h.index();
-}
-
-std::ostream& operator<<(std::ostream& os, EdgeHandle e)
-{
-    return os << 'e' << e.index();
-}
-
-std::ostream& operator<<(std::ostream& os, FaceHandle f)
-{
-    return os << 'f' << f.index();
-}
-
-HalfedgeMesh::VertexIterator::VertexIterator(VertexHandle v, const HalfedgeMesh* mesh)
-    : handle_(v), mesh_(mesh)
-{
-    if (mesh_ && mesh_->has_garbage())
-    {
-        while (mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = VertexHandle(handle_.index() + 1);
-        }
-    }
-}
-
-HalfedgeMesh::VertexIterator& HalfedgeMesh::VertexIterator::operator++()
-{
-    handle_ = VertexHandle(handle_.index() + 1);
-    if (mesh_)
-    {
-        while (mesh_->has_garbage() && mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = VertexHandle(handle_.index() + 1);
-        }
-    }
-    return *this;
-}
-
-HalfedgeMesh::VertexIterator HalfedgeMesh::VertexIterator::operator++(int)
-{
-    VertexIterator tmp = *this;
-    ++(*this);
-    return tmp;
-}
-
-HalfedgeMesh::VertexIterator& HalfedgeMesh::VertexIterator::operator--()
-{
-    handle_ = VertexHandle(handle_.index() - 1);
-    if (mesh_)
-    {
-        while (mesh_->has_garbage() && mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = VertexHandle(handle_.index() - 1);
-        }
-    }
-    return *this;
-}
-
-HalfedgeMesh::VertexIterator HalfedgeMesh::VertexIterator::operator--(int)
-{
-    VertexIterator tmp = *this;
-    --(*this);
-    return tmp;
-}
-
-HalfedgeMesh::HalfedgeIterator::HalfedgeIterator(HalfedgeHandle h, const HalfedgeMesh* mesh)
-    : handle_(h), mesh_(mesh)
-{
-    if (mesh_ && mesh_->has_garbage())
-    {
-        while (mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = HalfedgeHandle(handle_.index() + 1);
-        }
-    }
-}
-
-HalfedgeMesh::HalfedgeIterator& HalfedgeMesh::HalfedgeIterator::operator++()
-{
-    handle_ = HalfedgeHandle(handle_.index() + 1);
-    if (mesh_)
-    {
-        while (mesh_->has_garbage() && mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = HalfedgeHandle(handle_.index() + 1);
-        }
-    }
-    return *this;
-}
-
-HalfedgeMesh::HalfedgeIterator HalfedgeMesh::HalfedgeIterator::operator++(int)
-{
-    HalfedgeIterator tmp = *this;
-    ++(*this);
-    return tmp;
-}
-
-HalfedgeMesh::HalfedgeIterator& HalfedgeMesh::HalfedgeIterator::operator--()
-{
-    handle_ = HalfedgeHandle(handle_.index() - 1);
-    if (mesh_)
-    {
-        while (mesh_->has_garbage() && mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = HalfedgeHandle(handle_.index() - 1);
-        }
-    }
-    return *this;
-}
-
-HalfedgeMesh::HalfedgeIterator HalfedgeMesh::HalfedgeIterator::operator--(int)
-{
-    HalfedgeIterator tmp = *this;
-    --(*this);
-    return tmp;
-}
-
-HalfedgeMesh::EdgeIterator::EdgeIterator(EdgeHandle e, const HalfedgeMesh* mesh)
-    : handle_(e), mesh_(mesh)
-{
-    if (mesh_ && mesh_->has_garbage())
-    {
-        while (mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = EdgeHandle(handle_.index() + 1);
-        }
-    }
-}
-
-HalfedgeMesh::EdgeIterator& HalfedgeMesh::EdgeIterator::operator++()
-{
-    handle_ = EdgeHandle(handle_.index() + 1);
-    if (mesh_)
-    {
-        while (mesh_->has_garbage() && mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = EdgeHandle(handle_.index() + 1);
-        }
-    }
-    return *this;
-}
-
-HalfedgeMesh::EdgeIterator HalfedgeMesh::EdgeIterator::operator++(int)
-{
-    EdgeIterator tmp = *this;
-    ++(*this);
-    return tmp;
-}
-
-HalfedgeMesh::EdgeIterator& HalfedgeMesh::EdgeIterator::operator--()
-{
-    handle_ = EdgeHandle(handle_.index() - 1);
-    if (mesh_)
-    {
-        while (mesh_->has_garbage() && mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = EdgeHandle(handle_.index() - 1);
-        }
-    }
-    return *this;
-}
-
-HalfedgeMesh::EdgeIterator HalfedgeMesh::EdgeIterator::operator--(int)
-{
-    EdgeIterator tmp = *this;
-    --(*this);
-    return tmp;
-}
-
-HalfedgeMesh::FaceIterator::FaceIterator(FaceHandle f, const HalfedgeMesh* mesh)
-    : handle_(f), mesh_(mesh)
-{
-    if (mesh_ && mesh_->has_garbage())
-    {
-        while (mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = FaceHandle(handle_.index() + 1);
-        }
-    }
-}
-
-HalfedgeMesh::FaceIterator& HalfedgeMesh::FaceIterator::operator++()
-{
-    handle_ = FaceHandle(handle_.index() + 1);
-    if (mesh_)
-    {
-        while (mesh_->has_garbage() && mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = FaceHandle(handle_.index() + 1);
-        }
-    }
-    return *this;
-}
-
-HalfedgeMesh::FaceIterator HalfedgeMesh::FaceIterator::operator++(int)
-{
-    FaceIterator tmp = *this;
-    ++(*this);
-    return tmp;
-}
-
-HalfedgeMesh::FaceIterator& HalfedgeMesh::FaceIterator::operator--()
-{
-    handle_ = FaceHandle(handle_.index() - 1);
-    if (mesh_)
-    {
-        while (mesh_->has_garbage() && mesh_->is_valid(handle_) && mesh_->is_deleted(handle_))
-        {
-            handle_ = FaceHandle(handle_.index() - 1);
-        }
-    }
-    return *this;
-}
-
-HalfedgeMesh::FaceIterator HalfedgeMesh::FaceIterator::operator--(int)
-{
-    FaceIterator tmp = *this;
-    --(*this);
-    return tmp;
-}
-
 HalfedgeMesh::VertexAroundVertexCirculator::VertexAroundVertexCirculator(const HalfedgeMesh* mesh, VertexHandle v)
     : mesh_(mesh)
 {
@@ -746,7 +518,7 @@ HalfedgeMesh::VertexIterator HalfedgeMesh::vertices_begin() const
 
 HalfedgeMesh::VertexIterator HalfedgeMesh::vertices_end() const
 {
-    return VertexIterator(VertexHandle(static_cast<MeshIndex>(vertices_size())), this);
+    return VertexIterator(VertexHandle(static_cast<PropertyIndex>(vertices_size())), this);
 }
 
 HalfedgeMesh::HalfedgeIterator HalfedgeMesh::halfedges_begin() const
@@ -756,7 +528,7 @@ HalfedgeMesh::HalfedgeIterator HalfedgeMesh::halfedges_begin() const
 
 HalfedgeMesh::HalfedgeIterator HalfedgeMesh::halfedges_end() const
 {
-    return HalfedgeIterator(HalfedgeHandle(static_cast<MeshIndex>(halfedges_size())), this);
+    return HalfedgeIterator(HalfedgeHandle(static_cast<PropertyIndex>(halfedges_size())), this);
 }
 
 HalfedgeMesh::EdgeIterator HalfedgeMesh::edges_begin() const
@@ -766,7 +538,7 @@ HalfedgeMesh::EdgeIterator HalfedgeMesh::edges_begin() const
 
 HalfedgeMesh::EdgeIterator HalfedgeMesh::edges_end() const
 {
-    return EdgeIterator(EdgeHandle(static_cast<MeshIndex>(edges_size())), this);
+    return EdgeIterator(EdgeHandle(static_cast<PropertyIndex>(edges_size())), this);
 }
 
 HalfedgeMesh::FaceIterator HalfedgeMesh::faces_begin() const
@@ -776,7 +548,7 @@ HalfedgeMesh::FaceIterator HalfedgeMesh::faces_begin() const
 
 HalfedgeMesh::FaceIterator HalfedgeMesh::faces_end() const
 {
-    return FaceIterator(FaceHandle(static_cast<MeshIndex>(faces_size())), this);
+    return FaceIterator(FaceHandle(static_cast<PropertyIndex>(faces_size())), this);
 }
 
 bool HalfedgeMesh::is_boundary(VertexHandle v) const
@@ -1813,17 +1585,17 @@ void HalfedgeMesh::delete_face(FaceHandle f)
 
 VertexHandle HalfedgeMesh::new_vertex()
 {
-    if (vertices_size() >= kInvalidMeshIndex)
+    if (vertices_size() >= kInvalidPropertyIndex)
     {
         return VertexHandle();
     }
     vertex_props_.push_back();
-    return VertexHandle(static_cast<MeshIndex>(vertices_size() - 1));
+    return VertexHandle(static_cast<PropertyIndex>(vertices_size() - 1));
 }
 
 HalfedgeHandle HalfedgeMesh::new_edge()
 {
-    if (halfedges_size() >= kInvalidMeshIndex)
+    if (halfedges_size() >= kInvalidPropertyIndex)
     {
         return HalfedgeHandle();
     }
@@ -1832,14 +1604,14 @@ HalfedgeHandle HalfedgeMesh::new_edge()
     halfedge_props_.push_back();
     halfedge_props_.push_back();
 
-    return HalfedgeHandle(static_cast<MeshIndex>(halfedges_size() - 2));
+    return HalfedgeHandle(static_cast<PropertyIndex>(halfedges_size() - 2));
 }
 
 HalfedgeHandle HalfedgeMesh::new_edge(VertexHandle start, VertexHandle end)
 {
     assert(start != end);
 
-    if (halfedges_size() >= kInvalidMeshIndex)
+    if (halfedges_size() >= kInvalidPropertyIndex)
     {
         return HalfedgeHandle();
     }
@@ -1848,8 +1620,8 @@ HalfedgeHandle HalfedgeMesh::new_edge(VertexHandle start, VertexHandle end)
     halfedge_props_.push_back();
     halfedge_props_.push_back();
 
-    const HalfedgeHandle h0(static_cast<MeshIndex>(halfedges_size() - 2));
-    const HalfedgeHandle h1(static_cast<MeshIndex>(halfedges_size() - 1));
+    const HalfedgeHandle h0(static_cast<PropertyIndex>(halfedges_size() - 2));
+    const HalfedgeHandle h1(static_cast<PropertyIndex>(halfedges_size() - 1));
 
     set_vertex(h0, end);
     set_vertex(h1, start);
@@ -1859,13 +1631,13 @@ HalfedgeHandle HalfedgeMesh::new_edge(VertexHandle start, VertexHandle end)
 
 FaceHandle HalfedgeMesh::new_face()
 {
-    if (faces_size() >= kInvalidMeshIndex)
+    if (faces_size() >= kInvalidPropertyIndex)
     {
         return FaceHandle();
     }
 
     face_props_.push_back();
-    return FaceHandle(static_cast<MeshIndex>(faces_size() - 1));
+    return FaceHandle(static_cast<PropertyIndex>(faces_size() - 1));
 }
 
 void HalfedgeMesh::garbage_collection()
@@ -1885,15 +1657,15 @@ void HalfedgeMesh::garbage_collection()
     FaceProperty<FaceHandle> fmap = add_face_property<FaceHandle>("f:garbage-collection");
     for (std::size_t i = 0; i < nv; ++i)
     {
-        vmap[VertexHandle(static_cast<MeshIndex>(i))] = VertexHandle(static_cast<MeshIndex>(i));
+        vmap[VertexHandle(static_cast<PropertyIndex>(i))] = VertexHandle(static_cast<PropertyIndex>(i));
     }
     for (std::size_t i = 0; i < nh; ++i)
     {
-        hmap[HalfedgeHandle(static_cast<MeshIndex>(i))] = HalfedgeHandle(static_cast<MeshIndex>(i));
+        hmap[HalfedgeHandle(static_cast<PropertyIndex>(i))] = HalfedgeHandle(static_cast<PropertyIndex>(i));
     }
     for (std::size_t i = 0; i < nf; ++i)
     {
-        fmap[FaceHandle(static_cast<MeshIndex>(i))] = FaceHandle(static_cast<MeshIndex>(i));
+        fmap[FaceHandle(static_cast<PropertyIndex>(i))] = FaceHandle(static_cast<PropertyIndex>(i));
     }
 
     if (nv > 0)
@@ -1903,11 +1675,11 @@ void HalfedgeMesh::garbage_collection()
 
         while (true)
         {
-            while (!vertex_deleted_[VertexHandle(static_cast<MeshIndex>(i0))] && i0 < i1)
+            while (!vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i0))] && i0 < i1)
             {
                 ++i0;
             }
-            while (vertex_deleted_[VertexHandle(static_cast<MeshIndex>(i1))] && i0 < i1)
+            while (vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i1))] && i0 < i1)
             {
                 --i1;
             }
@@ -1919,7 +1691,7 @@ void HalfedgeMesh::garbage_collection()
             vertex_props_.swap(i0, i1);
         }
 
-        nv = vertex_deleted_[VertexHandle(static_cast<MeshIndex>(i0))] ? i0 : i0 + 1;
+        nv = vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i0))] ? i0 : i0 + 1;
     }
 
     if (ne > 0)
@@ -1929,11 +1701,11 @@ void HalfedgeMesh::garbage_collection()
 
         while (true)
         {
-            while (!edge_deleted_[EdgeHandle(static_cast<MeshIndex>(i0))] && i0 < i1)
+            while (!edge_deleted_[EdgeHandle(static_cast<PropertyIndex>(i0))] && i0 < i1)
             {
                 ++i0;
             }
-            while (edge_deleted_[EdgeHandle(static_cast<MeshIndex>(i1))] && i0 < i1)
+            while (edge_deleted_[EdgeHandle(static_cast<PropertyIndex>(i1))] && i0 < i1)
             {
                 --i1;
             }
@@ -1947,7 +1719,7 @@ void HalfedgeMesh::garbage_collection()
             halfedge_props_.swap(2 * i0 + 1, 2 * i1 + 1);
         }
 
-        ne = edge_deleted_[EdgeHandle(static_cast<MeshIndex>(i0))] ? i0 : i0 + 1;
+        ne = edge_deleted_[EdgeHandle(static_cast<PropertyIndex>(i0))] ? i0 : i0 + 1;
         nh = 2 * ne;
     }
 
@@ -1958,11 +1730,11 @@ void HalfedgeMesh::garbage_collection()
 
         while (true)
         {
-            while (!face_deleted_[FaceHandle(static_cast<MeshIndex>(i0))] && i0 < i1)
+            while (!face_deleted_[FaceHandle(static_cast<PropertyIndex>(i0))] && i0 < i1)
             {
                 ++i0;
             }
-            while (face_deleted_[FaceHandle(static_cast<MeshIndex>(i1))] && i0 < i1)
+            while (face_deleted_[FaceHandle(static_cast<PropertyIndex>(i1))] && i0 < i1)
             {
                 --i1;
             }
@@ -1974,12 +1746,12 @@ void HalfedgeMesh::garbage_collection()
             face_props_.swap(i0, i1);
         }
 
-        nf = face_deleted_[FaceHandle(static_cast<MeshIndex>(i0))] ? i0 : i0 + 1;
+        nf = face_deleted_[FaceHandle(static_cast<PropertyIndex>(i0))] ? i0 : i0 + 1;
     }
 
     for (std::size_t i = 0; i < nv; ++i)
     {
-        auto v = VertexHandle(static_cast<MeshIndex>(i));
+        auto v = VertexHandle(static_cast<PropertyIndex>(i));
         if (!is_isolated(v))
         {
             set_halfedge(v, hmap[halfedge(v)]);
@@ -1988,7 +1760,7 @@ void HalfedgeMesh::garbage_collection()
 
     for (std::size_t i = 0; i < nh; ++i)
     {
-        auto h = HalfedgeHandle(static_cast<MeshIndex>(i));
+        auto h = HalfedgeHandle(static_cast<PropertyIndex>(i));
         set_vertex(h, vmap[to_vertex(h)]);
         set_next_halfedge(h, hmap[next_halfedge(h)]);
         if (!is_boundary(h))
@@ -1999,7 +1771,7 @@ void HalfedgeMesh::garbage_collection()
 
     for (std::size_t i = 0; i < nf; ++i)
     {
-        auto f = FaceHandle(static_cast<MeshIndex>(i));
+        auto f = FaceHandle(static_cast<PropertyIndex>(i));
         set_halfedge(f, hmap[halfedge(f)]);
     }
 

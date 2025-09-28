@@ -3,7 +3,8 @@ set(target_name engine_geometry)
 add_library(${target_name}
     src/api.cpp
     src/graph/graph.cpp
-    src/property_registry.cpp
+    src/properties/property_registry.cpp
+    src/properties/property_handle.cpp
     src/mesh/halfedge_mesh.cpp
     src/point_cloud.cpp
     src/shapes/aabb.cpp

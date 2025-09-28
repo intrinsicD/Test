@@ -1,22 +1,19 @@
 #pragma once
 
-#include "engine/geometry/property_registry.hpp"
-#include "engine/geometry/property_set.hpp"
+#include "engine/geometry/properties/property_registry.hpp"
+#include "engine/geometry/properties/property_set.hpp"
+#include "engine/geometry/properties/property_handle.hpp"
+#include "engine/geometry/iterators/iterators.hpp"
 #include "engine/math/vector.hpp"
 
-#include <array>
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
-#include <compare>
 #include <filesystem>
 #include <iterator>
 #include <limits>
 #include <optional>
-#include <ostream>
 #include <span>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -24,63 +21,6 @@ namespace engine::geometry {
 
 class HalfedgeMesh;
 
-using MeshIndex = std::uint32_t;
-
-constexpr MeshIndex kInvalidMeshIndex = std::numeric_limits<MeshIndex>::max();
-
-class MeshHandle {
-public:
-    using index_type = MeshIndex;
-
-    constexpr MeshHandle() noexcept = default;
-    explicit constexpr MeshHandle(index_type idx) noexcept : index_(idx) {}
-
-    [[nodiscard]] constexpr index_type index() const noexcept { return index_; }
-    [[nodiscard]] constexpr bool is_valid() const noexcept { return index_ != kInvalidMeshIndex; }
-    constexpr void reset() noexcept { index_ = kInvalidMeshIndex; }
-
-    [[nodiscard]] auto operator<=>(const MeshHandle&) const noexcept = default;
-
-protected:
-    index_type index_{kInvalidMeshIndex};
-};
-
-class VertexHandle final : public MeshHandle {
-public:
-    using MeshHandle::MeshHandle;
-};
-
-class HalfedgeHandle final : public MeshHandle {
-public:
-    using MeshHandle::MeshHandle;
-};
-
-class EdgeHandle final : public MeshHandle {
-public:
-    using MeshHandle::MeshHandle;
-};
-
-class FaceHandle final : public MeshHandle {
-public:
-    using MeshHandle::MeshHandle;
-};
-
-std::ostream& operator<<(std::ostream& os, VertexHandle v);
-std::ostream& operator<<(std::ostream& os, HalfedgeHandle h);
-std::ostream& operator<<(std::ostream& os, EdgeHandle e);
-std::ostream& operator<<(std::ostream& os, FaceHandle f);
-
-template <class T>
-using VertexProperty = HandleProperty<VertexHandle, T>;
-
-template <class T>
-using HalfedgeProperty = HandleProperty<HalfedgeHandle, T>;
-
-template <class T>
-using EdgeProperty = HandleProperty<EdgeHandle, T>;
-
-template <class T>
-using FaceProperty = HandleProperty<FaceHandle, T>;
 
 // Halfedge mesh -----------------------------------------------------------------------------------------------------
 
@@ -100,102 +40,11 @@ public:
 
     HalfedgeMesh& assign(const HalfedgeMesh& rhs);
 
-    // Handle iterators ----------------------------------------------------------------------------------------------
-    class VertexIterator {
-    public:
-        using difference_type = std::ptrdiff_t;
-        using value_type = VertexHandle;
-        using reference = VertexHandle;
-        using pointer = void;
-        using iterator_category = std::bidirectional_iterator_tag;
-
-        VertexIterator() = default;
-        VertexIterator(VertexHandle v, const HalfedgeMesh* mesh);
-
-        [[nodiscard]] VertexHandle operator*() const { return handle_; }
-        [[nodiscard]] auto operator<=>(const VertexIterator&) const = default;
-
-        VertexIterator& operator++();
-        VertexIterator operator++(int);
-        VertexIterator& operator--();
-        VertexIterator operator--(int);
-
-    private:
-        VertexHandle handle_{};
-        const HalfedgeMesh* mesh_{nullptr};
-    };
-
-    class HalfedgeIterator {
-    public:
-        using difference_type = std::ptrdiff_t;
-        using value_type = HalfedgeHandle;
-        using reference = HalfedgeHandle;
-        using pointer = void;
-        using iterator_category = std::bidirectional_iterator_tag;
-
-        HalfedgeIterator() = default;
-        HalfedgeIterator(HalfedgeHandle h, const HalfedgeMesh* mesh);
-
-        [[nodiscard]] HalfedgeHandle operator*() const { return handle_; }
-        [[nodiscard]] auto operator<=>(const HalfedgeIterator&) const = default;
-
-        HalfedgeIterator& operator++();
-        HalfedgeIterator operator++(int);
-        HalfedgeIterator& operator--();
-        HalfedgeIterator operator--(int);
-
-    private:
-        HalfedgeHandle handle_{};
-        const HalfedgeMesh* mesh_{nullptr};
-    };
-
-    class EdgeIterator {
-    public:
-        using difference_type = std::ptrdiff_t;
-        using value_type = EdgeHandle;
-        using reference = EdgeHandle;
-        using pointer = void;
-        using iterator_category = std::bidirectional_iterator_tag;
-
-        EdgeIterator() = default;
-        EdgeIterator(EdgeHandle e, const HalfedgeMesh* mesh);
-
-        [[nodiscard]] EdgeHandle operator*() const { return handle_; }
-        [[nodiscard]] auto operator<=>(const EdgeIterator&) const = default;
-
-        EdgeIterator& operator++();
-        EdgeIterator operator++(int);
-        EdgeIterator& operator--();
-        EdgeIterator operator--(int);
-
-    private:
-        EdgeHandle handle_{};
-        const HalfedgeMesh* mesh_{nullptr};
-    };
-
-    class FaceIterator {
-    public:
-        using difference_type = std::ptrdiff_t;
-        using value_type = FaceHandle;
-        using reference = FaceHandle;
-        using pointer = void;
-        using iterator_category = std::bidirectional_iterator_tag;
-
-        FaceIterator() = default;
-        FaceIterator(FaceHandle f, const HalfedgeMesh* mesh);
-
-        [[nodiscard]] FaceHandle operator*() const { return handle_; }
-        [[nodiscard]] auto operator<=>(const FaceIterator&) const = default;
-
-        FaceIterator& operator++();
-        FaceIterator operator++(int);
-        FaceIterator& operator--();
-        FaceIterator operator--(int);
-
-    private:
-        FaceHandle handle_{};
-        const HalfedgeMesh* mesh_{nullptr};
-    };
+    // Handle iterators ---------------------------------------------------------------------------------------------
+    using VertexIterator = Iterator<HalfedgeMesh, VertexHandle>;
+    using HalfedgeIterator = Iterator<HalfedgeMesh, HalfedgeHandle>;
+    using EdgeIterator = Iterator<HalfedgeMesh, EdgeHandle>;
+    using FaceIterator = Iterator<HalfedgeMesh, FaceHandle>;
 
     class VertexRange {
     public:
@@ -674,6 +523,7 @@ public:
     [[nodiscard]] HalfedgeHandle new_edge(VertexHandle start, VertexHandle end);
     [[nodiscard]] FaceHandle new_face();
 
+    [[nodiscard]] bool has_garbage() const noexcept { return has_garbage_; }
 private:
     struct VertexConnectivity {
         HalfedgeHandle halfedge{};
@@ -694,8 +544,6 @@ private:
     void remove_edge_helper(HalfedgeHandle h);
     void remove_loop_helper(HalfedgeHandle h);
 
-    [[nodiscard]] bool has_garbage() const noexcept { return has_garbage_; }
-
     friend void read_pmp(HalfedgeMesh&, const std::filesystem::path&);
     friend void write_pmp(const HalfedgeMesh&, const std::filesystem::path&, const IOFlags&);
 
@@ -713,9 +561,9 @@ private:
     EdgeProperty<bool> edge_deleted_;
     FaceProperty<bool> face_deleted_;
 
-    MeshIndex deleted_vertices_{0};
-    MeshIndex deleted_edges_{0};
-    MeshIndex deleted_faces_{0};
+    PropertyIndex deleted_vertices_{0};
+    PropertyIndex deleted_edges_{0};
+    PropertyIndex deleted_faces_{0};
 
     bool has_garbage_{false};
 

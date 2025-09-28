@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "engine/geometry/point_cloud.hpp"
+#include "../include/engine/geometry/point_cloud/point_cloud.hpp"
 
 namespace geo = engine::geometry;
 

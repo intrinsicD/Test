@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "engine/geometry/property_registry.hpp"
+#include "../include/engine/geometry/properties/property_registry.hpp"
 
 namespace geo = engine::geometry;
 

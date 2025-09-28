@@ -1,4 +1,4 @@
-#include "engine/geometry/property_registry.hpp"
+#include "../../include/engine/geometry/properties/property_registry.hpp"
 
 #include <algorithm>
 #include <cassert>
