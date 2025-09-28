@@ -2,6 +2,8 @@ add_executable(engine_geometry_tests
     test_module.cpp
     test_property_registry.cpp
     test_halfedge_mesh.cpp
+    test_graph.cpp
+    test_point_cloud.cpp
     test_shapes.cpp
 )
 
