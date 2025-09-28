@@ -94,7 +94,7 @@ public:
 private:
     void ensure_position_property();
 
-    MeshPropertySet point_props_;
+    PropertySet point_props_;
     HandleProperty<PointHandle, Point> point_positions_;
 };
 
