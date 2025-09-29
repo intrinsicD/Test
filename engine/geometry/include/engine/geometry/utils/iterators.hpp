@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iterator>
 
 
 namespace engine::geometry
@@ -38,18 +39,18 @@ namespace engine::geometry
     {
         if (data_ && data_->has_garbage())
         {
-            while (data_->is_valid(handle_) && data_->is_deleted(handle_)) { ++handle_.idx_; }
+            while (data_->is_valid(handle_) && data_->is_deleted(handle_)) { ++handle_.index(); }
         }
     }
 
     template <class DataContainer, typename HandleType>
     Iterator<DataContainer, HandleType>& Iterator<DataContainer, HandleType>::operator++()
     {
-        ++handle_.idx_;
+        ++handle_.index();
         assert(data_);
         while (data_->has_garbage() && data_->is_valid(handle_) && data_->is_deleted(handle_))
         {
-            ++handle_.idx_;
+            ++handle_.index();
         }
         return *this;
     }
@@ -65,11 +66,11 @@ namespace engine::geometry
     template <class DataContainer, typename HandleType>
     Iterator<DataContainer, HandleType>& Iterator<DataContainer, HandleType>::operator--()
     {
-        --handle_.idx_;
+        --handle_.index();
         assert(data_);
         while (data_->has_garbage() && data_->is_valid(handle_) && data_->is_deleted(handle_))
         {
-            --handle_.idx_;
+            --handle_.index();
         }
         return *this;
     }

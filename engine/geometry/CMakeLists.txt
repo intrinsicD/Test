@@ -6,7 +6,7 @@ add_library(${target_name}
     src/properties/property_registry.cpp
     src/properties/property_handle.cpp
     src/mesh/halfedge_mesh.cpp
-    src/point_cloud.cpp
+    src/point_cloud/point_cloud.cpp
     src/shapes/aabb.cpp
     src/shapes/cylinder.cpp
     src/shapes/ellipsoid.cpp

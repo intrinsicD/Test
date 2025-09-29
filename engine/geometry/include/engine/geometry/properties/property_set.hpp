@@ -178,4 +178,10 @@ namespace engine::geometry
     }
 
     using MeshPropertySet [[deprecated("Use PropertySet instead")]] = PropertySet;
+
+    using Vertices = PropertySet;
+    using Halfedges = PropertySet;
+    using Edges = PropertySet;
+    using Faces = PropertySet;
+    using Nodes = PropertySet;
 } // namespace engine::geometry
