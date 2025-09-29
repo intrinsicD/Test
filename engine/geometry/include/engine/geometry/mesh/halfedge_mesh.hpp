@@ -5,6 +5,7 @@
 #include "engine/geometry/utils/iterators.hpp"
 #include "engine/geometry/utils/ranges.hpp"
 #include "engine/geometry/utils/circulators.hpp"
+#include "engine/geometry/utils/connectivity.hpp"
 #include "engine/math/vector.hpp"
 
 #include <cassert>
@@ -341,21 +342,6 @@ namespace engine::geometry::mesh {
         [[nodiscard]] bool has_garbage() const noexcept { return has_garbage_; }
 
     private:
-        struct VertexConnectivity {
-            HalfedgeHandle halfedge{};
-        };
-
-        struct HalfedgeConnectivity {
-            FaceHandle face{};
-            VertexHandle vertex{};
-            HalfedgeHandle next{};
-            HalfedgeHandle prev{};
-        };
-
-        struct FaceConnectivity {
-            HalfedgeHandle halfedge{};
-        };
-
         void ensure_properties();
 
         void adjust_outgoing_halfedge(VertexHandle v);
@@ -364,9 +350,9 @@ namespace engine::geometry::mesh {
 
         void remove_loop_helper(HalfedgeHandle h);
 
-        friend void read_pmp(HalfedgeMeshInterface &, const std::filesystem::path &);
+        friend void read(HalfedgeMeshInterface &, const std::filesystem::path &);
 
-        friend void write_pmp(const HalfedgeMeshInterface &, const std::filesystem::path &, const IOFlags &);
+        friend void write(const HalfedgeMeshInterface &, const std::filesystem::path &, const IOFlags &);
 
         Vertices &vertex_props_;
         Halfedges &halfedge_props_;
