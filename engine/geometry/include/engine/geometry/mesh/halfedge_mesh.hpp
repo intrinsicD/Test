@@ -1,6 +1,5 @@
 #pragma once
 
-#include "engine/geometry/properties/property_registry.hpp"
 #include "engine/geometry/properties/property_set.hpp"
 #include "engine/geometry/properties/property_handle.hpp"
 #include "engine/geometry/utils/iterators.hpp"

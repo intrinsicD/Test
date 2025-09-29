@@ -1,102 +1,122 @@
 #pragma once
 
-#include "../properties/property_set.hpp"
+#include "engine/geometry/properties/property_handle.hpp"
+#include "engine/geometry/utils/iterators.hpp"
+#include "engine/geometry/utils/ranges.hpp"
 #include "engine/math/vector.hpp"
 
-#include <compare>
-#include <cstdint>
 #include <limits>
 #include <ostream>
 #include <string>
-#include <utility>
 #include <vector>
 
-namespace engine::geometry {
+namespace engine::geometry::point_cloud {
+    struct IOFlags;
 
-using PointIndex = std::uint32_t;
+    class PointCloudInterface {
+    public:
+        explicit PointCloudInterface(Vertices &vertex_props);
 
-constexpr PointIndex kInvalidPointIndex = std::numeric_limits<PointIndex>::max();
+        PointCloudInterface(const PointCloudInterface &rhs);
 
-class PointHandle {
-public:
-    using index_type = PointIndex;
+        PointCloudInterface(PointCloudInterface &&) noexcept = default;
 
-    constexpr PointHandle() noexcept = default;
-    explicit constexpr PointHandle(index_type idx) noexcept : index_(idx) {}
+        ~PointCloudInterface();
 
-    [[nodiscard]] constexpr index_type index() const noexcept { return index_; }
-    [[nodiscard]] constexpr bool is_valid() const noexcept { return index_ != kInvalidPointIndex; }
-    constexpr void reset() noexcept { index_ = kInvalidPointIndex; }
+        PointCloudInterface &operator=(const PointCloudInterface &rhs);
 
-    [[nodiscard]] auto operator<=>(const PointHandle&) const noexcept = default;
+        PointCloudInterface &assign(const PointCloudInterface &rhs);
 
-private:
-    index_type index_{kInvalidPointIndex};
-};
+        using VertexIterator = Iterator<PointCloudInterface, VertexHandle>;
 
-std::ostream& operator<<(std::ostream& os, PointHandle p);
+        using VertexRange = Range<VertexIterator>;
 
-class PointCloud {
-public:
-    using Point = math::vec3;
+        [[nodiscard]] VertexHandle add_vertex(const math::vec3 &p);
 
-    PointCloud();
-    PointCloud(const PointCloud& rhs);
-    PointCloud(PointCloud&&) noexcept = default;
-    PointCloud& operator=(const PointCloud& rhs);
-    PointCloud& operator=(PointCloud&&) noexcept = default;
-    ~PointCloud();
+        void clear();
 
-    void clear();
+        void free_memory();
 
-    void reserve(std::size_t count);
+        void reserve(std::size_t nvertices);
 
-    [[nodiscard]] std::size_t point_count() const noexcept { return point_props_.size(); }
-    [[nodiscard]] bool is_empty() const noexcept { return point_count() == 0; }
+        void garbage_collection();
 
-    [[nodiscard]] bool is_valid(PointHandle handle) const noexcept
-    {
-        return handle.is_valid() && handle.index() < point_count();
-    }
+        [[nodiscard]] std::size_t vertices_size() const noexcept { return vertex_props_.size(); }
 
-    PointHandle add_point(const Point& point);
+        [[nodiscard]] std::size_t vertex_count() const noexcept { return vertices_size() - deleted_vertices_; }
 
-    [[nodiscard]] const Point& position(PointHandle handle) const { return point_positions_[handle]; }
-    [[nodiscard]] Point& position(PointHandle handle) { return point_positions_[handle]; }
+        [[nodiscard]] bool is_empty() const noexcept { return vertex_count() == 0; }
 
-    [[nodiscard]] std::vector<Point>& positions() { return point_positions_.vector(); }
-    [[nodiscard]] const std::vector<Point>& positions() const { return point_positions_.vector(); }
+        [[nodiscard]] bool is_deleted(VertexHandle v) const { return vertex_deleted_[v]; }
 
-    template <class T>
-    [[nodiscard]] HandleProperty<PointHandle, T> add_point_property(const std::string& name, T default_value = T())
-    {
-        return HandleProperty<PointHandle, T>(point_props_.add<T>(name, default_value));
-    }
+        [[nodiscard]] bool is_valid(VertexHandle v) const { return v.is_valid() && v.index() < vertices_size(); }
 
-    template <class T>
-    [[nodiscard]] HandleProperty<PointHandle, T> get_point_property(const std::string& name) const
-    {
-        return HandleProperty<PointHandle, T>(point_props_.get<T>(name));
-    }
+        template<class T>
+        [[nodiscard]] VertexProperty<T> add_vertex_property(const std::string &name, T default_value = T()) {
+            return VertexProperty<T>(vertex_props_.add<T>(name, default_value));
+        }
 
-    template <class T>
-    [[nodiscard]] HandleProperty<PointHandle, T> point_property(const std::string& name, T default_value = T())
-    {
-        return HandleProperty<PointHandle, T>(point_props_.get_or_add<T>(name, default_value));
-    }
+        template<class T>
+        [[nodiscard]] VertexProperty<T> get_vertex_property(const std::string &name) const {
+            return VertexProperty<T>(vertex_props_.get<T>(name));
+        }
 
-    template <class T>
-    void remove_point_property(HandleProperty<PointHandle, T>& property)
-    {
-        point_props_.remove(property);
-    }
+        template<class T>
+        [[nodiscard]] VertexProperty<T> vertex_property(const std::string &name, T default_value = T()) {
+            return VertexProperty<T>(vertex_props_.get_or_add<T>(name, default_value));
+        }
 
-private:
-    void ensure_position_property();
+        template<class T>
+        void remove_vertex_property(VertexProperty<T> &prop) {
+            vertex_props_.remove(prop);
+        }
 
-    PropertySet point_props_;
-    HandleProperty<PointHandle, Point> point_positions_;
-};
+        [[nodiscard]] bool has_vertex_property(const std::string &name) const { return vertex_props_.exists(name); }
 
+        [[nodiscard]] std::vector<std::string> vertex_properties() const { return vertex_props_.properties(); }
+
+        [[nodiscard]] VertexIterator vertices_begin() const;
+
+        [[nodiscard]] VertexIterator vertices_end() const;
+
+        [[nodiscard]] VertexRange vertices() const { return {vertices_begin(), vertices_end()}; }
+
+        void delete_vertex(VertexHandle v);
+
+        [[nodiscard]] const math::vec3 &position(VertexHandle v) const { return vertex_points_[v]; }
+        [[nodiscard]] math::vec3 &position(VertexHandle v) { return vertex_points_[v]; }
+        [[nodiscard]] std::vector<math::vec3> &positions() { return vertex_points_.vector(); }
+
+        [[nodiscard]] VertexHandle new_vertex();
+
+        [[nodiscard]] bool has_garbage() const noexcept { return has_garbage_; }
+    private:
+        void ensure_properties();
+
+        Vertices vertex_props_;
+
+        VertexProperty<math::vec3> vertex_points_;
+
+        VertexProperty<bool> vertex_deleted_;
+
+        PropertyIndex deleted_vertices_{0};
+
+        bool has_garbage_{false};
+    };
 } // namespace engine::geometry
 
+namespace engine::geometry {
+    using PointCloudInterface = point_cloud::PointCloudInterface;
+
+    struct PointCloudData {
+        Vertices vertex_props;
+    };
+
+    struct PointCloud {
+        PointCloud() : data(), interface(data.vertex_props) {
+        }
+
+        PointCloudData data;
+        PointCloudInterface interface;
+    };
+}
