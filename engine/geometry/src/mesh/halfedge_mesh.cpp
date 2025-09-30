@@ -121,7 +121,7 @@ namespace engine::geometry::mesh {
     }
 
     HalfedgeMeshInterface::VertexIterator HalfedgeMeshInterface::vertices_end() const {
-        return VertexIterator(VertexHandle(static_cast<PropertyIndex>(vertices_size())), this);
+        return VertexIterator(VertexHandle(vertices_size()), this);
     }
 
     HalfedgeMeshInterface::HalfedgeIterator HalfedgeMeshInterface::halfedges_begin() const {
@@ -129,7 +129,7 @@ namespace engine::geometry::mesh {
     }
 
     HalfedgeMeshInterface::HalfedgeIterator HalfedgeMeshInterface::halfedges_end() const {
-        return HalfedgeIterator(HalfedgeHandle(static_cast<PropertyIndex>(halfedges_size())), this);
+        return HalfedgeIterator(HalfedgeHandle(halfedges_size()), this);
     }
 
     HalfedgeMeshInterface::EdgeIterator HalfedgeMeshInterface::edges_begin() const {
@@ -137,7 +137,7 @@ namespace engine::geometry::mesh {
     }
 
     HalfedgeMeshInterface::EdgeIterator HalfedgeMeshInterface::edges_end() const {
-        return EdgeIterator(EdgeHandle(static_cast<PropertyIndex>(edges_size())), this);
+        return EdgeIterator(EdgeHandle(edges_size()), this);
     }
 
     HalfedgeMeshInterface::FaceIterator HalfedgeMeshInterface::faces_begin() const {
@@ -145,7 +145,7 @@ namespace engine::geometry::mesh {
     }
 
     HalfedgeMeshInterface::FaceIterator HalfedgeMeshInterface::faces_end() const {
-        return FaceIterator(FaceHandle(static_cast<PropertyIndex>(faces_size())), this);
+        return FaceIterator(FaceHandle(faces_size()), this);
     }
 
     bool HalfedgeMeshInterface::is_boundary(VertexHandle v) const {
@@ -1042,7 +1042,7 @@ namespace engine::geometry::mesh {
             return VertexHandle();
         }
         vertex_props_.push_back();
-        return VertexHandle(static_cast<PropertyIndex>(vertices_size() - 1));
+        return VertexHandle(vertices_size() - 1);
     }
 
     HalfedgeHandle HalfedgeMeshInterface::new_edge() {
@@ -1054,7 +1054,7 @@ namespace engine::geometry::mesh {
         halfedge_props_.push_back();
         halfedge_props_.push_back();
 
-        return HalfedgeHandle(static_cast<PropertyIndex>(halfedges_size() - 2));
+        return HalfedgeHandle(halfedges_size() - 2);
     }
 
     HalfedgeHandle HalfedgeMeshInterface::new_edge(VertexHandle start, VertexHandle end) {
@@ -1068,8 +1068,8 @@ namespace engine::geometry::mesh {
         halfedge_props_.push_back();
         halfedge_props_.push_back();
 
-        const HalfedgeHandle h0(static_cast<PropertyIndex>(halfedges_size() - 2));
-        const HalfedgeHandle h1(static_cast<PropertyIndex>(halfedges_size() - 1));
+        const HalfedgeHandle h0(halfedges_size() - 2);
+        const HalfedgeHandle h1(halfedges_size() - 1);
 
         set_vertex(h0, end);
         set_vertex(h1, start);
@@ -1083,7 +1083,7 @@ namespace engine::geometry::mesh {
         }
 
         face_props_.push_back();
-        return FaceHandle(static_cast<PropertyIndex>(faces_size() - 1));
+        return FaceHandle(faces_size() - 1);
     }
 
     void HalfedgeMeshInterface::garbage_collection() {
@@ -1096,17 +1096,18 @@ namespace engine::geometry::mesh {
         auto nh = halfedges_size();
         auto nf = faces_size();
 
-        VertexProperty<VertexHandle> vmap = add_vertex_property<VertexHandle>("v:garbage-collection");
-        HalfedgeProperty<HalfedgeHandle> hmap = add_halfedge_property<HalfedgeHandle>("h:garbage-collection");
-        FaceProperty<FaceHandle> fmap = add_face_property<FaceHandle>("f:garbage-collection");
+        auto vmap = add_vertex_property<VertexHandle>("v:garbage-collection");
+        auto hmap = add_halfedge_property<HalfedgeHandle>("h:garbage-collection");
+        auto fmap = add_face_property<FaceHandle>("f:garbage-collection");
+        
         for (std::size_t i = 0; i < nv; ++i) {
-            vmap[VertexHandle(static_cast<PropertyIndex>(i))] = VertexHandle(static_cast<PropertyIndex>(i));
+            vmap[VertexHandle(i)] = VertexHandle(i);
         }
         for (std::size_t i = 0; i < nh; ++i) {
-            hmap[HalfedgeHandle(static_cast<PropertyIndex>(i))] = HalfedgeHandle(static_cast<PropertyIndex>(i));
+            hmap[HalfedgeHandle(i)] = HalfedgeHandle(i);
         }
         for (std::size_t i = 0; i < nf; ++i) {
-            fmap[FaceHandle(static_cast<PropertyIndex>(i))] = FaceHandle(static_cast<PropertyIndex>(i));
+            fmap[FaceHandle(i)] = FaceHandle(i);
         }
 
         if (nv > 0) {
@@ -1114,10 +1115,10 @@ namespace engine::geometry::mesh {
             std::size_t i1 = nv - 1;
 
             while (true) {
-                while (!vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i0))] && i0 < i1) {
+                while (!vertex_deleted_[VertexHandle(i0)] && i0 < i1) {
                     ++i0;
                 }
-                while (vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i1))] && i0 < i1) {
+                while (vertex_deleted_[VertexHandle(i1)] && i0 < i1) {
                     --i1;
                 }
                 if (i0 >= i1) {
@@ -1127,7 +1128,7 @@ namespace engine::geometry::mesh {
                 vertex_props_.swap(i0, i1);
             }
 
-            nv = vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i0))] ? i0 : i0 + 1;
+            nv = vertex_deleted_[VertexHandle(i0)] ? i0 : i0 + 1;
         }
 
         if (ne > 0) {
@@ -1135,10 +1136,10 @@ namespace engine::geometry::mesh {
             std::size_t i1 = ne - 1;
 
             while (true) {
-                while (!edge_deleted_[EdgeHandle(static_cast<PropertyIndex>(i0))] && i0 < i1) {
+                while (!edge_deleted_[EdgeHandle(i0)] && i0 < i1) {
                     ++i0;
                 }
-                while (edge_deleted_[EdgeHandle(static_cast<PropertyIndex>(i1))] && i0 < i1) {
+                while (edge_deleted_[EdgeHandle(i1)] && i0 < i1) {
                     --i1;
                 }
                 if (i0 >= i1) {
@@ -1150,7 +1151,7 @@ namespace engine::geometry::mesh {
                 halfedge_props_.swap(2 * i0 + 1, 2 * i1 + 1);
             }
 
-            ne = edge_deleted_[EdgeHandle(static_cast<PropertyIndex>(i0))] ? i0 : i0 + 1;
+            ne = edge_deleted_[EdgeHandle(i0)] ? i0 : i0 + 1;
             nh = 2 * ne;
         }
 
@@ -1159,10 +1160,10 @@ namespace engine::geometry::mesh {
             std::size_t i1 = nf - 1;
 
             while (true) {
-                while (!face_deleted_[FaceHandle(static_cast<PropertyIndex>(i0))] && i0 < i1) {
+                while (!face_deleted_[FaceHandle(i0)] && i0 < i1) {
                     ++i0;
                 }
-                while (face_deleted_[FaceHandle(static_cast<PropertyIndex>(i1))] && i0 < i1) {
+                while (face_deleted_[FaceHandle(i1)] && i0 < i1) {
                     --i1;
                 }
                 if (i0 >= i1) {
@@ -1172,18 +1173,18 @@ namespace engine::geometry::mesh {
                 face_props_.swap(i0, i1);
             }
 
-            nf = face_deleted_[FaceHandle(static_cast<PropertyIndex>(i0))] ? i0 : i0 + 1;
+            nf = face_deleted_[FaceHandle(i0)] ? i0 : i0 + 1;
         }
 
         for (std::size_t i = 0; i < nv; ++i) {
-            auto v = VertexHandle(static_cast<PropertyIndex>(i));
+            auto v = VertexHandle(i);
             if (!is_isolated(v)) {
                 set_halfedge(v, hmap[halfedge(v)]);
             }
         }
 
         for (std::size_t i = 0; i < nh; ++i) {
-            auto h = HalfedgeHandle(static_cast<PropertyIndex>(i));
+            auto h = HalfedgeHandle(i);
             set_vertex(h, vmap[to_vertex(h)]);
             set_next_halfedge(h, hmap[next_halfedge(h)]);
             if (!is_boundary(h)) {
@@ -1192,7 +1193,7 @@ namespace engine::geometry::mesh {
         }
 
         for (std::size_t i = 0; i < nf; ++i) {
-            auto f = FaceHandle(static_cast<PropertyIndex>(i));
+            auto f = FaceHandle(i);
             set_halfedge(f, hmap[halfedge(f)]);
         }
 

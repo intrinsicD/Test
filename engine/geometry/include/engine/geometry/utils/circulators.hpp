@@ -70,6 +70,10 @@ namespace engine::geometry {
             return *this;
         }
 
+        [[nodiscard]] size_t size()  {
+            return std::distance(begin(), end());
+        }
+
         [[nodiscard]] HalfedgeHandle halfedge() const { return halfedge_; }
 
     private:
@@ -141,6 +145,10 @@ namespace engine::geometry {
         HalfedgeAroundVertexCirculator &end() {
             is_active_ = true;
             return *this;
+        }
+
+        [[nodiscard]] size_t size()  {
+            return std::distance(begin(), end());
         }
 
     private:
@@ -216,6 +224,10 @@ namespace engine::geometry {
         EdgeAroundVertexCirculator &end() {
             is_active_ = true;
             return *this;
+        }
+
+        [[nodiscard]] size_t size()  {
+            return std::distance(begin(), end());
         }
 
     private:
@@ -300,6 +312,10 @@ namespace engine::geometry {
             return *this;
         }
 
+        [[nodiscard]] size_t size()  {
+            return std::distance(begin(), end());
+        }
+
     private:
         const data_structure_type *data_structure_{nullptr};
         HalfedgeHandle halfedge_{};
@@ -373,6 +389,10 @@ namespace engine::geometry {
             return *this;
         }
 
+        [[nodiscard]] size_t size()  {
+            return std::distance(begin(), end());
+        }
+
     private:
         const data_structure_type *data_structure_{nullptr};
         HalfedgeHandle halfedge_{};
@@ -441,6 +461,10 @@ namespace engine::geometry {
         HalfedgeAroundFaceCirculator &end() {
             is_active_ = true;
             return *this;
+        }
+
+        [[nodiscard]] size_t size()  {
+            return std::distance(begin(), end());
         }
 
     private:

@@ -224,6 +224,8 @@ namespace engine::geometry::graph {
 
         [[nodiscard]] bool is_removal_ok(EdgeHandle e) const;
 
+        bool remove_vertex(VertexHandle v);
+
         bool remove_edge(EdgeHandle e);
 
         [[nodiscard]] HalfedgeHandle split(EdgeHandle e, const math::vec3 &p);

@@ -124,6 +124,7 @@ namespace engine::geometry::graph {
 
 
     bool GraphInterface::is_boundary(VertexHandle v) const {
+        // A vertex is on the boundary if any of its incident halfedges next pointer points to its opposite halfedge. (this is by design so that the circulators work)
         const HalfedgeHandle h = halfedge(v);
         return (h.is_valid() && next_halfedge(h) == opposite_halfedge(h));
     }
@@ -188,15 +189,14 @@ namespace engine::geometry::graph {
 
     std::size_t GraphInterface::valence(VertexHandle v) const {
         auto vv = vertices(v);
+        //TODO: check this here, why does it not work? it runs indefinitely...
         return static_cast<std::size_t>(std::distance(vv.begin(), vv.end()));
     }
 
 
     HalfedgeHandle GraphInterface::insert_vertex(HalfedgeHandle h0, VertexHandle v) {
-        //TODO
         auto h1 = opposite_halfedge(h0);
-        auto start = to_vertex(h0);
-        auto end = to_vertex(h1);
+        auto end = to_vertex(h0);
         auto h0next = next_halfedge(h0);
         auto h1prev = prev_halfedge(h1);
 
@@ -210,34 +210,103 @@ namespace engine::geometry::graph {
         set_next_halfedge(h3, h1);
         set_next_halfedge(h1prev, h3);
 
+        set_vertex(h0, v);
+
         return h2;
     }
 
 
-    bool GraphInterface::is_collapse_ok(HalfedgeHandle v0v1) const {
-        //TODO
+    bool GraphInterface::is_collapse_ok(HalfedgeHandle h) const {
+        if (!is_valid(h) || is_deleted(edge(h))) {
+            return false;
+        }
+
+        auto o = opposite_halfedge(h);
+        auto v0 = to_vertex(h); // Vertex to keep
+        auto v1 = to_vertex(o); // Vertex to remove
+
+        // Policy: Do not allow collapse if it would merge two previously
+        // connected neighborhoods, creating a duplicate edge.
+        for (auto v1_neighbor : vertices(v1)) {
+            if (v1_neighbor == v0) {
+                continue;
+            }
+            if (find_edge(v0, v1_neighbor).is_valid()) {
+                return false; // Collapse would create a duplicate edge.
+            }
+        }
+
+        return true; // Collapse is OK.
+    }
+
+    bool GraphInterface::is_removal_ok(EdgeHandle e) const {
+        if (!is_valid(e) || is_deleted(e)) {
+            return false;
+        }
+
+        // Policy: Do not allow removal if it would isolate a vertex.
+        auto h = halfedge(e, 0);
+        if (is_boundary(from_vertex(h)) || is_boundary(to_vertex(h))) {
+            return false; // Removal would isolate a vertex.
+        }
+
+        return true; // Removal is OK.
+    }
+
+    bool GraphInterface::remove_vertex(VertexHandle v) {
+        if (is_deleted(v)) {
+            return false;
+        }
+
+        // 1. Collect all incident edges. We must do this first because
+        //    remove_edge will modify the half-edge connectivity,
+        //    breaking the circulator.
+        std::vector<EdgeHandle> incident_edges;
+        for (auto h : halfedges(v)) {
+            incident_edges.push_back(edge(h));
+        }
+
+        // 2. Remove each incident edge.
+        for (const auto& edge_to_remove : incident_edges) {
+            // Check if the edge wasn't already removed as part of
+            // removing another incident edge (can happen in weird configs, though rare).
+            if (!is_deleted(edge_to_remove)) {
+                remove_edge(edge_to_remove);
+            }
+        }
+
+        // 3. Mark the now-isolated vertex as deleted.
+        vertex_deleted_[v] = true;
+        ++deleted_vertices_;
+        has_garbage_ = true;
 
         return true;
     }
 
-    bool GraphInterface::is_removal_ok(EdgeHandle e) const {
-        if (is_deleted(e)) {
+    bool GraphInterface::remove_edge(EdgeHandle e) {
+        if (!is_removal_ok(e)) {
             return false;
         }
 
         auto h = halfedge(e, 0);
-        auto start = from_vertex(h);
-        auto end = to_vertex(h);
-
-        return !(is_boundary(start) || is_boundary(end));
-    }
-
-    bool GraphInterface::remove_edge(EdgeHandle e) {
-        if (edge_deleted_[e]) {
-            return false;
+        auto o = opposite_halfedge(h);
+        auto start = to_vertex(h);
+        auto end = to_vertex(o);
+        //check if any vertex points to h or o
+        //if so, reassign to next halfedge
+        //after that remove h and o from the circular list by reassigning next and prev pointers
+        auto hnext = next_halfedge(h);
+        auto hprev = prev_halfedge(h);
+        auto onext = next_halfedge(o);
+        auto oprev = prev_halfedge(o);
+        if (halfedge(start) == h) {
+            set_halfedge(start, hnext);
         }
-
-        //TODO...
+        if (halfedge(end) == o) {
+            set_halfedge(end, onext);
+        }
+        set_next_halfedge(hprev, hnext);
+        set_next_halfedge(oprev, onext);
 
         edge_deleted_[e] = true;
         ++deleted_edges_;
@@ -247,7 +316,52 @@ namespace engine::geometry::graph {
     }
 
     void GraphInterface::collapse(HalfedgeHandle h) {
-        //TODO
+        // Let h be the half-edge v1 -> v0. We collapse v1 onto v0.
+        auto o = opposite_halfedge(h);
+        auto v0 = to_vertex(h);   // Vertex to keep
+        auto v1 = to_vertex(o);   // Vertex to remove
+
+        // 1. Re-route all edges incident to v1 to now be incident to v0.
+        // The halfedge circulator is perfect for this.
+        for (auto hh : halfedges(v1)) {
+            // hh is an outgoing half-edge from v1.
+            // Its opposite, opposite_halfedge(hh), is an incoming half-edge to v1.
+            // We need to change the destination of this incoming half-edge to v0.
+            set_vertex(opposite_halfedge(hh), v0);
+        }
+
+        // 2. Unlink h and o from the half-edge rings around v0 and v1.
+        auto h_prev = prev_halfedge(h);
+        auto h_next = next_halfedge(h);
+        set_next_halfedge(h_prev, h_next);
+
+        auto o_prev = prev_halfedge(o);
+        auto o_next = next_halfedge(o);
+        set_next_halfedge(o_prev, o_next);
+
+        // 3. Update the representative half-edge for v0 if it was pointing
+        // to a half-edge that is now part of a 1-edge or 2-edge loop.
+        // A safe bet is to assign it to any valid outgoing half-edge.
+        // h_next is a good candidate if it's not the opposite of h_prev.
+        if (halfedge(v0) == o) {
+            set_halfedge(v0, h_next);
+        }
+
+        // After re-routing, all of v1's former neighbors are now connected to v0.
+        // It's possible halfedge(v0) now points to a half-edge inside what
+        // is now a 2-edge loop. We should ensure it points to a non-loop edge if possible.
+        // (This is an advanced robustness check, the line above is usually sufficient).
+
+
+        // 4. Mark elements for deletion
+        set_halfedge(v1, HalfedgeHandle()); // Isolate v1
+        vertex_deleted_[v1] = true;
+        ++deleted_vertices_;
+
+        edge_deleted_[edge(h)] = true;
+        ++deleted_edges_;
+
+        has_garbage_ = true;
     }
 
 
@@ -255,7 +369,6 @@ namespace engine::geometry::graph {
         if (is_deleted(v)) {
             return;
         }
-
 
         vertex_deleted_[v] = true;
         ++deleted_vertices_;
