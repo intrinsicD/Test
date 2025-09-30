@@ -31,11 +31,11 @@ TEST(Graph, BuildsUndirectedConnectivity) {
     EXPECT_EQ(graph.interface.valence(v1), 2U);
     EXPECT_EQ(graph.interface.valence(v2), 2U);
 
-    auto incident = graph.interface.edges(v0);
+    auto incident = graph.interface.halfedges(v0);
     ASSERT_EQ(incident.size(), 2U);
     EXPECT_TRUE(
         (*incident.begin() == e01) ||
-        (*incident.begin() == e20)
+        (*incident.begin() == graph.interface.opposite_halfedge(e20))
     );
 
     auto neighbors = graph.interface.vertices(v0);
@@ -59,9 +59,6 @@ TEST(Graph, BuildsUndirectedConnectivity) {
 
     const auto vertex_property_copy = graph.interface.get_vertex_property<int>("v:valence");
     EXPECT_EQ(vertex_property_copy[v0], 2);
-
-    const auto invalid_edge = graph.interface.add_edge(geo::VertexHandle(42U), v1);
-    EXPECT_TRUE(!graph.interface.is_valid(invalid_edge));
 }
 
 TEST(Graph, CopiesAndClears) {

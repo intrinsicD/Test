@@ -13,11 +13,11 @@ namespace {
 
 }  // namespace
 
-float signed_distance(const plane& p, const math::vec3& point) noexcept {
+float signed_distance(const Plane& p, const math::vec3& point) noexcept {
     return math::dot(p.normal, point) + p.distance;
 }
 
-math::vec3 project_point(const plane& p, const math::vec3& point) noexcept {
+math::vec3 project_point(const Plane& p, const math::vec3& point) noexcept {
     const float denom = math::length_squared(p.normal);
     if (denom == 0.0f) {
         return point;
@@ -26,11 +26,11 @@ math::vec3 project_point(const plane& p, const math::vec3& point) noexcept {
     return point - p.normal * (dist / denom);
 }
 
-bool contains(const plane& p, const math::vec3& point, float epsilon_value) noexcept {
+bool contains(const Plane& p, const math::vec3& point, float epsilon_value) noexcept {
     return std::fabs(signed_distance(p, point)) <= epsilon_value;
 }
 
-bool intersects(const plane& p, const ray& r, float& out_t) noexcept {
+bool intersects(const Plane& p, const Ray& r, float& out_t) noexcept {
     const float denom = math::dot(p.normal, r.direction);
     if (std::fabs(denom) < epsilon()) {
         return false;
@@ -46,7 +46,7 @@ bool intersects(const plane& p, const ray& r, float& out_t) noexcept {
     return true;
 }
 
-bool intersects(const plane& p, const line& l, float& out_t) noexcept {
+bool intersects(const Plane& p, const Line& l, float& out_t) noexcept {
     const float denom = math::dot(p.normal, l.direction);
     if (std::fabs(denom) < epsilon()) {
         return false;
@@ -57,8 +57,8 @@ bool intersects(const plane& p, const line& l, float& out_t) noexcept {
     return true;
 }
 
-bool intersects(const plane& p, const segment& s, float& out_t) noexcept {
-    const ray r{s.start, direction(s)};
+bool intersects(const Plane& p, const Segment& s, float& out_t) noexcept {
+    const Ray r{s.start, direction(s)};
     if (!intersects(p, r, out_t)) {
         return false;
     }

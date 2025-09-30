@@ -1,37 +1,40 @@
 #pragma once
 
+#include "engine/geometry/api.hpp"
 #include "engine/geometry/properties/property_handle.hpp"
 #include "engine/geometry/utils/iterators.hpp"
 #include "engine/geometry/utils/ranges.hpp"
 #include "engine/math/vector.hpp"
 
 #include <limits>
-#include <ostream>
 #include <string>
 #include <vector>
+#include <filesystem>
 
-namespace engine::geometry::point_cloud {
-    struct IOFlags;
+namespace engine::geometry::point_cloud
+{
+    struct ENGINE_GEOMETRY_API IOFlags;
 
-    class PointCloudInterface {
+    class ENGINE_GEOMETRY_API PointCloudInterface
+    {
     public:
-        explicit PointCloudInterface(Vertices &vertex_props);
+        explicit PointCloudInterface(Vertices& vertex_props);
 
-        PointCloudInterface(const PointCloudInterface &rhs);
+        PointCloudInterface(const PointCloudInterface& rhs);
 
-        PointCloudInterface(PointCloudInterface &&) noexcept = default;
+        PointCloudInterface(PointCloudInterface&&) noexcept = default;
 
         ~PointCloudInterface();
 
-        PointCloudInterface &operator=(const PointCloudInterface &rhs);
+        PointCloudInterface& operator=(const PointCloudInterface& rhs);
 
-        PointCloudInterface &assign(const PointCloudInterface &rhs);
+        PointCloudInterface& assign(const PointCloudInterface& rhs);
 
         using VertexIterator = Iterator<PointCloudInterface, VertexHandle>;
 
         using VertexRange = Range<VertexIterator>;
 
-        [[nodiscard]] VertexHandle add_vertex(const math::vec3 &p);
+        [[nodiscard]] VertexHandle add_vertex(const math::vec3& p);
 
         void clear();
 
@@ -51,27 +54,31 @@ namespace engine::geometry::point_cloud {
 
         [[nodiscard]] bool is_valid(VertexHandle v) const { return v.is_valid() && v.index() < vertices_size(); }
 
-        template<class T>
-        [[nodiscard]] VertexProperty<T> add_vertex_property(const std::string &name, T default_value = T()) {
+        template <class T>
+        [[nodiscard]] VertexProperty<T> add_vertex_property(const std::string& name, T default_value = T())
+        {
             return VertexProperty<T>(vertex_props_.add<T>(name, default_value));
         }
 
-        template<class T>
-        [[nodiscard]] VertexProperty<T> get_vertex_property(const std::string &name) const {
+        template <class T>
+        [[nodiscard]] VertexProperty<T> get_vertex_property(const std::string& name) const
+        {
             return VertexProperty<T>(vertex_props_.get<T>(name));
         }
 
-        template<class T>
-        [[nodiscard]] VertexProperty<T> vertex_property(const std::string &name, T default_value = T()) {
+        template <class T>
+        [[nodiscard]] VertexProperty<T> vertex_property(const std::string& name, T default_value = T())
+        {
             return VertexProperty<T>(vertex_props_.get_or_add<T>(name, default_value));
         }
 
-        template<class T>
-        void remove_vertex_property(VertexProperty<T> &prop) {
+        template <class T>
+        void remove_vertex_property(VertexProperty<T>& prop)
+        {
             vertex_props_.remove(prop);
         }
 
-        [[nodiscard]] bool has_vertex_property(const std::string &name) const { return vertex_props_.exists(name); }
+        [[nodiscard]] bool has_vertex_property(const std::string& name) const { return vertex_props_.exists(name); }
 
         [[nodiscard]] std::vector<std::string> vertex_properties() const { return vertex_props_.properties(); }
 
@@ -83,14 +90,20 @@ namespace engine::geometry::point_cloud {
 
         void delete_vertex(VertexHandle v);
 
-        [[nodiscard]] const math::vec3 &position(VertexHandle v) const { return vertex_points_[v]; }
-        [[nodiscard]] math::vec3 &position(VertexHandle v) { return vertex_points_[v]; }
-        [[nodiscard]] std::vector<math::vec3> &positions() { return vertex_points_.vector(); }
+        [[nodiscard]] const math::vec3& position(VertexHandle v) const { return vertex_points_[v]; }
+        [[nodiscard]] math::vec3& position(VertexHandle v) { return vertex_points_[v]; }
+        [[nodiscard]] std::span<math::vec3> positions() { return vertex_points_.span(); }
+        [[nodiscard]] std::span<const math::vec3> positions() const { return vertex_points_.span(); }
 
         [[nodiscard]] VertexHandle new_vertex();
 
         [[nodiscard]] bool has_garbage() const noexcept { return has_garbage_; }
+
     private:
+        friend ENGINE_GEOMETRY_API void read(PointCloudInterface &, const std::filesystem::path &);
+
+        friend ENGINE_GEOMETRY_API void write(const PointCloudInterface &, const std::filesystem::path &, const IOFlags &);
+
         void ensure_properties();
 
         Vertices vertex_props_;
@@ -105,15 +118,19 @@ namespace engine::geometry::point_cloud {
     };
 } // namespace engine::geometry
 
-namespace engine::geometry {
+namespace engine::geometry
+{
     using PointCloudInterface = point_cloud::PointCloudInterface;
 
-    struct PointCloudData {
+    struct ENGINE_GEOMETRY_API PointCloudData
+    {
         Vertices vertex_props;
     };
 
-    struct PointCloud {
-        PointCloud() : data(), interface(data.vertex_props) {
+    struct ENGINE_GEOMETRY_API PointCloud
+    {
+        PointCloud() : data(), interface(data.vertex_props)
+        {
         }
 
         PointCloudData data;

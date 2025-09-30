@@ -68,16 +68,16 @@ TEST(HalfedgeMesh, AddTriangleBuildsConnectivity)
     EXPECT_EQ(mesh.interface.valence(fixture.f0), 3U);
 
     const auto h01 = mesh.interface.find_halfedge(fixture.v0, fixture.v1);
-    EXPECT_TRUE(h01.is_valid());
-    if (!h01.is_valid())
+    EXPECT_TRUE(h01.has_value());
+    if (!h01.has_value())
     {
         return;
     }
-    EXPECT_EQ(mesh.interface.from_vertex(h01), fixture.v0);
-    EXPECT_EQ(mesh.interface.to_vertex(h01), fixture.v1);
-    EXPECT_EQ(mesh.interface.face(h01), fixture.f0);
+    EXPECT_EQ(mesh.interface.from_vertex(h01.value()), fixture.v0);
+    EXPECT_EQ(mesh.interface.to_vertex(h01.value()), fixture.v1);
+    EXPECT_EQ(mesh.interface.face(h01.value()), fixture.f0);
 
-    const auto h12 = mesh.interface.next_halfedge(h01);
+    const auto h12 = mesh.interface.next_halfedge(h01.value());
     EXPECT_TRUE(h12.is_valid());
     if (!h12.is_valid())
     {
@@ -94,7 +94,7 @@ TEST(HalfedgeMesh, AddTriangleBuildsConnectivity)
     }
     EXPECT_EQ(mesh.interface.from_vertex(h20), fixture.v2);
     EXPECT_EQ(mesh.interface.to_vertex(h20), fixture.v0);
-    EXPECT_EQ(mesh.interface.next_halfedge(h20), h01);
+    EXPECT_EQ(mesh.interface.next_halfedge(h20), h01.value());
 
     EXPECT_FLOAT_EQ(mesh.interface.position(fixture.v0)[0], 0.0F);
     EXPECT_FLOAT_EQ(mesh.interface.position(fixture.v1)[0], 1.0F);

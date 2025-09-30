@@ -15,7 +15,7 @@ namespace {
 [[nodiscard]] constexpr float two() noexcept { return 2.0f; }
 [[nodiscard]] constexpr float epsilon() noexcept { return 1e-6f; }
 
-[[nodiscard]] std::array<math::vec3, 8> corners(const obb& box) noexcept {
+[[nodiscard]] std::array<math::vec3, 8> corners(const Obb& box) noexcept {
     std::array<math::vec3, 8> result{};
     std::size_t index = 0U;
 
@@ -35,7 +35,7 @@ namespace {
     return result;
 }
 
-[[nodiscard]] std::array<math::vec3, 8> corners(const aabb& box) noexcept {
+[[nodiscard]] std::array<math::vec3, 8> corners(const Aabb& box) noexcept {
     std::array<math::vec3, 8> result{};
     std::size_t index = 0U;
 
@@ -56,15 +56,15 @@ namespace {
 
 }  // namespace
 
-math::vec3 size(const obb& box) noexcept {
+math::vec3 size(const Obb& box) noexcept {
     return box.half_sizes * two();
 }
 
-math::vec3 extent(const obb& box) noexcept {
+math::vec3 extent(const Obb& box) noexcept {
     return box.half_sizes;
 }
 
-bool contains(const obb& box, const math::vec3& point) noexcept {
+bool contains(const Obb& box, const math::vec3& point) noexcept {
     const math::vec3 relative = point - box.center;
     const math::mat3 inverse_orientation = math::transpose(box.orientation);
     const math::vec3 local = inverse_orientation * relative;
@@ -77,7 +77,7 @@ bool contains(const obb& box, const math::vec3& point) noexcept {
     return true;
 }
 
-bool contains(const obb& outer, const obb& inner) noexcept {
+bool contains(const Obb& outer, const Obb& inner) noexcept {
     for (const auto& corner : corners(inner)) {
         if (!contains(outer, corner)) {
             return false;
@@ -86,7 +86,7 @@ bool contains(const obb& outer, const obb& inner) noexcept {
     return true;
 }
 
-bool contains(const obb& outer, const aabb& inner) noexcept {
+bool contains(const Obb& outer, const Aabb& inner) noexcept {
     for (const auto& corner : corners(inner)) {
         if (!contains(outer, corner)) {
             return false;
@@ -95,7 +95,7 @@ bool contains(const obb& outer, const aabb& inner) noexcept {
     return true;
 }
 
-bool contains(const obb& outer, const sphere& inner) noexcept {
+bool contains(const Obb& outer, const Sphere& inner) noexcept {
     const math::mat3 inverse_orientation = math::transpose(outer.orientation);
     const math::vec3 local = inverse_orientation * (inner.center - outer.center);
 
@@ -107,7 +107,7 @@ bool contains(const obb& outer, const sphere& inner) noexcept {
     return true;
 }
 
-bool intersects(const obb& lhs, const obb& rhs) noexcept {
+bool intersects(const Obb& lhs, const Obb& rhs) noexcept {
     const math::mat3 R = math::transpose(lhs.orientation) * rhs.orientation;
     math::mat3 AbsR{};
     for (std::size_t i = 0; i < 3; ++i) {
@@ -164,11 +164,11 @@ bool intersects(const obb& lhs, const obb& rhs) noexcept {
     return true;
 }
 
-bool intersects(const obb& box, const aabb& other) noexcept {
+bool intersects(const Obb& box, const Aabb& other) noexcept {
     return intersects(box, from_aabb(other));
 }
 
-bool intersects(const obb& box, const sphere& s) noexcept {
+bool intersects(const Obb& box, const Sphere& s) noexcept {
     const math::mat3 inverse_orientation = math::transpose(box.orientation);
     const math::vec3 local = inverse_orientation * (s.center - box.center);
 
@@ -181,7 +181,7 @@ bool intersects(const obb& box, const sphere& s) noexcept {
     return math::length_squared(diff) <= s.radius * s.radius;
 }
 
-aabb bounding_aabb(const obb& box) noexcept {
+Aabb bounding_aabb(const Obb& box) noexcept {
     const auto corner_points = corners(box);
 
     math::vec3 min_corner{
@@ -203,16 +203,16 @@ aabb bounding_aabb(const obb& box) noexcept {
         }
     }
 
-    return aabb{min_corner, max_corner};
+    return Aabb{min_corner, max_corner};
 }
 
-obb from_aabb(const aabb& box) noexcept {
+Obb from_aabb(const Aabb& box) noexcept {
     const math::vec3 ext = extent(box);
-    return obb{center(box), ext, math::identity_matrix<float, 3>()};
+    return Obb{center(box), ext, math::identity_matrix<float, 3>()};
 }
 
-obb from_center_half_sizes(const math::vec3& center, const math::vec3& half_sizes) noexcept {
-    return obb{center, half_sizes, math::identity_matrix<float, 3>()};
+Obb from_center_half_sizes(const math::vec3& center, const math::vec3& half_sizes) noexcept {
+    return Obb{center, half_sizes, math::identity_matrix<float, 3>()};
 }
 
 }  // namespace engine::geometry

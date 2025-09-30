@@ -148,11 +148,6 @@ namespace engine::geometry::mesh {
         return FaceIterator(FaceHandle(faces_size()), this);
     }
 
-    bool HalfedgeMeshInterface::is_boundary(VertexHandle v) const {
-        const HalfedgeHandle h = halfedge(v);
-        return !(h.is_valid() && face(h).is_valid());
-    }
-
     bool HalfedgeMeshInterface::is_manifold(VertexHandle v) const {
         int gaps = 0;
         auto hit = halfedges(v);
@@ -165,16 +160,6 @@ namespace engine::geometry::mesh {
             } while (++hit != hend);
         }
         return gaps < 2;
-    }
-
-    void HalfedgeMeshInterface::set_next_halfedge(HalfedgeHandle h, HalfedgeHandle next) {
-        halfedge_connectivity_[h].next = next;
-        halfedge_connectivity_[next].prev = h;
-    }
-
-    void HalfedgeMeshInterface::set_prev_halfedge(HalfedgeHandle h, HalfedgeHandle prev) {
-        halfedge_connectivity_[h].prev = prev;
-        halfedge_connectivity_[prev].next = h;
     }
 
     HalfedgeHandle HalfedgeMeshInterface::halfedge(EdgeHandle e, unsigned int i) const {
@@ -206,7 +191,7 @@ namespace engine::geometry::mesh {
         return insert_vertex(halfedge(e, 0), v);
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::find_halfedge(VertexHandle start, VertexHandle end) const {
+    std::optional<HalfedgeHandle> HalfedgeMeshInterface::find_halfedge(VertexHandle start, VertexHandle end) const {
         assert(is_valid(start) && is_valid(end));
 
         HalfedgeHandle h = halfedge(start);
@@ -221,12 +206,12 @@ namespace engine::geometry::mesh {
             } while (h != hh);
         }
 
-        return HalfedgeHandle();
+        return std::nullopt;
     }
 
-    EdgeHandle HalfedgeMeshInterface::find_edge(VertexHandle a, VertexHandle b) const {
-        const HalfedgeHandle h = find_halfedge(a, b);
-        return h.is_valid() ? edge(h) : EdgeHandle();
+    std::optional<EdgeHandle> HalfedgeMeshInterface::find_edge(VertexHandle a, VertexHandle b) const {
+        if (auto h = find_halfedge(a, b)) return edge(*h);
+        return std::nullopt;
     }
 
     bool HalfedgeMeshInterface::is_triangle_mesh() const {
@@ -294,9 +279,9 @@ namespace engine::geometry::mesh {
         std::vector<bool> &needs_adjust = add_face_needs_adjust_;
         NextCache &next_cache = add_face_next_cache_;
         halfedges.clear();
-        halfedges.resize(n);
+        halfedges.resize(n, HalfedgeHandle());
         is_new.clear();
-        is_new.resize(n);
+        is_new.resize(n, false);
         needs_adjust.clear();
         needs_adjust.resize(n, false);
         next_cache.clear();
@@ -306,9 +291,11 @@ namespace engine::geometry::mesh {
             if (!is_boundary(vertices[i])) {
                 return std::nullopt;
             }
-
-            halfedges[i] = find_halfedge(vertices[i], vertices[ii]);
-            is_new[i] = !halfedges[i].is_valid();
+            if (auto h = find_halfedge(vertices[i], vertices[ii])) {
+                halfedges[i] = *h;
+            }else{
+                is_new[i] = true;
+            }
 
             if (!is_new[i] && !is_boundary(halfedges[i])) {
                 return std::nullopt;
@@ -653,7 +640,7 @@ namespace engine::geometry::mesh {
             return false;
         }
 
-        if (find_halfedge(v0, v1).is_valid()) {
+        if (find_halfedge(v0, v1).has_value()) {
             return false;
         }
 
@@ -741,7 +728,7 @@ namespace engine::geometry::mesh {
 
         for (auto vv: vertices(v0)) {
             if (vv != v1 && vv != vl && vv != vr) {
-                if (find_halfedge(vv, v1).is_valid()) {
+                if (find_halfedge(vv, v1).has_value()) {
                     return false;
                 }
             }
@@ -1039,7 +1026,7 @@ namespace engine::geometry::mesh {
 
     VertexHandle HalfedgeMeshInterface::new_vertex() {
         if (vertices_size() >= kInvalidPropertyIndex) {
-            return VertexHandle();
+            return {};
         }
         vertex_props_.push_back();
         return VertexHandle(vertices_size() - 1);
@@ -1047,7 +1034,7 @@ namespace engine::geometry::mesh {
 
     HalfedgeHandle HalfedgeMeshInterface::new_edge() {
         if (halfedges_size() >= kInvalidPropertyIndex) {
-            return HalfedgeHandle();
+            return {};
         }
 
         edge_props_.push_back();
@@ -1061,7 +1048,7 @@ namespace engine::geometry::mesh {
         assert(start != end);
 
         if (halfedges_size() >= kInvalidPropertyIndex) {
-            return HalfedgeHandle();
+            return {};
         }
 
         edge_props_.push_back();
@@ -1079,7 +1066,7 @@ namespace engine::geometry::mesh {
 
     FaceHandle HalfedgeMeshInterface::new_face() {
         if (faces_size() >= kInvalidPropertyIndex) {
-            return FaceHandle();
+            return {};
         }
 
         face_props_.push_back();

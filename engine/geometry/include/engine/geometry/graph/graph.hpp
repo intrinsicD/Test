@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/geometry/api.hpp"
 #include "engine/geometry/properties/property_set.hpp"
 #include "engine/geometry/properties/property_handle.hpp"
 #include "engine/geometry/utils/iterators.hpp"
@@ -11,14 +12,13 @@
 #include <cassert>
 #include <cstddef>
 #include <filesystem>
-#include <optional>
 #include <string>
 #include <vector>
 
 namespace engine::geometry::graph {
-    struct IOFlags;
+    struct ENGINE_GEOMETRY_API IOFlags;
 
-    class GraphInterface {
+    class ENGINE_GEOMETRY_API GraphInterface {
     public:
         GraphInterface(Vertices &vertex_props,
                        Halfedges &halfedge_props,
@@ -214,9 +214,9 @@ namespace engine::geometry::graph {
 
         [[nodiscard]] HalfedgeHandle insert_vertex(HalfedgeHandle h, VertexHandle v);
 
-        [[nodiscard]] HalfedgeHandle find_halfedge(VertexHandle start, VertexHandle end) const;
+        [[nodiscard]] std::optional<HalfedgeHandle> find_halfedge(VertexHandle start, VertexHandle end) const;
 
-        [[nodiscard]] EdgeHandle find_edge(VertexHandle a, VertexHandle b) const;
+        [[nodiscard]] std::optional<EdgeHandle> find_edge(VertexHandle a, VertexHandle b) const;
         
         [[nodiscard]] bool is_collapse_ok(HalfedgeHandle h) const;
 
@@ -240,7 +240,9 @@ namespace engine::geometry::graph {
 
         [[nodiscard]] const math::vec3 &position(VertexHandle v) const { return vertex_points_[v]; }
         [[nodiscard]] math::vec3 &position(VertexHandle v) { return vertex_points_[v]; }
-        [[nodiscard]] std::vector<math::vec3> &positions() { return vertex_points_.vector(); }
+
+        [[nodiscard]] std::span<const math::vec3> positions() const {return vertex_points_.span();}
+        [[nodiscard]] std::span<math::vec3> positions() {return vertex_points_.span();}
 
         [[nodiscard]] VertexHandle new_vertex();
 
@@ -254,9 +256,9 @@ namespace engine::geometry::graph {
     private:
         void ensure_properties();
 
-        friend void read(GraphInterface &, const std::filesystem::path &);
+        friend ENGINE_GEOMETRY_API void read(GraphInterface &, const std::filesystem::path &);
 
-        friend void write(const GraphInterface &, const std::filesystem::path &, const IOFlags &);
+        friend ENGINE_GEOMETRY_API void write(const GraphInterface &, const std::filesystem::path &, const IOFlags &);
 
         Vertices &vertex_props_;
         Halfedges &halfedge_props_;
@@ -280,13 +282,13 @@ namespace engine::geometry::graph {
 namespace engine::geometry {
     using GraphInterface = graph::GraphInterface;
 
-    struct GraphData {
+    struct ENGINE_GEOMETRY_API GraphData {
         Vertices vertex_props;
         Halfedges halfedge_props;
         Edges edge_props;
     };
 
-    struct Graph {
+    struct ENGINE_GEOMETRY_API Graph {
         Graph() : data(), interface(data.vertex_props, data.halfedge_props, data.edge_props) {
         }
 

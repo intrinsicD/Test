@@ -12,7 +12,7 @@ namespace {
 
 }  // namespace
 
-math::vec3 axis_direction(const cylinder& c) noexcept {
+math::vec3 axis_direction(const Cylinder& c) noexcept {
     const float len = math::length(c.axis);
     if (len == 0.0f) {
         return math::vec3{0.0f};
@@ -20,29 +20,29 @@ math::vec3 axis_direction(const cylinder& c) noexcept {
     return c.axis / len;
 }
 
-math::vec3 top_center(const cylinder& c) noexcept {
+math::vec3 top_center(const Cylinder& c) noexcept {
     return c.center + axis_direction(c) * c.half_height;
 }
 
-math::vec3 bottom_center(const cylinder& c) noexcept {
+math::vec3 bottom_center(const Cylinder& c) noexcept {
     return c.center - axis_direction(c) * c.half_height;
 }
 
-float volume(const cylinder& c) noexcept {
+float volume(const Cylinder& c) noexcept {
     const float height = c.half_height * two();
     return std::numbers::pi_v<float> * c.radius * c.radius * height;
 }
 
-float lateral_surface_area(const cylinder& c) noexcept {
+float lateral_surface_area(const Cylinder& c) noexcept {
     const float height = c.half_height * two();
     return two() * std::numbers::pi_v<float> * c.radius * height;
 }
 
-float surface_area(const cylinder& c) noexcept {
+float surface_area(const Cylinder& c) noexcept {
     return lateral_surface_area(c) + two() * std::numbers::pi_v<float> * c.radius * c.radius;
 }
 
-bool contains(const cylinder& c, const math::vec3& point) noexcept {
+bool contains(const Cylinder& c, const math::vec3& point) noexcept {
     const math::vec3 axis_dir = axis_direction(c);
     if (math::length_squared(axis_dir) == 0.0f) {
         return false;
@@ -58,7 +58,7 @@ bool contains(const cylinder& c, const math::vec3& point) noexcept {
     return math::length_squared(radial) <= c.radius * c.radius;
 }
 
-bool intersects(const cylinder& c, const sphere& s) noexcept {
+bool intersects(const Cylinder& c, const Sphere& s) noexcept {
     const math::vec3 axis_dir = axis_direction(c);
     if (math::length_squared(axis_dir) == 0.0f) {
         return false;

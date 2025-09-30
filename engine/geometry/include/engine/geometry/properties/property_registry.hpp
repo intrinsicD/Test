@@ -191,7 +191,13 @@ public:
         return storage_->data()[index];
     }
 
-    [[nodiscard]] std::span<T> span() const noexcept requires (!std::is_same_v<T, bool>)
+    [[nodiscard]] std::span<const T> span() const noexcept requires (!std::is_same_v<T, bool>)
+    {
+        assert(storage_ != nullptr);
+        return std::span<T>(storage_->data());
+    }
+
+    [[nodiscard]] std::span<T> span() noexcept requires (!std::is_same_v<T, bool>)
     {
         assert(storage_ != nullptr);
         return std::span<T>(storage_->data());

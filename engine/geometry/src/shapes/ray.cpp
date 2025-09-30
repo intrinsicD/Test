@@ -10,11 +10,11 @@
 
 namespace engine::geometry {
 
-math::vec3 point_at(const ray& r, float t) noexcept {
+math::vec3 point_at(const Ray& r, float t) noexcept {
     return r.origin + r.direction * t;
 }
 
-bool intersects(const ray& r, const aabb& box, float& out_t_min, float& out_t_max) noexcept {
+bool intersects(const Ray& r, const Aabb& box, float& out_t_min, float& out_t_max) noexcept {
     float t_min = 0.0f;
     float t_max = std::numeric_limits<float>::infinity();
 
@@ -47,7 +47,7 @@ bool intersects(const ray& r, const aabb& box, float& out_t_min, float& out_t_ma
     return true;
 }
 
-bool intersects(const ray& r, const sphere& s, float& out_t) noexcept {
+bool intersects(const Ray& r, const Sphere& s, float& out_t) noexcept {
     const math::vec3 m = r.origin - s.center;
     const float b = math::dot(m, r.direction);
     const float c = math::dot(m, m) - s.radius * s.radius;
@@ -74,7 +74,7 @@ bool intersects(const ray& r, const sphere& s, float& out_t) noexcept {
     return true;
 }
 
-bool intersects(const ray& r, const plane& p, float& out_t) noexcept {
+bool intersects(const Ray& r, const Plane& p, float& out_t) noexcept {
     return intersects(p, r, out_t);
 }
 

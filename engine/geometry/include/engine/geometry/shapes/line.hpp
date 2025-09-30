@@ -5,16 +5,16 @@
 
 namespace engine::geometry {
 
-struct plane;
+struct Plane;
 
-struct ENGINE_GEOMETRY_API line {
+struct ENGINE_GEOMETRY_API Line {
     math::vec3 point;
     math::vec3 direction;
 };
 
-[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 point_at(const line& l, float t) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 project_point(const line& l, const math::vec3& point) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const line& l, const plane& p, float& out_t) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 point_at(const Line& l, float t) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 project_point(const Line& l, const math::vec3& point) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Line& l, const Plane& p, float& out_t) noexcept;
 
 }  // namespace engine::geometry
 

@@ -6,19 +6,19 @@
 
 namespace engine::geometry {
 
-math::vec3 direction(const segment& s) noexcept {
+math::vec3 direction(const Segment& s) noexcept {
     return s.end - s.start;
 }
 
-float length(const segment& s) noexcept {
+float length(const Segment& s) noexcept {
     return math::length(direction(s));
 }
 
-math::vec3 point_at(const segment& s, float t) noexcept {
+math::vec3 point_at(const Segment& s, float t) noexcept {
     return s.start + direction(s) * t;
 }
 
-bool intersects(const segment& s, const plane& p, float& out_t) noexcept {
+bool intersects(const Segment& s, const Plane& p, float& out_t) noexcept {
     return intersects(p, s, out_t);
 }
 

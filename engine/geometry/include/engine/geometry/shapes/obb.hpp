@@ -6,29 +6,29 @@
 
 namespace engine::geometry {
 
-struct aabb;
-struct sphere;
+struct Aabb;
+struct Sphere;
 
-struct ENGINE_GEOMETRY_API obb {
+struct ENGINE_GEOMETRY_API Obb {
     math::vec3 center;
     math::vec3 half_sizes;
     math::mat3 orientation;
 };
 
-[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 size(const obb& box) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 extent(const obb& box) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const obb& box, const math::vec3& point) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const obb& outer, const obb& inner) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const obb& outer, const aabb& inner) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const obb& outer, const sphere& inner) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 size(const Obb& box) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 extent(const Obb& box) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Obb& box, const math::vec3& point) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Obb& outer, const Obb& inner) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Obb& outer, const Aabb& inner) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Obb& outer, const Sphere& inner) noexcept;
 
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const obb& lhs, const obb& rhs) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const obb& box, const aabb& other) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const obb& box, const sphere& s) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Obb& lhs, const Obb& rhs) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Obb& box, const Aabb& other) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Obb& box, const Sphere& s) noexcept;
 
-[[nodiscard]] ENGINE_GEOMETRY_API aabb bounding_aabb(const obb& box) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API obb from_aabb(const aabb& box) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API obb from_center_half_sizes(const math::vec3& center, const math::vec3& half_sizes) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API Aabb bounding_aabb(const Obb& box) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API Obb from_aabb(const Aabb& box) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API Obb from_center_half_sizes(const math::vec3& center, const math::vec3& half_sizes) noexcept;
 
 }  // namespace engine::geometry
 

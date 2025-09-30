@@ -31,6 +31,9 @@ namespace engine::geometry
         [[nodiscard]] std::vector<T>& array() { return buffer_.vector(); }
         [[nodiscard]] const std::vector<T>& array() const { return buffer_.vector(); }
 
+        [[nodiscard]] std::span<T> span() { return buffer_.span(); }
+        [[nodiscard]] std::span<const T> span() const { return buffer_.span(); }
+
         [[nodiscard]] PropertyBuffer<T>& handle() noexcept { return buffer_; }
         [[nodiscard]] const PropertyBuffer<T>& handle() const noexcept { return buffer_; }
 
