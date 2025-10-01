@@ -16,6 +16,7 @@ This document captures the conventions to follow when contributing C++ and Pytho
 - Prefer `std::string_view`, `std::span`, and other non-owning views instead of raw pointers when sharing data.
 - Use `#pragma once` include guards and keep headers free of unnecessary includes.
 - Format code with four spaces per indentation level and brace-initialisation for aggregates.
+- Adopt consistent naming: declare classes and free functions in `CapitalCase`, and keep variables along with member variables and member functions in `snake_case`.
 - Keep functions short and focused; extract helpers into unnamed namespaces in the `.cpp` translation units when they are not part of the public API.
 - When adding new libraries, update the corresponding `CMakeLists.txt` files to expose headers and shared exports consistently.
 
