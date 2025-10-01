@@ -1,10 +1,9 @@
 #pragma once
 
-#include <vector>
-
 #include "engine/geometry/api.hpp"
 #include "engine/math/vector.hpp"
-#include "engine/geometry/octree/octree.hpp"
+
+#include <vector>
 
 namespace engine::geometry {
     struct Aabb;
