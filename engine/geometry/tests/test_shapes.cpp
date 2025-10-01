@@ -68,6 +68,184 @@ TEST(Aabb, ConversionsContainmentAndIntersections) {
     EXPECT_TRUE(engine::geometry::Intersects(outer, inner_obb));
 }
 
+TEST(Aabb, ContainsCylinderAndEllipsoid) {
+    const vec3 center{0.0f};
+    const Aabb outer = engine::geometry::make_aabb_from_center_extent(center, vec3{2.0f, 2.0f, 2.0f});
+
+    const engine::geometry::Cylinder cylinder_inside{
+        vec3{0.0f, 0.0f, 0.0f},
+        vec3{0.0f, 0.0f, 1.0f},
+        0.75f,
+        1.0f,
+    };
+    EXPECT_TRUE(engine::geometry::Contains(outer, cylinder_inside));
+
+    const engine::geometry::Cylinder cylinder_outside{
+        vec3{2.5f, 0.0f, 0.0f},
+        vec3{0.0f, 0.0f, 1.0f},
+        0.5f,
+        1.0f,
+    };
+    EXPECT_TRUE(!engine::geometry::Contains(outer, cylinder_outside));
+
+    const engine::geometry::Ellipsoid ellipsoid_inside{
+        vec3{0.5f, 0.25f, -0.25f},
+        vec3{0.5f, 0.75f, 0.6f},
+        engine::math::identity_matrix<float, 3>()
+    };
+    EXPECT_TRUE(engine::geometry::Contains(outer, ellipsoid_inside));
+
+    const engine::geometry::Ellipsoid ellipsoid_outside{
+        vec3{2.5f, 0.0f, 0.0f},
+        vec3{0.6f, 0.6f, 0.6f},
+        engine::math::identity_matrix<float, 3>()
+    };
+    EXPECT_TRUE(!engine::geometry::Contains(outer, ellipsoid_outside));
+}
+
+TEST(Aabb, IntersectsAdvancedShapes) {
+    const Aabb box = engine::geometry::make_aabb_from_center_extent(vec3{0.0f}, vec3{1.0f});
+
+    const engine::geometry::Cylinder cylinder{
+        vec3{1.5f, 0.0f, 0.0f},
+        vec3{0.0f, 0.0f, 1.0f},
+        0.6f,
+        0.75f,
+    };
+    EXPECT_TRUE(engine::geometry::Intersects(box, cylinder));
+
+    const engine::geometry::Cylinder far_cylinder{
+        vec3{3.0f, 0.0f, 0.0f},
+        vec3{0.0f, 1.0f, 0.0f},
+        0.5f,
+        0.5f,
+    };
+    EXPECT_TRUE(!engine::geometry::Intersects(box, far_cylinder));
+
+    const float angle = std::numbers::pi_v<float> * 0.25f;
+    const mat3 rotation{
+        std::cos(angle), -std::sin(angle), 0.0f,
+        std::sin(angle), std::cos(angle), 0.0f,
+        0.0f, 0.0f, 1.0f,
+    };
+
+    const engine::geometry::Ellipsoid ellipsoid{
+        vec3{0.9f, 0.0f, 0.0f},
+        vec3{0.6f, 0.4f, 0.3f},
+        rotation
+    };
+    EXPECT_TRUE(engine::geometry::Intersects(box, ellipsoid));
+
+    const engine::geometry::Ellipsoid far_ellipsoid{
+        vec3{3.0f, 0.0f, 0.0f},
+        vec3{0.6f, 0.4f, 0.3f},
+        rotation
+    };
+    EXPECT_TRUE(!engine::geometry::Intersects(box, far_ellipsoid));
+
+    const engine::geometry::Line line{
+        vec3{-2.0f, -2.0f, 0.0f},
+        vec3{1.0f, 1.0f, 0.0f},
+    };
+    EXPECT_TRUE(engine::geometry::Intersects(box, line));
+
+    const engine::geometry::Line distant_line{
+        vec3{0.0f, 3.0f, 0.0f},
+        vec3{1.0f, 0.0f, 0.0f},
+    };
+    EXPECT_TRUE(!engine::geometry::Intersects(box, distant_line));
+
+    const engine::geometry::Plane plane{vec3{0.0f, 1.0f, 0.0f}, 0.0f};
+    EXPECT_TRUE(engine::geometry::Intersects(box, plane));
+
+    const engine::geometry::Plane far_plane{vec3{0.0f, 1.0f, 0.0f}, -3.0f};
+    EXPECT_TRUE(!engine::geometry::Intersects(box, far_plane));
+
+    const engine::geometry::Ray ray{
+        vec3{-3.0f, 0.2f, 0.0f},
+        vec3{1.0f, 0.0f, 0.0f},
+    };
+    EXPECT_TRUE(engine::geometry::Intersects(box, ray));
+
+    const engine::geometry::Ray miss_ray{
+        vec3{-3.0f, 3.0f, 0.0f},
+        vec3{1.0f, 0.0f, 0.0f},
+    };
+    EXPECT_TRUE(!engine::geometry::Intersects(box, miss_ray));
+
+    const engine::geometry::Segment segment{
+        vec3{-3.0f, 0.0f, 0.0f},
+        vec3{0.5f, 0.0f, 0.0f},
+    };
+    EXPECT_TRUE(engine::geometry::Intersects(box, segment));
+
+    const engine::geometry::Segment miss_segment{
+        vec3{-3.0f, 2.0f, 0.0f},
+        vec3{-1.5f, 2.0f, 0.0f},
+    };
+    EXPECT_TRUE(!engine::geometry::Intersects(box, miss_segment));
+
+    const engine::geometry::Triangle triangle{
+        vec3{0.0f, 2.0f, 0.0f},
+        vec3{0.0f, -2.0f, 0.0f},
+        vec3{0.0f, 0.0f, 2.0f},
+    };
+    EXPECT_TRUE(engine::geometry::Intersects(box, triangle));
+
+    const engine::geometry::Triangle far_triangle{
+        vec3{3.0f, 3.0f, 3.0f},
+        vec3{4.0f, 3.0f, 3.0f},
+        vec3{3.5f, 4.0f, 3.0f},
+    };
+    EXPECT_TRUE(!engine::geometry::Intersects(box, far_triangle));
+}
+
+TEST(Aabb, BoundingVolumesForCompositeShapes) {
+    const engine::geometry::Cylinder cylinder{
+        vec3{0.0f, 1.0f, -1.0f},
+        vec3{1.0f, 1.0f, 0.0f},
+        1.0f,
+        2.0f,
+    };
+    const Aabb cylinder_bounds = engine::geometry::BoundingAabb(cylinder);
+    const vec3 cylinder_extent = engine::geometry::Extent(cylinder_bounds);
+    EXPECT_TRUE(std::fabs(cylinder_bounds.min[2] + 2.0f) <= 1e-5f);
+    EXPECT_TRUE(std::fabs(cylinder_bounds.max[2] - 0.0f) <= 1e-5f);
+    EXPECT_TRUE(std::fabs(cylinder_extent[0] - 2.1213203f) <= 1e-4f);
+    EXPECT_TRUE(std::fabs(cylinder_extent[1] - 2.1213203f) <= 1e-4f);
+
+    const float angle = std::numbers::pi_v<float> * 0.25f;
+    const mat3 rotation{
+        std::cos(angle), -std::sin(angle), 0.0f,
+        std::sin(angle), std::cos(angle), 0.0f,
+        0.0f, 0.0f, 1.0f,
+    };
+    const engine::geometry::Ellipsoid ellipsoid{
+        vec3{2.0f, 0.0f, 1.0f},
+        vec3{1.0f, 2.0f, 0.5f},
+        rotation,
+    };
+    const Aabb ellipsoid_bounds = engine::geometry::BoundingAabb(ellipsoid);
+    const vec3 ellipsoid_extent = engine::geometry::Extent(ellipsoid_bounds);
+    EXPECT_TRUE(std::fabs(ellipsoid_extent[0] - 2.1213203f) <= 1e-4f);
+    EXPECT_TRUE(std::fabs(ellipsoid_extent[1] - 2.1213203f) <= 1e-4f);
+    EXPECT_FLOAT_EQ(ellipsoid_extent[2], 0.5f);
+
+    const engine::geometry::Segment segment{vec3{-1.0f, 2.0f, 3.0f}, vec3{4.0f, -1.0f, 5.0f}};
+    const Aabb segment_bounds = engine::geometry::BoundingAabb(segment);
+    expect_vec3_eq(segment_bounds.min, vec3{-1.0f, -1.0f, 3.0f});
+    expect_vec3_eq(segment_bounds.max, vec3{4.0f, 2.0f, 5.0f});
+
+    const engine::geometry::Triangle triangle{
+        vec3{1.0f, -2.0f, 0.0f},
+        vec3{-3.0f, 4.0f, 2.0f},
+        vec3{0.5f, 1.5f, -1.0f},
+    };
+    const Aabb triangle_bounds = engine::geometry::BoundingAabb(triangle);
+    expect_vec3_eq(triangle_bounds.min, vec3{-3.0f, -2.0f, -1.0f});
+    expect_vec3_eq(triangle_bounds.max, vec3{1.0f, 4.0f, 2.0f});
+}
+
 TEST(Obb, ContainsAndBoundingBox) {
     const float angle = std::numbers::pi_v<float> * 0.25f;
     const mat3 orientation{
