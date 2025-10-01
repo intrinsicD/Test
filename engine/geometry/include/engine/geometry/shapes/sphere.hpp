@@ -7,7 +7,7 @@ namespace engine::geometry {
 
 struct Aabb;
 struct Obb;
-struct cylinder;
+struct Cylinder;
 
 struct ENGINE_GEOMETRY_API Sphere {
     math::vec3 center;
@@ -24,7 +24,7 @@ struct ENGINE_GEOMETRY_API Sphere {
 [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& lhs, const Sphere& rhs) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& s, const Aabb& box) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& s, const Obb& box) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& s, const cylinder& c) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& s, const Cylinder& c) noexcept;
 
 [[nodiscard]] ENGINE_GEOMETRY_API Sphere make_sphere_from_point(const math::vec3& point) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API Sphere bounding_sphere(const Aabb& box) noexcept;

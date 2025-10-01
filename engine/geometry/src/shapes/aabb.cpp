@@ -1,21 +1,28 @@
 #include "engine/geometry/shapes/aabb.hpp"
+
+#include "engine/geometry/shapes/cylinder.hpp"
+#include "engine/geometry/shapes/ellipsoid.hpp"
+#include "engine/geometry/shapes/line.hpp"
 #include "engine/geometry/shapes/obb.hpp"
+#include "engine/geometry/shapes/plane.hpp"
+#include "engine/geometry/shapes/ray.hpp"
+#include "engine/geometry/shapes/segment.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
 #include "engine/geometry/shapes/triangle.hpp"
-#include "engine/geometry/shapes/cylinder.hpp"
+#include "engine/math/matrix.hpp"
 #include "engine/math/utils.hpp"
-
 
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <engine/geometry/shapes/segment.hpp>
+#include <limits>
 
 
 namespace engine::geometry {
     namespace {
         [[nodiscard]] constexpr float half() noexcept { return 0.5f; }
         [[nodiscard]] constexpr float two() noexcept { return 2.0f; }
+        [[nodiscard]] constexpr float tiny() noexcept { return 1e-6f; }
 
         [[nodiscard]] std::array<math::vec3, 8> Corners(const Obb &box) noexcept {
             std::array<math::vec3, 8> result{};
@@ -35,6 +42,64 @@ namespace engine::geometry {
             }
 
             return result;
+        }
+
+        [[nodiscard]] Segment axis_segment(const Cylinder &c) noexcept {
+            const math::vec3 dir = axis_direction(c);
+            const math::vec3 offset = dir * c.half_height;
+            return Segment{c.center - offset, c.center + offset};
+        }
+
+        [[nodiscard]] double squared_distance(const Aabb &box, const Segment &segment) noexcept {
+            const math::vec3 direction = segment.end - segment.start;
+            const double dir_length_sq = static_cast<double>(math::length_squared(direction));
+
+            std::array<float, 32> candidates{};
+            std::size_t candidate_count = 0U;
+
+            const auto add_candidate = [&](float value) {
+                if (value < 0.0f || value > 1.0f) {
+                    return;
+                }
+                for (std::size_t i = 0; i < candidate_count; ++i) {
+                    if (std::fabs(candidates[i] - value) <= 1e-4f) {
+                        return;
+                    }
+                }
+                candidates[candidate_count++] = value;
+            };
+
+            add_candidate(0.0f);
+            add_candidate(1.0f);
+
+            if (dir_length_sq > tiny()) {
+                const float projected = math::dot(Center(box) - segment.start, direction) /
+                                       static_cast<float>(dir_length_sq);
+                add_candidate(projected);
+
+                for (std::size_t axis = 0; axis < 3; ++axis) {
+                    if (std::fabs(direction[axis]) <= tiny()) {
+                        continue;
+                    }
+                    const float inv_dir = 1.0f / direction[axis];
+                    add_candidate((box.min[axis] - segment.start[axis]) * inv_dir);
+                    add_candidate((box.max[axis] - segment.start[axis]) * inv_dir);
+                }
+
+                for (const auto &corner : Corners(box)) {
+                    const float numerator = math::dot(corner - segment.start, direction);
+                    const float t = numerator / static_cast<float>(dir_length_sq);
+                    add_candidate(t);
+                }
+            }
+
+            double min_distance_sq = std::numeric_limits<double>::infinity();
+            for (std::size_t i = 0; i < candidate_count; ++i) {
+                const math::vec3 point = segment.start + direction * candidates[i];
+                min_distance_sq = std::min(min_distance_sq, SquaredDistance(box, point));
+            }
+
+            return min_distance_sq;
         }
     } // namespace
 
@@ -100,11 +165,11 @@ namespace engine::geometry {
     }
 
     bool Contains(const Aabb &outer, const Cylinder &inner) noexcept {
-        //TODO
+        return Contains(outer, BoundingAabb(inner));
     }
 
     bool Contains(const Aabb &outer, const Ellipsoid &inner) noexcept {
-        //TODO
+        return Contains(outer, BoundingAabb(inner));
     }
 
     bool Contains(const Aabb &outer, const Segment &inner) noexcept {
@@ -138,31 +203,199 @@ namespace engine::geometry {
     }
 
     bool Intersects(const Aabb &box, const Cylinder &other) noexcept {
-        //TODO
+        const Segment axis = axis_segment(other);
+        const math::vec3 direction = axis.end - axis.start;
+        const float dir_length_sq = math::length_squared(direction);
+
+        if (dir_length_sq <= tiny()) {
+            return Intersects(box, Sphere{other.center, other.radius});
+        }
+
+        float t_min = 0.0f;
+        float t_max = 0.0f;
+        const Ray axis_ray{axis.start, direction};
+        if (Intersects(axis_ray, box, t_min, t_max) && t_max >= 0.0f && t_min <= 1.0f) {
+            return true;
+        }
+
+        const double distance_sq = squared_distance(box, axis);
+        const double radius_sq = static_cast<double>(other.radius) * static_cast<double>(other.radius);
+        return distance_sq <= radius_sq + 1e-6;
     }
 
     bool Intersects(const Aabb &box, const Ellipsoid &other) noexcept {
-        //TODO
+        if (Contains(box, other.center)) {
+            return true;
+        }
+
+        for (const auto &corner : Corners(box)) {
+            if (Contains(other, corner)) {
+                return true;
+            }
+        }
+
+        for (std::size_t i = 0; i < 3; ++i) {
+            if (other.radii[i] <= tiny()) {
+                return Contains(box, other.center);
+            }
+        }
+
+        const math::mat3 inv_radii_sq{
+            1.0f / (other.radii[0] * other.radii[0]), 0.0f, 0.0f,
+            0.0f, 1.0f / (other.radii[1] * other.radii[1]), 0.0f,
+            0.0f, 0.0f, 1.0f / (other.radii[2] * other.radii[2])
+        };
+        const math::mat3 metric = other.orientation * inv_radii_sq * math::transpose(other.orientation);
+
+        math::vec3 point{
+            math::utils::clamp(other.center[0], box.min[0], box.max[0]),
+            math::utils::clamp(other.center[1], box.min[1], box.max[1]),
+            math::utils::clamp(other.center[2], box.min[2], box.max[2])
+        };
+
+        for (int iteration = 0; iteration < 16; ++iteration) {
+            for (std::size_t axis = 0; axis < 3; ++axis) {
+                float sum = 0.0f;
+                for (std::size_t j = 0; j < 3; ++j) {
+                    if (j == axis) {
+                        continue;
+                    }
+                    sum += metric[axis][j] * (point[j] - other.center[j]);
+                }
+                const float diag = metric[axis][axis];
+                if (std::fabs(diag) <= tiny()) {
+                    continue;
+                }
+                const float target = other.center[axis] - sum / diag;
+                point[axis] = math::utils::clamp(target, box.min[axis], box.max[axis]);
+            }
+        }
+
+        const math::vec3 diff = point - other.center;
+        const math::vec3 transformed = metric * diff;
+        const float value = math::dot(diff, transformed);
+        return value <= 1.0f + 1e-4f;
     }
 
     bool Intersects(const Aabb &box, const Line &other) noexcept {
-        //TODO
+        float t_min = -std::numeric_limits<float>::infinity();
+        float t_max = std::numeric_limits<float>::infinity();
+
+        for (std::size_t axis = 0; axis < 3; ++axis) {
+            const float dir = other.direction[axis];
+            const float origin = other.point[axis];
+
+            if (std::fabs(dir) <= tiny()) {
+                if (origin < box.min[axis] || origin > box.max[axis]) {
+                    return false;
+                }
+                continue;
+            }
+
+            const float inv_dir = 1.0f / dir;
+            float t0 = (box.min[axis] - origin) * inv_dir;
+            float t1 = (box.max[axis] - origin) * inv_dir;
+            if (t0 > t1) {
+                std::swap(t0, t1);
+            }
+
+            t_min = std::max(t_min, t0);
+            t_max = std::min(t_max, t1);
+            if (t_max < t_min) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     bool Intersects(const Aabb &box, const Plane &other) noexcept {
-        //TODO
+        const math::vec3 center = Center(box);
+        const math::vec3 extent = Extent(box);
+
+        const float distance = math::dot(other.normal, center) + other.distance;
+        const float radius = extent[0] * std::fabs(other.normal[0]) +
+                             extent[1] * std::fabs(other.normal[1]) +
+                             extent[2] * std::fabs(other.normal[2]);
+        return std::fabs(distance) <= radius;
     }
 
     bool Intersects(const Aabb &box, const Ray &other) noexcept {
-        //TODO
+        float t_min = 0.0f;
+        float t_max = 0.0f;
+        return Intersects(other, box, t_min, t_max);
     }
 
     bool Intersects(const Aabb &box, const Segment &other) noexcept {
-        //TODO
+        const math::vec3 direction = other.end - other.start;
+        const float dir_length_sq = math::length_squared(direction);
+        if (dir_length_sq <= tiny()) {
+            return Contains(box, other.start);
+        }
+
+        float t_min = 0.0f;
+        float t_max = 0.0f;
+        const Ray ray{other.start, direction};
+        if (!Intersects(ray, box, t_min, t_max)) {
+            return false;
+        }
+        return t_max >= 0.0f && t_min <= 1.0f;
     }
 
     bool Intersects(const Aabb &box, const Triangle &other) noexcept {
-        //TODO
+        const math::vec3 box_center = Center(box);
+        const math::vec3 box_extent = Extent(box);
+
+        const math::vec3 v0 = other.a - box_center;
+        const math::vec3 v1 = other.b - box_center;
+        const math::vec3 v2 = other.c - box_center;
+
+        const math::vec3 f0 = v1 - v0;
+        const math::vec3 f1 = v2 - v1;
+        const math::vec3 f2 = v0 - v2;
+
+        const auto axis_test = [&](const math::vec3 &axis) {
+            if (math::length_squared(axis) <= tiny()) {
+                return true;
+            }
+            const float p0 = math::dot(v0, axis);
+            const float p1 = math::dot(v1, axis);
+            const float p2 = math::dot(v2, axis);
+            const float min_p = std::min({p0, p1, p2});
+            const float max_p = std::max({p0, p1, p2});
+            const float r = box_extent[0] * std::fabs(axis[0]) +
+                            box_extent[1] * std::fabs(axis[1]) +
+                            box_extent[2] * std::fabs(axis[2]);
+            return !(min_p > r || max_p < -r);
+        };
+
+        const math::vec3 axes[3] = {f0, f1, f2};
+        for (const auto &edge : axes) {
+            if (!axis_test(math::cross(edge, math::vec3{1.0f, 0.0f, 0.0f}))) {
+                return false;
+            }
+            if (!axis_test(math::cross(edge, math::vec3{0.0f, 1.0f, 0.0f}))) {
+                return false;
+            }
+            if (!axis_test(math::cross(edge, math::vec3{0.0f, 0.0f, 1.0f}))) {
+                return false;
+            }
+        }
+
+        for (std::size_t axis = 0; axis < 3; ++axis) {
+            const float min_v = std::min({v0[axis], v1[axis], v2[axis]});
+            const float max_v = std::max({v0[axis], v1[axis], v2[axis]});
+            if (min_v > box_extent[axis] || max_v < -box_extent[axis]) {
+                return false;
+            }
+        }
+
+        const math::vec3 normal_vec = math::cross(f0, f1);
+        if (!axis_test(normal_vec)) {
+            return false;
+        }
+
+        return true;
     }
 
     Aabb make_aabb_from_point(const math::vec3 &point) noexcept {
@@ -204,19 +437,57 @@ namespace engine::geometry {
     }
 
     Aabb BoundingAabb(const Cylinder &s) noexcept {
-        //TODO
+        const math::vec3 dir = axis_direction(s);
+        const math::vec3 abs_dir{std::fabs(dir[0]), std::fabs(dir[1]), std::fabs(dir[2])};
+
+        math::vec3 axial_extent = abs_dir * s.half_height;
+        math::vec3 radial_extent{};
+        for (std::size_t i = 0; i < 3; ++i) {
+            const float component = std::max(0.0f, 1.0f - abs_dir[i] * abs_dir[i]);
+            radial_extent[i] = s.radius * std::sqrt(component);
+        }
+
+        const math::vec3 extent = axial_extent + radial_extent;
+        return make_aabb_from_center_extent(s.center, extent);
     }
 
     Aabb BoundingAabb(const Ellipsoid &s) noexcept {
-        //TODO
+        math::vec3 extent{0.0f};
+        for (std::size_t row = 0; row < 3; ++row) {
+            float sum = 0.0f;
+            for (std::size_t col = 0; col < 3; ++col) {
+                sum += std::fabs(s.orientation[row][col]) * s.radii[col];
+            }
+            extent[row] = sum;
+        }
+
+        return make_aabb_from_center_extent(s.center, extent);
     }
 
     Aabb BoundingAabb(const Segment &s) noexcept {
-        //TODO
+        math::vec3 min_corner{};
+        math::vec3 max_corner{};
+        for (std::size_t i = 0; i < 3; ++i) {
+            min_corner[i] = math::utils::min(s.start[i], s.end[i]);
+            max_corner[i] = math::utils::max(s.start[i], s.end[i]);
+        }
+        return Aabb{min_corner, max_corner};
     }
 
     Aabb BoundingAabb(const Triangle &s) noexcept {
-        //TODO
+        math::vec3 min_corner{
+            math::utils::min(s.a[0], math::utils::min(s.b[0], s.c[0])),
+            math::utils::min(s.a[1], math::utils::min(s.b[1], s.c[1])),
+            math::utils::min(s.a[2], math::utils::min(s.b[2], s.c[2]))
+        };
+
+        math::vec3 max_corner{
+            math::utils::max(s.a[0], math::utils::max(s.b[0], s.c[0])),
+            math::utils::max(s.a[1], math::utils::max(s.b[1], s.c[1])),
+            math::utils::max(s.a[2], math::utils::max(s.b[2], s.c[2]))
+        };
+
+        return Aabb{min_corner, max_corner};
     }
 
     Aabb Merge(const Aabb &l, const Aabb &r) noexcept {
