@@ -13,7 +13,7 @@ struct ENGINE_GEOMETRY_API Ellipsoid {
 };
 
 [[nodiscard]] ENGINE_GEOMETRY_API float volume(const Ellipsoid& e) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Ellipsoid& e, const math::vec3& point) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Ellipsoid& e, const math::vec3& point) noexcept;
 
 }  // namespace engine::geometry
 

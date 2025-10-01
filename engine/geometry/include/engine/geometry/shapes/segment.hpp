@@ -15,7 +15,7 @@ struct ENGINE_GEOMETRY_API Segment {
 [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 direction(const Segment& s) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API float length(const Segment& s) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 point_at(const Segment& s, float t) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Segment& s, const Plane& p, float& out_t) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment& s, const Plane& p, float& out_t) noexcept;
 
 }  // namespace engine::geometry
 

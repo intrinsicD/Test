@@ -16,15 +16,15 @@ struct ENGINE_GEOMETRY_API Sphere {
 
 [[nodiscard]] ENGINE_GEOMETRY_API float surface_area(const Sphere& s) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API float volume(const Sphere& s) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Sphere& s, const math::vec3& point) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Sphere& outer, const Sphere& inner) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Sphere& outer, const Aabb& inner) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Sphere& outer, const Obb& inner) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Sphere& s, const math::vec3& point) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Sphere& outer, const Sphere& inner) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Sphere& outer, const Aabb& inner) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Sphere& outer, const Obb& inner) noexcept;
 
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Sphere& lhs, const Sphere& rhs) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Sphere& s, const Aabb& box) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Sphere& s, const Obb& box) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Sphere& s, const cylinder& c) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& lhs, const Sphere& rhs) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& s, const Aabb& box) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& s, const Obb& box) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& s, const cylinder& c) noexcept;
 
 [[nodiscard]] ENGINE_GEOMETRY_API Sphere make_sphere_from_point(const math::vec3& point) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API Sphere bounding_sphere(const Aabb& box) noexcept;

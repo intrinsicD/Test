@@ -134,7 +134,7 @@ namespace engine::geometry {
                 const bool strictly_larger = (qv > nv + eps);
 
                 if (strictly_larger &&
-                    ContainsTraits<Aabb, Aabb >::contains(query_aabb, node.aabb)) {
+                    ContainsTraits<Aabb, Aabb >::Contains(query_aabb, node.aabb)) {
                     for (size_t i = 0; i < node.num_elements; ++i) {
                         result.push_back(element_indices[node.first_element + i]);
                     }
@@ -189,7 +189,7 @@ namespace engine::geometry {
                 const bool strictly_larger = (vol_sphere(query_sphere) > vol_aabb(node.aabb) + eps);
 
                 if (strictly_larger &&
-                    ContainsTraits<Sphere<float>, Aabb >::contains(query_sphere, node.aabb)) {
+                    ContainsTraits<Sphere<float>, Aabb >::Contains(query_sphere, node.aabb)) {
                     for (size_t i = 0; i < node.num_elements; ++i) {
                         result.push_back(element_indices[node.first_element + i]);
                     }
@@ -414,7 +414,7 @@ namespace engine::geometry {
                     child_elements[code].push_back(elem_idx);
                 } else {
                     for (int j = 0; j < 8; ++j) {
-                        if (ContainsTraits<Aabb, Aabb >::contains(octant_aabbs[j], elem_aabb)) {
+                        if (ContainsTraits<Aabb, Aabb >::Contains(octant_aabbs[j], elem_aabb)) {
                             if (found_child == -1) {
                                 found_child = j;
                             } else {

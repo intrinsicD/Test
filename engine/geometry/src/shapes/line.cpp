@@ -20,8 +20,8 @@ math::vec3 project_point(const Line& l, const math::vec3& point) noexcept {
     return point_at(l, t);
 }
 
-bool intersects(const Line& l, const Plane& p, float& out_t) noexcept {
-    return intersects(p, l, out_t);
+bool Intersects(const Line& l, const Plane& p, float& out_t) noexcept {
+    return Intersects(p, l, out_t);
 }
 
 }  // namespace engine::geometry

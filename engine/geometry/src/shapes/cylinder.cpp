@@ -42,7 +42,7 @@ float surface_area(const Cylinder& c) noexcept {
     return lateral_surface_area(c) + two() * std::numbers::pi_v<float> * c.radius * c.radius;
 }
 
-bool contains(const Cylinder& c, const math::vec3& point) noexcept {
+bool Contains(const Cylinder& c, const math::vec3& point) noexcept {
     const math::vec3 axis_dir = axis_direction(c);
     if (math::length_squared(axis_dir) == 0.0f) {
         return false;
@@ -58,7 +58,7 @@ bool contains(const Cylinder& c, const math::vec3& point) noexcept {
     return math::length_squared(radial) <= c.radius * c.radius;
 }
 
-bool intersects(const Cylinder& c, const Sphere& s) noexcept {
+bool Intersects(const Cylinder& c, const Sphere& s) noexcept {
     const math::vec3 axis_dir = axis_direction(c);
     if (math::length_squared(axis_dir) == 0.0f) {
         return false;

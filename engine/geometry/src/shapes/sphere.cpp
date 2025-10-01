@@ -13,26 +13,7 @@
 namespace engine::geometry {
 namespace {
 
-[[nodiscard]] std::array<math::vec3, 8> corners(const Aabb& box) noexcept {
-    std::array<math::vec3, 8> result{};
-    std::size_t index = 0U;
-
-    for (int x = 0; x <= 1; ++x) {
-        for (int y = 0; y <= 1; ++y) {
-            for (int z = 0; z <= 1; ++z) {
-                result[index++] = math::vec3{
-                    x ? box.max[0] : box.min[0],
-                    y ? box.max[1] : box.min[1],
-                    z ? box.max[2] : box.min[2],
-                };
-            }
-        }
-    }
-
-    return result;
-}
-
-[[nodiscard]] std::array<math::vec3, 8> corners(const Obb& box) noexcept {
+[[nodiscard]] std::array<math::vec3, 8> Corners(const Obb& box) noexcept {
     std::array<math::vec3, 8> result{};
     std::size_t index = 0U;
 
@@ -62,51 +43,51 @@ float volume(const Sphere& s) noexcept {
     return static_cast<float>(4.0 / 3.0) * std::numbers::pi_v<float> * s.radius * s.radius * s.radius;
 }
 
-bool contains(const Sphere& s, const math::vec3& point) noexcept {
+bool Contains(const Sphere& s, const math::vec3& point) noexcept {
     const math::vec3 offset = point - s.center;
     return math::length_squared(offset) <= s.radius * s.radius;
 }
 
-bool contains(const Sphere& outer, const Sphere& inner) noexcept {
+bool Contains(const Sphere& outer, const Sphere& inner) noexcept {
     const math::vec3 offset = inner.center - outer.center;
     const float distance = math::length(offset);
     return distance + inner.radius <= outer.radius + std::numeric_limits<float>::epsilon();
 }
 
-bool contains(const Sphere& outer, const Aabb& inner) noexcept {
-    for (const auto& corner : corners(inner)) {
-        if (!contains(outer, corner)) {
+bool Contains(const Sphere& outer, const Aabb& inner) noexcept {
+    for (const auto& corner : Corners(inner)) {
+        if (!Contains(outer, corner)) {
             return false;
         }
     }
     return true;
 }
 
-bool contains(const Sphere& outer, const Obb& inner) noexcept {
-    for (const auto& corner : corners(inner)) {
-        if (!contains(outer, corner)) {
+bool Contains(const Sphere& outer, const Obb& inner) noexcept {
+    for (const auto& corner : Corners(inner)) {
+        if (!Contains(outer, corner)) {
             return false;
         }
     }
     return true;
 }
 
-bool intersects(const Sphere& lhs, const Sphere& rhs) noexcept {
+bool Intersects(const Sphere& lhs, const Sphere& rhs) noexcept {
     const math::vec3 offset = rhs.center - lhs.center;
     const float radii = lhs.radius + rhs.radius;
     return math::length_squared(offset) <= radii * radii;
 }
 
-bool intersects(const Sphere& s, const Aabb& box) noexcept {
-    return intersects(box, s);
+bool Intersects(const Sphere& s, const Aabb& box) noexcept {
+    return Intersects(box, s);
 }
 
-bool intersects(const Sphere& s, const Obb& box) noexcept {
-    return intersects(box, s);
+bool Intersects(const Sphere& s, const Obb& box) noexcept {
+    return Intersects(box, s);
 }
 
-bool intersects(const Sphere& s, const Cylinder& c) noexcept {
-    return intersects(c, s);
+bool Intersects(const Sphere& s, const Cylinder& c) noexcept {
+    return Intersects(c, s);
 }
 
 Sphere make_sphere_from_point(const math::vec3& point) noexcept {
@@ -114,14 +95,14 @@ Sphere make_sphere_from_point(const math::vec3& point) noexcept {
 }
 
 Sphere bounding_sphere(const Aabb& box) noexcept {
-    const math::vec3 c = center(box);
-    const math::vec3 ext = extent(box);
+    const math::vec3 c = Center(box);
+    const math::vec3 ext = Extent(box);
     return Sphere{c, math::length(ext)};
 }
 
 Sphere bounding_sphere(const Obb& box) noexcept {
     float max_distance_sq = 0.0f;
-    for (const auto& corner : corners(box)) {
+    for (const auto& corner : Corners(box)) {
         const float dist_sq = math::length_squared(corner - box.center);
         max_distance_sq = std::max(max_distance_sq, dist_sq);
     }

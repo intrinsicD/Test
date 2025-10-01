@@ -14,7 +14,7 @@ struct ENGINE_GEOMETRY_API Line {
 
 [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 point_at(const Line& l, float t) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 project_point(const Line& l, const math::vec3& point) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Line& l, const Plane& p, float& out_t) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Line& l, const Plane& p, float& out_t) noexcept;
 
 }  // namespace engine::geometry
 

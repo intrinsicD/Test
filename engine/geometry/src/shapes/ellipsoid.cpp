@@ -10,7 +10,7 @@ float volume(const Ellipsoid& e) noexcept {
     return static_cast<float>(4.0 / 3.0) * std::numbers::pi_v<float> * e.radii[0] * e.radii[1] * e.radii[2];
 }
 
-bool contains(const Ellipsoid& e, const math::vec3& point) noexcept {
+bool Contains(const Ellipsoid& e, const math::vec3& point) noexcept {
     const math::vec3 relative = point - e.center;
     const math::mat3 inverse_orientation = math::transpose(e.orientation);
     const math::vec3 local = inverse_orientation * relative;

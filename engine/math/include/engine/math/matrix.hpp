@@ -7,7 +7,7 @@ namespace engine::math {
 template <typename T, std::size_t Rows, std::size_t Cols>
 struct matrix {
     using value_type = T;
-    using row_type = vector<T, Cols>;
+    using row_type = Vector<T, Cols>;
     using size_type = std::size_t;
 
     row_type rows[Rows];
@@ -75,8 +75,8 @@ ENGINE_MATH_INLINE matrix<T, Rows, Cols> operator*(T scalar, matrix<T, Rows, Col
 }
 
 template <typename T, std::size_t Rows, std::size_t Cols>
-ENGINE_MATH_INLINE vector<T, Rows> operator*(const matrix<T, Rows, Cols>& lhs, const vector<T, Cols>& rhs) noexcept {
-    vector<T, Rows> result{};
+ENGINE_MATH_INLINE Vector<T, Rows> operator*(const matrix<T, Rows, Cols>& lhs, const Vector<T, Cols>& rhs) noexcept {
+    Vector<T, Rows> result{};
     for (std::size_t r = 0; r < Rows; ++r) {
         result[r] = dot(lhs[r], rhs);
     }
@@ -119,7 +119,7 @@ ENGINE_MATH_INLINE matrix<T, Dim, Dim> identity_matrix() noexcept {
 }
 
 template <typename T>
-ENGINE_MATH_INLINE matrix<T, 4, 4> translation(const vector<T, 3>& offset) noexcept {
+ENGINE_MATH_INLINE matrix<T, 4, 4> translation(const Vector<T, 3>& offset) noexcept {
     auto result = identity_matrix<T, 4>();
     result[0][3] = offset[0];
     result[1][3] = offset[1];
@@ -128,7 +128,7 @@ ENGINE_MATH_INLINE matrix<T, 4, 4> translation(const vector<T, 3>& offset) noexc
 }
 
 template <typename T>
-ENGINE_MATH_INLINE matrix<T, 4, 4> scale(const vector<T, 3>& factors) noexcept {
+ENGINE_MATH_INLINE matrix<T, 4, 4> scale(const Vector<T, 3>& factors) noexcept {
     matrix<T, 4, 4> result{};
     result[0][0] = factors[0];
     result[1][1] = factors[1];

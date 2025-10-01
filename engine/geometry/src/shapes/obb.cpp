@@ -15,7 +15,7 @@ namespace {
 [[nodiscard]] constexpr float two() noexcept { return 2.0f; }
 [[nodiscard]] constexpr float epsilon() noexcept { return 1e-6f; }
 
-[[nodiscard]] std::array<math::vec3, 8> corners(const Obb& box) noexcept {
+[[nodiscard]] std::array<math::vec3, 8> Corners(const Obb& box) noexcept {
     std::array<math::vec3, 8> result{};
     std::size_t index = 0U;
 
@@ -35,25 +35,6 @@ namespace {
     return result;
 }
 
-[[nodiscard]] std::array<math::vec3, 8> corners(const Aabb& box) noexcept {
-    std::array<math::vec3, 8> result{};
-    std::size_t index = 0U;
-
-    for (int x = 0; x <= 1; ++x) {
-        for (int y = 0; y <= 1; ++y) {
-            for (int z = 0; z <= 1; ++z) {
-                result[index++] = math::vec3{
-                    x ? box.max[0] : box.min[0],
-                    y ? box.max[1] : box.min[1],
-                    z ? box.max[2] : box.min[2],
-                };
-            }
-        }
-    }
-
-    return result;
-}
-
 }  // namespace
 
 math::vec3 size(const Obb& box) noexcept {
@@ -64,7 +45,7 @@ math::vec3 extent(const Obb& box) noexcept {
     return box.half_sizes;
 }
 
-bool contains(const Obb& box, const math::vec3& point) noexcept {
+bool Contains(const Obb& box, const math::vec3& point) noexcept {
     const math::vec3 relative = point - box.center;
     const math::mat3 inverse_orientation = math::transpose(box.orientation);
     const math::vec3 local = inverse_orientation * relative;
@@ -77,25 +58,25 @@ bool contains(const Obb& box, const math::vec3& point) noexcept {
     return true;
 }
 
-bool contains(const Obb& outer, const Obb& inner) noexcept {
-    for (const auto& corner : corners(inner)) {
-        if (!contains(outer, corner)) {
+bool Contains(const Obb& outer, const Obb& inner) noexcept {
+    for (const auto& corner : Corners(inner)) {
+        if (!Contains(outer, corner)) {
             return false;
         }
     }
     return true;
 }
 
-bool contains(const Obb& outer, const Aabb& inner) noexcept {
-    for (const auto& corner : corners(inner)) {
-        if (!contains(outer, corner)) {
+bool Contains(const Obb& outer, const Aabb& inner) noexcept {
+    for (const auto& corner : Corners(inner)) {
+        if (!Contains(outer, corner)) {
             return false;
         }
     }
     return true;
 }
 
-bool contains(const Obb& outer, const Sphere& inner) noexcept {
+bool Contains(const Obb& outer, const Sphere& inner) noexcept {
     const math::mat3 inverse_orientation = math::transpose(outer.orientation);
     const math::vec3 local = inverse_orientation * (inner.center - outer.center);
 
@@ -107,7 +88,7 @@ bool contains(const Obb& outer, const Sphere& inner) noexcept {
     return true;
 }
 
-bool intersects(const Obb& lhs, const Obb& rhs) noexcept {
+bool Intersects(const Obb& lhs, const Obb& rhs) noexcept {
     const math::mat3 R = math::transpose(lhs.orientation) * rhs.orientation;
     math::mat3 AbsR{};
     for (std::size_t i = 0; i < 3; ++i) {
@@ -164,11 +145,11 @@ bool intersects(const Obb& lhs, const Obb& rhs) noexcept {
     return true;
 }
 
-bool intersects(const Obb& box, const Aabb& other) noexcept {
-    return intersects(box, from_aabb(other));
+bool Intersects(const Obb& box, const Aabb& other) noexcept {
+    return Intersects(box, from_aabb(other));
 }
 
-bool intersects(const Obb& box, const Sphere& s) noexcept {
+bool Intersects(const Obb& box, const Sphere& s) noexcept {
     const math::mat3 inverse_orientation = math::transpose(box.orientation);
     const math::vec3 local = inverse_orientation * (s.center - box.center);
 
@@ -181,34 +162,9 @@ bool intersects(const Obb& box, const Sphere& s) noexcept {
     return math::length_squared(diff) <= s.radius * s.radius;
 }
 
-Aabb bounding_aabb(const Obb& box) noexcept {
-    const auto corner_points = corners(box);
-
-    math::vec3 min_corner{
-        std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::max(),
-    };
-
-    math::vec3 max_corner{
-        std::numeric_limits<float>::lowest(),
-        std::numeric_limits<float>::lowest(),
-        std::numeric_limits<float>::lowest(),
-    };
-
-    for (const auto& corner : corner_points) {
-        for (std::size_t i = 0; i < 3; ++i) {
-            min_corner[i] = std::min(min_corner[i], corner[i]);
-            max_corner[i] = std::max(max_corner[i], corner[i]);
-        }
-    }
-
-    return Aabb{min_corner, max_corner};
-}
-
 Obb from_aabb(const Aabb& box) noexcept {
-    const math::vec3 ext = extent(box);
-    return Obb{center(box), ext, math::identity_matrix<float, 3>()};
+    const math::vec3 ext = Extent(box);
+    return Obb{Center(box), ext, math::identity_matrix<float, 3>()};
 }
 
 Obb from_center_half_sizes(const math::vec3& center, const math::vec3& half_sizes) noexcept {

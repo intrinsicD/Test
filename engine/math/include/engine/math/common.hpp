@@ -17,19 +17,15 @@
 #endif
 
 namespace engine::math {
+    namespace detail {
+        template<typename T>
+        ENGINE_MATH_INLINE T zero() noexcept {
+            return T(0);
+        }
 
-namespace detail {
-
-template <typename T>
-ENGINE_MATH_INLINE T zero() noexcept {
-    return T(0);
-}
-
-template <typename T>
-ENGINE_MATH_INLINE T one() noexcept {
-    return T(1);
-}
-
-}  // namespace detail
-
-}  // namespace engine::math
+        template<typename T>
+        ENGINE_MATH_INLINE T one() noexcept {
+            return T(1);
+        }
+    } // namespace detail
+} // namespace engine::math

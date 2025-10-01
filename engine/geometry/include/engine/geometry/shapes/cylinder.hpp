@@ -20,8 +20,8 @@ struct ENGINE_GEOMETRY_API Cylinder {
 [[nodiscard]] ENGINE_GEOMETRY_API float volume(const Cylinder& c) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API float lateral_surface_area(const Cylinder& c) noexcept;
 [[nodiscard]] ENGINE_GEOMETRY_API float surface_area(const Cylinder& c) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool contains(const Cylinder& c, const math::vec3& point) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool intersects(const Cylinder& c, const Sphere& s) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Cylinder& c, const math::vec3& point) noexcept;
+[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& c, const Sphere& s) noexcept;
 
 }  // namespace engine::geometry
 

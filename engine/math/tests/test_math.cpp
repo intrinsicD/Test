@@ -15,7 +15,7 @@ using namespace engine::math;
 namespace {
 
 template <typename T, std::size_t N>
-void ExpectVectorEqual(const vector<T, N>& value, const std::array<T, N>& expected) {
+void ExpectVectorEqual(const Vector<T, N>& value, const std::array<T, N>& expected) {
     for (std::size_t i = 0; i < N; ++i) {
         EXPECT_EQ(value[i], expected[i]);
     }
@@ -40,26 +40,26 @@ TEST(MathCommon, ZeroAndOneHelpers) {
 }
 
 TEST(Vector, DefaultConstructedIsZeroInitialized) {
-    vector<int, 3> value;
+    Vector<int, 3> value;
     ExpectVectorEqual(value, {0, 0, 0});
 }
 
 TEST(Vector, ScalarConstructorFillsAllElements) {
-    vector<float, 4> value(2.5F);
+    Vector<float, 4> value(2.5F);
     ExpectVectorEqual(value, {2.5F, 2.5F, 2.5F, 2.5F});
 }
 
 TEST(Vector, VariadicConstructorAssignsElements) {
-    const vector<double, 3> value(1.0, 2.0, 3.0);
+    const Vector<double, 3> value(1.0, 2.0, 3.0);
     ExpectVectorEqual(value, {1.0, 2.0, 3.0});
 }
 
 TEST(Vector, ElementAccessSupportsConstAndNonConst) {
-    vector<int, 2> value(1);
+    Vector<int, 2> value(1);
     value[0] = 5;
     value[1] = 7;
 
-    const vector<int, 2>& const_ref = value;
+    const Vector<int, 2>& const_ref = value;
     EXPECT_EQ(const_ref[0], 5);
     EXPECT_EQ(const_ref[1], 7);
 }

@@ -18,8 +18,8 @@ math::vec3 point_at(const Segment& s, float t) noexcept {
     return s.start + direction(s) * t;
 }
 
-bool intersects(const Segment& s, const Plane& p, float& out_t) noexcept {
-    return intersects(p, s, out_t);
+bool Intersects(const Segment& s, const Plane& p, float& out_t) noexcept {
+    return Intersects(p, s, out_t);
 }
 
 }  // namespace engine::geometry

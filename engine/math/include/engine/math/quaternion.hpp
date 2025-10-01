@@ -26,7 +26,7 @@ struct quaternion {
           y(static_cast<value_type>(y_)),
           z(static_cast<value_type>(z_)) {}
 
-    ENGINE_MATH_INLINE quaternion(value_type scalar, const vector<T, 3>& vector_part) noexcept
+    ENGINE_MATH_INLINE quaternion(value_type scalar, const Vector<T, 3>& vector_part) noexcept
         : quaternion(scalar, vector_part[0], vector_part[1], vector_part[2]) {}
 
     ENGINE_MATH_INLINE value_type& operator[](std::size_t index) noexcept {
