@@ -17,4 +17,6 @@ namespace engine::geometry {
     [[nodiscard]] ENGINE_GEOMETRY_API float Area(const Triangle &t) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 Centroid(const Triangle &t) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Triangle &triangle, const math::vec3 &point) noexcept;
 } // namespace engine::geometry

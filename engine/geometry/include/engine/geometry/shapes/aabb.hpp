@@ -4,6 +4,7 @@
 #include "engine/math/vector.hpp"
 
 #include <array>
+#include <span>
 
 namespace engine::geometry {
     struct Cylinder;
@@ -78,6 +79,10 @@ namespace engine::geometry {
                                                                     const math::vec3 &extent) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(const math::vec3 &point) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(std::span<math::vec3> points) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(std::span<Aabb> aabbs) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(const Sphere &s) noexcept;
 

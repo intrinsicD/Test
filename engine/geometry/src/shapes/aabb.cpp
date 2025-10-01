@@ -54,7 +54,7 @@ namespace engine::geometry {
 
             if (dir_length_sq > tiny()) {
                 const float projected = math::dot(Center(box) - segment.start, direction) /
-                                       static_cast<float>(dir_length_sq);
+                                        static_cast<float>(dir_length_sq);
                 add_candidate(projected);
 
                 for (std::size_t axis = 0; axis < 3; ++axis) {
@@ -66,7 +66,7 @@ namespace engine::geometry {
                     add_candidate((box.max[axis] - segment.start[axis]) * inv_dir);
                 }
 
-                for (const auto &corner : GetCorners(box)) {
+                for (const auto &corner: GetCorners(box)) {
                     const float numerator = math::dot(corner - segment.start, direction);
                     const float t = numerator / static_cast<float>(dir_length_sq);
                     add_candidate(t);
@@ -208,7 +208,7 @@ namespace engine::geometry {
             return true;
         }
 
-        for (const auto &corner : GetCorners(box)) {
+        for (const auto &corner: GetCorners(box)) {
             if (Contains(other, corner)) {
                 return true;
             }
@@ -350,7 +350,7 @@ namespace engine::geometry {
         };
 
         const math::vec3 axes[3] = {f0, f1, f2};
-        for (const auto &edge : axes) {
+        for (const auto &edge: axes) {
             if (!axis_test(math::cross(edge, math::vec3{1.0f, 0.0f, 0.0f}))) {
                 return false;
             }
@@ -380,6 +380,44 @@ namespace engine::geometry {
 
     Aabb BoundingAabb(const math::vec3 &point) noexcept {
         return Aabb{point, point};
+    }
+
+    Aabb BoundingAabb(std::span<math::vec3> points) noexcept {
+        Aabb result;
+        if (points.empty()) {
+            result.min = math::vec3{0.0f};
+            result.max = math::vec3{0.0f};
+            return result;
+        }
+        result.min = math::vec3{
+            std::numeric_limits<float>::max()
+        };
+        result.max = math::vec3{
+            std::numeric_limits<float>::lowest()
+        };
+        for (const auto &point: points) {
+            Merge(result, point);
+        }
+        return result;
+    }
+
+    Aabb BoundingAabb(std::span<Aabb> aabbs) noexcept {
+        Aabb result;
+        if (aabbs.empty()) {
+            result.min = math::vec3{0.0f};
+            result.max = math::vec3{0.0f};
+            return result;
+        }
+        result.min = math::vec3{
+            std::numeric_limits<float>::max()
+        };
+        result.max = math::vec3{
+            std::numeric_limits<float>::lowest()
+        };
+        for (const auto &aabb: aabbs) {
+            Merge(result, aabb);
+        }
+        return result;
     }
 
     Aabb MakeAabbFromCenterExtent(const math::vec3 &center, const math::vec3 &ext) noexcept {

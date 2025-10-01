@@ -4,6 +4,7 @@
 
 #include "engine/geometry/api.hpp"
 #include "engine/math/vector.hpp"
+#include "engine/geometry/octree/octree.hpp"
 
 namespace engine::geometry {
     struct Aabb;

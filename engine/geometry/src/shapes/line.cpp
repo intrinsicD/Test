@@ -5,24 +5,32 @@
 #include "engine/geometry/shapes/plane.hpp"
 
 namespace engine::geometry {
-
-math::vec3 PointAt(const Line& l, float t) noexcept {
-    return l.point + l.direction * t;
-}
-
-math::vec3 ClosestPoint(const Line& l, const math::vec3& point) noexcept {
-    const float denom = math::length_squared(l.direction);
-    if (denom == 0.0f) {
-        return l.point;
+    math::vec3 PointAt(const Line &l, float t) noexcept {
+        return l.point + l.direction * t;
     }
-    const math::vec3 offset = point - l.point;
-    const float t = math::dot(offset, l.direction) / denom;
-    return PointAt(l, t);
-}
 
-bool Intersects(const Line& l, const Plane& p, float& out_t) noexcept {
-    return Intersects(p, l, out_t);
-}
+    math::vec3 ClosestPoint(const Line &l, const math::vec3 &point) noexcept {
+        const float denom = math::length_squared(l.direction);
+        if (denom == 0.0f) {
+            return l.point;
+        }
+        const math::vec3 offset = point - l.point;
+        const float t = math::dot(offset, l.direction) / denom;
+        return PointAt(l, t);
+    }
 
-}  // namespace engine::geometry
+    bool Intersects(const Line &l, const Plane &p, float &out_t) noexcept {
+        return Intersects(p, l, out_t);
+    }
 
+    double SquaredDistance(const Line &line, const math::vec3 &point) noexcept {
+        const float denom = math::length_squared(line.direction);
+        if (denom == 0.0f) {
+            return math::length_squared(point - line.point);
+        }
+
+        const float t = math::dot(point - line.point, line.direction) / denom;
+        const math::vec3 closest = line.point + line.direction * t;
+        return math::length_squared(point - closest);
+    }
+} // namespace engine::geometry

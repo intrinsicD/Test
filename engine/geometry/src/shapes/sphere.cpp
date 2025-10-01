@@ -11,7 +11,6 @@
 
 #include <algorithm>
 #include <array>
-#include <initializer_list>
 #include <cmath>
 #include <limits>
 #include <numbers>
@@ -91,98 +90,8 @@ namespace engine::geometry {
         return Intersects(c, s);
     }
 
-    namespace {
-        [[nodiscard]] float squared_distance_point_line(const math::vec3 &point, const Line &line) noexcept {
-            const float denom = math::length_squared(line.direction);
-            if (denom == 0.0f) {
-                return math::length_squared(point - line.point);
-            }
-
-            const float t = math::dot(point - line.point, line.direction) / denom;
-            const math::vec3 closest = line.point + line.direction * t;
-            return math::length_squared(point - closest);
-        }
-
-        [[nodiscard]] float squared_distance_point_segment(const math::vec3 &point, const Segment &segment) noexcept {
-            const math::vec3 direction = segment.end - segment.start;
-            const float length_sq = math::length_squared(direction);
-            if (length_sq == 0.0f) {
-                return math::length_squared(point - segment.start);
-            }
-
-            const float t = math::dot(point - segment.start, direction) / length_sq;
-            const float clamped_t = std::clamp(t, 0.0f, 1.0f);
-            const math::vec3 closest = segment.start + direction * clamped_t;
-            return math::length_squared(point - closest);
-        }
-
-        [[nodiscard]] double squared_distance_point_triangle(const math::vec3 &point, const Triangle &triangle) noexcept {
-            const math::vec3 a = triangle.a;
-            const math::vec3 b = triangle.b;
-            const math::vec3 c = triangle.c;
-
-            const math::vec3 ab = b - a;
-            const math::vec3 ac = c - a;
-            const math::vec3 ap = point - a;
-
-            const float d1 = math::dot(ab, ap);
-            const float d2 = math::dot(ac, ap);
-            if (d1 <= 0.0f && d2 <= 0.0f) {
-                return static_cast<double>(math::length_squared(ap));
-            }
-
-            const math::vec3 bp = point - b;
-            const float d3 = math::dot(ab, bp);
-            const float d4 = math::dot(ac, bp);
-            if (d3 >= 0.0f && d4 <= d3) {
-                return static_cast<double>(math::length_squared(bp));
-            }
-
-            const float vc = d1 * d4 - d3 * d2;
-            if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
-                const float v = d1 / (d1 - d3);
-                const math::vec3 projection = a + ab * v;
-                return static_cast<double>(math::length_squared(point - projection));
-            }
-
-            const math::vec3 cp = point - c;
-            const float d5 = math::dot(ab, cp);
-            const float d6 = math::dot(ac, cp);
-            if (d6 >= 0.0f && d5 <= d6) {
-                return static_cast<double>(math::length_squared(cp));
-            }
-
-            const float vb = d5 * d2 - d1 * d6;
-            if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
-                const float w = d2 / (d2 - d6);
-                const math::vec3 projection = a + ac * w;
-                return static_cast<double>(math::length_squared(point - projection));
-            }
-
-            const float va = d3 * d6 - d5 * d4;
-            if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
-                const float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
-                const math::vec3 projection = b + (c - b) * w;
-                return static_cast<double>(math::length_squared(point - projection));
-            }
-
-            const math::vec3 normal = math::cross(ab, ac);
-            const float normal_len_sq = math::length_squared(normal);
-            if (normal_len_sq == 0.0f) {
-                // Degenerate triangle, fall back to the minimum of the edges
-                const double edge0 = squared_distance_point_segment(point, Segment{a, b});
-                const double edge1 = squared_distance_point_segment(point, Segment{a, c});
-                const double edge2 = squared_distance_point_segment(point, Segment{b, c});
-                return std::min({edge0, edge1, edge2});
-            }
-
-            const float distance = math::dot(point - a, normal);
-            return static_cast<double>(distance * distance) / static_cast<double>(normal_len_sq);
-        }
-    } // namespace
-
     bool Intersects(const Sphere &sphere, const Line &line) noexcept {
-        const float distance_sq = squared_distance_point_line(sphere.center, line);
+        const double distance_sq = SquaredDistance(line, sphere.center);
         return distance_sq <= sphere.radius * sphere.radius;
     }
 
@@ -196,7 +105,7 @@ namespace engine::geometry {
         if (normal_length == 0.0f) {
             return false;
         }
-        const float distance = std::fabs(SignedDistance(plane, sphere.center)) / normal_length;
+        const double distance = math::utils::abs(SignedDistance(plane, sphere.center)) / normal_length;
         return distance <= sphere.radius;
     }
 
@@ -208,12 +117,12 @@ namespace engine::geometry {
     }
 
     bool Intersects(const Sphere &sphere, const Segment &segment) noexcept {
-        const float distance_sq = squared_distance_point_segment(sphere.center, segment);
+        const double distance_sq = SquaredDistance(segment, sphere.center);
         return distance_sq <= sphere.radius * sphere.radius;
     }
 
     bool Intersects(const Sphere &spherephere, const Triangle &triangle) noexcept {
-        const double distance_sq = squared_distance_point_triangle(spherephere.center, triangle);
+        const double distance_sq = SquaredDistance(triangle, spherephere.center);
         return distance_sq <= static_cast<double>(spherephere.radius) * static_cast<double>(spherephere.radius);
     }
 
@@ -231,9 +140,9 @@ namespace engine::geometry {
         float max_distance_sq = 0.0f;
         for (const auto &corner: GetCorners(box)) {
             const float dist_sq = math::length_squared(corner - box.center);
-            max_distance_sq = std::max(max_distance_sq, dist_sq);
+            max_distance_sq = math::utils::max(max_distance_sq, dist_sq);
         }
-        return Sphere{box.center, std::sqrt(max_distance_sq)};
+        return Sphere{box.center, math::utils::sqrt(max_distance_sq)};
     }
 
 
@@ -244,11 +153,11 @@ namespace engine::geometry {
     Sphere BoundingSphere(const Cylinder &cylinder) noexcept {
         const float radial_sq = cylinder.radius * cylinder.radius;
         const float height_sq = cylinder.half_height * cylinder.half_height;
-        return Sphere{cylinder.center, std::sqrt(radial_sq + height_sq)};
+        return Sphere{cylinder.center, math::utils::sqrt(radial_sq + height_sq)};
     }
 
     Sphere BoundingSphere(const Ellipsoid &ellipsoid) noexcept {
-        const float max_radius = std::max(std::max(ellipsoid.radii[0], ellipsoid.radii[1]), ellipsoid.radii[2]);
+        const float max_radius = math::utils::max(ellipsoid.radii[0], ellipsoid.radii[1], ellipsoid.radii[2]);
         return Sphere{ellipsoid.center, max_radius};
     }
 
@@ -326,7 +235,7 @@ namespace engine::geometry {
         if (dist_sq <= sphere.radius * sphere.radius) {
             return; // point is already inside the sphere
         }
-        const float dist = std::sqrt(dist_sq);
+        const float dist = math::utils::sqrt(dist_sq);
         const float new_radius = (sphere.radius + dist) * 0.5f;
         const float k = (new_radius - sphere.radius) / dist;
         sphere.center += offset * k;
@@ -339,20 +248,20 @@ namespace engine::geometry {
         if (dist_sq <= sphere.radius * sphere.radius || dist_sq == 0.0f) {
             return point;
         }
-        const float dist = std::sqrt(dist_sq);
+        const float dist = math::utils::sqrt(dist_sq);
         const float scale = sphere.radius / dist;
         return sphere.center + offset * scale;
     }
 
     double SquaredDistance(const Sphere &sphere, const math::vec3 &point) noexcept {
         const math::vec3 offset = point - sphere.center;
-        const double dist_sq = static_cast<double>(math::length_squared(offset));
+        const double dist_sq = math::length_squared(offset);
         const double radius_sq = static_cast<double>(sphere.radius) * static_cast<double>(sphere.radius);
         if (dist_sq <= radius_sq) {
             return 0.0;
         }
-        const double dist = std::sqrt(dist_sq);
-        const double radius = static_cast<double>(sphere.radius);
+        const double dist = math::utils::sqrt(dist_sq);
+        const double radius = sphere.radius;
         const double delta = dist - radius;
         return delta * delta;
     }

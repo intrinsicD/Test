@@ -18,4 +18,6 @@ namespace engine::geometry {
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 PointAt(const Segment &s, float t) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment &s, const Plane &p, float &out_t) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Segment &segment, const math::vec3 &point) noexcept;
 } // namespace engine::geometry

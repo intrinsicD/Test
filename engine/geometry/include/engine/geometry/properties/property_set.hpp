@@ -21,6 +21,9 @@ namespace engine::geometry
         }
 
         [[nodiscard]] bool is_valid() const noexcept { return static_cast<bool>(buffer_); }
+        explicit operator bool() const noexcept { return static_cast<bool>(buffer_); }
+
+        [[nodiscard]] const std::string& name() const { return buffer_.name(); }
 
         [[nodiscard]] decltype(auto) operator[](std::size_t index) const { return buffer_[index]; }
         [[nodiscard]] decltype(auto) operator[](std::size_t index) { return buffer_[index]; }
@@ -74,6 +77,7 @@ namespace engine::geometry
         void push_back();
         void swap(std::size_t i0, std::size_t i1);
         void shrink_to_fit();
+        bool empty() const;
 
         [[nodiscard]] bool exists(std::string_view name) const;
         [[nodiscard]] std::vector<std::string> properties() const;
@@ -128,6 +132,11 @@ namespace engine::geometry
     inline void PropertySet::shrink_to_fit()
     {
         registry_.shrink_to_fit();
+    }
+
+    inline bool PropertySet::empty() const
+    {
+        return registry_.size() == 0;
     }
 
     inline bool PropertySet::exists(std::string_view name) const
