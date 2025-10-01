@@ -27,9 +27,9 @@ namespace engine::geometry {
 
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 Extent(const Aabb &box) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API float SurfaceArea(const Aabb &box) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API double SurfaceArea(const Aabb &box) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API float Volume(const Aabb &box) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API double Volume(const Aabb &box) noexcept;
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -74,10 +74,10 @@ namespace engine::geometry {
 
     //------------------------------------------------------------------------------------------------------------------
 
-    [[nodiscard]] ENGINE_GEOMETRY_API Aabb make_aabb_from_point(const math::vec3 &point) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API Aabb MakeAabbFromCenterExtent(const math::vec3 &center,
+                                                                    const math::vec3 &extent) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API Aabb make_aabb_from_center_extent(const math::vec3 &center,
-                                                                        const math::vec3 &extent) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(const math::vec3 &point) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(const Sphere &s) noexcept;
 
@@ -105,11 +105,11 @@ namespace engine::geometry {
 
     //------------------------------------------------------------------------------------------------------------------
 
-    [[nodiscard]] std::array<math::vec3, 8> Corners(const Aabb &box) noexcept;
+    [[nodiscard]] std::array<math::vec3, 8> GetCorners(const Aabb &box) noexcept;
 
-    [[nodiscard]] std::array<math::ivec2, 12> Edges(const Aabb &box) noexcept;
+    [[nodiscard]] std::array<math::ivec2, 12> GetEdges(const Aabb &box) noexcept;
 
-    [[nodiscard]] std::array<math::ivec3, 12> FaceTriangles(const Aabb &box) noexcept;
+    [[nodiscard]] std::array<math::ivec3, 12> GetFaceTriangles(const Aabb &box) noexcept;
 
-    [[nodiscard]] std::array<math::ivec4, 6> FaceQuads(const Aabb &box) noexcept;
+    [[nodiscard]] std::array<math::ivec4, 6> GetFaceQuads(const Aabb &box) noexcept;
 } // namespace engine::geometry

@@ -12,7 +12,7 @@ namespace {
 
 }  // namespace
 
-math::vec3 axis_direction(const Cylinder& c) noexcept {
+math::vec3 AxisDirection(const Cylinder& c) noexcept {
     const float len = math::length(c.axis);
     if (len == 0.0f) {
         return math::vec3{0.0f};
@@ -20,30 +20,30 @@ math::vec3 axis_direction(const Cylinder& c) noexcept {
     return c.axis / len;
 }
 
-math::vec3 top_center(const Cylinder& c) noexcept {
-    return c.center + axis_direction(c) * c.half_height;
+math::vec3 TopCenter(const Cylinder& c) noexcept {
+    return c.center + AxisDirection(c) * c.half_height;
 }
 
-math::vec3 bottom_center(const Cylinder& c) noexcept {
-    return c.center - axis_direction(c) * c.half_height;
+math::vec3 BottomCenter(const Cylinder& c) noexcept {
+    return c.center - AxisDirection(c) * c.half_height;
 }
 
-float volume(const Cylinder& c) noexcept {
+float Volume(const Cylinder& c) noexcept {
     const float height = c.half_height * two();
     return std::numbers::pi_v<float> * c.radius * c.radius * height;
 }
 
-float lateral_surface_area(const Cylinder& c) noexcept {
+float LateralSurfaceArea(const Cylinder& c) noexcept {
     const float height = c.half_height * two();
     return two() * std::numbers::pi_v<float> * c.radius * height;
 }
 
-float surface_area(const Cylinder& c) noexcept {
-    return lateral_surface_area(c) + two() * std::numbers::pi_v<float> * c.radius * c.radius;
+float SurfaceArea(const Cylinder& c) noexcept {
+    return LateralSurfaceArea(c) + two() * std::numbers::pi_v<float> * c.radius * c.radius;
 }
 
 bool Contains(const Cylinder& c, const math::vec3& point) noexcept {
-    const math::vec3 axis_dir = axis_direction(c);
+    const math::vec3 axis_dir = AxisDirection(c);
     if (math::length_squared(axis_dir) == 0.0f) {
         return false;
     }
@@ -59,7 +59,7 @@ bool Contains(const Cylinder& c, const math::vec3& point) noexcept {
 }
 
 bool Intersects(const Cylinder& c, const Sphere& s) noexcept {
-    const math::vec3 axis_dir = axis_direction(c);
+    const math::vec3 axis_dir = AxisDirection(c);
     if (math::length_squared(axis_dir) == 0.0f) {
         return false;
     }

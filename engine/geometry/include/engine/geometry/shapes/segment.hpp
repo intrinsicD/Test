@@ -4,18 +4,18 @@
 #include "engine/math/vector.hpp"
 
 namespace engine::geometry {
+    struct Plane;
 
-struct Plane;
+    struct ENGINE_GEOMETRY_API Segment {
+        math::vec3 start;
+        math::vec3 end;
+    };
 
-struct ENGINE_GEOMETRY_API Segment {
-    math::vec3 start;
-    math::vec3 end;
-};
+    [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 Direction(const Segment &s) noexcept;
 
-[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 direction(const Segment& s) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API float length(const Segment& s) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 point_at(const Segment& s, float t) noexcept;
-[[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment& s, const Plane& p, float& out_t) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API float Length(const Segment &s) noexcept;
 
-}  // namespace engine::geometry
+    [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 PointAt(const Segment &s, float t) noexcept;
 
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment &s, const Plane &p, float &out_t) noexcept;
+} // namespace engine::geometry

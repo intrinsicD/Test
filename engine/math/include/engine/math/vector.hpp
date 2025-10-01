@@ -22,6 +22,13 @@ struct Vector {
         }
     }
 
+    template<typename S>
+    ENGINE_MATH_INLINE explicit Vector(const Vector<S, N> &other) noexcept : elements{} {
+        for (size_type i = 0; i < N; ++i) {
+            elements[i] = other[i];
+        }
+    }
+
     template <typename... Args, typename = std::enable_if_t<sizeof...(Args) == N>>
     ENGINE_MATH_INLINE Vector(Args... args) noexcept : elements{static_cast<value_type>(args)...} {}
 
@@ -53,6 +60,15 @@ struct Vector {
     ENGINE_MATH_INLINE Vector& operator/=(value_type scalar) noexcept {
         const value_type inv = detail::one<value_type>() / scalar;
         return (*this) *= inv;
+    }
+
+    template <typename S>
+    ENGINE_MATH_INLINE Vector<S, N> cast() const noexcept {
+        Vector<S, N> result;
+        for (size_type i = 0; i < N; ++i) {
+            result[i] = static_cast<S>(elements[i]);
+        }
+        return result;
     }
 };
 

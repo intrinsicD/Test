@@ -10,7 +10,7 @@
 
 namespace engine::geometry {
 
-math::vec3 point_at(const Ray& r, float t) noexcept {
+math::vec3 PointAt(const Ray& r, float t) noexcept {
     return r.origin + r.direction * t;
 }
 

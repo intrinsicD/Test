@@ -13,21 +13,21 @@ namespace {
 
 }  // namespace
 
-float signed_distance(const Plane& p, const math::vec3& point) noexcept {
+float SignedDistance(const Plane& p, const math::vec3& point) noexcept {
     return math::dot(p.normal, point) + p.distance;
 }
 
-math::vec3 project_point(const Plane& p, const math::vec3& point) noexcept {
+math::vec3 ClosestPoint(const Plane& p, const math::vec3& point) noexcept {
     const float denom = math::length_squared(p.normal);
     if (denom == 0.0f) {
         return point;
     }
-    const float dist = signed_distance(p, point);
+    const float dist = SignedDistance(p, point);
     return point - p.normal * (dist / denom);
 }
 
 bool Contains(const Plane& p, const math::vec3& point, float epsilon_value) noexcept {
-    return std::fabs(signed_distance(p, point)) <= epsilon_value;
+    return std::fabs(SignedDistance(p, point)) <= epsilon_value;
 }
 
 bool Intersects(const Plane& p, const Ray& r, float& out_t) noexcept {
@@ -36,7 +36,7 @@ bool Intersects(const Plane& p, const Ray& r, float& out_t) noexcept {
         return false;
     }
 
-    const float numer = -signed_distance(p, r.origin);
+    const float numer = -SignedDistance(p, r.origin);
     const float t = numer / denom;
     if (t < 0.0f) {
         return false;
@@ -52,13 +52,13 @@ bool Intersects(const Plane& p, const Line& l, float& out_t) noexcept {
         return false;
     }
 
-    const float numer = -signed_distance(p, l.point);
+    const float numer = -SignedDistance(p, l.point);
     out_t = numer / denom;
     return true;
 }
 
 bool Intersects(const Plane& p, const Segment& s, float& out_t) noexcept {
-    const Ray r{s.start, direction(s)};
+    const Ray r{s.start, Direction(s)};
     if (!Intersects(p, r, out_t)) {
         return false;
     }

@@ -4,12 +4,13 @@
 #include <numbers>
 
 #include "engine/geometry/shapes.hpp"
-#include "engine/math/matrix.hpp"
+#include "engine/math/quaternion.hpp"
 
 using engine::geometry::Aabb;
 using engine::geometry::BoundingAabb;
 using engine::math::mat3;
 using engine::math::vec3;
+using engine::math::quat;
 
 namespace {
 
@@ -45,20 +46,20 @@ TEST(Aabb, ConversionsContainmentAndIntersections) {
     const vec3 max_corner{1.0f, 1.0f, 1.0f};
     const Aabb outer{min_corner, max_corner};
 
-    const Aabb from_point_box = engine::geometry::make_aabb_from_point(vec3{0.5f, 0.5f, 0.5f});
+    const Aabb from_point_box = engine::geometry::BoundingAabb(vec3{0.5f, 0.5f, 0.5f});
     expect_vec3_eq(from_point_box.min, vec3{0.5f, 0.5f, 0.5f});
     expect_vec3_eq(from_point_box.max, vec3{0.5f, 0.5f, 0.5f});
 
-    const Aabb inner = engine::geometry::make_aabb_from_center_extent(vec3{0.0f}, vec3{0.25f});
+    const Aabb inner = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{0.25f});
     EXPECT_TRUE(engine::geometry::Contains(outer, inner));
 
     const engine::geometry::Sphere inner_sphere{vec3{0.0f}, 0.5f};
     EXPECT_TRUE(engine::geometry::Contains(outer, inner_sphere));
 
-    const engine::geometry::Obb inner_obb = engine::geometry::from_center_half_sizes(vec3{0.0f}, vec3{0.5f});
+    const engine::geometry::Obb inner_obb = engine::geometry::FromCenterHalfSizes(vec3{0.0f}, vec3{0.5f});
     EXPECT_TRUE(engine::geometry::Contains(outer, inner_obb));
 
-    const engine::geometry::Sphere bounding = engine::geometry::bounding_sphere(outer);
+    const engine::geometry::Sphere bounding = engine::geometry::BoundingSphere(outer);
     const Aabb inflated = engine::geometry::BoundingAabb(bounding);
     EXPECT_TRUE(engine::geometry::Contains(inflated, outer));
 
@@ -70,7 +71,7 @@ TEST(Aabb, ConversionsContainmentAndIntersections) {
 
 TEST(Aabb, ContainsCylinderAndEllipsoid) {
     const vec3 center{0.0f};
-    const Aabb outer = engine::geometry::make_aabb_from_center_extent(center, vec3{2.0f, 2.0f, 2.0f});
+    const Aabb outer = engine::geometry::MakeAabbFromCenterExtent(center, vec3{2.0f, 2.0f, 2.0f});
 
     const engine::geometry::Cylinder cylinder_inside{
         vec3{0.0f, 0.0f, 0.0f},
@@ -104,7 +105,7 @@ TEST(Aabb, ContainsCylinderAndEllipsoid) {
 }
 
 TEST(Aabb, IntersectsAdvancedShapes) {
-    const Aabb box = engine::geometry::make_aabb_from_center_extent(vec3{0.0f}, vec3{1.0f});
+    const Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{1.0f});
 
     const engine::geometry::Cylinder cylinder{
         vec3{1.5f, 0.0f, 0.0f},
@@ -248,23 +249,25 @@ TEST(Aabb, BoundingVolumesForCompositeShapes) {
 
 TEST(Obb, ContainsAndBoundingBox) {
     const float angle = std::numbers::pi_v<float> * 0.25f;
+
     const mat3 orientation{
         std::cos(angle), -std::sin(angle), 0.0f,
         std::sin(angle), std::cos(angle), 0.0f,
         0.0f, 0.0f, 1.0f,
     };
+    const quat orientation_quat = engine::math::from_rotation_matrix(orientation);
 
     const engine::geometry::Obb box{
         vec3{0.0f, 0.0f, 0.0f},
         vec3{1.0f, 2.0f, 0.5f},
-        orientation,
+        orientation_quat,
     };
 
     const vec3 local_point{0.5f, 0.5f, 0.0f};
-    const vec3 inside = box.center + box.orientation * local_point;
+    const vec3 inside = box.center + box.orientation.to_rotation_matrix() * local_point;
     EXPECT_TRUE(engine::geometry::Contains(box, inside));
 
-    const vec3 outside = box.center + box.orientation * vec3{2.5f, 0.0f, 0.0f};
+    const vec3 outside = box.center + box.orientation.to_rotation_matrix() * vec3{2.5f, 0.0f, 0.0f};
     EXPECT_TRUE(!engine::geometry::Contains(box, outside));
 
     const Aabb bounds = BoundingAabb(box);
@@ -277,16 +280,16 @@ TEST(Obb, ContainsAndBoundingBox) {
 }
 
 TEST(Obb, IntersectionsAndConversions) {
-    const engine::geometry::Obb base = engine::geometry::from_center_half_sizes(vec3{0.0f}, vec3{1.0f, 2.0f, 0.5f});
-    const engine::geometry::Obb same_space = engine::geometry::from_center_half_sizes(vec3{0.5f, 0.0f, 0.0f}, vec3{0.25f, 0.25f, 0.25f});
-    EXPECT_TRUE(engine::geometry::Contains(base, engine::geometry::from_aabb(engine::geometry::BoundingAabb(same_space))));
+    const engine::geometry::Obb base = engine::geometry::FromCenterHalfSizes(vec3{0.0f}, vec3{1.0f, 2.0f, 0.5f});
+    const engine::geometry::Obb same_space = engine::geometry::FromCenterHalfSizes(vec3{0.5f, 0.0f, 0.0f}, vec3{0.25f, 0.25f, 0.25f});
+    EXPECT_TRUE(engine::geometry::Contains(base, engine::geometry::FromAabb(engine::geometry::BoundingAabb(same_space))));
     EXPECT_TRUE(engine::geometry::Contains(base, same_space));
 
-    const engine::geometry::Sphere s = engine::geometry::bounding_sphere(base);
+    const engine::geometry::Sphere s = engine::geometry::BoundingSphere(base);
     EXPECT_TRUE(engine::geometry::Intersects(base, s));
 
     const vec3 offset{3.0f, 0.0f, 0.0f};
-    const engine::geometry::Obb far_box{offset, vec3{0.5f}, engine::math::identity_matrix<float, 3>()};
+    const engine::geometry::Obb far_box{offset, vec3{0.5f}, engine::math::from_rotation_matrix(engine::math::identity_matrix<float, 3>())};
     EXPECT_TRUE(engine::geometry::Intersects(base, base));
     EXPECT_TRUE(!engine::geometry::Intersects(base, far_box));
 }
@@ -294,8 +297,8 @@ TEST(Obb, IntersectionsAndConversions) {
 TEST(Sphere, BasicMetrics) {
     const engine::geometry::Sphere s{vec3{1.0f, -1.0f, 0.0f}, 2.0f};
 
-    EXPECT_FLOAT_EQ(engine::geometry::surface_area(s), 16.0f * std::numbers::pi_v<float>);
-    EXPECT_FLOAT_EQ(engine::geometry::volume(s), (32.0f / 3.0f) * std::numbers::pi_v<float>);
+    EXPECT_FLOAT_EQ(engine::geometry::SurfaceArea(s), 16.0f * std::numbers::pi_v<float>);
+    EXPECT_FLOAT_EQ(engine::geometry::Volume(s), (32.0f / 3.0f) * std::numbers::pi_v<float>);
     const vec3 interior{1.0f, 1.0f, 0.0f};
     const vec3 exterior{1.0f, -1.0f, 3.1f};
     EXPECT_TRUE(engine::geometry::Contains(s, interior));
@@ -303,15 +306,15 @@ TEST(Sphere, BasicMetrics) {
 }
 
 TEST(Sphere, ContainmentAndConversions) {
-    const engine::geometry::Sphere s = engine::geometry::make_sphere_from_point(vec3{1.0f, 2.0f, 3.0f});
+    const engine::geometry::Sphere s = engine::geometry::BoundingSphere(vec3{1.0f, 2.0f, 3.0f});
     EXPECT_FLOAT_EQ(s.radius, 0.0f);
     expect_vec3_eq(s.center, vec3{1.0f, 2.0f, 3.0f});
 
-    const Aabb box = engine::geometry::make_aabb_from_center_extent(vec3{1.0f, 2.0f, 3.0f}, vec3{1.0f});
-    const engine::geometry::Sphere enclosing = engine::geometry::bounding_sphere(box);
+    const Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{1.0f, 2.0f, 3.0f}, vec3{1.0f});
+    const engine::geometry::Sphere enclosing = engine::geometry::BoundingSphere(box);
     EXPECT_TRUE(engine::geometry::Contains(enclosing, box));
 
-    const engine::geometry::Obb o = engine::geometry::from_center_half_sizes(vec3{1.0f, 2.0f, 3.0f}, vec3{0.5f, 0.75f, 1.0f});
+    const engine::geometry::Obb o = engine::geometry::FromCenterHalfSizes(vec3{1.0f, 2.0f, 3.0f}, vec3{0.5f, 0.75f, 1.0f});
     EXPECT_TRUE(engine::geometry::Contains(enclosing, o));
 
     const engine::geometry::Sphere another{vec3{3.0f, 2.0f, 3.0f}, 1.0f};
@@ -322,10 +325,10 @@ TEST(Sphere, ContainmentAndConversions) {
 TEST(Plane, SignedDistanceAndProjection) {
     const engine::geometry::Plane p{vec3{0.0f, 1.0f, 0.0f}, -2.0f};
 
-    EXPECT_FLOAT_EQ(engine::geometry::signed_distance(p, vec3{0.0f, 2.0f, 0.0f}), 0.0f);
-    EXPECT_FLOAT_EQ(engine::geometry::signed_distance(p, vec3{0.0f, 5.0f, 0.0f}), 3.0f);
+    EXPECT_FLOAT_EQ(engine::geometry::SignedDistance(p, vec3{0.0f, 2.0f, 0.0f}), 0.0f);
+    EXPECT_FLOAT_EQ(engine::geometry::SignedDistance(p, vec3{0.0f, 5.0f, 0.0f}), 3.0f);
 
-    const vec3 projected = engine::geometry::project_point(p, vec3{1.0f, 5.0f, -1.0f});
+    const vec3 projected = engine::geometry::ClosestPoint(p, vec3{1.0f, 5.0f, -1.0f});
     EXPECT_FLOAT_EQ(projected[1], 2.0f);
     EXPECT_TRUE(engine::geometry::Contains(p, projected));
     const vec3 offset_point{0.0f, 2.1f, 0.0f};
@@ -351,12 +354,12 @@ TEST(Plane, Intersections) {
 TEST(Ray, PointAtDistance) {
     const engine::geometry::Ray r{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 2.0f, 0.0f}};
     const vec3 expected{2.0f, 4.0f, 0.0f};
-    expect_vec3_eq(engine::geometry::point_at(r, 2.0f), expected);
+    expect_vec3_eq(engine::geometry::PointAt(r, 2.0f), expected);
 }
 
 TEST(Ray, Intersections) {
     const engine::geometry::Ray r{vec3{-2.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}};
-    const Aabb box = engine::geometry::make_aabb_from_center_extent(vec3{0.0f}, vec3{1.0f});
+    const Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{1.0f});
     float t_min = 0.0f;
     float t_max = 0.0f;
     EXPECT_TRUE(engine::geometry::Intersects(r, box, t_min, t_max));
@@ -371,18 +374,18 @@ TEST(Ray, Intersections) {
 
 TEST(Segment, LengthAndInterpolation) {
     const engine::geometry::Segment s{vec3{0.0f, 0.0f, 0.0f}, vec3{3.0f, 4.0f, 0.0f}};
-    EXPECT_FLOAT_EQ(engine::geometry::length(s), 5.0f);
+    EXPECT_FLOAT_EQ(engine::geometry::Length(s), 5.0f);
     const vec3 midpoint{1.5f, 2.0f, 0.0f};
-    expect_vec3_eq(engine::geometry::point_at(s, 0.5f), midpoint);
+    expect_vec3_eq(engine::geometry::PointAt(s, 0.5f), midpoint);
 }
 
 TEST(Line, Projection) {
     const engine::geometry::Line l{vec3{0.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
-    const vec3 projected = engine::geometry::project_point(l, vec3{2.0f, 3.0f, -1.0f});
+    const vec3 projected = engine::geometry::ClosestPoint(l, vec3{2.0f, 3.0f, -1.0f});
     expect_vec3_eq(projected, vec3{0.0f, 3.0f, 0.0f});
 
     const engine::geometry::Line degenerate_line{vec3{1.0f, 2.0f, 3.0f}, vec3{0.0f, 0.0f, 0.0f}};
-    expect_vec3_eq(engine::geometry::project_point(degenerate_line, vec3{5.0f, -1.0f, 2.0f}), degenerate_line.point);
+    expect_vec3_eq(engine::geometry::ClosestPoint(degenerate_line, vec3{5.0f, -1.0f, 2.0f}), degenerate_line.point);
 }
 
 TEST(Ellipsoid, ContainsAndVolume) {
@@ -399,7 +402,7 @@ TEST(Ellipsoid, ContainsAndVolume) {
         orientation,
     };
 
-    EXPECT_FLOAT_EQ(engine::geometry::volume(e), (4.0f / 3.0f) * std::numbers::pi_v<float>);
+    EXPECT_FLOAT_EQ(engine::geometry::Volume(e), (4.0f / 3.0f) * std::numbers::pi_v<float>);
 
     const vec3 inside = e.center + e.orientation * vec3{1.0f, 0.0f, 0.0f};
     const vec3 outside_point{3.0f, 0.0f, 0.0f};
@@ -410,22 +413,22 @@ TEST(Ellipsoid, ContainsAndVolume) {
 TEST(Triangle, AreaNormalAndCentroid) {
     const engine::geometry::Triangle t{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 2.0f, 0.0f}};
 
-    expect_vec3_eq(engine::geometry::normal(t), vec3{0.0f, 0.0f, 2.0f});
-    expect_vec3_eq(engine::geometry::unit_normal(t), vec3{0.0f, 0.0f, 1.0f});
-    EXPECT_FLOAT_EQ(engine::geometry::area(t), 1.0f);
-    expect_vec3_eq(engine::geometry::centroid(t), vec3{1.0f / 3.0f, 2.0f / 3.0f, 0.0f});
+    expect_vec3_eq(engine::geometry::Normal(t), vec3{0.0f, 0.0f, 2.0f});
+    expect_vec3_eq(engine::geometry::UnitNormal(t), vec3{0.0f, 0.0f, 1.0f});
+    EXPECT_FLOAT_EQ(engine::geometry::Area(t), 1.0f);
+    expect_vec3_eq(engine::geometry::Centroid(t), vec3{1.0f / 3.0f, 2.0f / 3.0f, 0.0f});
 }
 
 TEST(Cylinder, AxisDerivedValuesAndContainment) {
     const engine::geometry::Cylinder c{vec3{0.0f, 0.0f, 0.0f}, vec3{0.0f, 0.0f, 2.0f}, 1.0f, 2.0f};
 
-    expect_vec3_eq(engine::geometry::axis_direction(c), vec3{0.0f, 0.0f, 1.0f});
-    expect_vec3_eq(engine::geometry::top_center(c), vec3{0.0f, 0.0f, 2.0f});
-    expect_vec3_eq(engine::geometry::bottom_center(c), vec3{0.0f, 0.0f, -2.0f});
+    expect_vec3_eq(engine::geometry::AxisDirection(c), vec3{0.0f, 0.0f, 1.0f});
+    expect_vec3_eq(engine::geometry::TopCenter(c), vec3{0.0f, 0.0f, 2.0f});
+    expect_vec3_eq(engine::geometry::BottomCenter(c), vec3{0.0f, 0.0f, -2.0f});
 
-    EXPECT_FLOAT_EQ(engine::geometry::volume(c), 4.0f * std::numbers::pi_v<float>);
-    EXPECT_FLOAT_EQ(engine::geometry::lateral_surface_area(c), 8.0f * std::numbers::pi_v<float>);
-    EXPECT_FLOAT_EQ(engine::geometry::surface_area(c), 10.0f * std::numbers::pi_v<float>);
+    EXPECT_FLOAT_EQ(engine::geometry::Volume(c), 4.0f * std::numbers::pi_v<float>);
+    EXPECT_FLOAT_EQ(engine::geometry::LateralSurfaceArea(c), 8.0f * std::numbers::pi_v<float>);
+    EXPECT_FLOAT_EQ(engine::geometry::SurfaceArea(c), 10.0f * std::numbers::pi_v<float>);
 
     const vec3 radial_inside{0.5f, 0.0f, 1.0f};
     const vec3 radial_outside{1.1f, 0.0f, 0.0f};

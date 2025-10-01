@@ -9,19 +9,19 @@ namespace {
 
 }  // namespace
 
-math::vec3 normal(const Triangle& t) noexcept {
+math::vec3 Normal(const Triangle& t) noexcept {
     return math::cross(t.b - t.a, t.c - t.a);
 }
 
-math::vec3 unit_normal(const Triangle& t) noexcept {
-    return math::normalize(normal(t));
+math::vec3 UnitNormal(const Triangle& t) noexcept {
+    return math::normalize(Normal(t));
 }
 
-float area(const Triangle& t) noexcept {
-    return half() * math::length(normal(t));
+float Area(const Triangle& t) noexcept {
+    return half() * math::length(Normal(t));
 }
 
-math::vec3 centroid(const Triangle& t) noexcept {
+math::vec3 Centroid(const Triangle& t) noexcept {
     return (t.a + t.b + t.c) / static_cast<float>(3.0);
 }
 

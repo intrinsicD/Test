@@ -24,28 +24,8 @@ namespace engine::geometry {
         [[nodiscard]] constexpr float two() noexcept { return 2.0f; }
         [[nodiscard]] constexpr float tiny() noexcept { return 1e-6f; }
 
-        [[nodiscard]] std::array<math::vec3, 8> Corners(const Obb &box) noexcept {
-            std::array<math::vec3, 8> result{};
-            std::size_t index = 0U;
-
-            for (int x = -1; x <= 1; x += 2) {
-                for (int y = -1; y <= 1; y += 2) {
-                    for (int z = -1; z <= 1; z += 2) {
-                        const math::vec3 local_corner{
-                            static_cast<float>(x) * box.half_sizes[0],
-                            static_cast<float>(y) * box.half_sizes[1],
-                            static_cast<float>(z) * box.half_sizes[2],
-                        };
-                        result[index++] = box.center + box.orientation * local_corner;
-                    }
-                }
-            }
-
-            return result;
-        }
-
         [[nodiscard]] Segment axis_segment(const Cylinder &c) noexcept {
-            const math::vec3 dir = axis_direction(c);
+            const math::vec3 dir = AxisDirection(c);
             const math::vec3 offset = dir * c.half_height;
             return Segment{c.center - offset, c.center + offset};
         }
@@ -86,7 +66,7 @@ namespace engine::geometry {
                     add_candidate((box.max[axis] - segment.start[axis]) * inv_dir);
                 }
 
-                for (const auto &corner : Corners(box)) {
+                for (const auto &corner : GetCorners(box)) {
                     const float numerator = math::dot(corner - segment.start, direction);
                     const float t = numerator / static_cast<float>(dir_length_sq);
                     add_candidate(t);
@@ -115,12 +95,12 @@ namespace engine::geometry {
         return Size(box) * half();
     }
 
-    float SurfaceArea(const Aabb &box) noexcept {
+    double SurfaceArea(const Aabb &box) noexcept {
         const math::vec3 s = Size(box);
         return two() * (s[0] * s[1] + s[1] * s[2] + s[0] * s[2]);
     }
 
-    float Volume(const Aabb &box) noexcept {
+    double Volume(const Aabb &box) noexcept {
         const math::vec3 s = Size(box);
         return s[0] * s[1] * s[2];
     }
@@ -156,7 +136,7 @@ namespace engine::geometry {
     }
 
     bool Contains(const Aabb &outer, const Obb &inner) noexcept {
-        for (const auto &corner: Corners(inner)) {
+        for (const auto &corner: GetCorners(inner)) {
             if (!Contains(outer, corner)) {
                 return false;
             }
@@ -228,7 +208,7 @@ namespace engine::geometry {
             return true;
         }
 
-        for (const auto &corner : Corners(box)) {
+        for (const auto &corner : GetCorners(box)) {
             if (Contains(other, corner)) {
                 return true;
             }
@@ -398,11 +378,11 @@ namespace engine::geometry {
         return true;
     }
 
-    Aabb make_aabb_from_point(const math::vec3 &point) noexcept {
+    Aabb BoundingAabb(const math::vec3 &point) noexcept {
         return Aabb{point, point};
     }
 
-    Aabb make_aabb_from_center_extent(const math::vec3 &center, const math::vec3 &ext) noexcept {
+    Aabb MakeAabbFromCenterExtent(const math::vec3 &center, const math::vec3 &ext) noexcept {
         return Aabb{center - ext, center + ext};
     }
 
@@ -412,7 +392,7 @@ namespace engine::geometry {
     }
 
     Aabb BoundingAabb(const Obb &s) noexcept {
-        const auto corner_points = Corners(s);
+        const auto corner_points = GetCorners(s);
 
         math::vec3 min_corner{
             std::numeric_limits<float>::max(),
@@ -437,7 +417,7 @@ namespace engine::geometry {
     }
 
     Aabb BoundingAabb(const Cylinder &s) noexcept {
-        const math::vec3 dir = axis_direction(s);
+        const math::vec3 dir = AxisDirection(s);
         const math::vec3 abs_dir{std::fabs(dir[0]), std::fabs(dir[1]), std::fabs(dir[2])};
 
         math::vec3 axial_extent = abs_dir * s.half_height;
@@ -448,7 +428,7 @@ namespace engine::geometry {
         }
 
         const math::vec3 extent = axial_extent + radial_extent;
-        return make_aabb_from_center_extent(s.center, extent);
+        return MakeAabbFromCenterExtent(s.center, extent);
     }
 
     Aabb BoundingAabb(const Ellipsoid &s) noexcept {
@@ -461,7 +441,7 @@ namespace engine::geometry {
             extent[row] = sum;
         }
 
-        return make_aabb_from_center_extent(s.center, extent);
+        return MakeAabbFromCenterExtent(s.center, extent);
     }
 
     Aabb BoundingAabb(const Segment &s) noexcept {
@@ -525,7 +505,7 @@ namespace engine::geometry {
         return dx * dx + dy * dy + dz * dz;
     }
 
-    [[nodiscard]] std::array<math::vec3, 8> Corners(const Aabb &box) noexcept {
+    [[nodiscard]] std::array<math::vec3, 8> GetCorners(const Aabb &box) noexcept {
         std::array<math::vec3, 8> v{};
         for (int i = 0; i < 8; ++i) {
             v[i] = math::vec3{
@@ -537,7 +517,7 @@ namespace engine::geometry {
         return v;
     }
 
-    [[nodiscard]] std::array<math::ivec2, 12> Edges(const Aabb &) noexcept {
+    [[nodiscard]] std::array<math::ivec2, 12> GetEdges(const Aabb &) noexcept {
         return {
             {
                 {0, 1}, {1, 3}, {3, 2}, {2, 0}, // Bottom face edges
@@ -547,7 +527,7 @@ namespace engine::geometry {
         };
     }
 
-    [[nodiscard]] std::array<math::ivec3, 12> FaceTriangles(const Aabb &) noexcept {
+    [[nodiscard]] std::array<math::ivec3, 12> GetFaceTriangles(const Aabb &) noexcept {
         return {
             {
                 // -X
@@ -566,7 +546,7 @@ namespace engine::geometry {
         };
     }
 
-    [[nodiscard]] std::array<math::ivec4, 6> FaceQuads(const Aabb &) noexcept {
+    [[nodiscard]] std::array<math::ivec4, 6> GetFaceQuads(const Aabb &) noexcept {
         return {
             {
                 {0, 4, 6, 2}, // -X

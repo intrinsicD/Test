@@ -6,7 +6,7 @@
 
 namespace engine::geometry {
 
-float volume(const Ellipsoid& e) noexcept {
+float Volume(const Ellipsoid& e) noexcept {
     return static_cast<float>(4.0 / 3.0) * std::numbers::pi_v<float> * e.radii[0] * e.radii[1] * e.radii[2];
 }
 
