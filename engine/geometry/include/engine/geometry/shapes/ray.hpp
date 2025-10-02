@@ -21,43 +21,7 @@ namespace engine::geometry {
 
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 PointAt(const Ray &r, float t) noexcept;
 
-    struct ENGINE_GEOMETRY_API RayHit {
-        float t_in, t_out;
-    };
+    [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 ClosestPoint(const Ray &r, const math::vec3 &point) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray,
-                                                      const Aabb &box,
-                                                      RayHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray,
-                                                      const Cylinder &cylinder,
-                                                      RayHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray, const
-                                                      Ellipsoid &ellipsoid,
-                                                      RayHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray,
-                                                      const Line &line,
-                                                      RayHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray,
-                                                      const Obb &obb,
-                                                      RayHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray,
-                                                      const Plane &plane,
-                                                      RayHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray,
-                                                      const Ray &other,
-                                                      RayHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray,
-                                                      const Sphere &sphere,
-                                                      RayHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &ray,
-                                                      const Triangle &triangle,
-                                                      RayHit *result) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Ray &ray, const math::vec3 &point) noexcept;
 } // namespace engine::geometry

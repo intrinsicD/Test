@@ -29,56 +29,6 @@ namespace engine::geometry {
 
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 Centroid(const Triangle &triangle) noexcept;
 
-    //------------------------------------------------------------------------------------------------------------------
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Triangle &outer, const math::vec3 &inner) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Triangle &outer, const Triangle &inner) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Triangle &outer, const Segment &inner) noexcept;
-
-    //------------------------------------------------------------------------------------------------------------------
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Aabb &box) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Obb &box) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Sphere &sphere) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Cylinder &cylinder) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Ellipsoid &ellipsoid) noexcept;
-
-    struct ENGINE_GEOMETRY_API Triangle1DHit {
-        float t_enter, t_leave;
-    };
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
-                                                      const Line &line,
-                                                      Triangle1DHit *result) noexcept;
-
-    struct ENGINE_GEOMETRY_API Triangle2DHit {
-        math::vec3 barycentric_enter, barycentric_leave;
-    };
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
-                                                      const Plane &plane,
-                                                      Triangle2DHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
-                                                      const Ray &ray,
-                                                      Triangle1DHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
-                                                      const Segment &segment,
-                                                      Triangle1DHit *result) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
-                                                      const Triangle &other,
-                                                      Triangle2DHit *result) noexcept;
-
-    //------------------------------------------------------------------------------------------------------------------
-
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 ClosestPoint(const Triangle &triangle,
                                                               const math::vec3 &point) noexcept;
 

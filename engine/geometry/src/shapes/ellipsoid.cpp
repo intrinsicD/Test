@@ -5,30 +5,18 @@
 #include <numbers>
 
 namespace engine::geometry {
-
-float Volume(const Ellipsoid& e) noexcept {
-    return static_cast<float>(4.0 / 3.0) * std::numbers::pi_v<float> * e.radii[0] * e.radii[1] * e.radii[2];
-}
-
-bool Contains(const Ellipsoid& e, const math::vec3& point) noexcept {
-    const math::vec3 relative = point - e.center;
-    const math::mat3 inverse_orientation = math::transpose(e.orientation);
-    const math::vec3 local = inverse_orientation * relative;
-
-    float sum = 0.0f;
-    for (std::size_t i = 0; i < 3; ++i) {
-        if (e.radii[i] == 0.0f) {
-            if (local[i] != 0.0f) {
-                return false;
-            }
-            continue;
-        }
-        const float scaled = local[i] / e.radii[i];
-        sum += scaled * scaled;
+    float Volume(const Ellipsoid &ellipsoid) noexcept {
+        return static_cast<float>(4.0 / 3.0) * std::numbers::pi_v<float> *
+               ellipsoid.radii[0] *
+               ellipsoid.radii[1] *
+               ellipsoid.radii[2];
     }
 
-    return sum <= 1.0f + std::numeric_limits<float>::epsilon();
-}
+    math::vec3 ClosestPoint(const Ellipsoid &ellipsoid, const math::vec3 &point) noexcept {
+        //TODO
+    }
 
-}  // namespace engine::geometry
-
+    double SquaredDistance(const Ellipsoid &ellipsoid, const math::vec3 &point) noexcept {
+        //TODO
+    }
+} // namespace engine::geometry

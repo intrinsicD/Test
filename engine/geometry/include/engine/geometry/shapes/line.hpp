@@ -15,7 +15,5 @@ namespace engine::geometry {
 
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 ClosestPoint(const Line &l, const math::vec3 &point) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Line &l, const Plane &p, float &out_t) noexcept;
-
     [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Line &line, const math::vec3 &point) noexcept;
 } // namespace engine::geometry

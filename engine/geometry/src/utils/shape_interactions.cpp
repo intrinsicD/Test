@@ -559,4 +559,166 @@ namespace engine::geometry {
     bool Intersects(const Triangle &a, const Triangle &b) noexcept {
         //TODO
     }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    bool Contains(const Aabb &outer, const math::vec3 &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Aabb &outer, const Aabb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Aabb &outer, const Cylinder &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Aabb &outer, const Ellipsoid &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Aabb &outer, const Obb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Aabb &outer, const Segment &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Aabb &outer, const Sphere &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Aabb &outer, const Triangle &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Cylinder &outer, const math::vec3 &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Cylinder &outer, const Aabb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Cylinder &outer, const Cylinder &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Cylinder &outer, const Ellipsoid &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Cylinder &outer, const Obb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Cylinder &outer, const Segment &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Cylinder &outer, const Sphere &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Cylinder &outer, const Triangle &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Ellipsoid &outer, const math::vec3 &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Ellipsoid &outer, const Aabb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Ellipsoid &outer, const Cylinder &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Ellipsoid &outer, const Ellipsoid &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Ellipsoid &outer, const Obb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Ellipsoid &outer, const Segment &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Ellipsoid &outer, const Sphere &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Ellipsoid &outer, const Triangle &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Obb &outer, const math::vec3 &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Obb &outer, const Aabb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Obb &outer, const Cylinder &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Obb &outer, const Ellipsoid &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Obb &outer, const Obb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Obb &outer, const Segment &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Obb &outer, const Sphere &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Obb &outer, const Triangle &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Sphere &outer, const math::vec3 &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Sphere &outer, const Aabb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Sphere &outer, const Cylinder &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Sphere &outer, const Ellipsoid &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Sphere &outer, const Obb &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Sphere &outer, const Segment &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Sphere &outer, const Sphere &inner) noexcept {
+        //TODO
+    }
+
+    bool Contains(const Sphere &outer, const Triangle &inner) noexcept {
+        //TODO
+    }
 } // namespace engine::geometry

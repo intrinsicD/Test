@@ -32,49 +32,6 @@ namespace engine::geometry {
 
     [[nodiscard]] ENGINE_GEOMETRY_API double Volume(const Aabb &box) noexcept;
 
-    //------------------------------------------------------------------------------------------------------------------
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb &box, const math::vec3 &point) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb &outer, const Aabb &inner) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb &outer, const Sphere &inner) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb &outer, const Obb &inner) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb &outer, const Cylinder &inner) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb &outer, const Ellipsoid &inner) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb &outer, const Segment &inner) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb &outer, const Triangle &inner) noexcept;
-
-
-    //------------------------------------------------------------------------------------------------------------------
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &lhs, const Aabb &rhs) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Sphere &s) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Obb &other) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Cylinder &other) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Ellipsoid &other) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Line &other) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Plane &other) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Ray &other) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Segment &other) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &box, const Triangle &other) noexcept;
-
-    //------------------------------------------------------------------------------------------------------------------
-
     [[nodiscard]] ENGINE_GEOMETRY_API Aabb MakeAabbFromCenterExtent(const math::vec3 &center,
                                                                     const math::vec3 &extent) noexcept;
 

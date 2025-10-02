@@ -19,10 +19,6 @@ namespace engine::geometry {
         return PointAt(l, t);
     }
 
-    bool Intersects(const Line &l, const Plane &p, float &out_t) noexcept {
-        return Intersects(p, l, out_t);
-    }
-
     double SquaredDistance(const Line &line, const math::vec3 &point) noexcept {
         const float denom = math::length_squared(line.direction);
         if (denom == 0.0f) {

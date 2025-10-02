@@ -6,7 +6,6 @@
 #include <limits>
 #include <numbers>
 
-
 namespace engine::geometry {
     double SurfaceArea(const Sphere &s) noexcept {
         double radius = s.radius;
@@ -16,105 +15,6 @@ namespace engine::geometry {
     double Volume(const Sphere &s) noexcept {
         double radius = s.radius;
         return 4.0 / 3.0 * std::numbers::pi_v<double> * radius * radius * radius;
-    }
-
-    bool Contains(const Sphere &s, const math::vec3 &point) noexcept {
-        const math::vec3 offset = point - s.center;
-        return math::length_squared(offset) <= s.radius * s.radius;
-    }
-
-    bool Contains(const Sphere &outer, const Sphere &inner) noexcept {
-        const math::vec3 offset = inner.center - outer.center;
-        const float distance = math::length(offset);
-        return distance + inner.radius <= outer.radius + std::numeric_limits<float>::epsilon();
-    }
-
-    bool Contains(const Sphere &outer, const Aabb &inner) noexcept {
-        for (const auto &corner: GetCorners(inner)) {
-            if (!Contains(outer, corner)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool Contains(const Sphere &outer, const Obb &inner) noexcept {
-        for (const auto &corner: GetCorners(inner)) {
-            if (!Contains(outer, corner)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool Contains(const Sphere &outer, const Cylinder &inner) noexcept {
-        return Contains(outer, BoundingSphere(inner));
-    }
-
-    bool Contains(const Sphere &outer, const Ellipsoid &inner) noexcept {
-        return Contains(outer, BoundingSphere(inner));
-    }
-
-    bool Contains(const Sphere &outer, const Segment &inner) noexcept {
-        return Contains(outer, inner.start) && Contains(outer, inner.end);
-    }
-
-    bool Contains(const Sphere &outer, const Triangle &inner) noexcept {
-        return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
-    }
-
-    bool Intersects(const Sphere &lhs, const Sphere &rhs) noexcept {
-        const math::vec3 offset = rhs.center - lhs.center;
-        const float radii = lhs.radius + rhs.radius;
-        return math::length_squared(offset) <= radii * radii;
-    }
-
-    bool Intersects(const Sphere &s, const Aabb &box) noexcept {
-        return Intersects(box, s);
-    }
-
-    bool Intersects(const Sphere &s, const Obb &box) noexcept {
-        return Intersects(box, s);
-    }
-
-    bool Intersects(const Sphere &s, const Cylinder &c) noexcept {
-        return Intersects(c, s);
-    }
-
-    bool Intersects(const Sphere &sphere, const Line &line) noexcept {
-        const double distance_sq = SquaredDistance(line, sphere.center);
-        return distance_sq <= sphere.radius * sphere.radius;
-    }
-
-    bool Intersects(const Sphere &sphere, const Ray &ray) noexcept {
-        float t = 0.0f;
-        return Intersects(ray, sphere, t);
-    }
-
-    bool Intersects(const Sphere &sphere, const Plane &plane) noexcept {
-        const float normal_length = math::length(plane.normal);
-        if (normal_length == 0.0f) {
-            return false;
-        }
-        const double distance = math::utils::abs(SignedDistance(plane, sphere.center)) / normal_length;
-        return distance <= sphere.radius;
-    }
-
-    bool Intersects(const Sphere &sphere, const Ellipsoid &ellipsoid) noexcept {
-        if (Contains(ellipsoid, sphere.center) || Contains(sphere, ellipsoid.center)) {
-            return true;
-        }
-        return Intersects(sphere, BoundingSphere(ellipsoid));
-    }
-
-    bool Intersects(const Sphere &sphere, const Segment &segment) noexcept {
-        const double distance_sq = SquaredDistance(segment, sphere.center);
-        return distance_sq <= sphere.radius * sphere.radius;
-    }
-
-    bool Intersects(const Sphere &spherephere, const Triangle &triangle) noexcept {
-        const double distance_sq = SquaredDistance(triangle, spherephere.center);
-        return distance_sq <= static_cast<double>(spherephere.radius) * static_cast<double>(spherephere.radius);
     }
 
     Sphere BoundingSphere(const math::vec3 &point) noexcept {
@@ -135,7 +35,6 @@ namespace engine::geometry {
         }
         return Sphere{box.center, math::utils::sqrt(max_distance_sq)};
     }
-
 
     Sphere BoundingSphere(const Segment &segment) noexcept {
         return {(segment.start + segment.end) * 0.5f, math::length(segment.end - segment.start) * 0.5f};

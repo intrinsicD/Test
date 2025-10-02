@@ -11,7 +11,9 @@ namespace engine::geometry {
         math::mat3 orientation;
     };
 
-    [[nodiscard]] ENGINE_GEOMETRY_API float Volume(const Ellipsoid &e) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API float Volume(const Ellipsoid &ellipsoid) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Ellipsoid &e, const math::vec3 &point) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 ClosestPoint(const Ellipsoid &ellipsoid, const math::vec3 &point) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Ellipsoid &ellipsoid, const math::vec3 &point) noexcept;
 } // namespace engine::geometry
