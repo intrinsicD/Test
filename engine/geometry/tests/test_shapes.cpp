@@ -8,6 +8,7 @@
 
 using engine::geometry::Aabb;
 using engine::geometry::BoundingAabb;
+using engine::geometry::Triangle;
 using engine::math::mat3;
 using engine::math::vec3;
 using engine::math::quat;
@@ -386,6 +387,83 @@ TEST(Line, Projection) {
 
     const engine::geometry::Line degenerate_line{vec3{1.0f, 2.0f, 3.0f}, vec3{0.0f, 0.0f, 0.0f}};
     expect_vec3_eq(engine::geometry::ClosestPoint(degenerate_line, vec3{5.0f, -1.0f, 2.0f}), degenerate_line.point);
+}
+
+TEST(Triangle, DerivedQuantities) {
+    const Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
+
+    const vec3 expected_normal{0.0f, 0.0f, 1.0f};
+    expect_vec3_eq(engine::geometry::Normal(triangle), expected_normal);
+    expect_vec3_eq(engine::geometry::UnitNormal(triangle), expected_normal);
+    EXPECT_FLOAT_EQ(static_cast<float>(engine::geometry::Area(triangle)), 0.5f);
+    expect_vec3_eq(engine::geometry::Centroid(triangle), vec3{1.0f / 3.0f, 1.0f / 3.0f, 0.0f});
+}
+
+TEST(Triangle, ContainsAndBarycentric) {
+    const Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
+    const vec3 interior{0.25f, 0.25f, 0.0f};
+    const vec3 exterior{0.5f, 0.5f, 0.2f};
+
+    EXPECT_TRUE(engine::geometry::Contains(triangle, interior));
+    EXPECT_TRUE(!engine::geometry::Contains(triangle, exterior));
+
+    const Triangle smaller{vec3{0.1f, 0.1f, 0.0f}, vec3{0.3f, 0.1f, 0.0f}, vec3{0.1f, 0.3f, 0.0f}};
+    EXPECT_TRUE(engine::geometry::Contains(triangle, smaller));
+
+    const vec3 bary = engine::geometry::ToBarycentricCoords(triangle, engine::geometry::Normal(triangle), interior);
+    expect_vec3_eq(bary, vec3{0.5f, 0.25f, 0.25f});
+    expect_vec3_eq(engine::geometry::FromBarycentricCoords(triangle, bary), interior);
+}
+
+TEST(Triangle, IntersectionsWithShapes) {
+    const Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
+
+    const Aabb intersecting_box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.25f, 0.25f, 0.0f}, vec3{0.3f, 0.3f, 0.1f});
+    const Aabb far_box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f, 0.0f, 1.5f}, vec3{0.2f});
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, intersecting_box));
+    EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_box));
+
+    const engine::geometry::Obb obb = engine::geometry::FromCenterHalfSizes(vec3{0.25f, 0.25f, 0.0f}, vec3{0.4f, 0.2f, 0.1f});
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, obb));
+
+    const engine::geometry::Sphere sphere{vec3{0.2f, 0.2f, 0.0f}, 0.1f};
+    const engine::geometry::Sphere far_sphere{vec3{0.0f, 0.0f, 1.0f}, 0.2f};
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, sphere));
+    EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_sphere));
+
+    const engine::geometry::Cylinder cylinder{vec3{0.3f, 0.3f, 0.0f}, vec3{0.0f, 0.0f, 1.0f}, 0.25f, 1.0f};
+    const engine::geometry::Cylinder far_cylinder{vec3{0.0f, 0.0f, 2.0f}, vec3{0.0f, 0.0f, 1.0f}, 0.2f, 0.5f};
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, cylinder));
+    EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_cylinder));
+
+    const engine::math::mat3 orientation = engine::math::identity_matrix<float, 3>();
+    const engine::geometry::Ellipsoid ellipsoid{vec3{0.3f, 0.3f, 0.0f}, vec3{0.4f, 0.2f, 0.2f}, orientation};
+    const engine::geometry::Ellipsoid far_ellipsoid{vec3{0.0f, 0.0f, 1.2f}, vec3{0.2f, 0.2f, 0.2f}, orientation};
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, ellipsoid));
+    EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_ellipsoid));
+
+    const engine::geometry::Line line{vec3{0.25f, 0.25f, -1.0f}, vec3{0.0f, 0.0f, 1.0f}};
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, line));
+
+    const engine::geometry::Plane plane{vec3{0.0f, 0.0f, 1.0f}, 0.0f};
+    const engine::geometry::Plane far_plane{vec3{0.0f, 0.0f, 1.0f}, -1.0f};
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, plane));
+    EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_plane));
+
+    const engine::geometry::Ray ray{vec3{0.25f, 0.25f, 1.0f}, vec3{0.0f, 0.0f, -1.0f}};
+    const engine::geometry::Ray miss_ray{vec3{0.25f, 0.25f, 1.0f}, vec3{0.0f, 0.0f, 1.0f}};
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, ray));
+    EXPECT_TRUE(!engine::geometry::Intersects(triangle, miss_ray));
+
+    const engine::geometry::Segment segment{vec3{0.25f, 0.25f, 1.0f}, vec3{0.25f, 0.25f, -1.0f}};
+    const engine::geometry::Segment miss_segment{vec3{2.0f, 2.0f, 0.0f}, vec3{2.0f, 2.0f, 1.0f}};
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, segment));
+    EXPECT_TRUE(!engine::geometry::Intersects(triangle, miss_segment));
+
+    const Triangle other{vec3{0.25f, 0.25f, 0.0f}, vec3{0.75f, 0.25f, 0.0f}, vec3{0.25f, 0.75f, 0.0f}};
+    const Triangle far_triangle{vec3{0.0f, 0.0f, 1.0f}, vec3{0.5f, 0.0f, 1.0f}, vec3{0.0f, 0.5f, 1.0f}};
+    EXPECT_TRUE(engine::geometry::Intersects(triangle, other));
+    EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_triangle));
 }
 
 TEST(Ellipsoid, ContainsAndVolume) {
