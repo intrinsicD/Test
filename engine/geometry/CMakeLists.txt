@@ -17,6 +17,7 @@ add_library(${target_name}
     src/shapes/segment.cpp
     src/shapes/sphere.cpp
     src/shapes/triangle.cpp
+    src/utils/shape_interactions.cpp
 )
 
 target_include_directories(${target_name}

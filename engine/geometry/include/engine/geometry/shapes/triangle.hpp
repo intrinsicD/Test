@@ -49,15 +49,33 @@ namespace engine::geometry {
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Ellipsoid &ellipsoid) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Line &line) noexcept;
+    struct ENGINE_GEOMETRY_API Triangle1DHit {
+        float t_enter, t_leave;
+    };
 
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Plane &plane) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
+                                                      const Line &line,
+                                                      Triangle1DHit *result) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Ray &ray) noexcept;
+    struct ENGINE_GEOMETRY_API Triangle2DHit {
+        math::vec3 barycentric_enter, barycentric_leave;
+    };
 
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Segment &segment) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
+                                                      const Plane &plane,
+                                                      Triangle2DHit *result) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle, const Triangle &other) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
+                                                      const Ray &ray,
+                                                      Triangle1DHit *result) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
+                                                      const Segment &segment,
+                                                      Triangle1DHit *result) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle &triangle,
+                                                      const Triangle &other,
+                                                      Triangle2DHit *result) noexcept;
 
     //------------------------------------------------------------------------------------------------------------------
 
