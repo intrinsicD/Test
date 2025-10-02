@@ -123,24 +123,94 @@ namespace engine::math {
     }
 
     template<typename T>
-    ENGINE_MATH_INLINE matrix<T, 2, 2> inverse(const matrix<T, 2, 2> &values) noexcept {
-        matrix<T, 2, 2> result{};
-        //TODO
-        return result;
+    ENGINE_MATH_INLINE matrix<T, 2, 2> inverse(const matrix<T, 2, 2> &m) noexcept {
+        const T a = m[0][0], b = m[0][1];
+        const T c = m[1][0], d = m[1][1];
+        const T det = a * d - b * c;
+        matrix<T, 2, 2> r{};
+        if (det == detail::zero<T>()) { return r; }
+        const T inv = detail::one<T>() / det;
+        r[0][0] =  d * inv; r[0][1] = -b * inv;
+        r[1][0] = -c * inv; r[1][1] =  a * inv;
+        return r;
     }
 
     template<typename T>
-    ENGINE_MATH_INLINE matrix<T, 3, 3> inverse(const matrix<T, 3, 3> &values) noexcept {
-        matrix<T, 3, 3> result{};
-        //TODO
-        return result;
+    ENGINE_MATH_INLINE matrix<T, 3, 3> inverse(const matrix<T, 3, 3> &m) noexcept {
+        const T a00 = m[0][0], a01 = m[0][1], a02 = m[0][2];
+        const T a10 = m[1][0], a11 = m[1][1], a12 = m[1][2];
+        const T a20 = m[2][0], a21 = m[2][1], a22 = m[2][2];
+
+        const T c00 =  a11 * a22 - a12 * a21;
+        const T c01 = -(a10 * a22 - a12 * a20);
+        const T c02 =  a10 * a21 - a11 * a20;
+
+        const T c10 = -(a01 * a22 - a02 * a21);
+        const T c11 =  a00 * a22 - a02 * a20;
+        const T c12 = -(a00 * a21 - a01 * a20);
+
+        const T c20 =  a01 * a12 - a02 * a11;
+        const T c21 = -(a00 * a12 - a02 * a10);
+        const T c22 =  a00 * a11 - a01 * a10;
+
+        const T det = a00 * c00 + a01 * c01 + a02 * c02;
+        matrix<T, 3, 3> r{};
+        if (det == detail::zero<T>()) { return r; }
+        const T inv = detail::one<T>() / det;
+
+        // adjugate^T / det
+        r[0][0] = c00 * inv; r[0][1] = c10 * inv; r[0][2] = c20 * inv;
+        r[1][0] = c01 * inv; r[1][1] = c11 * inv; r[1][2] = c21 * inv;
+        r[2][0] = c02 * inv; r[2][1] = c12 * inv; r[2][2] = c22 * inv;
+        return r;
     }
 
     template<typename T>
-    ENGINE_MATH_INLINE matrix<T, 4, 4> inverse(const matrix<T, 4, 4> &values) noexcept {
-        matrix<T, 4, 4> result{};
-        //TODO
-        return result;
+    ENGINE_MATH_INLINE matrix<T, 4, 4> inverse(const matrix<T, 4, 4> &m) noexcept {
+        // Build augmented [M | I]
+        T aug[4][8]{};
+        for (std::size_t r = 0; r < 4; ++r) {
+            for (std::size_t c = 0; c < 4; ++c) aug[r][c] = m[r][c];
+            for (std::size_t c = 0; c < 4; ++c) aug[r][4 + c] = (r == c) ? detail::one<T>() : detail::zero<T>();
+        }
+
+        // Forward elimination
+        for (std::size_t col = 0; col < 4; ++col) {
+            // pivot row
+            std::size_t piv = col;
+            T maxA = (aug[piv][col] < T(0) ? -aug[piv][col] : aug[piv][col]);
+            for (std::size_t r = col + 1; r < 4; ++r) {
+                T v = aug[r][col]; v = (v < T(0) ? -v : v);
+                if (v > maxA) { maxA = v; piv = r; }
+            }
+            if (maxA == detail::zero<T>()) { return matrix<T, 4, 4>{}; } // singular
+
+            // swap rows
+            if (piv != col) {
+                for (std::size_t c = 0; c < 8; ++c) { const T tmp = aug[piv][c]; aug[piv][c] = aug[col][c]; aug[col][c] = tmp; }
+            }
+
+            const T pivot = aug[col][col];
+            const T invp = detail::one<T>() / pivot;
+
+            // normalize pivot row
+            for (std::size_t c = 0; c < 8; ++c) aug[col][c] *= invp;
+
+            // eliminate other rows
+            for (std::size_t r = 0; r < 4; ++r) {
+                if (r == col) continue;
+                const T f = aug[r][col];
+                if (f == detail::zero<T>()) continue;
+                for (std::size_t c = 0; c < 8; ++c) aug[r][c] -= f * aug[col][c];
+            }
+        }
+
+        // Extract inverse
+        matrix<T, 4, 4> inv{};
+        for (std::size_t r = 0; r < 4; ++r)
+            for (std::size_t c = 0; c < 4; ++c)
+                inv[r][c] = aug[r][4 + c];
+        return inv;
     }
 
     template<typename T>

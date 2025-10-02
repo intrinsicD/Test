@@ -4,17 +4,6 @@
 #include "engine/math/vector.hpp"
 
 namespace engine::geometry {
-    struct Cylinder;
-    struct Ellipsoid;
-    struct Line;
-    struct Obb;
-    struct Plane;
-    struct Ray;
-    struct Segment;
-    struct Sphere;
-    struct Triangle;
-    struct Aabb;
-
     struct ENGINE_GEOMETRY_API Triangle {
         math::vec3 a;
         math::vec3 b;

@@ -234,7 +234,7 @@ namespace engine::geometry {
                                                       Result<Ellipsoid, Ray> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ellipsoid &a, const Segment &b,
-                                                      Result<Ellipsoid, Ray> *result = nullptr) noexcept;
+                                                      Result<Ellipsoid, Segment> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ellipsoid &a, const Sphere &b) noexcept;
 
@@ -277,7 +277,7 @@ namespace engine::geometry {
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb &a, const Ellipsoid &b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb &a, const Line &b,
-                                                      Result<Obb, Ray> *result = nullptr) noexcept;
+                                                      Result<Obb, Line> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb &a, const Obb &b) noexcept;
 
@@ -287,7 +287,7 @@ namespace engine::geometry {
                                                       Result<Obb, Ray> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb &a, const Segment &b,
-                                                      Result<Obb, Ray> *result = nullptr) noexcept;
+                                                      Result<Obb, Segment> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb &a, const Sphere &b) noexcept;
 
@@ -332,7 +332,7 @@ namespace engine::geometry {
                                                       Result<Ray, Obb> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &a, const Plane &b,
-                                                      Result<Ray, Plane> *result = nullptr) noexcept;
+                                                      Result<Plane, Ray> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray &a, const Ray &b,
                                                       Result<Ray, Ray> *result = nullptr) noexcept;
@@ -353,16 +353,16 @@ namespace engine::geometry {
                                                       Result<Segment, Cylinder> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment &a, const Ellipsoid &b,
-                                                      Result<Segment, Ellipsoid> *result = nullptr) noexcept;
+                                                      Result<Ellipsoid, Segment> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment &a, const Line &b,
                                                       Result<Segment, Line> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment &a, const Obb &b,
-                                                      Result<Segment, Obb> *result = nullptr) noexcept;
+                                                      Result<Obb, Segment> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment &a, const Plane &b,
-                                                      Result<Segment, Plane> *result = nullptr) noexcept;
+                                                      Result<Plane, Segment> *result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment &a, const Ray &b,
                                                       Result<Segment, Ray> *result = nullptr) noexcept;
