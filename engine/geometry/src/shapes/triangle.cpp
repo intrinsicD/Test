@@ -8,6 +8,7 @@
 #include "engine/geometry/shapes/line.hpp"
 #include "engine/geometry/shapes/plane.hpp"
 #include "engine/geometry/shapes/ray.hpp"
+#include "engine/geometry/utils/shape_interactions.hpp"
 
 #include "engine/math/matrix.hpp"
 #include "engine/math/utils.hpp"

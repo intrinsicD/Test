@@ -20,7 +20,18 @@ namespace engine::geometry {
     math::vec3 ClosestPoint(const Segment &segment,
                             const math::vec3 &point,
                             double &t_result) noexcept {
-        //TODO
+        const math::vec3 direction = Direction(segment);
+        const float length_sq = math::length_squared(direction);
+        if (length_sq == 0.0f) {
+            t_result = 0.0;
+            return segment.start;
+        }
+
+        const math::vec3 offset = point - segment.start;
+        const float t = math::dot(offset, direction) / length_sq;
+        const float clamped_t = math::utils::clamp(t, 0.0f, 1.0f);
+        t_result = static_cast<double>(clamped_t);
+        return segment.start + direction * clamped_t;
     }
 
     double SquaredDistance(const Segment &segment, const math::vec3 &point) noexcept {

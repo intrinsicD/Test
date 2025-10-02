@@ -1,15 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <cmath>
 #include <numbers>
 
 #include "engine/geometry/shapes.hpp"
 #include "engine/math/quaternion.hpp"
+#include "engine/math/utils.hpp"
 
 using engine::geometry::Aabb;
 using engine::geometry::BoundingAabb;
 using engine::geometry::Triangle;
 using engine::math::mat3;
+using engine::math::mat4;
 using engine::math::vec3;
 using engine::math::quat;
 
@@ -295,6 +298,68 @@ TEST(Obb, IntersectionsAndConversions) {
     EXPECT_TRUE(!engine::geometry::Intersects(base, far_box));
 }
 
+TEST(Obb, ClosestPointAndDistance) {
+    const quat orientation = engine::math::from_angle_axis(std::numbers::pi_v<float> / 4.0f, vec3{0.0f, 0.0f, 1.0f});
+    const engine::geometry::Obb box{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 2.0f, 0.5f}, orientation};
+    const mat3 rotation = orientation.to_rotation_matrix();
+
+    const vec3 point{3.0f, 0.0f, 0.25f};
+    const vec3 local = engine::math::transpose(rotation) * (point - box.center);
+    const vec3 clamped{
+        engine::math::utils::clamp(local[0], -box.half_sizes[0], box.half_sizes[0]),
+        engine::math::utils::clamp(local[1], -box.half_sizes[1], box.half_sizes[1]),
+        engine::math::utils::clamp(local[2], -box.half_sizes[2], box.half_sizes[2])
+    };
+    const vec3 expected = box.center + rotation * clamped;
+
+    expect_vec3_eq(engine::geometry::ClosestPoint(box, point), expected);
+    EXPECT_NEAR(engine::geometry::SquaredDistance(box, point),
+                static_cast<double>(engine::math::length_squared(point - expected)), 1e-5);
+}
+
+TEST(Obb, BoundingObbWithTransform) {
+    const engine::geometry::Obb base{vec3{0.5f, -0.5f, 0.0f}, vec3{1.0f, 0.5f, 0.25f}, {}};
+    const quat rotation_quat = engine::math::from_angle_axis(std::numbers::pi_v<float> / 2.0f, vec3{0.0f, 0.0f, 1.0f});
+    const mat3 rotation = rotation_quat.to_rotation_matrix();
+
+    mat4 transform = engine::math::identity_matrix<float, 4>();
+    for (std::size_t r = 0; r < 3; ++r) {
+        for (std::size_t c = 0; c < 3; ++c) {
+            transform[r][c] = rotation[r][c];
+        }
+    }
+    transform[0][3] = 1.0f;
+    transform[1][3] = 2.0f;
+    transform[2][3] = -1.0f;
+
+    const engine::geometry::Obb transformed = engine::geometry::BoundingObb(base, transform);
+    const vec3 expected_center = vec3{rotation[0][0] * base.center[0] + rotation[0][1] * base.center[1] + rotation[0][2] * base.center[2] + 1.0f,
+                                      rotation[1][0] * base.center[0] + rotation[1][1] * base.center[1] + rotation[1][2] * base.center[2] + 2.0f,
+                                      rotation[2][0] * base.center[0] + rotation[2][1] * base.center[1] + rotation[2][2] * base.center[2] - 1.0f};
+    expect_vec3_eq(transformed.center, expected_center);
+
+    const mat3 transformed_rotation = transformed.orientation.to_rotation_matrix();
+    for (std::size_t r = 0; r < 3; ++r) {
+        for (std::size_t c = 0; c < 3; ++c) {
+            EXPECT_NEAR(transformed_rotation[r][c], rotation[r][c], 1e-5f);
+        }
+    }
+
+    expect_vec3_eq(transformed.half_sizes, base.half_sizes);
+}
+
+TEST(Obb, BoundingObbFromPoints) {
+    std::array<vec3, 4> points{
+        vec3{-1.0f, -1.0f, 0.0f},
+        vec3{1.0f, -1.0f, 0.0f},
+        vec3{-1.0f, 1.0f, 0.0f},
+        vec3{1.0f, 1.0f, 0.0f}
+    };
+    const engine::geometry::Obb bounds = engine::geometry::BoundingObb(points);
+    expect_vec3_eq(bounds.center, vec3{0.0f, 0.0f, 0.0f});
+    expect_vec3_eq(bounds.half_sizes, vec3{1.0f, 1.0f, 0.0f});
+}
+
 TEST(Sphere, BasicMetrics) {
     const engine::geometry::Sphere s{vec3{1.0f, -1.0f, 0.0f}, 2.0f};
 
@@ -321,6 +386,30 @@ TEST(Sphere, ContainmentAndConversions) {
     const engine::geometry::Sphere another{vec3{3.0f, 2.0f, 3.0f}, 1.0f};
     EXPECT_TRUE(engine::geometry::Intersects(enclosing, another));
     EXPECT_TRUE(engine::geometry::Contains(enclosing, s));
+}
+
+TEST(Ellipsoid, ClosestPointAndDistance) {
+    const engine::geometry::Ellipsoid ellipsoid{
+        vec3{0.0f, 0.0f, 0.0f},
+        vec3{2.0f, 1.0f, 1.5f},
+        engine::math::identity_matrix<float, 3>()
+    };
+
+    const vec3 outside{4.0f, 0.0f, 0.0f};
+    expect_vec3_eq(engine::geometry::ClosestPoint(ellipsoid, outside), vec3{2.0f, 0.0f, 0.0f});
+    EXPECT_NEAR(engine::geometry::SquaredDistance(ellipsoid, outside), 4.0, 1e-5);
+
+    const vec3 inside{1.0f, 0.0f, 0.0f};
+    expect_vec3_eq(engine::geometry::ClosestPoint(ellipsoid, inside), inside);
+
+    const quat rot = engine::math::from_angle_axis(std::numbers::pi_v<float> / 2.0f, vec3{0.0f, 0.0f, 1.0f});
+    const engine::geometry::Ellipsoid rotated{
+        vec3{0.0f, 0.0f, 0.0f},
+        vec3{2.0f, 1.0f, 1.0f},
+        rot.to_rotation_matrix()
+    };
+    const vec3 axis_point{0.0f, 3.0f, 0.0f};
+    expect_vec3_eq(engine::geometry::ClosestPoint(rotated, axis_point), vec3{0.0f, 2.0f, 0.0f});
 }
 
 TEST(Plane, SignedDistanceAndProjection) {
@@ -358,6 +447,17 @@ TEST(Ray, PointAtDistance) {
     expect_vec3_eq(engine::geometry::PointAt(r, 2.0f), expected);
 }
 
+TEST(Ray, ClosestPointAndDistance) {
+    const engine::geometry::Ray r{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}};
+    const vec3 point{2.0f, 3.0f, 0.0f};
+    const vec3 expected{2.0f, 0.0f, 0.0f};
+    expect_vec3_eq(engine::geometry::ClosestPoint(r, point), expected);
+    EXPECT_DOUBLE_EQ(engine::geometry::SquaredDistance(r, point), 9.0);
+
+    const vec3 behind{-1.0f, 0.5f, 0.0f};
+    expect_vec3_eq(engine::geometry::ClosestPoint(r, behind), r.origin);
+}
+
 TEST(Ray, Intersections) {
     const engine::geometry::Ray r{vec3{-2.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}};
     const Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{1.0f});
@@ -378,6 +478,20 @@ TEST(Segment, LengthAndInterpolation) {
     EXPECT_FLOAT_EQ(engine::geometry::Length(s), 5.0f);
     const vec3 midpoint{1.5f, 2.0f, 0.0f};
     expect_vec3_eq(engine::geometry::PointAt(s, 0.5f), midpoint);
+}
+
+TEST(Segment, ClosestPoint) {
+    const engine::geometry::Segment s{vec3{0.0f, 0.0f, 0.0f}, vec3{2.0f, 0.0f, 0.0f}};
+    double t = 0.0;
+    const vec3 point{1.0f, 1.0f, 0.0f};
+    const vec3 expected{1.0f, 0.0f, 0.0f};
+    expect_vec3_eq(engine::geometry::ClosestPoint(s, point, t), expected);
+    EXPECT_DOUBLE_EQ(t, 0.5);
+    EXPECT_DOUBLE_EQ(engine::geometry::SquaredDistance(s, point), 1.0);
+
+    const vec3 outside{-1.0f, 0.0f, 0.0f};
+    expect_vec3_eq(engine::geometry::ClosestPoint(s, outside, t), s.start);
+    EXPECT_DOUBLE_EQ(t, 0.0);
 }
 
 TEST(Line, Projection) {
