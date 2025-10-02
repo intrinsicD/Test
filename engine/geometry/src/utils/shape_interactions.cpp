@@ -392,9 +392,28 @@ namespace engine::geometry
         }
     }
 
-    bool Intersects(const Cylinder& a, const Sphere& b) noexcept
+    bool Intersects(const Cylinder& cylinder, const Sphere& sphere) noexcept
     {
-        //TODO
+        const math::vec3 axis_dir = AxisDirection(cylinder);
+        const math::vec3 delta = sphere.center - cylinder.center;
+
+        const float axial = math::dot(delta, axis_dir);
+        const float abs_axial = math::utils::abs(axial);
+        const float axial_excess = abs_axial <= cylinder.half_height
+                                        ? 0.0f
+                                        : abs_axial - cylinder.half_height;
+
+        const math::vec3 radial_vec = delta - axial * axis_dir;
+        const float radial_len_sq = math::dot(radial_vec, radial_vec);
+        float radial_excess = 0.0f;
+        if (radial_len_sq > cylinder.radius * cylinder.radius)
+        {
+            const float radial_len = math::utils::sqrt(radial_len_sq);
+            radial_excess = radial_len - cylinder.radius;
+        }
+
+        const float separation_sq = radial_excess * radial_excess + axial_excess * axial_excess;
+        return separation_sq <= sphere.radius * sphere.radius;
     }
 
     bool Intersects(const Cylinder& a, const Triangle& b) noexcept
@@ -509,9 +528,9 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Ellipsoid& a, const Sphere& b) noexcept
+    bool Intersects(const Ellipsoid& ellipsoid, const Sphere& sphere) noexcept
     {
-        //TODO
+        return SquaredDistance(ellipsoid, sphere.center) <= sphere.radius * sphere.radius;
     }
 
     bool Intersects(const Ellipsoid& a, const Triangle& b) noexcept
@@ -742,9 +761,9 @@ namespace engine::geometry
         return hit;
     }
 
-    bool Intersects(const Obb& a, const Sphere& b) noexcept
+    bool Intersects(const Obb& obb, const Sphere& sphere) noexcept
     {
-        //TODO
+        return SquaredDistance(obb, sphere.center) <= sphere.radius * sphere.radius;
     }
 
     bool Intersects(const Obb& a, const Triangle& b) noexcept
@@ -999,14 +1018,14 @@ namespace engine::geometry
         return Intersects(aabb, sphere);
     }
 
-    bool Intersects(const Sphere& a, const Cylinder& b) noexcept
+    bool Intersects(const Sphere& sphere, const Cylinder& cylinder) noexcept
     {
-        //TODO
+        return Intersects(cylinder, sphere);
     }
 
     bool Intersects(const Sphere& a, const Ellipsoid& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
     bool Intersects(const Sphere& sphere, const Line& line, Result<Sphere, Line>* result) noexcept
@@ -1014,9 +1033,9 @@ namespace engine::geometry
         return Intersects(line, sphere, result);
     }
 
-    bool Intersects(const Sphere& a, const Obb& b) noexcept
+    bool Intersects(const Sphere& sphere, const Obb& obb) noexcept
     {
-        //TODO
+        return Intersects(obb, sphere);
     }
 
     bool Intersects(const Sphere& sphere, const Plane& plane) noexcept
@@ -1029,18 +1048,16 @@ namespace engine::geometry
         return Intersects(ray, sphere, result);
     }
 
-    bool Intersects(const Sphere& a, const Segment& b, Result<Sphere, Segment>* result) noexcept
+    bool Intersects(const Sphere& sphere, const Segment& segment, Result<Sphere, Segment>* result) noexcept
     {
-        //TODO
-        if (result)
-        {
-            //set result values
-        }
+        return Intersects(segment, sphere, result);
     }
 
     bool Intersects(const Sphere& a, const Sphere& b) noexcept
     {
-        //TODO
+        const math::vec3 diff = a.center - b.center;
+        const float radius_sum = a.radius + b.radius;
+        return math::dot(diff, diff) <= radius_sum * radius_sum;
     }
 
     bool Intersects(const Sphere& sphere, const Triangle& triangle) noexcept
@@ -1142,7 +1159,12 @@ namespace engine::geometry
 
     bool Contains(const Aabb& outer, const Sphere& inner) noexcept
     {
-        //TODO
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            if (inner.center[i] - inner.radius < outer.min[i]) return false;
+            if (inner.center[i] + inner.radius > outer.max[i]) return false;
+        }
+        return true;
     }
 
     bool Contains(const Aabb& outer, const Triangle& inner) noexcept
@@ -1184,7 +1206,28 @@ namespace engine::geometry
 
     bool Contains(const Cylinder& outer, const Sphere& inner) noexcept
     {
-        //TODO
+        const math::vec3 axis_dir = AxisDirection(outer);
+        const float axis_len_sq = math::length_squared(axis_dir);
+        const math::vec3 delta = inner.center - outer.center;
+
+        if (axis_len_sq == 0.0f)
+        {
+            if (inner.radius > outer.radius || inner.radius > outer.half_height) return false;
+            const float max_allow = outer.radius - inner.radius;
+            if (max_allow < 0.0f) return false;
+            return math::dot(delta, delta) <= max_allow * max_allow;
+        }
+
+        const float axial = math::dot(delta, axis_dir);
+        const float axial_allow = outer.half_height - inner.radius;
+        if (axial_allow < 0.0f || math::utils::abs(axial) > axial_allow) return false;
+
+        const math::vec3 radial_vec = delta - axial * axis_dir;
+        const float radial_sq = math::dot(radial_vec, radial_vec);
+        const float radial_allow = outer.radius - inner.radius;
+        if (radial_allow < 0.0f) return false;
+
+        return radial_sq <= radial_allow * radial_allow;
     }
 
     bool Contains(const Cylinder& outer, const Triangle& inner) noexcept
@@ -1236,7 +1279,32 @@ namespace engine::geometry
 
     bool Contains(const Ellipsoid& outer, const Sphere& inner) noexcept
     {
-        //TODO
+        const math::vec3 radii = outer.radii;
+        if (radii[0] <= 0.0f || radii[1] <= 0.0f || radii[2] <= 0.0f)
+        {
+            if (inner.radius > 0.0f) return false;
+            const math::vec3 unit = EllipsoidToUnit(outer, inner.center);
+            return math::length_squared(unit) == 0.0f;
+        }
+
+        const math::mat3 R = outer.orientation.to_rotation_matrix();
+        const math::mat3 Rt = transpose(R);
+        const math::vec3 local = Rt * (inner.center - outer.center);
+
+        const math::vec3 scaled{local[0] / radii[0], local[1] / radii[1], local[2] / radii[2]};
+        const float scaled_len = math::length(scaled);
+        if (scaled_len >= 1.0f) return false; // center is outside or on boundary
+
+        if (math::length_squared(local) == 0.0f)
+        {
+            const float min_radius = math::utils::min(radii[0], math::utils::min(radii[1], radii[2]));
+            return inner.radius <= min_radius;
+        }
+
+        const float local_len = math::length(local);
+        const float t = 1.0f / scaled_len;
+        const float clearance = local_len * (t - 1.0f);
+        return clearance >= inner.radius;
     }
 
     bool Contains(const Ellipsoid& outer, const Triangle& inner) noexcept
@@ -1278,7 +1346,16 @@ namespace engine::geometry
 
     bool Contains(const Obb& outer, const Sphere& inner) noexcept
     {
-        //TODO
+        const math::mat3 R = outer.orientation.to_rotation_matrix();
+        const math::mat3 Rt = transpose(R);
+        const math::vec3 local = Rt * (inner.center - outer.center);
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            const float limit = outer.half_sizes[i] - inner.radius;
+            if (limit < 0.0f) return false;
+            if (math::utils::abs(local[i]) > limit) return false;
+        }
+        return true;
     }
 
     bool Contains(const Obb& outer, const Triangle& inner) noexcept
@@ -1294,22 +1371,130 @@ namespace engine::geometry
 
     bool Contains(const Sphere& outer, const Aabb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        const math::vec3 diff_min = inner.min - outer.center;
+        const math::vec3 diff_max = inner.max - outer.center;
+        math::vec3 farthest{};
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            farthest[i] = (abs(diff_min[i]) > abs(diff_max[i])) ? inner.min[i] : inner.max[i];
+        }
+        const math::vec3 diff = farthest - outer.center;
+        return math::dot(diff, diff) <= outer.radius * outer.radius;
     }
 
     bool Contains(const Sphere& outer, const Cylinder& inner) noexcept
     {
-        //TODO
+        const math::vec3 axis_dir = AxisDirection(inner);
+        const float axis_len_sq = math::length_squared(axis_dir);
+        const math::vec3 delta = inner.center - outer.center;
+
+        if (axis_len_sq == 0.0f)
+        {
+            const float radial = math::length(delta) + inner.radius;
+            return radial <= outer.radius;
+        }
+
+        const float parallel_center = math::dot(delta, axis_dir);
+        const math::vec3 perp = delta - parallel_center * axis_dir;
+        const float perp_len = math::length(perp);
+
+        float max_dist_sq = 0.0f;
+        for (const float t : {inner.half_height, -inner.half_height})
+        {
+            const float parallel = parallel_center + t;
+            const float radial = perp_len + inner.radius;
+            const float dist_sq = parallel * parallel + radial * radial;
+            if (dist_sq > max_dist_sq) max_dist_sq = dist_sq;
+        }
+
+        return max_dist_sq <= outer.radius * outer.radius;
     }
 
     bool Contains(const Sphere& outer, const Ellipsoid& inner) noexcept
     {
-        //TODO
+        const math::mat3 R = inner.orientation.to_rotation_matrix();
+        const math::mat3 Rt = transpose(R);
+        const math::vec3 radii = inner.radii;
+
+        const math::vec3 d = Rt * (inner.center - outer.center);
+        if (radii[0] <= 0.0f || radii[1] <= 0.0f || radii[2] <= 0.0f)
+        {
+            const math::vec3 diff = inner.center - outer.center;
+            return math::dot(diff, diff) <= outer.radius * outer.radius;
+        }
+
+        const float r0 = radii[0];
+        const float r1 = radii[1];
+        const float r2 = radii[2];
+
+        const float max_r_sq = math::utils::max(r0 * r0, math::utils::max(r1 * r1, r2 * r2));
+
+        auto evaluate = [&](double lambda) noexcept {
+            double sum = 0.0;
+            const double values[3] = {d[0], d[1], d[2]};
+            const double radii_sq[3] = {r0 * r0, r1 * r1, r2 * r2};
+            for (int i = 0; i < 3; ++i)
+            {
+                const double denom = lambda - radii_sq[i];
+                const double numer = radii_sq[i] * values[i];
+                sum += (numer * numer) / (denom * denom);
+            }
+            return sum - 1.0;
+        };
+
+        const float diff_len_sq = math::dot(inner.center - outer.center, inner.center - outer.center);
+        if (diff_len_sq == 0.0f)
+        {
+            const float max_radius = math::utils::max(r0, math::utils::max(r1, r2));
+            return max_radius <= outer.radius;
+        }
+
+        double low = static_cast<double>(max_r_sq) + 1e-6;
+        double high = low;
+        while (evaluate(high) > 0.0)
+        {
+            high *= 2.0;
+        }
+
+        for (int iter = 0; iter < 64; ++iter)
+        {
+            const double mid = 0.5 * (low + high);
+            const double value = evaluate(mid);
+            if (value > 0.0)
+            {
+                low = mid;
+            }
+            else
+            {
+                high = mid;
+            }
+        }
+        const double lambda = high;
+
+        const double values[3] = {d[0], d[1], d[2]};
+        const double radii_sq[3] = {r0 * r0, r1 * r1, r2 * r2};
+        math::vec3 y{};
+        for (int i = 0; i < 3; ++i)
+        {
+            const double denom = lambda - radii_sq[i];
+            y[i] = static_cast<float>(radii_sq[i] * values[i] / denom);
+        }
+
+        const math::vec3 local_point = d + math::vec3{y[0], y[1], y[2]};
+        const float max_dist_sq = math::dot(local_point, local_point);
+        return max_dist_sq <= outer.radius * outer.radius;
     }
 
     bool Contains(const Sphere& outer, const Obb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        const auto corners = GetCorners(inner);
+        const float radius_sq = outer.radius * outer.radius;
+        for (const auto& corner : corners)
+        {
+            const math::vec3 diff = corner - outer.center;
+            if (math::dot(diff, diff) > radius_sq) return false;
+        }
+        return true;
     }
 
     bool Contains(const Sphere& outer, const Segment& inner) noexcept
@@ -1319,7 +1504,10 @@ namespace engine::geometry
 
     bool Contains(const Sphere& outer, const Sphere& inner) noexcept
     {
-        //TODO
+        if (inner.radius > outer.radius) return false;
+        const float radius_diff = outer.radius - inner.radius;
+        const math::vec3 diff = inner.center - outer.center;
+        return math::dot(diff, diff) <= radius_diff * radius_diff;
     }
 
     bool Contains(const Sphere& outer, const Triangle& inner) noexcept

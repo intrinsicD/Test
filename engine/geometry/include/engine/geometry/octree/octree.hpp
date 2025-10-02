@@ -5,6 +5,7 @@
 #include "engine/geometry/properties/property_handle.hpp"
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
+#include "engine/geometry/utils/shape_interactions.hpp"
 
 #include "engine/geometry/utils/bounded_heap.hpp"
 #include "engine/math/vector.hpp"
