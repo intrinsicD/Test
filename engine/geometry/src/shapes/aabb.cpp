@@ -125,11 +125,12 @@ namespace engine::geometry {
     }
 
     Aabb BoundingAabb(const Ellipsoid &s) noexcept {
+        const math::mat3 R = s.orientation.to_rotation_matrix();
         math::vec3 extent{0.0f};
         for (std::size_t row = 0; row < 3; ++row) {
             float sum = 0.0f;
             for (std::size_t col = 0; col < 3; ++col) {
-                sum += std::fabs(s.orientation[row][col]) * s.radii[col];
+                sum += std::fabs(R[row][col]) * s.radii[col];
             }
             extent[row] = sum;
         }

@@ -21,7 +21,7 @@ namespace engine::geometry {
         }
 
         const math::vec3 offset = point - ellipsoid.center;
-        const math::mat3 rotation = ellipsoid.orientation;
+        const math::mat3 rotation = ellipsoid.orientation.to_rotation_matrix();
         const math::mat3 rotation_transposed = math::transpose(rotation);
         const math::vec3 local = rotation_transposed * offset;
 
