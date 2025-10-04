@@ -410,10 +410,10 @@ namespace engine::geometry
         if (Contains(b, TopCenter(a)) || Contains(b, BottomCenter(a))) return true;
 
         // Check distance between axis segments
-        const Segment seg_a{BottomCenter(a), TopCenter(a)};
-        const Segment seg_b{BottomCenter(b), TopCenter(b)};
+        const Segment segment{BottomCenter(a), TopCenter(a)};
+        const Segment other{BottomCenter(b), TopCenter(b)};
 
-        const float dist_sq = SquaredDistance(seg_a, ClosestPoint(seg_b, seg_a.start, *(new double)));
+        const float dist_sq = SquaredDistance(segment, ClosestPoint(other, segment.start, *(new double)));
         const float radius_sum = a.radius + b.radius;
 
         return dist_sq <= radius_sum * radius_sum;
@@ -1099,9 +1099,20 @@ namespace engine::geometry
         return SquaredDistance(obb, sphere.center) <= sphere.radius * sphere.radius;
     }
 
-    bool Intersects(const Obb& a, const Triangle& b) noexcept
+    bool Intersects(const Obb& obb, const Triangle& triangle) noexcept
     {
-        //TODO
+        // Transform triangle to OBB local space
+        const math::mat3 R = math::utils::to_rotation_matrix(obb.orientation);
+        const math::mat3 Rt = transpose(R);
+        const math::vec3 v0 = Rt * (triangle.a - obb.center);
+        const math::vec3 v1 = Rt * (triangle.b - obb.center);
+        const math::vec3 v2 = Rt * (triangle.c - obb.center);
+
+        // Test in OBB local space (equivalent to AABB test)
+        const Aabb local_box = MakeAabbFromCenterExtent({0, 0, 0}, obb.half_sizes);
+        const Triangle local_tri{v0, v1, v2};
+
+        return Intersects(local_box, local_tri);
     }
 
 
@@ -1420,13 +1431,51 @@ namespace engine::geometry
         return Intersects(ellipsoid, segment, result);
     }
 
-    bool Intersects(const Segment& a, const Line& b, Result* result) noexcept
+    bool Intersects(const Segment& segment, const Line& line, Result* result) noexcept
     {
-        //TODO
-        if (result)
+        const math::vec3 seg_dir = Direction(segment);
+        const math::vec3 w0 = segment.start - line.point;
+
+        const float a = math::dot(seg_dir, seg_dir);
+        const float b = math::dot(seg_dir, line.direction);
+        const float c = math::dot(line.direction, line.direction);
+        const float d = math::dot(seg_dir, w0);
+        const float e = math::dot(line.direction, w0);
+
+        const float denom = a * c - b * b;
+
+        // Check if parallel
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON))
         {
-            //set result values
+            // Check if coincident
+            const math::vec3 cross = math::cross(seg_dir, w0);
+            const float cross_len_sq = math::dot(cross, cross);
+            if (math::utils::nearly_equal(cross_len_sq, 0.0f, constants::INTERSECTION_EPSILON))
+            {
+                if (result) result->t = 0.0f;
+                return true;
+            }
+            return false;
         }
+
+        const float t_seg = (b * e - c * d) / denom;
+        const float t_line = (a * e - b * d) / denom;
+
+        // Segment parameter must be in [0, 1]
+        if (t_seg < 0.0f || t_seg > 1.0f) return false;
+
+        // Check if points coincide
+        const math::vec3 p_seg = segment.start + t_seg * seg_dir;
+        const math::vec3 p_line = line.point + t_line * line.direction;
+        const float dist_sq = math::length_squared(p_seg - p_line);
+
+        if (dist_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+        {
+            return false;
+        }
+
+        if (result) result->t = t_seg;
+        return true;
     }
 
     bool Intersects(const Segment& segment, const Obb& obb, Result* result) noexcept
@@ -1447,22 +1496,115 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Segment& a, const Ray& b, Result* result) noexcept
+    bool Intersects(const Segment& segment, const Ray& ray, Result* result) noexcept
     {
-        //TODO
-        if (result)
+        const math::vec3 seg_dir = Direction(segment);
+        const math::vec3 w0 = segment.start - ray.origin;
+
+        const float a = math::dot(seg_dir, seg_dir);
+        const float b = math::dot(seg_dir, ray.direction);
+        const float c = math::dot(ray.direction, ray.direction);
+        const float d = math::dot(seg_dir, w0);
+        const float e = math::dot(ray.direction, w0);
+
+        const float denom = a * c - b * b;
+
+        // Check if parallel
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON))
         {
-            //set result values
+            // Check if coincident
+            const math::vec3 cross = math::cross(seg_dir, w0);
+            const float cross_len_sq = math::dot(cross, cross);
+            if (math::utils::nearly_equal(cross_len_sq, 0.0f, constants::INTERSECTION_EPSILON))
+            {
+                if (result) result->t = 0.0f;
+                return true;
+            }
+            return false;
         }
+
+        const float t_seg = (b * e - c * d) / denom;
+        const float t_ray = (a * e - b * d) / denom;
+
+        // Both must be valid
+        if (t_seg < 0.0f || t_seg > 1.0f || t_ray < 0.0f) return false;
+
+        // Check if points coincide
+        const math::vec3 p_seg = segment.start + t_seg * seg_dir;
+        const math::vec3 p_ray = ray.origin + t_ray * ray.direction;
+        const float dist_sq = math::length_squared(p_seg - p_ray);
+
+        if (dist_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+        {
+            return false;
+        }
+
+        if (result) result->t = t_seg;
+        return true;
     }
 
-    bool Intersects(const Segment& a, const Segment& b, Result* result) noexcept
+    bool Intersects(const Segment& segment, const Segment& other, Result* result) noexcept
     {
-        //TODO
-        if (result)
+        const math::vec3 dir_a = Direction(segment);
+        const math::vec3 dir_b = Direction(other);
+        const math::vec3 w0 = segment.start - other.start;
+
+        const float a = math::dot(dir_a, dir_a);
+        const float b = math::dot(dir_a, dir_b);
+        const float c = math::dot(dir_b, dir_b);
+        const float d = math::dot(dir_a, w0);
+        const float e = math::dot(dir_b, w0);
+
+        const float denom = a * c - b * b;
+
+        float t_a, t_b;
+
+        // Check if parallel
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON))
         {
-            //set result values
+            // Parallel segments - check if coincident
+            const math::vec3 cross = math::cross(dir_a, w0);
+            const float cross_len_sq = math::dot(cross, cross);
+            if (math::utils::nearly_equal(cross_len_sq, 0.0f, constants::INTERSECTION_EPSILON))
+            {
+                // Coincident - they overlap if ranges overlap
+                // Project onto one segment's direction
+                const float proj_start_a = 0.0f;
+                const float proj_end_a = math::dot(dir_a, dir_a);
+                const float proj_start_b = math::dot(dir_b, w0);
+                const float proj_end_b = proj_start_b + math::dot(dir_b, dir_a);
+
+                const float overlap_min = math::utils::max(proj_start_a, math::utils::min(proj_start_b, proj_end_b));
+                const float overlap_max = math::utils::min(proj_end_a, math::utils::max(proj_start_b, proj_end_b));
+
+                if (overlap_min <= overlap_max)
+                {
+                    if (result) result->t = overlap_min / proj_end_a;
+                    return true;
+                }
+            }
+            return false;
         }
+
+        t_a = (b * e - c * d) / denom;
+        t_b = (a * e - b * d) / denom;
+
+        // Clamp to valid ranges
+        t_a = math::utils::clamp(t_a, 0.0f, 1.0f);
+        t_b = math::utils::clamp(t_b, 0.0f, 1.0f);
+
+        // Recompute for clamped values
+        const math::vec3 p_a = segment.start + t_a * dir_a;
+        const math::vec3 p_b = other.start + t_b * dir_b;
+        const float dist_sq = math::length_squared(p_a - p_b);
+
+        if (dist_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+        {
+            return false;
+        }
+
+        if (result) result->t = t_a;
+        return true;
     }
 
     bool Intersects(const Segment& segment, const Sphere& sphere, Result* result) noexcept
@@ -1564,12 +1706,12 @@ namespace engine::geometry
 
     bool Intersects(const Triangle& a, const Obb& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
     bool Intersects(const Triangle& a, const Plane& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
     bool Intersects(const Triangle& triangle, const Ray& ray, Result* result) noexcept
@@ -1594,7 +1736,172 @@ namespace engine::geometry
 
     bool Intersects(const Triangle& a, const Triangle& b) noexcept
     {
-        //TODO
+        // Compute plane equations
+        const math::vec3 n1 = math::cross(a.b - a.a, a.c - a.a);
+        const math::vec3 n2 = math::cross(b.b - b.a, b.c - b.a);
+
+        const float n1_len_sq = math::dot(n1, n1);
+        const float n2_len_sq = math::dot(n2, n2);
+
+        // Check for degenerate triangles
+        if (n1_len_sq < constants::INTERSECTION_EPSILON || n2_len_sq < constants::INTERSECTION_EPSILON)
+        {
+            return false;
+        }
+
+        // Check if triangle b's vertices are on opposite sides of triangle a's plane
+        const float d1_a = math::dot(n1, b.a - a.a);
+        const float d1_b = math::dot(n1, b.b - a.a);
+        const float d1_c = math::dot(n1, b.c - a.a);
+
+        const float d1_min = math::utils::min(d1_a, math::utils::min(d1_b, d1_c));
+        const float d1_max = math::utils::max(d1_a, math::utils::max(d1_b, d1_c));
+
+        // Early rejection if all vertices on same side
+        if (d1_min > constants::INTERSECTION_EPSILON || d1_max < -constants::INTERSECTION_EPSILON)
+        {
+            return false;
+        }
+
+        // Check if triangle a's vertices are on opposite sides of triangle b's plane
+        const float d2_a = math::dot(n2, a.a - b.a);
+        const float d2_b = math::dot(n2, a.b - b.a);
+        const float d2_c = math::dot(n2, a.c - b.a);
+
+        const float d2_min = math::utils::min(d2_a, math::utils::min(d2_b, d2_c));
+        const float d2_max = math::utils::max(d2_a, math::utils::max(d2_b, d2_c));
+
+        // Early rejection if all vertices on same side
+        if (d2_min > constants::INTERSECTION_EPSILON || d2_max < -constants::INTERSECTION_EPSILON)
+        {
+            return false;
+        }
+
+        // Check if coplanar
+        const float abs_d1_min = math::utils::abs(d1_min);
+        const float abs_d1_max = math::utils::abs(d1_max);
+        const bool coplanar = (abs_d1_min < constants::INTERSECTION_EPSILON &&
+            abs_d1_max < constants::INTERSECTION_EPSILON);
+
+        if (coplanar)
+        {
+            // Use 2D overlap test - project to dominant axis plane
+            const math::vec3 abs_n1{math::utils::abs(n1[0]), math::utils::abs(n1[1]), math::utils::abs(n1[2])};
+            std::size_t dominant_axis = 2;
+            if (abs_n1[0] > abs_n1[1] && abs_n1[0] > abs_n1[2])
+            {
+                dominant_axis = 0;
+            }
+            else if (abs_n1[1] > abs_n1[2])
+            {
+                dominant_axis = 1;
+            }
+
+            auto project_to_2d = [dominant_axis](const math::vec3& p) -> math::vec2
+            {
+                switch (dominant_axis)
+                {
+                case 0: return {p[1], p[2]};
+                case 1: return {p[0], p[2]};
+                default: return {p[0], p[1]};
+                }
+            };
+
+            const std::array<math::vec2, 3> tri_a{project_to_2d(a.a), project_to_2d(a.b), project_to_2d(a.c)};
+            const std::array<math::vec2, 3> tri_b{project_to_2d(b.a), project_to_2d(b.b), project_to_2d(b.c)};
+
+            // Check edge intersections
+            auto segments_intersect_2d = [](const math::vec2& p0, const math::vec2& p1,
+                                            const math::vec2& q0, const math::vec2& q1) -> bool
+            {
+                auto cross_2d = [](const math::vec2& a, const math::vec2& b) -> float
+                {
+                    return a[0] * b[1] - a[1] * b[0];
+                };
+
+                const math::vec2 r = p1 - p0;
+                const math::vec2 s = q1 - q0;
+                const float rxs = cross_2d(r, s);
+                const math::vec2 qp = q0 - p0;
+                const float qpxr = cross_2d(qp, r);
+
+                if (math::utils::abs(rxs) < constants::INTERSECTION_EPSILON)
+                {
+                    return math::utils::abs(qpxr) < constants::INTERSECTION_EPSILON;
+                }
+
+                const float t = cross_2d(qp, s) / rxs;
+                const float u = qpxr / rxs;
+
+                return (t >= 0.0f && t <= 1.0f && u >= 0.0f && u <= 1.0f);
+            };
+
+            // Check all edge pairs
+            for (int i = 0; i < 3; ++i)
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    if (segments_intersect_2d(tri_a[i], tri_a[(i + 1) % 3], tri_b[j], tri_b[(j + 1) % 3]))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // Check if any vertex is inside the other triangle
+            auto point_in_triangle_2d = [](const std::array<math::vec2, 3>& tri, const math::vec2& p) -> bool
+            {
+                auto sign = [](const math::vec2& p1, const math::vec2& p2, const math::vec2& p3) -> float
+                {
+                    return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
+                };
+
+                const float d1 = sign(p, tri[0], tri[1]);
+                const float d2 = sign(p, tri[1], tri[2]);
+                const float d3 = sign(p, tri[2], tri[0]);
+
+                const bool has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+                const bool has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+                return !(has_neg && has_pos);
+            };
+
+            for (const auto& vertex : tri_a)
+            {
+                if (point_in_triangle_2d(tri_b, vertex)) return true;
+            }
+            for (const auto& vertex : tri_b)
+            {
+                if (point_in_triangle_2d(tri_a, vertex)) return true;
+            }
+
+            return false;
+        }
+
+        // Non-coplanar: Check if edges of one triangle intersect the other
+        const std::array<Segment, 3> edges_a{
+            Segment{a.a, a.b},
+            Segment{a.b, a.c},
+            Segment{a.c, a.a}
+        };
+
+        const std::array<Segment, 3> edges_b{
+            Segment{b.a, b.b},
+            Segment{b.b, b.c},
+            Segment{b.c, b.a}
+        };
+
+        for (const auto& edge : edges_a)
+        {
+            if (Intersects(edge, b, nullptr)) return true;
+        }
+
+        for (const auto& edge : edges_b)
+        {
+            if (Intersects(edge, a, nullptr)) return true;
+        }
+
+        return false;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -2152,32 +2459,58 @@ namespace engine::geometry
 
     bool Contains(const Plane& outer, const math::vec3& inner, float eps) noexcept
     {
-        //TODO
+        const float dist = math::utils::abs(SignedDistance(outer, inner));
+        return dist <= eps;
     }
 
     bool Contains(const Plane& outer, const Line& inner, float eps) noexcept
     {
-        //TODO
+        // Line is contained if its origin is on the plane and direction is perpendicular to normal
+        if (!Contains(outer, inner.point, eps)) return false;
+
+        const float dot = math::utils::abs(math::dot(outer.normal, inner.direction));
+        return dot <= eps;
     }
 
     bool Contains(const Plane& outer, const Plane& inner, float eps) noexcept
     {
-        //TODO
+        // Planes are the same if normals are parallel and distances equal
+        const float dot = math::dot(outer.normal, inner.normal);
+        const float abs_dot = math::utils::abs(dot);
+
+        // Check if normals are parallel
+        if (math::utils::abs(abs_dot - 1.0f) > eps) return false;
+
+        // Check if distances match (accounting for normal direction)
+        if (dot > 0.0f)
+        {
+            return math::utils::abs(outer.distance - inner.distance) <= eps;
+        }
+        else
+        {
+            return math::utils::abs(outer.distance + inner.distance) <= eps;
+        }
     }
 
     bool Contains(const Plane& outer, const Ray& inner, float eps) noexcept
     {
-        //TODO
+        // Ray is contained if origin is on plane and direction is perpendicular to normal
+        if (!Contains(outer, inner.origin, eps)) return false;
+
+        const float dot = math::utils::abs(math::dot(outer.normal, inner.direction));
+        return dot <= eps;
     }
 
     bool Contains(const Plane& outer, const Segment& inner, float eps) noexcept
     {
-        //TODO
+        return Contains(outer, inner.start, eps) && Contains(outer, inner.end, eps);
     }
 
     bool Contains(const Plane& outer, const Triangle& inner, float eps) noexcept
     {
-        //TODO
+        return Contains(outer, inner.a, eps) &&
+            Contains(outer, inner.b, eps) &&
+            Contains(outer, inner.c, eps);
     }
 
     bool Contains(const Sphere& outer, const math::vec3& inner) noexcept
@@ -2338,16 +2671,39 @@ namespace engine::geometry
 
     bool Contains(const Triangle& outer, const math::vec3& inner) noexcept
     {
-        //TODO
+        // Compute barycentric coordinates
+        const math::vec3 v0 = outer.b - outer.a;
+        const math::vec3 v1 = outer.c - outer.a;
+        const math::vec3 v2 = inner - outer.a;
+
+        const float d00 = math::dot(v0, v0);
+        const float d01 = math::dot(v0, v1);
+        const float d11 = math::dot(v1, v1);
+        const float d20 = math::dot(v2, v0);
+        const float d21 = math::dot(v2, v1);
+
+        const float denom = d00 * d11 - d01 * d01;
+        if (math::utils::abs(denom) < constants::INTERSECTION_EPSILON) return false;
+
+        const float v = (d11 * d20 - d01 * d21) / denom;
+        const float w = (d00 * d21 - d01 * d20) / denom;
+        const float u = 1.0f - v - w;
+
+        // Point is inside if all barycentric coordinates are non-negative
+        const float eps = constants::INTERSECTION_EPSILON;
+        return (u >= -eps && v >= -eps && w >= -eps);
     }
 
     bool Contains(const Triangle& outer, const Triangle& inner) noexcept
     {
-        //TODO
+        // Triangle contains another if all vertices are inside
+        return Contains(outer, inner.a) &&
+            Contains(outer, inner.b) &&
+            Contains(outer, inner.c);
     }
 
     bool Contains(const Triangle& outer, const Segment& inner) noexcept
     {
-        //TODO
+        return Contains(outer, inner.start) && Contains(outer, inner.end);
     }
 } // namespace engine::geometry

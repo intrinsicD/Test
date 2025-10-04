@@ -19,24 +19,28 @@
 #include <limits>
 #include <optional>
 
-namespace {
+namespace
+{
     [[nodiscard]] constexpr float epsilon() noexcept { return 1e-6f; }
 
     [[nodiscard]] constexpr float barycentric_tolerance() noexcept { return 1e-4f; }
 
     [[nodiscard]] constexpr float plane_tolerance() noexcept { return 1e-4f; }
 
-    struct RayTriangleHit {
+    struct RayTriangleHit
+    {
         float t{};
         engine::math::vec3 barycentric{};
     };
 
-    [[nodiscard]] std::optional<RayTriangleHit> intersect_ray_triangle(const engine::geometry::Triangle &triangle,
-                                                                       const engine::math::vec3 &origin,
-                                                                       const engine::math::vec3 &direction) noexcept {
+    [[nodiscard]] std::optional<RayTriangleHit> intersect_ray_triangle(const engine::geometry::Triangle& triangle,
+                                                                       const engine::math::vec3& origin,
+                                                                       const engine::math::vec3& direction) noexcept
+    {
         using engine::math::vec3;
 
-        if (engine::math::length_squared(direction) <= epsilon()) {
+        if (engine::math::length_squared(direction) <= epsilon())
+        {
             return std::nullopt;
         }
 
@@ -45,20 +49,23 @@ namespace {
         const vec3 pvec = engine::math::cross(direction, edge1);
         const float det = engine::math::dot(edge0, pvec);
 
-        if (std::fabs(det) <= epsilon()) {
+        if (std::fabs(det) <= epsilon())
+        {
             return std::nullopt;
         }
 
         const float inv_det = 1.0f / det;
         const vec3 tvec = origin - triangle.a;
         const float u = engine::math::dot(tvec, pvec) * inv_det;
-        if (u < -barycentric_tolerance() || u > 1.0f + barycentric_tolerance()) {
+        if (u < -barycentric_tolerance() || u > 1.0f + barycentric_tolerance())
+        {
             return std::nullopt;
         }
 
         const vec3 qvec = engine::math::cross(tvec, edge0);
         const float v = engine::math::dot(direction, qvec) * inv_det;
-        if (v < -barycentric_tolerance() || u + v > 1.0f + barycentric_tolerance()) {
+        if (v < -barycentric_tolerance() || u + v > 1.0f + barycentric_tolerance())
+        {
             return std::nullopt;
         }
 
@@ -68,8 +75,10 @@ namespace {
         vec3 bary{w, u, v};
 
         // Ensure barycentric values stay within tolerance bounds
-        for (std::size_t i = 0; i < 3; ++i) {
-            if (bary[i] < -barycentric_tolerance() || bary[i] > 1.0f + barycentric_tolerance()) {
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            if (bary[i] < -barycentric_tolerance() || bary[i] > 1.0f + barycentric_tolerance())
+            {
                 return std::nullopt;
             }
         }
@@ -77,26 +86,32 @@ namespace {
         return RayTriangleHit{t, bary};
     }
 
-    [[nodiscard]] engine::math::vec2 project_to_axis(const engine::math::vec3 &point, std::size_t dominant_axis) noexcept {
-        switch (dominant_axis) {
-            case 0: return {point[1], point[2]};
-            case 1: return {point[0], point[2]};
-            default: return {point[0], point[1]};
+    [[nodiscard]] engine::math::vec2 project_to_axis(const engine::math::vec3& point,
+                                                     std::size_t dominant_axis) noexcept
+    {
+        switch (dominant_axis)
+        {
+        case 0: return {point[1], point[2]};
+        case 1: return {point[0], point[2]};
+        default: return {point[0], point[1]};
         }
     }
 
-    [[nodiscard]] float orient2d(const engine::math::vec2 &a,
-                                 const engine::math::vec2 &b,
-                                 const engine::math::vec2 &c) noexcept {
+    [[nodiscard]] float orient2d(const engine::math::vec2& a,
+                                 const engine::math::vec2& b,
+                                 const engine::math::vec2& c) noexcept
+    {
         const engine::math::vec2 ab = b - a;
         const engine::math::vec2 ac = c - a;
         return ab[0] * ac[1] - ab[1] * ac[0];
     }
 
-    [[nodiscard]] bool point_in_triangle_2d(const std::array<engine::math::vec2, 3> &triangle,
-                                            const engine::math::vec2 &point) noexcept {
+    [[nodiscard]] bool point_in_triangle_2d(const std::array<engine::math::vec2, 3>& triangle,
+                                            const engine::math::vec2& point) noexcept
+    {
         const float area = orient2d(triangle[0], triangle[1], triangle[2]);
-        if (std::fabs(area) <= epsilon()) {
+        if (std::fabs(area) <= epsilon())
+        {
             return false;
         }
 
@@ -104,39 +119,46 @@ namespace {
         const float t = orient2d(point, triangle[1], triangle[2]);
         const float u = orient2d(point, triangle[2], triangle[0]);
 
-        if (area > 0.0f) {
+        if (area > 0.0f)
+        {
             return s >= -barycentric_tolerance() && t >= -barycentric_tolerance() && u >= -barycentric_tolerance();
         }
         return s <= barycentric_tolerance() && t <= barycentric_tolerance() && u <= barycentric_tolerance();
     }
 
-    [[nodiscard]] bool on_segment_2d(const engine::math::vec2 &a,
-                                     const engine::math::vec2 &b,
-                                     const engine::math::vec2 &p) noexcept {
+    [[nodiscard]] bool on_segment_2d(const engine::math::vec2& a,
+                                     const engine::math::vec2& b,
+                                     const engine::math::vec2& p) noexcept
+    {
         const float min_x = std::min(a[0], b[0]) - barycentric_tolerance();
         const float max_x = std::max(a[0], b[0]) + barycentric_tolerance();
         const float min_y = std::min(a[1], b[1]) - barycentric_tolerance();
         const float max_y = std::max(a[1], b[1]) + barycentric_tolerance();
-        if (p[0] < min_x || p[0] > max_x || p[1] < min_y || p[1] > max_y) {
+        if (p[0] < min_x || p[0] > max_x || p[1] < min_y || p[1] > max_y)
+        {
             return false;
         }
         return std::fabs(orient2d(a, b, p)) <= barycentric_tolerance();
     }
 
-    [[nodiscard]] bool segments_intersect_2d(const engine::math::vec2 &p0,
-                                             const engine::math::vec2 &p1,
-                                             const engine::math::vec2 &q0,
-                                             const engine::math::vec2 &q1) noexcept {
+    [[nodiscard]] bool segments_intersect_2d(const engine::math::vec2& p0,
+                                             const engine::math::vec2& p1,
+                                             const engine::math::vec2& q0,
+                                             const engine::math::vec2& q1) noexcept
+    {
         const float o1 = orient2d(p0, p1, q0);
         const float o2 = orient2d(p0, p1, q1);
         const float o3 = orient2d(q0, q1, p0);
         const float o4 = orient2d(q0, q1, p1);
 
-        const auto sign = [](float value) {
-            if (value > barycentric_tolerance()) {
+        const auto sign = [](float value)
+        {
+            if (value > barycentric_tolerance())
+            {
                 return 1;
             }
-            if (value < -barycentric_tolerance()) {
+            if (value < -barycentric_tolerance())
+            {
                 return -1;
             }
             return 0;
@@ -147,37 +169,46 @@ namespace {
         const int s3 = sign(o3);
         const int s4 = sign(o4);
 
-        if (s1 != s2 && s3 != s4) {
+        if (s1 != s2 && s3 != s4)
+        {
             return true;
         }
 
-        if (s1 == 0 && on_segment_2d(p0, p1, q0)) {
+        if (s1 == 0 && on_segment_2d(p0, p1, q0))
+        {
             return true;
         }
-        if (s2 == 0 && on_segment_2d(p0, p1, q1)) {
+        if (s2 == 0 && on_segment_2d(p0, p1, q1))
+        {
             return true;
         }
-        if (s3 == 0 && on_segment_2d(q0, q1, p0)) {
+        if (s3 == 0 && on_segment_2d(q0, q1, p0))
+        {
             return true;
         }
-        if (s4 == 0 && on_segment_2d(q0, q1, p1)) {
+        if (s4 == 0 && on_segment_2d(q0, q1, p1))
+        {
             return true;
         }
 
         return false;
     }
 
-    [[nodiscard]] bool coplanar_triangles_intersect(const engine::geometry::Triangle &lhs,
-                                                    const engine::geometry::Triangle &rhs,
-                                                    const engine::math::vec3 &normal) noexcept {
+    [[nodiscard]] bool coplanar_triangles_intersect(const engine::geometry::Triangle& lhs,
+                                                    const engine::geometry::Triangle& rhs,
+                                                    const engine::math::vec3& normal) noexcept
+    {
         using engine::math::vec2;
         using engine::math::vec3;
 
         const vec3 abs_normal{std::fabs(normal[0]), std::fabs(normal[1]), std::fabs(normal[2])};
         std::size_t dominant_axis = 2;
-        if (abs_normal[0] > abs_normal[1] && abs_normal[0] > abs_normal[2]) {
+        if (abs_normal[0] > abs_normal[1] && abs_normal[0] > abs_normal[2])
+        {
             dominant_axis = 0;
-        } else if (abs_normal[1] > abs_normal[2]) {
+        }
+        else if (abs_normal[1] > abs_normal[2])
+        {
             dominant_axis = 1;
         }
 
@@ -192,21 +223,28 @@ namespace {
             project_to_axis(rhs.c, dominant_axis),
         };
 
-        for (const auto &vertex: lhs_proj) {
-            if (point_in_triangle_2d(rhs_proj, vertex)) {
+        for (const auto& vertex : lhs_proj)
+        {
+            if (point_in_triangle_2d(rhs_proj, vertex))
+            {
                 return true;
             }
         }
-        for (const auto &vertex: rhs_proj) {
-            if (point_in_triangle_2d(lhs_proj, vertex)) {
+        for (const auto& vertex : rhs_proj)
+        {
+            if (point_in_triangle_2d(lhs_proj, vertex))
+            {
                 return true;
             }
         }
 
         const std::array<std::pair<int, int>, 3> edges{{{0, 1}, {1, 2}, {2, 0}}};
-        for (const auto &[i0, i1]: edges) {
-            for (const auto &[j0, j1]: edges) {
-                if (segments_intersect_2d(lhs_proj[i0], lhs_proj[i1], rhs_proj[j0], rhs_proj[j1])) {
+        for (const auto& [i0, i1] : edges)
+        {
+            for (const auto& [j0, j1] : edges)
+            {
+                if (segments_intersect_2d(lhs_proj[i0], lhs_proj[i1], rhs_proj[j0], rhs_proj[j1]))
+                {
                     return true;
                 }
             }
@@ -215,24 +253,30 @@ namespace {
         return false;
     }
 
-    [[nodiscard]] engine::geometry::Segment make_segment(const engine::math::vec3 &a,
-                                                         const engine::math::vec3 &b) noexcept {
+    [[nodiscard]] engine::geometry::Segment make_segment(const engine::math::vec3& a,
+                                                         const engine::math::vec3& b) noexcept
+    {
         return engine::geometry::Segment{a, b};
     }
 
-    [[nodiscard]] engine::geometry::Segment cylinder_axis_segment(const engine::geometry::Cylinder &cylinder) noexcept {
+    [[nodiscard]] engine::geometry::Segment cylinder_axis_segment(const engine::geometry::Cylinder& cylinder) noexcept
+    {
         const engine::math::vec3 axis_dir = engine::geometry::AxisDirection(cylinder);
-        return {cylinder.center - axis_dir * cylinder.half_height,
-                cylinder.center + axis_dir * cylinder.half_height};
+        return {
+            cylinder.center - axis_dir * cylinder.half_height,
+            cylinder.center + axis_dir * cylinder.half_height
+        };
     }
 
-    [[nodiscard]] bool segment_intersects_cylinder(const engine::geometry::Segment &segment,
-                                                   const engine::geometry::Cylinder &cylinder) noexcept {
+    [[nodiscard]] bool segment_intersects_cylinder(const engine::geometry::Segment& segment,
+                                                   const engine::geometry::Cylinder& cylinder) noexcept
+    {
         using engine::math::vec3;
 
         const vec3 axis_dir = engine::geometry::AxisDirection(cylinder);
         const float axis_len_sq = engine::math::length_squared(axis_dir);
-        if (axis_len_sq <= epsilon()) {
+        if (axis_len_sq <= epsilon())
+        {
             // Degenerate cylinder – treat as a sphere of the given radius.
             const engine::geometry::Sphere proxy{cylinder.center, cylinder.radius};
             return engine::geometry::Intersects(proxy, segment);
@@ -250,17 +294,21 @@ namespace {
         const float b = 2.0f * engine::math::dot(q, qd);
         const float c = engine::math::dot(q, q) - cylinder.radius * cylinder.radius;
 
-        const auto check_axial = [&](float t) {
-            if (t < 0.0f || t > 1.0f) {
+        const auto check_axial = [&](float t)
+        {
+            if (t < 0.0f || t > 1.0f)
+            {
                 return false;
             }
             const float axial = md + nd * t;
             return axial >= -cylinder.half_height - barycentric_tolerance() &&
-                   axial <= cylinder.half_height + barycentric_tolerance();
+                axial <= cylinder.half_height + barycentric_tolerance();
         };
 
-        if (std::fabs(a) <= epsilon()) {
-            if (c > 0.0f) {
+        if (std::fabs(a) <= epsilon())
+        {
+            if (c > 0.0f)
+            {
                 return false;
             }
             const float end0 = md;
@@ -268,11 +316,12 @@ namespace {
             const float min_axial = std::min(end0, end1);
             const float max_axial = std::max(end0, end1);
             return !(max_axial < -cylinder.half_height - barycentric_tolerance() ||
-                     min_axial > cylinder.half_height + barycentric_tolerance());
+                min_axial > cylinder.half_height + barycentric_tolerance());
         }
 
         const float discriminant = b * b - 4.0f * a * c;
-        if (discriminant < 0.0f) {
+        if (discriminant < 0.0f)
+        {
             return false;
         }
 
@@ -281,16 +330,20 @@ namespace {
         const float t0 = (-b - sqrt_disc) * inv;
         const float t1 = (-b + sqrt_disc) * inv;
 
-        if (check_axial(t0) || check_axial(t1)) {
+        if (check_axial(t0) || check_axial(t1))
+        {
             return true;
         }
 
-        const auto check_cap = [&](float cap_height) {
-            if (std::fabs(nd) <= epsilon()) {
+        const auto check_cap = [&](float cap_height)
+        {
+            if (std::fabs(nd) <= epsilon())
+            {
                 return false;
             }
             const float t = (cap_height - md) / nd;
-            if (t < 0.0f || t > 1.0f) {
+            if (t < 0.0f || t > 1.0f)
+            {
                 return false;
             }
             const vec3 point = segment.start + d * t;
@@ -302,18 +355,22 @@ namespace {
         return check_cap(cylinder.half_height) || check_cap(-cylinder.half_height);
     }
 
-    [[nodiscard]] bool cylinder_intersects_triangle(const engine::geometry::Cylinder &cylinder,
-                                                    const engine::geometry::Triangle &triangle) noexcept {
+    [[nodiscard]] bool cylinder_intersects_triangle(const engine::geometry::Cylinder& cylinder,
+                                                    const engine::geometry::Triangle& triangle) noexcept
+    {
         const engine::math::vec3 axis_dir = engine::geometry::AxisDirection(cylinder);
         const float axis_len_sq = engine::math::length_squared(axis_dir);
-        if (axis_len_sq <= epsilon()) {
+        if (axis_len_sq <= epsilon())
+        {
             const engine::geometry::Sphere proxy{cylinder.center, cylinder.radius};
             return engine::geometry::Intersects(proxy, triangle);
         }
 
         const std::array<engine::math::vec3, 3> vertices{triangle.a, triangle.b, triangle.c};
-        for (const auto &vertex: vertices) {
-            if (engine::geometry::Contains(cylinder, vertex)) {
+        for (const auto& vertex : vertices)
+        {
+            if (engine::geometry::Contains(cylinder, vertex))
+            {
                 return true;
             }
         }
@@ -323,8 +380,10 @@ namespace {
             make_segment(triangle.b, triangle.c),
             make_segment(triangle.c, triangle.a),
         };
-        for (const auto &edge: edges) {
-            if (segment_intersects_cylinder(edge, cylinder)) {
+        for (const auto& edge : edges)
+        {
+            if (segment_intersects_cylinder(edge, cylinder))
+            {
                 return true;
             }
         }
@@ -334,25 +393,124 @@ namespace {
     }
 } // namespace
 
-namespace engine::geometry {
-    math::vec3 Normal(const Triangle &triangle) noexcept {
+namespace engine::geometry
+{
+    math::vec3 Normal(const Triangle& triangle) noexcept
+    {
         return math::cross(triangle.b - triangle.a, triangle.c - triangle.a);
     }
 
-    math::vec3 UnitNormal(const Triangle &triangle) noexcept {
+    math::vec3 UnitNormal(const Triangle& triangle) noexcept
+    {
         return math::normalize(Normal(triangle));
     }
 
-    double Area(const Triangle &triangle) noexcept {
+    double Area(const Triangle& triangle) noexcept
+    {
         return 0.5 * math::length(Normal(triangle));
     }
 
-    math::vec3 Centroid(const Triangle &triangle) noexcept {
+    math::vec3 Centroid(const Triangle& triangle) noexcept
+    {
         return (triangle.a + triangle.b + triangle.c) / static_cast<float>(3.0);
     }
 
-    math::vec3 ToBarycentricCoords(const Triangle &triangle, const math::vec3 &normal, const math::vec3 &point) noexcept {
-        (void) normal;
+    math::vec3 ClosestPoint(const Triangle& triangle, const math::vec3& point) noexcept
+    {
+        const math::vec3 a = triangle.a;
+        const math::vec3 b = triangle.b;
+        const math::vec3 c = triangle.c;
+
+        const math::vec3 ab = b - a;
+        const math::vec3 ac = c - a;
+        const math::vec3 ap = point - a;
+
+        const float d1 = math::dot(ab, ap);
+        const float d2 = math::dot(ac, ap);
+        if (d1 <= 0.0f && d2 <= 0.0f)
+        {
+            return a;
+        }
+
+        const math::vec3 bp = point - b;
+        const float d3 = math::dot(ab, bp);
+        const float d4 = math::dot(ac, bp);
+        if (d3 >= 0.0f && d4 <= d3)
+        {
+            return b;
+        }
+
+        const float vc = d1 * d4 - d3 * d2;
+        if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f)
+        {
+            const float v = d1 / (d1 - d3);
+            return a + ab * v;
+        }
+
+        const math::vec3 cp = point - c;
+        const float d5 = math::dot(ab, cp);
+        const float d6 = math::dot(ac, cp);
+        if (d6 >= 0.0f && d5 <= d6)
+        {
+            return c;
+        }
+
+        const float vb = d5 * d2 - d1 * d6;
+        if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f)
+        {
+            const float w = d2 / (d2 - d6);
+            return a + ac * w;
+        }
+
+        const float va = d3 * d6 - d5 * d4;
+        if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f)
+        {
+            const math::vec3 bc = c - b;
+            const float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+            return b + bc * w;
+        }
+
+        const math::vec3 n = math::cross(ab, ac);
+        const float n_len_sq = math::length_squared(n);
+        if (n_len_sq <= epsilon())
+        {
+            // Degenerate triangle: fall back to closest point among edges
+            auto closest_on_segment = [](const math::vec3& p,
+                                         const math::vec3& s0,
+                                         const math::vec3& s1) -> math::vec3
+            {
+                const math::vec3 d = s1 - s0;
+                const float denom = math::length_squared(d);
+                if (denom <= epsilon())
+                {
+                    return s0;
+                }
+                float t = math::dot(p - s0, d) / denom;
+                t = std::clamp(t, 0.0f, 1.0f);
+                return s0 + d * t;
+            };
+
+            const math::vec3 p_ab = closest_on_segment(point, a, b);
+            const math::vec3 p_ac = closest_on_segment(point, a, c);
+            const math::vec3 p_bc = closest_on_segment(point, b, c);
+
+            const float d_ab = math::length_squared(point - p_ab);
+            const float d_ac = math::length_squared(point - p_ac);
+            const float d_bc = math::length_squared(point - p_bc);
+
+            if (d_ab <= d_ac && d_ab <= d_bc) return p_ab;
+            if (d_ac <= d_bc) return p_ac;
+            return p_bc;
+        }
+
+        // Inside face region: orthogonal projection onto plane
+        const float dist = math::dot(ap, n) / n_len_sq;
+        return point - n * dist;
+    }
+
+    math::vec3 ToBarycentricCoords(const Triangle& triangle, const math::vec3& normal, const math::vec3& point) noexcept
+    {
+        (void)normal;
         const math::vec3 a = triangle.a;
         const math::vec3 b = triangle.b;
         const math::vec3 c = triangle.c;
@@ -368,7 +526,8 @@ namespace engine::geometry {
         const double d21 = static_cast<double>(math::dot(v2, v1));
 
         const double denom = d00 * d11 - d01 * d01;
-        if (std::fabs(denom) <= static_cast<double>(epsilon())) {
+        if (std::fabs(denom) <= static_cast<double>(epsilon()))
+        {
             return math::vec3{-std::numeric_limits<float>::infinity()};
         }
 
@@ -384,11 +543,13 @@ namespace engine::geometry {
         };
     }
 
-    math::vec3 FromBarycentricCoords(const Triangle &triangle, const math::vec3 &bc) noexcept {
+    math::vec3 FromBarycentricCoords(const Triangle& triangle, const math::vec3& bc) noexcept
+    {
         return bc[0] * triangle.a + bc[1] * triangle.b + bc[2] * triangle.c;
     }
 
-    double SquaredDistance(const Triangle &triangle, const math::vec3 &point) noexcept {
+    double SquaredDistance(const Triangle& triangle, const math::vec3& point) noexcept
+    {
         const math::vec3 a = triangle.a;
         const math::vec3 b = triangle.b;
         const math::vec3 c = triangle.c;
@@ -399,19 +560,22 @@ namespace engine::geometry {
 
         const float d1 = math::dot(ab, ap);
         const float d2 = math::dot(ac, ap);
-        if (d1 <= 0.0f && d2 <= 0.0f) {
+        if (d1 <= 0.0f && d2 <= 0.0f)
+        {
             return math::length_squared(ap);
         }
 
         const math::vec3 bp = point - b;
         const float d3 = math::dot(ab, bp);
         const float d4 = math::dot(ac, bp);
-        if (d3 >= 0.0f && d4 <= d3) {
+        if (d3 >= 0.0f && d4 <= d3)
+        {
             return math::length_squared(bp);
         }
 
         const float vc = d1 * d4 - d3 * d2;
-        if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
+        if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f)
+        {
             const float v = d1 / (d1 - d3);
             const math::vec3 projection = a + ab * v;
             return math::length_squared(point - projection);
@@ -420,19 +584,22 @@ namespace engine::geometry {
         const math::vec3 cp = point - c;
         const float d5 = math::dot(ab, cp);
         const float d6 = math::dot(ac, cp);
-        if (d6 >= 0.0f && d5 <= d6) {
+        if (d6 >= 0.0f && d5 <= d6)
+        {
             return math::length_squared(cp);
         }
 
         const float vb = d5 * d2 - d1 * d6;
-        if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
+        if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f)
+        {
             const float w = d2 / (d2 - d6);
             const math::vec3 projection = a + ac * w;
             return math::length_squared(point - projection);
         }
 
         const float va = d3 * d6 - d5 * d4;
-        if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
+        if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f)
+        {
             const float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
             const math::vec3 projection = b + (c - b) * w;
             return math::length_squared(point - projection);
@@ -440,7 +607,8 @@ namespace engine::geometry {
 
         const math::vec3 normal = math::cross(ab, ac);
         const float normal_len_sq = math::length_squared(normal);
-        if (normal_len_sq == 0.0f) {
+        if (normal_len_sq == 0.0f)
+        {
             // Degenerate triangle, fall back to the minimum of the edges
             const double edge0 = SquaredDistance(Segment{a, b}, point);
             const double edge1 = SquaredDistance(Segment{a, c}, point);
