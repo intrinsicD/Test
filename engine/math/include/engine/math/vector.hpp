@@ -198,7 +198,7 @@ namespace engine::math
         };
     }
 
-    template<typename T, std::size_t N>
+    template <typename T, std::size_t N>
     ENGINE_MATH_INLINE Vector<T, N> reflect(const Vector<T, N>& incident, const Vector<T, N>& normal) noexcept
     {
         //TODO: check if this is correct!
@@ -206,7 +206,7 @@ namespace engine::math
         return incident - static_cast<T>(2) * dot(incident, normal) * normal;
     }
 
-    template<typename T, std::size_t N>
+    template <typename T, std::size_t N>
     ENGINE_MATH_INLINE Vector<T, N> refract(const Vector<T, N>& incident, const Vector<T, N>& normal, T eta) noexcept
     {
         //TODO: check if this is correct!
@@ -221,17 +221,21 @@ namespace engine::math
         return eta * incident + (eta * cos_i - cos_t) * normal;
     }
 
-    template<typename T, std::size_t N>
-    ENGINE_MATH_INLINE T project(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE T projection_coefficient(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
     {
-        //TODO: check if this is correct!
-        //TODO: add test for this function!
         const T b_len_sq = length_squared(b);
         if (b_len_sq == detail::zero<T>())
         {
-            return detail::zero<T>();
+            return Vector<T, N>{};
         }
-        return dot(a, b) / b_len_sq;
+        return (dot(a, b) / b_len_sq); // Return vector, not scalar
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> project(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
+    {
+        return projection_coefficient(a, b) * b; // Return vector, not scalar
     }
 
     template <typename T, std::size_t N>

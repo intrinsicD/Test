@@ -1,9 +1,8 @@
 #include "engine/geometry/shapes/ellipsoid.hpp"
-
 #include "engine/math/utils.hpp"
+#include "engine/math/utils_rotation.hpp"
 
 #include <cmath>
-#include <limits>
 #include <numbers>
 
 namespace engine::geometry {
@@ -21,7 +20,7 @@ namespace engine::geometry {
         }
 
         const math::vec3 offset = point - ellipsoid.center;
-        const math::mat3 rotation = ellipsoid.orientation.to_rotation_matrix();
+        const math::mat3 rotation = math::utils::to_rotation_matrix<float>(ellipsoid.orientation);
         const math::mat3 rotation_transposed = math::transpose(rotation);
         const math::vec3 local = rotation_transposed * offset;
 

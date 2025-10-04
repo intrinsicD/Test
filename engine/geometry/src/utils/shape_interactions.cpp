@@ -1,6 +1,7 @@
 #include "engine/geometry/utils/shape_interactions.hpp"
 #include "engine/geometry/shapes.hpp"
 #include "engine/math/utils.hpp"
+#include "engine/math/utils_rotation.hpp"
 
 #include <limits>
 
@@ -20,15 +21,77 @@ namespace engine::geometry
 
     bool Intersects(const Aabb& a, const Cylinder& b) noexcept
     {
-        //TODO
+        // Find closest point on AABB to cylinder axis
+        const math::vec3 axis_dir = AxisDirection(b);
+        const math::vec3 axis_start = b.center - axis_dir * b.half_height;
+        const math::vec3 axis_end = b.center + axis_dir * b.half_height;
+
+        // Clamp axis endpoints to AABB
+        math::vec3 p1 = axis_start;
+        math::vec3 p2 = axis_end;
+
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            p1[i] = math::utils::clamp(p1[i], a.min[i], a.max[i]);
+            p2[i] = math::utils::clamp(p2[i], a.min[i], a.max[i]);
+        }
+
+        // Find closest point on segment to cylinder center
+        const math::vec3 seg_dir = p2 - p1;
+        const math::vec3 to_center = b.center - p1;
+        const float seg_len_sq = math::dot(seg_dir, seg_dir);
+
+        math::vec3 closest;
+        if (math::utils::nearly_equal(seg_len_sq, 0.0f, constants::PARALLEL_EPSILON))
+        {
+            closest = p1;
+        }
+        else
+        {
+            float t = math::dot(to_center, seg_dir) / seg_len_sq;
+            t = math::utils::clamp(t, 0.0f, 1.0f);
+            closest = p1 + seg_dir * t;
+        }
+
+        // Check if closest point is within cylinder
+        const math::vec3 delta = closest - b.center;
+        const float axial = math::dot(delta, axis_dir);
+
+        if (math::utils::abs(axial) > b.half_height)
+            return false;
+
+        const math::vec3 radial_vec = delta - axial * axis_dir;
+        const float radial_dist_sq = math::dot(radial_vec, radial_vec);
+
+        return radial_dist_sq <= b.radius * b.radius;
     }
 
     bool Intersects(const Aabb& a, const Ellipsoid& b) noexcept
     {
-        //TODO
+        // Conservative test: check if AABB intersects the ellipsoid's bounding sphere
+        // TODO: For a more precise test, we'd need to transform the AABB into ellipsoid space
+
+        const math::mat3 R = math::utils::to_rotation_matrix(b.orientation);
+
+        // Find the closest point on AABB to ellipsoid center
+        const math::vec3 closest = ClosestPoint(a, b.center);
+
+        // Transform closest point to ellipsoid local space
+        const math::mat3 Rt = transpose(R);
+        const math::vec3 local = Rt * (closest - b.center);
+
+        // Scale by inverse radii to get unit sphere space
+        const math::vec3 scaled{
+            local[0] / b.radii[0],
+            local[1] / b.radii[1],
+            local[2] / b.radii[2]
+        };
+
+        // Check if within unit sphere
+        return math::dot(scaled, scaled) <= 1.0f;
     }
 
-    bool Intersects(const Aabb& box, const Line& ln, Result<Aabb, Line>* result) noexcept
+    bool Intersects(const Aabb& box, const Line& ln, Result* result) noexcept
     {
         const float INF = std::numeric_limits<float>::infinity();
         float tmin = -INF, tmax = +INF;
@@ -68,7 +131,7 @@ namespace engine::geometry
 
     bool Intersects(const Aabb& aabb, const Obb& obb) noexcept
     {
-        const math::mat3 B = to_rotation_matrix(obb.orientation); // localB->world
+        const math::mat3 B = math::utils::to_rotation_matrix(obb.orientation); // localB->world
         math::mat3 R = B; // since RA=I
         math::mat3 AbsR{};
         const float EPS = 1e-6f;
@@ -120,7 +183,7 @@ namespace engine::geometry
         return math::utils::abs(s) <= r;
     }
 
-    bool Intersects(const Aabb& box, const Ray& ray, Result<Aabb, Ray>* result) noexcept
+    bool Intersects(const Aabb& box, const Ray& ray, Result* result) noexcept
     {
         const float INF = std::numeric_limits<float>::infinity();
         float tmin = 0.0f, tmax = +INF;
@@ -158,7 +221,7 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Aabb& box, const Segment& seg, Result<Aabb, Segment>* result) noexcept
+    bool Intersects(const Aabb& box, const Segment& seg, Result* result) noexcept
     {
         const math::vec3 dir = Direction(seg); // end-start
         const math::vec3 o = seg.start;
@@ -332,54 +395,193 @@ namespace engine::geometry
 
     bool Intersects(const Cylinder& a, const Aabb& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
     bool Intersects(const Cylinder& a, const Cylinder& b) noexcept
     {
-        //TODO
+        // Check if bounding spheres intersect first (quick reject)
+        const Sphere sphere_a = BoundingSphere(a);
+        const Sphere sphere_b = BoundingSphere(b);
+        if (!Intersects(sphere_a, sphere_b)) return false;
+
+        // Check if any endpoint is inside the other cylinder
+        if (Contains(a, TopCenter(b)) || Contains(a, BottomCenter(b))) return true;
+        if (Contains(b, TopCenter(a)) || Contains(b, BottomCenter(a))) return true;
+
+        // Check distance between axis segments
+        const Segment seg_a{BottomCenter(a), TopCenter(a)};
+        const Segment seg_b{BottomCenter(b), TopCenter(b)};
+
+        const float dist_sq = SquaredDistance(seg_a, ClosestPoint(seg_b, seg_a.start, *(new double)));
+        const float radius_sum = a.radius + b.radius;
+
+        return dist_sq <= radius_sum * radius_sum;
     }
 
     bool Intersects(const Cylinder& a, const Ellipsoid& b) noexcept
     {
-        //TODO
+        // Check if cylinder axis intersects ellipsoid
+        const Line axis_line{a.center, AxisDirection(a)};
+        if (Intersects(axis_line, b, nullptr))
+        {
+            // Further check if intersection is within cylinder height
+            const Segment axis_seg{BottomCenter(a), TopCenter(a)};
+            if (Intersects(axis_seg, b, nullptr)) return true;
+        }
+
+        // Check closest point on ellipsoid to cylinder axis
+        const math::vec3 top = TopCenter(a);
+        const math::vec3 bottom = BottomCenter(a);
+
+        for (int i = 0; i <= 8; ++i)
+        {
+            const float t = i / 8.0f;
+            const math::vec3 axis_point = bottom + t * (top - bottom);
+            if (SquaredDistance(b, axis_point) <= a.radius * a.radius) return true;
+        }
+
+        return false;
     }
 
-    bool Intersects(const Cylinder& a, const Line& b, Result<Cylinder, Ray>* result) noexcept
+    bool Intersects(const Cylinder& cylinder, const Line& line, Result* result) noexcept
     {
-        //TODO
+        const math::vec3 axis_dir = AxisDirection(cylinder);
+        const math::vec3 w = line.point - cylinder.center;
+        const math::vec3 d = line.direction;
+
+        const float a_dot_d = math::dot(axis_dir, d);
+        const float a_dot_w = math::dot(axis_dir, w);
+
+        const math::vec3 d_perp = d - a_dot_d * axis_dir;
+        const math::vec3 w_perp = w - a_dot_w * axis_dir;
+
+        const float a = math::dot(d_perp, d_perp);
+        const float b = 2.0f * math::dot(w_perp, d_perp);
+        const float c = math::dot(w_perp, w_perp) - cylinder.radius * cylinder.radius;
+
+        if (math::utils::nearly_equal(a, 0.0f, constants::PARALLEL_EPSILON))
+        {
+            // Line parallel to cylinder axis
+            if (c > 0.0f) return false; // Outside radius
+
+            // Check height bounds
+            const float t1 = (-cylinder.half_height - a_dot_w) / a_dot_d;
+            const float t2 = (cylinder.half_height - a_dot_w) / a_dot_d;
+
+            if (result)
+            {
+                result->t_min = math::utils::min(t1, t2);
+                result->t_max = math::utils::max(t1, t2);
+            }
+            return true;
+        }
+
+        const float disc = b * b - 4 * a * c;
+        if (disc < 0.0f) return false;
+
+        const float sqrt_disc = math::utils::sqrt(disc);
+        float t0 = (-b - sqrt_disc) / (2 * a);
+        float t1 = (-b + sqrt_disc) / (2 * a);
+
+        // Check height constraints
+        const float h0 = a_dot_w + t0 * a_dot_d;
+        const float h1 = a_dot_w + t1 * a_dot_d;
+
+        if (math::utils::abs(h0) > cylinder.half_height && math::utils::abs(h1) > cylinder.half_height)
+        {
+            if ((h0 > 0) == (h1 > 0)) return false;
+        }
+
+        // Clip to height bounds
+        if (math::utils::abs(h0) > cylinder.half_height)
+        {
+            const float h_target = (h0 > 0) ? cylinder.half_height : -cylinder.half_height;
+            t0 = (h_target - a_dot_w) / a_dot_d;
+        }
+        if (math::utils::abs(h1) > cylinder.half_height)
+        {
+            const float h_target = (h1 > 0) ? cylinder.half_height : -cylinder.half_height;
+            t1 = (h_target - a_dot_w) / a_dot_d;
+        }
+
         if (result)
         {
-            //set result values
+            result->t_min = math::utils::min(t0, t1);
+            result->t_max = math::utils::max(t0, t1);
         }
+        return true;
     }
 
-    bool Intersects(const Cylinder& a, const Obb& b) noexcept
+    bool Intersects(const Cylinder& cyl, const Obb& obb) noexcept
     {
-        //TODO
+        // Check if any OBB vertex is inside cylinder
+        const auto corners = GetCorners(obb);
+        for (const auto& corner : corners)
+        {
+            if (Contains(cyl, corner)) return true;
+        }
+
+        // Check if cylinder endpoints are inside OBB
+        if (Contains(obb, TopCenter(cyl)) || Contains(obb, BottomCenter(cyl))) return true;
+
+        // Check distance between cylinder axis and OBB
+        const Segment axis_seg{BottomCenter(cyl), TopCenter(cyl)};
+        const float dist_sq = SquaredDistance(obb, axis_seg.start);
+
+        return dist_sq <= cyl.radius * cyl.radius;
     }
 
-    bool Intersects(const Cylinder& a, const Plane& b) noexcept
+    bool Intersects(const Cylinder& cyl, const Plane& plane) noexcept
     {
-        //TODO
+        const math::vec3 top = TopCenter(cyl);
+        const math::vec3 bottom = BottomCenter(cyl);
+
+        const float d_top = SignedDistance(plane, top);
+        const float d_bottom = SignedDistance(plane, bottom);
+
+        // Check if endpoints are on opposite sides
+        if (d_top * d_bottom <= 0.0f) return true;
+
+        // Check if cylinder edge touches plane
+        const float min_dist = math::utils::min(math::utils::abs(d_top), math::utils::abs(d_bottom));
+        return min_dist <= cyl.radius;
     }
 
-    bool Intersects(const Cylinder& a, const Ray& b, Result<Cylinder, Ray>* result) noexcept
+    bool Intersects(const Cylinder& cylinder, const Ray& ray, Result* result) noexcept
     {
-        //TODO
+        Result line_result{};
+        const Line line{ray.origin, ray.direction};
+
+        if (!Intersects(cylinder, line, &line_result)) return false;
+
+        // Clamp to ray (t >= 0)
+        if (line_result.t_max < 0.0f) return false;
+
         if (result)
         {
-            //set result values
+            result->t_min = math::utils::max(0.0f, line_result.t_min);
+            result->t_max = line_result.t_max;
         }
+        return true;
     }
 
-    bool Intersects(const Cylinder& a, const Segment& b, Result<Cylinder, Ray>* result) noexcept
+    bool Intersects(const Cylinder& cyl, const Segment& seg, Result* result) noexcept
     {
-        //TODO
+        Result line_result{};
+        const Line line{seg.start, Direction(seg)};
+
+        if (!Intersects(cyl, line, &line_result)) return false;
+
+        // Clamp to segment (0 <= t <= 1)
+        if (line_result.t_min > 1.0f || line_result.t_max < 0.0f) return false;
+
         if (result)
         {
-            //set result values
+            result->t_min = math::utils::max(0.0f, line_result.t_min);
+            result->t_max = math::utils::min(1.0f, line_result.t_max);
         }
+        return true;
     }
 
     bool Intersects(const Cylinder& cylinder, const Sphere& sphere) noexcept
@@ -406,29 +608,70 @@ namespace engine::geometry
         return separation_sq <= sphere.radius * sphere.radius;
     }
 
-    bool Intersects(const Cylinder& a, const Triangle& b) noexcept
+    bool Intersects(const Cylinder& cyl, const Triangle& tri) noexcept
     {
-        //TODO
+        // Check if any triangle vertex is inside cylinder
+        if (Contains(cyl, tri.a) || Contains(cyl, tri.b) || Contains(cyl, tri.c)) return true;
+
+        // Check if cylinder axis intersects triangle
+        const Segment axis_seg{BottomCenter(cyl), TopCenter(cyl)};
+        if (Intersects(axis_seg, tri, nullptr)) return true;
+
+        // Check if triangle edges intersect cylinder
+        const Segment edges[3] = {
+            {tri.a, tri.b},
+            {tri.b, tri.c},
+            {tri.c, tri.a}
+        };
+
+        for (const auto& edge : edges)
+        {
+            if (Intersects(cyl, edge, nullptr)) return true;
+        }
+
+        // Check distance from triangle to cylinder axis
+        const math::vec3 closest_on_tri = ClosestPoint(tri, cyl.center);
+        return SquaredDistance(axis_seg, closest_on_tri) <= cyl.radius * cyl.radius;
     }
 
     bool Intersects(const Ellipsoid& a, const Aabb& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
     bool Intersects(const Ellipsoid& a, const Cylinder& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
-    bool Intersects(const Ellipsoid& a, const Ellipsoid& b) noexcept
+    bool Intersects(const Ellipsoid& ellipsoid, const Ellipsoid& other) noexcept
     {
-        //TODO
+        // Conservative approximation: check if closest points are within each other
+        // or if centers are close enough based on radii
+
+        // Simple distance check using maximum radii as approximation
+        const math::vec3 delta = other.center - ellipsoid.center;
+        const float dist_sq = math::dot(delta, delta);
+
+        const float max_radius_a = math::utils::max(ellipsoid.radii[0],
+                                                    math::utils::max(ellipsoid.radii[1], ellipsoid.radii[2]));
+        const float max_radius_b = math::utils::max(other.radii[0],
+                                                    math::utils::max(other.radii[1], other.radii[2]));
+        const float sum_max = max_radius_a + max_radius_b;
+
+        if (dist_sq > sum_max * sum_max) return false;
+
+        // More precise test: check if closest point on one is inside the other
+        const math::vec3 closest_on_a = ClosestPoint(ellipsoid, other.center);
+        if (Contains(other, closest_on_a)) return true;
+
+        const math::vec3 closest_on_b = ClosestPoint(other, ellipsoid.center);
+        return Contains(ellipsoid, closest_on_b);
     }
 
-    bool Intersects(const Ellipsoid& ellipsoid, const Line& line, Result<Ellipsoid, Ray>* result) noexcept
+    bool Intersects(const Ellipsoid& ellipsoid, const Line& line, Result* result) noexcept
     {
-        const math::mat3 R = to_rotation_matrix(ellipsoid.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(ellipsoid.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 o = Rt * (line.point - ellipsoid.center);
         const math::vec3 d = Rt * line.direction;
@@ -458,19 +701,41 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Ellipsoid& a, const Obb& b) noexcept
+    bool Intersects(const Ellipsoid& ellipsoid, const Obb& obb) noexcept
     {
-        //TODO
+        // Find closest point on OBB to ellipsoid center
+        const math::vec3 closest = ClosestPoint(obb, ellipsoid.center);
+
+        // Check if closest point is inside ellipsoid or ellipsoid center is inside OBB
+        return Contains(ellipsoid, closest) || Contains(obb, ellipsoid.center);
     }
 
-    bool Intersects(const Ellipsoid& a, const Plane& b) noexcept
+    bool Intersects(const Ellipsoid& ellipsoid, const Plane& plane) noexcept
     {
-        //TODO
+        // Transform plane normal to ellipsoid local space
+        const math::mat3 R = math::utils::to_rotation_matrix(ellipsoid.orientation);
+        const math::mat3 Rt = transpose(R);
+        const math::vec3 local_normal = Rt * plane.normal;
+
+        // Find the maximum extent of ellipsoid in the direction of plane normal
+        // The farthest point on ellipsoid in direction n is at distance: sqrt(sum((r_i * n_i)^2))
+        const math::vec3 scaled_normal{
+            ellipsoid.radii[0] * local_normal[0],
+            ellipsoid.radii[1] * local_normal[1],
+            ellipsoid.radii[2] * local_normal[2]
+        };
+        const float max_extent = math::length(scaled_normal);
+
+        // Signed distance from ellipsoid center to plane
+        const float signed_dist = SignedDistance(plane, ellipsoid.center);
+
+        // Ellipsoid intersects plane if signed distance is within max extent
+        return math::utils::abs(signed_dist) <= max_extent;
     }
 
-    bool Intersects(const Ellipsoid& ellipsoid, const Ray& ray, Result<Ellipsoid, Ray>* result) noexcept
+    bool Intersects(const Ellipsoid& ellipsoid, const Ray& ray, Result* result) noexcept
     {
-        const math::mat3 R = to_rotation_matrix(ellipsoid.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(ellipsoid.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 o = Rt * (ray.origin - ellipsoid.center);
         const math::vec3 d = Rt * ray.direction;
@@ -503,9 +768,9 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Ellipsoid& ellipsoid, const Segment& segment, Result<Ellipsoid, Segment>* result) noexcept
+    bool Intersects(const Ellipsoid& ellipsoid, const Segment& segment, Result* result) noexcept
     {
-        Result<Ellipsoid, Ray> tmp{};
+        Result tmp{};
         const Ray r{segment.start, Direction(segment)};
         if (!Intersects(ellipsoid, r, &tmp)) return false;
         float t0 = tmp.t_min, t1 = tmp.t_max;
@@ -523,49 +788,80 @@ namespace engine::geometry
         return SquaredDistance(ellipsoid, sphere.center) <= sphere.radius * sphere.radius;
     }
 
-    bool Intersects(const Ellipsoid& a, const Triangle& b) noexcept
+    bool Intersects(const Ellipsoid& ellipsoid, const Triangle& triangle) noexcept
     {
-        //TODO
+        // Find closest point on triangle to ellipsoid center
+        const math::vec3 closest = ClosestPoint(triangle, ellipsoid.center);
+
+        // Check if closest point is inside ellipsoid
+        return Contains(ellipsoid, closest);
     }
 
-    bool Intersects(const Line& a, const Aabb& b, Result<Aabb, Line>* result) noexcept
+    bool Intersects(const Line& a, const Aabb& b, Result* result) noexcept
     {
         return Intersects(b, a, result);
     }
 
-    bool Intersects(const Line& a, const Cylinder& b, Result<Cylinder, Line>* result) noexcept
+    bool Intersects(const Line& a, const Cylinder& b, Result* result) noexcept
     {
-        //TODO
-        if (result)
-        {
-            //set result values
-        }
+        return Intersects(b, a, result);
     }
 
-    bool Intersects(const Line& a, const Ellipsoid& b, Result<Ellipsoid, Line>* result) noexcept
+    bool Intersects(const Line& a, const Ellipsoid& b, Result* result) noexcept
     {
-        //TODO
-        if (result)
-        {
-            //set result values
-        }
+        return Intersects(b, a, result);
     }
 
-    bool Intersects(const Line& a, const Line& b, Result<Line, Line>* result) noexcept
+    bool Intersects(const Line& a, const Line& b, Result* result) noexcept
     {
-        //TODO
-        if (result)
+        const math::vec3 w = a.point - b.point;
+        const float a_dot = math::dot(a.direction, a.direction);
+        const float b_dot = math::dot(b.direction, b.direction);
+        const float ab_dot = math::dot(a.direction, b.direction);
+
+        const float denom = a_dot * b_dot - ab_dot * ab_dot;
+
+        // Check if lines are parallel
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON))
         {
-            //set result values
+            // Lines are parallel, check if they're coincident
+            const math::vec3 cross = math::cross(a.direction, w);
+            const float cross_len_sq = math::dot(cross, cross);
+            if (math::utils::nearly_equal(cross_len_sq, 0.0f, constants::INTERSECTION_EPSILON))
+            {
+                // Lines are coincident
+                if (result) result->t = 0.0f;
+                return true;
+            }
+            return false; // Parallel but not coincident
         }
+
+        const float w_dot_a = math::dot(w, a.direction);
+        const float w_dot_b = math::dot(w, b.direction);
+
+        const float t_a = (ab_dot * w_dot_b - b_dot * w_dot_a) / denom;
+        const float t_b = (a_dot * w_dot_b - ab_dot * w_dot_a) / denom;
+
+        // Check if closest points are actually the same (lines intersect)
+        const math::vec3 p_a = a.point + t_a * a.direction;
+        const math::vec3 p_b = b.point + t_b * b.direction;
+        const math::vec3 diff = p_a - p_b;
+
+        if (math::dot(diff, diff) > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+        {
+            return false; // Skew lines
+        }
+
+        if (result) result->t = t_a;
+        return true;
     }
 
-    bool Intersects(const Line& line, const Obb& obb, Result<Obb, Line>* result) noexcept
+    bool Intersects(const Line& line, const Obb& obb, Result* result) noexcept
     {
         return Intersects(obb, line, result);
     }
 
-    bool Intersects(const Line& line, const Plane& plane, Result<Plane, Line>* result) noexcept
+    bool Intersects(const Line& line, const Plane& plane, Result* result) noexcept
     {
         const float denom = math::dot(plane.normal, line.direction);
         const float num = -(math::dot(plane.normal, line.point) + plane.distance);
@@ -576,25 +872,69 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Line& a, const Ray& b, Result<Line, Ray>* result) noexcept
+    bool Intersects(const Line& line, const Ray& ray, Result* result) noexcept
     {
-        //TODO
-        if (result)
-        {
-            //set result values
-        }
+        Result tmp{};
+        if (!Intersects(ray, line, &tmp)) return false;
+
+        // Convert ray parameter to line parameter
+        // We need to find t_line such that line.point + t_line * line.direction = ray.origin + tmp.t * ray.direction
+        const math::vec3 intersection = ray.origin + tmp.t * ray.direction;
+        const math::vec3 diff = intersection - line.point;
+        const float t_line = math::dot(diff, line.direction) / math::dot(line.direction, line.direction);
+
+        if (result) result->t = t_line;
+        return true;
     }
 
-    bool Intersects(const Line& a, const Segment& b, Result<Line, Segment>* result) noexcept
+    bool Intersects(const Line& line, const Segment& segment, Result* result) noexcept
     {
-        //TODO
-        if (result)
+        const math::vec3 seg_dir = Direction(segment);
+        const math::vec3 w = line.point - segment.start;
+
+        const float a_dot = math::dot(line.direction, line.direction);
+        const float b_dot = math::dot(seg_dir, seg_dir);
+        const float ab_dot = math::dot(line.direction, seg_dir);
+
+        const float denom = a_dot * b_dot - ab_dot * ab_dot;
+
+        // Check if parallel
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON))
         {
-            //set result values
+            const math::vec3 cross = math::cross(line.direction, w);
+            const float cross_len_sq = math::dot(cross, cross);
+            if (math::utils::nearly_equal(cross_len_sq, 0.0f, constants::INTERSECTION_EPSILON))
+            {
+                if (result) result->t = 0.0f;
+                return true;
+            }
+            return false;
         }
+
+        const float w_dot_line = math::dot(w, line.direction);
+        const float w_dot_seg = math::dot(w, seg_dir);
+
+        const float t_line = (ab_dot * w_dot_seg - b_dot * w_dot_line) / denom;
+        const float t_seg = (a_dot * w_dot_seg - ab_dot * w_dot_line) / denom;
+
+        // Segment parameter must be in [0, 1]
+        if (t_seg < 0.0f || t_seg > 1.0f) return false;
+
+        // Check if points coincide
+        const math::vec3 p_line = line.point + t_line * line.direction;
+        const math::vec3 p_seg = segment.start + t_seg * seg_dir;
+        const math::vec3 diff = p_line - p_seg;
+
+        if (math::dot(diff, diff) > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+        {
+            return false;
+        }
+
+        if (result) result->t = t_line;
+        return true;
     }
 
-    bool Intersects(const Line& line, const Sphere& sphere, Result<Sphere, Line>* result) noexcept
+    bool Intersects(const Line& line, const Sphere& sphere, Result* result) noexcept
     {
         const math::vec3 oc = line.point - sphere.center;
         const float a = math::dot(line.direction, line.direction);
@@ -619,7 +959,7 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Line& line, const Triangle& triangle, Result<Triangle, Line>* result) noexcept
+    bool Intersects(const Line& line, const Triangle& triangle, Result* result) noexcept
     {
         return Intersects(triangle, line, result);
     }
@@ -631,21 +971,21 @@ namespace engine::geometry
 
     bool Intersects(const Obb& a, const Cylinder& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
     bool Intersects(const Obb& a, const Ellipsoid& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
-    bool Intersects(const Obb& obb, const Line& line, Result<Obb, Line>* result) noexcept
+    bool Intersects(const Obb& obb, const Line& line, Result* result) noexcept
     {
-        const math::mat3 R = to_rotation_matrix(obb.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(obb.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 o = Rt * (line.point - obb.center);
         const math::vec3 d = Rt * line.direction;
-        Result<Aabb, Line> tmp{};
+        Result tmp{};
         const bool hit = Intersects(MakeAabbFromCenterExtent({0, 0, 0}, obb.half_sizes), Line{o, d}, &tmp);
         if (hit && result)
         {
@@ -657,8 +997,8 @@ namespace engine::geometry
 
     bool Intersects(const Obb& a, const Obb& b) noexcept
     {
-        const math::mat3 A = to_rotation_matrix(a.orientation); // localA->world
-        const math::mat3 B = to_rotation_matrix(b.orientation); // localB->world
+        const math::mat3 A = math::utils::to_rotation_matrix(a.orientation); // localA->world
+        const math::mat3 B = math::utils::to_rotation_matrix(b.orientation); // localB->world
         const math::mat3 R = transpose(A) * B; // localB in A-space TODO: verify!
         math::mat3 AbsR{};
         const float EPS = 1e-6f;
@@ -703,7 +1043,7 @@ namespace engine::geometry
 
     bool Intersects(const Obb& obb, const Plane& plane) noexcept
     {
-        const math::mat3 R = to_rotation_matrix(obb.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(obb.orientation);
         // projection radius of OBB onto plane normal
         math::vec3 an{
             math::utils::abs(plane.normal[0]), math::utils::abs(plane.normal[1]), math::utils::abs(plane.normal[2])
@@ -719,15 +1059,15 @@ namespace engine::geometry
         return math::utils::abs(s) <= r;
     }
 
-    bool Intersects(const Obb& obb, const Ray& ray, Result<Obb, Ray>* result) noexcept
+    bool Intersects(const Obb& obb, const Ray& ray, Result* result) noexcept
     {
-        const math::mat3 R = to_rotation_matrix(obb.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(obb.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 o = Rt * (ray.origin - obb.center);
         const math::vec3 d = Rt * ray.direction;
 
         const Aabb a = MakeAabbFromCenterExtent(math::vec3{0, 0, 0}, obb.half_sizes);
-        Result<Aabb, Ray> tmp{};
+        Result tmp{};
         const bool hit = Intersects(a, Ray{o, d}, &tmp);
         if (hit && result)
         {
@@ -737,14 +1077,14 @@ namespace engine::geometry
         return hit;
     }
 
-    bool Intersects(const Obb& obb, const Segment& segment, Result<Obb, Segment>* result) noexcept
+    bool Intersects(const Obb& obb, const Segment& segment, Result* result) noexcept
     {
-        const math::mat3 R = to_rotation_matrix(obb.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(obb.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 s = Rt * (segment.start - obb.center);
         const math::vec3 e = Rt * (segment.end - obb.center);
         const Segment ls{s, e};
-        Result<Aabb, Segment> tmp{};
+        Result tmp{};
         const bool hit = Intersects(MakeAabbFromCenterExtent({0, 0, 0}, obb.half_sizes), ls, &tmp);
         if (hit && result)
         {
@@ -764,6 +1104,7 @@ namespace engine::geometry
         //TODO
     }
 
+
     bool Intersects(const Plane& plane, const Aabb& aabb) noexcept
     {
         return Intersects(aabb, plane);
@@ -771,15 +1112,15 @@ namespace engine::geometry
 
     bool Intersects(const Plane& a, const Cylinder& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
     bool Intersects(const Plane& a, const Ellipsoid& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
-    bool Intersects(const Plane& plane, const Line& line, Result<Plane, Line>* result) noexcept
+    bool Intersects(const Plane& plane, const Line& line, Result* result) noexcept
     {
         return Intersects(line, plane, result);
     }
@@ -791,15 +1132,34 @@ namespace engine::geometry
 
     bool Intersects(const Plane& a, const Plane& b) noexcept
     {
-        //TODO
+        const float dot_product = math::dot(a.normal, b.normal);
+        const float abs_dot = math::utils::abs(dot_product);
+
+        // Check if parallel
+        if (math::utils::nearly_equal(abs_dot, 1.0f, constants::PARALLEL_EPSILON))
+        {
+            // Parallel planes - check if coincident
+            if (dot_product > 0.0f)
+            {
+                // Normals point in same direction
+                return math::utils::nearly_equal(a.distance, b.distance, constants::INTERSECTION_EPSILON);
+            }
+            else
+            {
+                // Normals point in opposite directions
+                return math::utils::nearly_equal(a.distance, -b.distance, constants::INTERSECTION_EPSILON);
+            }
+        }
+        // Not parallel, they intersect in a line
+        return true;
     }
 
-    bool Intersects(const Plane& plane, const Ray& ray, Result<Plane, Ray>* result) noexcept
+    bool Intersects(const Plane& plane, const Ray& ray, Result* result) noexcept
     {
         return Intersects(ray, plane, result);
     }
 
-    bool Intersects(const Plane& plane, const Segment& segment, Result<Plane, Segment>* result) noexcept
+    bool Intersects(const Plane& plane, const Segment& segment, Result* result) noexcept
     {
         return Intersects(segment, plane, result);
     }
@@ -811,43 +1171,86 @@ namespace engine::geometry
 
     bool Intersects(const Plane& a, const Triangle& b) noexcept
     {
-        //TODO
+        // Compute signed distances of all three vertices
+        const float d0 = SignedDistance(a, b.a);
+        const float d1 = SignedDistance(a, b.b);
+        const float d2 = SignedDistance(a, b.c);
+
+        // Find min and max distances
+        const float min_d = math::utils::min(d0, math::utils::min(d1, d2));
+        const float max_d = math::utils::max(d0, math::utils::max(d1, d2));
+
+        // Intersects if vertices span across the plane (different signs) or touch it (zero)
+        // If min and max have opposite signs: min * max < 0 (intersection)
+        // If either is zero: min * max = 0 (vertex on plane)
+        // If both same sign and non-zero: min * max > 0 (no intersection)
+        return min_d * max_d <= 0.0f;
     }
 
-    bool Intersects(const Ray& ray, const Aabb& box, Result<Aabb, Ray>* result) noexcept
+    bool Intersects(const Ray& ray, const Aabb& box, Result* result) noexcept
     {
         return Intersects(box, ray, result);
     }
 
-    bool Intersects(const Ray& a, const Cylinder& b, Result<Ray, Cylinder>* result) noexcept
+    bool Intersects(const Ray& a, const Cylinder& b, Result* result) noexcept
     {
-        //TODO
-        if (result)
-        {
-            //set result values
-        }
+        return Intersects(b, a, result);
     }
 
-    bool Intersects(const Ray& ray, const Ellipsoid& ellipsoid, Result<Ellipsoid, Ray>* result) noexcept
+    bool Intersects(const Ray& ray, const Ellipsoid& ellipsoid, Result* result) noexcept
     {
         return Intersects(ellipsoid, ray, result);
     }
 
-    bool Intersects(const Ray& a, const Line& b, Result<Ray, Line>* result) noexcept
+    bool Intersects(const Ray& ray, const Line& line, Result* result) noexcept
     {
-        //TODO
-        if (result)
+        // Find closest points between ray and line
+        const math::vec3 w0 = ray.origin - line.point;
+        const float a = math::dot(ray.direction, ray.direction);
+        const float b = math::dot(ray.direction, line.direction);
+        const float c = math::dot(line.direction, line.direction);
+        const float d = math::dot(ray.direction, w0);
+        const float e = math::dot(line.direction, w0);
+
+        const float denom = a * c - b * b;
+
+        // Check if parallel
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON))
         {
-            //set result values
+            // Parallel - check if coincident
+            const float dist_sq = math::length_squared(w0 - (e / c) * line.direction);
+            if (dist_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+                return false;
+
+            // Lines are coincident
+            if (result) result->t = 0.0f;
+            return true;
         }
+
+        const float t_ray = (b * e - c * d) / denom;
+        const float t_line = (a * e - b * d) / denom;
+
+        // Ray requires t >= 0
+        if (t_ray < 0.0f) return false;
+
+        // Check if closest points actually coincide
+        const math::vec3 p_ray = ray.origin + t_ray * ray.direction;
+        const math::vec3 p_line = line.point + t_line * line.direction;
+        const float dist_sq = math::length_squared(p_ray - p_line);
+
+        if (dist_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+            return false;
+
+        if (result) result->t = t_ray;
+        return true;
     }
 
-    bool Intersects(const Ray& ray, const Obb& obb, Result<Obb, Ray>* result) noexcept
+    bool Intersects(const Ray& ray, const Obb& obb, Result* result) noexcept
     {
         return Intersects(obb, ray, result);
     }
 
-    bool Intersects(const Ray& ray, const Plane& plane, Result<Plane, Ray>* result) noexcept
+    bool Intersects(const Ray& ray, const Plane& plane, Result* result) noexcept
     {
         const float denom = math::dot(plane.normal, ray.direction);
         const float num = -(math::dot(plane.normal, ray.origin) + plane.distance);
@@ -859,25 +1262,103 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Ray& a, const Ray& b, Result<Ray, Ray>* result) noexcept
+    bool Intersects(const Ray& ray, const Ray& other, Result* result) noexcept
     {
-        //TODO
-        if (result)
+        // Find closest points between two rays
+        const math::vec3 w0 = ray.origin - other.origin;
+        const float a = math::dot(ray.direction, ray.direction);
+        const float b = math::dot(ray.direction, other.direction);
+        const float c = math::dot(other.direction, other.direction);
+        const float d = math::dot(ray.direction, w0);
+        const float e = math::dot(other.direction, w0);
+
+        const float denom = a * c - b * b;
+
+        // Check if parallel
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON))
         {
-            //set result values
+            // Parallel - check if coincident and same direction
+            const float dist_sq = math::length_squared(w0 - (e / c) * other.direction);
+            if (dist_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+                return false;
+
+            // Check if rays point in same direction (not opposite)
+            if (b < 0.0f) return false;
+
+            if (result) result->t = 0.0f;
+            return true;
         }
+
+        const float t_a = (b * e - c * d) / denom;
+        const float t_b = (a * e - b * d) / denom;
+
+        // Both rays require t >= 0
+        if (t_a < 0.0f || t_b < 0.0f) return false;
+
+        // Check if closest points actually coincide
+        const math::vec3 p_a = ray.origin + t_a * ray.direction;
+        const math::vec3 p_b = other.origin + t_b * other.direction;
+        const float dist_sq = math::length_squared(p_a - p_b);
+
+        if (dist_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+            return false;
+
+        if (result) result->t = t_a;
+        return true;
     }
 
-    bool Intersects(const Ray& a, const Segment& b, Result<Ray, Segment>* result) noexcept
+    bool Intersects(const Ray& ray, const Segment& segment, Result* result) noexcept
     {
-        //TODO
-        if (result)
+        // Find closest points between ray and segment
+        const math::vec3 seg_dir = Direction(segment);
+        const math::vec3 w0 = ray.origin - segment.start;
+
+        const float a = math::dot(ray.direction, ray.direction);
+        const float b = math::dot(ray.direction, seg_dir);
+        const float c = math::dot(seg_dir, seg_dir);
+        const float d = math::dot(ray.direction, w0);
+        const float e = math::dot(seg_dir, w0);
+
+        const float denom = a * c - b * b;
+
+        float t_ray, t_seg;
+
+        // Check if parallel
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON))
         {
-            //set result values
+            // Parallel - check if coincident
+            t_ray = 0.0f;
+            t_seg = (b > c ? e / b : 0.0f);
         }
+        else
+        {
+            t_ray = (b * e - c * d) / denom;
+            t_seg = (a * e - b * d) / denom;
+        }
+
+        // Clamp segment parameter to [0, 1]
+        t_seg = math::utils::clamp(t_seg, 0.0f, 1.0f);
+
+        // Re-compute ray parameter for clamped segment point
+        const math::vec3 seg_point = segment.start + t_seg * seg_dir;
+        const math::vec3 diff = seg_point - ray.origin;
+        t_ray = math::dot(diff, ray.direction) / a;
+
+        // Ray requires t >= 0
+        if (t_ray < 0.0f) return false;
+
+        // Check if points actually coincide
+        const math::vec3 p_ray = ray.origin + t_ray * ray.direction;
+        const float dist_sq = math::length_squared(p_ray - seg_point);
+
+        if (dist_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+            return false;
+
+        if (result) result->t = t_ray;
+        return true;
     }
 
-    bool Intersects(const Ray& ray, const Sphere& sphere, Result<Sphere, Ray>* result) noexcept
+    bool Intersects(const Ray& ray, const Sphere& sphere, Result* result) noexcept
     {
         const math::vec3 oc = ray.origin - sphere.center;
         const float a = math::dot(ray.direction, ray.direction);
@@ -903,7 +1384,7 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Ray& ray, const Triangle& triangle, Result<Triangle, Ray>* result) noexcept
+    bool Intersects(const Ray& ray, const Triangle& triangle, Result* result) noexcept
     {
         const float EPS = 1e-8f;
         const math::vec3 e1 = triangle.b - triangle.a;
@@ -924,26 +1405,22 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Segment& segment, const Aabb& aabb, Result<Aabb, Segment>* result) noexcept
+    bool Intersects(const Segment& segment, const Aabb& aabb, Result* result) noexcept
     {
         return Intersects(aabb, segment, result);
     }
 
-    bool Intersects(const Segment& a, const Cylinder& b, Result<Segment, Cylinder>* result) noexcept
+    bool Intersects(const Segment& a, const Cylinder& b, Result* result) noexcept
     {
-        //TODO
-        if (result)
-        {
-            //set result values
-        }
+        return Intersects(b, a, result);
     }
 
-    bool Intersects(const Segment& segment, const Ellipsoid& ellipsoid, Result<Ellipsoid, Segment>* result) noexcept
+    bool Intersects(const Segment& segment, const Ellipsoid& ellipsoid, Result* result) noexcept
     {
         return Intersects(ellipsoid, segment, result);
     }
 
-    bool Intersects(const Segment& a, const Line& b, Result<Segment, Line>* result) noexcept
+    bool Intersects(const Segment& a, const Line& b, Result* result) noexcept
     {
         //TODO
         if (result)
@@ -952,12 +1429,12 @@ namespace engine::geometry
         }
     }
 
-    bool Intersects(const Segment& segment, const Obb& obb, Result<Obb, Segment>* result) noexcept
+    bool Intersects(const Segment& segment, const Obb& obb, Result* result) noexcept
     {
         return Intersects(obb, segment, result);
     }
 
-    bool Intersects(const Segment& segment, const Plane& plane, Result<Plane, Segment>* result) noexcept
+    bool Intersects(const Segment& segment, const Plane& plane, Result* result) noexcept
     {
         const math::vec3 d = Direction(segment);
         const float denom = math::dot(plane.normal, d);
@@ -970,7 +1447,7 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Segment& a, const Ray& b, Result<Segment, Ray>* result) noexcept
+    bool Intersects(const Segment& a, const Ray& b, Result* result) noexcept
     {
         //TODO
         if (result)
@@ -979,7 +1456,7 @@ namespace engine::geometry
         }
     }
 
-    bool Intersects(const Segment& a, const Segment& b, Result<Segment, Segment>* result) noexcept
+    bool Intersects(const Segment& a, const Segment& b, Result* result) noexcept
     {
         //TODO
         if (result)
@@ -988,9 +1465,9 @@ namespace engine::geometry
         }
     }
 
-    bool Intersects(const Segment& segment, const Sphere& sphere, Result<Sphere, Segment>* result) noexcept
+    bool Intersects(const Segment& segment, const Sphere& sphere, Result* result) noexcept
     {
-        Result<Sphere, Ray> tmp{};
+        Result tmp{};
         const Ray r{segment.start, Direction(segment)};
         if (!Intersects(r, sphere, &tmp)) return false;
         const float t0 = tmp.t_min, t1 = tmp.t_max;
@@ -1003,7 +1480,7 @@ namespace engine::geometry
         return true;
     }
 
-    bool Intersects(const Segment& segment, const Triangle& triangle, Result<Triangle, Segment>* result) noexcept
+    bool Intersects(const Segment& segment, const Triangle& triangle, Result* result) noexcept
     {
         return Intersects(triangle, segment, result);
     }
@@ -1023,7 +1500,7 @@ namespace engine::geometry
         return Intersects(b, a);
     }
 
-    bool Intersects(const Sphere& sphere, const Line& line, Result<Sphere, Line>* result) noexcept
+    bool Intersects(const Sphere& sphere, const Line& line, Result* result) noexcept
     {
         return Intersects(line, sphere, result);
     }
@@ -1038,12 +1515,12 @@ namespace engine::geometry
         return Intersects(plane, sphere);
     }
 
-    bool Intersects(const Sphere& sphere, const Ray& ray, Result<Sphere, Ray>* result) noexcept
+    bool Intersects(const Sphere& sphere, const Ray& ray, Result* result) noexcept
     {
         return Intersects(ray, sphere, result);
     }
 
-    bool Intersects(const Sphere& sphere, const Segment& segment, Result<Sphere, Segment>* result) noexcept
+    bool Intersects(const Sphere& sphere, const Segment& segment, Result* result) noexcept
     {
         return Intersects(segment, sphere, result);
     }
@@ -1067,19 +1544,19 @@ namespace engine::geometry
 
     bool Intersects(const Triangle& a, const Cylinder& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
     bool Intersects(const Triangle& a, const Ellipsoid& b) noexcept
     {
-        //TODO
+        return Intersects(b, a);
     }
 
-    bool Intersects(const Triangle& triangle, const Line& line, Result<Triangle, Line>* result) noexcept
+    bool Intersects(const Triangle& triangle, const Line& line, Result* result) noexcept
     {
         // reuse ray test with both directions; accept any t on line
         const Ray r{line.point, line.direction};
-        Result<Triangle, Ray> tmp{};
+        Result tmp{};
         if (!Intersects(r, triangle, &tmp)) return false;
         if (result) result->t = tmp.t;
         return true;
@@ -1095,14 +1572,14 @@ namespace engine::geometry
         //TODO
     }
 
-    bool Intersects(const Triangle& triangle, const Ray& ray, Result<Triangle, Ray>* result) noexcept
+    bool Intersects(const Triangle& triangle, const Ray& ray, Result* result) noexcept
     {
         return Intersects(ray, triangle, result);
     }
 
-    bool Intersects(const Triangle& triangle, const Segment& segment, Result<Triangle, Segment>* result) noexcept
+    bool Intersects(const Triangle& triangle, const Segment& segment, Result* result) noexcept
     {
-        Result<Triangle, Ray> tmp{};
+        Result tmp{};
         const Ray r{segment.start, Direction(segment)};
         if (!Intersects(r, triangle, &tmp)) return false;
         if (tmp.t < 0.0f || tmp.t > 1.0f) return false;
@@ -1124,27 +1601,100 @@ namespace engine::geometry
 
     bool Contains(const Aabb& outer, const math::vec3& inner) noexcept
     {
-        //TODO
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            if (inner[i] < outer.min[i] || inner[i] > outer.max[i])
+                return false;
+        }
+        return true;
     }
 
     bool Contains(const Aabb& outer, const Aabb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        // More efficient than testing each vertex: check bounds directly
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            if (inner.min[i] < outer.min[i] || inner.max[i] > outer.max[i])
+                return false;
+        }
+        return true;
     }
 
     bool Contains(const Aabb& outer, const Cylinder& inner) noexcept
     {
-        //TODO
+        // Check cylinder end cap centers
+        const math::vec3 top = TopCenter(inner);
+        const math::vec3 bottom = BottomCenter(inner);
+        if (!Contains(outer, top) || !Contains(outer, bottom)) return false;
+
+        // Check points on the circular edges
+        const math::vec3 axis = AxisDirection(inner);
+        math::vec3 perp1, perp2;
+        if (math::utils::abs(axis[0]) < 0.9f)
+        {
+            perp1 = math::normalize(math::cross(axis, math::vec3{1, 0, 0}));
+        }
+        else
+        {
+            perp1 = math::normalize(math::cross(axis, math::vec3{0, 1, 0}));
+        }
+        perp2 = math::cross(axis, perp1);
+
+        for (int i = 0; i < 8; ++i)
+        {
+            const float angle = i * 3.14159265f / 4.0f;
+            const math::vec3 offset = inner.radius * (math::utils::cos(angle) * perp1 + math::utils::sin(angle) *
+                perp2);
+            if (!Contains(outer, top + offset)) return false;
+            if (!Contains(outer, bottom + offset)) return false;
+        }
+        return true;
     }
 
     bool Contains(const Aabb& outer, const Ellipsoid& inner) noexcept
     {
-        //TODO
+        // Transform ellipsoid to axis-aligned and test bounding box
+        // This is conservative - we test if the ellipsoid's oriented bounding box fits
+
+        const math::mat3 R = math::utils::to_rotation_matrix(inner.orientation);
+        const math::vec3 radii = inner.radii;
+
+        // Find axis-aligned bounding box of the oriented ellipsoid
+        // Max extent in each world axis direction
+        math::vec3 half_extents{0.0f, 0.0f, 0.0f};
+
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            // Sum of absolute values of transformed radii in this direction
+            half_extents[i] =
+                math::utils::abs(R[0][i]) * radii[0] +
+                math::utils::abs(R[1][i]) * radii[1] +
+                math::utils::abs(R[2][i]) * radii[2];
+        }
+
+        const math::vec3 ellipsoid_min = inner.center - half_extents;
+        const math::vec3 ellipsoid_max = inner.center + half_extents;
+
+        // Check if this bounding box fits in outer AABB
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            if (ellipsoid_min[i] < outer.min[i] || ellipsoid_max[i] > outer.max[i])
+                return false;
+        }
+
+        return true;
     }
 
     bool Contains(const Aabb& outer, const Obb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        // Test all 8 corners of the OBB
+        const auto corners = GetCorners(inner);
+        for (const auto& corner : corners)
+        {
+            if (!Contains(outer, corner))
+                return false;
+        }
+        return true;
     }
 
     bool Contains(const Aabb& outer, const Segment& inner) noexcept
@@ -1162,6 +1712,25 @@ namespace engine::geometry
         return true;
     }
 
+    namespace
+    {
+        struct CylinderPointInfo
+        {
+            float axial_distance; // signed distance along axis
+            float radial_distance_sq; // squared distance from axis
+        };
+
+        CylinderPointInfo GetCylinderPointInfo(const Cylinder& cylinder, const math::vec3& point) noexcept
+        {
+            const math::vec3 axis_dir = AxisDirection(cylinder);
+            const math::vec3 delta = point - cylinder.center;
+            const float axial = math::dot(delta, axis_dir);
+            const math::vec3 radial_vec = delta - axial * axis_dir;
+            const float radial_sq = math::dot(radial_vec, radial_vec);
+            return {axial, radial_sq};
+        }
+    }
+
     bool Contains(const Aabb& outer, const Triangle& inner) noexcept
     {
         //TODO is there a faster algorithm than testing each vertex?
@@ -1170,27 +1739,110 @@ namespace engine::geometry
 
     bool Contains(const Cylinder& outer, const math::vec3& inner) noexcept
     {
-        //TODO
+        const auto info = GetCylinderPointInfo(outer, inner);
+        if (math::utils::abs(info.axial_distance) > outer.half_height) return false;
+        return info.radial_distance_sq <= outer.radius * outer.radius;
     }
 
     bool Contains(const Cylinder& outer, const Aabb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        // Check all 8 corners of the AABB
+        const auto corners = GetCorners(inner);
+        for (const auto& corner : corners)
+        {
+            if (!Contains(outer, corner)) return false;
+        }
+        return true;
     }
 
     bool Contains(const Cylinder& outer, const Cylinder& inner) noexcept
     {
-        //TODO
+        const math::vec3 outer_axis = AxisDirection(outer);
+        const math::vec3 inner_axis = AxisDirection(inner);
+
+        // Check if axes are parallel
+        const float dot = math::dot(outer_axis, inner_axis);
+        const bool parallel = math::utils::abs(math::utils::abs(dot) - 1.0f) < constants::PARALLEL_EPSILON;
+
+        if (!parallel)
+        {
+            // Non-parallel cylinders - check endpoints and sample points
+            const math::vec3 inner_top = TopCenter(inner);
+            const math::vec3 inner_bottom = BottomCenter(inner);
+
+            // Check if both end centers are contained
+            if (!Contains(outer, inner_top) || !Contains(outer, inner_bottom)) return false;
+
+            // Check edge points of the inner cylinder's end caps
+            math::vec3 perp1, perp2;
+            if (math::utils::abs(inner_axis[0]) < 0.9f)
+            {
+                perp1 = math::normalize(math::cross(inner_axis, math::vec3{1, 0, 0}));
+            }
+            else
+            {
+                perp1 = math::normalize(math::cross(inner_axis, math::vec3{0, 1, 0}));
+            }
+            perp2 = math::cross(inner_axis, perp1);
+
+            for (int i = 0; i < 8; ++i)
+            {
+                const float angle = i * 3.14159265f / 4.0f;
+                const math::vec3 offset = inner.radius * (math::utils::cos(angle) * perp1 + math::utils::sin(angle) *
+                    perp2);
+                if (!Contains(outer, inner_top + offset)) return false;
+                if (!Contains(outer, inner_bottom + offset)) return false;
+            }
+            return true;
+        }
+
+        // Parallel cylinders
+        const math::vec3 center_delta = inner.center - outer.center;
+        const float axial = math::dot(center_delta, outer_axis);
+        const math::vec3 radial = center_delta - axial * outer_axis;
+        const float radial_dist = math::length(radial);
+
+        // Check radial containment
+        if (radial_dist + inner.radius > outer.radius) return false;
+
+        // Check axial containment
+        const float inner_extent = math::utils::abs(axial) + inner.half_height;
+        return inner_extent <= outer.half_height;
     }
 
     bool Contains(const Cylinder& outer, const Ellipsoid& inner) noexcept
     {
-        //TODO
+        //TODO: more efficient algorithm
+        // Conservative approach: sample points on the ellipsoid surface
+        const math::mat3 R = math::utils::to_rotation_matrix(inner.orientation);
+        const int samples = 16;
+
+        for (int i = 0; i < samples; ++i)
+        {
+            const float theta = 2.0f * 3.14159265f * i / samples;
+            for (int j = 0; j < samples / 2; ++j)
+            {
+                const float phi = 3.14159265f * j / (samples / 2 - 1);
+                const math::vec3 local{
+                    inner.radii[0] * math::utils::sin(phi) * math::utils::cos(theta),
+                    inner.radii[1] * math::utils::sin(phi) * math::utils::sin(theta),
+                    inner.radii[2] * math::utils::cos(phi)
+                };
+                const math::vec3 world = inner.center + R * local;
+                if (!Contains(outer, world)) return false;
+            }
+        }
+        return true;
     }
 
     bool Contains(const Cylinder& outer, const Obb& inner) noexcept
     {
-        //TODO
+        const auto corners = GetCorners(inner);
+        for (const auto& corner : corners)
+        {
+            if (!Contains(outer, corner)) return false;
+        }
+        return true;
     }
 
     bool Contains(const Cylinder& outer, const Segment& inner) noexcept
@@ -1235,7 +1887,7 @@ namespace engine::geometry
     // Map world -> ellipsoid local: x' = R^T (x - c); then scale by radii^-1
     static inline math::vec3 EllipsoidToUnit(const Ellipsoid& ellipsoid, const math::vec3& point) noexcept
     {
-        const math::mat3 R = to_rotation_matrix(ellipsoid.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(ellipsoid.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 q = Rt * (point - ellipsoid.center);
         return math::vec3{q[0] / ellipsoid.radii[0], q[1] / ellipsoid.radii[1], q[2] / ellipsoid.radii[2]};
@@ -1249,22 +1901,89 @@ namespace engine::geometry
 
     bool Contains(const Ellipsoid& outer, const Aabb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        // Check all 8 corners of AABB
+        const auto corners = GetCorners(inner);
+        for (const auto& corner : corners)
+        {
+            if (!Contains(outer, corner))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool Contains(const Ellipsoid& outer, const Cylinder& inner) noexcept
     {
-        //TODO
+        // Sample points on cylinder surface
+        const math::vec3 axis = AxisDirection(inner);
+        math::vec3 perp1, perp2;
+        if (math::utils::abs(axis[0]) < 0.9f)
+        {
+            perp1 = math::normalize(math::cross(axis, math::vec3{1, 0, 0}));
+        }
+        else
+        {
+            perp1 = math::normalize(math::cross(axis, math::vec3{0, 1, 0}));
+        }
+        perp2 = math::cross(axis, perp1);
+
+        const int angle_samples = 16;
+        const int height_samples = 8;
+
+        for (int i = 0; i < angle_samples; ++i)
+        {
+            const float angle = 2.0f * 3.14159265f * i / angle_samples;
+            const math::vec3 radial = inner.radius * (math::utils::cos(angle) * perp1 + math::utils::sin(angle) *
+                perp2);
+
+            for (int j = 0; j < height_samples; ++j)
+            {
+                const float t = -1.0f + 2.0f * j / (height_samples - 1);
+                const math::vec3 point = inner.center + t * inner.half_height * axis + radial;
+                if (!Contains(outer, point)) return false;
+            }
+        }
+
+        // Check end caps
+        const math::vec3 top = TopCenter(inner);
+        const math::vec3 bottom = BottomCenter(inner);
+        if (!Contains(outer, top) || !Contains(outer, bottom)) return false;
+
+        return true;
     }
 
     bool Contains(const Ellipsoid& outer, const Ellipsoid& inner) noexcept
     {
-        //TODO
+        // Conservative test: check if all extreme points of inner ellipsoid are inside outer
+        const math::mat3 R = math::utils::to_rotation_matrix(inner.orientation);
+
+        for (int i = 0; i < 3; ++i)
+        {
+            const math::vec3 axis{R[0][i], R[1][i], R[2][i]};
+            const math::vec3 extent_pos = inner.center + axis * inner.radii[i];
+            const math::vec3 extent_neg = inner.center - axis * inner.radii[i];
+
+            if (!Contains(outer, extent_pos) || !Contains(outer, extent_neg))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool Contains(const Ellipsoid& outer, const Obb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        // Check all 8 corners of OBB
+        const auto corners = GetCorners(inner);
+        for (const auto& corner : corners)
+        {
+            if (!Contains(outer, corner))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool Contains(const Ellipsoid& outer, const Segment& inner) noexcept
@@ -1281,10 +2000,10 @@ namespace engine::geometry
             if (inner.radius > 0.0f) return false;
             const math::vec3 unit = EllipsoidToUnit(outer, inner.center);
             //TODO: check if this is the correct epsilon to use
-            return math::utils::nearly_equal(math::length_squared(unit) , 0.0f, constants::PARALLEL_EPSILON);
+            return math::utils::nearly_equal(math::length_squared(unit), 0.0f, constants::PARALLEL_EPSILON);
         }
 
-        const math::mat3 R = to_rotation_matrix(outer.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(outer.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 local = Rt * (inner.center - outer.center);
 
@@ -1292,7 +2011,7 @@ namespace engine::geometry
         const float scaled_len = math::length(scaled);
         if (scaled_len >= 1.0f) return false; // center is outside or on boundary
 
-        if (math::utils::nearly_equal(math::length_squared(local) , 0.0f, constants::PARALLEL_EPSILON))
+        if (math::utils::nearly_equal(math::length_squared(local), 0.0f, constants::PARALLEL_EPSILON))
         {
             const float min_radius = math::utils::min(radii[0], math::utils::min(radii[1], radii[2]));
             return inner.radius <= min_radius;
@@ -1312,27 +2031,97 @@ namespace engine::geometry
 
     bool Contains(const Obb& outer, const math::vec3& inner) noexcept
     {
-        //TODO
+        // Transform point to OBB local space
+        const math::mat3 R = math::utils::to_rotation_matrix(outer.orientation);
+        const math::mat3 Rt = transpose(R);
+        const math::vec3 local = Rt * (inner - outer.center);
+
+        // Check if point is within half-sizes in all dimensions
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            if (math::utils::abs(local[i]) > outer.half_sizes[i])
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool Contains(const Obb& outer, const Aabb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        // Check all 8 corners of AABB
+        const auto corners = GetCorners(inner);
+        for (const auto& corner : corners)
+        {
+            if (!Contains(outer, corner))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool Contains(const Obb& outer, const Cylinder& inner) noexcept
     {
-        //TODO
+        // Sample points on cylinder surface
+        const math::vec3 axis = AxisDirection(inner);
+        math::vec3 perp1, perp2;
+        if (math::utils::abs(axis[0]) < 0.9f)
+        {
+            perp1 = math::normalize(math::cross(axis, math::vec3{1, 0, 0}));
+        }
+        else
+        {
+            perp1 = math::normalize(math::cross(axis, math::vec3{0, 1, 0}));
+        }
+        perp2 = math::cross(axis, perp1);
+
+        const math::vec3 top = TopCenter(inner);
+        const math::vec3 bottom = BottomCenter(inner);
+
+        for (int i = 0; i < 8; ++i)
+        {
+            const float angle = i * 3.14159265f / 4.0f;
+            const math::vec3 offset = inner.radius * (math::utils::cos(angle) * perp1 + math::utils::sin(angle) *
+                perp2);
+            if (!Contains(outer, top + offset)) return false;
+            if (!Contains(outer, bottom + offset)) return false;
+        }
+
+        return true;
     }
 
     bool Contains(const Obb& outer, const Ellipsoid& inner) noexcept
     {
-        //TODO
+        // Check extreme points of ellipsoid along its principal axes
+        const math::mat3 R = math::utils::to_rotation_matrix(inner.orientation);
+
+        for (int i = 0; i < 3; ++i)
+        {
+            const math::vec3 axis{R[0][i], R[1][i], R[2][i]};
+            const math::vec3 extent_pos = inner.center + axis * inner.radii[i];
+            const math::vec3 extent_neg = inner.center - axis * inner.radii[i];
+
+            if (!Contains(outer, extent_pos) || !Contains(outer, extent_neg))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool Contains(const Obb& outer, const Obb& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        // Check all 8 corners of inner OBB
+        const auto corners = GetCorners(inner);
+        for (const auto& corner : corners)
+        {
+            if (!Contains(outer, corner))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool Contains(const Obb& outer, const Segment& inner) noexcept
@@ -1343,7 +2132,7 @@ namespace engine::geometry
 
     bool Contains(const Obb& outer, const Sphere& inner) noexcept
     {
-        const math::mat3 R = to_rotation_matrix(outer.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(outer.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 local = Rt * (inner.center - outer.center);
         for (std::size_t i = 0; i < 3; ++i)
@@ -1359,6 +2148,36 @@ namespace engine::geometry
     {
         //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
+    }
+
+    bool Contains(const Plane& outer, const math::vec3& inner, float eps) noexcept
+    {
+        //TODO
+    }
+
+    bool Contains(const Plane& outer, const Line& inner, float eps) noexcept
+    {
+        //TODO
+    }
+
+    bool Contains(const Plane& outer, const Plane& inner, float eps) noexcept
+    {
+        //TODO
+    }
+
+    bool Contains(const Plane& outer, const Ray& inner, float eps) noexcept
+    {
+        //TODO
+    }
+
+    bool Contains(const Plane& outer, const Segment& inner, float eps) noexcept
+    {
+        //TODO
+    }
+
+    bool Contains(const Plane& outer, const Triangle& inner, float eps) noexcept
+    {
+        //TODO
     }
 
     bool Contains(const Sphere& outer, const math::vec3& inner) noexcept
@@ -1386,7 +2205,7 @@ namespace engine::geometry
         const math::vec3 delta = inner.center - outer.center;
 
         //TODO: check if this is the correct epsilon to use
-        if (math::utils::nearly_equal(axis_len_sq,  0.0f, constants::PARALLEL_EPSILON))
+        if (math::utils::nearly_equal(axis_len_sq, 0.0f, constants::PARALLEL_EPSILON))
         {
             const float radial = math::length(delta) + inner.radius;
             return radial <= outer.radius;
@@ -1410,9 +2229,8 @@ namespace engine::geometry
 
     bool Contains(const Sphere& outer, const Ellipsoid& inner) noexcept
     {
-
         //TODO: optimize? too complex for real nodes?
-        const math::mat3 R = to_rotation_matrix(inner.orientation);
+        const math::mat3 R = math::utils::to_rotation_matrix(inner.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 radii = inner.radii;
 
@@ -1445,7 +2263,7 @@ namespace engine::geometry
 
         const float diff_len_sq = math::dot(inner.center - outer.center, inner.center - outer.center);
         //TODO: check if this is the correct epsilon to use
-        if (math::utils::nearly_equal(diff_len_sq,  0.0f, constants::PARALLEL_EPSILON))
+        if (math::utils::nearly_equal(diff_len_sq, 0.0f, constants::PARALLEL_EPSILON))
         {
             const float max_radius = math::utils::max(r0, math::utils::max(r1, r2));
             return max_radius <= outer.radius;
@@ -1516,5 +2334,20 @@ namespace engine::geometry
     {
         //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
+    }
+
+    bool Contains(const Triangle& outer, const math::vec3& inner) noexcept
+    {
+        //TODO
+    }
+
+    bool Contains(const Triangle& outer, const Triangle& inner) noexcept
+    {
+        //TODO
+    }
+
+    bool Contains(const Triangle& outer, const Segment& inner) noexcept
+    {
+        //TODO
     }
 } // namespace engine::geometry

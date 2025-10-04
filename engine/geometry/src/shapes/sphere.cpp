@@ -1,4 +1,5 @@
 #include "engine/geometry/shapes.hpp"
+#include "engine/math/utils.hpp"
 
 #include <algorithm>
 #include <array>

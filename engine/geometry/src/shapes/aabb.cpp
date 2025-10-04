@@ -8,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <engine/math/utils_rotation.hpp>
 
 namespace engine::geometry {
     math::vec3 Center(const Aabb &box) noexcept {
@@ -125,7 +126,7 @@ namespace engine::geometry {
     }
 
     Aabb BoundingAabb(const Ellipsoid &s) noexcept {
-        const math::mat3 R = s.orientation.to_rotation_matrix();
+        const math::mat3 R = math::utils::to_rotation_matrix<float>(s.orientation);
         math::vec3 extent{0.0f};
         for (std::size_t row = 0; row < 3; ++row) {
             float sum = 0.0f;

@@ -1,11 +1,11 @@
 #include "engine/geometry/shapes.hpp"
 #include "engine/math/matrix.hpp"
 #include "engine/math/utils.hpp"
+#include "engine/math/utils_rotation.hpp"
 
 #include <array>
 #include <cmath>
 #include <limits>
-
 
 namespace engine::geometry {
     math::vec3 Size(const Obb &box) noexcept {
@@ -61,7 +61,7 @@ namespace engine::geometry {
             }
         }
 
-        const math::mat3 rotation = box.orientation.to_rotation_matrix();
+        const math::mat3 rotation = math::utils::to_rotation_matrix<float>(box.orientation);
         std::array<math::vec3, 3> axes{};
         for (std::size_t axis = 0; axis < 3; ++axis) {
             const math::vec3 basis{rotation[0][axis], rotation[1][axis], rotation[2][axis]};
@@ -126,7 +126,7 @@ namespace engine::geometry {
     }
 
     math::vec3 ClosestPoint(const Obb &obb, const math::vec3 &point) noexcept {
-        const math::mat3 rotation = obb.orientation.to_rotation_matrix();
+        const math::mat3 rotation = math::utils::to_rotation_matrix(obb.orientation);
         const math::mat3 rotation_transposed = math::transpose(rotation);
         const math::vec3 local_point = rotation_transposed * (point - obb.center);
 
@@ -148,7 +148,7 @@ namespace engine::geometry {
 
     std::array<math::vec3, 8> GetCorners(const Obb &box) noexcept {
         std::array<math::vec3, 8> vertices{};
-        math::mat3 R = box.orientation.to_rotation_matrix();
+        math::mat3 R = math::utils::to_rotation_matrix(box.orientation);
         math::vec3 he = box.half_sizes;
 
         // Calculate the 8 vertices of the OBB

@@ -1,8 +1,6 @@
 #include "engine/geometry/shapes/segment.hpp"
-
-#include <cmath>
-
 #include "engine/geometry/shapes/plane.hpp"
+#include "engine/math/utils.hpp"
 
 namespace engine::geometry {
     math::vec3 Direction(const Segment &segment) noexcept {

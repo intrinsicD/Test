@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstddef>
 #include <type_traits>
+#include <limits>
 
 #ifndef ENGINE_MATH_HD
 #    if defined(__CUDACC__)
@@ -26,6 +27,11 @@ namespace engine::math {
         template<typename T>
         ENGINE_MATH_INLINE T one() noexcept {
             return T(1);
+        }
+
+        template<typename T>
+       ENGINE_MATH_INLINE T infinity() noexcept {
+            return T(std::numeric_limits<T>::infinity());
         }
     } // namespace detail
 } // namespace engine::math

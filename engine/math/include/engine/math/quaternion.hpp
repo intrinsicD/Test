@@ -1,5 +1,6 @@
 #pragma once
 
+#include "utils.hpp"
 #include "engine/math/common.hpp"
 #include "engine/math/vector.hpp"
 #include "engine/math/matrix.hpp"
@@ -7,7 +8,7 @@
 namespace engine::math
 {
     template <typename T>
-    struct quaternion
+    struct Quaternion
     {
         using value_type = T;
 
@@ -16,7 +17,7 @@ namespace engine::math
         value_type y;
         value_type z;
 
-        ENGINE_MATH_INLINE quaternion() noexcept
+        ENGINE_MATH_INLINE Quaternion() noexcept
             : w(detail::zero<value_type>()),
               x(detail::zero<value_type>()),
               y(detail::zero<value_type>()),
@@ -24,7 +25,7 @@ namespace engine::math
         {
         }
 
-        ENGINE_MATH_INLINE quaternion(value_type w_, value_type x_, value_type y_, value_type z_) noexcept
+        ENGINE_MATH_INLINE Quaternion(value_type w_, value_type x_, value_type y_, value_type z_) noexcept
             : w(static_cast<value_type>(w_)),
               x(static_cast<value_type>(x_)),
               y(static_cast<value_type>(y_)),
@@ -32,14 +33,22 @@ namespace engine::math
         {
         }
 
-        ENGINE_MATH_INLINE quaternion(value_type scalar, const Vector<T, 3>& vector_part) noexcept
-            : quaternion(scalar, vector_part[0], vector_part[1], vector_part[2])
+        ENGINE_MATH_INLINE Quaternion(value_type scalar, const Vector<T, 3>& vector_part) noexcept
+            : Quaternion(scalar, vector_part[0], vector_part[1], vector_part[2])
         {
         }
 
-        ENGINE_MATH_INLINE explicit quaternion(const Vector<T, 3>& vector_part) noexcept
-            : quaternion(T(0), vector_part[0], vector_part[1], vector_part[2])
+        ENGINE_MATH_INLINE explicit Quaternion(const Vector<T, 3>& vector_part) noexcept
+            : Quaternion(T(0), vector_part[0], vector_part[1], vector_part[2])
         {
+        }
+
+        ENGINE_MATH_INLINE static Quaternion Identity() noexcept
+        {
+            return Quaternion(detail::one<value_type>(),
+                              detail::zero<value_type>(),
+                              detail::zero<value_type>(),
+                              detail::zero<value_type>());
         }
 
         ENGINE_MATH_INLINE value_type& operator[](std::size_t index) noexcept
@@ -64,7 +73,7 @@ namespace engine::math
             }
         }
 
-        ENGINE_MATH_INLINE quaternion& operator+=(const quaternion& rhs) noexcept
+        ENGINE_MATH_INLINE Quaternion& operator+=(const Quaternion& rhs) noexcept
         {
             w += rhs.w;
             x += rhs.x;
@@ -73,7 +82,7 @@ namespace engine::math
             return *this;
         }
 
-        ENGINE_MATH_INLINE quaternion& operator-=(const quaternion& rhs) noexcept
+        ENGINE_MATH_INLINE Quaternion& operator-=(const Quaternion& rhs) noexcept
         {
             w -= rhs.w;
             x -= rhs.x;
@@ -82,7 +91,7 @@ namespace engine::math
             return *this;
         }
 
-        ENGINE_MATH_INLINE quaternion& operator*=(value_type scalar) noexcept
+        ENGINE_MATH_INLINE Quaternion& operator*=(value_type scalar) noexcept
         {
             w *= scalar;
             x *= scalar;
@@ -91,7 +100,7 @@ namespace engine::math
             return *this;
         }
 
-        ENGINE_MATH_INLINE quaternion& operator/=(value_type scalar) noexcept
+        ENGINE_MATH_INLINE Quaternion& operator/=(value_type scalar) noexcept
         {
             const value_type inv = detail::one<value_type>() / scalar;
             return (*this) *= inv;
@@ -99,56 +108,56 @@ namespace engine::math
     };
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> operator+(quaternion<T> lhs, const quaternion<T>& rhs) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> operator+(Quaternion<T> lhs, const Quaternion<T>& rhs) noexcept
     {
         lhs += rhs;
         return lhs;
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> operator-(quaternion<T> lhs, const quaternion<T>& rhs) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> operator-(Quaternion<T> lhs, const Quaternion<T>& rhs) noexcept
     {
         lhs -= rhs;
         return lhs;
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> operator*(quaternion<T> lhs, T scalar) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> operator*(Quaternion<T> lhs, T scalar) noexcept
     {
         lhs *= scalar;
         return lhs;
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> operator*(T scalar, quaternion<T> rhs) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> operator*(T scalar, Quaternion<T> rhs) noexcept
     {
         rhs *= scalar;
         return rhs;
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> operator/(quaternion<T> lhs, T scalar) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> operator/(Quaternion<T> lhs, T scalar) noexcept
     {
         lhs /= scalar;
         return lhs;
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE bool operator==(const quaternion<T>& lhs, const quaternion<T>& rhs) noexcept
+    ENGINE_MATH_INLINE bool operator==(const Quaternion<T>& lhs, const Quaternion<T>& rhs) noexcept
     {
         return lhs.w == rhs.w && lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE bool operator!=(const quaternion<T>& lhs, const quaternion<T>& rhs) noexcept
+    ENGINE_MATH_INLINE bool operator!=(const Quaternion<T>& lhs, const Quaternion<T>& rhs) noexcept
     {
         return !(lhs == rhs);
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> operator*(const quaternion<T>& lhs, const quaternion<T>& rhs) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> operator*(const Quaternion<T>& lhs, const Quaternion<T>& rhs) noexcept
     {
-        return quaternion<T>{
+        return Quaternion<T>{
             lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z,
             lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
             lhs.w * rhs.y - lhs.x * rhs.z + lhs.y * rhs.w + lhs.z * rhs.x,
@@ -157,31 +166,31 @@ namespace engine::math
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> conjugate(const quaternion<T>& value) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> conjugate(const Quaternion<T>& value) noexcept
     {
-        return quaternion<T>{value.w, -value.x, -value.y, -value.z};
+        return Quaternion<T>{value.w, -value.x, -value.y, -value.z};
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE T dot(const quaternion<T>& lhs, const quaternion<T>& rhs) noexcept
+    ENGINE_MATH_INLINE T dot(const Quaternion<T>& lhs, const Quaternion<T>& rhs) noexcept
     {
         return lhs.w * rhs.w + lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE T length_squared(const quaternion<T>& value) noexcept
+    ENGINE_MATH_INLINE T length_squared(const Quaternion<T>& value) noexcept
     {
         return dot(value, value);
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE T length(const quaternion<T>& value) noexcept
+    ENGINE_MATH_INLINE T length(const Quaternion<T>& value) noexcept
     {
         return static_cast<T>(::sqrt(static_cast<double>(length_squared(value))));
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> normalize(const quaternion<T>& value) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> normalize(const Quaternion<T>& value) noexcept
     {
         const T len = length(value);
         if (len == detail::zero<T>())
@@ -192,19 +201,19 @@ namespace engine::math
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> inverse(const quaternion<T>& value) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> inverse(const Quaternion<T>& value) noexcept
     {
         const T len_sq = length_squared(value);
         if (len_sq == detail::zero<T>())
         {
-            return quaternion<T>{};
+            return Quaternion<T>{};
         }
         return conjugate(value) / len_sq;
     }
 
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> from_angle_axis(T angle, const Vector<T, 3>& axis) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> from_angle_axis(T angle, const Vector<T, 3>& axis) noexcept
     {
         const T ax = axis[0];
         const T ay = axis[1];
@@ -213,7 +222,7 @@ namespace engine::math
         const T len_sq = ax * ax + ay * ay + az * az;
         if (len_sq == detail::zero<T>() || angle == detail::zero<T>())
         {
-            return quaternion<T>{detail::one<T>(), detail::zero<T>(), detail::zero<T>(), detail::zero<T>()};
+            return Quaternion<T>{detail::one<T>(), detail::zero<T>(), detail::zero<T>(), detail::zero<T>()};
         }
 
         const T len = static_cast<T>(sqrt(static_cast<double>(len_sq)));
@@ -222,7 +231,7 @@ namespace engine::math
         const T c = static_cast<T>(cos(static_cast<double>(half)));
         const T inv_len = detail::one<T>() / len;
 
-        return quaternion<T>{
+        return Quaternion<T>{
             c,
             ax * inv_len * s,
             ay * inv_len * s,
@@ -231,7 +240,7 @@ namespace engine::math
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> from_angle_axis(const Vector<T, 4>& value) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> from_angle_axis(const Vector<T, 4>& value) noexcept
     {
         return from_angle_axis(
             value[0],
@@ -240,7 +249,7 @@ namespace engine::math
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> from_angle_axis(const Vector<T, 3>& value) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> from_angle_axis(const Vector<T, 3>& value) noexcept
     {
         const T vx = value[0];
         const T vy = value[1];
@@ -249,7 +258,7 @@ namespace engine::math
         const T angle = static_cast<T>(::sqrt(static_cast<double>(vx * vx + vy * vy + vz * vz)));
         if (angle == detail::zero<T>())
         {
-            return quaternion<T>{detail::one<T>(), detail::zero<T>(), detail::zero<T>(), detail::zero<T>()};
+            return Quaternion<T>{detail::one<T>(), detail::zero<T>(), detail::zero<T>(), detail::zero<T>()};
         }
 
         const T inv_angle = detail::one<T>() / angle;
@@ -258,7 +267,7 @@ namespace engine::math
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> from_rotation_matrix(const Matrix<T, 3, 3>& value) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> from_rotation_matrix(const Matrix<T, 3, 3>& value) noexcept
     {
         const T m00 = value[0][0];
         const T m01 = value[0][1];
@@ -272,7 +281,7 @@ namespace engine::math
 
         const T trace = m00 + m11 + m22;
 
-        quaternion<T> q;
+        Quaternion<T> q;
         if (trace > detail::zero<T>())
         {
             const T s = static_cast<T>(2) * static_cast<T>(::sqrt(static_cast<double>(trace + detail::one<T>())));
@@ -312,42 +321,10 @@ namespace engine::math
         return normalize(q);
     }
 
-    template <typename T>
-    ENGINE_MATH_INLINE Matrix<T, 3, 3> to_rotation_matrix(const quaternion<T>& quat) noexcept
-    {
-        //TODO: check if this is correct! Also check if there is a more efficient way to do this!
-        //TODO: add tests for this function!
-        //TODO: maybe remove this function an replace with utils::rotation(quat)?
-        Matrix<T, 3, 3> result;
-        const T xx = quat.x * quat.x;
-        const T yy = quat.y * quat.y;
-        const T zz = quat.z * quat.z;
-        const T xy = quat.x * quat.y;
-        const T xz = quat.x * quat.z;
-        const T yz = quat.y * quat.z;
-        const T wx = quat.w * quat.x;
-        const T wy = quat.w * quat.y;
-        const T wz = quat.w * quat.z;
-
-        result[0][0] = detail::one<T>() - static_cast<T>(2) * (yy + zz);
-        result[0][1] = static_cast<T>(2) * (xy - wz);
-        result[0][2] = static_cast<T>(2) * (xz + wy);
-
-        result[1][0] = static_cast<T>(2) * (xy + wz);
-        result[1][1] = detail::one<T>() - static_cast<T>(2) * (xx + zz);
-        result[1][2] = static_cast<T>(2) * (yz - wx);
-
-        result[2][0] = static_cast<T>(2) * (xz - wy);
-        result[2][1] = static_cast<T>(2) * (yz + wx);
-        result[2][2] = detail::one<T>() - static_cast<T>(2) * (xx + yy);
-
-        return result;
-    }
-
     template <typename T, typename S>
-    ENGINE_MATH_INLINE quaternion<S> cast(const quaternion<T>& quat) noexcept
+    ENGINE_MATH_INLINE Quaternion<S> cast(const Quaternion<T>& quat) noexcept
     {
-        quaternion<S> result;
+        Quaternion<S> result;
         result.w = static_cast<S>(quat.w);
         result.x = static_cast<S>(quat.x);
         result.y = static_cast<S>(quat.y);
@@ -356,75 +333,68 @@ namespace engine::math
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> slerp(const quaternion<T>& from, const quaternion<T>& to, T t) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> slerp(const Quaternion<T>& from, const Quaternion<T>& to, T t) noexcept
     {
         //TODO: check if this is correct!
         // Compute the cosine of the angle between the two quaternions
-        T cos_half_theta = dot(from, to);
+        T cos_theta = dot(from, to);
+        Quaternion<T> to_interp = to;
 
-        // If the dot product is negative, negate one quaternion to take the shorter path
-        quaternion<T> to1 = to;
-        if (cos_half_theta < detail::zero<T>())
-        {
-            to1 = quaternion<T>{-to.w, -to.x, -to.y, -to.z};
-            cos_half_theta = -cos_half_theta;
+        // Take shortest path
+        if (cos_theta < T(0)) {
+            to_interp = Quaternion<T>{-to.w, -to.x, -to.y, -to.z};
+            cos_theta = -cos_theta;
         }
 
-        // If the quaternions are very close, use linear interpolation
-        if (cos_half_theta > static_cast<T>(0.9995))
-        {
-            quaternion<T> result = (1 - t) * from + t * to1;
-            return normalize(result);
+        // Use lerp if very close
+        if (cos_theta > T(0.9995)) {
+            return normalize((T(1) - t) * from + t * to_interp);
         }
 
-        // Compute the sin of the angle using the trigonometric identity sin^2(theta) + cos^2(theta) = 1
-        T sin_half_theta = static_cast<T>(sqrt(static_cast<double>(1.0 - cos_half_theta * cos_half_theta)));
+        // Clamp to avoid acos domain errors
+        cos_theta = utils::clamp(cos_theta, T(-1), T(1));
 
-        // Compute the angle between the quaternions
-        T half_theta = static_cast<T>(atan2(static_cast<double>(sin_half_theta),
-                                            static_cast<double>(cos_half_theta)));
+        const T theta = static_cast<T>(acos(static_cast<double>(cos_theta)));
+        const T sin_theta = static_cast<T>(sin(static_cast<double>(theta)));
 
-        // Compute the ratios for interpolation
-        T ratio_a = static_cast<T>(sin(static_cast<double>((1 - t) * half_theta)) / sin_half_theta);
-        T ratio_b = static_cast<T>(sin(static_cast<double>(t * half_theta)) / sin_half_theta);
+        const T ratio_a = static_cast<T>(sin(static_cast<double>((T(1) - t) * theta))) / sin_theta;
+        const T ratio_b = static_cast<T>(sin(static_cast<double>(t * theta))) / sin_theta;
 
-        // Perform the interpolation
-        quaternion<T> result = ratio_a * from + ratio_b * to1;
-        return normalize(result);
+        return ratio_a * from + ratio_b * to_interp;
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE quaternion<T> squad(const quaternion<T>& q1, const quaternion<T>& q2,
-                                           const quaternion<T>& q3, const quaternion<T>& q4, T t) noexcept
+    ENGINE_MATH_INLINE Quaternion<T> squad(const Quaternion<T>& q1, const Quaternion<T>& q2,
+                                           const Quaternion<T>& q3, const Quaternion<T>& q4, T t) noexcept
     {
         //TODO: check if this is correct! Explain: What is the purpose of squad?
-        const quaternion<T> slerp1 = slerp(q1, q4, t);
-        const quaternion<T> slerp2 = slerp(q2, q3, t);
+        const Quaternion<T> slerp1 = slerp(q1, q4, t);
+        const Quaternion<T> slerp2 = slerp(q2, q3, t);
         return slerp(slerp1, slerp2, static_cast<T>(2) * t * (detail::one<T>() - t));
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE Vector<T, 3> to_angle_axis(const quaternion<T>& quat) noexcept
+    ENGINE_MATH_INLINE Vector<T, 4> to_angle_axis(const Quaternion<T>& quat) noexcept
     {
         //TODO: check if this is correct!
-        quaternion<T> q = normalize(quat);
+        Quaternion<T> q = normalize(quat);
         const T angle = static_cast<T>(2) * static_cast<T>(acos(static_cast<double>(q.w)));
         const T s = static_cast<T>(sqrt(static_cast<double>(1.0 - q.w * q.w)));
 
         if (s < static_cast<T>(0.001))
         {
-            return Vector<T, 3>{angle, q.x, q.y, q.z};
+            return Vector<T, 4>{angle, q.x, q.y, q.z};
         }
 
-        return Vector<T, 3>{angle, q.x / s, q.y / s, q.z / s};
+        return Vector<T, 4>{angle, q.x / s, q.y / s, q.z / s};
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE Vector<T, 3> to_euler_angles(const quaternion<T>& quat) noexcept
+    ENGINE_MATH_INLINE Vector<T, 3> to_euler_angles(const Quaternion<T>& quat) noexcept
     {
         //TODO: check if this is correct!
         // Normalize to avoid drift amplifying numerical issues
-        const quaternion<T> q = normalize(quat);
+        const Quaternion<T> q = normalize(quat);
         const T w = q.w;
         const T x = q.x;
         const T y = q.y;
@@ -453,6 +423,6 @@ namespace engine::math
         return Vector<T, 3>{roll, pitch, yaw};
     }
 
-    using quat = quaternion<float>;
-    using dquat = quaternion<double>;
+    using quat = Quaternion<float>;
+    using dquat = Quaternion<double>;
 } // namespace engine::math

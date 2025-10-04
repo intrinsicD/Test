@@ -11,6 +11,9 @@
 - `matrix.hpp` – Header for Matrix.
 - `quaternion.hpp` – Header for Quaternion.
 - `vector.hpp` – Header for Vector.
+- `utils.hpp` – Header for Utilities.'
+- `utils_camera.hpp` – Header for Camera Utilities.
+- `utils_rotation.hpp` – Header for Rotation Utilities.
 
 ## TODO
 - [ ] Extend the public headers as new APIs emerge.
