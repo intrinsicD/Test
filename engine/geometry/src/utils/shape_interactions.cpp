@@ -1,5 +1,6 @@
 #include "engine/geometry/utils/shape_interactions.hpp"
 #include "engine/geometry/shapes.hpp"
+#include "engine/math/utils.hpp"
 
 #include <limits>
 
@@ -36,7 +37,8 @@ namespace engine::geometry
         {
             const float o = ln.point[i];
             const float d = ln.direction[i];
-            if (d == 0.0f)
+            //TODO: check if this is the correct epsilon to use
+            if (math::utils::nearly_equal(d, 0.0f, constants::SEPARATION_EPSILON))
             {
                 if (o < box.min[i] || o > box.max[i]) return false;
             }
@@ -66,11 +68,11 @@ namespace engine::geometry
 
     bool Intersects(const Aabb& aabb, const Obb& obb) noexcept
     {
-        const math::mat3 B = obb.orientation.to_rotation_matrix(); // localB->world
+        const math::mat3 B = to_rotation_matrix(obb.orientation); // localB->world
         math::mat3 R = B; // since RA=I
         math::mat3 AbsR{};
         const float EPS = 1e-6f;
-        for (int i = 0; i < 3; ++i) for (int j = 0; j < 3; ++j) AbsR[i][j] = abs(R[i][j]) + EPS;
+        for (int i = 0; i < 3; ++i) for (int j = 0; j < 3; ++j) AbsR[i][j] = math::utils::abs(R[i][j]) + EPS;
 
         const math::vec3 aC = Center(aabb);
         const math::vec3 aE = Extent(aabb);
@@ -82,14 +84,14 @@ namespace engine::geometry
         {
             const float ra = aE[i];
             const float rb = bE[0] * AbsR[i][0] + bE[1] * AbsR[i][1] + bE[2] * AbsR[i][2];
-            if (abs(T[i]) > ra + rb) return false;
+            if (math::utils::abs(T[i]) > ra + rb) return false;
         }
         // B's axes
         for (int j = 0; j < 3; ++j)
         {
             const float ra = aE[0] * AbsR[0][j] + aE[1] * AbsR[1][j] + aE[2] * AbsR[2][j];
             const float rb = bE[j];
-            const float t = abs(T[0] * R[0][j] + T[1] * R[1][j] + T[2] * R[2][j]);
+            const float t = math::utils::abs(T[0] * R[0][j] + T[1] * R[1][j] + T[2] * R[2][j]);
             if (t > ra + rb) return false;
         }
         // Cross axes A_i x B_j
@@ -100,7 +102,7 @@ namespace engine::geometry
                 const int j1 = (j + 1) % 3, j2 = (j + 2) % 3;
                 const float ra = aE[i1] * AbsR[i2][j] + aE[i2] * AbsR[i1][j];
                 const float rb = bE[j1] * AbsR[i][j2] + bE[j2] * AbsR[i][j1];
-                const float t = abs(T[i2] * R[i1][j] - T[i1] * R[i2][j]);
+                const float t = math::utils::abs(T[i2] * R[i1][j] - T[i1] * R[i2][j]);
                 if (t > ra + rb) return false;
             }
         return true;
@@ -111,9 +113,11 @@ namespace engine::geometry
         const math::vec3 c = Center(aabb);
         const math::vec3 e = Extent(aabb);
         const float s = math::dot(plane.normal, c) + plane.distance;
-        const math::vec3 an{abs(plane.normal[0]), abs(plane.normal[1]), abs(plane.normal[2])};
+        const math::vec3 an{
+            math::utils::abs(plane.normal[0]), math::utils::abs(plane.normal[1]), math::utils::abs(plane.normal[2])
+        };
         const float r = e[0] * an[0] + e[1] * an[1] + e[2] * an[2];
-        return abs(s) <= r;
+        return math::utils::abs(s) <= r;
     }
 
     bool Intersects(const Aabb& box, const Ray& ray, Result<Aabb, Ray>* result) noexcept
@@ -125,7 +129,8 @@ namespace engine::geometry
         {
             const float o = ray.origin[i];
             const float d = ray.direction[i];
-            if (d == 0.0f)
+            //TODO: check if this is the correct epsilon to use
+            if (math::utils::nearly_equal(d, 0.0f, constants::SEPARATION_EPSILON))
             {
                 if (o < box.min[i] || o > box.max[i]) return false;
             }
@@ -164,7 +169,8 @@ namespace engine::geometry
         {
             const float d = dir[i];
             const float oi = o[i];
-            if (d == 0.0f)
+            //TODO: check if this is the correct epsilon to use
+            if (math::utils::nearly_equal(d, 0.0f, constants::SEPARATION_EPSILON))
             {
                 if (oi < box.min[i] || oi > box.max[i]) return false;
             }
@@ -209,29 +215,13 @@ namespace engine::geometry
         const math::vec3 f0 = v1 - v0;
         const math::vec3 f1 = v2 - v1;
         const math::vec3 f2 = v0 - v2;
-
-        // 9 cross-product axes
-        const auto axis_test = [&](float a, float b, float fa, float fb, float va0, float va1, float va2, float eb0,
-                                   float eb1) -> bool
-        {
-            float p0 = a * va0 - b * va0; // computed per specific axis below; using inline forms instead
-            (void)p0;
-            (void)fa;
-            (void)fb;
-            (void)eb0;
-            (void)eb1;
-            (void)va1;
-            (void)va2;
-            return true; // placeholder to satisfy compiler; not used directly
-        };
-
         // (Following the original TAM code layout)
         // Axis L = (1,0,0) x f_i
         {
             float p0 = v0[2] * f0[1] - v0[1] * f0[2];
             float p1 = v1[2] * f0[1] - v1[1] * f0[2];
             float p2 = v2[2] * f0[1] - v2[1] * f0[2];
-            float r = e[1] * abs(f0[2]) + e[2] * abs(f0[1]);
+            float r = e[1] * math::utils::abs(f0[2]) + e[2] * math::utils::abs(f0[1]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -241,7 +231,7 @@ namespace engine::geometry
             float p0 = v0[2] * f1[1] - v0[1] * f1[2];
             float p1 = v1[2] * f1[1] - v1[1] * f1[2];
             float p2 = v2[2] * f1[1] - v2[1] * f1[2];
-            float r = e[1] * abs(f1[2]) + e[2] * abs(f1[1]);
+            float r = e[1] * math::utils::abs(f1[2]) + e[2] * math::utils::abs(f1[1]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -251,7 +241,7 @@ namespace engine::geometry
             float p0 = v0[2] * f2[1] - v0[1] * f2[2];
             float p1 = v1[2] * f2[1] - v1[1] * f2[2];
             float p2 = v2[2] * f2[1] - v2[1] * f2[2];
-            float r = e[1] * abs(f2[2]) + e[2] * abs(f2[1]);
+            float r = e[1] * math::utils::abs(f2[2]) + e[2] * math::utils::abs(f2[1]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -263,7 +253,7 @@ namespace engine::geometry
             float p0 = v0[0] * f0[2] - v0[2] * f0[0];
             float p1 = v1[0] * f0[2] - v1[2] * f0[0];
             float p2 = v2[0] * f0[2] - v2[2] * f0[0];
-            float r = e[0] * abs(f0[2]) + e[2] * abs(f0[0]);
+            float r = e[0] * math::utils::abs(f0[2]) + e[2] * math::utils::abs(f0[0]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -273,7 +263,7 @@ namespace engine::geometry
             float p0 = v0[0] * f1[2] - v0[2] * f1[0];
             float p1 = v1[0] * f1[2] - v1[2] * f1[0];
             float p2 = v2[0] * f1[2] - v2[2] * f1[0];
-            float r = e[0] * abs(f1[2]) + e[2] * abs(f1[0]);
+            float r = e[0] * math::utils::abs(f1[2]) + e[2] * math::utils::abs(f1[0]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -283,7 +273,7 @@ namespace engine::geometry
             float p0 = v0[0] * f2[2] - v0[2] * f2[0];
             float p1 = v1[0] * f2[2] - v1[2] * f2[0];
             float p2 = v2[0] * f2[2] - v2[2] * f2[0];
-            float r = e[0] * abs(f2[2]) + e[2] * abs(f2[0]);
+            float r = e[0] * math::utils::abs(f2[2]) + e[2] * math::utils::abs(f2[0]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -295,7 +285,7 @@ namespace engine::geometry
             float p0 = v0[1] * f0[0] - v0[0] * f0[1];
             float p1 = v1[1] * f0[0] - v1[0] * f0[1];
             float p2 = v2[1] * f0[0] - v2[0] * f0[1];
-            float r = e[0] * abs(f0[1]) + e[1] * abs(f0[0]);
+            float r = e[0] * math::utils::abs(f0[1]) + e[1] * math::utils::abs(f0[0]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -305,7 +295,7 @@ namespace engine::geometry
             float p0 = v0[1] * f1[0] - v0[0] * f1[1];
             float p1 = v1[1] * f1[0] - v1[0] * f1[1];
             float p2 = v2[1] * f1[0] - v2[0] * f1[1];
-            float r = e[0] * abs(f1[1]) + e[1] * abs(f1[0]);
+            float r = e[0] * math::utils::abs(f1[1]) + e[1] * math::utils::abs(f1[0]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -315,7 +305,7 @@ namespace engine::geometry
             float p0 = v0[1] * f2[0] - v0[0] * f2[1];
             float p1 = v1[1] * f2[0] - v1[0] * f2[1];
             float p2 = v2[1] * f2[0] - v2[0] * f2[1];
-            float r = e[0] * abs(f2[1]) + e[1] * abs(f2[0]);
+            float r = e[0] * math::utils::abs(f2[1]) + e[1] * math::utils::abs(f2[0]);
             if (math::utils::max(math::utils::max(-math::utils::max(p0, math::utils::max(p1, p2)),
                                                   math::utils::min(p0, math::utils::min(p1, p2))),
                                  -r) > r)
@@ -333,7 +323,7 @@ namespace engine::geometry
         // Triangle plane vs AABB
         const math::vec3 n = math::cross(f0, f1);
         const float d = math::dot(n, v0);
-        const math::vec3 an{abs(n[0]), abs(n[1]), abs(n[2])};
+        const math::vec3 an{math::utils::abs(n[0]), math::utils::abs(n[1]), math::utils::abs(n[2])};
         const float r = e[0] * an[0] + e[1] * an[1] + e[2] * an[2];
         if (d > r || d < -r) return false;
 
@@ -400,8 +390,8 @@ namespace engine::geometry
         const float axial = math::dot(delta, axis_dir);
         const float abs_axial = math::utils::abs(axial);
         const float axial_excess = abs_axial <= cylinder.half_height
-                                        ? 0.0f
-                                        : abs_axial - cylinder.half_height;
+                                       ? 0.0f
+                                       : abs_axial - cylinder.half_height;
 
         const math::vec3 radial_vec = delta - axial * axis_dir;
         const float radial_len_sq = math::dot(radial_vec, radial_vec);
@@ -438,7 +428,7 @@ namespace engine::geometry
 
     bool Intersects(const Ellipsoid& ellipsoid, const Line& line, Result<Ellipsoid, Ray>* result) noexcept
     {
-        const math::mat3 R = ellipsoid.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(ellipsoid.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 o = Rt * (line.point - ellipsoid.center);
         const math::vec3 d = Rt * line.direction;
@@ -480,7 +470,7 @@ namespace engine::geometry
 
     bool Intersects(const Ellipsoid& ellipsoid, const Ray& ray, Result<Ellipsoid, Ray>* result) noexcept
     {
-        const math::mat3 R = ellipsoid.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(ellipsoid.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 o = Rt * (ray.origin - ellipsoid.center);
         const math::vec3 d = Rt * ray.direction;
@@ -579,7 +569,8 @@ namespace engine::geometry
     {
         const float denom = math::dot(plane.normal, line.direction);
         const float num = -(math::dot(plane.normal, line.point) + plane.distance);
-        if (denom == 0.0f) return false; // parallel (coincident lines are rare; treat as no unique intersection)
+        if (math::utils::nearly_equal(denom, 0.0f, constants::INTERSECTION_EPSILON)) return false;
+        // parallel (coincident lines are rare; treat as no unique intersection)
         const float t = num / denom;
         if (result) result->t = t;
         return true;
@@ -650,7 +641,7 @@ namespace engine::geometry
 
     bool Intersects(const Obb& obb, const Line& line, Result<Obb, Line>* result) noexcept
     {
-        const math::mat3 R = obb.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(obb.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 o = Rt * (line.point - obb.center);
         const math::vec3 d = Rt * line.direction;
@@ -666,12 +657,12 @@ namespace engine::geometry
 
     bool Intersects(const Obb& a, const Obb& b) noexcept
     {
-        const math::mat3 A = a.orientation.to_rotation_matrix(); // localA->world
-        const math::mat3 B = b.orientation.to_rotation_matrix(); // localB->world
-        const math::mat3 R = transpose(A) * B; // localB in A-space
+        const math::mat3 A = to_rotation_matrix(a.orientation); // localA->world
+        const math::mat3 B = to_rotation_matrix(b.orientation); // localB->world
+        const math::mat3 R = transpose(A) * B; // localB in A-space TODO: verify!
         math::mat3 AbsR{};
         const float EPS = 1e-6f;
-        for (int i = 0; i < 3; ++i) for (int j = 0; j < 3; ++j) AbsR[i][j] = abs(R[i][j]) + EPS;
+        for (int i = 0; i < 3; ++i) for (int j = 0; j < 3; ++j) AbsR[i][j] = math::utils::abs(R[i][j]) + EPS;
 
         const math::vec3 aE = a.half_sizes;
         const math::vec3 bE = b.half_sizes;
@@ -684,7 +675,7 @@ namespace engine::geometry
         {
             const float ra = aE[i];
             const float rb = bE[0] * AbsR[i][0] + bE[1] * AbsR[i][1] + bE[2] * AbsR[i][2];
-            if (abs(T[i]) > ra + rb) return false;
+            if (math::utils::abs(T[i]) > ra + rb) return false;
         }
 
         // Test B's axes
@@ -692,7 +683,7 @@ namespace engine::geometry
         {
             const float ra = aE[0] * AbsR[0][j] + aE[1] * AbsR[1][j] + aE[2] * AbsR[2][j];
             const float rb = bE[j];
-            const float t = abs(T[0] * R[0][j] + T[1] * R[1][j] + T[2] * R[2][j]);
+            const float t = math::utils::abs(T[0] * R[0][j] + T[1] * R[1][j] + T[2] * R[2][j]);
             if (t > ra + rb) return false;
         }
 
@@ -704,7 +695,7 @@ namespace engine::geometry
                 const int j1 = (j + 1) % 3, j2 = (j + 2) % 3;
                 const float ra = aE[i1] * AbsR[i2][j] + aE[i2] * AbsR[i1][j];
                 const float rb = bE[j1] * AbsR[i][j2] + bE[j2] * AbsR[i][j1];
-                const float t = abs(T[i2] * R[i1][j] - T[i1] * R[i2][j]);
+                const float t = math::utils::abs(T[i2] * R[i1][j] - T[i1] * R[i2][j]);
                 if (t > ra + rb) return false;
             }
         return true;
@@ -712,23 +703,25 @@ namespace engine::geometry
 
     bool Intersects(const Obb& obb, const Plane& plane) noexcept
     {
-        const math::mat3 R = obb.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(obb.orientation);
         // projection radius of OBB onto plane normal
-        math::vec3 an{abs(plane.normal[0]), abs(plane.normal[1]), abs(plane.normal[2])};
+        math::vec3 an{
+            math::utils::abs(plane.normal[0]), math::utils::abs(plane.normal[1]), math::utils::abs(plane.normal[2])
+        };
         // Each world axis component projected onto local axes magnitude:
         // r = sum_i e_i * |n · axis_i|
         const math::vec3 e = obb.half_sizes;
         const float r =
-            e[0] * abs(R[0][0] * an[0] + R[1][0] * an[1] + R[2][0] * an[2]) +
-            e[1] * abs(R[0][1] * an[0] + R[1][1] * an[1] + R[2][1] * an[2]) +
-            e[2] * abs(R[0][2] * an[0] + R[1][2] * an[1] + R[2][2] * an[2]);
+            e[0] * math::utils::abs(R[0][0] * an[0] + R[1][0] * an[1] + R[2][0] * an[2]) +
+            e[1] * math::utils::abs(R[0][1] * an[0] + R[1][1] * an[1] + R[2][1] * an[2]) +
+            e[2] * math::utils::abs(R[0][2] * an[0] + R[1][2] * an[1] + R[2][2] * an[2]);
         const float s = math::dot(plane.normal, obb.center) + plane.distance;
-        return abs(s) <= r;
+        return math::utils::abs(s) <= r;
     }
 
     bool Intersects(const Obb& obb, const Ray& ray, Result<Obb, Ray>* result) noexcept
     {
-        const math::mat3 R = obb.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(obb.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 o = Rt * (ray.origin - obb.center);
         const math::vec3 d = Rt * ray.direction;
@@ -746,7 +739,7 @@ namespace engine::geometry
 
     bool Intersects(const Obb& obb, const Segment& segment, Result<Obb, Segment>* result) noexcept
     {
-        const math::mat3 R = obb.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(obb.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 s = Rt * (segment.start - obb.center);
         const math::vec3 e = Rt * (segment.end - obb.center);
@@ -813,7 +806,7 @@ namespace engine::geometry
 
     bool Intersects(const Plane& plane, const Sphere& sphere) noexcept
     {
-        return abs(math::dot(plane.normal, sphere.center) + plane.distance) <= sphere.radius;
+        return math::utils::abs(math::dot(plane.normal, sphere.center) + plane.distance) <= sphere.radius;
     }
 
     bool Intersects(const Plane& a, const Triangle& b) noexcept
@@ -858,7 +851,8 @@ namespace engine::geometry
     {
         const float denom = math::dot(plane.normal, ray.direction);
         const float num = -(math::dot(plane.normal, ray.origin) + plane.distance);
-        if (denom == 0.0f) return false;
+        //TODO: check if this is the correct epsilon to use
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON)) return false;
         const float t = num / denom;
         if (t < 0.0f) return false;
         if (result) result->t = t;
@@ -916,7 +910,7 @@ namespace engine::geometry
         const math::vec3 e2 = triangle.c - triangle.a;
         const math::vec3 p = math::cross(ray.direction, e2);
         const float det = math::dot(e1, p);
-        if (abs(det) < EPS) return false;
+        if (math::utils::abs(det) < EPS) return false;
         const float inv = 1.0f / det;
         const math::vec3 tvec = ray.origin - triangle.a;
         const float u = math::dot(tvec, p) * inv;
@@ -968,7 +962,8 @@ namespace engine::geometry
         const math::vec3 d = Direction(segment);
         const float denom = math::dot(plane.normal, d);
         const float num = -(math::dot(plane.normal, segment.start) + plane.distance);
-        if (denom == 0.0f) return false;
+        //TODO: check if this is the correct epsilon to use
+        if (math::utils::nearly_equal(denom, 0.0f, constants::SEPARATION_EPSILON)) return false;
         const float t = num / denom;
         if (t < 0.0f || t > 1.0f) return false;
         if (result) result->t = t;
@@ -1210,7 +1205,8 @@ namespace engine::geometry
         const float axis_len_sq = math::length_squared(axis_dir);
         const math::vec3 delta = inner.center - outer.center;
 
-        if (axis_len_sq == 0.0f)
+        //TODO: check if this is the correct epsilon to use
+        if (math::utils::nearly_equal(axis_len_sq, 0.0f, constants::PARALLEL_EPSILON))
         {
             if (inner.radius > outer.radius || inner.radius > outer.half_height) return false;
             const float max_allow = outer.radius - inner.radius;
@@ -1239,7 +1235,7 @@ namespace engine::geometry
     // Map world -> ellipsoid local: x' = R^T (x - c); then scale by radii^-1
     static inline math::vec3 EllipsoidToUnit(const Ellipsoid& ellipsoid, const math::vec3& point) noexcept
     {
-        const math::mat3 R = ellipsoid.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(ellipsoid.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 q = Rt * (point - ellipsoid.center);
         return math::vec3{q[0] / ellipsoid.radii[0], q[1] / ellipsoid.radii[1], q[2] / ellipsoid.radii[2]};
@@ -1284,10 +1280,11 @@ namespace engine::geometry
         {
             if (inner.radius > 0.0f) return false;
             const math::vec3 unit = EllipsoidToUnit(outer, inner.center);
-            return math::length_squared(unit) == 0.0f;
+            //TODO: check if this is the correct epsilon to use
+            return math::utils::nearly_equal(math::length_squared(unit) , 0.0f, constants::PARALLEL_EPSILON);
         }
 
-        const math::mat3 R = outer.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(outer.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 local = Rt * (inner.center - outer.center);
 
@@ -1295,7 +1292,7 @@ namespace engine::geometry
         const float scaled_len = math::length(scaled);
         if (scaled_len >= 1.0f) return false; // center is outside or on boundary
 
-        if (math::length_squared(local) == 0.0f)
+        if (math::utils::nearly_equal(math::length_squared(local) , 0.0f, constants::PARALLEL_EPSILON))
         {
             const float min_radius = math::utils::min(radii[0], math::utils::min(radii[1], radii[2]));
             return inner.radius <= min_radius;
@@ -1346,7 +1343,7 @@ namespace engine::geometry
 
     bool Contains(const Obb& outer, const Sphere& inner) noexcept
     {
-        const math::mat3 R = outer.orientation.to_rotation_matrix();
+        const math::mat3 R = to_rotation_matrix(outer.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 local = Rt * (inner.center - outer.center);
         for (std::size_t i = 0; i < 3; ++i)
@@ -1376,7 +1373,7 @@ namespace engine::geometry
         math::vec3 farthest{};
         for (std::size_t i = 0; i < 3; ++i)
         {
-            farthest[i] = (abs(diff_min[i]) > abs(diff_max[i])) ? inner.min[i] : inner.max[i];
+            farthest[i] = (math::utils::abs(diff_min[i]) > math::utils::abs(diff_max[i])) ? inner.min[i] : inner.max[i];
         }
         const math::vec3 diff = farthest - outer.center;
         return math::dot(diff, diff) <= outer.radius * outer.radius;
@@ -1388,7 +1385,8 @@ namespace engine::geometry
         const float axis_len_sq = math::length_squared(axis_dir);
         const math::vec3 delta = inner.center - outer.center;
 
-        if (axis_len_sq == 0.0f)
+        //TODO: check if this is the correct epsilon to use
+        if (math::utils::nearly_equal(axis_len_sq,  0.0f, constants::PARALLEL_EPSILON))
         {
             const float radial = math::length(delta) + inner.radius;
             return radial <= outer.radius;
@@ -1412,7 +1410,9 @@ namespace engine::geometry
 
     bool Contains(const Sphere& outer, const Ellipsoid& inner) noexcept
     {
-        const math::mat3 R = inner.orientation.to_rotation_matrix();
+
+        //TODO: optimize? too complex for real nodes?
+        const math::mat3 R = to_rotation_matrix(inner.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 radii = inner.radii;
 
@@ -1429,7 +1429,8 @@ namespace engine::geometry
 
         const float max_r_sq = math::utils::max(r0 * r0, math::utils::max(r1 * r1, r2 * r2));
 
-        auto evaluate = [&](double lambda) noexcept {
+        auto evaluate = [&](double lambda) noexcept
+        {
             double sum = 0.0;
             const double values[3] = {d[0], d[1], d[2]};
             const double radii_sq[3] = {r0 * r0, r1 * r1, r2 * r2};
@@ -1443,7 +1444,8 @@ namespace engine::geometry
         };
 
         const float diff_len_sq = math::dot(inner.center - outer.center, inner.center - outer.center);
-        if (diff_len_sq == 0.0f)
+        //TODO: check if this is the correct epsilon to use
+        if (math::utils::nearly_equal(diff_len_sq,  0.0f, constants::PARALLEL_EPSILON))
         {
             const float max_radius = math::utils::max(r0, math::utils::max(r1, r2));
             return max_radius <= outer.radius;

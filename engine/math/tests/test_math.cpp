@@ -136,33 +136,33 @@ TEST(Vector, TypeAliasesProvideExpectedDimensions) {
 }
 
 TEST(Matrix, DefaultConstructedIsZeroInitialized) {
-    matrix<int, 2, 3> value;
+    Matrix<int, 2, 3> value;
     for (std::size_t row = 0; row < 2; ++row) {
         ExpectVectorEqual(value[row], {0, 0, 0});
     }
 }
 
 TEST(Matrix, VariadicConstructorFillsRows) {
-    const matrix<float, 2, 2> value(1.0F, 2.0F, 3.0F, 4.0F);
+    const Matrix<float, 2, 2> value(1.0F, 2.0F, 3.0F, 4.0F);
     ExpectVectorEqual(value[0], {1.0F, 2.0F});
     ExpectVectorEqual(value[1], {3.0F, 4.0F});
 }
 
 TEST(Matrix, RowAccessSupportsConstAndNonConst) {
-    matrix<int, 2, 2> value;
+    Matrix<int, 2, 2> value;
     value[0][0] = 1;
     value[0][1] = 2;
     value[1][0] = 3;
     value[1][1] = 4;
 
-    const matrix<int, 2, 2>& const_ref = value;
+    const Matrix<int, 2, 2>& const_ref = value;
     ExpectVectorEqual(const_ref[0], {1, 2});
     ExpectVectorEqual(const_ref[1], {3, 4});
 }
 
 TEST(Matrix, ArithmeticOperators) {
-    const matrix<float, 2, 2> lhs(1.0F, 2.0F, 3.0F, 4.0F);
-    const matrix<float, 2, 2> rhs(0.5F, 0.5F, 0.5F, 0.5F);
+    const Matrix<float, 2, 2> lhs(1.0F, 2.0F, 3.0F, 4.0F);
+    const Matrix<float, 2, 2> rhs(0.5F, 0.5F, 0.5F, 0.5F);
 
     ExpectVectorEqual((lhs + rhs)[0], {1.5F, 2.5F});
     ExpectVectorEqual((lhs + rhs)[1], {3.5F, 4.5F});
@@ -175,8 +175,8 @@ TEST(Matrix, ArithmeticOperators) {
 }
 
 TEST(Matrix, CompoundAssignmentOperators) {
-    matrix<double, 2, 2> value(1.0, 2.0, 3.0, 4.0);
-    const matrix<double, 2, 2> rhs(0.5, 0.5, 0.5, 0.5);
+    Matrix<double, 2, 2> value(1.0, 2.0, 3.0, 4.0);
+    const Matrix<double, 2, 2> rhs(0.5, 0.5, 0.5, 0.5);
 
     value += rhs;
     ExpectVectorEqual(value[0], {1.5, 2.5});
@@ -192,7 +192,7 @@ TEST(Matrix, CompoundAssignmentOperators) {
 }
 
 TEST(Matrix, MatrixVectorMultiplication) {
-    const matrix<float, 3, 3> mat(
+    const Matrix<float, 3, 3> mat(
         1.0F, 2.0F, 3.0F,
         4.0F, 5.0F, 6.0F,
         7.0F, 8.0F, 9.0F);
@@ -203,10 +203,10 @@ TEST(Matrix, MatrixVectorMultiplication) {
 }
 
 TEST(Matrix, MatrixMatrixMultiplication) {
-    const matrix<int, 2, 3> lhs(1, 2, 3, 4, 5, 6);
-    const matrix<int, 3, 2> rhs(7, 8, 9, 10, 11, 12);
+    const Matrix<int, 2, 3> lhs(1, 2, 3, 4, 5, 6);
+    const Matrix<int, 3, 2> rhs(7, 8, 9, 10, 11, 12);
 
-    const matrix<int, 2, 2> result = lhs * rhs;
+    const Matrix<int, 2, 2> result = lhs * rhs;
     ExpectVectorEqual(result[0], {58, 64});
     ExpectVectorEqual(result[1], {139, 154});
 }
@@ -267,9 +267,11 @@ TEST(Quaternion, ConjugateLengthNormalizeAndInverse) {
     EXPECT_TRUE(std::abs(identity.z) <= tolerance);
 }
 
+//TODO : Add tests for from_angle_axis, to_rotation_matrix, from_rotation_matrix, cast
+
 TEST(Matrix, Transpose) {
-    const matrix<int, 2, 3> value(1, 2, 3, 4, 5, 6);
-    const matrix<int, 3, 2> transposed = transpose(value);
+    const Matrix<int, 2, 3> value(1, 2, 3, 4, 5, 6);
+    const Matrix<int, 3, 2> transposed = transpose(value);
 
     ExpectVectorEqual(transposed[0], {1, 4});
     ExpectVectorEqual(transposed[1], {2, 5});
@@ -288,7 +290,7 @@ TEST(Matrix, IdentityMatrixHasOnesOnDiagonal) {
 
 TEST(Matrix, TranslationProducesAffineMatrix) {
     const vec3 offset{1.0F, 2.0F, 3.0F};
-    const matrix<float, 4, 4> transform = translation(offset);
+    const Matrix<float, 4, 4> transform = translation(offset);
 
     for (std::size_t i = 0; i < 3; ++i) {
         EXPECT_FLOAT_EQ(transform[i][i], 1.0F);
@@ -302,7 +304,7 @@ TEST(Matrix, TranslationProducesAffineMatrix) {
 
 TEST(Matrix, ScaleSetsDiagonalAndLeavesTranslationZero) {
     const vec3 factors{2.0F, 3.0F, 4.0F};
-    const matrix<float, 4, 4> transform = scale(factors);
+    const Matrix<float, 4, 4> transform = scale(factors);
 
     EXPECT_FLOAT_EQ(transform[0][0], 2.0F);
     EXPECT_FLOAT_EQ(transform[1][1], 3.0F);

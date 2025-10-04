@@ -3,6 +3,12 @@
 #include "engine/geometry/api.hpp"
 #include "engine/math/vector.hpp"
 
+namespace engine::geometry::constants {
+    constexpr float INTERSECTION_EPSILON = 1e-8f;
+    constexpr float SEPARATION_EPSILON = 1e-6f;
+    constexpr float PARALLEL_EPSILON = 1e-8f;
+}
+
 namespace engine::geometry {
     struct Aabb;
     struct Cylinder;
@@ -14,6 +20,7 @@ namespace engine::geometry {
     struct Segment;
     struct Sphere;
     struct Triangle;
+
 
     //all pairwise intersection tests for each shape
 
@@ -170,6 +177,8 @@ namespace engine::geometry {
     struct ENGINE_GEOMETRY_API Result<Triangle, Segment> {
         float t;
     };
+
+    //TODO: add missing return types
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb &a, const Aabb &b) noexcept;
 
