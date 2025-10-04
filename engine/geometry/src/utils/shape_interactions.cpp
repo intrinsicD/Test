@@ -413,7 +413,9 @@ namespace engine::geometry
         const Segment segment{BottomCenter(a), TopCenter(a)};
         const Segment other{BottomCenter(b), TopCenter(b)};
 
-        const float dist_sq = SquaredDistance(segment, ClosestPoint(other, segment.start, *(new double)));
+        double t;
+        const math::vec3 closest = ClosestPoint(other, segment.start, t);
+        const float dist_sq = SquaredDistance(segment, closest);
         const float radius_sum = a.radius + b.radius;
 
         return dist_sq <= radius_sum * radius_sum;

@@ -566,7 +566,7 @@ TEST(Triangle, ContainsAndBarycentric)
     const vec3 exterior{0.5f, 0.5f, 0.2f};
 
     EXPECT_TRUE(engine::geometry::Contains(triangle, interior));
-    EXPECT_TRUE(!engine::geometry::Contains(triangle, exterior));
+    EXPECT_FALSE(engine::geometry::Contains(triangle, exterior));
 
     const Triangle smaller{vec3{0.1f, 0.1f, 0.0f}, vec3{0.3f, 0.1f, 0.0f}, vec3{0.1f, 0.3f, 0.0f}};
     EXPECT_TRUE(engine::geometry::Contains(triangle, smaller));
