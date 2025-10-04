@@ -11,145 +11,185 @@
 #include <utility>
 #include <vector>
 
-namespace testing {
+namespace testing
+{
+    class Test
+    {
+    public:
+        virtual ~Test() = default;
 
-class Test {
-public:
-    virtual ~Test() = default;
-
-    void Run() {
-        SetUp();
-        TestBody();
-        TearDown();
-    }
-
-protected:
-    virtual void SetUp() {}
-    virtual void TearDown() {}
-    virtual void TestBody() {}
-};
-
-namespace internal {
-
-struct TestDescriptor {
-    std::string suite_name;
-    std::string test_name;
-    std::function<void()> factory;
-};
-
-inline std::vector<TestDescriptor>& Registry() {
-    static std::vector<TestDescriptor> tests;
-    return tests;
-}
-
-struct TestContext {
-    int failed_expectations = 0;
-    bool aborted = false;
-};
-
-inline thread_local TestContext* g_current_context = nullptr;
-
-class AssertionFailure : public std::exception {
-public:
-    const char* what() const noexcept override { return "fatal assertion"; }
-};
-
-inline void ReportFailure(const char* file, int line, const std::string& message) {
-    std::cerr << file << ":" << line << ": Failure\n" << message << std::endl;
-    if (g_current_context != nullptr) {
-        ++g_current_context->failed_expectations;
-    }
-}
-
-[[noreturn]] inline void ReportFatalFailure(const char* file, int line, const std::string& message) {
-    ReportFailure(file, line, message);
-    if (g_current_context != nullptr) {
-        g_current_context->aborted = true;
-    }
-    throw AssertionFailure{};
-}
-
-inline std::string FormatBoolMessage(const char* expression) {
-    std::ostringstream stream;
-    stream << "Expected: " << expression << "\n  Actual: false";
-    return stream.str();
-}
-
-template <typename Lhs, typename Rhs>
-inline std::string FormatComparison(const char* lhs_expression, const char* rhs_expression, const Lhs& lhs, const Rhs& rhs) {
-    std::ostringstream stream;
-    stream << "Expected equality of these values:\n  " << lhs_expression << "\n  " << rhs_expression
-           << "\n    Actual: " << lhs << " vs " << rhs;
-    return stream.str();
-}
-
-template <typename Lhs, typename Rhs>
-inline bool EqHelper(const Lhs& lhs, const Rhs& rhs) {
-    return lhs == rhs;
-}
-
-inline bool FloatEqHelper(float lhs, float rhs) {
-    constexpr float tolerance = 1e-5F;
-    return std::fabs(lhs - rhs) <= tolerance;
-}
-
-inline bool CStringEqHelper(const char* lhs, const char* rhs) {
-    if (lhs == nullptr || rhs == nullptr) {
-        return lhs == rhs;
-    }
-    return std::strcmp(lhs, rhs) == 0;
-}
-
-}  // namespace internal
-
-class TestRegistrar {
-public:
-    TestRegistrar(const char* suite_name, const char* test_name, std::function<void()> factory) {
-        internal::Registry().push_back(internal::TestDescriptor{suite_name, test_name, std::move(factory)});
-    }
-};
-
-inline void InitGoogleTest(int*, char**) {}
-
-inline int RunAllTests() {
-    auto& tests = internal::Registry();
-    std::cout << "[==========] Running " << tests.size() << " tests." << std::endl;
-
-    int failed_tests = 0;
-    for (const auto& test : tests) {
-        std::cout << "[ RUN      ] " << test.suite_name << '.' << test.test_name << std::endl;
-        internal::TestContext context{};
-        internal::g_current_context = &context;
-        try {
-            test.factory();
-        } catch (const internal::AssertionFailure&) {
-            // Failure already reported.
-        } catch (const std::exception& error) {
-            internal::ReportFailure("<unknown>", 0, std::string{"Uncaught exception: "} + error.what());
-            context.aborted = true;
-        } catch (...) {
-            internal::ReportFailure("<unknown>", 0, "Uncaught non-standard exception");
-            context.aborted = true;
+        void Run()
+        {
+            SetUp();
+            TestBody();
+            TearDown();
         }
-        internal::g_current_context = nullptr;
 
-        if (context.failed_expectations > 0 || context.aborted) {
-            ++failed_tests;
-            std::cout << "[  FAILED  ] " << test.suite_name << '.' << test.test_name << std::endl;
-        } else {
-            std::cout << "[       OK ] " << test.suite_name << '.' << test.test_name << std::endl;
+    protected:
+        virtual void SetUp()
+        {
         }
+
+        virtual void TearDown()
+        {
+        }
+
+        virtual void TestBody()
+        {
+        }
+    };
+
+    namespace internal
+    {
+        struct TestDescriptor
+        {
+            std::string suite_name;
+            std::string test_name;
+            std::function<void()> factory;
+        };
+
+        inline std::vector<TestDescriptor>& Registry()
+        {
+            static std::vector<TestDescriptor> tests;
+            return tests;
+        }
+
+        struct TestContext
+        {
+            int failed_expectations = 0;
+            bool aborted = false;
+        };
+
+        inline thread_local TestContext* g_current_context = nullptr;
+
+        class AssertionFailure : public std::exception
+        {
+        public:
+            const char* what() const noexcept override { return "fatal assertion"; }
+        };
+
+        inline void ReportFailure(const char* file, int line, const std::string& message)
+        {
+            std::cerr << file << ":" << line << ": Failure\n" << message << std::endl;
+            if (g_current_context != nullptr)
+            {
+                ++g_current_context->failed_expectations;
+            }
+        }
+
+        [[noreturn]] inline void ReportFatalFailure(const char* file, int line, const std::string& message)
+        {
+            ReportFailure(file, line, message);
+            if (g_current_context != nullptr)
+            {
+                g_current_context->aborted = true;
+            }
+            throw AssertionFailure{};
+        }
+
+        inline std::string FormatBoolMessage(const char* expression)
+        {
+            std::ostringstream stream;
+            stream << "Expected: " << expression << "\n  Actual: false";
+            return stream.str();
+        }
+
+        template <typename Lhs, typename Rhs>
+        inline std::string FormatComparison(const char* lhs_expression, const char* rhs_expression, const Lhs& lhs,
+                                            const Rhs& rhs)
+        {
+            std::ostringstream stream;
+            stream << "Expected equality of these values:\n  " << lhs_expression << "\n  " << rhs_expression
+                << "\n    Actual: " << lhs << " vs " << rhs;
+            return stream.str();
+        }
+
+        template <typename Lhs, typename Rhs>
+        inline bool EqHelper(const Lhs& lhs, const Rhs& rhs)
+        {
+            return lhs == rhs;
+        }
+
+        inline bool FloatEqHelper(float lhs, float rhs)
+        {
+            constexpr float tolerance = 1e-5F;
+            return std::fabs(lhs - rhs) <= tolerance;
+        }
+
+        inline bool CStringEqHelper(const char* lhs, const char* rhs)
+        {
+            if (lhs == nullptr || rhs == nullptr)
+            {
+                return lhs == rhs;
+            }
+            return std::strcmp(lhs, rhs) == 0;
+        }
+    } // namespace internal
+
+    class TestRegistrar
+    {
+    public:
+        TestRegistrar(const char* suite_name, const char* test_name, std::function<void()> factory)
+        {
+            internal::Registry().push_back(internal::TestDescriptor{suite_name, test_name, std::move(factory)});
+        }
+    };
+
+    inline void InitGoogleTest(int*, char**)
+    {
     }
 
-    std::cout << "[==========] " << tests.size() << " tests ran." << std::endl;
-    std::cout << "[  PASSED  ] " << (tests.size() - failed_tests) << " tests." << std::endl;
-    if (failed_tests > 0) {
-        std::cout << "[  FAILED  ] " << failed_tests << " tests." << std::endl;
-    }
-    return failed_tests;
-}
+    inline int RunAllTests()
+    {
+        auto& tests = internal::Registry();
+        std::cout << "[==========] Running " << tests.size() << " tests." << std::endl;
 
-}  // namespace testing
+        int failed_tests = 0;
+        for (const auto& test : tests)
+        {
+            std::cout << "[ RUN      ] " << test.suite_name << '.' << test.test_name << std::endl;
+            internal::TestContext context{};
+            internal::g_current_context = &context;
+            try
+            {
+                test.factory();
+            }
+            catch (const internal::AssertionFailure&)
+            {
+                // Failure already reported.
+            }
+            catch (const std::exception& error)
+            {
+                internal::ReportFailure("<unknown>", 0, std::string{"Uncaught exception: "} + error.what());
+                context.aborted = true;
+            }
+            catch (...)
+            {
+                internal::ReportFailure("<unknown>", 0, "Uncaught non-standard exception");
+                context.aborted = true;
+            }
+            internal::g_current_context = nullptr;
+
+            if (context.failed_expectations > 0 || context.aborted)
+            {
+                ++failed_tests;
+                std::cout << "[  FAILED  ] " << test.suite_name << '.' << test.test_name << std::endl;
+            }
+            else
+            {
+                std::cout << "[       OK ] " << test.suite_name << '.' << test.test_name << std::endl;
+            }
+        }
+
+        std::cout << "[==========] " << tests.size() << " tests ran." << std::endl;
+        std::cout << "[  PASSED  ] " << (tests.size() - failed_tests) << " tests." << std::endl;
+        if (failed_tests > 0)
+        {
+            std::cout << "[  FAILED  ] " << failed_tests << " tests." << std::endl;
+        }
+        return failed_tests;
+    }
+} // namespace testing
 
 #define RUN_ALL_TESTS() ::testing::RunAllTests()
 
@@ -173,6 +213,16 @@ inline int RunAllTests() {
                                               ::testing::internal::FormatBoolMessage(#condition));        \
         }                                                                                                 \
     } while (false)
+
+#define EXPECT_FALSE(condition)                                                                           \
+    do {                                                                                                  \
+        const bool gtest_condition = static_cast<bool>(condition);                                        \
+        if (gtest_condition) {                                                                            \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__,                                        \
+                                              ::testing::internal::FormatBoolMessage("!(" #condition ")")); \
+        }                                                                                                 \
+    } while (false)
+
 
 #define EXPECT_EQ(val1, val2)                                                                             \
     do {                                                                                                  \
@@ -211,6 +261,51 @@ inline int RunAllTests() {
         }                                                                                                 \
     } while (false)
 
+#define EXPECT_GT(val1, val2)                                                                             \
+    do {                                                                                                  \
+        const auto gtest_val1 = (val1);                                                                   \
+        const auto gtest_val2 = (val2);                                                                   \
+        if (!(gtest_val1 > gtest_val2)) {                                                                 \
+            std::ostringstream gtest_message;                                                             \
+            gtest_message << "Expected: (" << #val1 << ") > (" << #val2 << "), actual: " << gtest_val1  \
+                          << " vs " << gtest_val2;                                                        \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());                  \
+        }                                                                                                 \
+    } while (false)
+
+#define EXPECT_GE(val1, val2)                                                                            \
+    do {                                                                                                  \
+        const auto gtest_val1 = (val1);                                                                   \
+        const auto gtest_val2 = (val2);                                                                   \
+        if (!(gtest_val1 >= gtest_val2)) {                                                                \
+            std::ostringstream gtest_message;                                                             \
+            gtest_message << "Expected: (" << #val1 << ") >= (" << #val2 << "), actual: " << gtest_val1 \
+                          << " vs " << gtest_val2;                                                        \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());                  \
+        }                                                                                                 \
+    } while (false)
+
+#define EXPECT_LT(val1, val2)                                                                             \
+    do {                                                                                                  \
+        const auto gtest_val1 = (val1);                                                                   \
+        const auto gtest_val2 = (val2);                                                                   \
+        if (!(gtest_val1 < gtest_val2)) {                                                                 \
+            std::ostringstream gtest_message;                                                             \
+            gtest_message << "Expected: (" << #val1 << ") < (" << #val2 << "), actual: " << gtest_val1  \
+                          << " vs " << gtest_val2;                                                        \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());                  \
+        }                                                                                                 \
+    } while (false)
+
+#define ASSERT_TRUE(condition)                                                                           \
+    do {                                                                                                  \
+        const bool gtest_condition = static_cast<bool>(condition);                                        \
+        if (!gtest_condition) {                                                                           \
+            ::testing::internal::ReportFatalFailure(__FILE__, __LINE__,                                   \
+                                                    ::testing::internal::FormatBoolMessage(#condition));  \
+        }                                                                                                 \
+    } while (false)
+
 #define ASSERT_EQ(val1, val2)                                                                             \
     do {                                                                                                  \
         const auto gtest_val1 = (val1);                                                                   \
@@ -221,4 +316,3 @@ inline int RunAllTests() {
                 ::testing::internal::FormatComparison(#val1, #val2, gtest_val1, gtest_val2));            \
         }                                                                                                 \
     } while (false)
-
