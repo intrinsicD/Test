@@ -9,6 +9,26 @@
 
 namespace engine::geometry
 {
+    namespace
+    {
+        float LargestEigenvalueSymmetric3(const math::mat3& A) noexcept
+        {
+            math::vec3 v{1.0f, 0.0f, 0.0f};
+            for (int i = 0; i < 12; ++i)
+            {
+                math::vec3 w = A * v;
+                const float norm = math::length(w);
+                if (norm <= std::numeric_limits<float>::epsilon())
+                {
+                    return 0.0f;
+                }
+                v = w / norm;
+            }
+            const math::vec3 Av = A * v;
+            return math::dot(v, Av);
+        }
+    }
+
     bool Intersects(const Aabb& a, const Aabb& b) noexcept
     {
         for (std::size_t i = 0; i < 3; ++i)
@@ -70,8 +90,8 @@ namespace engine::geometry
 
     bool Intersects(const Aabb& a, const Ellipsoid& b) noexcept
     {
-        // Conservative test: check if AABB intersects the ellipsoid's bounding sphere
-        // TODO: For a more precise test, we'd need to transform the AABB into ellipsoid space
+        // Test by transforming the closest point on the AABB into the ellipsoid's local space
+        // and verifying that it lies inside the unit sphere.
 
         const math::mat3 R = math::utils::to_rotation_matrix(b.orientation);
 
@@ -102,8 +122,8 @@ namespace engine::geometry
         {
             const float o = ln.point[i];
             const float d = ln.direction[i];
-            //TODO: check if this is the correct epsilon to use
-            if (math::utils::nearly_equal(d, 0.0f, constants::SEPARATION_EPSILON))
+            // Guard against directions that are numerically parallel to the slab.
+            if (math::utils::nearly_equal(d, 0.0f, constants::PARALLEL_EPSILON))
             {
                 if (o < box.min[i] || o > box.max[i]) return false;
             }
@@ -194,8 +214,7 @@ namespace engine::geometry
         {
             const float o = ray.origin[i];
             const float d = ray.direction[i];
-            //TODO: check if this is the correct epsilon to use
-            if (math::utils::nearly_equal(d, 0.0f, constants::SEPARATION_EPSILON))
+            if (math::utils::nearly_equal(d, 0.0f, constants::PARALLEL_EPSILON))
             {
                 if (o < box.min[i] || o > box.max[i]) return false;
             }
@@ -234,8 +253,7 @@ namespace engine::geometry
         {
             const float d = dir[i];
             const float oi = o[i];
-            //TODO: check if this is the correct epsilon to use
-            if (math::utils::nearly_equal(d, 0.0f, constants::SEPARATION_EPSILON))
+            if (math::utils::nearly_equal(d, 0.0f, constants::PARALLEL_EPSILON))
             {
                 if (oi < box.min[i] || oi > box.max[i]) return false;
             }
@@ -1120,7 +1138,7 @@ namespace engine::geometry
     {
         const math::mat3 A = math::utils::to_rotation_matrix(a.orientation); // localA->world
         const math::mat3 B = math::utils::to_rotation_matrix(b.orientation); // localB->world
-        const math::mat3 R = transpose(A) * B; // localB in A-space TODO: verify!
+        const math::mat3 R = transpose(A) * B; // Rotation matrix of B expressed in A's local frame.
         math::mat3 AbsR{};
         const float EPS = 1e-6f;
         for (int i = 0; i < 3; ++i) for (int j = 0; j < 3; ++j) AbsR[i][j] = math::utils::abs(R[i][j]) + EPS;
@@ -1386,7 +1404,6 @@ namespace engine::geometry
     {
         const float denom = math::dot(plane.normal, ray.direction);
         const float num = -(math::dot(plane.normal, ray.origin) + plane.distance);
-        //TODO: check if this is the correct epsilon to use
         if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON)) return false;
         const float t = num / denom;
         if (t < 0.0f) return false;
@@ -1609,8 +1626,7 @@ namespace engine::geometry
         const math::vec3 d = Direction(segment);
         const float denom = math::dot(plane.normal, d);
         const float num = -(math::dot(plane.normal, segment.start) + plane.distance);
-        //TODO: check if this is the correct epsilon to use
-        if (math::utils::nearly_equal(denom, 0.0f, constants::SEPARATION_EPSILON)) return false;
+        if (math::utils::nearly_equal(denom, 0.0f, constants::PARALLEL_EPSILON)) return false;
         const float t = num / denom;
         if (t < 0.0f || t > 1.0f) return false;
         if (result) result->t = t;
@@ -2144,11 +2160,12 @@ namespace engine::geometry
 
     bool Contains(const Aabb& outer, const Triangle& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
+        // Checking the triangle's vertices suffices because an AABB is convex.
         return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
     }
 
-    inline bool IsValid(const Cylinder& c, float eps) noexcept {
+    inline bool IsValid(const Cylinder& c, float eps) noexcept
+    {
         // Radius and half-height must be positive; axis must have length.
         if (!(c.radius > eps) || !(c.half_height > eps)) return false;
 
@@ -2160,20 +2177,22 @@ namespace engine::geometry
         // return std::abs(length(c.orientation) - 1.0f) <= 1e-3f; // normalized quat
     }
 
-    inline math::vec3 SafeAxisDir(const Cylinder& c) noexcept {
+    inline math::vec3 SafeAxisDir(const Cylinder& c) noexcept
+    {
         // If you store a raw axis vector (not guaranteed unit):
         const float len2 = math::dot(c.axis, c.axis);
-        const float len  = std::sqrt(len2);
+        const float len = std::sqrt(len2);
         return (len > 0.0f) ? (c.axis / len) : math::vec3{0.0f, 0.0f, 0.0f}; // caller must check validity first
     }
 
-    bool Contains(const Cylinder& outer, const math::vec3& p) noexcept {
+    bool Contains(const Cylinder& outer, const math::vec3& p) noexcept
+    {
         const float eps = constants::INTERSECTION_EPSILON;
 
         if (!IsValid(outer, eps)) return false;
 
         const math::vec3 dir = SafeAxisDir(outer); // guaranteed valid because IsValid checked it
-        const math::vec3 d   = p - outer.center;
+        const math::vec3 d = p - outer.center;
 
         // Signed distance along the axis
         const float axial = math::dot(d, dir);
@@ -2183,7 +2202,7 @@ namespace engine::geometry
         // Radial distance from the axis
         const math::vec3 rvec = d - axial * dir;
         const float r2 = math::dot(rvec, rvec);
-        const float R  = outer.radius + eps;
+        const float R = outer.radius + eps;
 
         return r2 <= R * R;
     }
@@ -2256,27 +2275,42 @@ namespace engine::geometry
 
     bool Contains(const Cylinder& outer, const Ellipsoid& inner) noexcept
     {
-        //TODO: more efficient algorithm
-        // Conservative approach: sample points on the ellipsoid surface
-        const math::mat3 R = math::utils::to_rotation_matrix(inner.orientation);
-        const int samples = 16;
+        const float eps = constants::INTERSECTION_EPSILON;
+        if (!IsValid(outer, eps)) return false;
 
-        for (int i = 0; i < samples; ++i)
+        const math::vec3 axis = SafeAxisDir(outer);
+        const math::vec3 delta = inner.center - outer.center;
+
+        const math::mat3 R = math::utils::to_rotation_matrix(inner.orientation);
+
+        math::mat3 S{};
+        S[0][0] = inner.radii[0];
+        S[1][1] = inner.radii[1];
+        S[2][2] = inner.radii[2];
+        const math::mat3 M = R * S;
+
+        // Axial extent: |axis · delta| + support_{ellipsoid}(axis)
+        const float axial_offset = math::utils::abs(math::dot(delta, axis));
+        const float axial_radius = math::length(transpose(M) * axis);
+        if (axial_offset + axial_radius > outer.half_height + eps) return false;
+
+        // Radial extent: project into plane orthogonal to the axis
+        math::mat3 P = math::identity_matrix<float, 3>();
+        for (int i = 0; i < 3; ++i)
         {
-            const float theta = 2.0f * 3.14159265f * i / samples;
-            for (int j = 0; j < samples / 2; ++j)
+            for (int j = 0; j < 3; ++j)
             {
-                const float phi = 3.14159265f * j / (samples / 2 - 1);
-                const math::vec3 local{
-                    inner.radii[0] * math::utils::sin(phi) * math::utils::cos(theta),
-                    inner.radii[1] * math::utils::sin(phi) * math::utils::sin(theta),
-                    inner.radii[2] * math::utils::cos(phi)
-                };
-                const math::vec3 world = inner.center + R * local;
-                if (!Contains(outer, world)) return false;
+                P[i][j] -= axis[i] * axis[j];
             }
         }
-        return true;
+        const math::vec3 radial_offset = P * delta;
+        const float offset_norm = math::length(radial_offset);
+
+        const math::mat3 B = P * M;
+        const math::mat3 BtB = transpose(B) * B;
+        const float sigma = std::sqrt(std::max(0.0f, LargestEigenvalueSymmetric3(BtB)));
+
+        return offset_norm + sigma <= outer.radius + eps;
     }
 
     bool Contains(const Cylinder& outer, const Obb& inner) noexcept
@@ -2291,7 +2325,6 @@ namespace engine::geometry
 
     bool Contains(const Cylinder& outer, const Segment& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.start) && Contains(outer, inner.end);
     }
 
@@ -2300,8 +2333,6 @@ namespace engine::geometry
         const math::vec3 axis_dir = AxisDirection(outer);
         const float axis_len_sq = math::length_squared(axis_dir);
         const math::vec3 delta = inner.center - outer.center;
-
-        //TODO: check if this is the correct epsilon to use
         if (math::utils::nearly_equal(axis_len_sq, 0.0f, constants::PARALLEL_EPSILON))
         {
             if (inner.radius > outer.radius || inner.radius > outer.half_height) return false;
@@ -2324,7 +2355,6 @@ namespace engine::geometry
 
     bool Contains(const Cylinder& outer, const Triangle& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
     }
 
@@ -2432,7 +2462,6 @@ namespace engine::geometry
 
     bool Contains(const Ellipsoid& outer, const Segment& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.start) && Contains(outer, inner.end);
     }
 
@@ -2443,8 +2472,7 @@ namespace engine::geometry
         {
             if (inner.radius > 0.0f) return false;
             const math::vec3 unit = EllipsoidToUnit(outer, inner.center);
-            //TODO: check if this is the correct epsilon to use
-            return math::utils::nearly_equal(math::length_squared(unit), 0.0f, constants::PARALLEL_EPSILON);
+            return math::length_squared(unit) <= constants::INTERSECTION_EPSILON;
         }
 
         const math::mat3 R = math::utils::to_rotation_matrix(outer.orientation);
@@ -2469,7 +2497,6 @@ namespace engine::geometry
 
     bool Contains(const Ellipsoid& outer, const Triangle& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
     }
 
@@ -2570,7 +2597,6 @@ namespace engine::geometry
 
     bool Contains(const Obb& outer, const Segment& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.start) && Contains(outer, inner.end);
     }
 
@@ -2590,7 +2616,6 @@ namespace engine::geometry
 
     bool Contains(const Obb& outer, const Triangle& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
     }
 
@@ -2674,7 +2699,6 @@ namespace engine::geometry
         const float axis_len_sq = math::length_squared(axis_dir);
         const math::vec3 delta = inner.center - outer.center;
 
-        //TODO: check if this is the correct epsilon to use
         if (math::utils::nearly_equal(axis_len_sq, 0.0f, constants::PARALLEL_EPSILON))
         {
             const float radial = math::length(delta) + inner.radius;
@@ -2699,7 +2723,8 @@ namespace engine::geometry
 
     bool Contains(const Sphere& outer, const Ellipsoid& inner) noexcept
     {
-        //TODO: optimize? too complex for real nodes?
+        // Compute the farthest point on the ellipsoid by solving the associated
+        // trust-region problem via safeguarded bisection.
         const math::mat3 R = math::utils::to_rotation_matrix(inner.orientation);
         const math::mat3 Rt = transpose(R);
         const math::vec3 radii = inner.radii;
@@ -2732,8 +2757,7 @@ namespace engine::geometry
         };
 
         const float diff_len_sq = math::dot(inner.center - outer.center, inner.center - outer.center);
-        //TODO: check if this is the correct epsilon to use
-        if (math::utils::nearly_equal(diff_len_sq, 0.0f, constants::PARALLEL_EPSILON))
+        if (diff_len_sq <= constants::INTERSECTION_EPSILON)
         {
             const float max_radius = math::utils::max(r0, math::utils::max(r1, r2));
             return max_radius <= outer.radius;
@@ -2802,7 +2826,6 @@ namespace engine::geometry
 
     bool Contains(const Sphere& outer, const Triangle& inner) noexcept
     {
-        //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
     }
 
@@ -2813,8 +2836,8 @@ namespace engine::geometry
         // Edges and normal
         const math::vec3 v0 = outer.b - outer.a;
         const math::vec3 v1 = outer.c - outer.a;
-        const math::vec3 n  = math::cross(v0, v1);
-        const float n_len2  = math::dot(n, n);
+        const math::vec3 n = math::cross(v0, v1);
+        const float n_len2 = math::dot(n, n);
 
         // Degenerate triangle?
         if (n_len2 <= eps * eps) return false;

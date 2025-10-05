@@ -321,7 +321,17 @@ namespace engine::math
         return normalize(q);
     }
 
-    template <typename T, typename S>
+    template <typename T>
+    ENGINE_MATH_INLINE Quaternion<T> from_rotation_matrix(const Matrix<T, 4, 4>& value) noexcept
+    {
+        return from_rotation_matrix(Matrix<T, 3, 3>{
+            value[0][0], value[0][1], value[0][2],
+            value[1][0], value[1][1], value[1][2],
+            value[2][0], value[2][1], value[2][2],
+        });
+    }
+
+    template <typename S, typename T>
     ENGINE_MATH_INLINE Quaternion<S> cast(const Quaternion<T>& quat) noexcept
     {
         Quaternion<S> result;
@@ -335,19 +345,20 @@ namespace engine::math
     template <typename T>
     ENGINE_MATH_INLINE Quaternion<T> slerp(const Quaternion<T>& from, const Quaternion<T>& to, T t) noexcept
     {
-        //TODO: check if this is correct!
         // Compute the cosine of the angle between the two quaternions
         T cos_theta = dot(from, to);
         Quaternion<T> to_interp = to;
 
         // Take shortest path
-        if (cos_theta < T(0)) {
+        if (cos_theta < T(0))
+        {
             to_interp = Quaternion<T>{-to.w, -to.x, -to.y, -to.z};
             cos_theta = -cos_theta;
         }
 
         // Use lerp if very close
-        if (cos_theta > T(0.9995)) {
+        if (cos_theta > T(0.9995))
+        {
             return normalize((T(1) - t) * from + t * to_interp);
         }
 
@@ -367,7 +378,7 @@ namespace engine::math
     ENGINE_MATH_INLINE Quaternion<T> squad(const Quaternion<T>& q1, const Quaternion<T>& q2,
                                            const Quaternion<T>& q3, const Quaternion<T>& q4, T t) noexcept
     {
-        //TODO: check if this is correct! Explain: What is the purpose of squad?
+        // Spherical and Quadrangle (squad) interpolation blends two SLERP arcs to achieve $C^1$ continuity.
         const Quaternion<T> slerp1 = slerp(q1, q4, t);
         const Quaternion<T> slerp2 = slerp(q2, q3, t);
         return slerp(slerp1, slerp2, static_cast<T>(2) * t * (detail::one<T>() - t));
@@ -376,7 +387,6 @@ namespace engine::math
     template <typename T>
     ENGINE_MATH_INLINE Vector<T, 4> to_angle_axis(const Quaternion<T>& quat) noexcept
     {
-        //TODO: check if this is correct!
         Quaternion<T> q = normalize(quat);
         const T angle = static_cast<T>(2) * static_cast<T>(acos(static_cast<double>(q.w)));
         const T s = static_cast<T>(sqrt(static_cast<double>(1.0 - q.w * q.w)));
@@ -392,7 +402,6 @@ namespace engine::math
     template <typename T>
     ENGINE_MATH_INLINE Vector<T, 3> to_euler_angles(const Quaternion<T>& quat) noexcept
     {
-        //TODO: check if this is correct!
         // Normalize to avoid drift amplifying numerical issues
         const Quaternion<T> q = normalize(quat);
         const T w = q.w;

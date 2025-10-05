@@ -16,6 +16,7 @@ using engine::geometry::Triangle;
 using engine::math::mat3;
 using engine::math::mat4;
 using engine::math::vec3;
+using engine::math::vec4;
 using engine::math::quat;
 
 namespace
@@ -278,10 +279,10 @@ TEST(Obb, ContainsAndBoundingBox)
     };
 
     const vec3 local_point{0.5f, 0.5f, 0.0f};
-    const vec3 inside = box.center + engine::math::utils::to_rotation_matrix(box.orientation) * local_point;
+    const vec3 inside = box.center + vec3(engine::math::utils::to_rotation_matrix(box.orientation) * local_point);
     EXPECT_TRUE(engine::geometry::Contains(box, inside));
 
-    const vec3 outside = box.center + engine::math::utils::to_rotation_matrix(box.orientation) * vec3{2.5f, 0.0f, 0.0f};
+    const vec3 outside = box.center + vec3(engine::math::utils::to_rotation_matrix(box.orientation) * vec3{2.5f, 0.0f, 0.0f});
     EXPECT_TRUE(!engine::geometry::Contains(box, outside));
 
     const Aabb bounds = BoundingAabb(box);
@@ -648,7 +649,7 @@ TEST(Ellipsoid, ContainsAndVolume)
 
     EXPECT_FLOAT_EQ(engine::geometry::Volume(e), (4.0f / 3.0f) * std::numbers::pi_v<float>);
 
-    const vec3 inside = e.center + engine::math::utils::to_rotation_matrix(e.orientation) * vec3{1.0f, 0.0f, 0.0f};
+    const vec3 inside = e.center + vec3(engine::math::utils::to_rotation_matrix(e.orientation) * vec3{1.0f, 0.0f, 0.0f});
     const vec3 outside_point{3.0f, 0.0f, 0.0f};
     EXPECT_TRUE(engine::geometry::Contains(e, inside));
     EXPECT_TRUE(!engine::geometry::Contains(e, outside_point));

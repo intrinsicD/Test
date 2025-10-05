@@ -221,7 +221,6 @@ namespace engine::geometry::graph
     std::size_t GraphInterface::valence(VertexHandle v) const
     {
         auto vv = vertices(v);
-        //TODO: check this here, why does it not work? it runs indefinitely...
         return static_cast<std::size_t>(std::distance(vv.begin(), vv.end()));
     }
 

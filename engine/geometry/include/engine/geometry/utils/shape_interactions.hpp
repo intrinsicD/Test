@@ -38,8 +38,6 @@ namespace engine::geometry
         };
     };
 
-    //TODO: add missing return types
-
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& a, const Aabb& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& a, const Cylinder& b) noexcept;

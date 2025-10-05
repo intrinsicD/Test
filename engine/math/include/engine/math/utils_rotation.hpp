@@ -7,12 +7,9 @@
 namespace engine::math::utils
 {
     template <typename T>
-    ENGINE_MATH_INLINE Matrix<T, 3, 3> to_rotation_matrix(const Quaternion<T>& quat) noexcept
+    ENGINE_MATH_INLINE Matrix<T, 4, 4> to_rotation_matrix(const Quaternion<T>& quat) noexcept
     {
-        //TODO: check if this is correct! Also check if there is a more efficient way to do this!
-        //TODO: add tests for this function!
-        //TODO: maybe remove this function an replace with utils::rotation(quat)?
-        Matrix<T, 3, 3> result;
+        Matrix<T, 4, 4> result = identity_matrix<T, 4>();
         const T xx = quat.x * quat.x;
         const T yy = quat.y * quat.y;
         const T zz = quat.z * quat.z;
@@ -41,8 +38,6 @@ namespace engine::math::utils
     template <typename T>
     ENGINE_MATH_INLINE Quaternion<T> to_quaternion(const Matrix<T, 3, 3>& rot) noexcept
     {
-        //TODO: check if this is correct! Also check if there is a more efficient way to do this!
-        //TODO: add tests for this function!
         const T m00 = rot[0][0], m01 = rot[0][1], m02 = rot[0][2];
         const T m10 = rot[1][0], m11 = rot[1][1], m12 = rot[1][2];
         const T m20 = rot[2][0], m21 = rot[2][1], m22 = rot[2][2];
@@ -102,39 +97,10 @@ namespace engine::math::utils
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE Matrix<T, 3, 3> to_rotation_matrix(const Vector<T, 3>& angle_axis) noexcept
+    ENGINE_MATH_INLINE Matrix<T, 4, 4> to_rotation_matrix(T angle, const Vector<T, 3>& axis) noexcept
     {
-        //TODO: check if this is correct! Also check if there is a more efficient way to do this!
-        //TODO: add tests for this function!
-        //The input vector is expected to be (axis.x, axis.y, axis.z) * angle
-        const T x = angle_axis[0];
-        const T y = angle_axis[1];
-        const T z = angle_axis[2];
-        const T angle = std::sqrt(x * x + y * y + z * z);
-        const T eps = T(1e-8);
-
-        if (angle < eps)
-        {
-            Matrix<T, 3, 3> I{};
-            I[0][0] = I[1][1] = I[2][2] = T(1);
-            I[0][1] = I[0][2] = I[1][0] = I[1][2] = I[2][0] = I[2][1] = T(0);
-            return I;
-        }
-
-        Vector<T, 3> axis{};
-        axis[0] = x / angle;
-        axis[1] = y / angle;
-        axis[2] = z / angle;
-        return to_rotation_matrix(angle, axis);
-    }
-
-    template <typename T>
-    ENGINE_MATH_INLINE Matrix<T, 3, 3> to_rotation_matrix(T angle, const Vector<T, 3>& axis) noexcept
-    {
-        //TODO: check if this is correct! Also check if there is a more efficient way to do this!
-        //TODO: add tests for this function!
         //The input vector is expected to be a normalized axis of rotation
-        Matrix<T, 3, 3> R{};
+        Matrix<T, 4, 4> R = math::identity_matrix<T, 4>();
         const T eps = T(1e-8);
 
         // Normalize axis defensively
@@ -178,10 +144,31 @@ namespace engine::math::utils
     }
 
     template <typename T>
-    ENGINE_MATH_INLINE Matrix<T, 3, 3> to_rotation_matrix(const Vector<T, 4>& angle_axis) noexcept
+    ENGINE_MATH_INLINE Matrix<T, 4, 4> to_rotation_matrix(const Vector<T, 3>& angle_axis) noexcept
     {
-        //TODO: check if this is correct! Also check if there is a more efficient way to do this!
-        //TODO: add tests for this function!
+        //The input vector is expected to be (axis.x, axis.y, axis.z) * angle
+        const T x = angle_axis[0];
+        const T y = angle_axis[1];
+        const T z = angle_axis[2];
+        const T angle = std::sqrt(x * x + y * y + z * z);
+        const T eps = T(1e-8);
+
+        if (angle < eps)
+        {
+            return math::identity_matrix<T, 4>();
+        }
+
+        Vector<T, 3> axis{};
+        axis[0] = x / angle;
+        axis[1] = y / angle;
+        axis[2] = z / angle;
+        return to_rotation_matrix(angle, axis);
+    }
+
+
+    template <typename T>
+    ENGINE_MATH_INLINE Matrix<T, 4, 4> to_rotation_matrix(const Vector<T, 4>& angle_axis) noexcept
+    {
         //The input vector is expected to be (angle, axis.x, axis.y, axis.z)
         const T angle = angle_axis[0];
         Vector<T, 3> axis{};

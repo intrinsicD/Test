@@ -9,6 +9,7 @@ namespace engine::math
     template <typename T, std::size_t Rows, std::size_t Cols>
     struct Matrix
     {
+        //TODO: Change this to a graphics friendly layout (column-major). Make sure to adapt all code neccessary as well as the tests.
         using value_type = T;
         using row_type = Vector<T, Cols>;
         using size_type = std::size_t;
@@ -31,6 +32,29 @@ namespace engine::math
                     rows[r][c] = values[index++];
                 }
             }
+        }
+
+        ENGINE_MATH_INLINE Matrix(const Matrix<T, Rows + 1, Cols + 1>& other) noexcept : rows{}
+        {
+            for (size_type r = 0; r < Rows; ++r)
+            {
+                for (size_type c = 0; c < Cols; ++c)
+                {
+                    rows[r][c] = other[r][c];
+                }
+            }
+        }
+
+        ENGINE_MATH_INLINE Matrix& operator=(const Matrix<T, Rows + 1, Cols + 1>& other) noexcept
+        {
+            for (size_type r = 0; r < Rows; ++r)
+            {
+                for (size_type c = 0; c < Cols; ++c)
+                {
+                    rows[r][c] = other[r][c];
+                }
+            }
+            return *this;
         }
 
         ENGINE_MATH_INLINE row_type& operator[](size_type row) noexcept { return rows[row]; }
@@ -95,8 +119,7 @@ namespace engine::math
     }
 
     template <typename T, std::size_t Rows, std::size_t Cols>
-    ENGINE_MATH_INLINE Vector<T, Rows> operator
-    *(const Matrix<T, Rows, Cols>& lhs, const Vector<T, Cols>& rhs) noexcept
+    ENGINE_MATH_INLINE Vector<T, Rows> operator*(const Matrix<T, Rows, Cols>& lhs, const Vector<T, Cols>& rhs) noexcept
     {
         Vector<T, Rows> result{};
         for (std::size_t r = 0; r < Rows; ++r)
@@ -104,6 +127,14 @@ namespace engine::math
             result[r] = dot(lhs[r], rhs);
         }
         return result;
+    }
+
+    template <typename T, std::size_t Rows, std::size_t Cols>
+    ENGINE_MATH_INLINE Vector<T, Rows> operator*(const Matrix<T, Rows, Cols>& lhs,
+                                                 const Vector<T, Cols - 1>& rhs) noexcept
+    {
+        Vector<T, Cols> tmp = rhs;
+        return operator*(lhs, tmp);
     }
 
     template <typename T, std::size_t Rows, std::size_t Shared, std::size_t Cols>
@@ -176,14 +207,12 @@ namespace engine::math
     template <typename T>
     ENGINE_MATH_INLINE T determinant(const Matrix<T, 2, 2>& m) noexcept
     {
-        //TODO: check if this is correct!
         return m[0][0] * m[1][1] - m[0][1] * m[1][0];
     }
 
     template <typename T>
     ENGINE_MATH_INLINE T determinant(const Matrix<T, 3, 3>& m) noexcept
     {
-        //TODO: check if this is correct!
         return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
             - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
             + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
@@ -192,7 +221,6 @@ namespace engine::math
     template <typename T>
     ENGINE_MATH_INLINE T determinant(const Matrix<T, 4, 4>& m) noexcept
     {
-        //TODO: check if this is correct!
         const T a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3];
         const T a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3];
         const T a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3];
@@ -276,14 +304,8 @@ namespace engine::math
     template <typename T>
     ENGINE_MATH_INLINE std::optional<Matrix<T, 4, 4>> try_inverse(const Matrix<T, 4, 4>& m) noexcept
     {
-        //TODO: optimize this function!
         // This implementation uses Gaussian elimination with partial pivoting.
-        // It is not the most efficient way to compute the inverse of a 4x4 matrix,
-        // but it is straightforward and works for any invertible matrix.
-        //TODO: Analytical inverse for affine transformations (common case), LU decomposition for general matrices
-
-        //TODO: check if this is correct!
-        //TODO: add test for this function!
+        // It favours robustness over absolute performance and works for any invertible matrix.
         // Build augmented [M | I]
         T aug[4][8]{};
         for (std::size_t r = 0; r < 4; ++r)
@@ -345,7 +367,7 @@ namespace engine::math
         return inv;
     }
 
-    template <typename T, std::size_t Rows, std::size_t Cols, typename S>
+    template <typename S, typename T, std::size_t Rows, std::size_t Cols>
     ENGINE_MATH_INLINE Matrix<S, Rows, Cols> cast(const Matrix<T, Rows, Cols>& m) noexcept
     {
         Matrix<S, Rows, Cols> result;

@@ -30,12 +30,31 @@ namespace engine::math
         }
 
         template <typename S>
-        ENGINE_MATH_INLINE explicit Vector(const Vector<S, N>& other) noexcept : elements{}
+        ENGINE_MATH_INLINE Vector(const Vector<S, N>& other) noexcept : elements{}
         {
             for (size_type i = 0; i < N; ++i)
             {
                 elements[i] = other[i];
             }
+        }
+
+        template <typename S>
+        ENGINE_MATH_INLINE Vector(const Vector<S, N + 1>& other) noexcept : elements{}
+        {
+            for (size_type i = 0; i < N; ++i)
+            {
+                elements[i] = other[i];
+            }
+        }
+
+        template <typename S>
+        ENGINE_MATH_INLINE Vector(const Vector<S, N - 1>& other) noexcept : elements{}
+        {
+            for (size_type i = 0; i < N - 1; ++i)
+            {
+                elements[i] = other[i];
+            }
+            elements[N - 1] = detail::one<value_type>();
         }
 
         template <typename... Args, typename = std::enable_if_t<sizeof...(Args) == N>>
@@ -53,6 +72,16 @@ namespace engine::math
         {
             assert(index < N && "vector index out of bounds");
             return elements[index];
+        }
+
+        ENGINE_MATH_INLINE Vector operator-() const noexcept
+        {
+            Vector result;
+            for (size_type i = 0; i < N; ++i)
+            {
+                result[i] = -elements[i];
+            }
+            return result;
         }
 
         ENGINE_MATH_INLINE Vector& operator+=(const Vector& rhs) noexcept
@@ -143,7 +172,7 @@ namespace engine::math
         return !(lhs == rhs);
     }
 
-    template <typename T, std::size_t N, typename S>
+    template <typename S, typename T, std::size_t N>
     ENGINE_MATH_INLINE Vector<S, N> cast(const Vector<T, N>& vec) noexcept
     {
         Vector<S, N> result;
@@ -201,24 +230,24 @@ namespace engine::math
     template <typename T, std::size_t N>
     ENGINE_MATH_INLINE Vector<T, N> reflect(const Vector<T, N>& incident, const Vector<T, N>& normal) noexcept
     {
-        //TODO: check if this is correct!
-        //TODO: add test for this function!
+        // Reflection across a plane with normal $n$ follows $r = i - 2\langle i, n \rangle n$.
         return incident - static_cast<T>(2) * dot(incident, normal) * normal;
     }
 
     template <typename T, std::size_t N>
     ENGINE_MATH_INLINE Vector<T, N> refract(const Vector<T, N>& incident, const Vector<T, N>& normal, T eta) noexcept
     {
-        //TODO: check if this is correct!
-        //TODO: add test for this function!
-        const T cos_i = dot(-incident, normal);
+        const Vector<T, N> unit_incident = normalize(incident);
+        const Vector<T, N> unit_normal = normalize(normal);
+
+        const T cos_i = dot(-unit_incident, unit_normal);
         const T sin2_t = eta * eta * (detail::one<T>() - cos_i * cos_i);
         if (sin2_t > detail::one<T>())
         {
             return Vector<T, N>{}; // Total internal reflection
         }
         const T cos_t = static_cast<T>(sqrt(static_cast<double>(detail::one<T>() - sin2_t)));
-        return eta * incident + (eta * cos_i - cos_t) * normal;
+        return eta * unit_incident + (eta * cos_i - cos_t) * unit_normal;
     }
 
     template <typename T, std::size_t N>
@@ -227,22 +256,20 @@ namespace engine::math
         const T b_len_sq = length_squared(b);
         if (b_len_sq == detail::zero<T>())
         {
-            return Vector<T, N>{};
+            return detail::zero<T>();
         }
-        return (dot(a, b) / b_len_sq); // Return vector, not scalar
+        return dot(a, b) / b_len_sq;
     }
 
     template <typename T, std::size_t N>
     ENGINE_MATH_INLINE Vector<T, N> project(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
     {
-        return projection_coefficient(a, b) * b; // Return vector, not scalar
+        return projection_coefficient(a, b) * b;
     }
 
     template <typename T, std::size_t N>
     ENGINE_MATH_INLINE Vector<T, N> lerp(const Vector<T, N>& a, const Vector<T, N>& b, T t) noexcept
     {
-        //TODO: check if this is correct!
-        //TODO: add test for this function!
         return (detail::one<T>() - t) * a + t * b;
     }
 
