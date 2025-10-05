@@ -293,11 +293,13 @@ namespace engine::geometry
     TEST(CylinderIntersection, CylinderObb)
     {
         const Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 1.5f};
-        const Obb overlapping{{0, 0, 0}, {0.5f, 0.5f, 0.5f}, math::quat{1, 0, 0, 0}};
+        const Obb centered_box{{0, 0, 0}, {0.5f, 0.5f, 0.5f}, math::quat{1, 0, 0, 0}};
         const Obb separated{{5, 0, 0}, {0.5f, 0.5f, 0.5f}, math::quat{1, 0, 0, 0}};
+        const Cylinder separated_axial{{0, 0, 2}, {0, 0, 1}, 1.0f, 0.5f};
 
-        EXPECT_TRUE(Intersects(cyl, overlapping));
+        EXPECT_TRUE(Intersects(cyl, centered_box));
         EXPECT_FALSE(Intersects(cyl, separated));
+        EXPECT_FALSE(Intersects(separated_axial, centered_box));
     }
 
     TEST(CylinderIntersection, CylinderPlane)

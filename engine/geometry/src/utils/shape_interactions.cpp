@@ -3,6 +3,8 @@
 #include "engine/math/utils.hpp"
 #include "engine/math/utils_rotation.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <limits>
 
 namespace engine::geometry
@@ -515,23 +517,140 @@ namespace engine::geometry
         return true;
     }
 
+    namespace
+    {
+        struct SegmentAabbClosestResult
+        {
+            float distance_sq;
+            math::vec3 point_on_segment;
+            math::vec3 point_on_box;
+        };
+
+        SegmentAabbClosestResult ClosestPointSegmentAabb(const Segment& segment,
+                                                          const Aabb& box,
+                                                          float allowed_t_min,
+                                                          float allowed_t_max) noexcept
+        {
+            float t_min = math::utils::clamp(allowed_t_min, 0.0f, 1.0f);
+            float t_max = math::utils::clamp(allowed_t_max, 0.0f, 1.0f);
+            if (t_max < t_min) std::swap(t_min, t_max);
+
+            SegmentAabbClosestResult best{std::numeric_limits<float>::infinity(), {}, {}};
+
+            Result seg_result{};
+            if (Intersects(box, segment, &seg_result))
+            {
+                const float entry = math::utils::max(seg_result.t_min, t_min);
+                const float exit = math::utils::min(seg_result.t_max, t_max);
+                if (exit >= entry)
+                {
+                    const float t = math::utils::clamp(entry, t_min, t_max);
+                    const math::vec3 point = PointAt(segment, t);
+                    return {0.0f, point, point};
+                }
+            }
+
+            const math::vec3 dir = Direction(segment);
+
+            auto evaluate = [&](float t) noexcept
+            {
+                if (t < t_min || t > t_max) return;
+
+                const math::vec3 point = PointAt(segment, t);
+                const math::vec3 box_point = ClosestPoint(box, point);
+                const math::vec3 delta = point - box_point;
+                const float dist_sq = math::dot(delta, delta);
+                if (dist_sq < best.distance_sq)
+                {
+                    best = {dist_sq, point, box_point};
+                }
+            };
+
+            evaluate(t_min);
+            evaluate(t_max);
+
+            for (std::size_t i = 0; i < 3; ++i)
+            {
+                const float d = dir[i];
+                if (math::utils::nearly_equal(d, 0.0f, constants::PARALLEL_EPSILON)) continue;
+
+                const float inv_d = 1.0f / d;
+                const float t0 = (box.min[i] - segment.start[i]) * inv_d;
+                const float t1 = (box.max[i] - segment.start[i]) * inv_d;
+
+                evaluate(t0);
+                evaluate(t1);
+            }
+
+            if (!std::isfinite(best.distance_sq))
+            {
+                const float mid = 0.5f * (t_min + t_max);
+                const math::vec3 point = PointAt(segment, mid);
+                const math::vec3 box_point = ClosestPoint(box, point);
+                const math::vec3 delta = point - box_point;
+                const float dist_sq = math::dot(delta, delta);
+                best = {dist_sq, point, box_point};
+            }
+
+            return best;
+        }
+    } // namespace
+
     bool Intersects(const Cylinder& cyl, const Obb& obb) noexcept
     {
         // Check if any OBB vertex is inside cylinder
+        const math::vec3 axis_dir = AxisDirection(cyl);
         const auto corners = GetCorners(obb);
+        float obb_proj_min = std::numeric_limits<float>::infinity();
+        float obb_proj_max = -std::numeric_limits<float>::infinity();
         for (const auto& corner : corners)
         {
             if (Contains(cyl, corner)) return true;
+            const float proj = math::dot(corner - cyl.center, axis_dir);
+            obb_proj_min = math::utils::min(obb_proj_min, proj);
+            obb_proj_max = math::utils::max(obb_proj_max, proj);
         }
+
+        if (obb_proj_min > cyl.half_height || obb_proj_max < -cyl.half_height) return false;
 
         // Check if cylinder endpoints are inside OBB
         if (Contains(obb, TopCenter(cyl)) || Contains(obb, BottomCenter(cyl))) return true;
 
         // Check distance between cylinder axis and OBB
         const Segment axis_seg{BottomCenter(cyl), TopCenter(cyl)};
-        const float dist_sq = SquaredDistance(obb, axis_seg.start);
 
-        return dist_sq <= cyl.radius * cyl.radius;
+        const math::mat3 rotation = math::utils::to_rotation_matrix(obb.orientation);
+        const math::mat3 rotation_t = transpose(rotation);
+        const Segment local_axis{
+            rotation_t * (axis_seg.start - obb.center),
+            rotation_t * (axis_seg.end - obb.center)
+        };
+        const Aabb local_box{
+            math::vec3{-obb.half_sizes[0], -obb.half_sizes[1], -obb.half_sizes[2]},
+            obb.half_sizes
+        };
+        float segment_t_min = 0.0f;
+        float segment_t_max = 1.0f;
+        if (cyl.half_height > constants::PARALLEL_EPSILON)
+        {
+            const float overlap_start = math::utils::max(-cyl.half_height, obb_proj_min);
+            const float overlap_end = math::utils::min(cyl.half_height, obb_proj_max);
+            const float inv_height = 1.0f / (2.0f * cyl.half_height);
+            segment_t_min = (overlap_start + cyl.half_height) * inv_height;
+            segment_t_max = (overlap_end + cyl.half_height) * inv_height;
+        }
+
+        const auto closest = ClosestPointSegmentAabb(local_axis, local_box, segment_t_min, segment_t_max);
+        if (closest.distance_sq <= 0.0f) return true;
+
+        const math::vec3 axis_point_world = rotation * closest.point_on_segment + obb.center;
+        const math::vec3 box_point_world = rotation * closest.point_on_box + obb.center;
+        const math::vec3 delta = axis_point_world - box_point_world;
+        const float axial_component = math::dot(delta, axis_dir);
+        const math::vec3 radial_vec = delta - axial_component * axis_dir;
+        const float radial_dist_sq = math::dot(radial_vec, radial_vec);
+
+        return radial_dist_sq <= cyl.radius * cyl.radius;
     }
 
     bool Intersects(const Cylinder& cyl, const Plane& plane) noexcept
