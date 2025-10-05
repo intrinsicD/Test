@@ -1,5 +1,19 @@
-.idea/*
-.idea/misc.xml
-.idea/Test.iml
-.idea/editor.xml
-*/__pycache__/*
+# IDE
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# CMake
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
