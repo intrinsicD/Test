@@ -1,13 +1,12 @@
 # Src
 
-## Purpose
-- Engine source tree.
-- Animation systems and tooling.
-- Source files.
+_Path: `engine/animation/src`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `api.cpp` – Implementation for API.
 
-## TODO
-- [ ] Expand the runtime features supported here.
-- [ ] Add usage notes or examples for the listed files.
+- `api.cpp` – C++ source file.

@@ -1,14 +1,8 @@
 # Metal
 
-## Purpose
-- Engine source tree.
-- Rendering pipeline and resources.
-- Graphics API backends.
-- Metal backend glue.
+_Path: `engine/rendering/backend/metal`_
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
+_Last updated: 2025-10-05_
 
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Add usage notes or examples for the listed files.
+
+This directory currently contains no tracked artifacts besides this README.

@@ -1,19 +1,14 @@
 # Tests
 
-## Purpose
-- Engine source tree.
-- Automated test suites.
+_Path: `engine/tests`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `integration/` – Integration tests.
-- `performance/` – Performance benchmarks.
-- `unit/` – Unit tests.
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Grow the automated coverage for this area.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `integration/` – documented in its own README; contains 1 file.
+- `performance/` – documented in its own README; contains 1 file.
+- `unit/` – documented in its own README; contains 1 file.

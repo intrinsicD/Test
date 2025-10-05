@@ -1,22 +1,24 @@
-# Project Overview
+# Test Engine Workspace
 
-## Purpose
-- Root of the engine workspace.
+The `Test` repository hosts a modular real-time engine prototype. The tree is organised around a CMake build driven core (`engine/`), tooling (`python/`, `scripts/`), and project documentation (`docs/`).
 
-### Subdirectories
-- `.git/` – .git resources.
-- `.idea/` – .idea resources.
-- `docs/` – Project documentation hub.
-- `engine/` – Engine source tree.
-- `python/` – Python bindings and tools.
-- `scripts/` – Automation scripts.
-- `third_party/` – External dependencies.
+## Top-level Layout
+- `docs/` – Design notes and API references that describe the evolving architecture.
+- `engine/` – C++ engine source organised by subsystem (animation, rendering, physics, etc.).
+- `python/` – Python bindings and companion utilities for automation and prototyping.
+- `scripts/` – Developer tooling for builds and continuous integration jobs.
+- `third_party/` – External dependencies vendored into the workspace (currently GoogleTest).
+- `CMakeLists.txt` – Root CMake project file that wires the modular subprojects together.
+- `CODING_STYLE.md` – Canonical formatting and style conventions for contributions.
 
-### Files
-- `CMakeLists.txt` – CMake build configuration.
-- `CODING_STYLE.md` – Project coding style guide.
+## Build Requirements
+The project is configured with CMake. To configure and build the workspace:
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+Tests are provided via GoogleTest. Once the project is built, execute `ctest --test-dir build` to run the available suites.
+
+_Last updated: 2025-10-05_

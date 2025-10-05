@@ -1,12 +1,12 @@
 # Gtest
 
-## Purpose
-- External dependencies.
-- Public headers.
+_Path: `third_party/googletest/include/gtest`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `gtest.h` – Header for Gtest.
 
-## TODO
-- [ ] Extend the public headers as new APIs emerge.
-- [ ] Add usage notes or examples for the listed files.
+- `gtest.h` – C/C++ header.

@@ -1,13 +1,13 @@
-# Engine3G
+# Engine3g
 
-## Purpose
-- Python bindings and tools.
-- Python-side engine helpers.
+_Path: `python/engine3g`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `__init__.py` – Python module for Init.
-- `loader.py` – Python module for Loader.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Add usage notes or examples for the listed files.
+- `__init__.py` – Python module.
+- `loader.py` – Python module.

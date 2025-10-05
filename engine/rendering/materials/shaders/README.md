@@ -1,21 +1,14 @@
 # Shaders
 
-## Purpose
-- Engine source tree.
-- Rendering pipeline and resources.
-- Material definitions and shaders.
-- Shader code.
+_Path: `engine/rendering/materials/shaders`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `common/` – Shared shader code.
-- `glsl/` – GLSL shader code.
-- `hlsl/` – HLSL shader code.
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Provide representative shader examples.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `common/` – documented in its own README; contains 1 file.
+- `glsl/` – documented in its own README; contains 1 file.
+- `hlsl/` – documented in its own README; contains 1 file.

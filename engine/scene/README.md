@@ -1,23 +1,22 @@
 # Scene
 
-## Purpose
-- Engine source tree.
-- Scene graph and component systems.
+_Path: `engine/scene`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `components/` – Scene components.
-- `graph/` – Scene graph helpers.
-- `include/` – Public headers.
-- `serialization/` – Serialization helpers.
-- `src/` – Source files.
-- `systems/` – Systems resources.
-- `tests/` – Automated test suites.
+
+- `components/` – documented in its own README; contains 1 file.
+- `graph/` – documented in its own README; contains 1 file.
+- `include/` – contains 1 subdirectory.
+- `serialization/` – documented in its own README; contains 1 file.
+- `src/` – documented in its own README; contains 1 file.
+- `systems/` – documented in its own README; contains 1 file.
+- `tests/` – documented in its own README; contains 2 files.
 
 ### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-- `CMakeLists.txt` – CMake build configuration.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.

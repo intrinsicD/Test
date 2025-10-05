@@ -1,27 +1,26 @@
 # Core
 
-## Purpose
-- Engine source tree.
-- Core runtime services.
+_Path: `engine/core`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `application/` – Application resources.
-- `configuration/` – Configuration resources.
-- `diagnostics/` – Diagnostics resources.
-- `ecs/` – ECS resources.
-- `include/` – Public headers.
-- `memory/` – Memory resources.
-- `parallel/` – Parallel resources.
-- `plugin/` – Plugin resources.
-- `runtime/` – Runtime glue and integration.
-- `src/` – Source files.
-- `tests/` – Automated test suites.
+
+- `application/` – documented in its own README; contains 1 file.
+- `configuration/` – documented in its own README; contains 1 file.
+- `diagnostics/` – documented in its own README; contains 1 file.
+- `ecs/` – documented in its own README; contains 1 file.
+- `include/` – contains 1 subdirectory.
+- `memory/` – documented in its own README; contains 1 file.
+- `parallel/` – documented in its own README; contains 1 file.
+- `plugin/` – documented in its own README; contains 1 file.
+- `runtime/` – documented in its own README; contains 1 file.
+- `src/` – documented in its own README; contains 1 file.
+- `tests/` – documented in its own README; contains 2 files.
 
 ### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-- `CMakeLists.txt` – CMake build configuration.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.

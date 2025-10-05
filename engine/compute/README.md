@@ -1,19 +1,19 @@
 # Compute
 
-## Purpose
-- Engine source tree.
-- GPU and parallel compute utilities.
+_Path: `engine/compute`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `cuda/` – CUDA powered compute.
-- `include/` – Public headers.
-- `src/` – Source files.
-- `tests/` – Automated test suites.
+
+- `cuda/` – documented in its own README; contains 3 subdirectories; contains 1 file.
+- `include/` – contains 1 subdirectory.
+- `src/` – documented in its own README; contains 1 file.
+- `tests/` – documented in its own README; contains 2 files.
 
 ### Files
-- `CMakeLists.txt` – CMake build configuration.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.

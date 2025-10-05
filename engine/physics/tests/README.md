@@ -1,14 +1,13 @@
 # Tests
 
-## Purpose
-- Engine source tree.
-- Physics simulation utilities.
-- Automated test suites.
+_Path: `engine/physics/tests`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `CMakeLists.txt` – CMake build configuration.
-- `test_module.cpp` – Implementation for Test Module.
 
-## TODO
-- [ ] Grow the automated coverage for this area.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.
+- `test_module.cpp` – C++ source file.

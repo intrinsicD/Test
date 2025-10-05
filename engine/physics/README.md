@@ -1,21 +1,20 @@
 # Physics
 
-## Purpose
-- Engine source tree.
-- Physics simulation utilities.
+_Path: `engine/physics`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `collision/` – Collision resources.
-- `dynamics/` – Dynamics resources.
-- `include/` – Public headers.
-- `src/` – Source files.
-- `tests/` – Automated test suites.
+
+- `collision/` – documented in its own README; contains 1 file.
+- `dynamics/` – documented in its own README; contains 1 file.
+- `include/` – contains 1 subdirectory.
+- `src/` – documented in its own README; contains 1 file.
+- `tests/` – documented in its own README; contains 2 files.
 
 ### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-- `CMakeLists.txt` – CMake build configuration.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.

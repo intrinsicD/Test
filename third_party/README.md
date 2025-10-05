@@ -1,11 +1,8 @@
-# Third Party
+# Third-party Dependencies
 
-## Purpose
-- External dependencies.
+External libraries vendored into the repository are tracked here. Each dependency provides its own README for usage details.
 
-### Subdirectories
-- `googletest/` – Googletest resources.
+## Current Dependencies
+- `googletest/` – Upstream GoogleTest source and headers for unit testing.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
+_Last updated: 2025-10-05_

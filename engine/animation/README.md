@@ -1,22 +1,21 @@
 # Animation
 
-## Purpose
-- Engine source tree.
-- Animation systems and tooling.
+_Path: `engine/animation`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `deformation/` – Deformation workflows.
-- `include/` – Public headers.
-- `rigging/` – Rigging helpers.
-- `skinning/` – Skinning logic.
-- `src/` – Source files.
-- `tests/` – Automated test suites.
+
+- `deformation/` – documented in its own README; contains 1 file.
+- `include/` – contains 1 subdirectory.
+- `rigging/` – documented in its own README; contains 1 file.
+- `skinning/` – documented in its own README; contains 1 file.
+- `src/` – documented in its own README; contains 1 file.
+- `tests/` – documented in its own README; contains 2 files.
 
 ### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-- `CMakeLists.txt` – CMake build configuration.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.

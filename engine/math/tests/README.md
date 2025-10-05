@@ -1,14 +1,13 @@
 # Tests
 
-## Purpose
-- Engine source tree.
-- Math helpers shared across the engine.
-- Automated test suites.
+_Path: `engine/math/tests`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `CMakeLists.txt` – CMake build configuration.
-- `test_math.cpp` – Implementation for Test Math.
 
-## TODO
-- [ ] Grow the automated coverage for this area.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.
+- `test_math.cpp` – C++ source file.

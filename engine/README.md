@@ -1,29 +1,23 @@
-# Engine
+# Engine Source Tree
 
-## Purpose
-- Engine source tree.
+The `engine/` subtree contains the core C++ implementation of the engine. Each subsystem is isolated in its own directory with a matching README that summarises its state.
 
-### Subdirectories
-- `animation/` – Animation systems and tooling.
-- `assets/` – Asset management and import pipelines.
-- `compute/` – GPU and parallel compute utilities.
-- `core/` – Core runtime services.
-- `geometry/` – Geometric primitives and operations.
-- `io/` – Input/output subsystems.
-- `math/` – Math helpers shared across the engine.
-- `physics/` – Physics simulation utilities.
-- `platform/` – Platform abstraction layers.
-- `rendering/` – Rendering pipeline and resources.
-- `runtime/` – Runtime glue and integration.
-- `scene/` – Scene graph and component systems.
-- `tests/` – Automated test suites.
-- `tools/` – Developer tooling.
+## Subsystems
+- `animation/` – Rigging, deformation, and animation runtime experiments.
+- `assets/` – Asset pipelines, sample content, and shader packaging.
+- `compute/` – Heterogeneous compute backends (CUDA and generic dispatch infrastructure).
+- `core/` – Foundational runtime services, configuration, diagnostics, and ECS primitives.
+- `geometry/` – Mesh processing, topology utilities, and geometric algorithms.
+- `io/` – Import/export modules and caching layers for content.
+- `math/` – Shared mathematical utilities.
+- `physics/` – Collision detection and dynamics scaffolding.
+- `platform/` – Abstractions for windowing, input, and file systems.
+- `rendering/` – Rendering pipeline layers, material systems, and backend integrations.
+- `runtime/` – Application glue that stitches systems together.
+- `scene/` – Scene graph, component registration, and serialization.
+- `tests/` – Unit, integration, and performance test suites organised by subsystem.
+- `tools/` – Developer tooling (profilers, content pipelines, and editor stubs).
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-- `CMakeLists.txt` – CMake build configuration.
+A top-level `CMakeLists.txt` exposes each subsystem to the global build configuration.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+_Last updated: 2025-10-05_

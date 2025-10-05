@@ -1,17 +1,21 @@
 # Src
 
-## Purpose
-- Engine source tree.
-- Geometric primitives and operations.
-- Source files.
+_Path: `engine/geometry/src`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `shapes/` – Shape-specific utilities.
+
+- `graph/` – contains 1 file.
+- `mesh/` – contains 1 file.
+- `point_cloud/` – contains 1 file.
+- `properties/` – contains 2 files.
+- `shapes/` – documented in its own README; contains 10 files.
+- `utils/` – contains 1 file.
 
 ### Files
-- `api.cpp` – Implementation for API.
 
-## TODO
-- [ ] Expand the runtime features supported here.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `api.cpp` – C++ source file.

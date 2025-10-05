@@ -1,18 +1,14 @@
 # Tools
 
-## Purpose
-- Engine source tree.
-- Developer tooling.
+_Path: `engine/tools`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `editor/` – Editor tooling.
-- `pipelines/` – Content build pipelines.
-- `profiling/` – Performance profiling utilities.
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `editor/` – documented in its own README; contains 1 file.
+- `pipelines/` – documented in its own README; contains 1 file.
+- `profiling/` – documented in its own README; contains 1 file.

@@ -1,12 +1,12 @@
 # Src
 
-## Purpose
-- External dependencies.
-- Source files.
+_Path: `third_party/googletest/src`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `gtest_main.cpp` – Implementation for Gtest Main.
 
-## TODO
-- [ ] Expand the runtime features supported here.
-- [ ] Add usage notes or examples for the listed files.
+- `gtest_main.cpp` – C++ source file.

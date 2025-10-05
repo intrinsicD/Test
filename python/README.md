@@ -1,11 +1,9 @@
-# Python
+# Python Tooling
 
-## Purpose
-- Python bindings and tools.
+Python utilities complement the C++ engine. They facilitate automation, experimental scripting, and bindings.
 
-### Subdirectories
-- `engine3g/` – Python-side engine helpers.
+## Layout
+- `engine3g/` – Python package stubs for engine bindings.
+- `tests/` – Automated tests for the Python-facing APIs (currently `test_loader.py`).
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
+_Last updated: 2025-10-05_

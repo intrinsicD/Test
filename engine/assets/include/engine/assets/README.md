@@ -1,13 +1,12 @@
 # Assets
 
-## Purpose
-- Engine source tree.
-- Asset management and import pipelines.
-- Public headers.
+_Path: `engine/assets/include/engine/assets`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `api.hpp` – Header for API.
 
-## TODO
-- [ ] Extend the public headers as new APIs emerge.
-- [ ] Add usage notes or examples for the listed files.
+- `api.hpp` – C++ header.
