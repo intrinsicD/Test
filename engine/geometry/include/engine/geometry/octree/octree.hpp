@@ -465,6 +465,7 @@ namespace engine::geometry
                 else if (s == hi) s = std::nextafter(s, lo);
             }
 
+            //TODO: Optimize by pre-computing these 8 boxes once? Possible or stupid?
             std::array<Aabb, 8> octant_aabbs;
             for (int j = 0; j < 8; ++j)
             {
@@ -479,6 +480,7 @@ namespace engine::geometry
                 octant_aabbs[j] = {.min = child_min, .max = child_max};
             }
 
+            //TODO: Optimize by pre-allocating these vectors once? Possible or stupid?
             std::array<std::vector<size_t>, 8> child_elements;
             std::vector<size_t> straddlers;
 
@@ -559,6 +561,7 @@ namespace engine::geometry
                 element_indices[current_pos++] = idx;
             }
             // Then, place the elements for each child sequentially
+            //TODO: Optimize by pre-computing child_starts once? Possible or stupid?
             std::array<size_t, 8> child_starts;
             for (int i = 0; i < 8; ++i)
             {
