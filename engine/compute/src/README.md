@@ -1,13 +1,12 @@
 # Src
 
-## Purpose
-- Engine source tree.
-- GPU and parallel compute utilities.
-- Source files.
+_Path: `engine/compute/src`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `api.cpp` – Implementation for API.
 
-## TODO
-- [ ] Expand the runtime features supported here.
-- [ ] Add usage notes or examples for the listed files.
+- `api.cpp` – C++ source file.

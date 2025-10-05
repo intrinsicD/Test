@@ -1,23 +1,21 @@
 # Shapes
 
-## Purpose
-- Engine source tree.
-- Geometric primitives and operations.
-- Source files.
-- Shape-specific utilities.
+_Path: `engine/geometry/src/shapes`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `aabb.cpp` – Implementation for Aabb.
-- `cylinder.cpp` – Implementation for Cylinder.
-- `ellipsoid.cpp` – Implementation for Ellipsoid.
-- `line.cpp` – Implementation for Line.
-- `obb.cpp` – Implementation for Obb.
-- `plane.cpp` – Implementation for Plane.
-- `ray.cpp` – Implementation for Ray.
-- `segment.cpp` – Implementation for Segment.
-- `sphere.cpp` – Implementation for Sphere.
-- `triangle.cpp` – Implementation for Triangle.
 
-## TODO
-- [ ] Expand the runtime features supported here.
-- [ ] Add usage notes or examples for the listed files.
+- `aabb.cpp` – C++ source file.
+- `cylinder.cpp` – C++ source file.
+- `ellipsoid.cpp` – C++ source file.
+- `line.cpp` – C++ source file.
+- `obb.cpp` – C++ source file.
+- `plane.cpp` – C++ source file.
+- `ray.cpp` – C++ source file.
+- `segment.cpp` – C++ source file.
+- `sphere.cpp` – C++ source file.
+- `triangle.cpp` – C++ source file.

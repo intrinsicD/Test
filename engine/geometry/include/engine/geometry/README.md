@@ -1,6 +1,23 @@
-# engine/geometry/include/engine/geometry
+# Geometry
 
-This directory collects the C++ engine source tree, the geometry subsystem for meshes, primitives, and spatial algorithms, public headers defining the subsystem API.
-The type-erased attribute system lives in `property_registry.hpp` and `property_set.hpp`, enabling structured property access shared by mesh, graph, and point-set data structures.
-General-purpose combinatorial graphs are available through `graph/graph.hpp`, and unstructured point sets are modelled by `point_cloud.hpp`, both exposing property accessors consistent with `mesh/halfedge_mesh.hpp`.
-Future additions should place additional contributions to public headers defining the subsystem API here to keep related work easy to discover.
+_Path: `engine/geometry/include/engine/geometry`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
+
+### Subdirectories
+
+- `graph/` – contains 1 file.
+- `mesh/` – contains 1 file.
+- `octree/` – contains 1 file.
+- `point_cloud/` – contains 1 file.
+- `properties/` – contains 3 files.
+- `shapes/` – documented in its own README; contains 10 files.
+- `utils/` – contains 6 files.
+
+### Files
+
+- `api.hpp` – C++ header.
+- `shapes.hpp` – C++ header.

@@ -1,16 +1,8 @@
 # Common
 
-## Purpose
-- Engine source tree.
-- Rendering pipeline and resources.
-- Material definitions and shaders.
-- Shader code.
-- Shared shader code.
+_Path: `engine/rendering/materials/shaders/common`_
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
+_Last updated: 2025-10-05_
 
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Provide representative shader examples.
-- [ ] Add usage notes or examples for the listed files.
+
+This directory currently contains no tracked artifacts besides this README.

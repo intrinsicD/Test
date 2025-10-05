@@ -1,17 +1,11 @@
-# Docs
+# Documentation Hub
 
-## Purpose
-- Project documentation hub.
+The `docs/` subtree aggregates written documentation for the engine project.
 
-### Subdirectories
-- `api/` – API references.
-- `design/` – Architecture documentation.
+## Structure
+- `api/` – High-level API references and module descriptions.
+- `design/` – Architectural sketches, diagrams, and exploratory design documents.
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
+Each nested directory provides its own README for finer-grained navigation.
 
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Expand documentation topics as systems evolve.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+_Last updated: 2025-10-05_

@@ -1,23 +1,21 @@
 # Shapes
 
-## Purpose
-- Engine source tree.
-- Geometric primitives and operations.
-- Public headers.
-- Shape-specific utilities.
+_Path: `engine/geometry/include/engine/geometry/shapes`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `aabb.hpp` – Header for Aabb.
-- `cylinder.hpp` – Header for Cylinder.
-- `ellipsoid.hpp` – Header for Ellipsoid.
-- `line.hpp` – Header for Line.
-- `obb.hpp` – Header for Obb.
-- `plane.hpp` – Header for Plane.
-- `ray.hpp` – Header for Ray.
-- `segment.hpp` – Header for Segment.
-- `sphere.hpp` – Header for Sphere.
-- `triangle.hpp` – Header for Triangle.
 
-## TODO
-- [ ] Extend the public headers as new APIs emerge.
-- [ ] Add usage notes or examples for the listed files.
+- `aabb.hpp` – C++ header.
+- `cylinder.hpp` – C++ header.
+- `ellipsoid.hpp` – C++ header.
+- `line.hpp` – C++ header.
+- `obb.hpp` – C++ header.
+- `plane.hpp` – C++ header.
+- `ray.hpp` – C++ header.
+- `segment.hpp` – C++ header.
+- `sphere.hpp` – C++ header.
+- `triangle.hpp` – C++ header.

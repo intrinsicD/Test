@@ -1,13 +1,12 @@
 # Rendering
 
-## Purpose
-- Engine source tree.
-- Rendering pipeline and resources.
-- Public headers.
+_Path: `engine/rendering/include/engine/rendering`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `api.hpp` – Header for API.
 
-## TODO
-- [ ] Extend the public headers as new APIs emerge.
-- [ ] Add usage notes or examples for the listed files.
+- `api.hpp` – C++ header.

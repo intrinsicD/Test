@@ -1,18 +1,13 @@
 # Materials
 
-## Purpose
-- Engine source tree.
-- Rendering pipeline and resources.
-- Material definitions and shaders.
+_Path: `engine/rendering/materials`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `shaders/` – Shader code.
-- `textures/` – Texture assets.
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `shaders/` – documented in its own README; contains 3 subdirectories; contains 1 file.
+- `textures/` – documented in its own README; contains 1 file.

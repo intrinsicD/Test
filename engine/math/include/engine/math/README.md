@@ -1,20 +1,19 @@
 # Math
 
-## Purpose
-- Engine source tree.
-- Math helpers shared across the engine.
-- Public headers.
+_Path: `engine/math/include/engine/math`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Files
-- `common.hpp` – Header for Common.
-- `math.hpp` – Header for Math.
-- `matrix.hpp` – Header for Matrix.
-- `quaternion.hpp` – Header for Quaternion.
-- `vector.hpp` – Header for Vector.
-- `utils.hpp` – Header for Utilities.'
-- `utils_camera.hpp` – Header for Camera Utilities.
-- `utils_rotation.hpp` – Header for Rotation Utilities.
 
-## TODO
-- [ ] Extend the public headers as new APIs emerge.
-- [ ] Add usage notes or examples for the listed files.
+- `common.hpp` – C++ header.
+- `math.hpp` – C++ header.
+- `matrix.hpp` – C++ header.
+- `quaternion.hpp` – C++ header.
+- `utils.hpp` – C++ header.
+- `utils_camera.hpp` – C++ header.
+- `utils_rotation.hpp` – C++ header.
+- `vector.hpp` – C++ header.

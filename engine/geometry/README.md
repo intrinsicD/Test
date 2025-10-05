@@ -1,5 +1,25 @@
-# engine/geometry
+# Geometry
 
-This directory collects the C++ engine source tree, the geometry subsystem for meshes, primitives, and spatial algorithms.
-In addition to the spatial primitives, it now exposes the property registry that tracks per-element attributes without relying on exceptions, making it suitable for downstream mesh processing tools.
-Future additions should place additional contributions to the geometry subsystem for meshes, primitives, and spatial algorithms here to keep related work easy to discover.
+_Path: `engine/geometry`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
+
+### Subdirectories
+
+- `csg/` – documented in its own README; contains 1 file.
+- `decimation/` – documented in its own README; contains 1 file.
+- `include/` – contains 1 subdirectory.
+- `mesh/` – documented in its own README; contains 1 file.
+- `src/` – documented in its own README; contains 6 subdirectories; contains 1 file.
+- `surfaces/` – documented in its own README; contains 1 file.
+- `tests/` – documented in its own README; contains 8 files.
+- `topology/` – documented in its own README; contains 1 file.
+- `uv/` – documented in its own README; contains 1 file.
+- `volumetric/` – documented in its own README; contains 1 file.
+
+### Files
+
+- `CMakeLists.txt` – Text resource.

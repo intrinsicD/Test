@@ -1,13 +1,8 @@
 # Components
 
-## Purpose
-- Engine source tree.
-- Scene graph and component systems.
-- Scene components.
+_Path: `engine/scene/components`_
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
+_Last updated: 2025-10-05_
 
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Add usage notes or examples for the listed files.
+
+This directory currently contains no tracked artifacts besides this README.

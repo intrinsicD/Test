@@ -1,16 +1,17 @@
 # Googletest
 
-## Purpose
-- External dependencies.
+_Path: `third_party/googletest`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `include/` – Public headers.
-- `src/` – Source files.
+
+- `include/` – contains 1 subdirectory.
+- `src/` – documented in its own README; contains 1 file.
 
 ### Files
-- `CMakeLists.txt` – CMake build configuration.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.

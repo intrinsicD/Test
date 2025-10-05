@@ -1,16 +1,11 @@
-# Scripts
+# Developer Scripts
 
-## Purpose
-- Automation scripts.
+Automation helpers for building and validating the workspace live under `scripts/`.
 
-### Subdirectories
-- `build/` – Build tooling.
-- `ci/` – Continuous integration scripts.
+## Subdirectories
+- `build/` – Scripts and notes for local build workflows.
+- `ci/` – Continuous integration helpers.
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
+Top-level scripts complement the CMake build and documentation maintenance tasks.
 
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+_Last updated: 2025-10-05_

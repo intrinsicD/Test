@@ -1,5 +1,19 @@
-# engine/geometry/tests
+# Tests
 
-This directory collects the C++ engine source tree, the geometry subsystem for meshes, primitives, and spatial algorithms, automated tests validating this layer.
-It now includes coverage for the property registry to guarantee optional-based lookup semantics, default value propagation, and removal bookkeeping.
-Future additions should place additional contributions to automated tests validating this layer here to keep related work easy to discover.
+_Path: `engine/geometry/tests`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
+
+### Files
+
+- `CMakeLists.txt` – Text resource.
+- `test_graph.cpp` – C++ source file.
+- `test_halfedge_mesh.cpp` – C++ source file.
+- `test_module.cpp` – C++ source file.
+- `test_point_cloud.cpp` – C++ source file.
+- `test_property_registry.cpp` – C++ source file.
+- `test_shape_interactions.cpp` – C++ source file.
+- `test_shapes.cpp` – C++ source file.

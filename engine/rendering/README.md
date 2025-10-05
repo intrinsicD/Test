@@ -1,26 +1,25 @@
 # Rendering
 
-## Purpose
-- Engine source tree.
-- Rendering pipeline and resources.
+_Path: `engine/rendering`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `backend/` – Graphics API backends.
-- `include/` – Public headers.
-- `lighting/` – Lighting systems.
-- `materials/` – Material definitions and shaders.
-- `passes/` – Render pass scheduling.
-- `pipeline/` – Render pipeline configuration.
-- `resources/` – GPU resource management.
-- `src/` – Source files.
-- `tests/` – Automated test suites.
-- `visibility/` – Visibility resources.
+
+- `backend/` – documented in its own README; contains 4 subdirectories; contains 1 file.
+- `include/` – contains 1 subdirectory.
+- `lighting/` – documented in its own README; contains 1 file.
+- `materials/` – documented in its own README; contains 2 subdirectories; contains 1 file.
+- `passes/` – documented in its own README; contains 1 file.
+- `pipeline/` – documented in its own README; contains 1 file.
+- `resources/` – documented in its own README; contains 2 subdirectories; contains 1 file.
+- `src/` – documented in its own README; contains 1 file.
+- `tests/` – documented in its own README; contains 2 files.
+- `visibility/` – documented in its own README; contains 1 file.
 
 ### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-- `CMakeLists.txt` – CMake build configuration.
 
-## TODO
-- [ ] Keep this overview up to date with new additions.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `CMakeLists.txt` – Text resource.

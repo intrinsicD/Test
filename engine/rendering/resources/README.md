@@ -1,18 +1,13 @@
 # Resources
 
-## Purpose
-- Engine source tree.
-- Rendering pipeline and resources.
-- GPU resource management.
+_Path: `engine/rendering/resources`_
+
+_Last updated: 2025-10-05_
+
+
+## Contents
 
 ### Subdirectories
-- `buffers/` – Buffer resources.
-- `samplers/` – Sampler resources.
 
-### Files
-- `.gitkeep` – Placeholder to keep the directory in git.
-
-## TODO
-- [ ] Replace the placeholder with real content.
-- [ ] Document ownership and responsibilities for each subfolder.
-- [ ] Add usage notes or examples for the listed files.
+- `buffers/` – documented in its own README; contains 1 file.
+- `samplers/` – documented in its own README; contains 1 file.
