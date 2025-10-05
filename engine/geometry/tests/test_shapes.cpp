@@ -114,6 +114,7 @@ TEST(Aabb, ContainsCylinderAndEllipsoid)
     EXPECT_TRUE(!engine::geometry::Contains(outer, ellipsoid_outside));
 }
 
+
 TEST(Aabb, IntersectsAdvancedShapes)
 {
     const Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{1.0f});
@@ -282,7 +283,8 @@ TEST(Obb, ContainsAndBoundingBox)
     const vec3 inside = box.center + vec3(engine::math::utils::to_rotation_matrix(box.orientation) * local_point);
     EXPECT_TRUE(engine::geometry::Contains(box, inside));
 
-    const vec3 outside = box.center + vec3(engine::math::utils::to_rotation_matrix(box.orientation) * vec3{2.5f, 0.0f, 0.0f});
+    const vec3 outside = box.center + vec3(
+        engine::math::utils::to_rotation_matrix(box.orientation) * vec3{2.5f, 0.0f, 0.0f});
     EXPECT_TRUE(!engine::geometry::Contains(box, outside));
 
     const Aabb bounds = BoundingAabb(box);
@@ -330,7 +332,7 @@ TEST(Obb, ClosestPointAndDistance)
 
     expect_vec3_eq(engine::geometry::ClosestPoint(box, point), expected);
     EXPECT_TRUE(engine::math::utils::nearly_equal(engine::geometry::SquaredDistance(box, point),
-                static_cast<double>(engine::math::length_squared(point - expected)), 1e-5));
+        static_cast<double>(engine::math::length_squared(point - expected)), 1e-5));
 }
 
 TEST(Obb, BoundingObbWithTransform)
@@ -649,7 +651,8 @@ TEST(Ellipsoid, ContainsAndVolume)
 
     EXPECT_FLOAT_EQ(engine::geometry::Volume(e), (4.0f / 3.0f) * std::numbers::pi_v<float>);
 
-    const vec3 inside = e.center + vec3(engine::math::utils::to_rotation_matrix(e.orientation) * vec3{1.0f, 0.0f, 0.0f});
+    const vec3 inside = e.center +
+        vec3(engine::math::utils::to_rotation_matrix(e.orientation) * vec3{1.0f, 0.0f, 0.0f});
     const vec3 outside_point{3.0f, 0.0f, 0.0f};
     EXPECT_TRUE(engine::geometry::Contains(e, inside));
     EXPECT_TRUE(!engine::geometry::Contains(e, outside_point));
@@ -692,4 +695,188 @@ TEST(Cylinder, IntersectsSphere)
     const engine::geometry::Sphere separate{vec3{5.0f, 0.0f, 0.0f}, 1.0f};
     EXPECT_TRUE(engine::geometry::Intersects(c, touching));
     EXPECT_TRUE(!engine::geometry::Intersects(c, separate));
+}
+
+
+TEST(CylinderGeometry, ClosestPointInsideCylinder)
+{
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 2.0f, 3.0f};
+    const vec3 inside{1.0f, 0, 1.0f};
+
+    const vec3 closest = ClosestPoint(cyl, inside);
+
+    // Point inside should return itself
+    EXPECT_FLOAT_EQ(closest[0], inside[0]);
+    EXPECT_FLOAT_EQ(closest[1], inside[1]);
+    EXPECT_FLOAT_EQ(closest[2], inside[2]);
+
+    EXPECT_EQ(SquaredDistance(cyl, inside), 0.0);
+}
+
+TEST(CylinderGeometry, ClosestPointOnLateralSurface)
+{
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const vec3 outside{3.0f, 0, 0};
+
+    const vec3 closest = ClosestPoint(cyl, outside);
+
+    // Should be on lateral surface at x=1, z=0
+    EXPECT_FLOAT_EQ(closest[0], 1.0f);
+    EXPECT_FLOAT_EQ(closest[1], 0.0f);
+    EXPECT_FLOAT_EQ(closest[2], 0.0f);
+
+    const double dist_sq = SquaredDistance(cyl, outside);
+    EXPECT_EQ(dist_sq, 4.0); // (3-1)^2 = 4
+}
+
+TEST(CylinderGeometry, ClosestPointOnTopCap)
+{
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const vec3 above{0, 0, 5.0f};
+
+    const vec3 closest = ClosestPoint(cyl, above);
+
+    // Should be at center of top cap
+    EXPECT_FLOAT_EQ(closest[0], 0.0f);
+    EXPECT_FLOAT_EQ(closest[1], 0.0f);
+    EXPECT_FLOAT_EQ(closest[2], 2.0f);
+
+    const double dist_sq = SquaredDistance(cyl, above);
+    EXPECT_EQ(dist_sq, 9.0); // (5-2)^2 = 9
+}
+
+TEST(CylinderGeometry, ClosestPointOnBottomCap)
+{
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const vec3 below{0, 0, -5.0f};
+
+    const vec3 closest = ClosestPoint(cyl, below);
+
+    // Should be at center of bottom cap
+    EXPECT_FLOAT_EQ(closest[0], 0.0f);
+    EXPECT_FLOAT_EQ(closest[1], 0.0f);
+    EXPECT_FLOAT_EQ(closest[2], -2.0f);
+
+    const double dist_sq = SquaredDistance(cyl, below);
+    EXPECT_EQ(dist_sq, 9.0); // (-5-(-2))^2 = 9
+}
+
+TEST(CylinderGeometry, ClosestPointOnCapEdge)
+{
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const vec3 diagonal{2.0f, 0, 3.0f};
+
+    const vec3 closest = ClosestPoint(cyl, diagonal);
+
+    // Should be on edge of top cap
+    EXPECT_FLOAT_EQ(closest[0], 1.0f);
+    EXPECT_FLOAT_EQ(closest[1], 0.0f);
+    EXPECT_FLOAT_EQ(closest[2], 2.0f);
+
+    const double dist_sq = SquaredDistance(cyl, diagonal);
+    EXPECT_EQ(dist_sq, 2.0); // (2-1)^2 + (3-2)^2 = 2
+}
+
+TEST(CylinderGeometry, ClosestPointOnSurface)
+{
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const vec3 on_surface{1.0f, 0, 0};
+
+    const vec3 closest = ClosestPoint(cyl, on_surface);
+
+    // Point already on surface
+    EXPECT_FLOAT_EQ(closest[0], 1.0f);
+    EXPECT_FLOAT_EQ(closest[1], 0.0f);
+    EXPECT_FLOAT_EQ(closest[2], 0.0f);
+
+    EXPECT_TRUE(engine::math::utils::nearly_equal(SquaredDistance(cyl, on_surface), 0.0, 1e-6));
+}
+
+TEST(CylinderGeometry, ClosestPointWithOffset)
+{
+    const engine::geometry::Cylinder cyl{{5, 3, 2}, {0, 1, 0}, 2.0f, 3.0f};
+    const vec3 point{10, 3, 2};
+
+    const vec3 closest = ClosestPoint(cyl, point);
+
+    // Should be on lateral surface at x=7, y=3, z=2
+    EXPECT_FLOAT_EQ(closest[0], 7.0f);
+    EXPECT_FLOAT_EQ(closest[1], 3.0f);
+    EXPECT_FLOAT_EQ(closest[2], 2.0f);
+
+    const double dist_sq = SquaredDistance(cyl, point);
+    EXPECT_EQ(dist_sq, 9.0); // (10-7)^2 = 9
+}
+
+TEST(CylinderGeometry, ClosestPointNonAxisAligned)
+{
+    // Cylinder along x-axis
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {1, 0, 0}, 1.0f, 2.0f};
+    const vec3 point{0, 3, 0};
+
+    const vec3 closest = ClosestPoint(cyl, point);
+
+    // Should be on lateral surface
+    EXPECT_FLOAT_EQ(closest[0], 0.0f);
+    EXPECT_FLOAT_EQ(closest[1], 1.0f);
+    EXPECT_FLOAT_EQ(closest[2], 0.0f);
+
+    const double dist_sq = SquaredDistance(cyl, point);
+    EXPECT_EQ(dist_sq, 4.0); // (3-1)^2 = 4
+}
+
+TEST(CylinderGeometry, SquaredDistanceConsistency)
+{
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.5f, 3.0f};
+
+    // Test multiple points
+    const std::vector<vec3> test_points = {
+        {0, 0, 0}, // center
+        {2, 2, 0}, // outside lateral
+        {0, 0, 5}, // above
+        {1, 1, 4}, // diagonal above
+        {0.5f, 0.5f, 1} // inside
+    };
+
+    for (const auto& point : test_points)
+    {
+        const vec3 closest = ClosestPoint(cyl, point);
+        const double dist_sq = SquaredDistance(cyl, point);
+        const double expected_dist_sq = length_squared(point - closest);
+
+        EXPECT_TRUE(engine::math::utils::nearly_equal(dist_sq, expected_dist_sq, 1e-5));
+    }
+}
+
+TEST(CylinderGeometry, EdgeCaseZeroRadius)
+{
+    // Degenerate cylinder (line segment)
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 0.0f, 2.0f};
+    const vec3 point{1, 0, 0};
+
+    const vec3 closest = ClosestPoint(cyl, point);
+
+    // Should be on the axis
+    EXPECT_FLOAT_EQ(closest[0], 0.0f);
+    EXPECT_FLOAT_EQ(closest[1], 0.0f);
+
+    const double dist_sq = SquaredDistance(cyl, point);
+    EXPECT_EQ(dist_sq, 1.0);
+}
+
+TEST(CylinderGeometry, EdgeCaseZeroHeight)
+{
+    // Flat disk
+    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 2.0f, 0.0f};
+    const vec3 above{1, 0, 3};
+
+    const vec3 closest = ClosestPoint(cyl, above);
+
+    // Should be on the disk at z=0
+    EXPECT_FLOAT_EQ(closest[0], 1.0f);
+    EXPECT_FLOAT_EQ(closest[1], 0.0f);
+    EXPECT_FLOAT_EQ(closest[2], 0.0f);
+
+    const double dist_sq = SquaredDistance(cyl, above);
+    EXPECT_EQ(dist_sq, 9.0); // z-distance squared
 }

@@ -24,4 +24,8 @@ namespace engine::geometry {
     [[nodiscard]] ENGINE_GEOMETRY_API float LateralSurfaceArea(const Cylinder &cylinder) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API float SurfaceArea(const Cylinder &cylinder) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 ClosestPoint(const Cylinder &cylinder, const math::vec3 &point) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Cylinder &cylinder, const math::vec3 &point) noexcept;
 } // namespace engine::geometry

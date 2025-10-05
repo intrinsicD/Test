@@ -21,13 +21,13 @@ namespace engine::geometry {
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 ClosestPoint(const Triangle &triangle,
                                                               const math::vec3 &point) noexcept;
 
+    [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Triangle &triangle,
+                                                             const math::vec3 &point) noexcept;
+
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 ToBarycentricCoords(const Triangle &triangle,
-                                                                     const math::vec3 &normal,
-                                                                     const math::vec3 &point) noexcept;
+                                                                 const math::vec3 &normal,
+                                                                 const math::vec3 &point) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 FromBarycentricCoords(const Triangle &triangle,
                                                                        const math::vec3 &bc) noexcept;
-
-    [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Triangle &triangle,
-                                                             const math::vec3 &point) noexcept;
 } // namespace engine::geometry
