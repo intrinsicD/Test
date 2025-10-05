@@ -54,35 +54,52 @@ namespace engine::geometry
     {
         const math::vec3 axis_dir = AxisDirection(cylinder);
         const math::vec3 to_point = point - cylinder.center;
-        
+
         // Project point onto cylinder axis
         const float axis_proj = math::dot(to_point, axis_dir);
         const float clamped_proj = math::utils::clamp(axis_proj, -cylinder.half_height, cylinder.half_height);
-        
-        // Point on axis at clamped projection
-        const math::vec3 axis_point = cylinder.center + clamped_proj * axis_dir;
-        
-        // Vector from axis to point (perpendicular to axis)
-        const math::vec3 radial = point - axis_point;
+
+        // Vector from axis to point, guaranteed to be orthogonal to the axis direction
+        const math::vec3 radial = to_point - axis_proj * axis_dir;
         const float radial_dist_sq = math::length_squared(radial);
-        
-        // If point is inside cylinder (radially), return the point itself if within height
-        if (radial_dist_sq <= cylinder.radius * cylinder.radius)
+
+        const bool inside_axially = axis_proj >= -cylinder.half_height && axis_proj <= cylinder.half_height;
+        const bool inside_radially = radial_dist_sq <= cylinder.radius * cylinder.radius;
+
+        // Point lies inside the cylindrical volume.
+        if (inside_axially && inside_radially)
         {
-            // Point is inside cylindrical volume
-            if (std::abs(axis_proj) <= cylinder.half_height)
-            {
-                return point;
-            }
-            // Point is beyond caps but within radius - return point on cap
+            return point;
+        }
+
+        // Base point on the axis used to construct the closest point.
+        const math::vec3 axis_point = cylinder.center + clamped_proj * axis_dir;
+
+        // Handle cap cases: outside axially but within the cap radius.
+        if (!inside_axially && inside_radially)
+        {
+            return axis_point + radial;
+        }
+
+        // Otherwise we must project onto the lateral surface or the cap edge.
+        if (radial_dist_sq == 0.0f)
+        {
+            // Degenerate case: the query lies exactly on the axis. Any radial direction is valid;
+            // return the point on the axis (already clamped to the closest cap).
             return axis_point;
         }
-        
-        // Point is outside radius - project onto lateral surface or cap edge
+
         const math::vec3 radial_dir = radial / std::sqrt(radial_dist_sq);
-        const math::vec3 surface_point = axis_point + radial_dir * cylinder.radius;
-        
-        return surface_point;
+
+        if (inside_axially)
+        {
+            // Lateral surface: preserve the original axial coordinate.
+            const math::vec3 lateral_axis_point = cylinder.center + axis_proj * axis_dir;
+            return lateral_axis_point + radial_dir * cylinder.radius;
+        }
+
+        // Cap edge: clamp axial coordinate and radial distance simultaneously.
+        return axis_point + radial_dir * cylinder.radius;
     }
 
     double SquaredDistance(const Cylinder& cylinder, const math::vec3& point) noexcept
