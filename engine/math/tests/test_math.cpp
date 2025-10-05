@@ -15,12 +15,14 @@ using namespace engine::math;
 
 namespace
 {
-    template <typename T, std::size_t N>
-    void ExpectVectorEqual(const Vector<T, N>& value, const std::array<T, N>& expected)
+    template <typename VectorLike, typename T>
+    void ExpectVectorEqual(VectorLike value, std::initializer_list<T> expected)
     {
-        for (std::size_t i = 0; i < N; ++i)
+        std::size_t index = 0;
+        for (const auto& component : expected)
         {
-            EXPECT_EQ(value[i], expected[i]);
+            EXPECT_EQ(value[index], component);
+            ++index;
         }
     }
 
@@ -496,6 +498,18 @@ TEST(Matrix, Transpose)
     ExpectVectorEqual(transposed[0], {1, 4});
     ExpectVectorEqual(transposed[1], {2, 5});
     ExpectVectorEqual(transposed[2], {3, 6});
+}
+
+TEST(Matrix, StoresColumnsInColumnMajorOrder)
+{
+    const Matrix<int, 2, 3> value(1, 2, 3, 4, 5, 6);
+
+    EXPECT_EQ(value.columns[0][0], 1);
+    EXPECT_EQ(value.columns[0][1], 4);
+    EXPECT_EQ(value.columns[1][0], 2);
+    EXPECT_EQ(value.columns[1][1], 5);
+    EXPECT_EQ(value.columns[2][0], 3);
+    EXPECT_EQ(value.columns[2][1], 6);
 }
 
 TEST(Matrix, IdentityMatrixHasOnesOnDiagonal)

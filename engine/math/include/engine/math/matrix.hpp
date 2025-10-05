@@ -2,6 +2,7 @@
 
 #include "engine/math/vector.hpp"
 
+#include <cassert>
 #include <optional>
 
 namespace engine::math
@@ -9,19 +10,72 @@ namespace engine::math
     template <typename T, std::size_t Rows, std::size_t Cols>
     struct Matrix
     {
-        //TODO: Change this to a graphics friendly layout (column-major). Make sure to adapt all code neccessary as well as the tests.
+        // Matrix storage follows column-major layout to align with common graphics APIs.
         using value_type = T;
+        using column_type = Vector<T, Rows>;
         using row_type = Vector<T, Cols>;
         using size_type = std::size_t;
 
-        row_type rows[Rows];
+        column_type columns[Cols];
 
-        ENGINE_MATH_INLINE Matrix() noexcept : rows{}
+        struct RowProxy
+        {
+            Matrix* matrix;
+            size_type row;
+
+            ENGINE_MATH_INLINE value_type& operator[](size_type col) noexcept
+            {
+                assert(matrix != nullptr);
+                assert(row < Rows);
+                assert(col < Cols);
+                return matrix->columns[col][row];
+            }
+
+            ENGINE_MATH_INLINE operator row_type() const noexcept
+            {
+                assert(matrix != nullptr);
+                assert(row < Rows);
+                row_type result{};
+                for (size_type c = 0; c < Cols; ++c)
+                {
+                    result[c] = matrix->columns[c][row];
+                }
+                return result;
+            }
+        };
+
+        struct ConstRowProxy
+        {
+            const Matrix* matrix;
+            size_type row;
+
+            ENGINE_MATH_INLINE value_type operator[](size_type col) const noexcept
+            {
+                assert(matrix != nullptr);
+                assert(row < Rows);
+                assert(col < Cols);
+                return matrix->columns[col][row];
+            }
+
+            ENGINE_MATH_INLINE operator row_type() const noexcept
+            {
+                assert(matrix != nullptr);
+                assert(row < Rows);
+                row_type result{};
+                for (size_type c = 0; c < Cols; ++c)
+                {
+                    result[c] = matrix->columns[c][row];
+                }
+                return result;
+            }
+        };
+
+        ENGINE_MATH_INLINE Matrix() noexcept : columns{}
         {
         }
 
         template <typename... Args, typename = std::enable_if_t<sizeof...(Args) == Rows * Cols>>
-        ENGINE_MATH_INLINE Matrix(Args... args) noexcept : rows{}
+        ENGINE_MATH_INLINE Matrix(Args... args) noexcept : columns{}
         {
             const value_type values[] = {static_cast<value_type>(args)...};
             size_type index = 0U;
@@ -29,18 +83,18 @@ namespace engine::math
             {
                 for (size_type c = 0; c < Cols; ++c)
                 {
-                    rows[r][c] = values[index++];
+                    columns[c][r] = values[index++];
                 }
             }
         }
 
-        ENGINE_MATH_INLINE Matrix(const Matrix<T, Rows + 1, Cols + 1>& other) noexcept : rows{}
+        ENGINE_MATH_INLINE Matrix(const Matrix<T, Rows + 1, Cols + 1>& other) noexcept : columns{}
         {
             for (size_type r = 0; r < Rows; ++r)
             {
                 for (size_type c = 0; c < Cols; ++c)
                 {
-                    rows[r][c] = other[r][c];
+                    (*this)[r][c] = other[r][c];
                 }
             }
         }
@@ -51,38 +105,38 @@ namespace engine::math
             {
                 for (size_type c = 0; c < Cols; ++c)
                 {
-                    rows[r][c] = other[r][c];
+                    (*this)[r][c] = other[r][c];
                 }
             }
             return *this;
         }
 
-        ENGINE_MATH_INLINE row_type& operator[](size_type row) noexcept { return rows[row]; }
-        ENGINE_MATH_INLINE const row_type& operator[](size_type row) const noexcept { return rows[row]; }
+        ENGINE_MATH_INLINE RowProxy operator[](size_type row) noexcept { return RowProxy{this, row}; }
+        ENGINE_MATH_INLINE ConstRowProxy operator[](size_type row) const noexcept { return ConstRowProxy{this, row}; }
 
         ENGINE_MATH_INLINE Matrix& operator+=(const Matrix& rhs) noexcept
         {
-            for (size_type r = 0; r < Rows; ++r)
+            for (size_type c = 0; c < Cols; ++c)
             {
-                rows[r] += rhs.rows[r];
+                columns[c] += rhs.columns[c];
             }
             return *this;
         }
 
         ENGINE_MATH_INLINE Matrix& operator-=(const Matrix& rhs) noexcept
         {
-            for (size_type r = 0; r < Rows; ++r)
+            for (size_type c = 0; c < Cols; ++c)
             {
-                rows[r] -= rhs.rows[r];
+                columns[c] -= rhs.columns[c];
             }
             return *this;
         }
 
         ENGINE_MATH_INLINE Matrix& operator*=(value_type scalar) noexcept
         {
-            for (size_type r = 0; r < Rows; ++r)
+            for (size_type c = 0; c < Cols; ++c)
             {
-                rows[r] *= scalar;
+                columns[c] *= scalar;
             }
             return *this;
         }
@@ -122,9 +176,14 @@ namespace engine::math
     ENGINE_MATH_INLINE Vector<T, Rows> operator*(const Matrix<T, Rows, Cols>& lhs, const Vector<T, Cols>& rhs) noexcept
     {
         Vector<T, Rows> result{};
-        for (std::size_t r = 0; r < Rows; ++r)
+        for (std::size_t c = 0; c < Cols; ++c)
         {
-            result[r] = dot(lhs[r], rhs);
+            const auto scalar = rhs[c];
+            const auto& column = lhs.columns[c];
+            for (std::size_t r = 0; r < Rows; ++r)
+            {
+                result[r] += column[r] * scalar;
+            }
         }
         return result;
     }
@@ -142,17 +201,9 @@ namespace engine::math
                                                        const Matrix<T, Shared, Cols>& rhs) noexcept
     {
         Matrix<T, Rows, Cols> result{};
-        for (std::size_t r = 0; r < Rows; ++r)
+        for (std::size_t c = 0; c < Cols; ++c)
         {
-            for (std::size_t c = 0; c < Cols; ++c)
-            {
-                T value = detail::zero<T>();
-                for (std::size_t k = 0; k < Shared; ++k)
-                {
-                    value += lhs[r][k] * rhs[k][c];
-                }
-                result[r][c] = value;
-            }
+            result.columns[c] = lhs * rhs.columns[c];
         }
         return result;
     }
@@ -371,9 +422,9 @@ namespace engine::math
     ENGINE_MATH_INLINE Matrix<S, Rows, Cols> cast(const Matrix<T, Rows, Cols>& m) noexcept
     {
         Matrix<S, Rows, Cols> result;
-        for (std::size_t r = 0; r < Rows; ++r)
+        for (std::size_t c = 0; c < Cols; ++c)
         {
-            result[r] = cast<T, Cols, S>(m[r]);
+            result.columns[c] = cast<S>(m.columns[c]);
         }
         return result;
     }
