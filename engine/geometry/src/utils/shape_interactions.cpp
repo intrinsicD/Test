@@ -527,9 +527,9 @@ namespace engine::geometry
         };
 
         SegmentAabbClosestResult ClosestPointSegmentAabb(const Segment& segment,
-                                                          const Aabb& box,
-                                                          float allowed_t_min,
-                                                          float allowed_t_max) noexcept
+                                                         const Aabb& box,
+                                                         float allowed_t_min,
+                                                         float allowed_t_max) noexcept
         {
             float t_min = math::utils::clamp(allowed_t_min, 0.0f, 1.0f);
             float t_max = math::utils::clamp(allowed_t_max, 0.0f, 1.0f);
@@ -1855,171 +1855,173 @@ namespace engine::geometry
         return Intersects(sphere, triangle);
     }
 
+    // Returns true if the (non-degenerate) triangles overlap or touch (inclusive).
+    // Uses constants::INTERSECTION_EPSILON in *world units*.
+    // Dependencies: math::vec2, math::vec3, math::cross, math::dot, math::utils::abs, etc.
     bool Intersects(const Triangle& a, const Triangle& b) noexcept
     {
-        // Compute plane equations
+        const float eps = constants::INTERSECTION_EPSILON;
+
+        auto min3 = [](float x, float y, float z) { return std::min(x, std::min(y, z)); };
+        auto max3 = [](float x, float y, float z) { return std::max(x, std::max(y, z)); };
+
+        // Triangle normals
         const math::vec3 n1 = math::cross(a.b - a.a, a.c - a.a);
         const math::vec3 n2 = math::cross(b.b - b.a, b.c - b.a);
+        const float n1_len2 = math::dot(n1, n1);
+        const float n2_len2 = math::dot(n2, n2);
 
-        const float n1_len_sq = math::dot(n1, n1);
-        const float n2_len_sq = math::dot(n2, n2);
+        // Reject degenerates (area ~ 0)
+        if (n1_len2 <= eps * eps || n2_len2 <= eps * eps) return false;
 
-        // Check for degenerate triangles
-        if (n1_len_sq < constants::INTERSECTION_EPSILON || n2_len_sq < constants::INTERSECTION_EPSILON)
+        const float inv_n1 = 1.0f / std::sqrt(n1_len2);
+        const float inv_n2 = 1.0f / std::sqrt(n2_len2);
+
+        auto signed_plane_dist = [](const math::vec3& n, float inv_len,
+                                    const math::vec3& p, const math::vec3& p0) -> float
         {
-            return false;
-        }
+            return math::dot(n, p - p0) * inv_len; // normalized to world units
+        };
 
-        // Check if triangle b's vertices are on opposite sides of triangle a's plane
-        const float d1_a = math::dot(n1, b.a - a.a);
-        const float d1_b = math::dot(n1, b.b - a.a);
-        const float d1_c = math::dot(n1, b.c - a.a);
+        // Distances of B's vertices to plane(A)
+        const float d1a = signed_plane_dist(n1, inv_n1, b.a, a.a);
+        const float d1b = signed_plane_dist(n1, inv_n1, b.b, a.a);
+        const float d1c = signed_plane_dist(n1, inv_n1, b.c, a.a);
+        const float d1min = min3(d1a, d1b, d1c);
+        const float d1max = max3(d1a, d1b, d1c);
 
-        const float d1_min = math::utils::min(d1_a, math::utils::min(d1_b, d1_c));
-        const float d1_max = math::utils::max(d1_a, math::utils::max(d1_b, d1_c));
+        // Early plane-side rejection
+        if (d1min > eps || d1max < -eps) return false;
 
-        // Early rejection if all vertices on same side
-        if (d1_min > constants::INTERSECTION_EPSILON || d1_max < -constants::INTERSECTION_EPSILON)
-        {
-            return false;
-        }
+        // Distances of A's vertices to plane(B)
+        const float d2a = signed_plane_dist(n2, inv_n2, a.a, b.a);
+        const float d2b = signed_plane_dist(n2, inv_n2, a.b, b.a);
+        const float d2c = signed_plane_dist(n2, inv_n2, a.c, b.a);
+        const float d2min = min3(d2a, d2b, d2c);
+        const float d2max = max3(d2a, d2b, d2c);
 
-        // Check if triangle a's vertices are on opposite sides of triangle b's plane
-        const float d2_a = math::dot(n2, a.a - b.a);
-        const float d2_b = math::dot(n2, a.b - b.a);
-        const float d2_c = math::dot(n2, a.c - b.a);
+        if (d2min > eps || d2max < -eps) return false;
 
-        const float d2_min = math::utils::min(d2_a, math::utils::min(d2_b, d2_c));
-        const float d2_max = math::utils::max(d2_a, math::utils::max(d2_b, d2_c));
-
-        // Early rejection if all vertices on same side
-        if (d2_min > constants::INTERSECTION_EPSILON || d2_max < -constants::INTERSECTION_EPSILON)
-        {
-            return false;
-        }
-
-        // Check if coplanar
-        const float abs_d1_min = math::utils::abs(d1_min);
-        const float abs_d1_max = math::utils::abs(d1_max);
-        const bool coplanar = (abs_d1_min < constants::INTERSECTION_EPSILON &&
-            abs_d1_max < constants::INTERSECTION_EPSILON);
+        // Check coplanarity (both triangles lie near each other's plane and normals are parallel)
+        const float n_parallel =
+            math::utils::abs(math::dot(n1, n2) * (inv_n1 * inv_n2)); // cos(theta) in [0,1]
+        const bool coplanar =
+        (math::utils::abs(d1min) <= eps && math::utils::abs(d1max) <= eps &&
+            math::utils::abs(d2min) <= eps && math::utils::abs(d2max) <= eps &&
+            math::utils::abs(1.0f - n_parallel) <= 1e-6f);
 
         if (coplanar)
         {
-            // Use 2D overlap test - project to dominant axis plane
-            const math::vec3 abs_n1{math::utils::abs(n1[0]), math::utils::abs(n1[1]), math::utils::abs(n1[2])};
-            std::size_t dominant_axis = 2;
-            if (abs_n1[0] > abs_n1[1] && abs_n1[0] > abs_n1[2])
-            {
-                dominant_axis = 0;
-            }
-            else if (abs_n1[1] > abs_n1[2])
-            {
-                dominant_axis = 1;
-            }
+            // --- 2D SAT on projected triangles (dominant axis of n1) ---
+            // Choose projection plane to maximize numeric stability.
+            const math::vec3 absn{math::utils::abs(n1[0]), math::utils::abs(n1[1]), math::utils::abs(n1[2])};
+            int dominant = 0;
+            if (absn[1] > absn[dominant]) dominant = 1;
+            if (absn[2] > absn[dominant]) dominant = 2;
 
-            auto project_to_2d = [dominant_axis](const math::vec3& p) -> math::vec2
+            auto proj2 = [dominant](const math::vec3& p) -> math::vec2
             {
-                switch (dominant_axis)
+                switch (dominant)
                 {
-                case 0: return {p[1], p[2]};
-                case 1: return {p[0], p[2]};
-                default: return {p[0], p[1]};
+                case 0: return {p[1], p[2]}; // drop X
+                case 1: return {p[0], p[2]}; // drop Y
+                default: return {p[0], p[1]}; // drop Z
                 }
             };
 
-            const std::array<math::vec2, 3> tri_a{project_to_2d(a.a), project_to_2d(a.b), project_to_2d(a.c)};
-            const std::array<math::vec2, 3> tri_b{project_to_2d(b.a), project_to_2d(b.b), project_to_2d(b.c)};
+            const std::array<math::vec2, 3> A2{proj2(a.a), proj2(a.b), proj2(a.c)};
+            const std::array<math::vec2, 3> B2{proj2(b.a), proj2(b.b), proj2(b.c)};
 
-            // Check edge intersections
-            auto segments_intersect_2d = [](const math::vec2& p0, const math::vec2& p1,
-                                            const math::vec2& q0, const math::vec2& q1) -> bool
+            auto edge = [](const math::vec2& p, const math::vec2& q) { return math::vec2{q[0] - p[0], q[1] - p[1]}; };
+            auto perp = [](const math::vec2& v) { return math::vec2{-v[1], v[0]}; };
+            auto len = [](const math::vec2& v) { return std::sqrt(v[0] * v[0] + v[1] * v[1]); };
+            auto dot2 = [](const math::vec2& x, const math::vec2& y) { return x[0] * y[0] + x[1] * y[1]; };
+
+            auto project_minmax = [&](const std::array<math::vec2, 3>& T, const math::vec2& axis)
+                -> std::pair<float, float>
             {
-                auto cross_2d = [](const math::vec2& a, const math::vec2& b) -> float
-                {
-                    return a[0] * b[1] - a[1] * b[0];
-                };
-
-                const math::vec2 r = p1 - p0;
-                const math::vec2 s = q1 - q0;
-                const float rxs = cross_2d(r, s);
-                const math::vec2 qp = q0 - p0;
-                const float qpxr = cross_2d(qp, r);
-
-                if (math::utils::abs(rxs) < constants::INTERSECTION_EPSILON)
-                {
-                    return math::utils::abs(qpxr) < constants::INTERSECTION_EPSILON;
-                }
-
-                const float t = cross_2d(qp, s) / rxs;
-                const float u = qpxr / rxs;
-
-                return (t >= 0.0f && t <= 1.0f && u >= 0.0f && u <= 1.0f);
+                const float s0 = dot2(T[0], axis);
+                const float s1 = dot2(T[1], axis);
+                const float s2 = dot2(T[2], axis);
+                return {std::min(s0, std::min(s1, s2)), std::max(s0, std::max(s1, s2))};
             };
 
-            // Check all edge pairs
-            for (int i = 0; i < 3; ++i)
+            auto overlap = [&](float a0, float a1, float b0, float b1, float axisLen) -> bool
             {
-                for (int j = 0; j < 3; ++j)
-                {
-                    if (segments_intersect_2d(tri_a[i], tri_a[(i + 1) % 3], tri_b[j], tri_b[(j + 1) % 3]))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            // Check if any vertex is inside the other triangle
-            auto point_in_triangle_2d = [](const std::array<math::vec2, 3>& tri, const math::vec2& p) -> bool
-            {
-                auto sign = [](const math::vec2& p1, const math::vec2& p2, const math::vec2& p3) -> float
-                {
-                    return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
-                };
-
-                const float d1 = sign(p, tri[0], tri[1]);
-                const float d2 = sign(p, tri[1], tri[2]);
-                const float d3 = sign(p, tri[2], tri[0]);
-
-                const bool has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-                const bool has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-
-                return !(has_neg && has_pos);
+                const float e = eps * axisLen; // scale world-eps to this projection axis
+                return !(a1 < b0 - e || b1 < a0 - e); // inclusive overlap
             };
 
-            for (const auto& vertex : tri_a)
-            {
-                if (point_in_triangle_2d(tri_b, vertex)) return true;
-            }
-            for (const auto& vertex : tri_b)
-            {
-                if (point_in_triangle_2d(tri_a, vertex)) return true;
-            }
+            const math::vec2 eA0 = edge(A2[0], A2[1]);
+            const math::vec2 eA1 = edge(A2[1], A2[2]);
+            const math::vec2 eA2 = edge(A2[2], A2[0]);
+            const math::vec2 eB0 = edge(B2[0], B2[1]);
+            const math::vec2 eB1 = edge(B2[1], B2[2]);
+            const math::vec2 eB2 = edge(B2[2], B2[0]);
 
-            return false;
+            const math::vec2 axes[6] = {
+                perp(eA0), perp(eA1), perp(eA2),
+                perp(eB0), perp(eB1), perp(eB2)
+            };
+
+            for (const math::vec2& ax : axes)
+            {
+                const float L = len(ax);
+                if (L <= eps) continue; // skip degenerate axis
+
+                const auto [amin, amax] = project_minmax(A2, ax);
+                const auto [bmin, bmax] = project_minmax(B2, ax);
+
+                if (!overlap(amin, amax, bmin, bmax, L))
+                    return false; // separating axis found
+            }
+            return true; // no separation in 2D ⇒ triangles overlap/touch
         }
 
-        // Non-coplanar: Check if edges of one triangle intersect the other
-        const std::array<Segment, 3> edges_a{
-            Segment{a.a, a.b},
-            Segment{a.b, a.c},
-            Segment{a.c, a.a}
+        // --- Non-coplanar: segment–triangle tests (inclusive) ---
+        auto seg_tri = [&](const math::vec3& p0, const math::vec3& p1, const Triangle& T) -> bool
+        {
+            const math::vec3 ab = T.b - T.a;
+            const math::vec3 ac = T.c - T.a;
+            const math::vec3 nt = math::cross(ab, ac);
+            const float nt_len2 = math::dot(nt, nt);
+            if (nt_len2 <= eps * eps) return false; // degenerate triangle
+
+            const float inv_nt = 1.0f / std::sqrt(nt_len2);
+            const float d0 = math::dot(nt, p0 - T.a) * inv_nt;
+            const float d1 = math::dot(nt, p1 - T.a) * inv_nt;
+
+            // Same side of the plane → miss
+            if ((d0 > eps && d1 > eps) || (d0 < -eps && d1 < -eps)) return false;
+
+            const float denom = (d0 - d1);
+            if (math::utils::abs(denom) <= eps) return false; // nearly parallel to plane
+
+            const float t = d0 / (d0 - d1); // [0,1] if intersection within segment
+            if (t < -eps || t > 1.0f + eps) return false;
+
+            const math::vec3 P = p0 + (p1 - p0) * t;
+
+            // Inside test via edge half-spaces oriented by triangle normal
+            const math::vec3 c0 = math::cross(T.b - T.a, P - T.a);
+            const math::vec3 c1 = math::cross(T.c - T.b, P - T.b);
+            const math::vec3 c2 = math::cross(T.a - T.c, P - T.c);
+
+            const float s0 = math::dot(nt, c0);
+            const float s1 = math::dot(nt, c1);
+            const float s2 = math::dot(nt, c2);
+
+            const float tol = eps * std::sqrt(nt_len2); // scale tolerance to area units
+            return (s0 >= -tol && s1 >= -tol && s2 >= -tol); // inclusive: edges/vertices count
         };
 
-        const std::array<Segment, 3> edges_b{
-            Segment{b.a, b.b},
-            Segment{b.b, b.c},
-            Segment{b.c, b.a}
-        };
+        const math::vec3 A[3] = {a.a, a.b, a.c};
+        const math::vec3 B[3] = {b.a, b.b, b.c};
 
-        for (const auto& edge : edges_a)
+        for (int i = 0; i < 3; ++i)
         {
-            if (Intersects(edge, b, nullptr)) return true;
-        }
-
-        for (const auto& edge : edges_b)
-        {
-            if (Intersects(edge, a, nullptr)) return true;
+            if (seg_tri(A[i], A[(i + 1) % 3], b)) return true;
+            if (seg_tri(B[i], B[(i + 1) % 3], a)) return true;
         }
 
         return false;
@@ -2140,36 +2142,50 @@ namespace engine::geometry
         return true;
     }
 
-    namespace
-    {
-        struct CylinderPointInfo
-        {
-            float axial_distance; // signed distance along axis
-            float radial_distance_sq; // squared distance from axis
-        };
-
-        CylinderPointInfo GetCylinderPointInfo(const Cylinder& cylinder, const math::vec3& point) noexcept
-        {
-            const math::vec3 axis_dir = AxisDirection(cylinder);
-            const math::vec3 delta = point - cylinder.center;
-            const float axial = math::dot(delta, axis_dir);
-            const math::vec3 radial_vec = delta - axial * axis_dir;
-            const float radial_sq = math::dot(radial_vec, radial_vec);
-            return {axial, radial_sq};
-        }
-    }
-
     bool Contains(const Aabb& outer, const Triangle& inner) noexcept
     {
         //TODO is there a faster algorithm than testing each vertex?
         return Contains(outer, inner.a) && Contains(outer, inner.b) && Contains(outer, inner.c);
     }
 
-    bool Contains(const Cylinder& outer, const math::vec3& inner) noexcept
-    {
-        const auto info = GetCylinderPointInfo(outer, inner);
-        if (math::utils::abs(info.axial_distance) > outer.half_height) return false;
-        return info.radial_distance_sq <= outer.radius * outer.radius;
+    inline bool IsValid(const Cylinder& c, float eps) noexcept {
+        // Radius and half-height must be positive; axis must have length.
+        if (!(c.radius > eps) || !(c.half_height > eps)) return false;
+
+        // If Cylinder stores a raw axis vector:
+        const float axis_len2 = math::dot(c.axis, c.axis); // or however you store it
+        return axis_len2 > eps * eps;
+
+        // If Cylinder stores orientation (e.g., quaternion), validate that instead:
+        // return std::abs(length(c.orientation) - 1.0f) <= 1e-3f; // normalized quat
+    }
+
+    inline math::vec3 SafeAxisDir(const Cylinder& c) noexcept {
+        // If you store a raw axis vector (not guaranteed unit):
+        const float len2 = math::dot(c.axis, c.axis);
+        const float len  = std::sqrt(len2);
+        return (len > 0.0f) ? (c.axis / len) : math::vec3{0.0f, 0.0f, 0.0f}; // caller must check validity first
+    }
+
+    bool Contains(const Cylinder& outer, const math::vec3& p) noexcept {
+        const float eps = constants::INTERSECTION_EPSILON;
+
+        if (!IsValid(outer, eps)) return false;
+
+        const math::vec3 dir = SafeAxisDir(outer); // guaranteed valid because IsValid checked it
+        const math::vec3 d   = p - outer.center;
+
+        // Signed distance along the axis
+        const float axial = math::dot(d, dir);
+        if (axial < -outer.half_height - eps || axial > outer.half_height + eps)
+            return false;
+
+        // Radial distance from the axis
+        const math::vec3 rvec = d - axial * dir;
+        const float r2 = math::dot(rvec, rvec);
+        const float R  = outer.radius + eps;
+
+        return r2 <= R * R;
     }
 
     bool Contains(const Cylinder& outer, const Aabb& inner) noexcept
@@ -2792,26 +2808,39 @@ namespace engine::geometry
 
     bool Contains(const Triangle& outer, const math::vec3& inner) noexcept
     {
-        // Compute barycentric coordinates
+        const float eps = constants::INTERSECTION_EPSILON;
+
+        // Edges and normal
         const math::vec3 v0 = outer.b - outer.a;
         const math::vec3 v1 = outer.c - outer.a;
-        const math::vec3 v2 = inner - outer.a;
+        const math::vec3 n  = math::cross(v0, v1);
+        const float n_len2  = math::dot(n, n);
 
+        // Degenerate triangle?
+        if (n_len2 <= eps * eps) return false;
+
+        // Require point to lie on the plane (within eps in world units)
+        const float inv_n_len = 1.0f / std::sqrt(n_len2);
+        const float plane_dist = math::dot(n, inner - outer.a) * inv_n_len; // signed distance
+        if (math::utils::abs(plane_dist) > eps) return false;
+
+        // Barycentric (projection onto plane)
+        const math::vec3 v2 = inner - outer.a;
         const float d00 = math::dot(v0, v0);
         const float d01 = math::dot(v0, v1);
         const float d11 = math::dot(v1, v1);
         const float d20 = math::dot(v2, v0);
         const float d21 = math::dot(v2, v1);
 
-        const float denom = d00 * d11 - d01 * d01;
-        if (math::utils::abs(denom) < constants::INTERSECTION_EPSILON) return false;
+        // denom == |v0 x v1|^2 == n_len2
+        const float denom = d00 * d11 - d01 * d01; // equals n_len2 numerically
+        if (denom <= std::numeric_limits<float>::epsilon() * (d00 + d11)) return false;
 
         const float v = (d11 * d20 - d01 * d21) / denom;
         const float w = (d00 * d21 - d01 * d20) / denom;
         const float u = 1.0f - v - w;
 
-        // Point is inside if all barycentric coordinates are non-negative
-        const float eps = constants::INTERSECTION_EPSILON;
+        // Inclusive (edges/vertices count). For strict interior, change to > +eps.
         return (u >= -eps && v >= -eps && w >= -eps);
     }
 
