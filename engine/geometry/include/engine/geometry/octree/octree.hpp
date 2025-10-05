@@ -28,7 +28,8 @@ namespace engine::geometry
             Aabb aabb;
             size_t first_element = std::numeric_limits<size_t>::max();
             size_t num_straddlers = 0; // number of elements that straddle child node boundaries
-            size_t num_elements = 0; // total number of elements in this node (including straddlers).Necessary for early out in queries
+            size_t num_elements = 0;
+            // total number of elements in this node (including straddlers).Necessary for early out in queries
             std::array<size_t, 8> children{};
             bool is_leaf = true;
 
@@ -153,12 +154,14 @@ namespace engine::geometry
             return true;
         }
 
+        //TODO: can this work for all shapes which has Intersect and Contains Aabb?
         void query(const Aabb& query_aabb, std::vector<size_t>& result) const
         {
             result.clear();
             if (node_props_.empty()) return;
 
-            const float eps = 0.0f; // set to a small positive tolerance if you want numerical slack
+            constexpr double eps = 0.0; // set to a small positive tolerance if you want numerical slack
+            const double query_volume = Volume(query_aabb);
 
             std::vector<NodeHandle> stack{NodeHandle{0}};
             while (!stack.empty())
@@ -169,9 +172,9 @@ namespace engine::geometry
 
                 if (!Intersects(node.aabb, query_aabb)) continue;
 
-                const double qv = Volume(query_aabb);
-                const double nv = Volume(node.aabb);
-                const double strictly_larger = (qv > nv + eps);
+
+                const double node_volume = Volume(node.aabb);
+                const double strictly_larger = (query_volume > node_volume + eps);
 
                 if (strictly_larger && Contains(query_aabb, node.aabb))
                 {
@@ -216,12 +219,14 @@ namespace engine::geometry
             }
         }
 
+        //TODO: can this work for all shapes which has Intersect and Contains Aabb?
         void query(const Sphere& query_sphere, std::vector<size_t>& result) const
         {
             result.clear();
             if (node_props_.empty()) return;
 
-            const float eps = 0.0f; // set small >0 for tolerance if desired
+            constexpr double eps = 0.0; // set small >0 for tolerance if desired
+            const double query_volume = Volume(query_sphere);
 
             std::vector<NodeHandle> stack{NodeHandle{0}};
             while (!stack.empty())
@@ -232,10 +237,10 @@ namespace engine::geometry
 
                 if (!Intersects(node.aabb, query_sphere)) continue;
 
-                const bool strictly_larger = (Volume(query_sphere) > Volume(node.aabb) + eps);
+                const double node_volume = Volume(node.aabb);
+                const double strictly_larger = (query_volume > node_volume + eps);
 
-                if (strictly_larger &&
-                    Contains(query_sphere, node.aabb))
+                if (strictly_larger && Contains(query_sphere, node.aabb))
                 {
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
@@ -396,7 +401,9 @@ namespace engine::geometry
                     // This is a leaf, so process its elements.
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
+                        assert(node.first_element + i < element_indices.size());
                         const size_t elem_idx = element_indices[node.first_element + i];
+                        assert(elem_idx < element_aabbs.vector().size());
                         const double elem_dist_sq = SquaredDistance(element_aabbs[elem_idx], query_point);
 
                         if (elem_dist_sq < min_dist_sq)
@@ -410,7 +417,9 @@ namespace engine::geometry
                 {
                     for (size_t i = 0; i < node.num_straddlers; ++i)
                     {
+                        assert(node.first_element + i < element_indices.size());
                         const size_t elem_idx = element_indices[node.first_element + i];
+                        assert(elem_idx < element_aabbs.vector().size());
                         const double elem_dist_sq = SquaredDistance(element_aabbs[elem_idx], query_point);
 
                         if (elem_dist_sq < min_dist_sq)
@@ -436,7 +445,45 @@ namespace engine::geometry
             }
         }
 
+        [[nodiscard]] bool validate_structure() const
+        {
+            if (node_props_.empty()) return element_indices.empty();
+            return validate_node(NodeHandle{0});
+        }
+
     private:
+        [[nodiscard]] bool validate_node(NodeHandle node_idx) const
+        {
+            const Node& node = nodes[node_idx];
+            if (node.first_element > element_indices.size()) return false;
+            if (node.first_element + node.num_elements > element_indices.size()) return false;
+
+            if (node.is_leaf)
+            {
+                return node.num_straddlers == 0;
+            }
+
+            size_t accumulated = node.first_element + node.num_straddlers;
+            size_t child_total = 0;
+            for (const auto ci : node.children)
+            {
+                const auto nhci = NodeHandle(ci);
+                if (!nhci.is_valid()) continue;
+
+                const Node& child = nodes[nhci];
+                if (child.first_element != accumulated) return false;
+                if (child.num_elements == 0) return false;
+                if (child.first_element + child.num_elements > node.first_element + node.num_elements) return false;
+                if (!validate_node(nhci)) return false;
+
+                accumulated += child.num_elements;
+                child_total += child.num_elements;
+            }
+
+            return accumulated == node.first_element + node.num_elements &&
+                child_total + node.num_straddlers == node.num_elements;
+        }
+
         NodeHandle create_node()
         {
             node_props_.push_back();
@@ -465,7 +512,6 @@ namespace engine::geometry
                 else if (s == hi) s = std::nextafter(s, lo);
             }
 
-            //TODO: Optimize by pre-computing these 8 boxes once? Possible or stupid?
             std::array<Aabb, 8> octant_aabbs;
             for (int j = 0; j < 8; ++j)
             {
@@ -480,9 +526,10 @@ namespace engine::geometry
                 octant_aabbs[j] = {.min = child_min, .max = child_max};
             }
 
-            //TODO: Optimize by pre-allocating these vectors once? Possible or stupid?
             std::array<std::vector<size_t>, 8> child_elements;
-            std::vector<size_t> straddlers;
+            scratch_indices.clear();
+            scratch_indices.reserve(node.num_elements);
+            auto& straddlers = scratch_indices;
 
             for (size_t i = 0; i < node.num_elements; ++i)
             {
@@ -561,7 +608,6 @@ namespace engine::geometry
                 element_indices[current_pos++] = idx;
             }
             // Then, place the elements for each child sequentially
-            //TODO: Optimize by pre-computing child_starts once? Possible or stupid?
             std::array<size_t, 8> child_starts;
             for (int i = 0; i < 8; ++i)
             {
