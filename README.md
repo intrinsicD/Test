@@ -17,6 +17,15 @@ The `Test` repository hosts a modular real-time engine prototype. The tree is or
 - Support for a variety of asset types and formats to accommodate diverse project requirements.
 - Scalability to handle projects of varying sizes and complexities.
 - A strong emphasis on performance optimization to ensure smooth real-time experiences.
+- Embrace the latest advancements in graphics, physics, and AI to keep the engine at the forefront of technology.
+- Make full use of the ECS (Entity-Component-System) architecture to promote clean code and separation of concerns.
+- Use DOD (Data-Oriented Design) principles to enhance performance and memory efficiency for components that are frequently updated or accessed.
+- Provide a plugin system to allow third-party developers to extend the engine's capabilities without modifying the core codebase.
+- Use a render graph and a task graph to manage rendering and processing tasks efficiently, allowing for better resource management and parallelism.
+- Implement a scene graph to manage and organize the hierarchical structure of objects in a scene, facilitating transformations and rendering.
+- Support hot-reloading of assets and code to enable rapid iteration and testing during development.
+- Provide a comprehensive suite of tools for asset management, scene editing, and debugging to streamline the development workflow.
+- Ensure compatibility with popular development environments and version control systems to facilitate collaboration among team members
 
 ## Top-level Layout
 - `docs/` – Design notes and API references that describe the evolving architecture.
