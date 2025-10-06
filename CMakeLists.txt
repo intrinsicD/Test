@@ -19,4 +19,5 @@ if(BUILD_TESTING)
     add_subdirectory(third_party/googletest)
 endif()
 
+add_subdirectory(third_party/entt)
 add_subdirectory(engine)
