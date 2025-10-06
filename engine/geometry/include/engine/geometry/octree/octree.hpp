@@ -18,6 +18,20 @@
 #include <iterator>
 #include <utility>
 
+template <typename Shape>
+concept SpatialQueryShape =
+    requires(const Shape& s, const engine::geometry::Aabb& box)
+    {
+        { Intersects(box, s) } -> std::convertible_to<bool>;
+        { Contains(s, box) } -> std::convertible_to<bool>;
+    };
+
+template <typename Shape>
+concept HasVolume = requires(const Shape& s)
+{
+    { Volume(s) } -> std::convertible_to<double>;
+};
+
 namespace engine::geometry
 {
     class ENGINE_GEOMETRY_API Octree
@@ -154,14 +168,13 @@ namespace engine::geometry
             return true;
         }
 
-        //TODO: can this work for all shapes which has Intersect and Contains Aabb?
-        void query(const Aabb& query_aabb, std::vector<size_t>& result) const
+        //TODO: this should work with other non-volumetric shapes too (line, segment, etc). How do i make this query work with shapes without volume?
+        void query_ray(const Ray& query_shape, std::vector<size_t>& result) const
         {
             result.clear();
             if (node_props_.empty()) return;
 
             constexpr double eps = 0.0; // set to a small positive tolerance if you want numerical slack
-            const double query_volume = Volume(query_aabb);
 
             std::vector<NodeHandle> stack{NodeHandle{0}};
             while (!stack.empty())
@@ -170,27 +183,14 @@ namespace engine::geometry
                 stack.pop_back();
                 const Node& node = nodes[node_idx];
 
-                if (!Intersects(node.aabb, query_aabb)) continue;
-
-
-                const double node_volume = Volume(node.aabb);
-                const double strictly_larger = (query_volume > node_volume + eps);
-
-                if (strictly_larger && Contains(query_aabb, node.aabb))
-                {
-                    for (size_t i = 0; i < node.num_elements; ++i)
-                    {
-                        result.push_back(element_indices[node.first_element + i]);
-                    }
-                    continue;
-                }
+                if (!Intersects(node.aabb, query_shape)) continue;
 
                 if (node.is_leaf)
                 {
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
                         size_t ei = element_indices[node.first_element + i];
-                        if (Intersects(element_aabbs[ei], query_aabb))
+                        if (Intersects(element_aabbs[ei], query_shape))
                         {
                             result.push_back(ei);
                         }
@@ -201,7 +201,7 @@ namespace engine::geometry
                     for (size_t i = 0; i < node.num_straddlers; ++i)
                     {
                         size_t ei = element_indices[node.first_element + i];
-                        if (Intersects(element_aabbs[ei], query_aabb))
+                        if (Intersects(element_aabbs[ei], query_shape))
                         {
                             result.push_back(ei);
                         }
@@ -210,7 +210,7 @@ namespace engine::geometry
                     {
                         auto nhci = NodeHandle(ci);
                         if (nhci.is_valid() &&
-                            Intersects(nodes[nhci].aabb, query_aabb))
+                            Intersects(nodes[nhci].aabb, query_shape))
                         {
                             stack.push_back(nhci);
                         }
@@ -219,14 +219,30 @@ namespace engine::geometry
             }
         }
 
-        //TODO: can this work for all shapes which has Intersect and Contains Aabb?
-        void query(const Sphere& query_sphere, std::vector<size_t>& result) const
+        void query(const Aabb& query_shape, std::vector<size_t>& out) const
+        {
+            query<Aabb>(query_shape, out);
+        }
+
+        void query(const Sphere& query_shape, std::vector<size_t>& out) const
+        {
+            query<Sphere>(query_shape, out);
+        }
+
+        //TODO: How do i make this query work with shapes with volume? Figure out a way to have two concepts here and above... one for volumetric and one for non-volumetric shapes. Add respective tests...
+        template <SpatialQueryShape Shape>
+        void query(const Shape& query_shape, std::vector<size_t>& result) const
         {
             result.clear();
             if (node_props_.empty()) return;
 
-            constexpr double eps = 0.0; // set small >0 for tolerance if desired
-            const double query_volume = Volume(query_sphere);
+            constexpr double eps = 0.0; // set to a small positive tolerance if you want numerical slack
+            const double query_volume =
+                []<HasVolume Shape2>(const Shape2& s)
+                {
+                    if constexpr (HasVolume<Shape2>) return static_cast<double>(Volume(s));
+                    return std::numeric_limits<double>::infinity();
+                }(query_shape);
 
             std::vector<NodeHandle> stack{NodeHandle{0}};
             while (!stack.empty())
@@ -235,12 +251,13 @@ namespace engine::geometry
                 stack.pop_back();
                 const Node& node = nodes[node_idx];
 
-                if (!Intersects(node.aabb, query_sphere)) continue;
+                if (!Intersects(node.aabb, query_shape)) continue;
+
 
                 const double node_volume = Volume(node.aabb);
                 const double strictly_larger = (query_volume > node_volume + eps);
 
-                if (strictly_larger && Contains(query_sphere, node.aabb))
+                if (strictly_larger && Contains(query_shape, node.aabb))
                 {
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
@@ -254,7 +271,7 @@ namespace engine::geometry
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
                         size_t ei = element_indices[node.first_element + i];
-                        if (Intersects(element_aabbs[ei], query_sphere))
+                        if (Intersects(element_aabbs[ei], query_shape))
                         {
                             result.push_back(ei);
                         }
@@ -265,16 +282,16 @@ namespace engine::geometry
                     for (size_t i = 0; i < node.num_straddlers; ++i)
                     {
                         size_t ei = element_indices[node.first_element + i];
-                        if (Intersects(element_aabbs[ei], query_sphere))
+                        if (Intersects(element_aabbs[ei], query_shape))
                         {
                             result.push_back(ei);
                         }
                     }
                     for (const auto ci : node.children)
                     {
-                        const auto nhci = NodeHandle(ci);
+                        auto nhci = NodeHandle(ci);
                         if (nhci.is_valid() &&
-                            Intersects(nodes[nhci].aabb, query_sphere))
+                            Intersects(nodes[nhci].aabb, query_shape))
                         {
                             stack.push_back(nhci);
                         }
