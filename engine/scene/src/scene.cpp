@@ -1,0 +1,60 @@
+#include "engine/scene/scene.hpp"
+
+#include <utility>
+
+namespace engine::scene {
+
+Scene::Scene() = default;
+
+Scene::Scene(std::string name) : name_{std::move(name)} {}
+
+std::string_view Scene::name() const noexcept {
+    return name_;
+}
+
+void Scene::set_name(std::string name) {
+    name_ = std::move(name);
+}
+
+Entity Scene::create_entity() {
+    const auto entity = registry_.create();
+    return Entity{entity, this};
+}
+
+void Scene::destroy_entity(Entity& entity) {
+    if (entity.scene_ != this) {
+        return;
+    }
+
+    destroy_entity(entity.id_);
+    entity.reset();
+}
+
+void Scene::destroy_entity(entity_type entity) {
+    if (registry_.valid(entity)) {
+        registry_.destroy(entity);
+    }
+}
+
+Entity Scene::wrap(entity_type entity) noexcept {
+    if (!registry_.valid(entity)) {
+        return {};
+    }
+
+    return Entity{entity, this};
+}
+
+bool Scene::valid(entity_type entity) const noexcept {
+    return registry_.valid(entity);
+}
+
+Scene::registry_type& Scene::registry() noexcept {
+    return registry_;
+}
+
+const Scene::registry_type& Scene::registry() const noexcept {
+    return registry_;
+}
+
+}  // namespace engine::scene
+

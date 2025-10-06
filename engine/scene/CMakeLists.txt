@@ -2,11 +2,13 @@ set(target_name engine_scene)
 
 add_library(${target_name}
     src/api.cpp
+    src/scene.cpp
 )
 
 target_include_directories(${target_name}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/third_party/entt/single_include
 )
 
 target_compile_definitions(${target_name}
