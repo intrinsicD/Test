@@ -10,3 +10,4 @@ _Last updated: 2025-10-05_
 ### Files
 
 - `api.cpp` – C++ source file.
+- `geometry_io.cpp` – Mesh, point cloud, and graph IO implementations.

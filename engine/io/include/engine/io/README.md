@@ -10,3 +10,4 @@ _Last updated: 2025-10-05_
 ### Files
 
 - `api.hpp` – C++ header.
+- `geometry_io.hpp` – Geometry-aware import/export utilities.

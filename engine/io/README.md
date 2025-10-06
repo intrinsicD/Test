@@ -19,3 +19,5 @@ _Last updated: 2025-10-05_
 ### Files
 
 - `CMakeLists.txt` – Text resource.
+- `include/engine/io/geometry_io.hpp` – Public API for mesh, point cloud, and graph serialization.
+- `src/geometry_io.cpp` – Implementation of geometry IO and auto-detection helpers.
