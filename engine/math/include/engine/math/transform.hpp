@@ -151,19 +151,20 @@ namespace engine::math
             transform.scale[2] == detail::zero<T>() ? detail::zero<T>() : detail::one<T>() / transform.scale[2],
         };
 
-        result.rotation = normalize(conjugate(transform.rotation));
-
-        const Vector<T, 3> scaled_translation{
-            transform.translation[0] * result.scale[0],
-            transform.translation[1] * result.scale[1],
-            transform.translation[2] * result.scale[2],
-        };
-
         const Quaternion<T> normalized = normalize(transform.rotation);
-        const Quaternion<T> pure(detail::zero<T>(), scaled_translation);
-        const Quaternion<T> rotated = conjugate(normalized) * pure * normalized;
+        const Quaternion<T> inverse_rotation = conjugate(normalized);
+        result.rotation = inverse_rotation;
 
-        result.translation = Vector<T, 3>{-rotated.x, -rotated.y, -rotated.z};
+        const Quaternion<T> pure(detail::zero<T>(), transform.translation);
+        const Quaternion<T> rotated = inverse_rotation * pure * normalized;
+
+        const Vector<T, 3> rotated_translation{-rotated.x, -rotated.y, -rotated.z};
+
+        result.translation = Vector<T, 3>{
+            rotated_translation[0] * result.scale[0],
+            rotated_translation[1] * result.scale[1],
+            rotated_translation[2] * result.scale[2],
+        };
 
         return result;
     }
