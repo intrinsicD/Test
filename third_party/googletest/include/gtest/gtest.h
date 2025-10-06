@@ -297,6 +297,21 @@ namespace testing
         }                                                                                                 \
     } while (false)
 
+#define EXPECT_NEAR(val, exp, tol)                                                      \
+    do {                                                                                \
+        const auto gtest_val1 = (val);                                                  \
+        const auto gtest_val2 = (exp);                                                  \
+        const auto gtest_tol  = (tol);                                                  \
+        using std::abs;                                                                 \
+        if (!(abs(gtest_val1 - gtest_val2) <= gtest_tol)) {                             \
+            std::ostringstream gtest_message;                                           \
+            gtest_message << "Expected: |" << #val << " - " << #exp << "| <= " << #tol  \
+                          << "\n  Actual: |" << (gtest_val1 - gtest_val2) << "| = "     \
+                          << abs(gtest_val1 - gtest_val2) << " > " << gtest_tol;        \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());\
+        }                                                                               \
+    } while (false)
+
 #define ASSERT_TRUE(condition)                                                                           \
     do {                                                                                                  \
         const bool gtest_condition = static_cast<bool>(condition);                                        \

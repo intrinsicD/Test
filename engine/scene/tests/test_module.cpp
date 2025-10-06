@@ -16,7 +16,6 @@ struct Position {
     float z{};
 };
 
-
 }  // namespace
 
 

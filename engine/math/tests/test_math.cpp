@@ -36,20 +36,14 @@ namespace
         EXPECT_EQ(value.y, expected[2]);
         EXPECT_EQ(value.z, expected[3]);
     }
-
-    template <typename T>
-    void ExpectNear(T value, T expected, T tolerance)
-    {
-        EXPECT_TRUE(std::abs(value - expected) <= tolerance);
-    }
-
+    
     template <typename VectorLike, typename T>
     void ExpectVectorNear(const VectorLike& value, std::initializer_list<T> expected, T tolerance)
     {
         std::size_t index = 0;
         for (const auto& component : expected)
         {
-            ExpectNear(value[index], component, tolerance);
+            EXPECT_NEAR(value[index], component, tolerance);
             ++index;
         }
     }
@@ -71,10 +65,10 @@ namespace
     template <typename T>
     void ExpectQuaternionNear(const Quaternion<T>& value, const Quaternion<T>& expected, T tolerance)
     {
-        ExpectNear(value.w, expected.w, tolerance);
-        ExpectNear(value.x, expected.x, tolerance);
-        ExpectNear(value.y, expected.y, tolerance);
-        ExpectNear(value.z, expected.z, tolerance);
+        EXPECT_NEAR(value.w, expected.w, tolerance);
+        EXPECT_NEAR(value.x, expected.x, tolerance);
+        EXPECT_NEAR(value.y, expected.y, tolerance);
+        EXPECT_NEAR(value.z, expected.z, tolerance);
     }
 } // namespace
 
@@ -384,23 +378,23 @@ TEST(Quaternion, SlerpSquadAndCast) {
 
     const Quaternion<float> slerp_half = slerp(identity, quarter, 0.5F);
     const float tol = 1e-5F;
-    ExpectNear(slerp_half.w, eighth.w, tol);
-    ExpectNear(slerp_half.x, eighth.x, tol);
-    ExpectNear(slerp_half.y, eighth.y, tol);
-    ExpectNear(slerp_half.z, eighth.z, tol);
+    EXPECT_NEAR(slerp_half.w, eighth.w, tol);
+    EXPECT_NEAR(slerp_half.x, eighth.x, tol);
+    EXPECT_NEAR(slerp_half.y, eighth.y, tol);
+    EXPECT_NEAR(slerp_half.z, eighth.z, tol);
 
     const Quaternion<float> squad_half = squad(identity, identity, quarter, quarter, 0.5F);
-    ExpectNear(squad_half.w, eighth.w, tol);
-    ExpectNear(squad_half.x, eighth.x, tol);
-    ExpectNear(squad_half.y, eighth.y, tol);
-    ExpectNear(squad_half.z, eighth.z, tol);
+    EXPECT_NEAR(squad_half.w, eighth.w, tol);
+    EXPECT_NEAR(squad_half.x, eighth.x, tol);
+    EXPECT_NEAR(squad_half.y, eighth.y, tol);
+    EXPECT_NEAR(squad_half.z, eighth.z, tol);
 
     const Quaternion<float> cast_src(0.25F, -0.5F, 0.75F, -1.0F);
     const auto cast_dst = cast<double>(cast_src);
-    ExpectNear(cast_dst.w, 0.25, 1e-12);
-    ExpectNear(cast_dst.x, -0.5, 1e-12);
-    ExpectNear(cast_dst.y, 0.75, 1e-12);
-    ExpectNear(cast_dst.z, -1.0, 1e-12);
+    EXPECT_NEAR(cast_dst.w, 0.25, 1e-12);
+    EXPECT_NEAR(cast_dst.x, -0.5, 1e-12);
+    EXPECT_NEAR(cast_dst.y, 0.75, 1e-12);
+    EXPECT_NEAR(cast_dst.z, -1.0, 1e-12);
 }
 
 TEST(Quaternion, AngleAxisAndEulerConversions) {
@@ -409,16 +403,16 @@ TEST(Quaternion, AngleAxisAndEulerConversions) {
     const Quaternion<float> q = from_angle_axis(pi / 3.0F, axis);
     const Vector<float, 4> aa = to_angle_axis(q);
     const float tol = 1e-5F;
-    ExpectNear(aa[0], pi / 3.0F, tol);
+    EXPECT_NEAR(aa[0], pi / 3.0F, tol);
     const vec3 recovered_axis{aa[1], aa[2], aa[3]};
-    ExpectNear(length(recovered_axis), 1.0F, tol);
-    ExpectNear(utils::abs(dot(recovered_axis, axis)), 1.0F, tol);
+    EXPECT_NEAR(length(recovered_axis), 1.0F, tol);
+    EXPECT_NEAR(utils::abs(dot(recovered_axis, axis)), 1.0F, tol);
 
     const Quaternion<float> qx = from_angle_axis(pi / 2.0F, vec3{1.0F, 0.0F, 0.0F});
     const Vector<float, 3> euler = to_euler_angles(qx);
-    ExpectNear(euler[0], pi / 2.0F, tol);
-    ExpectNear(euler[1], 0.0F, tol);
-    ExpectNear(euler[2], 0.0F, tol);
+    EXPECT_NEAR(euler[0], pi / 2.0F, tol);
+    EXPECT_NEAR(euler[1], 0.0F, tol);
+    EXPECT_NEAR(euler[2], 0.0F, tol);
 }
 
 TEST(RotationUtils, QuaternionMatrixRoundTrip) {
@@ -428,7 +422,7 @@ TEST(RotationUtils, QuaternionMatrixRoundTrip) {
     const mat3 rot = utils::to_rotation_matrix(q);
     const Quaternion<float> round = normalize(utils::to_quaternion(rot));
     const float alignment = utils::abs(dot(q, round));
-    ExpectNear(alignment, 1.0F, 1e-5F);
+    EXPECT_NEAR(alignment, 1.0F, 1e-5F);
 }
 
 TEST(RotationUtils, AngleAxisOverloadsProduceConsistentMatrices) {
@@ -444,8 +438,8 @@ TEST(RotationUtils, AngleAxisOverloadsProduceConsistentMatrices) {
 
     for (std::size_t r = 0; r < 3; ++r) {
         for (std::size_t c = 0; c < 3; ++c) {
-            ExpectNear(R1[r][c], R2[r][c], 1e-5F);
-            ExpectNear(R1[r][c], R3[r][c], 1e-5F);
+            EXPECT_NEAR(R1[r][c], R2[r][c], 1e-5F);
+            EXPECT_NEAR(R1[r][c], R3[r][c], 1e-5F);
         }
     }
 }
@@ -630,10 +624,10 @@ TEST(Matrix, TryInverseReturnsExpectedResult) {
                                  2.0F, 6.0F);
     const auto inv2 = try_inverse(m2);
     ASSERT_TRUE(inv2.has_value());
-    ExpectNear((*inv2)[0][0], 0.6F, 1e-6F);
-    ExpectNear((*inv2)[0][1], -0.7F, 1e-6F);
-    ExpectNear((*inv2)[1][0], -0.2F, 1e-6F);
-    ExpectNear((*inv2)[1][1], 0.4F, 1e-6F);
+    EXPECT_NEAR((*inv2)[0][0], 0.6F, 1e-6F);
+    EXPECT_NEAR((*inv2)[0][1], -0.7F, 1e-6F);
+    EXPECT_NEAR((*inv2)[1][0], -0.2F, 1e-6F);
+    EXPECT_NEAR((*inv2)[1][1], 0.4F, 1e-6F);
 
     const Matrix<float, 3, 3> m3(0.0F, -1.0F, 0.0F,
                                  1.0F,  0.0F, 0.0F,
@@ -645,7 +639,7 @@ TEST(Matrix, TryInverseReturnsExpectedResult) {
                                         0.0F, 0.0F, 1.0F);
     for (std::size_t r = 0; r < 3; ++r) {
         for (std::size_t c = 0; c < 3; ++c) {
-            ExpectNear((*inv3)[r][c], expected3[r][c], 1e-6F);
+            EXPECT_NEAR((*inv3)[r][c], expected3[r][c], 1e-6F);
         }
     }
 
@@ -660,7 +654,7 @@ TEST(Matrix, TryInverseReturnsExpectedResult) {
                                         0.0F, 0.0F, 0.0F, 1.0F);
     for (std::size_t r = 0; r < 4; ++r) {
         for (std::size_t c = 0; c < 4; ++c) {
-            ExpectNear((*inv4)[r][c], expected4[r][c], 1e-5F);
+            EXPECT_NEAR((*inv4)[r][c], expected4[r][c], 1e-5F);
         }
     }
 
@@ -725,7 +719,7 @@ TEST(Transform, ToMatrixMatchesComponents)
     {
         for (std::size_t c = 0; c < 4; ++c)
         {
-            ExpectNear(matrix[r][c], expected[r][c], 1e-5F);
+            EXPECT_NEAR(matrix[r][c], expected[r][c], 1e-5F);
         }
     }
 }
@@ -770,10 +764,10 @@ TEST(Transform, PointAndVectorTransformMatchMatrixApplication)
     const Vector<float, 4> matrix_vector = matrix * direction4;
 
     ExpectVectorNear(transformed_point, {matrix_point[0], matrix_point[1], matrix_point[2]}, 1e-5F);
-    ExpectNear(matrix_point[3], 1.0F, 1e-5F);
+    EXPECT_NEAR(matrix_point[3], 1.0F, 1e-5F);
 
     ExpectVectorNear(transformed_vector, {matrix_vector[0], matrix_vector[1], matrix_vector[2]}, 1e-5F);
-    ExpectNear(matrix_vector[3], 0.0F, 1e-5F);
+    EXPECT_NEAR(matrix_vector[3], 0.0F, 1e-5F);
 }
 
 TEST(Transform, InverseAndCombineReturnIdentity)
@@ -793,7 +787,7 @@ TEST(Transform, InverseAndCombineReturnIdentity)
         for (std::size_t c = 0; c < 4; ++c)
         {
             const float expected = (r == c) ? 1.0F : 0.0F;
-            ExpectNear(matrix[r][c], expected, 1e-4F);
+            EXPECT_NEAR(matrix[r][c], expected, 1e-4F);
         }
     }
 
