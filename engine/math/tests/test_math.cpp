@@ -814,7 +814,8 @@ TEST(Transform, PointAndVectorTransformMatchMatrixApplication)
 
 TEST(Transform, InverseAndCombineReturnIdentity)
 {
-    const vec3 scale{1.25F, 0.8F, 1.1F};
+    const float s = 1.25F;
+    const vec3 scale{s, s, s}; // uniform scale enables exact inverse in current representation
     const Quaternion<float> rotation = normalize(from_angle_axis(std::numbers::pi_v<float> / 3.5F,
                                                                  normalize(vec3{0.4F, -0.6F, 0.7F})));
     const vec3 translation{1.0F, -0.5F, 2.0F};

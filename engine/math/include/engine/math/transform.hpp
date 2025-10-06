@@ -56,67 +56,95 @@ namespace engine::math
     template <typename T>
     ENGINE_MATH_INLINE Transform<T> from_matrix(const Matrix<T, 4, 4>& matrix) noexcept
     {
-        Transform<T> out;
+        const T zero = detail::zero<T>();
+        const T one = detail::one<T>();
 
-        // Translation
-        out.translation = Vector<T,3>{ matrix[0][3], matrix[1][3], matrix[2][3] };
+        Matrix<T, 4, 4> local = matrix;
 
-        // Extract columns (linear block)
-        Vector<T,3> c[3] = {
-            { matrix[0][0], matrix[1][0], matrix[2][0] },
-            { matrix[0][1], matrix[1][1], matrix[2][1] },
-            { matrix[0][2], matrix[1][2], matrix[2][2] },
-        };
+        // Normalize so local[3][3] == 1 (affine w)
+        if (utils::nearly_equal(local[3][3], zero))
+            return Transform<T>::Identity();
 
-        // Lengths (unsigned scales)
-        T l[3] = { length(c[0]), length(c[1]), length(c[2]) };
-
-        // Handle degenerate
-        bool ok = (l[0] > detail::zero<T>()) && (l[1] > detail::zero<T>()) && (l[2] > detail::zero<T>());
-        if (!ok) {
-            out.scale = Vector<T,3>{ l[0], l[1], l[2] };
-            out.rotation = Quaternion<T>::Identity();
-            return out;
+        if (!utils::nearly_equal(local[3][3], one))
+        {
+            const T inv_w = one / local[3][3];
+            for (std::size_t r = 0; r < 4; ++r)
+                for (std::size_t c = 0; c < 4; ++c)
+                    local[r][c] *= inv_w;
         }
 
-        // Normalized columns (may include sign of original scales)
-        Vector<T,3> u[3] = { c[0] / l[0], c[1] / l[1], c[2] / l[2] };
-
-        // Build rotation matrix with current handedness
-        Matrix<T,3,3> R;
-        for (std::size_t j=0; j<3; ++j) {
-            R[0][j] = u[j][0];
-            R[1][j] = u[j][1];
-            R[2][j] = u[j][2];
+        // Clear perspective (cannot represent)
+        if (!utils::nearly_equal(local[3][0], zero) ||
+            !utils::nearly_equal(local[3][1], zero) ||
+            !utils::nearly_equal(local[3][2], zero))
+        {
+            local[3][0] = local[3][1] = local[3][2] = zero;
+            local[3][3] = one;
         }
 
-        // Fix handedness deterministically by flipping the largest column if needed
-        const T detR =
-            R[0][0]*(R[1][1]*R[2][2] - R[1][2]*R[2][1]) -
-            R[0][1]*(R[1][0]*R[2][2] - R[1][2]*R[2][0]) +
-            R[0][2]*(R[1][0]*R[2][1] - R[1][1]*R[2][0]);
+        Transform<T> result;
 
-        if (detR < detail::zero<T>()) {
-            // choose column with largest length to flip
-            std::size_t k = 0;
-            if (l[1] > l[k]) k = 1;
-            if (l[2] > l[k]) k = 2;
+        // Translation is last column (rows 0..2)
+        result.translation = Vector<T, 3>{local[0][3], local[1][3], local[2][3]};
 
-            // flip that column in R and put the minus into the corresponding scale
-            u[k] = -u[k];
-            l[k] = -l[k];
-
-            // rebuild R
-            for (std::size_t j=0; j<3; ++j) {
-                R[0][j] = u[j][0];
-                R[1][j] = u[j][1];
-                R[2][j] = u[j][2];
+        // Extract the 3 column vectors (rotation * scale)
+        Vector<T, 3> axes[3];
+        bool valid = true;
+        for (std::size_t c = 0; c < 3; ++c)
+        {
+            Vector<T, 3> col{
+                local[0][c],
+                local[1][c],
+                local[2][c]
+            };
+            const T mag = length(col);
+            result.scale[c] = mag;
+            if (utils::nearly_equal(mag, zero))
+            {
+                axes[c] = Vector<T, 3>{
+                    (c == 0) ? one : zero,
+                    (c == 1) ? one : zero,
+                    (c == 2) ? one : zero
+                };
+                valid = false;
+            }
+            else
+            {
+                axes[c] = col / mag;
             }
         }
 
-        out.scale = Vector<T,3>{ l[0], l[1], l[2] };
-        out.rotation = normalize(utils::to_quaternion(R));
-        return out;
+        if (valid)
+        {
+            // Ensure right-handed orthonormal basis
+            const T det = dot(axes[0], cross(axes[1], axes[2]));
+            if (det < zero)
+            {
+                // Flip the axis with the largest magnitude to preserve relative scales
+                std::size_t idx = 0;
+                if (utils::abs(result.scale[1]) > utils::abs(result.scale[idx])) idx = 1;
+                if (utils::abs(result.scale[2]) > utils::abs(result.scale[idx])) idx = 2;
+                result.scale[idx] = -result.scale[idx];
+                axes[idx] = -axes[idx];
+            }
+
+            // Build 3x3 rotation matrix (rows r, columns c)
+            Matrix<T, 3, 3> rot{};
+            for (std::size_t r = 0; r < 3; ++r)
+            {
+                rot[r][0] = axes[0][r];
+                rot[r][1] = axes[1][r];
+                rot[r][2] = axes[2][r];
+            }
+            result.rotation = normalize(utils::to_quaternion(rot));
+        }
+        else
+        {
+            // Degenerate case
+            result.rotation = Quaternion<T>::Identity();
+        }
+
+        return result;
     }
 
     template <typename T>
@@ -152,7 +180,7 @@ namespace engine::math
     template <typename T>
     ENGINE_MATH_INLINE Transform<T> inverse(const Transform<T>& transform) noexcept
     {
-        const auto M_inv = try_inverse(cast<double>(to_matrix(transform)));   // your reliable 4×4 inverse
+        const auto M_inv = try_inverse(cast<double>(to_matrix(transform))); // your reliable 4×4 inverse
         assert(M_inv.has_value() && "Transform::inverse: singular matrix");
         return from_matrix(cast<float>(M_inv.value()));
     }
