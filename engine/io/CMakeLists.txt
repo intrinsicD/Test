@@ -2,6 +2,7 @@ set(target_name engine_io)
 
 add_library(${target_name}
     src/api.cpp
+    src/geometry_io_registry.cpp
     src/geometry_io.cpp
 )
 

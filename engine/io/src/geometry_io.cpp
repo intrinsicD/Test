@@ -1,4 +1,5 @@
 #include "engine/io/geometry_io.hpp"
+#include "engine/io/geometry_io_registry.hpp"
 
 #include "engine/math/vector.hpp"
 
@@ -8,9 +9,11 @@
 #include <filesystem>
 #include <fstream>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -1052,7 +1055,261 @@ namespace engine::io
                 stream << idx0 << ' ' << idx1 << '\n';
             }
         }
+
+        class ObjMeshImporter final : public MeshImporter
+        {
+        public:
+            [[nodiscard]] MeshFileFormat format() const noexcept override
+            {
+                return MeshFileFormat::obj;
+            }
+
+            void import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
+            {
+                read_mesh_obj(path, mesh);
+            }
+        };
+
+        class ObjMeshExporter final : public MeshExporter
+        {
+        public:
+            [[nodiscard]] MeshFileFormat format() const noexcept override
+            {
+                return MeshFileFormat::obj;
+            }
+
+            void export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
+            {
+                write_mesh_obj(path, mesh);
+            }
+        };
+
+        class OffMeshImporter final : public MeshImporter
+        {
+        public:
+            [[nodiscard]] MeshFileFormat format() const noexcept override
+            {
+                return MeshFileFormat::off;
+            }
+
+            void import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
+            {
+                read_mesh_off(path, mesh);
+            }
+        };
+
+        class OffMeshExporter final : public MeshExporter
+        {
+        public:
+            [[nodiscard]] MeshFileFormat format() const noexcept override
+            {
+                return MeshFileFormat::off;
+            }
+
+            void export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
+            {
+                write_mesh_off(path, mesh);
+            }
+        };
+
+        class PlyMeshImporter final : public MeshImporter
+        {
+        public:
+            [[nodiscard]] MeshFileFormat format() const noexcept override
+            {
+                return MeshFileFormat::ply;
+            }
+
+            void import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
+            {
+                read_mesh_ply(path, mesh);
+            }
+        };
+
+        class PlyMeshExporter final : public MeshExporter
+        {
+        public:
+            [[nodiscard]] MeshFileFormat format() const noexcept override
+            {
+                return MeshFileFormat::ply;
+            }
+
+            void export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
+            {
+                write_mesh_ply(path, mesh);
+            }
+        };
+
+        class PlyPointCloudImporter final : public PointCloudImporter
+        {
+        public:
+            [[nodiscard]] PointCloudFileFormat format() const noexcept override
+            {
+                return PointCloudFileFormat::ply;
+            }
+
+            void import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
+            {
+                read_point_cloud_ply(path, point_cloud);
+            }
+        };
+
+        class PlyPointCloudExporter final : public PointCloudExporter
+        {
+        public:
+            [[nodiscard]] PointCloudFileFormat format() const noexcept override
+            {
+                return PointCloudFileFormat::ply;
+            }
+
+            void export_point_cloud(const std::filesystem::path& path,
+                                     const geometry::PointCloudInterface& point_cloud) const override
+            {
+                write_point_cloud_ply(path, point_cloud);
+            }
+        };
+
+        class XyzPointCloudImporter final : public PointCloudImporter
+        {
+        public:
+            [[nodiscard]] PointCloudFileFormat format() const noexcept override
+            {
+                return PointCloudFileFormat::xyz;
+            }
+
+            void import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
+            {
+                read_point_cloud_xyz(path, point_cloud);
+            }
+        };
+
+        class XyzPointCloudExporter final : public PointCloudExporter
+        {
+        public:
+            [[nodiscard]] PointCloudFileFormat format() const noexcept override
+            {
+                return PointCloudFileFormat::xyz;
+            }
+
+            void export_point_cloud(const std::filesystem::path& path,
+                                     const geometry::PointCloudInterface& point_cloud) const override
+            {
+                write_point_cloud_xyz(path, point_cloud);
+            }
+        };
+
+        class PcdPointCloudImporter final : public PointCloudImporter
+        {
+        public:
+            [[nodiscard]] PointCloudFileFormat format() const noexcept override
+            {
+                return PointCloudFileFormat::pcd;
+            }
+
+            void import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
+            {
+                read_point_cloud_pcd(path, point_cloud);
+            }
+        };
+
+        class PcdPointCloudExporter final : public PointCloudExporter
+        {
+        public:
+            [[nodiscard]] PointCloudFileFormat format() const noexcept override
+            {
+                return PointCloudFileFormat::pcd;
+            }
+
+            void export_point_cloud(const std::filesystem::path& path,
+                                     const geometry::PointCloudInterface& point_cloud) const override
+            {
+                write_point_cloud_pcd(path, point_cloud);
+            }
+        };
+
+        class EdgeListGraphImporter final : public GraphImporter
+        {
+        public:
+            [[nodiscard]] GraphFileFormat format() const noexcept override
+            {
+                return GraphFileFormat::edgelist;
+            }
+
+            void import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override
+            {
+                read_graph_edgelist(path, graph);
+            }
+        };
+
+        class EdgeListGraphExporter final : public GraphExporter
+        {
+        public:
+            [[nodiscard]] GraphFileFormat format() const noexcept override
+            {
+                return GraphFileFormat::edgelist;
+            }
+
+            void export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override
+            {
+                write_graph_edgelist(path, graph);
+            }
+        };
+
+        class PlyGraphImporter final : public GraphImporter
+        {
+        public:
+            [[nodiscard]] GraphFileFormat format() const noexcept override
+            {
+                return GraphFileFormat::ply;
+            }
+
+            void import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override
+            {
+                read_graph_ply(path, graph);
+            }
+        };
+
+        class PlyGraphExporter final : public GraphExporter
+        {
+        public:
+            [[nodiscard]] GraphFileFormat format() const noexcept override
+            {
+                return GraphFileFormat::ply;
+            }
+
+            void export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override
+            {
+                write_graph_ply(path, graph);
+            }
+        };
+
+        void register_default_geometry_io_plugins_impl(GeometryIORegistry& registry)
+        {
+            registry.register_mesh_importer(std::make_unique<ObjMeshImporter>());
+            registry.register_mesh_exporter(std::make_unique<ObjMeshExporter>());
+            registry.register_mesh_importer(std::make_unique<OffMeshImporter>());
+            registry.register_mesh_exporter(std::make_unique<OffMeshExporter>());
+            registry.register_mesh_importer(std::make_unique<PlyMeshImporter>());
+            registry.register_mesh_exporter(std::make_unique<PlyMeshExporter>());
+
+            registry.register_point_cloud_importer(std::make_unique<PlyPointCloudImporter>());
+            registry.register_point_cloud_exporter(std::make_unique<PlyPointCloudExporter>());
+            registry.register_point_cloud_importer(std::make_unique<XyzPointCloudImporter>());
+            registry.register_point_cloud_exporter(std::make_unique<XyzPointCloudExporter>());
+            registry.register_point_cloud_importer(std::make_unique<PcdPointCloudImporter>());
+            registry.register_point_cloud_exporter(std::make_unique<PcdPointCloudExporter>());
+
+            registry.register_graph_importer(std::make_unique<EdgeListGraphImporter>());
+            registry.register_graph_exporter(std::make_unique<EdgeListGraphExporter>());
+            registry.register_graph_importer(std::make_unique<PlyGraphImporter>());
+            registry.register_graph_exporter(std::make_unique<PlyGraphExporter>());
+        }
     } // namespace
+
+    void register_default_geometry_io_plugins(GeometryIORegistry& registry)
+    {
+        register_default_geometry_io_plugins_impl(registry);
+    }
 
     GeometryDetectionResult detect_geometry_file(const std::filesystem::path& path)
     {
@@ -1261,22 +1518,20 @@ namespace engine::io
             resolved = detect_geometry_file(path).mesh_format;
         }
 
-        switch (resolved)
+        if (resolved == MeshFileFormat::unknown)
         {
-        case MeshFileFormat::obj:
-            read_mesh_obj(path, mesh);
-            break;
-        case MeshFileFormat::off:
-            read_mesh_off(path, mesh);
-            break;
-        case MeshFileFormat::ply:
-            read_mesh_ply(path, mesh);
-            break;
-        case MeshFileFormat::stl:
-            throw std::runtime_error("STL mesh reading is not implemented yet");
-        case MeshFileFormat::unknown:
             throw std::runtime_error("Unable to determine mesh format for file: " + path.string());
         }
+
+        const auto& registry = global_geometry_io_registry();
+        const auto* importer = registry.mesh_importer(resolved);
+        if (importer == nullptr)
+        {
+            throw std::runtime_error("No mesh importer registered for format '" + std::string(to_string(resolved)) +
+                                     "' while reading " + path.string());
+        }
+
+        importer->import(path, mesh);
     }
 
     void write_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh, MeshFileFormat format)
@@ -1291,25 +1546,25 @@ namespace engine::io
             }
         }
 
-        switch (resolved)
+        if (resolved == MeshFileFormat::unknown)
         {
-        case MeshFileFormat::obj:
-            write_mesh_obj(path, mesh);
-            break;
-        case MeshFileFormat::off:
-            write_mesh_off(path, mesh);
-            break;
-        case MeshFileFormat::ply:
-            write_mesh_ply(path, mesh);
-            break;
-        case MeshFileFormat::stl:
-            throw std::runtime_error("STL mesh writing is not implemented yet");
-        case MeshFileFormat::unknown:
             throw std::runtime_error("Unable to determine mesh export format for file: " + path.string());
         }
+
+        const auto& registry = global_geometry_io_registry();
+        const auto* exporter = registry.mesh_exporter(resolved);
+        if (exporter == nullptr)
+        {
+            throw std::runtime_error("No mesh exporter registered for format '" + std::string(to_string(resolved)) +
+                                     "' while writing " + path.string());
+        }
+
+        exporter->export_mesh(path, mesh);
     }
 
-    void read_point_cloud(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud, PointCloudFileFormat format)
+    void read_point_cloud(const std::filesystem::path& path,
+                          geometry::PointCloudInterface& point_cloud,
+                          PointCloudFileFormat format)
     {
         PointCloudFileFormat resolved = format;
         if (resolved == PointCloudFileFormat::unknown)
@@ -1317,23 +1572,25 @@ namespace engine::io
             resolved = detect_geometry_file(path).point_cloud_format;
         }
 
-        switch (resolved)
+        if (resolved == PointCloudFileFormat::unknown)
         {
-        case PointCloudFileFormat::ply:
-            read_point_cloud_ply(path, point_cloud);
-            break;
-        case PointCloudFileFormat::xyz:
-            read_point_cloud_xyz(path, point_cloud);
-            break;
-        case PointCloudFileFormat::pcd:
-            read_point_cloud_pcd(path, point_cloud);
-            break;
-        case PointCloudFileFormat::unknown:
             throw std::runtime_error("Unable to determine point cloud format for file: " + path.string());
         }
+
+        const auto& registry = global_geometry_io_registry();
+        const auto* importer = registry.point_cloud_importer(resolved);
+        if (importer == nullptr)
+        {
+            throw std::runtime_error("No point cloud importer registered for format '" + std::string(to_string(resolved)) +
+                                     "' while reading " + path.string());
+        }
+
+        importer->import(path, point_cloud);
     }
 
-    void write_point_cloud(const std::filesystem::path& path, const geometry::PointCloudInterface& point_cloud, PointCloudFileFormat format)
+    void write_point_cloud(const std::filesystem::path& path,
+                           const geometry::PointCloudInterface& point_cloud,
+                           PointCloudFileFormat format)
     {
         PointCloudFileFormat resolved = format;
         if (resolved == PointCloudFileFormat::unknown)
@@ -1345,20 +1602,20 @@ namespace engine::io
             }
         }
 
-        switch (resolved)
+        if (resolved == PointCloudFileFormat::unknown)
         {
-        case PointCloudFileFormat::ply:
-            write_point_cloud_ply(path, point_cloud);
-            break;
-        case PointCloudFileFormat::xyz:
-            write_point_cloud_xyz(path, point_cloud);
-            break;
-        case PointCloudFileFormat::pcd:
-            write_point_cloud_pcd(path, point_cloud);
-            break;
-        case PointCloudFileFormat::unknown:
             throw std::runtime_error("Unable to determine point cloud export format for file: " + path.string());
         }
+
+        const auto& registry = global_geometry_io_registry();
+        const auto* exporter = registry.point_cloud_exporter(resolved);
+        if (exporter == nullptr)
+        {
+            throw std::runtime_error("No point cloud exporter registered for format '" + std::string(to_string(resolved)) +
+                                     "' while writing " + path.string());
+        }
+
+        exporter->export_point_cloud(path, point_cloud);
     }
 
     void read_graph(const std::filesystem::path& path, geometry::GraphInterface& graph, GraphFileFormat format)
@@ -1369,17 +1626,20 @@ namespace engine::io
             resolved = detect_geometry_file(path).graph_format;
         }
 
-        switch (resolved)
+        if (resolved == GraphFileFormat::unknown)
         {
-        case GraphFileFormat::edgelist:
-            read_graph_edgelist(path, graph);
-            break;
-        case GraphFileFormat::ply:
-            read_graph_ply(path, graph);
-            break;
-        case GraphFileFormat::unknown:
             throw std::runtime_error("Unable to determine graph format for file: " + path.string());
         }
+
+        const auto& registry = global_geometry_io_registry();
+        const auto* importer = registry.graph_importer(resolved);
+        if (importer == nullptr)
+        {
+            throw std::runtime_error("No graph importer registered for format '" + std::string(to_string(resolved)) +
+                                     "' while reading " + path.string());
+        }
+
+        importer->import(path, graph);
     }
 
     void write_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph, GraphFileFormat format)
@@ -1394,17 +1654,20 @@ namespace engine::io
             }
         }
 
-        switch (resolved)
+        if (resolved == GraphFileFormat::unknown)
         {
-        case GraphFileFormat::edgelist:
-            write_graph_edgelist(path, graph);
-            break;
-        case GraphFileFormat::ply:
-            write_graph_ply(path, graph);
-            break;
-        case GraphFileFormat::unknown:
             throw std::runtime_error("Unable to determine graph export format for file: " + path.string());
         }
+
+        const auto& registry = global_geometry_io_registry();
+        const auto* exporter = registry.graph_exporter(resolved);
+        if (exporter == nullptr)
+        {
+            throw std::runtime_error("No graph exporter registered for format '" + std::string(to_string(resolved)) +
+                                     "' while writing " + path.string());
+        }
+
+        exporter->export_graph(path, graph);
     }
 
     std::ostream& operator<<(std::ostream& stream, GeometryKind kind)
