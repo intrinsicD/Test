@@ -306,8 +306,9 @@ namespace testing
         if (!(abs(gtest_val1 - gtest_val2) <= gtest_tol)) {                             \
             std::ostringstream gtest_message;                                           \
             gtest_message << "Expected: |" << #val << " - " << #exp << "| <= " << #tol  \
-                          << "\n  Actual: |" << (gtest_val1 - gtest_val2) << "| = "     \
-                          << abs(gtest_val1 - gtest_val2) << " > " << gtest_tol;        \
+                          << "\n  Actual: | " << gtest_val1 << " - " << gtest_val2 << " | = | " \
+                          << (gtest_val1 - gtest_val2) << " | = " << abs(gtest_val1 - gtest_val2) \
+                          << " > " << gtest_tol;                                        \
             ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());\
         }                                                                               \
     } while (false)

@@ -663,6 +663,48 @@ TEST(Matrix, TryInverseReturnsExpectedResult) {
     EXPECT_FALSE(try_inverse(singular).has_value());
 }
 
+TEST(Matrix, InverseAndCombineReturnIdentity)
+{
+    const Matrix<float, 2, 2> m2(4.0F, 7.0F,
+                                  2.0F, 6.0F);
+    const auto inv2 = try_inverse(m2);
+    ASSERT_TRUE(inv2.has_value());
+    const auto matrix2 = (*inv2) * m2;
+
+    for (std::size_t r = 0; r < 2; ++r) {
+        for (std::size_t c = 0; c < 2; ++c) {
+            const float expected = (r == c) ? 1.0F : 0.0F;
+            EXPECT_NEAR(matrix2[r][c], expected, 1e-6F);
+        }
+    }
+
+    const Matrix<float, 3, 3> m3(0.0F, -1.0F, 0.0F,
+                                 1.0F,  0.0F, 0.0F,
+                                 0.0F,  0.0F, 1.0F);
+    const auto inv3 = try_inverse(m3);
+    ASSERT_TRUE(inv3.has_value());
+    const auto matrix3 = (*inv3) * m3;
+    for (std::size_t r = 0; r < 3; ++r) {
+        for (std::size_t c = 0; c < 3; ++c) {
+            const float expected = (r == c) ? 1.0F : 0.0F;
+            EXPECT_NEAR(matrix3[r][c], expected, 1e-6F);
+        }
+    }
+
+    Matrix<float, 4, 4> m4 = identity_matrix<float, 4>();
+    m4[0][0] = 2.0F; m4[1][1] = 3.0F; m4[2][2] = 4.0F;
+    m4[0][3] = 1.0F; m4[1][3] = 2.0F; m4[2][3] = 3.0F;
+    const auto inv4 = try_inverse(m4);
+    ASSERT_TRUE(inv4.has_value());
+    const auto matrix4 = (*inv4) * m4;
+    for (std::size_t r = 0; r < 4; ++r) {
+        for (std::size_t c = 0; c < 4; ++c) {
+            const float expected = (r == c) ? 1.0F : 0.0F;
+            EXPECT_NEAR(matrix4[r][c], expected, 1e-5F);
+        }
+    }
+}
+
 TEST(Quaternion, CayleyParameterizationRoundTrip)
 {
     const float tol = 1e-5F;
