@@ -1,5 +1,3 @@
-#include <cstddef>
-
 #include <gtest/gtest.h>
 
 #include "engine/scene/api.hpp"
@@ -18,7 +16,9 @@ struct Position {
     float z{};
 };
 
+
 }  // namespace
+
 
 TEST(Scene, CreateAndManipulateEntity) {
     engine::scene::Scene scene{"test"};
