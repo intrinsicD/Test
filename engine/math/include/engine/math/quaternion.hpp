@@ -400,6 +400,47 @@ namespace engine::math
     }
 
     template <typename T>
+    ENGINE_MATH_INLINE Vector<T, 3> to_cayley_parameters(const Quaternion<T>& quat) noexcept
+    {
+        const Quaternion<T> normalized = normalize(quat);
+        const T denom = detail::one<T>() + normalized.w;
+
+        if (utils::nearly_equal(denom, detail::zero<T>()))
+        {
+            return Vector<T, 3>{detail::zero<T>()};
+        }
+
+        return Vector<T, 3>{
+            normalized.x / denom,
+            normalized.y / denom,
+            normalized.z / denom,
+        };
+    }
+
+    template <typename T>
+    ENGINE_MATH_INLINE Quaternion<T> from_cayley_parameters(const Vector<T, 3>& cayley) noexcept
+    {
+        const T x = cayley[0];
+        const T y = cayley[1];
+        const T z = cayley[2];
+
+        const T norm_sq = x * x + y * y + z * z;
+        const T denom = detail::one<T>() + norm_sq;
+
+        if (utils::nearly_equal(denom, detail::zero<T>()))
+        {
+            return Quaternion<T>::Identity();
+        }
+
+        return normalize(Quaternion<T>{
+            (detail::one<T>() - norm_sq) / denom,
+            (static_cast<T>(2) * x) / denom,
+            (static_cast<T>(2) * y) / denom,
+            (static_cast<T>(2) * z) / denom,
+        });
+    }
+
+    template <typename T>
     ENGINE_MATH_INLINE Vector<T, 3> to_euler_angles(const Quaternion<T>& quat) noexcept
     {
         // Normalize to avoid drift amplifying numerical issues

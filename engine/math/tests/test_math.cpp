@@ -1,6 +1,7 @@
 #include <array>
 #include <cmath>
 #include <type_traits>
+#include <numbers>
 #include <engine/math/utils_rotation.hpp>
 
 #include <gtest/gtest.h>
@@ -10,6 +11,7 @@
 #include "engine/math/matrix.hpp"
 #include "engine/math/vector.hpp"
 #include "engine/math/quaternion.hpp"
+#include "engine/math/transform.hpp"
 
 using namespace engine::math;
 
@@ -39,6 +41,40 @@ namespace
     void ExpectNear(T value, T expected, T tolerance)
     {
         EXPECT_TRUE(std::abs(value - expected) <= tolerance);
+    }
+
+    template <typename VectorLike, typename T>
+    void ExpectVectorNear(const VectorLike& value, std::initializer_list<T> expected, T tolerance)
+    {
+        std::size_t index = 0;
+        for (const auto& component : expected)
+        {
+            ExpectNear(value[index], component, tolerance);
+            ++index;
+        }
+    }
+
+    template <typename T>
+    Quaternion<T> AlignQuaternion(const Quaternion<T>& value, const Quaternion<T>& reference)
+    {
+        Quaternion<T> aligned = value;
+        if (dot(aligned, reference) < T(0))
+        {
+            aligned.w = -aligned.w;
+            aligned.x = -aligned.x;
+            aligned.y = -aligned.y;
+            aligned.z = -aligned.z;
+        }
+        return aligned;
+    }
+
+    template <typename T>
+    void ExpectQuaternionNear(const Quaternion<T>& value, const Quaternion<T>& expected, T tolerance)
+    {
+        ExpectNear(value.w, expected.w, tolerance);
+        ExpectNear(value.x, expected.x, tolerance);
+        ExpectNear(value.y, expected.y, tolerance);
+        ExpectNear(value.z, expected.z, tolerance);
     }
 } // namespace
 
@@ -631,4 +667,138 @@ TEST(Matrix, TryInverseReturnsExpectedResult) {
     const Matrix<float, 2, 2> singular(1.0F, 2.0F,
                                        2.0F, 4.0F);
     EXPECT_FALSE(try_inverse(singular).has_value());
+}
+
+TEST(Quaternion, CayleyParameterizationRoundTrip)
+{
+    const float tol = 1e-5F;
+    const std::array<Vector<float, 4>, 4> samples{
+        Vector<float, 4>{0.0F, 1.0F, 0.0F, 0.0F},
+        Vector<float, 4>{std::numbers::pi_v<float> / 3.0F, 0.0F, 1.0F, 0.0F},
+        Vector<float, 4>{-std::numbers::pi_v<float> / 2.0F, 0.0F, 0.0F, 1.0F},
+        Vector<float, 4>{std::numbers::pi_v<float> * 0.75F, 1.0F, 1.0F, -0.5F},
+    };
+
+    for (const auto& sample : samples)
+    {
+        const Vector<float, 4> normalized_axis{
+            sample[0],
+            sample[1],
+            sample[2],
+            sample[3],
+        };
+
+        const Quaternion<float> original = normalize(from_angle_axis(normalized_axis));
+        const Vector<float, 3> cayley = to_cayley_parameters(original);
+        const Quaternion<float> reconstructed = normalize(from_cayley_parameters(cayley));
+
+        const Quaternion<float> aligned = AlignQuaternion(reconstructed, original);
+        ExpectQuaternionNear(aligned, original, tol);
+
+        const Vector<float, 4> round_trip_axis = to_angle_axis(reconstructed);
+        const Quaternion<float> round_trip = normalize(from_angle_axis(round_trip_axis));
+        const Quaternion<float> aligned_round_trip = AlignQuaternion(round_trip, original);
+        ExpectQuaternionNear(aligned_round_trip, original, tol);
+    }
+}
+
+TEST(Transform, ToMatrixMatchesComponents)
+{
+    const vec3 scale{1.5F, 0.25F, -2.0F};
+    const Quaternion<float> rotation = normalize(from_angle_axis(std::numbers::pi_v<float> / 5.0F,
+                                                                 normalize(vec3{0.3F, -0.7F, 0.2F})));
+    const vec3 translation{0.5F, -1.0F, 3.0F};
+    const Transform<float> transform{scale, rotation, translation};
+
+    const mat4 matrix = to_matrix(transform);
+
+    mat4 expected = utils::to_rotation_matrix(rotation);
+    for (std::size_t column = 0; column < 3; ++column)
+    {
+        expected.columns[column] *= scale[column];
+    }
+    expected[0][3] = translation[0];
+    expected[1][3] = translation[1];
+    expected[2][3] = translation[2];
+
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            ExpectNear(matrix[r][c], expected[r][c], 1e-5F);
+        }
+    }
+}
+
+TEST(Transform, MatrixRoundTripPreservesComponents)
+{
+    const vec3 scale{2.0F, -3.0F, 0.5F};
+    const Quaternion<float> rotation = normalize(from_angle_axis(std::numbers::pi_v<float> / 4.0F,
+                                                                 normalize(vec3{0.2F, 1.0F, -0.3F})));
+    const vec3 translation{4.0F, -2.5F, 1.0F};
+    const Transform<float> transform{scale, rotation, translation};
+
+    const mat4 matrix = to_matrix(transform);
+    const Transform<float> recovered = from_matrix(matrix);
+
+    ExpectVectorNear(recovered.scale, {scale[0], scale[1], scale[2]}, 1e-4F);
+    ExpectVectorNear(recovered.translation, {translation[0], translation[1], translation[2]}, 1e-5F);
+
+    const Quaternion<float> aligned = AlignQuaternion(normalize(recovered.rotation), normalize(rotation));
+    ExpectQuaternionNear(aligned, normalize(rotation), 1e-5F);
+}
+
+TEST(Transform, PointAndVectorTransformMatchMatrixApplication)
+{
+    const vec3 scale{0.75F, 1.25F, 1.5F};
+    const Quaternion<float> rotation = normalize(from_angle_axis(std::numbers::pi_v<float> / 6.0F,
+                                                                 normalize(vec3{-0.5F, 0.8F, 0.3F})));
+    const vec3 translation{-2.0F, 0.5F, 1.0F};
+    const Transform<float> transform{scale, rotation, translation};
+
+    const vec3 point{1.0F, -2.0F, 0.5F};
+    const vec3 direction{-0.25F, 0.75F, 1.0F};
+
+    const vec3 transformed_point = transform_point(transform, point);
+    const vec3 transformed_vector = transform_vector(transform, direction);
+
+    const mat4 matrix = to_matrix(transform);
+    const Vector<float, 4> point4(point[0], point[1], point[2], 1.0F);
+    const Vector<float, 4> direction4(direction[0], direction[1], direction[2], 0.0F);
+
+    const Vector<float, 4> matrix_point = matrix * point4;
+    const Vector<float, 4> matrix_vector = matrix * direction4;
+
+    ExpectVectorNear(transformed_point, {matrix_point[0], matrix_point[1], matrix_point[2]}, 1e-5F);
+    ExpectNear(matrix_point[3], 1.0F, 1e-5F);
+
+    ExpectVectorNear(transformed_vector, {matrix_vector[0], matrix_vector[1], matrix_vector[2]}, 1e-5F);
+    ExpectNear(matrix_vector[3], 0.0F, 1e-5F);
+}
+
+TEST(Transform, InverseAndCombineReturnIdentity)
+{
+    const vec3 scale{1.25F, 0.8F, 1.1F};
+    const Quaternion<float> rotation = normalize(from_angle_axis(std::numbers::pi_v<float> / 3.5F,
+                                                                 normalize(vec3{0.4F, -0.6F, 0.7F})));
+    const vec3 translation{1.0F, -0.5F, 2.0F};
+    const Transform<float> transform{scale, rotation, translation};
+
+    const Transform<float> inverse_transform = inverse(transform);
+    const Transform<float> composed = combine(transform, inverse_transform);
+
+    const mat4 matrix = to_matrix(composed);
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            const float expected = (r == c) ? 1.0F : 0.0F;
+            ExpectNear(matrix[r][c], expected, 1e-4F);
+        }
+    }
+
+    const vec3 point{0.25F, -0.75F, 1.5F};
+    const vec3 forward = transform_point(transform, point);
+    const vec3 back = transform_point(inverse_transform, forward);
+    ExpectVectorNear(back, {point[0], point[1], point[2]}, 1e-4F);
 }
