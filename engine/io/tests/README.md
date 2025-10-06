@@ -11,3 +11,4 @@ _Last updated: 2025-10-05_
 
 - `CMakeLists.txt` – Text resource.
 - `test_module.cpp` – C++ source file.
+- `test_geometry_io.cpp` – Tests for geometry detection, loading, and writing.
