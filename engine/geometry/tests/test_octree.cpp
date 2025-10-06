@@ -3,6 +3,7 @@
 #include "engine/geometry/octree/octree.hpp"
 #include "engine/geometry/properties/property_set.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
+#include "engine/geometry/shapes.hpp"
 #include "engine/math/vector.hpp"
 
 #include <algorithm>
@@ -179,6 +180,169 @@ TEST(Octree, QuerySphereMatchesBruteForce)
             geo::Sphere query = make_query_sphere(rng);
 
             const auto expected = brute_force_intersection(boxes, query);
+
+            std::vector<std::size_t> actual;
+            tree.query(query, actual);
+            std::sort(actual.begin(), actual.end());
+            ASSERT_EQ(actual.size(), expected.size());
+            for (std::size_t i = 0; i < expected.size(); ++i)
+            {
+                EXPECT_EQ(actual[i], expected[i]);
+            }
+        }
+    }
+}
+
+TEST(Octree, QueryRayMatchesBruteForce)
+{
+    std::mt19937 rng(42);
+    const auto boxes = generate_random_aabbs(180, rng);
+
+    geo::PropertySet elements;
+    auto aabb_property = elements.add<geo::Aabb>("e:aabb", {});
+    aabb_property.vector() = boxes;
+
+    const auto policies = test_policies();
+
+    for (const auto& policy : policies)
+    {
+        geo::Octree tree;
+        ASSERT_TRUE(tree.build(aabb_property, policy, 8, 12));
+        ASSERT_TRUE(tree.validate_structure());
+
+        std::uniform_real_distribution<float> point_dist(-15.0f, 15.0f);
+        std::uniform_real_distribution<float> dir_dist(-1.0f, 1.0f);
+        for (int qi = 0; qi < 20; ++qi)
+        {
+            math::vec3 origin(point_dist(rng), point_dist(rng), point_dist(rng));
+            math::vec3 direction(dir_dist(rng), dir_dist(rng), dir_dist(rng));
+            direction = normalize(direction);
+            geo::Ray query{.origin = origin, .direction = direction};
+
+            std::vector<std::size_t> expected;
+            expected.reserve(boxes.size());
+            for (std::size_t i = 0; i < boxes.size(); ++i)
+            {
+                if (geo::Intersects(boxes[i], query))
+                {
+                    expected.push_back(i);
+                }
+            }
+            std::sort(expected.begin(), expected.end());
+
+            std::vector<std::size_t> actual;
+            tree.query(query, actual);
+            std::sort(actual.begin(), actual.end());
+            ASSERT_EQ(actual.size(), expected.size());
+            for (std::size_t i = 0; i < expected.size(); ++i)
+            {
+                EXPECT_EQ(actual[i], expected[i]);
+            }
+        }
+    }
+}
+
+TEST(Octree, QueryCylinderMatchesBruteForce)
+{
+    std::mt19937 rng(1234);
+    const auto boxes = generate_random_aabbs(130, rng);
+
+    geo::PropertySet elements;
+    auto aabb_property = elements.add<geo::Aabb>("e:aabb", {});
+    aabb_property.vector() = boxes;
+
+    const auto policies = test_policies();
+
+    for (const auto& policy : policies)
+    {
+        geo::Octree tree;
+        ASSERT_TRUE(tree.build(aabb_property, policy, 8, 12));
+        ASSERT_TRUE(tree.validate_structure());
+
+        std::uniform_real_distribution<float> point_dist(-15.0f, 15.0f);
+        std::uniform_real_distribution<float> dir_dist(-1.0f, 1.0f);
+        std::uniform_real_distribution<float> height_dist(0.5f, 5.0f);
+        std::uniform_real_distribution<float> radius_dist(0.1f, 3.0f);
+        for (int qi = 0; qi < 20; ++qi)
+        {
+            math::vec3 base(point_dist(rng), point_dist(rng), point_dist(rng));
+            math::vec3 direction(dir_dist(rng), dir_dist(rng), dir_dist(rng));
+            direction = normalize(direction);
+            float height = height_dist(rng);
+            float radius = radius_dist(rng);
+            geo::Cylinder query{
+                .center = base + 0.5f * height * direction,
+                .axis = direction,
+                .radius = radius,
+                .half_height = 0.5f * height,
+            };
+
+            std::vector<std::size_t> expected;
+            expected.reserve(boxes.size());
+            for (std::size_t i = 0; i < boxes.size(); ++i)
+            {
+                if (geo::Intersects(boxes[i], query))
+                {
+                    expected.push_back(i);
+                }
+            }
+            std::sort(expected.begin(), expected.end());
+
+            std::vector<std::size_t> actual;
+            tree.query(query, actual);
+            std::sort(actual.begin(), actual.end());
+            ASSERT_EQ(actual.size(), expected.size());
+            for (std::size_t i = 0; i < expected.size(); ++i)
+            {
+                EXPECT_EQ(actual[i], expected[i]);
+            }
+        }
+    }
+}
+
+TEST(Octree, QueryEllipsoidMatchesBruteForce)
+{
+    std::mt19937 rng(2025);
+    const auto boxes = generate_random_aabbs(140, rng);
+
+    geo::PropertySet elements;
+    auto aabb_property = elements.add<geo::Aabb>("e:aabb", {});
+    aabb_property.vector() = boxes;
+
+    const auto policies = test_policies();
+
+    for (const auto& policy : policies)
+    {
+        geo::Octree tree;
+        ASSERT_TRUE(tree.build(aabb_property, policy, 8, 12));
+        ASSERT_TRUE(tree.validate_structure());
+
+        std::uniform_real_distribution<float> point_dist(-15.0f, 15.0f);
+        std::uniform_real_distribution<float> radii_dist(0.5f, 5.0f);
+        std::uniform_real_distribution<float> orientation_dist(-1.0f, 1.0f);
+        for (int qi = 0; qi < 20; ++qi)
+        {
+            math::vec3 center(point_dist(rng), point_dist(rng), point_dist(rng));
+            math::vec3 radii(radii_dist(rng), radii_dist(rng), radii_dist(rng));
+            math::quat orientation(orientation_dist(rng), orientation_dist(rng), orientation_dist(rng),
+                                   orientation_dist(rng));
+            orientation = normalize(orientation);
+            geo::Ellipsoid query{
+                .center = center,
+                .radii = radii,
+                .orientation = orientation,
+            };
+
+            std::vector<std::size_t> expected;
+            expected.reserve(boxes.size());
+            for (std::size_t i = 0; i < boxes.size(); ++i)
+            {
+                if (geo::Intersects(boxes[i], query))
+                {
+                    expected.push_back(i);
+                }
+            }
+            std::sort(expected.begin(), expected.end());
 
             std::vector<std::size_t> actual;
             tree.query(query, actual);

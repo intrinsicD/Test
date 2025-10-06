@@ -310,7 +310,7 @@ namespace engine::geometry
             utils::BoundedHeap<QueueElement> heap(k);
 
             using Trav = std::pair<float, NodeHandle>; // (node lower-bound d2, node index)
-            std::priority_queue<Trav, std::vector<Trav>, std::greater<Trav>> pq;
+            std::priority_queue<Trav, std::vector<Trav>, std::greater<>> pq;
 
             constexpr NodeHandle root(0);
             auto d2_node = [&](NodeHandle ni)
@@ -345,7 +345,7 @@ namespace engine::geometry
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
                         const size_t ei = element_indices[node.first_element + i];
-                        const float ed2 = d2_elem(ei);
+                        const double ed2 = d2_elem(ei);
                         if (heap.size() < k || ed2 < tau)
                         {
                             heap.push({ed2, ei});
@@ -393,7 +393,7 @@ namespace engine::geometry
             double min_dist_sq = std::numeric_limits<double>::max();
 
             using TraversalElement = std::pair<float, NodeHandle>;
-            std::priority_queue<TraversalElement, std::vector<TraversalElement>, std::greater<TraversalElement>> pq;
+            std::priority_queue<TraversalElement, std::vector<TraversalElement>, std::greater<>> pq;
 
             constexpr auto root_idx = NodeHandle(0);
             const double root_dist_sq = SquaredDistance(
