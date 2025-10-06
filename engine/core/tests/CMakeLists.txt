@@ -1,5 +1,6 @@
 add_executable(engine_core_tests
     test_module.cpp
+    ecs_registry_tests.cpp
 )
 
 set_target_properties(engine_core_tests PROPERTIES

@@ -20,4 +20,6 @@ if(BUILD_TESTING)
 endif()
 
 add_subdirectory(third_party/entt)
+add_subdirectory(third_party/spdlog)
+add_subdirectory(third_party/imgui)
 add_subdirectory(engine)
