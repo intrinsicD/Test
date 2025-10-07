@@ -79,25 +79,37 @@ namespace engine::scene::systems
 
         std::vector<Node> stack;
 
-        auto view = registry.view<components::LocalTransform>();
-        for (auto [entity, local] : view.each())
-        {
-            (void)local;
+        auto dirty_view = registry.view<components::LocalTransform, components::DirtyTransform>();
+        dirty_view.each([&](entt::entity entity, components::LocalTransform&, components::DirtyTransform&) {
             const auto* hierarchy = registry.try_get<components::Hierarchy>(entity);
             const bool has_parent = hierarchy != nullptr && hierarchy->parent != entt::null && registry.valid(hierarchy->parent)
-                                    && registry.try_get<components::LocalTransform>(hierarchy->parent) != nullptr;
-            if (!has_parent)
+                                    && registry.any_of<components::LocalTransform>(hierarchy->parent);
+
+            if (has_parent && registry.any_of<components::DirtyTransform>(hierarchy->parent))
             {
-                stack.push_back(Node{entity, engine::math::Transform<float>::Identity(), false});
+                return;
             }
-        }
+
+            engine::math::Transform<float> parent_world{engine::math::Transform<float>::Identity()};
+            if (has_parent)
+            {
+                if (const auto* parent_world_component = registry.try_get<components::WorldTransform>(hierarchy->parent);
+                    parent_world_component != nullptr)
+                {
+                    parent_world = parent_world_component->value;
+                }
+            }
+
+            stack.push_back(Node{entity, parent_world, has_parent});
+        });
 
         while (!stack.empty())
         {
             const Node node = stack.back();
             stack.pop_back();
 
-            if (!registry.valid(node.entity) || !registry.any_of<components::LocalTransform>(node.entity))
+            if (!registry.valid(node.entity)
+                || !registry.all_of<components::LocalTransform, components::DirtyTransform>(node.entity))
             {
                 continue;
             }
@@ -121,7 +133,8 @@ namespace engine::scene::systems
                 auto child = hierarchy->first_child;
                 while (child != entt::null)
                 {
-                    if (registry.valid(child) && registry.any_of<components::LocalTransform>(child))
+                    if (registry.valid(child)
+                        && registry.all_of<components::LocalTransform, components::DirtyTransform>(child))
                     {
                         stack.push_back(Node{child, world.value, true});
                     }

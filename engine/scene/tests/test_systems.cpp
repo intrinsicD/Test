@@ -108,3 +108,59 @@ TEST(SceneSystems, ReparentingUpdatesWorldTransform) {
     EXPECT_FLOAT_EQ(child_world.value.translation[0], 0.0F);
     EXPECT_FLOAT_EQ(child_world.value.translation[1], 3.0F);
 }
+
+TEST(SceneSystems, PropagateTransformsUpdatesOnlyDirtyEntities) {
+    scene::Scene scene;
+
+    auto root = scene.create_entity();
+    auto dirty_child = scene.create_entity();
+    auto clean_child = scene.create_entity();
+
+    auto& registry = scene.registry();
+
+    auto& root_local = registry.emplace<components::LocalTransform>(root.id());
+    root_local.value.translation = engine::math::Vector<float, 3>{2.0F, 0.0F, 0.0F};
+
+    auto& dirty_local = registry.emplace<components::LocalTransform>(dirty_child.id());
+    dirty_local.value.translation = engine::math::Vector<float, 3>{0.0F, 1.0F, 0.0F};
+
+    auto& clean_local = registry.emplace<components::LocalTransform>(clean_child.id());
+    clean_local.value.translation = engine::math::Vector<float, 3>{0.0F, -2.0F, 0.0F};
+
+    systems::mark_transform_dirty(registry, root.id());
+    systems::mark_transform_dirty(registry, dirty_child.id());
+    systems::mark_transform_dirty(registry, clean_child.id());
+
+    systems::set_parent(registry, dirty_child.id(), root.id());
+    systems::set_parent(registry, clean_child.id(), root.id());
+
+    systems::propagate_transforms(registry);
+
+    const auto baseline_root = registry.get<components::WorldTransform>(root.id()).value;
+    const auto baseline_dirty = registry.get<components::WorldTransform>(dirty_child.id()).value;
+    const auto baseline_clean = registry.get<components::WorldTransform>(clean_child.id()).value;
+
+    dirty_local.value.translation = engine::math::Vector<float, 3>{0.0F, 4.0F, 0.0F};
+    systems::mark_transform_dirty(registry, dirty_child.id());
+
+    systems::propagate_transforms(registry);
+
+    const auto& root_world = registry.get<components::WorldTransform>(root.id());
+    EXPECT_FLOAT_EQ(root_world.value.translation[0], baseline_root.translation[0]);
+    EXPECT_FLOAT_EQ(root_world.value.translation[1], baseline_root.translation[1]);
+    EXPECT_FLOAT_EQ(root_world.value.translation[2], baseline_root.translation[2]);
+    EXPECT_FALSE(registry.any_of<components::DirtyTransform>(root.id()));
+
+    const auto& dirty_world = registry.get<components::WorldTransform>(dirty_child.id());
+    EXPECT_NE(baseline_dirty.translation[1], dirty_world.value.translation[1]);
+    EXPECT_FLOAT_EQ(dirty_world.value.translation[0], baseline_root.translation[0] + dirty_local.value.translation[0]);
+    EXPECT_FLOAT_EQ(dirty_world.value.translation[1], baseline_root.translation[1] + dirty_local.value.translation[1]);
+    EXPECT_FLOAT_EQ(dirty_world.value.translation[2], baseline_root.translation[2] + dirty_local.value.translation[2]);
+    EXPECT_FALSE(registry.any_of<components::DirtyTransform>(dirty_child.id()));
+
+    const auto& clean_world = registry.get<components::WorldTransform>(clean_child.id());
+    EXPECT_FLOAT_EQ(clean_world.value.translation[0], baseline_clean.translation[0]);
+    EXPECT_FLOAT_EQ(clean_world.value.translation[1], baseline_clean.translation[1]);
+    EXPECT_FLOAT_EQ(clean_world.value.translation[2], baseline_clean.translation[2]);
+    EXPECT_FALSE(registry.any_of<components::DirtyTransform>(clean_child.id()));
+}
