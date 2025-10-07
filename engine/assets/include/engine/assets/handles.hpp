@@ -50,11 +50,15 @@ namespace engine::assets
     };
 
     struct MeshTag;
+    struct GraphTag;
+    struct PointCloudTag;
     struct TextureTag;
     struct ShaderTag;
     struct MaterialTag;
 
     using MeshHandle = AssetHandle<MeshTag>;
+    using GraphHandle = AssetHandle<GraphTag>;
+    using PointCloudHandle = AssetHandle<PointCloudTag>;
     using TextureHandle = AssetHandle<TextureTag>;
     using ShaderHandle = AssetHandle<ShaderTag>;
     using MaterialHandle = AssetHandle<MaterialTag>;

@@ -30,6 +30,12 @@ namespace engine::rendering
         /// Ensure that the mesh identified by \p handle is resident on the GPU.
         virtual void require_mesh(const engine::assets::MeshHandle& handle) = 0;
 
+        /// Ensure that the graph identified by \p handle is resident on the GPU.
+        virtual void require_graph(const engine::assets::GraphHandle& handle) = 0;
+
+        /// Ensure that the point cloud identified by \p handle is resident on the GPU.
+        virtual void require_point_cloud(const engine::assets::PointCloudHandle& handle) = 0;
+
         /// Ensure that the material identified by \p handle is ready for use.
         virtual void require_material(const engine::assets::MaterialHandle& handle) = 0;
 

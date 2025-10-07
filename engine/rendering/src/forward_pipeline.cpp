@@ -39,9 +39,18 @@ namespace engine::rendering
 
                 for (auto [entity, world, geometry] : view.each())
                 {
-                    if (!geometry.mesh.empty())
+                    if (const auto* mesh = geometry.mesh(); mesh != nullptr && !mesh->empty())
                     {
-                        context.render.resources.require_mesh(geometry.mesh);
+                        context.render.resources.require_mesh(*mesh);
+                    }
+                    else if (const auto* graph = geometry.graph(); graph != nullptr && !graph->empty())
+                    {
+                        context.render.resources.require_graph(*graph);
+                    }
+                    else if (const auto* point_cloud = geometry.point_cloud();
+                             point_cloud != nullptr && !point_cloud->empty())
+                    {
+                        context.render.resources.require_point_cloud(*point_cloud);
                     }
 
                     if (!geometry.material.empty())
@@ -49,13 +58,14 @@ namespace engine::rendering
                         context.render.materials.ensure_material_loaded(geometry.material, context.render.resources);
                     }
 
-                    draw_commands_.push_back(DrawCommand{geometry.mesh, geometry.material, world.value});
+                    draw_commands_.push_back(
+                        DrawCommand{geometry.geometry(), geometry.material, world.value});
                 }
             }
 
             struct DrawCommand
             {
-                engine::assets::MeshHandle mesh;
+                components::RenderGeometry::Geometry geometry;
                 engine::assets::MaterialHandle material;
                 engine::math::Transform<float> transform;
             };

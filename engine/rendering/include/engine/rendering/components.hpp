@@ -1,5 +1,7 @@
 #pragma once
 
+#include <variant>
+
 #include "engine/assets/handles.hpp"
 
 namespace engine::rendering::components
@@ -14,10 +16,39 @@ namespace engine::rendering::components
      */
     struct RenderGeometry
     {
-        /// Handle of the mesh asset containing vertex and index buffers.
-        engine::assets::MeshHandle mesh{};
+        using Geometry = std::variant<std::monostate, engine::assets::MeshHandle, engine::assets::GraphHandle,
+                                      engine::assets::PointCloudHandle>;
 
-        /// Handle of the material definition to bind when the mesh is drawn.
+        RenderGeometry() = default;
+
+        static RenderGeometry from_mesh(engine::assets::MeshHandle mesh,
+                                        engine::assets::MaterialHandle material = {});
+
+        static RenderGeometry from_graph(engine::assets::GraphHandle graph,
+                                         engine::assets::MaterialHandle material = {});
+
+        static RenderGeometry from_point_cloud(engine::assets::PointCloudHandle point_cloud,
+                                               engine::assets::MaterialHandle material = {});
+
+        [[nodiscard]] bool empty() const noexcept;
+        [[nodiscard]] bool has_mesh() const noexcept;
+        [[nodiscard]] bool has_graph() const noexcept;
+        [[nodiscard]] bool has_point_cloud() const noexcept;
+
+        [[nodiscard]] const engine::assets::MeshHandle* mesh() const noexcept;
+        [[nodiscard]] const engine::assets::GraphHandle* graph() const noexcept;
+        [[nodiscard]] const engine::assets::PointCloudHandle* point_cloud() const noexcept;
+
+        [[nodiscard]] const Geometry& geometry() const noexcept { return geometry_; }
+
+        /// Handle of the material definition to bind when the geometry is drawn.
         engine::assets::MaterialHandle material{};
+
+    private:
+        explicit RenderGeometry(Geometry geometry, engine::assets::MaterialHandle material) noexcept;
+
+        Geometry geometry_{};
     };
-} // namespace engine::rendering::components
+}
+
+#include "engine/rendering/components.inl"
