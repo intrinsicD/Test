@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/geometry/api.hpp"
+#include "engine/geometry/random.hpp"
 #include "engine/math/vector.hpp"
 
 namespace engine::geometry {
@@ -14,4 +15,8 @@ namespace engine::geometry {
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 ClosestPoint(const Plane &p, const math::vec3 &point) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Plane &p, const math::vec3 &point) noexcept;
+
+    ENGINE_GEOMETRY_API void Random(Plane &plane, RandomEngine &rng) noexcept;
+
+    ENGINE_GEOMETRY_API void Random(Plane &plane) noexcept;
 } // namespace engine::geometry
