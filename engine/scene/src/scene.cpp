@@ -1,12 +1,20 @@
 #include "engine/scene/scene.hpp"
+#include "engine/scene/components.hpp"
+#include "engine/scene/systems.hpp"
 
 #include <utility>
 
 namespace engine::scene {
 
-Scene::Scene() = default;
+Scene::Scene()
+{
+    initialize_systems();
+}
 
-Scene::Scene(std::string name) : name_{std::move(name)} {}
+Scene::Scene(std::string name) : name_{std::move(name)}
+{
+    initialize_systems();
+}
 
 std::string_view Scene::name() const noexcept {
     return name_;
@@ -32,6 +40,23 @@ void Scene::destroy_entity(Entity& entity) {
 
 void Scene::destroy_entity(entity_type entity) {
     if (registry_.valid(entity)) {
+        if (auto* hierarchy = registry_.try_get<components::Hierarchy>(entity); hierarchy != nullptr) {
+            auto child = hierarchy->first_child;
+            while (child != entt::null) {
+                if (auto* child_hierarchy = registry_.try_get<components::Hierarchy>(child); child_hierarchy != nullptr) {
+                    const auto next = child_hierarchy->next_sibling;
+                    child_hierarchy->parent = entt::null;
+                    child_hierarchy->previous_sibling = entt::null;
+                    child_hierarchy->next_sibling = entt::null;
+                    systems::mark_subtree_dirty(registry_, child);
+                    child = next;
+                } else {
+                    child = entt::null;
+                }
+            }
+        }
+
+        systems::detach_from_parent(registry_, entity);
         registry_.destroy(entity);
     }
 }
@@ -54,6 +79,11 @@ Scene::registry_type& Scene::registry() noexcept {
 
 const Scene::registry_type& Scene::registry() const noexcept {
     return registry_;
+}
+
+void Scene::initialize_systems()
+{
+    systems::register_scene_systems(registry_);
 }
 
 }  // namespace engine::scene

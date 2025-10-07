@@ -95,6 +95,8 @@ namespace engine::scene
     private:
         registry_type registry_{};
         std::string name_{};
+
+        void initialize_systems();
     };
 
     inline Entity::Entity(id_type id, Scene* scene) noexcept : id_{id}, scene_{scene}
