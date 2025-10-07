@@ -1,5 +1,8 @@
 #pragma once
 
+#include <iomanip>
+#include <istream>
+#include <ostream>
 #include <string>
 #include <string_view>
 
@@ -24,4 +27,19 @@ namespace engine::scene::components
     {
         return name == text;
     }
+
+    namespace serialization
+    {
+        inline void encode(std::ostream& output, const Name& name)
+        {
+            output << std::quoted(name.value);
+        }
+
+        inline Name decode_name(std::istream& input)
+        {
+            Name name{};
+            input >> std::quoted(name.value);
+            return name;
+        }
+    } // namespace serialization
 } // namespace engine::scene::components

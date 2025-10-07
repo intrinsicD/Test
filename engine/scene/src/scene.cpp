@@ -1,6 +1,7 @@
 #include "engine/scene/scene.hpp"
 #include "engine/scene/components.hpp"
 #include "engine/scene/systems.hpp"
+#include "serialization/serializer.hpp"
 
 #include <utility>
 
@@ -84,6 +85,16 @@ const Scene::registry_type& Scene::registry() const noexcept {
 void Scene::initialize_systems()
 {
     systems::register_scene_systems(registry_);
+}
+
+void Scene::save(std::ostream& output) const
+{
+    serialization::save(*this, output);
+}
+
+void Scene::load(std::istream& input)
+{
+    serialization::load(*this, input);
 }
 
 }  // namespace engine::scene
