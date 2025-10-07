@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cassert>
+#include <iterator>
+#include <cstddef>
+
 namespace engine::geometry {
     template<typename DataStructureType>
     class VertexAroundVertexCirculator {
@@ -70,7 +74,7 @@ namespace engine::geometry {
             return *this;
         }
 
-        [[nodiscard]] size_t size()  {
+        [[nodiscard]] std::size_t size()  {
             return std::distance(begin(), end());
         }
 
@@ -147,7 +151,7 @@ namespace engine::geometry {
             return *this;
         }
 
-        [[nodiscard]] size_t size()  {
+        [[nodiscard]] std::size_t size()  {
             return std::distance(begin(), end());
         }
 
@@ -226,7 +230,7 @@ namespace engine::geometry {
             return *this;
         }
 
-        [[nodiscard]] size_t size()  {
+        [[nodiscard]] std::size_t size()  {
             return std::distance(begin(), end());
         }
 
@@ -312,7 +316,7 @@ namespace engine::geometry {
             return *this;
         }
 
-        [[nodiscard]] size_t size()  {
+        [[nodiscard]] std::size_t size()  {
             return std::distance(begin(), end());
         }
 
@@ -389,7 +393,7 @@ namespace engine::geometry {
             return *this;
         }
 
-        [[nodiscard]] size_t size()  {
+        [[nodiscard]] std::size_t size()  {
             return std::distance(begin(), end());
         }
 
@@ -463,7 +467,7 @@ namespace engine::geometry {
             return *this;
         }
 
-        [[nodiscard]] size_t size()  {
+        [[nodiscard]] std::size_t size()  {
             return std::distance(begin(), end());
         }
 
