@@ -15,6 +15,8 @@ namespace
     {
     public:
         void require_mesh(const engine::assets::MeshHandle&) override {}
+        void require_graph(const engine::assets::GraphHandle&) override {}
+        void require_point_cloud(const engine::assets::PointCloudHandle&) override {}
         void require_material(const engine::assets::MaterialHandle&) override {}
         void require_shader(const engine::assets::ShaderHandle&) override {}
     };
