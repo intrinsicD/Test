@@ -20,3 +20,16 @@ _Last updated: 2025-10-05_
 ### Files
 
 - `CMakeLists.txt` – Text resource.
+
+## Public headers
+
+The scene module exposes both its root directory and the `include/` tree as
+public include directories. This allows client code to include implementation
+details such as
+
+```cpp
+#include "components/hierarchy.hpp"
+#include "systems/registry.hpp"
+```
+
+without relying on fragile, relative paths.
