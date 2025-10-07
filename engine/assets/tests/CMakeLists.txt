@@ -1,4 +1,5 @@
 add_executable(engine_assets_tests
+    test_assets.cpp
     test_module.cpp
 )
 
