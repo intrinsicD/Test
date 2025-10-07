@@ -1,5 +1,7 @@
 add_executable(engine_rendering_tests
     test_module.cpp
+    test_frame_graph.cpp
+    test_forward_pipeline.cpp
 )
 
 set_target_properties(engine_rendering_tests PROPERTIES
