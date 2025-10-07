@@ -104,7 +104,8 @@ namespace engine::rendering
 
         void reset();
 
-        FrameGraphResourceHandle create_resource(std::string name, ResourceLifetime lifetime = ResourceLifetime::Transient);
+        FrameGraphResourceHandle create_resource(std::string name,
+                                                 ResourceLifetime lifetime = ResourceLifetime::Transient);
 
         std::size_t add_pass(std::unique_ptr<RenderPass> pass);
 

@@ -16,36 +16,36 @@ namespace engine::rendering::components
      */
     struct RenderGeometry
     {
-        using Geometry = std::variant<std::monostate, engine::assets::MeshHandle, engine::assets::GraphHandle,
-                                      engine::assets::PointCloudHandle>;
+        using Geometry = std::variant<std::monostate, assets::MeshHandle, assets::GraphHandle,
+                                      assets::PointCloudHandle>;
 
         RenderGeometry() = default;
 
-        static RenderGeometry from_mesh(engine::assets::MeshHandle mesh,
-                                        engine::assets::MaterialHandle material = {});
+        static RenderGeometry from_mesh(assets::MeshHandle mesh,
+                                        assets::MaterialHandle material = {});
 
-        static RenderGeometry from_graph(engine::assets::GraphHandle graph,
-                                         engine::assets::MaterialHandle material = {});
+        static RenderGeometry from_graph(assets::GraphHandle graph,
+                                         assets::MaterialHandle material = {});
 
-        static RenderGeometry from_point_cloud(engine::assets::PointCloudHandle point_cloud,
-                                               engine::assets::MaterialHandle material = {});
+        static RenderGeometry from_point_cloud(assets::PointCloudHandle point_cloud,
+                                               assets::MaterialHandle material = {});
 
         [[nodiscard]] bool empty() const noexcept;
         [[nodiscard]] bool has_mesh() const noexcept;
         [[nodiscard]] bool has_graph() const noexcept;
         [[nodiscard]] bool has_point_cloud() const noexcept;
 
-        [[nodiscard]] const engine::assets::MeshHandle* mesh() const noexcept;
-        [[nodiscard]] const engine::assets::GraphHandle* graph() const noexcept;
-        [[nodiscard]] const engine::assets::PointCloudHandle* point_cloud() const noexcept;
+        [[nodiscard]] const assets::MeshHandle* mesh() const noexcept;
+        [[nodiscard]] const assets::GraphHandle* graph() const noexcept;
+        [[nodiscard]] const assets::PointCloudHandle* point_cloud() const noexcept;
 
         [[nodiscard]] const Geometry& geometry() const noexcept { return geometry_; }
 
         /// Handle of the material definition to bind when the geometry is drawn.
-        engine::assets::MaterialHandle material{};
+        assets::MaterialHandle material{};
 
     private:
-        explicit RenderGeometry(Geometry geometry, engine::assets::MaterialHandle material) noexcept;
+        explicit RenderGeometry(Geometry geometry, assets::MaterialHandle material) noexcept;
 
         Geometry geometry_{};
     };

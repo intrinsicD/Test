@@ -71,4 +71,69 @@ cmake --build build
   [GoogleTest](https://github.com/google/googletest).
 - Documentation links can be validated offline with `python scripts/validate_docs.py`.
 
+## TODOs:
+Here’s a clean split. I’ve grouped closely related items and kept your original wording.
+
+# Basic Features
+
+* Basic application framework with event loop and lifecycle management
+* Configuration management (JSON, YAML)
+* Logging (spdlog) and tracing (tracy)
+* Cross-platform build configurations (Windows, macOS, Linux)
+* Window management and multi-window support
+* User input, mouse/keyboard/gamepad handling
+* Entity-Component-System (ECS) architecture (EnTT)
+* Data-Oriented Design (DOD) principles for performance-critical components
+* Rendering backends (Vulkan, OpenGL, DirectX)
+* Model loading (OBJ, FBX, glTF)
+* Texture loading and management (DDS, KTX, PNG, JPEG)
+* Scene graph for hierarchical object management
+* Benchmarking and performance measurement tools
+* Performance profiling and optimization tools
+
+# Advanced Features
+
+* Material system with PBR support and shader management
+* Forward rendering pipeline
+* Deferred rendering pipeline
+* Hybrid rendering techniques (forward+deferred)
+* Support for multiple light types (directional, point, spot, area)
+* Shadow mapping techniques (CSM, PCF, VSM)
+* Post-processing effects (bloom, tone mapping, anti-aliasing)
+* Environment mapping (skyboxes, IBL)
+* Global illumination (SSAO, IBL)
+* HDR image support (EXR, HDR)
+* Mouse picking and object selection (entity, triangle, edge, vertex)
+* Frame graph for efficient rendering task scheduling
+* Spatial partitioning structures (BVH, Octree, KDTree, Grid)
+* Frustum culling and occlusion culling
+* Level-of-detail (LOD) management for meshes and textures
+* Texture streaming and memory management
+* Scalar field rendering (volume rendering, isosurfaces)
+  * Colormaps generation and application
+  * Isolines
+* Vectorfield rendering
+* Particle systems and GPU-based simulations
+* Physics engine with collision detection and rigid body dynamics
+* Animation system with rigging, skinning, and keyframe interpolation
+* Audio system for 3D sound and music playback
+* UI framework for in-game menus and HUDs
+* Scripting support (e.g., Lua, Python) for gameplay logic and rapid prototyping
+* Asset import/export pipelines and caching layers
+* Hot-reloading of assets and code modules
+* Plugin system for modular extensions
+* Job system for parallel task execution
+* cuda support and rendering interop
+
+# High-Level Features
+
+* Networking layer for multiplayer and online features
+* Comprehensive examples and sample projects to demonstrate engine capabilities
+* Documentation generation and hosting (e.g., Doxygen, Sphinx)
+* Continuous integration setup for automated builds and tests (e.g., GitHub Actions, Travis CI)
+* Packaging and distribution mechanisms (e.g., installers, Docker images)
+* Community engagement strategies (forums, Discord, GitHub discussions)
+* Localization and internationalization support
+* Accessibility features to ensure usability for all users
+
 _Last updated: 2025-02-14_

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <iterator>
 #include <cassert>
+#include <cstddef>
+#include <iterator>
 
 
 namespace engine::geometry

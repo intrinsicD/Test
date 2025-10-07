@@ -39,9 +39,9 @@ namespace engine::geometry::utils {
             return data_.front();
         }
 
-        size_t size() const { return data_.size(); }
+       std::size_t size() const { return data_.size(); }
         bool empty() const { return data_.empty(); }
-        size_t capacity() const { return max_size_; }
+       std::size_t capacity() const { return max_size_; }
 
         void clear() { data_.clear(); }
 
@@ -62,7 +62,7 @@ namespace engine::geometry::utils {
         }
 
     private:
-        size_t max_size_;
+       std::size_t max_size_;
         std::vector<T> data_; // max-heap by operator< (largest at front)
     };
 }

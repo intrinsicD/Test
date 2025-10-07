@@ -43,9 +43,9 @@ namespace engine::geometry
         struct Node
         {
             Aabb aabb;
-            size_t first_element = std::numeric_limits<size_t>::max();
-            size_t num_straddlers = 0; // number of elements that straddle child node boundaries
-            size_t num_elements = 0;
+            std::size_t first_element = std::numeric_limits<size_t>::max();
+            std::size_t num_straddlers = 0; // number of elements that straddle child node boundaries
+            std::size_t num_elements = 0;
             // total number of elements in this node (including straddlers).Necessary for early out in queries
             std::array<size_t, 8> children{};
             bool is_leaf = true;
@@ -113,12 +113,12 @@ namespace engine::geometry
         [[nodiscard]] bool has_node_property(const std::string& name) const { return node_props_.exists(name); }
 
 
-        [[nodiscard]] size_t get_max_elements_per_node() const noexcept
+        [[nodiscard]] std::size_t get_max_elements_per_node() const noexcept
         {
             return max_elements_per_node;
         }
 
-        [[nodiscard]] size_t get_max_octree_depth() const noexcept
+        [[nodiscard]] std::size_t get_max_octree_depth() const noexcept
         {
             return max_octree_depth;
         }
@@ -133,8 +133,8 @@ namespace engine::geometry
             return element_indices;
         }
 
-        bool build(const Property<Aabb>& aabbs, const SplitPolicy& policy, const size_t max_per_node,
-                   const size_t max_depth)
+        bool build(const Property<Aabb>& aabbs, const SplitPolicy& policy, const std::size_t max_per_node,
+                   const std::size_t max_depth)
         {
             element_aabbs = aabbs;
 
@@ -148,7 +148,7 @@ namespace engine::geometry
             max_octree_depth = max_depth;
 
             node_props_.clear(); // Clear previous state
-            const size_t num_elements = element_aabbs.vector().size();
+            const std::size_t num_elements = element_aabbs.vector().size();
 
             if (num_elements == 0)
             {
@@ -221,7 +221,7 @@ namespace engine::geometry
                 {
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
-                        size_t ei = element_indices[node.first_element + i];
+                        std::size_t ei = element_indices[node.first_element + i];
                         if (Intersects(element_aabbs[ei], query_shape))
                         {
                             result.push_back(ei);
@@ -232,7 +232,7 @@ namespace engine::geometry
                 {
                     for (size_t i = 0; i < node.num_straddlers; ++i)
                     {
-                        size_t ei = element_indices[node.first_element + i];
+                        std::size_t ei = element_indices[node.first_element + i];
                         if (Intersects(element_aabbs[ei], query_shape))
                         {
                             result.push_back(ei);
@@ -271,7 +271,7 @@ namespace engine::geometry
                 {
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
-                        size_t ei = element_indices[node.first_element + i];
+                        std::size_t ei = element_indices[node.first_element + i];
                         if (Intersects(element_aabbs[ei], query_shape))
                         {
                             result.push_back(ei);
@@ -282,7 +282,7 @@ namespace engine::geometry
                 {
                     for (size_t i = 0; i < node.num_straddlers; ++i)
                     {
-                        size_t ei = element_indices[node.first_element + i];
+                        std::size_t ei = element_indices[node.first_element + i];
                         if (Intersects(element_aabbs[ei], query_shape))
                         {
                             result.push_back(ei);
@@ -300,12 +300,12 @@ namespace engine::geometry
             }
         }
 
-        void query_knn(const math::vec3& query_point, size_t k, std::vector<size_t>& results) const
+        void query_knn(const math::vec3& query_point, std::size_t k, std::vector<size_t>& results) const
         {
             results.clear();
             if (node_props_.empty() || k == 0) return;
 
-            using QueueElement = std::pair<float, size_t>;
+            using QueueElement = std::pair<float, std::size_t>;
             utils::BoundedHeap<QueueElement> heap(k);
 
             using Trav = std::pair<float, NodeHandle>; // (node lower-bound d2, node index)
@@ -342,7 +342,7 @@ namespace engine::geometry
                 {
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
-                        const size_t ei = element_indices[node.first_element + i];
+                        const std::size_t ei = element_indices[node.first_element + i];
                         const QueueElement candidate{d2_elem(ei), ei};
                         if (heap.size() < k || candidate < heap.top())
                         {
@@ -356,7 +356,7 @@ namespace engine::geometry
                     // Score straddlers at this node
                     for (size_t i = 0; i < node.num_straddlers; ++i)
                     {
-                        const size_t ei = element_indices[node.first_element + i];
+                        const std::size_t ei = element_indices[node.first_element + i];
                         const QueueElement candidate{d2_elem(ei), ei};
                         if (heap.size() < k || candidate < heap.top())
                         {
@@ -380,7 +380,7 @@ namespace engine::geometry
             for (size_t i = 0; i < pairs.size(); ++i) results[i] = pairs[i].second;
         }
 
-        void query_nearest(const math::vec3& query_point, size_t& result) const
+        void query_nearest(const math::vec3& query_point, std::size_t& result) const
         {
             result = std::numeric_limits<size_t>::max();
             if (node_props_.empty())
@@ -417,7 +417,7 @@ namespace engine::geometry
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
                         assert(node.first_element + i < element_indices.size());
-                        const size_t elem_idx = element_indices[node.first_element + i];
+                        const std::size_t elem_idx = element_indices[node.first_element + i];
                         assert(elem_idx < element_aabbs.vector().size());
                         const double elem_dist_sq = SquaredDistance(element_aabbs[elem_idx], query_point);
 
@@ -433,7 +433,7 @@ namespace engine::geometry
                     for (size_t i = 0; i < node.num_straddlers; ++i)
                     {
                         assert(node.first_element + i < element_indices.size());
-                        const size_t elem_idx = element_indices[node.first_element + i];
+                        const std::size_t elem_idx = element_indices[node.first_element + i];
                         assert(elem_idx < element_aabbs.vector().size());
                         const double elem_dist_sq = SquaredDistance(element_aabbs[elem_idx], query_point);
 
@@ -478,8 +478,8 @@ namespace engine::geometry
                 return node.num_straddlers == 0;
             }
 
-            size_t accumulated = node.first_element + node.num_straddlers;
-            size_t child_total = 0;
+            std::size_t accumulated = node.first_element + node.num_straddlers;
+            std::size_t child_total = 0;
             for (const auto ci : node.children)
             {
                 const auto nhci = NodeHandle(ci);
@@ -505,7 +505,7 @@ namespace engine::geometry
             return NodeHandle(node_props_.size() - 1);
         }
 
-        void subdivide_volume(const NodeHandle node_idx, size_t depth)
+        void subdivide_volume(const NodeHandle node_idx, std::size_t depth)
         {
             const Node& node = nodes[node_idx]; // We'll be modifying the node
 
@@ -548,7 +548,7 @@ namespace engine::geometry
 
             for (size_t i = 0; i < node.num_elements; ++i)
             {
-                size_t elem_idx = element_indices[node.first_element + i];
+                std::size_t elem_idx = element_indices[node.first_element + i];
                 const auto& elem_aabb = element_aabbs[elem_idx];
                 int found_child = -1;
 
@@ -616,7 +616,7 @@ namespace engine::geometry
 
             // This node is now an internal node. It stores nothing itself.
             // Re-arrange the element_indices array.
-            size_t current_pos = node.first_element;
+            std::size_t current_pos = node.first_element;
             // First, place all the straddlers
             for (size_t idx : straddlers)
             {
@@ -670,7 +670,7 @@ namespace engine::geometry
             }
         }
 
-        [[nodiscard]] math::vec3 compute_mean_center(size_t first, size_t size,
+        [[nodiscard]] math::vec3 compute_mean_center(size_t first, std::size_t size,
                                                      const math::vec3& fallback_center) const
         {
             if (size == 0)
@@ -686,7 +686,7 @@ namespace engine::geometry
             return acc / float(size);
         }
 
-        [[nodiscard]] math::vec3 compute_median_center(size_t first, size_t size,
+        [[nodiscard]] math::vec3 compute_median_center(size_t first, std::size_t size,
                                                        const math::vec3& fallback_center) const
         {
             if (size == 0)
@@ -699,8 +699,8 @@ namespace engine::geometry
             {
                 centers.push_back(Center(element_aabbs[element_indices[first + i]]));
             }
-            const size_t median_idx = centers.size() / 2;
-            auto kth = [](std::vector<math::vec3>& centers, size_t median_idx, int dim)
+            const std::size_t median_idx = centers.size() / 2;
+            auto kth = [](std::vector<math::vec3>& centers, std::size_t median_idx, int dim)
             {
                 std::nth_element(centers.begin(), centers.begin() + median_idx, centers.end(),
                                  [dim](const auto& a, const auto& b) { return a[dim] < b[dim]; });
@@ -753,8 +753,8 @@ namespace engine::geometry
             return tight_child_aabb(elems.begin(), elems.end(), eps);
         }
 
-        size_t max_elements_per_node = 32;
-        size_t max_octree_depth = 10;
+        std::size_t max_elements_per_node = 32;
+        std::size_t max_octree_depth = 10;
         SplitPolicy split_policy;
         std::vector<size_t> element_indices;
         std::vector<size_t> scratch_indices;

@@ -16,21 +16,21 @@ namespace engine::rendering
     public:
         struct MaterialRecord
         {
-            engine::assets::MaterialHandle material;
-            engine::assets::ShaderHandle shader;
+            assets::MaterialHandle material;
+            assets::ShaderHandle shader;
         };
 
         void register_material(MaterialRecord record);
 
-        [[nodiscard]] bool has_material(const engine::assets::MaterialHandle& handle) const noexcept;
+        [[nodiscard]] bool has_material(const assets::MaterialHandle& handle) const noexcept;
 
-        [[nodiscard]] std::optional<MaterialRecord> find(const engine::assets::MaterialHandle& handle) const;
+        [[nodiscard]] std::optional<MaterialRecord> find(const assets::MaterialHandle& handle) const;
 
-        void ensure_material_loaded(const engine::assets::MaterialHandle& handle, RenderResourceProvider& provider);
+        void ensure_material_loaded(const assets::MaterialHandle& handle, RenderResourceProvider& provider);
 
         void clear() noexcept;
 
     private:
-        std::unordered_map<engine::assets::MaterialHandle, MaterialRecord> materials_{};
+        std::unordered_map<assets::MaterialHandle, MaterialRecord> materials_{};
     };
 }
