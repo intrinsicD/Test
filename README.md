@@ -40,11 +40,11 @@ core (`engine/`), tooling (`python/`, `scripts/`), and project documentation (`d
 
 ## Top-level Layout
 
-- `docs/` – Design notes and API references that describe the evolving architecture.
+- `docs/` – Design notes, API references, and validation utilities that describe the evolving architecture.
 - `engine/` – C++ engine source organised by subsystem (animation, rendering, physics, etc.).
 - `python/` – Python bindings and companion utilities for automation and prototyping.
-- `scripts/` – Developer tooling for builds and continuous integration jobs.
-- `third_party/` – External dependencies vendored into the workspace (currently GoogleTest).
+- `scripts/` – Developer tooling for builds, continuous integration jobs, and documentation validation.
+- `third_party/` – External dependencies vendored into the workspace (EnTT, Dear ImGui, spdlog, GoogleTest).
 - `CMakeLists.txt` – Root CMake project file that wires the modular subprojects together.
 - `CODING_STYLE.md` – Canonical formatting and style conventions for contributions.
 
@@ -57,7 +57,18 @@ cmake -S . -B build
 cmake --build build
 ```
 
-Tests are provided via GoogleTest. Once the project is built, execute `ctest --test-dir build` to run the available
-suites.
+## Testing
 
-_Last updated: 2025-10-05_
+- **C++** – After building with CMake, run `ctest --test-dir build` to execute the GoogleTest suites that ship with the
+  engine modules (e.g., math numerics, geometry kernels).
+- **Python** – Run `pytest` from the repository root to exercise the `engine3g.loader` helpers and ensure shared library
+  discovery behaviour remains stable.
+
+## Tooling and Dependencies
+
+- Third-party libraries are vendored under `third_party/` and currently include [EnTT](https://github.com/skypjack/entt),
+  [Dear ImGui](https://github.com/ocornut/imgui), [spdlog](https://github.com/gabime/spdlog), and
+  [GoogleTest](https://github.com/google/googletest).
+- Documentation links can be validated offline with `python scripts/validate_docs.py`.
+
+_Last updated: 2025-02-14_
