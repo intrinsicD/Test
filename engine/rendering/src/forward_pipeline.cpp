@@ -1,0 +1,89 @@
+#include "engine/rendering/forward_pipeline.hpp"
+
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "engine/rendering/components.hpp"
+#include "engine/scene/components/transform.hpp"
+#include "engine/scene/scene.hpp"
+
+namespace engine::rendering
+{
+    namespace
+    {
+        class ForwardGeometryPass final : public RenderPass
+        {
+        public:
+            ForwardGeometryPass(FrameGraphResourceHandle color, FrameGraphResourceHandle depth)
+                : RenderPass("ForwardGeometry"), color_(color), depth_(depth)
+            {
+            }
+
+            void setup(FrameGraphPassBuilder& builder) override
+            {
+                builder.write(color_);
+                builder.write(depth_);
+            }
+
+            void execute(FrameGraphPassExecutionContext& context) override
+            {
+                auto& scene = context.render.view.scene;
+                auto& registry = scene.registry();
+
+                using engine::rendering::components::RenderGeometry;
+                using engine::scene::components::WorldTransform;
+
+                auto view = registry.view<WorldTransform, RenderGeometry>();
+                draw_commands_.clear();
+
+                for (auto [entity, world, geometry] : view.each())
+                {
+                    if (!geometry.mesh.empty())
+                    {
+                        context.render.resources.require_mesh(geometry.mesh);
+                    }
+
+                    if (!geometry.material.empty())
+                    {
+                        context.render.materials.ensure_material_loaded(geometry.material, context.render.resources);
+                    }
+
+                    draw_commands_.push_back(DrawCommand{geometry.mesh, geometry.material, world.value});
+                }
+            }
+
+            struct DrawCommand
+            {
+                engine::assets::MeshHandle mesh;
+                engine::assets::MaterialHandle material;
+                engine::math::Transform<float> transform;
+            };
+
+            [[nodiscard]] const std::vector<DrawCommand>& draw_commands() const noexcept
+            {
+                return draw_commands_;
+            }
+
+        private:
+            FrameGraphResourceHandle color_;
+            FrameGraphResourceHandle depth_;
+            std::vector<DrawCommand> draw_commands_{};
+        };
+    } // namespace
+
+    void ForwardPipeline::render(scene::Scene& scene, RenderResourceProvider& resources,
+                                 MaterialSystem& materials, FrameGraph& graph)
+    {
+        graph.reset();
+
+        const auto color = graph.create_resource("ForwardColor");
+        const auto depth = graph.create_resource("ForwardDepth");
+
+        graph.add_pass(std::make_unique<ForwardGeometryPass>(color, depth));
+        graph.compile();
+
+        RenderExecutionContext context{resources, materials, RenderView{scene}};
+        graph.execute(context);
+    }
+}
