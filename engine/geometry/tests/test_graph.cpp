@@ -87,3 +87,45 @@ TEST(Graph, CopiesAndClears) {
     auto new_weights = graph.interface.vertex_property<float>("v:weight", 0.0F);
     EXPECT_FLOAT_EQ(new_weights[new_v], 0.0F);
 }
+
+TEST(Graph, CopyIndependence) {
+    geo::Graph original;
+
+    const auto v0 = original.interface.add_vertex({0.0F, 0.0F, 0.0F});
+    const auto v1 = original.interface.add_vertex({1.0F, 0.0F, 0.0F});
+    const auto he01 = original.interface.add_edge(v0, v1);
+    ASSERT_TRUE(he01.is_valid());
+    const auto e01 = original.interface.edge(he01);
+
+    auto length = original.interface.edge_property<float>("e:copy_length", 0.0F);
+    length[e01] = 2.0F;
+    original.interface.position(v0) = {0.5F, 0.0F, 0.0F};
+
+    geo::Graph copy(original);
+    auto copy_length = copy.interface.get_edge_property<float>("e:copy_length");
+
+    copy_length[e01] = 5.0F;
+    copy.interface.position(v0)[0] = -1.0F;
+    const auto v2 = copy.interface.add_vertex({2.0F, 0.0F, 0.0F});
+    const auto he12 = copy.interface.add_edge(v1, v2);
+    ASSERT_TRUE(he12.is_valid());
+
+    EXPECT_FLOAT_EQ(length[e01], 2.0F);
+    EXPECT_FLOAT_EQ(copy_length[e01], 5.0F);
+    EXPECT_FLOAT_EQ(original.interface.position(v0)[0], 0.5F);
+    EXPECT_FLOAT_EQ(copy.interface.position(v0)[0], -1.0F);
+    EXPECT_EQ(original.interface.vertex_count(), 2U);
+    EXPECT_EQ(copy.interface.vertex_count(), 3U);
+    EXPECT_EQ(original.interface.edge_count(), 1U);
+    EXPECT_EQ(copy.interface.edge_count(), 2U);
+
+    geo::Graph assigned;
+    assigned = original;
+    auto assigned_length = assigned.interface.get_edge_property<float>("e:copy_length");
+    assigned_length[e01] = 7.0F;
+
+    EXPECT_FLOAT_EQ(length[e01], 2.0F);
+    EXPECT_FLOAT_EQ(assigned_length[e01], 7.0F);
+    EXPECT_EQ(assigned.interface.vertex_count(), original.interface.vertex_count());
+    EXPECT_EQ(assigned.interface.edge_count(), original.interface.edge_count());
+}
