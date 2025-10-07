@@ -2,6 +2,11 @@ set(target_name engine_platform)
 
 add_library(${target_name}
     src/api.cpp
+    src/window_system.cpp
+    src/windowing/window_base.cpp
+    src/windowing/mock_window.cpp
+    src/windowing/glfw_window.cpp
+    src/windowing/sdl_window.cpp
 )
 
 target_include_directories(${target_name}
@@ -17,3 +22,4 @@ target_compile_definitions(${target_name}
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
+
