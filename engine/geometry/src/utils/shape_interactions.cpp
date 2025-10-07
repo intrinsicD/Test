@@ -822,9 +822,9 @@ namespace engine::geometry
 
             const math::vec3 dir = Direction(segment);
 
-            auto evaluate = [&](float t) noexcept
+            auto evaluate = [&](float t) noexcept -> float
             {
-                if (t < t_min || t > t_max) return;
+                if (t < t_min || t > t_max) return std::numeric_limits<float>::infinity();
 
                 const math::vec3 point = PointAt(segment, t);
                 const math::vec3 box_point = ClosestPoint(box, point);
@@ -834,6 +834,7 @@ namespace engine::geometry
                 {
                     best = {dist_sq, point, box_point};
                 }
+                return dist_sq;
             };
 
             evaluate(t_min);
@@ -850,6 +851,27 @@ namespace engine::geometry
 
                 evaluate(t0);
                 evaluate(t1);
+            }
+
+            if (t_max > t_min)
+            {
+                float lo = t_min;
+                float hi = t_max;
+                for (int iter = 0; iter < 8; ++iter)
+                {
+                    const float m1 = lo + (hi - lo) / 3.0f;
+                    const float m2 = hi - (hi - lo) / 3.0f;
+                    const float d1 = evaluate(m1);
+                    const float d2 = evaluate(m2);
+                    if (d1 < d2)
+                    {
+                        hi = m2;
+                    }
+                    else
+                    {
+                        lo = m1;
+                    }
+                }
             }
 
             if (!std::isfinite(best.distance_sq))
