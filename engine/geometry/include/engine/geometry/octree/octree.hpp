@@ -300,13 +300,12 @@ namespace engine::geometry
             }
         }
 
-        using QueueElement = std::pair<float, size_t>;
-
         void query_knn(const math::vec3& query_point, size_t k, std::vector<size_t>& results) const
         {
             results.clear();
             if (node_props_.empty() || k == 0) return;
 
+            using QueueElement = std::pair<float, size_t>;
             utils::BoundedHeap<QueueElement> heap(k);
 
             using Trav = std::pair<float, NodeHandle>; // (node lower-bound d2, node index)
@@ -315,12 +314,11 @@ namespace engine::geometry
             constexpr NodeHandle root(0);
             auto d2_node = [&](NodeHandle ni)
             {
-                return SquaredDistance(nodes[ni].aabb, query_point);
+                return static_cast<float>(SquaredDistance(nodes[ni].aabb, query_point));
             };
             auto d2_elem = [&](size_t ei)
             {
-                return SquaredDistance(
-                    element_aabbs[ei], query_point);
+                return static_cast<float>(SquaredDistance(element_aabbs[ei], query_point));
             };
 
             pq.emplace(d2_node(root), root);
@@ -336,7 +334,7 @@ namespace engine::geometry
                 pq.pop();
 
                 // Global prune: the best remaining node is already worse than our kth best.
-                if (heap.size() == k && nd2 >= tau) break;
+                if (heap.size() == k && nd2 > tau) break;
 
                 const Node& node = nodes[ni];
 
@@ -345,10 +343,10 @@ namespace engine::geometry
                     for (size_t i = 0; i < node.num_elements; ++i)
                     {
                         const size_t ei = element_indices[node.first_element + i];
-                        const double ed2 = d2_elem(ei);
-                        if (heap.size() < k || ed2 < tau)
+                        const QueueElement candidate{d2_elem(ei), ei};
+                        if (heap.size() < k || candidate < heap.top())
                         {
-                            heap.push({ed2, ei});
+                            heap.push(candidate);
                             update_tau();
                         }
                     }
@@ -359,10 +357,10 @@ namespace engine::geometry
                     for (size_t i = 0; i < node.num_straddlers; ++i)
                     {
                         const size_t ei = element_indices[node.first_element + i];
-                        const double ed2 = d2_elem(ei);
-                        if (heap.size() < k || ed2 < tau)
+                        const QueueElement candidate{d2_elem(ei), ei};
+                        if (heap.size() < k || candidate < heap.top())
                         {
-                            heap.push({ed2, ei});
+                            heap.push(candidate);
                             update_tau();
                         }
                     }
@@ -371,8 +369,8 @@ namespace engine::geometry
                     {
                         const auto nhci = NodeHandle(ci);
                         if (!nhci.is_valid()) continue;
-                        const double cd2 = d2_node(nhci);
-                        if (cd2 < tau) pq.emplace(cd2, ci);
+                        const float cd2 = d2_node(nhci);
+                        if (cd2 <= tau) pq.emplace(cd2, ci);
                     }
                 }
             }

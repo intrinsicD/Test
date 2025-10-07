@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/geometry/api.hpp"
+#include "engine/geometry/random.hpp"
 #include "engine/math/vector.hpp"
 
 namespace engine::geometry {
@@ -30,4 +31,8 @@ namespace engine::geometry {
 
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 FromBarycentricCoords(const Triangle &triangle,
                                                                        const math::vec3 &bc) noexcept;
+
+    ENGINE_GEOMETRY_API void Random(Triangle &triangle, RandomEngine &rng) noexcept;
+
+    ENGINE_GEOMETRY_API void Random(Triangle &triangle) noexcept;
 } // namespace engine::geometry

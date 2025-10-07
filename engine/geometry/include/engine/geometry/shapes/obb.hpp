@@ -4,6 +4,7 @@
 #include "engine/math/matrix.hpp"
 #include "engine/math/quaternion.hpp"
 #include "engine/math/vector.hpp"
+#include "engine/geometry/random.hpp"
 
 #include <span>
 
@@ -42,4 +43,8 @@ namespace engine::geometry {
     [[nodiscard]] ENGINE_GEOMETRY_API double SquaredDistance(const Obb &box, const math::vec3 &point) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API std::array<math::vec3, 8> GetCorners(const Obb &box) noexcept;
+
+    ENGINE_GEOMETRY_API void Random(Obb &box, RandomEngine &rng) noexcept;
+
+    ENGINE_GEOMETRY_API void Random(Obb &box) noexcept;
 } // namespace engine::geometry

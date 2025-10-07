@@ -14,6 +14,7 @@ add_library(${target_name}
     src/shapes/obb.cpp
     src/shapes/plane.cpp
     src/shapes/ray.cpp
+    src/shapes/random.cpp
     src/shapes/segment.cpp
     src/shapes/sphere.cpp
     src/shapes/triangle.cpp

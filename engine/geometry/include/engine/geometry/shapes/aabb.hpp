@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/geometry/api.hpp"
+#include "engine/geometry/random.hpp"
 #include "engine/math/vector.hpp"
 
 #include <array>
@@ -74,4 +75,8 @@ namespace engine::geometry {
     [[nodiscard]] std::array<math::ivec3, 12> GetFaceTriangles(const Aabb &box) noexcept;
 
     [[nodiscard]] std::array<math::ivec4, 6> GetFaceQuads(const Aabb &box) noexcept;
+
+    ENGINE_GEOMETRY_API void Random(Aabb &box, RandomEngine &rng) noexcept;
+
+    ENGINE_GEOMETRY_API void Random(Aabb &box) noexcept;
 } // namespace engine::geometry

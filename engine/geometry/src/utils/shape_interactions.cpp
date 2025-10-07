@@ -4,13 +4,248 @@
 #include "engine/math/utils_rotation.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
 #include <limits>
 
 namespace engine::geometry
 {
     namespace
     {
+        struct SegmentAabbClosestResult
+        {
+            float distance_sq;
+            math::vec3 point_on_segment;
+            math::vec3 point_on_box;
+        };
+        SegmentAabbClosestResult ClosestPointSegmentAabb(const Segment& segment,
+                                                         const Aabb& box,
+                                                         float allowed_t_min,
+                                                         float allowed_t_max) noexcept;
+
+        enum class BoundStatus : std::uint8_t
+        {
+            Free,
+            Lower,
+            Upper
+        };
+
+        bool solve_box_quadratic_candidate(const math::mat3& A,
+                                           const math::vec3& b,
+                                           const math::vec3& lower,
+                                           const math::vec3& upper,
+                                           const std::array<BoundStatus, 3>& status,
+                                           math::vec3& solution) noexcept
+        {
+            constexpr double kBoundTolerance = 1e-5;
+
+            math::vec3 candidate{0.0f};
+            std::array<int, 3> free_indices{};
+            int free_count = 0;
+
+            for (int i = 0; i < 3; ++i)
+            {
+                if (status[i] == BoundStatus::Lower)
+                {
+                    candidate[i] = lower[i];
+                }
+                else if (status[i] == BoundStatus::Upper)
+                {
+                    candidate[i] = upper[i];
+                }
+                else
+                {
+                    free_indices[free_count++] = i;
+                }
+            }
+
+            if (free_count == 0)
+            {
+                solution = candidate;
+                return true;
+            }
+
+            double Afree[3][3]{};
+            double rhs[3]{};
+
+            for (int row = 0; row < free_count; ++row)
+            {
+                const int i = free_indices[row];
+                double rhs_value = -static_cast<double>(b[i]);
+                for (int j = 0; j < 3; ++j)
+                {
+                    const double Aij = static_cast<double>(A[i][j]);
+                    if (status[j] != BoundStatus::Free)
+                    {
+                        rhs_value -= Aij * static_cast<double>(candidate[j]);
+                    }
+                }
+
+                for (int col = 0; col < free_count; ++col)
+                {
+                    const int j = free_indices[col];
+                    Afree[row][col] = static_cast<double>(A[i][j]);
+                }
+
+                rhs[row] = rhs_value;
+            }
+
+            auto solve_linear_system = [](double matrix[3][3], double vec[3], int n, double out[3]) noexcept -> bool
+            {
+                constexpr double kPivotEps = 1e-9;
+                for (int pivot = 0; pivot < n; ++pivot)
+                {
+                    int best_row = pivot;
+                    double best_abs = std::fabs(matrix[pivot][pivot]);
+                    for (int r = pivot + 1; r < n; ++r)
+                    {
+                        const double value = std::fabs(matrix[r][pivot]);
+                        if (value > best_abs)
+                        {
+                            best_abs = value;
+                            best_row = r;
+                        }
+                    }
+
+                    if (best_abs < kPivotEps)
+                    {
+                        return false;
+                    }
+
+                    if (best_row != pivot)
+                    {
+                        for (int c = 0; c < n; ++c)
+                        {
+                            std::swap(matrix[pivot][c], matrix[best_row][c]);
+                        }
+                        std::swap(vec[pivot], vec[best_row]);
+                    }
+
+                    const double pivot_inv = 1.0 / matrix[pivot][pivot];
+                    for (int c = pivot; c < n; ++c)
+                    {
+                        matrix[pivot][c] *= pivot_inv;
+                    }
+                    vec[pivot] *= pivot_inv;
+
+                    for (int r = 0; r < n; ++r)
+                    {
+                        if (r == pivot) continue;
+                        const double factor = matrix[r][pivot];
+                        for (int c = pivot; c < n; ++c)
+                        {
+                            matrix[r][c] -= factor * matrix[pivot][c];
+                        }
+                        vec[r] -= factor * vec[pivot];
+                    }
+                }
+
+                for (int i = 0; i < n; ++i)
+                {
+                    out[i] = vec[i];
+                }
+                return true;
+            };
+
+            double solved[3]{};
+            if (!solve_linear_system(Afree, rhs, free_count, solved))
+            {
+                return false;
+            }
+
+            for (int idx = 0; idx < free_count; ++idx)
+            {
+                const int dim = free_indices[idx];
+                const double lo = static_cast<double>(lower[dim]);
+                const double hi = static_cast<double>(upper[dim]);
+                const double value = solved[idx];
+
+                if (value < lo - kBoundTolerance || value > hi + kBoundTolerance)
+                {
+                    return false;
+                }
+
+                const double clamped = std::clamp(value, lo, hi);
+                candidate[dim] = static_cast<float>(clamped);
+            }
+
+            solution = candidate;
+            return true;
+        }
+
+        double evaluate_box_quadratic(const math::mat3& A,
+                                       const math::vec3& b,
+                                       double c,
+                                       const math::vec3& u) noexcept
+        {
+            const math::vec3 Au = A * u;
+            const double quad = static_cast<double>(math::dot(u, Au));
+            const double lin = static_cast<double>(math::dot(b, u));
+            return quad + 2.0 * lin + c;
+        }
+
+        bool ellipsoid_obb_intersection(const Ellipsoid& ellipsoid,
+                                         const math::vec3& box_center,
+                                         const math::mat3& box_axes,
+                                         const math::vec3& half_sizes) noexcept
+        {
+            const math::vec3 radii{math::utils::max(ellipsoid.radii[0], constants::INTERSECTION_EPSILON),
+                                   math::utils::max(ellipsoid.radii[1], constants::INTERSECTION_EPSILON),
+                                   math::utils::max(ellipsoid.radii[2], constants::INTERSECTION_EPSILON)};
+
+            const math::vec3 inv_radii_sq{1.0f / (radii[0] * radii[0]),
+                                          1.0f / (radii[1] * radii[1]),
+                                          1.0f / (radii[2] * radii[2])};
+
+            const math::mat3 ellipsoid_axes = math::utils::to_rotation_matrix(ellipsoid.orientation);
+            const math::mat3 ellipsoid_axes_t = transpose(ellipsoid_axes);
+
+            const math::vec3 center_diff = ellipsoid_axes_t * (box_center - ellipsoid.center);
+            const math::mat3 relative_axes = ellipsoid_axes_t * box_axes;
+
+            math::mat3 M{};
+            M[0][0] = inv_radii_sq[0];
+            M[1][1] = inv_radii_sq[1];
+            M[2][2] = inv_radii_sq[2];
+
+            const math::mat3 M_times_R = M * relative_axes;
+            const math::mat3 A = transpose(relative_axes) * M_times_R;
+            const math::vec3 M_diff = M * center_diff;
+            const math::vec3 b = transpose(relative_axes) * M_diff;
+            const double c = static_cast<double>(math::dot(center_diff, M_diff));
+
+            const math::vec3 lower = -half_sizes;
+            const math::vec3 upper = half_sizes;
+
+            double best_value = std::numeric_limits<double>::infinity();
+
+            const std::array<BoundStatus, 3> options{BoundStatus::Free, BoundStatus::Lower, BoundStatus::Upper};
+            for (const auto s0 : options)
+            {
+                for (const auto s1 : options)
+                {
+                    for (const auto s2 : options)
+                    {
+                        const std::array<BoundStatus, 3> status{s0, s1, s2};
+                        math::vec3 solution{0.0f};
+                        if (!solve_box_quadratic_candidate(A, b, lower, upper, status, solution))
+                        {
+                            continue;
+                        }
+
+                        const double value = evaluate_box_quadratic(A, b, c, solution);
+                        if (value < best_value)
+                        {
+                            best_value = value;
+                        }
+                    }
+                }
+            }
+
+            return best_value <= 1.0 + constants::INTERSECTION_EPSILON;
+        }
+
         float LargestEigenvalueSymmetric3(const math::mat3& A) noexcept
         {
             math::vec3 v{1.0f, 0.0f, 0.0f};
@@ -41,76 +276,100 @@ namespace engine::geometry
         return true;
     }
 
+    namespace
+    {
+        bool IntersectsCylinderAabb(const Cylinder& cylinder, const Aabb& box) noexcept
+        {
+            if (cylinder.radius < 0.0f || cylinder.half_height < 0.0f)
+            {
+                return false;
+            }
+
+            const math::vec3 axis_dir = AxisDirection(cylinder);
+            const float axis_len_sq = math::dot(axis_dir, axis_dir);
+            if (axis_len_sq <= constants::PARALLEL_EPSILON)
+            {
+                const float effective_radius = math::utils::max(cylinder.radius, cylinder.half_height);
+                const Sphere sphere{cylinder.center, effective_radius};
+                return Intersects(box, sphere);
+            }
+
+            const math::vec3 box_center = Center(box);
+            const math::vec3 box_extent = Extent(box);
+
+            const math::vec3 diff = box_center - cylinder.center;
+            const float proj_center = math::dot(diff, axis_dir);
+            const math::vec3 abs_axis{std::fabs(axis_dir[0]), std::fabs(axis_dir[1]), std::fabs(axis_dir[2])};
+            const float proj_extent =
+                box_extent[0] * abs_axis[0] +
+                box_extent[1] * abs_axis[1] +
+                box_extent[2] * abs_axis[2];
+
+            const float interval_min = proj_center - proj_extent;
+            const float interval_max = proj_center + proj_extent;
+            const float cyl_min = -cylinder.half_height;
+            const float cyl_max = cylinder.half_height;
+
+            if (interval_max < cyl_min - constants::INTERSECTION_EPSILON ||
+                interval_min > cyl_max + constants::INTERSECTION_EPSILON)
+            {
+                return false;
+            }
+
+            const float overlap_start = math::utils::max(cyl_min, interval_min);
+            const float overlap_end = math::utils::min(cyl_max, interval_max);
+
+            const Segment axis_segment{
+                cylinder.center - axis_dir * cylinder.half_height,
+                cylinder.center + axis_dir * cylinder.half_height
+            };
+
+            float t_min = 0.0f;
+            float t_max = 1.0f;
+            if (cylinder.half_height > constants::PARALLEL_EPSILON)
+            {
+                const float inv_height = 1.0f / (2.0f * cylinder.half_height);
+                t_min = (overlap_start + cylinder.half_height) * inv_height;
+                t_max = (overlap_end + cylinder.half_height) * inv_height;
+            }
+
+            const auto closest = ClosestPointSegmentAabb(axis_segment, box, t_min, t_max);
+            if (closest.distance_sq <= cylinder.radius * cylinder.radius + constants::INTERSECTION_EPSILON)
+            {
+                return true;
+            }
+
+            const auto corners = GetCorners(box);
+            for (const auto& corner : corners)
+            {
+                if (Contains(cylinder, corner))
+                {
+                    return true;
+                }
+            }
+
+            if (Contains(box, TopCenter(cylinder)) || Contains(box, BottomCenter(cylinder)))
+            {
+                return true;
+            }
+
+            return false;
+        }
+    } // namespace
+
     bool Intersects(const Aabb& a, const Cylinder& b) noexcept
     {
-        // Find closest point on AABB to cylinder axis
-        const math::vec3 axis_dir = AxisDirection(b);
-        const math::vec3 axis_start = b.center - axis_dir * b.half_height;
-        const math::vec3 axis_end = b.center + axis_dir * b.half_height;
-
-        // Clamp axis endpoints to AABB
-        math::vec3 p1 = axis_start;
-        math::vec3 p2 = axis_end;
-
-        for (std::size_t i = 0; i < 3; ++i)
-        {
-            p1[i] = math::utils::clamp(p1[i], a.min[i], a.max[i]);
-            p2[i] = math::utils::clamp(p2[i], a.min[i], a.max[i]);
-        }
-
-        // Find closest point on segment to cylinder center
-        const math::vec3 seg_dir = p2 - p1;
-        const math::vec3 to_center = b.center - p1;
-        const float seg_len_sq = math::dot(seg_dir, seg_dir);
-
-        math::vec3 closest;
-        if (math::utils::nearly_equal(seg_len_sq, 0.0f, constants::PARALLEL_EPSILON))
-        {
-            closest = p1;
-        }
-        else
-        {
-            float t = math::dot(to_center, seg_dir) / seg_len_sq;
-            t = math::utils::clamp(t, 0.0f, 1.0f);
-            closest = p1 + seg_dir * t;
-        }
-
-        // Check if closest point is within cylinder
-        const math::vec3 delta = closest - b.center;
-        const float axial = math::dot(delta, axis_dir);
-
-        if (math::utils::abs(axial) > b.half_height)
-            return false;
-
-        const math::vec3 radial_vec = delta - axial * axis_dir;
-        const float radial_dist_sq = math::dot(radial_vec, radial_vec);
-
-        return radial_dist_sq <= b.radius * b.radius;
+        return IntersectsCylinderAabb(b, a);
     }
 
-    bool Intersects(const Aabb& a, const Ellipsoid& b) noexcept
+    bool Intersects(const Aabb& box, const Ellipsoid& ellipsoid) noexcept
     {
-        // Test by transforming the closest point on the AABB into the ellipsoid's local space
-        // and verifying that it lies inside the unit sphere.
+        math::mat3 box_axes{};
+        box_axes[0][0] = 1.0f;
+        box_axes[1][1] = 1.0f;
+        box_axes[2][2] = 1.0f;
 
-        const math::mat3 R = math::utils::to_rotation_matrix(b.orientation);
-
-        // Find the closest point on AABB to ellipsoid center
-        const math::vec3 closest = ClosestPoint(a, b.center);
-
-        // Transform closest point to ellipsoid local space
-        const math::mat3 Rt = transpose(R);
-        const math::vec3 local = Rt * (closest - b.center);
-
-        // Scale by inverse radii to get unit sphere space
-        const math::vec3 scaled{
-            local[0] / b.radii[0],
-            local[1] / b.radii[1],
-            local[2] / b.radii[2]
-        };
-
-        // Check if within unit sphere
-        return math::dot(scaled, scaled) <= 1.0f;
+        return ellipsoid_obb_intersection(ellipsoid, Center(box), box_axes, Extent(box));
     }
 
     bool Intersects(const Aabb& box, const Line& ln, Result* result) noexcept
@@ -537,13 +796,6 @@ namespace engine::geometry
 
     namespace
     {
-        struct SegmentAabbClosestResult
-        {
-            float distance_sq;
-            math::vec3 point_on_segment;
-            math::vec3 point_on_box;
-        };
-
         SegmentAabbClosestResult ClosestPointSegmentAabb(const Segment& segment,
                                                          const Aabb& box,
                                                          float allowed_t_min,
@@ -842,11 +1094,8 @@ namespace engine::geometry
 
     bool Intersects(const Ellipsoid& ellipsoid, const Obb& obb) noexcept
     {
-        // Find closest point on OBB to ellipsoid center
-        const math::vec3 closest = ClosestPoint(obb, ellipsoid.center);
-
-        // Check if closest point is inside ellipsoid or ellipsoid center is inside OBB
-        return Contains(ellipsoid, closest) || Contains(obb, ellipsoid.center);
+        const math::mat3 box_axes = math::utils::to_rotation_matrix(obb.orientation);
+        return ellipsoid_obb_intersection(ellipsoid, obb.center, box_axes, obb.half_sizes);
     }
 
     bool Intersects(const Ellipsoid& ellipsoid, const Plane& plane) noexcept
