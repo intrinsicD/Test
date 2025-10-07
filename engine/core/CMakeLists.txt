@@ -18,7 +18,7 @@ target_compile_definitions(${target_name}
 
 target_link_libraries(${target_name}
     PUBLIC
-        entt::entt
+        EnTT::EnTT
         spdlog::spdlog_header_only
         imgui::imgui
 )

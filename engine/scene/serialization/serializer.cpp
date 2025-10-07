@@ -25,13 +25,13 @@ namespace engine::scene::serialization
         [[nodiscard]] std::vector<entity_type> collect_entities(const Scene& scene)
         {
             std::vector<entity_type> entities;
-            entities.reserve(scene.registry().alive_count());
 
             auto& registry = const_cast<Scene::registry_type&>(scene.registry());
-            auto view = registry.view<>();
+            auto view = registry.view<entt::entity>();
+            entities.reserve(view.size());
             for (auto it = view.begin(); it != view.end(); ++it)
             {
-                auto [entity] = *it;
+                auto entity = *it;
                 entities.push_back(entity);
             }
 
@@ -48,7 +48,7 @@ namespace engine::scene::serialization
         using components::serialization::encode;
 
         const auto name = std::string{scene.name()};
-        output << "scene " << std::quoted(name) << ' ' << scene.registry().alive_count() << '\n';
+        output << "scene " << std::quoted(name) << ' ' << scene.size() << '\n';
 
         const auto entities = collect_entities(scene);
         const auto& registry = scene.registry();

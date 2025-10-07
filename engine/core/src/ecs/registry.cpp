@@ -34,7 +34,7 @@ bool registry::is_alive(entity_id entity) const {
 }
 
 std::size_t registry::alive_count() const {
-    return registry_.alive_count();
+    return registry_.view<entt::entity>().size();
 }
 
 void registry::clear() {

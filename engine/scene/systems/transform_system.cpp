@@ -1,7 +1,7 @@
 #include "transform_system.hpp"
 
-#include "../components/hierarchy.hpp"
-#include "../components/transform.hpp"
+#include "components/hierarchy.hpp"
+#include "components/transform.hpp"
 
 #include "engine/math/transform.hpp"
 
@@ -80,7 +80,8 @@ namespace engine::scene::systems
         std::vector<Node> stack;
 
         auto dirty_view = registry.view<components::LocalTransform, components::DirtyTransform>();
-        dirty_view.each([&](entt::entity entity, components::LocalTransform&, components::DirtyTransform&) {
+        for (auto entity : dirty_view)
+        {
             const auto* hierarchy = registry.try_get<components::Hierarchy>(entity);
             const bool has_parent = hierarchy != nullptr && hierarchy->parent != entt::null && registry.valid(hierarchy->parent)
                                     && registry.any_of<components::LocalTransform>(hierarchy->parent);
@@ -101,7 +102,7 @@ namespace engine::scene::systems
             }
 
             stack.push_back(Node{entity, parent_world, has_parent});
-        });
+        }
 
         while (!stack.empty())
         {

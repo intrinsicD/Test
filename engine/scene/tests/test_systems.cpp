@@ -152,7 +152,7 @@ TEST(SceneSystems, PropagateTransformsUpdatesOnlyDirtyEntities) {
     EXPECT_FALSE(registry.any_of<components::DirtyTransform>(root.id()));
 
     const auto& dirty_world = registry.get<components::WorldTransform>(dirty_child.id());
-    EXPECT_NE(baseline_dirty.translation[1], dirty_world.value.translation[1]);
+    EXPECT_GT(std::fabs(dirty_world.value.translation[1] - baseline_dirty.translation[1]), 0.0f);
     EXPECT_FLOAT_EQ(dirty_world.value.translation[0], baseline_root.translation[0] + dirty_local.value.translation[0]);
     EXPECT_FLOAT_EQ(dirty_world.value.translation[1], baseline_root.translation[1] + dirty_local.value.translation[1]);
     EXPECT_FLOAT_EQ(dirty_world.value.translation[2], baseline_root.translation[2] + dirty_local.value.translation[2]);

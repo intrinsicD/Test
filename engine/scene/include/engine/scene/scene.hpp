@@ -16,8 +16,12 @@ namespace entt
         using underlying = std::underlying_type_t<entity>;
         return os << static_cast<underlying>(e);
     }
-}
 
+    inline std::ostream& operator<<(std::ostream& os, const null_t &)
+    {
+        return os << "null";
+    }
+}
 
 namespace engine::scene
 {
@@ -95,6 +99,8 @@ namespace engine::scene
 
         void save(std::ostream& output) const;
         void load(std::istream& input);
+
+        std::size_t size() const noexcept;
 
     private:
         registry_type registry_{};
