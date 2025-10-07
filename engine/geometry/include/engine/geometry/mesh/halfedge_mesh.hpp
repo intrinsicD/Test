@@ -442,6 +442,36 @@ namespace engine::geometry
         {
         }
 
+        Mesh(const Mesh& rhs) : Mesh()
+        {
+            interface = rhs.interface;
+        }
+
+        Mesh(Mesh&& rhs) noexcept : Mesh()
+        {
+            interface = rhs.interface;
+            rhs.interface.clear();
+        }
+
+        Mesh& operator=(const Mesh& rhs)
+        {
+            if (this != &rhs)
+            {
+                interface = rhs.interface;
+            }
+            return *this;
+        }
+
+        Mesh& operator=(Mesh&& rhs) noexcept
+        {
+            if (this != &rhs)
+            {
+                interface = rhs.interface;
+                rhs.interface.clear();
+            }
+            return *this;
+        }
+
         MeshData data;
         MeshInterface interface;
     };

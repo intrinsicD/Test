@@ -292,6 +292,30 @@ namespace engine::geometry {
         Graph() : data(), interface(data.vertex_props, data.halfedge_props, data.edge_props) {
         }
 
+        Graph(const Graph &rhs) : Graph() {
+            interface = rhs.interface;
+        }
+
+        Graph(Graph &&rhs) noexcept : Graph() {
+            interface = rhs.interface;
+            rhs.interface.clear();
+        }
+
+        Graph &operator=(const Graph &rhs) {
+            if (this != &rhs) {
+                interface = rhs.interface;
+            }
+            return *this;
+        }
+
+        Graph &operator=(Graph &&rhs) noexcept {
+            if (this != &rhs) {
+                interface = rhs.interface;
+                rhs.interface.clear();
+            }
+            return *this;
+        }
+
         GraphData data;
         GraphInterface interface;
     };

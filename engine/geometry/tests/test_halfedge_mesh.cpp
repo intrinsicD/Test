@@ -136,3 +136,40 @@ TEST(HalfedgeMesh, DeleteFaceMarksGarbageAndCollects)
     EXPECT_EQ(mesh.interface.faces_size(), 0U);
     EXPECT_TRUE(mesh.interface.vertices_size() == mesh.interface.vertex_count());
 }
+
+TEST(HalfedgeMesh, CopyIndependence)
+{
+    auto fixture = MakeTriangleMesh();
+    auto& original = fixture.mesh;
+
+    ASSERT_TRUE(fixture.f0.is_valid());
+    auto area = original.interface.face_property<float>("f:copy_area", 0.0F);
+    area[fixture.f0] = 0.5F;
+
+    geo::Mesh copy(original);
+    auto copy_area = copy.interface.get_face_property<float>("f:copy_area");
+
+    copy_area[fixture.f0] = 1.25F;
+    copy.interface.position(fixture.v0)[0] = -2.0F;
+    const auto v3 = copy.interface.add_vertex({0.0F, 0.0F, 1.0F});
+
+    EXPECT_FLOAT_EQ(area[fixture.f0], 0.5F);
+    EXPECT_FLOAT_EQ(copy_area[fixture.f0], 1.25F);
+    EXPECT_FLOAT_EQ(original.interface.position(fixture.v0)[0], 0.0F);
+    EXPECT_FLOAT_EQ(copy.interface.position(fixture.v0)[0], -2.0F);
+    EXPECT_TRUE(v3.is_valid());
+    EXPECT_EQ(original.interface.vertex_count(), 3U);
+    EXPECT_EQ(copy.interface.vertex_count(), 4U);
+    EXPECT_EQ(original.interface.face_count(), 1U);
+    EXPECT_EQ(copy.interface.face_count(), 1U);
+
+    geo::Mesh assigned;
+    assigned = original;
+    auto assigned_area = assigned.interface.get_face_property<float>("f:copy_area");
+    assigned_area[fixture.f0] = 2.0F;
+
+    EXPECT_FLOAT_EQ(area[fixture.f0], 0.5F);
+    EXPECT_FLOAT_EQ(assigned_area[fixture.f0], 2.0F);
+    EXPECT_EQ(assigned.interface.face_count(), original.interface.face_count());
+    EXPECT_EQ(assigned.interface.vertex_count(), original.interface.vertex_count());
+}
