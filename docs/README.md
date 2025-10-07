@@ -9,6 +9,8 @@ The `docs/` subtree aggregates written documentation for the engine project.
   - [Scene Module](api/scene.md)
 - [`design/`](design/README.md) – Architectural sketches, diagrams, and exploratory design documents.
   - [Engine Architecture Overview](design/architecture.md)
+- Validation utilities – `scripts/validate_docs.py` traverses Markdown files and verifies that relative links
+  resolve inside the repository.
 
 Each nested directory provides its own README for finer-grained navigation.
 
@@ -17,7 +19,7 @@ Each nested directory provides its own README for finer-grained navigation.
   links to the relevant headers or source files so reviewers can trace the implementation.
 - Keep cross-links relative (e.g., `../../engine/...`) to ensure they remain valid when the repository is
   relocated.
-- Run the `docs` CMake target (see below) before submitting a change; it validates that all referenced files
-  exist.
+- Before submitting a change, run `python scripts/validate_docs.py` from the repository root to make sure all
+  documentation links resolve.
 
-_Last updated: 2025-10-05_
+_Last updated: 2025-02-14_
