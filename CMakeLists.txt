@@ -21,6 +21,18 @@ endif()
 
 include(CTest)
 
+find_package(Python3 COMPONENTS Interpreter QUIET)
+
+if(Python3_Interpreter_FOUND)
+    add_custom_target(docs
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/validate_docs.py
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Validating documentation links"
+        VERBATIM)
+else()
+    message(WARNING "Python3 interpreter not found; the docs validation target is disabled.")
+endif()
+
 if(BUILD_TESTING)
     add_subdirectory(third_party/googletest)
 endif()
