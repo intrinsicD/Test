@@ -24,6 +24,7 @@ target_compile_definitions(${target_name}
 # Scene graph relies on core systems.
 target_link_libraries(${target_name}
     PUBLIC
+        EnTT::EnTT
         engine_core
         engine_math
 )

@@ -218,7 +218,7 @@ namespace engine::scene::serialization
             const auto resolver = [&](components::serialization::HierarchyRecord::entity_type value) {
                 if (value == components::serialization::HierarchyRecord::null_value())
                 {
-                    return entt::null;
+                    return entt::entity(entt::null);
                 }
 
                 const auto it = id_map.find(value);

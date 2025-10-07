@@ -75,13 +75,13 @@ namespace engine::scene::tests
         restored.load(buffer);
 
         EXPECT_EQ(std::string(restored.name()), "RoundTrip");
-        EXPECT_EQ(restored.registry().alive_count(), 2u);
+        EXPECT_EQ(restored.size(), 2u);
 
         std::unordered_map<std::string, entt::entity> entities_by_name;
         auto name_view = restored.registry().view<Name>();
-        for (auto it = name_view.begin(); it != name_view.end(); ++it)
+        for (auto entity : name_view)
         {
-            auto [entity, name] = *it;
+            const auto &name = name_view.get<Name>(entity);
             entities_by_name.emplace(name.value, entity);
         }
 

@@ -64,7 +64,7 @@ namespace engine::scene::components
             const auto resolve = [&](HierarchyRecord::entity_type value) {
                 if (value == HierarchyRecord::null_value())
                 {
-                    return entt::null;
+                    return entt::entity(entt::null);
                 }
 
                 return resolver(value);

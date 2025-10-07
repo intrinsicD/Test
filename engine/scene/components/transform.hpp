@@ -23,6 +23,7 @@ namespace engine::scene::components
 
     struct DirtyTransform
     {
+        void *_;
     };
 
     inline void mark_dirty(entt::registry& registry, entt::entity entity)
