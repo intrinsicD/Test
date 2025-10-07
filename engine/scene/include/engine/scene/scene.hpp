@@ -1,10 +1,11 @@
 #pragma once
 
+#include <istream>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
-#include <ostream>
 
 #include <entt/entt.hpp>
 
@@ -91,6 +92,9 @@ namespace engine::scene
 
         template <typename... Components>
         [[nodiscard]] auto view() const;
+
+        void save(std::ostream& output) const;
+        void load(std::istream& input);
 
     private:
         registry_type registry_{};
