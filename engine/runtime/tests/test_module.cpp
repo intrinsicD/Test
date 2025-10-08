@@ -10,6 +10,26 @@ TEST(RuntimeModule, ModuleNameMatchesNamespace) {
     EXPECT_STREQ(engine_runtime_module_name(), "runtime");
 }
 
+TEST(RuntimeModule, ExecutesSimulationPipeline) {
+    engine::runtime::shutdown();
+    engine::runtime::initialize();
+
+    const auto frame = engine::runtime::tick(0.016);
+    ASSERT_GE(frame.dispatch_report.execution_order.size(), 4U);
+    EXPECT_EQ(frame.dispatch_report.execution_order.front(), "animation.evaluate");
+    EXPECT_EQ(frame.dispatch_report.execution_order.back(), "geometry.finalize");
+
+    ASSERT_FALSE(frame.pose.joints.empty());
+    const auto* root = frame.pose.find("root");
+    ASSERT_NE(root, nullptr);
+
+    const auto& mesh = engine::runtime::current_mesh();
+    EXPECT_GE(mesh.bounds.max[1], mesh.bounds.min[1]);
+    ASSERT_FALSE(frame.body_positions.empty());
+
+    engine::runtime::shutdown();
+}
+
 TEST(RuntimeModule, EnumeratesAllEngineModules) {
     constexpr std::array expected{
         std::string_view{"animation"},

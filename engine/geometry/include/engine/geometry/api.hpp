@@ -1,6 +1,13 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
+
+#include "engine/math/math.hpp"
 
 #if defined(_WIN32)
 #  if defined(ENGINE_GEOMETRY_EXPORTS)
@@ -14,7 +21,30 @@
 
 namespace engine::geometry {
 
-[[nodiscard]] std::string_view module_name() noexcept;
+struct MeshBounds {
+    math::vec3 min{0.0F, 0.0F, 0.0F};
+    math::vec3 max{0.0F, 0.0F, 0.0F};
+};
+
+struct SurfaceMesh {
+    std::vector<math::vec3> rest_positions;
+    std::vector<math::vec3> positions;
+    std::vector<math::vec3> normals;
+    std::vector<std::uint32_t> indices;
+    MeshBounds bounds{};
+};
+
+[[nodiscard]] ENGINE_GEOMETRY_API std::string_view module_name() noexcept;
+
+[[nodiscard]] ENGINE_GEOMETRY_API SurfaceMesh make_unit_quad();
+
+ENGINE_GEOMETRY_API void recompute_vertex_normals(SurfaceMesh& mesh);
+
+ENGINE_GEOMETRY_API void update_bounds(SurfaceMesh& mesh);
+
+ENGINE_GEOMETRY_API void apply_uniform_translation(SurfaceMesh& mesh, const math::vec3& translation);
+
+[[nodiscard]] ENGINE_GEOMETRY_API math::vec3 centroid(const SurfaceMesh& mesh);
 
 }  // namespace engine::geometry
 

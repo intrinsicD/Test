@@ -23,11 +23,16 @@ references the directories that contain the compiled shared libraries you intend
 from engine3g import loader
 
 runtime = loader.load_runtime()
-modules = runtime.load_modules()
-print(runtime.name(), modules.keys())
+runtime.initialize()
+runtime.tick(0.016)
+print(runtime.mesh_bounds())
+print(runtime.body_positions())
+print(runtime.dispatch_order())
+runtime.shutdown()
 ```
 
-If a shared library cannot be found, `EngineLibraryNotFound` will be raised with guidance on updating
+`EngineRuntimeHandle.load_modules()` remains available when you need direct access to the individual subsystem shared
+libraries. If a shared library cannot be found, `EngineLibraryNotFound` will be raised with guidance on updating
 `ENGINE3G_LIBRARY_PATH` or providing explicit search paths to the helper functions.
 
-_Last updated: 2025-02-14_
+_Last updated: 2025-03-15_

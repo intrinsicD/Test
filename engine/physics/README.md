@@ -2,19 +2,24 @@
 
 _Path: `engine/physics`_
 
-_Last updated: 2025-10-05_
+_Last updated: 2025-03-15_
 
 
-## Contents
+## Overview
 
-### Subdirectories
+`engine_physics` now exposes a compact `PhysicsWorld` and `RigidBody` abstraction that powers the runtime smoke test.
+While the long-term goal remains a feature-complete dynamics stack, the current code focuses on deterministic,
+single-body integration with gravity and external forces. The API is intentionally minimal so that higher-level
+systems (animation, gameplay scripting) can experiment without pulling the entire dynamics subsystem.
 
-- `collision/` – documented in its own README; contains 1 file.
-- `dynamics/` – documented in its own README; contains 1 file.
-- `include/` – contains 1 subdirectory.
-- `src/` – documented in its own README; contains 1 file.
-- `tests/` – documented in its own README; contains 2 files.
+Key entry points live in [`include/engine/physics/api.hpp`](include/engine/physics/api.hpp):
 
-### Files
+- `add_body` – Registers a new rigid body with correct inverse-mass bookkeeping.
+- `apply_force` / `clear_forces` – Manage per-step force accumulation.
+- `integrate` – Advances the world using a semi-implicit Euler step.
 
-- `CMakeLists.txt` – Text resource.
+## TODO
+
+- Introduce simple constraints (springs, dampers) so animation-driven targets can influence physics more expressively.
+- Track angular velocity/orientation to extend the runtime demo beyond point-mass motion.
+- Feed integration statistics back into the runtime for profiling and regression testing.

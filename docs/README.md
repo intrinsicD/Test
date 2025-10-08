@@ -12,8 +12,12 @@ engine codebase. Individual directories provide additional READMEs for drill-dow
 ## Directory Structure
 
 - [`api/`](api/README.md) – High-level API references and module descriptions.
-  - [Math Module](api/math.md)
+  - [Animation Module](api/animation.md)
+  - [Compute Module](api/compute.md)
   - [Geometry Module](api/geometry.md)
+  - [Physics Module](api/physics.md)
+  - [Runtime Module](api/runtime.md)
+  - [Math Module](api/math.md)
   - [Scene Module](api/scene.md)
 - [`design/`](design/README.md) – Architectural sketches, diagrams, and exploratory design documents.
   - [Engine Architecture Overview](design/architecture.md)
@@ -38,4 +42,4 @@ engine codebase. Individual directories provide additional READMEs for drill-dow
 3. Prefer relative links (e.g., `../../engine/...`) to keep documents relocatable.
 4. Run `python scripts/validate_docs.py` before opening a pull request to avoid broken links.
 
-_Last updated: 2025-02-14_
+_Last updated: 2025-03-15_

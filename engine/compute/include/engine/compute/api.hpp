@@ -1,6 +1,10 @@
 #pragma once
 
+#include <cstddef>
+#include <functional>
+#include <string>
 #include <string_view>
+#include <vector>
 
 #include "engine/math/math.hpp"
 
@@ -16,7 +20,36 @@
 
 namespace engine::compute {
 
-[[nodiscard]] std::string_view module_name() noexcept;
+struct ExecutionReport {
+    std::vector<std::string> execution_order;
+};
+
+class ENGINE_COMPUTE_API KernelDispatcher {
+public:
+    using kernel_type = std::function<void()>;
+
+    [[nodiscard]] std::size_t add_kernel(
+        std::string name,
+        kernel_type kernel,
+        std::vector<std::size_t> dependencies = {});
+
+    void clear() noexcept;
+
+    [[nodiscard]] ExecutionReport dispatch();
+
+    [[nodiscard]] std::size_t size() const noexcept;
+
+private:
+    struct KernelNode {
+        std::string name;
+        kernel_type callback;
+        std::vector<std::size_t> dependencies;
+    };
+
+    std::vector<KernelNode> kernels_;
+};
+
+[[nodiscard]] ENGINE_COMPUTE_API std::string_view module_name() noexcept;
 
 [[nodiscard]] ENGINE_COMPUTE_API math::mat4 identity_transform() noexcept;
 
