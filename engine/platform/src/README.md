@@ -9,6 +9,7 @@ _Last updated: 2025-10-06_
 ### Files
 
 - `api.cpp` – Exposes the module metadata entry points.
+- `window_console.cpp` – Implements the reusable interactive window console.
 - `window_system.cpp` – Builds the public window/event queue factory and routes backend selection.
 
 ### Directories
