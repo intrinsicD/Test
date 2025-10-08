@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/geometry/properties/property_handle.hpp"
+
 #include <cassert>
 #include <iterator>
 #include <cstddef>
