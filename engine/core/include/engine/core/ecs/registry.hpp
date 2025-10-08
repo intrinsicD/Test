@@ -171,28 +171,6 @@ namespace engine::core::ecs
             return detail::registry_view{registry_.template view<Components...>().each()};
         }
 
-        template <typename Func>
-        void visit_components(Func&& func)
-        {
-            //TODO: what do we need this for?
-            registry_.visit([&]<typename Component>()
-            {
-                auto& storage = registry_.template storage<Component>();
-                func(std::type_index{typeid(Component)}, storage.size());
-            });
-        }
-
-        template <typename Func>
-        void visit_components(Func&& func) const
-        {
-            //TODO: what do we need this for?
-            registry_.visit([&]<typename Component>()
-            {
-                auto const& storage = registry_.template storage<Component>();
-                func(std::type_index{typeid(Component)}, storage.size());
-            });
-        }
-
     private:
         entt::registry registry_;
     };

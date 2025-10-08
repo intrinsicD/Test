@@ -32,14 +32,14 @@ namespace engine::scene::components
         {
             using entity_type = std::underlying_type_t<entt::entity>;
 
-            entity_type parent{static_cast<entity_type>(entt::null)};
-            entity_type first_child{static_cast<entity_type>(entt::null)};
-            entity_type next_sibling{static_cast<entity_type>(entt::null)};
-            entity_type previous_sibling{static_cast<entity_type>(entt::null)};
+            entity_type parent{entt::null};
+            entity_type first_child{entt::null};
+            entity_type next_sibling{entt::null};
+            entity_type previous_sibling{entt::null};
 
             [[nodiscard]] static constexpr entity_type null_value() noexcept
             {
-                return static_cast<entity_type>(entt::null);
+                return entt::null;
             }
         };
 

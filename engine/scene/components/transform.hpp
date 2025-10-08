@@ -13,17 +13,18 @@ namespace engine::scene::components
 {
     struct LocalTransform
     {
-        engine::math::Transform<float> value{engine::math::Transform<float>::Identity()};
+        math::Transform<float> value{math::Transform<float>::Identity()};
     };
 
     struct WorldTransform
     {
-        engine::math::Transform<float> value{engine::math::Transform<float>::Identity()};
+        math::Transform<float> value{math::Transform<float>::Identity()};
     };
 
     struct DirtyTransform
     {
-        void *_;
+    private:
+        bool _{};
     };
 
     inline void mark_dirty(entt::registry& registry, entt::entity entity)
@@ -35,29 +36,29 @@ namespace engine::scene::components
     {
         namespace detail
         {
-            inline void encode_transform(std::ostream& output, const engine::math::Transform<float>& transform)
+            inline void encode_transform(std::ostream& output, const math::Transform<float>& transform)
             {
                 const auto previous_precision = output.precision();
                 output << std::setprecision(std::numeric_limits<float>::max_digits10)
-                       << transform.scale[0] << ' '
-                       << transform.scale[1] << ' '
-                       << transform.scale[2] << ' '
-                       << transform.rotation.w << ' '
-                       << transform.rotation.x << ' '
-                       << transform.rotation.y << ' '
-                       << transform.rotation.z << ' '
-                       << transform.translation[0] << ' '
-                       << transform.translation[1] << ' '
-                       << transform.translation[2];
+                    << transform.scale[0] << ' '
+                    << transform.scale[1] << ' '
+                    << transform.scale[2] << ' '
+                    << transform.rotation.w << ' '
+                    << transform.rotation.x << ' '
+                    << transform.rotation.y << ' '
+                    << transform.rotation.z << ' '
+                    << transform.translation[0] << ' '
+                    << transform.translation[1] << ' '
+                    << transform.translation[2];
                 output.precision(previous_precision);
             }
 
-            inline engine::math::Transform<float> decode_transform(std::istream& input)
+            inline math::Transform<float> decode_transform(std::istream& input)
             {
-                engine::math::Transform<float> transform{};
+                math::Transform<float> transform{};
                 input >> transform.scale[0] >> transform.scale[1] >> transform.scale[2]
-                      >> transform.rotation.w >> transform.rotation.x >> transform.rotation.y >> transform.rotation.z
-                      >> transform.translation[0] >> transform.translation[1] >> transform.translation[2];
+                    >> transform.rotation.w >> transform.rotation.x >> transform.rotation.y >> transform.rotation.z
+                    >> transform.translation[0] >> transform.translation[1] >> transform.translation[2];
                 return transform;
             }
         } // namespace detail

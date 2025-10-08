@@ -115,9 +115,36 @@ namespace engine::geometry {
     }
 
     void Merge(Sphere &sphere, const Sphere &other) noexcept {
+        if (sphere.radius < 0.0f) { // Handle uninitialized sphere
+            sphere = other;
+            return;
+        }
+        if (other.radius < 0.0f) {
+            return;
+        }
+
         const math::vec3 offset = other.center - sphere.center;
-        const math::vec3 other_point = other.center + offset * (other.radius / math::length(offset));
-        Merge(sphere, other_point);
+        const float dist_sq = math::length_squared(offset);
+        const float radius_diff = sphere.radius - other.radius;
+
+        // Check if one sphere is fully contained within the other
+        if (radius_diff * radius_diff >= dist_sq) {
+            // If r is inside l, do nothing.
+            // If l is inside r, update l to be other.
+            if (sphere.radius < other.radius) {
+                sphere = other;
+            }
+            return;
+        }
+
+        // Spheres are external or intersecting, calculate new bounding sphere
+        const float dist = math::utils::sqrt(dist_sq);
+        const float new_radius = (dist + sphere.radius + other.radius) * 0.5f;
+
+        // The new center is on the line connecting the old centers
+        const math::vec3 direction = (dist > 0.0f) ? (offset / dist) : math::vec3{1.0f, 0.0f, 0.0f};
+        sphere.center = other.center - direction * (new_radius - other.radius);
+        sphere.radius = new_radius;
     }
 
     void Merge(Sphere &sphere, const math::vec3 &point) noexcept {

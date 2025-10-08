@@ -51,10 +51,6 @@ void draw_registry_debug_ui(const registry& registry, std::string_view window_na
     ImGui::Text("Alive entities: %zu", registry.alive_count());
     ImGui::Separator();
 
-    registry.visit_components([&](const std::type_index& type, std::size_t size) {
-        ImGui::Text("%s : %zu", type.name(), size);
-    });
-
     ImGui::End();
 }
 

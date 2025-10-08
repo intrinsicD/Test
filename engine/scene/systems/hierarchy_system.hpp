@@ -1,6 +1,6 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include <entt/entity/registry.hpp>
 
 namespace engine::scene::systems
 {
@@ -9,4 +9,6 @@ namespace engine::scene::systems
     void set_parent(entt::registry& registry, entt::entity child, entt::entity parent);
 
     void detach_from_parent(entt::registry& registry, entt::entity child);
+
+    bool detect_hierarchy_cycle(entt::registry& registry, entt::entity child, entt::entity parent);
 }

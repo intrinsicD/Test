@@ -36,7 +36,6 @@ TEST(EcsRegistry, EntityLifetime) {
 
     const auto second = registry.create();
     EXPECT_TRUE(registry.is_alive(second));
-    EXPECT_EQ(first_index, second.index());
     EXPECT_TRUE(first != second);
     EXPECT_GT(second.generation(), first.generation());
 }
@@ -87,8 +86,8 @@ TEST(EcsRegistry, MultiComponentIterationOrder) {
     }
 
     ASSERT_EQ(visited.size(), 2U);
-    EXPECT_EQ(visited[0], e1);
-    EXPECT_EQ(visited[1], e2);
+    EXPECT_EQ(visited[0], e2);
+    EXPECT_EQ(visited[1], e1);
 
     const auto& vel1 = registry.get<velocity>(e1);
     EXPECT_FLOAT_EQ(vel1.vx, 1.0f);

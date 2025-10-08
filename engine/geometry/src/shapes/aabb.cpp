@@ -33,7 +33,6 @@ namespace engine::geometry {
         return s[0] * s[1] * s[2];
     }
 
-
     Aabb BoundingAabb(const math::vec3 &point) noexcept {
         return Aabb{point, point};
     }
