@@ -1,24 +1,37 @@
 # Python Tooling
 
-Python utilities complement the C++ engine. They facilitate automation, experimental scripting, and bindings.
+Python utilities complement the C++ engine by providing shared-library discovery, automation hooks, and future scripting
+entry points.
 
-## Layout
-- `engine3g/` – Python package exposing shared-library loading helpers and future binding entry points.
-- `tests/` – Automated tests for the Python-facing APIs (currently `test_loader.py`).
+## Module Purpose
 
-## Getting Started
+- `engine3g/` – Package that exposes the loader (`loader.py`) responsible for discovering `engine_runtime` and all
+  `engine_<subsystem>` shared libraries.
+- `tests/` – Pytest-based regression suite that exercises the loader and ensures Python-level APIs remain stable.
 
-Create a virtual environment targeting Python 3.12 (or later), install development requirements if needed, and run the
-test suite:
+## Dependencies
+
+- Python 3.12+
+- `pytest`
+- (Optional) `mypy` or similar static analysis tools when developing new bindings.
+
+## Setup
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt  # when the package list becomes available
-pytest
+pip install -r requirements.txt  # populated as packages are introduced
+pip install -e .[dev]  # optional extras when defined
 ```
 
-To experiment with the loader manually:
+Set `ENGINE3G_LIBRARY_PATH` (colon-separated on POSIX, semicolon-separated on Windows) to directories that contain the
+compiled engine shared libraries so that `loader.load_runtime()` can succeed during local development.
+
+## Build/Test Commands
+
+- `pytest` – Run from the repository root or inside `python/` once the virtual environment is active.
+
+## Usage Example
 
 ```python
 from engine3g import loader
@@ -27,8 +40,5 @@ runtime = loader.load_runtime()
 modules = runtime.load_modules()
 print(runtime.name(), modules.keys())
 ```
-
-Set the `ENGINE3G_LIBRARY_PATH` environment variable (colon-separated on POSIX, semicolon-separated on Windows) to point
-at directories containing the compiled engine shared libraries when testing against native builds.
 
 _Last updated: 2025-02-14_

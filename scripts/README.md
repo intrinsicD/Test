@@ -1,16 +1,27 @@
 # Developer Scripts
 
-Automation helpers for building and validating the workspace live under `scripts/`.
+Automation helpers for building, validating, and packaging the workspace live under `scripts/`.
 
-## Subdirectories
-- `build/` – Scripts and notes for local build workflows.
-- `ci/` – Continuous integration helpers.
+## Module Purpose
 
-## Standalone utilities
+- `build/` – Shell and Python helpers that wrap common build invocations.
+- `ci/` – Continuous integration entry points for linting, building, and testing in automation environments.
+- Top-level scripts – Ad-hoc utilities such as documentation validators.
 
-- `validate_docs.py` – Checks every Markdown file under `docs/` and reports missing or out-of-repository links.
-  Execute via `python scripts/validate_docs.py` before publishing documentation changes.
+## Dependencies
 
-Top-level scripts complement the CMake build and documentation maintenance tasks.
+- Python 3.12+
+- CMake and Ninja when invoking build wrappers.
+- Additional tooling specified in the individual scripts (e.g., environment variables for CI).
+
+## Setup
+
+No installation step is required beyond ensuring Python and the build toolchain from the root README are available on
+your `PATH`.
+
+## Build/Test Commands
+
+- `python scripts/validate_docs.py` – Validates Markdown links across `docs/`.
+- See `scripts/build/README.md` and `scripts/ci/README.md` for subsystem-specific commands.
 
 _Last updated: 2025-02-14_
