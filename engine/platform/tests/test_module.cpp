@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <exception>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <variant>
@@ -160,5 +162,36 @@ TEST(PlatformWindowing, SwapchainFallbackWhenHookFails) {
     EXPECT_EQ(surface->window_backend(), window->backend_name());
     EXPECT_TRUE(surface->native_surface() != nullptr);
     EXPECT_EQ(surface->user_data(), request.user_data);
+}
+
+TEST(PlatformWindowing, GlfwBackendLifecycle) {
+    using namespace engine::platform;
+
+    WindowConfig config;
+    config.title = "GLFW Backend Test";
+    config.visible = false;
+
+    std::shared_ptr<Window> window;
+    try {
+        window = create_window(config, WindowBackend::GLFW);
+    } catch (const std::exception& error) {
+#if defined(GTEST_SKIP)
+        GTEST_SKIP() << "GLFW backend unavailable: " << error.what();
+#else
+        std::cout << "[  SKIPPED ] GLFW backend unavailable: " << error.what() << '\n';
+        return;
+#endif
+    }
+
+    ASSERT_TRUE(window != nullptr);
+    EXPECT_EQ(window->backend_name(), "glfw");
+
+    EXPECT_FALSE(window->close_requested());
+    window->request_close();
+    window->pump_events();
+
+    Event event;
+    ASSERT_TRUE(window->event_queue().poll(event));
+    EXPECT_TRUE(event.type == EventType::CloseRequested);
 }
 

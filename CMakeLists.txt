@@ -20,6 +20,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 include(CTest)
+include(FetchContent)
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 
@@ -37,8 +38,40 @@ if(BUILD_TESTING)
     add_subdirectory(third_party/googletest)
 endif()
 
-add_subdirectory(third_party/entt)
+set(THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third_party")
+
+set(ENTT_DIR "${THIRD_PARTY_DIR}/entt")
+if(EXISTS "${ENTT_DIR}/CMakeLists.txt")
+    add_subdirectory(${ENTT_DIR})
+else()
+    FetchContent_Declare(entt_external
+        GIT_REPOSITORY https://github.com/skypjack/entt.git
+        GIT_TAG v3.13.0
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(entt_external)
+endif()
+
 add_subdirectory(third_party/spdlog)
 add_subdirectory(third_party/imgui)
-add_subdirectory(third_party/glfw)
+
+set(GLFW_DIR "${THIRD_PARTY_DIR}/glfw")
+if(EXISTS "${GLFW_DIR}/CMakeLists.txt")
+    add_subdirectory(${GLFW_DIR})
+else()
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
+
+    FetchContent_Declare(glfw_external
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.4
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(glfw_external)
+endif()
+
 add_subdirectory(engine)
