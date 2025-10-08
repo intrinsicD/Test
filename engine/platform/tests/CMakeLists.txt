@@ -1,5 +1,6 @@
 add_executable(engine_platform_tests
     test_module.cpp
+    window_console_tests.cpp
 )
 
 set_target_properties(engine_platform_tests PROPERTIES

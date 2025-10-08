@@ -2,6 +2,7 @@ set(target_name engine_platform)
 
 add_library(${target_name}
     src/api.cpp
+    src/window_console.cpp
     src/window_system.cpp
     src/windowing/window_base.cpp
     src/windowing/mock_window.cpp

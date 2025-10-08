@@ -9,4 +9,6 @@ _Last updated: 2025-10-05_
 
 ### Files
 
-- `api.hpp` – C++ header.
+- `api.hpp` – Module metadata exports.
+- `window.hpp` – Public windowing abstractions and factory helpers.
+- `window_console.hpp` – Reusable interactive console for exercising window implementations.
