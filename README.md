@@ -63,4 +63,20 @@ pytest
 - Run the available unit tests and documentation validation script before submitting pull requests.
 - Prefer data-oriented, modular designs that match the repository layout; see `docs/design/` for current proposals.
 
-_Last updated: 2025-02-14_
+## TODO
+
+- **Implement core subsystem features** – The animation, geometry, physics, and compute modules currently expose only
+  their `module_name()` exports and lack rigging, simulation, or job infrastructure. Flesh these subsystems out so that
+  the runtime can exercise real behaviour.【F:engine/animation/src/api.cpp†L1-L13】【F:engine/geometry/src/api.cpp†L1-L13】【F:engine/physics/src/api.cpp†L1-L13】【F:engine/compute/src/api.cpp†L1-L16】【F:engine/compute/cuda/src/api.cpp†L1-L22】
+- **Replace stubbed window backends** – The GLFW and SDL window factories simply wrap the headless mock window. Wire
+  them up to real platform APIs and swapchain creation so rendering can target on-screen surfaces.【F:engine/platform/src/windowing/glfw_window.cpp†L1-L12】【F:engine/platform/src/windowing/sdl_window.cpp†L1-L12】
+- **Provide a concrete RenderResourceProvider** – Rendering passes depend on a resource provider interface, but no
+  implementation exists to upload meshes, materials, or shaders to the GPU. Implement a platform-backed provider and
+  connect it to the frame-graph execution path.【F:engine/rendering/include/engine/rendering/render_pass.hpp†L22-L61】【4045be†L1-L2】
+- **Reconcile build and tooling documentation** – The README asks for CMake 3.26 and a `requirements.txt`, yet the build
+  targets CMake 3.20 and no requirements file is checked in. Update the build scripts and documentation or add the missing
+  dependency manifest.【F:README.md†L21-L57】【F:CMakeLists.txt†L1-L38】【0f1a77†L1-L2】【a43702†L1-L2】
+- **Expand subsystem tests** – The animation and physics suites only assert the exported module name. Add behavioural
+  coverage once real features land so regressions surface in CI.【F:engine/animation/tests/test_module.cpp†L1-L8】【F:engine/physics/tests/test_module.cpp†L1-L8】
+
+_Last updated: 2025-10-08_
