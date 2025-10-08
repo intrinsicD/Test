@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <condition_variable>
 #include <cstddef>
-#include <cstdint>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -63,9 +62,9 @@ public:
 
         --ref_count_;
         if (ref_count_ == 0) {
-            lock.unlock();
             glfwTerminate();
             glfwSetErrorCallback(nullptr);
+            lock.unlock();
         }
     }
 
@@ -88,7 +87,7 @@ private:
     GlfwLibrary() = default;
 
     static void handle_error(int code, const char* description) noexcept {
-        GlfwLibrary::instance().record_error(code, description);
+        instance().record_error(code, description);
     }
 
     void wait_for_initialisation(std::unique_lock<std::mutex>& lock) {
