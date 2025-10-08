@@ -64,11 +64,18 @@ class EngineRuntimeHandle:
                 names.append(result.decode("utf-8"))
         return names
 
-    def load_modules(self, search_paths: Optional[Iterable[os.PathLike[str] | str]] = None) -> Mapping[str, EngineModuleHandle]:
+    def load_modules(
+        self, search_paths: Optional[Iterable[os.PathLike[str] | str]] = None
+    ) -> Mapping[str, EngineModuleHandle]:
         """Load all registered modules and return them keyed by module name."""
+        reusable_paths: Optional[Iterable[os.PathLike[str] | str]]
+        if search_paths is None:
+            reusable_paths = None
+        else:
+            reusable_paths = tuple(search_paths)
         modules: MutableMapping[str, EngineModuleHandle] = {}
         for name in self.module_names():
-            modules[name] = load_module(name, search_paths=search_paths)
+            modules[name] = load_module(name, search_paths=reusable_paths)
         return modules
 
 

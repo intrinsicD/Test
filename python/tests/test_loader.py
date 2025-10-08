@@ -153,8 +153,44 @@ class HandleBehaviourTests(unittest.TestCase):
         with mock.patch.object(loader, "load_module", return_value=module_handle) as mocked_load_module:
             modules = runtime.load_modules(search_paths=["/libs"])
 
-        mocked_load_module.assert_called_once_with("graphics", search_paths=["/libs"])
+        mocked_load_module.assert_called_once_with("graphics", search_paths=("/libs",))
         self.assertEqual(modules, {"graphics": module_handle})
+
+    def test_engine_runtime_handle_load_modules_supports_generators(self) -> None:
+        runtime = loader.EngineRuntimeHandle(
+            types.SimpleNamespace(
+                engine_runtime_module_name=_DummyFunction(lambda: b"runtime"),
+                engine_runtime_module_count=_DummyFunction(lambda: 2),
+                engine_runtime_module_at=_DummyFunction(lambda index: [b"graphics", b"physics"][index]),
+            )
+        )
+
+        graphics_handle = loader.EngineModuleHandle(
+            "graphics", "engine_graphics", library=mock.sentinel.graphics_lib
+        )
+        physics_handle = loader.EngineModuleHandle(
+            "physics", "engine_physics", library=mock.sentinel.physics_lib
+        )
+
+        search_path_values = ["/gen/a", "/gen/b"]
+        search_path_iterable = (path for path in search_path_values)
+
+        with mock.patch.object(
+            loader,
+            "load_module",
+            side_effect=[graphics_handle, physics_handle],
+        ) as mocked_load_module:
+            modules = runtime.load_modules(search_paths=search_path_iterable)
+
+        expected_paths = tuple(search_path_values)
+        self.assertEqual(
+            mocked_load_module.mock_calls,
+            [
+                mock.call("graphics", search_paths=expected_paths),
+                mock.call("physics", search_paths=expected_paths),
+            ],
+        )
+        self.assertEqual(modules, {"graphics": graphics_handle, "physics": physics_handle})
 
     def test_engine_runtime_handle_filters_null_module_names(self) -> None:
         runtime = loader.EngineRuntimeHandle(
