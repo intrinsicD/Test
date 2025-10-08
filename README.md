@@ -22,6 +22,8 @@ tooling. This README provides a concise map of the workspace and the commands re
 - **Python** – Python 3.12+ with `pip` to execute utility scripts and Python-based tests.
 - **Host libraries** – Platform-native SDKs/drivers for the rendering backends you plan to compile (Vulkan SDK,
   DirectX 12 Agility SDK, or system OpenGL drivers).
+  - Linux builds that enable the GLFW backend require the X11 development headers. Install `libxrandr-dev`,
+    `libxinerama-dev`, `libxcursor-dev`, and `libxi-dev` via your package manager before configuring CMake.
 
 ## Setup and Build
 
@@ -63,4 +65,4 @@ pytest
 - Run the available unit tests and documentation validation script before submitting pull requests.
 - Prefer data-oriented, modular designs that match the repository layout; see `docs/design/` for current proposals.
 
-_Last updated: 2025-02-14_
+_Last updated: 2025-10-06_
