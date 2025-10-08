@@ -34,3 +34,17 @@ of the core math types. Public headers live under [`engine/geometry/include`](..
   and collision detection systems.
 - Property registries decouple mesh storage from user-defined attributes, so downstream algorithms can add
   or remove annotations without recompiling core containers.
+
+## Surface mesh runtime helpers
+
+`engine/geometry/api.hpp` now exposes a compact `SurfaceMesh` struct geared towards runtime deformation rather than
+authoring. It stores both rest-state and deformed vertex positions, indices, normals, and cached bounds. Key helpers:
+
+- `make_unit_quad()` – Generates a planar quad used by the runtime smoke test.
+- `apply_uniform_translation(SurfaceMesh&, vec3)` – Applies rigid offsets while keeping the rest positions intact.
+- `recompute_vertex_normals(SurfaceMesh&)` – Rebuilds area-weighted vertex normals after deformation.
+- `update_bounds(SurfaceMesh&)` / `centroid(const SurfaceMesh&)` – Provide inexpensive spatial queries.
+
+These functions allow the runtime to preview animation- and physics-driven deformation without touching the heavier
+half-edge mesh infrastructure. They are intentionally header-only so lightweight tools (and the Python bindings) can
+consume them with minimal dependencies.

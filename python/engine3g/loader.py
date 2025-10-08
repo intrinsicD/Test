@@ -7,7 +7,7 @@ import ctypes
 import os
 import sys
 from pathlib import Path
-from typing import Iterable, List, Mapping, MutableMapping, Optional
+from typing import Dict, Iterable, List, Mapping, MutableMapping, Optional, Tuple
 
 __all__ = [
     "EngineLibraryNotFound",
@@ -48,6 +48,37 @@ class EngineRuntimeHandle:
         self.library.engine_runtime_module_name.restype = ctypes.c_char_p
         self.library.engine_runtime_module_count.restype = ctypes.c_size_t
         self.library.engine_runtime_module_at.restype = ctypes.c_char_p
+        self.library.engine_runtime_initialize.restype = None
+        self.library.engine_runtime_initialize.argtypes = []
+        self.library.engine_runtime_shutdown.restype = None
+        self.library.engine_runtime_shutdown.argtypes = []
+        self.library.engine_runtime_tick.restype = None
+        self.library.engine_runtime_tick.argtypes = [ctypes.c_double]
+        self.library.engine_runtime_body_count.restype = ctypes.c_size_t
+        self.library.engine_runtime_body_count.argtypes = []
+        self.library.engine_runtime_body_position.restype = None
+        self.library.engine_runtime_body_position.argtypes = [
+            ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_float),
+        ]
+        self.library.engine_runtime_joint_count.restype = ctypes.c_size_t
+        self.library.engine_runtime_joint_count.argtypes = []
+        self.library.engine_runtime_joint_name.restype = ctypes.c_char_p
+        self.library.engine_runtime_joint_name.argtypes = [ctypes.c_size_t]
+        self.library.engine_runtime_joint_translation.restype = None
+        self.library.engine_runtime_joint_translation.argtypes = [
+            ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_float),
+        ]
+        self.library.engine_runtime_mesh_bounds.restype = None
+        self.library.engine_runtime_mesh_bounds.argtypes = [
+            ctypes.POINTER(ctypes.c_float),
+            ctypes.POINTER(ctypes.c_float),
+        ]
+        self.library.engine_runtime_dispatch_count.restype = ctypes.c_size_t
+        self.library.engine_runtime_dispatch_count.argtypes = []
+        self.library.engine_runtime_dispatch_name.restype = ctypes.c_char_p
+        self.library.engine_runtime_dispatch_name.argtypes = [ctypes.c_size_t]
 
     def name(self) -> str:
         """Return the runtime library name."""
@@ -62,6 +93,65 @@ class EngineRuntimeHandle:
             result = self.library.engine_runtime_module_at(index)
             if result:
                 names.append(result.decode("utf-8"))
+        return names
+
+    def initialize(self) -> None:
+        """Ensure the native runtime is initialized."""
+        self.library.engine_runtime_initialize()
+
+    def shutdown(self) -> None:
+        """Request that the runtime release all cached state."""
+        self.library.engine_runtime_shutdown()
+
+    def tick(self, dt: float) -> None:
+        """Advance the runtime simulation by ``dt`` seconds."""
+        self.library.engine_runtime_tick(ctypes.c_double(dt))
+
+    def mesh_bounds(self) -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
+        """Return the axis-aligned bounds of the deformed mesh."""
+        mins = (ctypes.c_float * 3)()
+        maxs = (ctypes.c_float * 3)()
+        self.library.engine_runtime_mesh_bounds(mins, maxs)
+        return (
+            (float(mins[0]), float(mins[1]), float(mins[2])),
+            (float(maxs[0]), float(maxs[1]), float(maxs[2])),
+        )
+
+    def body_positions(self) -> List[Tuple[float, float, float]]:
+        """Return simulated rigid body positions from the physics world."""
+        count = int(self.library.engine_runtime_body_count())
+        vector = (ctypes.c_float * 3)()
+        positions: List[Tuple[float, float, float]] = []
+        for index in range(count):
+            self.library.engine_runtime_body_position(index, vector)
+            positions.append((float(vector[0]), float(vector[1]), float(vector[2])))
+        return positions
+
+    def joint_translations(self) -> Dict[str, Tuple[float, float, float]]:
+        """Return joint translations for the current animation pose."""
+        count = int(self.library.engine_runtime_joint_count())
+        vector = (ctypes.c_float * 3)()
+        joints: Dict[str, Tuple[float, float, float]] = {}
+        for index in range(count):
+            name_ptr = self.library.engine_runtime_joint_name(index)
+            if not name_ptr:
+                continue
+            self.library.engine_runtime_joint_translation(index, vector)
+            joints[name_ptr.decode("utf-8")] = (
+                float(vector[0]),
+                float(vector[1]),
+                float(vector[2]),
+            )
+        return joints
+
+    def dispatch_order(self) -> List[str]:
+        """Return the names of kernels executed during the last tick."""
+        count = int(self.library.engine_runtime_dispatch_count())
+        names: List[str] = []
+        for index in range(count):
+            name_ptr = self.library.engine_runtime_dispatch_name(index)
+            if name_ptr:
+                names.append(name_ptr.decode("utf-8"))
         return names
 
     def load_modules(

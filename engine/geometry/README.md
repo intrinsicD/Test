@@ -2,19 +2,22 @@
 
 _Path: `engine/geometry`_
 
-_Last updated: 2025-02-14_
+_Last updated: 2025-03-15_
 
 
 ## Overview
 
-The geometry module implements the surface and volumetric kernels required by the engine. Key facilities include:
+Geometry provides both heavy-weight mesh infrastructure and the lightweight runtime mesh used by the sample
+simulation. In addition to the half-edge mesh and property registries, the module now exposes
+[`SurfaceMesh`](include/engine/geometry/api.hpp) – a contiguous vertex/index container with runtime deformation
+helpers.
 
-- A half-edge mesh core with property maps (`include/engine/geometry/mesh/halfedge_mesh.hpp`) supporting arbitrary
-  attribute attachment.
-- Generic property registries that expose strongly-typed handles for component data.
-- Basic analytic shapes (sphere, cylinder, ray) and point-cloud containers for procedural content and intersection
-  testing.
-- Surface sampling, decimation, UV unwrapping, and topology helpers under the `src/` subtree.
+Key facilities include:
+
+- Half-edge mesh kernels with property maps (`include/engine/geometry/mesh/halfedge_mesh.hpp`).
+- Shape primitives and sampling utilities under `include/engine/geometry/shapes/`.
+- SurfaceMesh helpers for procedural generation (`make_unit_quad`), translation (`apply_uniform_translation`), and
+  normal/bounds updates used directly by the runtime tests.
 
 ## Usage
 
@@ -25,11 +28,15 @@ target_link_libraries(my_app PRIVATE engine_geometry)
 ```
 
 ```cpp
-#include <engine/geometry/mesh/halfedge_mesh.hpp>
+#include <engine/geometry/api.hpp>
 
-engine::geometry::HalfedgeMesh mesh;
-auto position = mesh.request_vertex_property<engine::math::vec3>("v:position");
+auto mesh = engine::geometry::make_unit_quad();
+engine::geometry::apply_uniform_translation(mesh, {0.0F, 1.0F, 0.0F});
+engine::geometry::recompute_vertex_normals(mesh);
 ```
 
-The accompanying GoogleTest suites under `tests/` exercise mesh traversal, property registry lifetime semantics, and
-discrete differential geometry utilities.
+## TODO
+
+- Add non-uniform deformation helpers so animation weights can drive vertex blends.
+- Extend `SurfaceMesh` to cache rest-state tangents for normal-mapped shading.
+- Port more of the legacy topology utilities onto the new `SurfaceMesh` façade to avoid duplication.
