@@ -115,6 +115,13 @@ class HandleBehaviourTests(unittest.TestCase):
         self.assertEqual(handle.resolved_name(), "resolved.module")
         self.assertIs(module_symbol.restype, ctypes.c_char_p)
 
+    def test_engine_module_handle_resolved_name_handles_null(self) -> None:
+        module_symbol = _DummyFunction(lambda: None)
+        fake_library = types.SimpleNamespace(engine_test_module_name=module_symbol)
+        handle = loader.EngineModuleHandle(name="test", identifier="engine_test", library=fake_library)
+        self.assertEqual(handle.resolved_name(), "")
+        self.assertIs(module_symbol.restype, ctypes.c_char_p)
+
     def test_engine_runtime_handle_exposes_metadata(self) -> None:
         runtime_name = _DummyFunction(lambda: b"runtime")
         module_count = _DummyFunction(lambda: 2)
@@ -148,6 +155,17 @@ class HandleBehaviourTests(unittest.TestCase):
 
         mocked_load_module.assert_called_once_with("graphics", search_paths=["/libs"])
         self.assertEqual(modules, {"graphics": module_handle})
+
+    def test_engine_runtime_handle_filters_null_module_names(self) -> None:
+        runtime = loader.EngineRuntimeHandle(
+            types.SimpleNamespace(
+                engine_runtime_module_name=_DummyFunction(lambda: b"runtime"),
+                engine_runtime_module_count=_DummyFunction(lambda: 3),
+                engine_runtime_module_at=_DummyFunction(lambda index: [b"graphics", None, b""][index]),
+            )
+        )
+
+        self.assertEqual(runtime.module_names(), ["graphics"])
 
 
 class PublicLoaderHelpersTests(unittest.TestCase):

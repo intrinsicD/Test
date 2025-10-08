@@ -22,6 +22,7 @@ your `PATH`.
 ## Build/Test Commands
 
 - `python scripts/validate_docs.py` – Validates Markdown links across `docs/`.
+- `pytest scripts/tests` – Runs unit tests that exercise the documentation validator helpers.
 - See `scripts/build/README.md` and `scripts/ci/README.md` for subsystem-specific commands.
 
 _Last updated: 2025-02-14_
