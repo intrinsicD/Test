@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -118,4 +119,75 @@ TEST(FrameGraph, TracksResourceLifetimes)
     EXPECT_EQ(events[3].type, engine::rendering::ResourceEvent::Type::Release);
     EXPECT_EQ(events[3].resource_name, "Color");
     EXPECT_EQ(events[3].pass_name, "Lighting");
+}
+
+TEST(FrameGraph, BuilderRejectsInvalidHandles)
+{
+    engine::rendering::FrameGraph graph;
+
+    auto make_pass = [](auto setup) {
+        return std::make_unique<engine::rendering::CallbackRenderPass>(
+            "Invalid", std::move(setup), [](engine::rendering::FrameGraphPassExecutionContext&) {});
+    };
+
+    EXPECT_THROW(
+        graph.add_pass(make_pass([](engine::rendering::FrameGraphPassBuilder& builder) {
+            builder.read(engine::rendering::FrameGraphResourceHandle{});
+        })),
+        std::out_of_range);
+
+    EXPECT_THROW(
+        graph.add_pass(make_pass([](engine::rendering::FrameGraphPassBuilder& builder) {
+            builder.write(engine::rendering::FrameGraphResourceHandle{});
+        })),
+        std::out_of_range);
+}
+
+TEST(FrameGraph, PreventsMultipleWritersForResource)
+{
+    engine::rendering::FrameGraph graph;
+    const auto handle = graph.create_resource("Color");
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "WriterA",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(handle); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+
+    EXPECT_THROW(
+        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+            "WriterB",
+            [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(handle); },
+            [](engine::rendering::FrameGraphPassExecutionContext&) {})),
+        std::logic_error);
+}
+
+TEST(FrameGraph, DetectsCyclesDuringCompile)
+{
+    engine::rendering::FrameGraph graph;
+    const auto a = graph.create_resource("A");
+    const auto b = graph.create_resource("B");
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "PassA",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+            builder.write(a);
+            builder.read(b);
+        },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "PassB",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+            builder.write(b);
+            builder.read(a);
+        },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+
+    EXPECT_THROW(graph.compile(), std::logic_error);
+}
+
+TEST(FrameGraph, ResourceInfoRejectsInvalidHandle)
+{
+    engine::rendering::FrameGraph graph;
+    EXPECT_THROW(graph.resource_info(engine::rendering::FrameGraphResourceHandle{}), std::out_of_range);
 }

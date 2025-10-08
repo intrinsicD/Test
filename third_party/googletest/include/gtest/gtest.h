@@ -313,6 +313,35 @@ namespace testing
         }                                                                               \
     } while (false)
 
+#define EXPECT_THROW(statement, expected_exception)                                                   \
+    do {                                                                                              \
+        bool gtest_caught_expected = false;                                                            \
+        bool gtest_caught_other = false;                                                               \
+        try {                                                                                          \
+            (void)(statement);                                                                         \
+        } catch (const expected_exception&) {                                                          \
+            gtest_caught_expected = true;                                                              \
+        } catch (const std::exception& gtest_other) {                                                  \
+            gtest_caught_other = true;                                                                 \
+            std::ostringstream gtest_message;                                                          \
+            gtest_message << "Expected exception of type " << #expected_exception                      \
+                          << " but caught std::exception: " << gtest_other.what();                    \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());               \
+        } catch (...) {                                                                                \
+            gtest_caught_other = true;                                                                 \
+            std::ostringstream gtest_message;                                                          \
+            gtest_message << "Expected exception of type " << #expected_exception                      \
+                          << " but caught an unknown exception type.";                               \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());               \
+        }                                                                                              \
+        if (!gtest_caught_expected && !gtest_caught_other) {                                           \
+            std::ostringstream gtest_message;                                                          \
+            gtest_message << "Expected exception of type " << #expected_exception                      \
+                          << " to be thrown.";                                                        \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());               \
+        }                                                                                              \
+    } while (false)
+
 #define ASSERT_TRUE(condition)                                                                           \
     do {                                                                                                  \
         const bool gtest_condition = static_cast<bool>(condition);                                        \
