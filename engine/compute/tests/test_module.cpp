@@ -49,7 +49,26 @@ TEST(ComputeModule, DispatcherRespectsDependencies) {
 
 TEST(ComputeModule, DispatcherDetectsCycles) {
     engine::compute::KernelDispatcher dispatcher;
-    const auto a = dispatcher.add_kernel("a", [] {});
-    dispatcher.add_kernel("b", [] {}, {a, 2});
-    EXPECT_THROW(dispatcher.dispatch(), std::out_of_range);
+    const auto a = dispatcher.add_kernel("a", [] {}, {1U});
+    dispatcher.add_kernel("b", [] {}, {a});
+
+    try {
+        (void)dispatcher.dispatch();
+        FAIL() << "Expected KernelDispatcher to detect a cycle";
+    } catch (const std::runtime_error& error) {
+        EXPECT_STREQ(error.what(), "KernelDispatcher detected a cycle");
+    }
+}
+
+TEST(ComputeModule, DispatcherThrowsOnInvalidDependencyIndex) {
+    engine::compute::KernelDispatcher dispatcher;
+    dispatcher.add_kernel("a", [] {});
+    dispatcher.add_kernel("b", [] {}, {0U, 2U});
+
+    try {
+        (void)dispatcher.dispatch();
+        FAIL() << "Expected KernelDispatcher to detect invalid dependency index";
+    } catch (const std::out_of_range& error) {
+        EXPECT_STREQ(error.what(), "KernelDispatcher dependency index out of range");
+    }
 }
