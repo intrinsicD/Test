@@ -8,6 +8,7 @@
 #include "engine/rendering/forward_pipeline.hpp"
 #include "engine/scene/components.hpp"
 #include "engine/scene/scene.hpp"
+#include "engine/rendering/tests/scheduler_test_utils.hpp"
 
 namespace
 {
@@ -97,8 +98,12 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     engine::rendering::FrameGraph graph;
     engine::rendering::ForwardPipeline pipeline;
     RecordingProvider provider;
+    engine::rendering::tests::RecordingScheduler scheduler;
 
-    pipeline.render(scene, provider, materials, graph);
+    pipeline.render(scene, provider, materials, scheduler, graph);
+
+    ASSERT_EQ(scheduler.submissions.size(), 1);  // NOLINT
+    EXPECT_EQ(scheduler.submissions.front().pass_name, "ForwardGeometry");
 
     ASSERT_EQ(graph.execution_order().size(), 1);  // NOLINT
     const auto& events = graph.resource_events();

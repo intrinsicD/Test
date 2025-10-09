@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "engine/rendering/render_pass.hpp"
+#include "engine/rendering/resources/synchronization.hpp"
 
 namespace engine::rendering
 {
@@ -63,11 +64,15 @@ namespace engine::rendering
         RenderExecutionContext& render;
         FrameGraph& graph;
         std::size_t pass_index{std::numeric_limits<std::size_t>::max()};
+        CommandBufferHandle command_buffer{};
+        QueueType queue{QueueType::Graphics};
 
         [[nodiscard]] std::string_view pass_name() const;
         [[nodiscard]] std::span<const FrameGraphResourceHandle> reads() const;
         [[nodiscard]] std::span<const FrameGraphResourceHandle> writes() const;
         [[nodiscard]] FrameGraphResourceInfo describe(FrameGraphResourceHandle handle) const;
+        [[nodiscard]] CommandBufferHandle command_buffer_handle() const noexcept;
+        [[nodiscard]] QueueType queue_type() const noexcept;
     };
 
     /// Event emitted whenever the lifetime of a transient resource changes.
@@ -141,6 +146,8 @@ namespace engine::rendering
         std::vector<PassNode> passes_;
         std::vector<std::size_t> execution_order_;
         std::vector<ResourceEvent> resource_events_;
+        std::vector<std::vector<resources::Barrier>> pass_begin_barriers_;
+        std::vector<std::vector<resources::Barrier>> pass_end_barriers_;
         bool compiled_{false};
 
         friend class FrameGraphPassBuilder;

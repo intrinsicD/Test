@@ -4,6 +4,7 @@
 
 - Implements a prototype frame graph and forward pipeline within the native renderer.
 - Structures backend, resource, material, and pass directories for platform-specific integrations.
+- Defines a portable GPU scheduling interface wired into the frame graph execution.
 
 ## Usage
 
@@ -14,3 +15,4 @@
 ## TODO / Next Steps
 
 - Connect the frame graph to concrete GPU backends and resource providers.
+- Implement production-ready schedulers that translate submissions into API calls.

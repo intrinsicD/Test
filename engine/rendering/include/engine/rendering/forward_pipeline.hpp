@@ -12,6 +12,6 @@ namespace engine::rendering
     {
     public:
         void render(scene::Scene& scene, RenderResourceProvider& resources, MaterialSystem& materials,
-                    FrameGraph& graph);
+                    IGpuScheduler& scheduler, FrameGraph& graph);
     };
 }

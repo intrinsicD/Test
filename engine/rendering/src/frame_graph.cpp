@@ -1,6 +1,7 @@
 #include "engine/rendering/frame_graph.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <limits>
 #include <queue>
 #include <stdexcept>
@@ -79,6 +80,16 @@ namespace engine::rendering
         return graph.resource_info(handle);
     }
 
+    CommandBufferHandle FrameGraphPassExecutionContext::command_buffer_handle() const noexcept
+    {
+        return command_buffer;
+    }
+
+    QueueType FrameGraphPassExecutionContext::queue_type() const noexcept
+    {
+        return queue;
+    }
+
     FrameGraph::FrameGraph() = default;
 
     void FrameGraph::reset()
@@ -87,6 +98,8 @@ namespace engine::rendering
         passes_.clear();
         execution_order_.clear();
         resource_events_.clear();
+        pass_begin_barriers_.clear();
+        pass_end_barriers_.clear();
         compiled_ = false;
     }
 
@@ -190,6 +203,20 @@ namespace engine::rendering
             resource.last_use = std::numeric_limits<std::size_t>::max();
         }
 
+        pass_begin_barriers_.assign(passes_.size(), {});
+        pass_end_barriers_.assign(passes_.size(), {});
+
+        auto make_barrier = [](FrameGraphResourceHandle handle, resources::Access source_access,
+                               resources::Access destination_access) {
+            resources::Barrier barrier{};
+            barrier.resource = handle;
+            barrier.source_stage = resources::PipelineStage::Graphics;
+            barrier.destination_stage = resources::PipelineStage::Graphics;
+            barrier.source_access = source_access;
+            barrier.destination_access = destination_access;
+            return barrier;
+        };
+
         for (std::size_t order_index = 0; order_index < execution_order_.size(); ++order_index)
         {
             const std::size_t pass_index = execution_order_[order_index];
@@ -208,13 +235,25 @@ namespace engine::rendering
                 }
             };
 
+            auto& begin_barriers = pass_begin_barriers_[pass_index];
+            auto& end_barriers = pass_end_barriers_[pass_index];
+
             for (const auto handle : pass.reads)
             {
                 update_use(handle);
+                const auto& resource = resources_[handle.index];
+                const auto writer = resource.writer;
+                const auto source_access =
+                    writer == std::numeric_limits<std::size_t>::max() ? resources::Access::Read
+                                                                      : resources::Access::Write;
+                begin_barriers.push_back(make_barrier(handle, source_access, resources::Access::Read));
             }
+
             for (const auto handle : pass.writes)
             {
                 update_use(handle);
+                begin_barriers.push_back(make_barrier(handle, resources::Access::Read, resources::Access::Write));
+                end_barriers.push_back(make_barrier(handle, resources::Access::Write, resources::Access::Read));
             }
         }
 
@@ -235,11 +274,17 @@ namespace engine::rendering
 
         resource_events_.clear();
         std::vector<bool> alive(resources_.size(), false);
+        resources::TimelineSemaphore frame_semaphore{"FrameGraphTimeline", 0};
+        resources::Fence frame_fence{"FrameGraphFence", 0};
+        std::uint64_t timeline_value = 0;
 
         for (std::size_t order_index = 0; order_index < execution_order_.size(); ++order_index)
         {
             const std::size_t pass_index = execution_order_[order_index];
             auto& pass = passes_[pass_index];
+
+            const auto queue = context.scheduler.select_queue(*pass.pass);
+            const auto command_buffer = context.scheduler.request_command_buffer(queue, pass.pass->name());
 
             auto signal_acquire = [&](FrameGraphResourceHandle handle) {
                 auto& resource = resources_[handle.index];
@@ -269,6 +314,8 @@ namespace engine::rendering
             }
 
             FrameGraphPassExecutionContext pass_context{context, *this, pass_index};
+            pass_context.command_buffer = command_buffer;
+            pass_context.queue = queue;
             pass.pass->execute(pass_context);
 
             for (const auto handle : pass.reads)
@@ -283,6 +330,53 @@ namespace engine::rendering
             {
                 signal_release(handle);
             }
+
+            auto begin_barriers = pass_begin_barriers_[pass_index];
+            auto end_barriers = pass_end_barriers_[pass_index];
+
+            const auto stage_for_queue = [](QueueType queue_type) {
+                switch (queue_type)
+                {
+                case QueueType::Graphics:
+                    return resources::PipelineStage::Graphics;
+                case QueueType::Compute:
+                    return resources::PipelineStage::Compute;
+                case QueueType::Transfer:
+                    return resources::PipelineStage::Transfer;
+                }
+                return resources::PipelineStage::Graphics;
+            };
+
+            const auto queue_stage = stage_for_queue(queue);
+            for (auto& barrier : begin_barriers)
+            {
+                barrier.destination_stage = queue_stage;
+            }
+            for (auto& barrier : end_barriers)
+            {
+                barrier.source_stage = queue_stage;
+            }
+
+            GpuSubmitInfo submit_info{};
+            submit_info.pass_name = pass.pass->name();
+            submit_info.queue = queue;
+            submit_info.command_buffer = command_buffer;
+            submit_info.begin_barriers = std::move(begin_barriers);
+            submit_info.end_barriers = std::move(end_barriers);
+
+            if (timeline_value > 0)
+            {
+                submit_info.waits.push_back(resources::SemaphoreWait{&frame_semaphore, timeline_value});
+            }
+
+            const auto submission_value = timeline_value + 1;
+            submit_info.signals.push_back(resources::SemaphoreSignal{&frame_semaphore, submission_value});
+            submit_info.fence = &frame_fence;
+            submit_info.fence_value = submission_value;
+
+            context.scheduler.submit(submit_info);
+            context.scheduler.recycle(command_buffer);
+            timeline_value = submission_value;
         }
     }
 
