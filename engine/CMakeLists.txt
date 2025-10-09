@@ -1,18 +1,7 @@
-set(ENGINE_MODULES
-    math
-    animation
-    assets
-    compute
-    core
-    geometry
-    io
-    physics
-    platform
-    rendering
-    scene
-    runtime
-)
+if(NOT DEFINED ENGINE_MODULES)
+    message(FATAL_ERROR "ENGINE_MODULES is not defined. Include the engine directory from the root CMake configuration.")
+endif()
 
-foreach(module ${ENGINE_MODULES})
+foreach(module IN LISTS ENGINE_MODULES)
     add_subdirectory(${module})
 endforeach()

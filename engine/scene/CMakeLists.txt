@@ -9,11 +9,11 @@ add_library(${target_name}
     systems/transform_system.cpp
 )
 
-target_include_directories(${target_name}
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
+engine_apply_module_defaults(${target_name}
+    PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/third_party/entt/include
+    PRIVATE_INCLUDE_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_compile_definitions(${target_name}

@@ -26,15 +26,16 @@
 ### Configure and Build
 
 ```bash
-cmake -S . -B build -G Ninja
-cmake --build build
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug
+ctest --preset linux-gcc-debug
 ```
 
-Each subsystem produces a library named `engine_<subsystem>`; the runtime aggregates them via `engine_runtime`.
+Presets live under `scripts/build/` and currently cover Linux (GCC) and Windows (MSVC) compiler stacks. Additional variants can be invoked with `cmake --preset <name>` or orchestrated collectively via `scripts/ci/run_presets.py`. Each subsystem still produces a library named `engine_<subsystem>`; linking to any of them automatically imports the shared usage requirements published by `engine::project_options` and the aggregated headers exposed through `engine::headers`.
 
 ### Testing
 
-- **C++ suites** – Configure with `-DBUILD_TESTING=ON` and run `ctest --test-dir build`.
+- **C++ suites** – Execute `ctest --preset <preset>` (for example `ctest --preset linux-gcc-debug`) to honour the generator and cache variables baked into the presets.
 - **Documentation checks** – `python scripts/validate_docs.py` validates Markdown cross-references.
 
 ### Python Tooling
@@ -63,7 +64,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Add blend-tree authoring and clip serialization to unlock complex rigs. | [engine/animation/README.md](engine/animation/README.md) |
 | Add collision detection, constraints, and stable integration schemes. | [engine/physics/README.md](engine/physics/README.md) |
 | Add format importers to translate real data into runtime structures. | [engine/io/importers/README.md](engine/io/importers/README.md) |
-| Add platform-aware build presets and dependency bootstrapping scripts. | [scripts/build/README.md](scripts/build/README.md) |
+| Expand the preset matrix to cover Clang and macOS toolchains once dependencies are in place. | [scripts/build/README.md](scripts/build/README.md) |
 | Add scenario-driven examples and profiling to exercise the implementation. | [engine/animation/src/README.md](engine/animation/src/README.md)<br>[engine/assets/src/README.md](engine/assets/src/README.md)<br>[engine/compute/src/README.md](engine/compute/src/README.md)<br>[engine/core/ecs/README.md](engine/core/ecs/README.md)<br>[engine/core/src/README.md](engine/core/src/README.md)<br>[engine/geometry/src/README.md](engine/geometry/src/README.md)<br>[engine/geometry/src/shapes/README.md](engine/geometry/src/shapes/README.md)<br>[engine/io/src/README.md](engine/io/src/README.md)<br>[engine/physics/src/README.md](engine/physics/src/README.md)<br>[engine/platform/src/README.md](engine/platform/src/README.md)<br>[engine/rendering/src/README.md](engine/rendering/src/README.md)<br>[engine/runtime/src/README.md](engine/runtime/src/README.md)<br>[engine/scene/src/README.md](engine/scene/src/README.md) |
 | Author representative shader assets once the rendering pipeline is defined. | [engine/assets/shaders/README.md](engine/assets/shaders/README.md)<br>[engine/rendering/materials/shaders/README.md](engine/rendering/materials/shaders/README.md)<br>[engine/rendering/materials/shaders/common/README.md](engine/rendering/materials/shaders/common/README.md)<br>[engine/rendering/materials/shaders/glsl/README.md](engine/rendering/materials/shaders/glsl/README.md)<br>[engine/rendering/materials/shaders/hlsl/README.md](engine/rendering/materials/shaders/hlsl/README.md) |
 | Bind platform abstractions to OS windowing, input, and filesystem APIs. | [engine/platform/README.md](engine/platform/README.md) |
@@ -73,7 +74,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Capture design rationales and outcomes for upcoming milestones. | [docs/design/README.md](docs/design/README.md) |
 | Connect the frame graph to GPU submission and synchronization. | [engine/rendering/pipeline/README.md](engine/rendering/pipeline/README.md) |
 | Connect the frame graph to concrete GPU backends and resource providers. | [engine/rendering/README.md](engine/rendering/README.md) |
-| Consolidate automation entry points for developers and CI environments. | [scripts/README.md](scripts/README.md) |
+| Capture shared automation entry points for developers and CI environments. | [scripts/README.md](scripts/README.md) |
 | Create exporters to persist runtime assets back to disk. | [engine/io/exporters/README.md](engine/io/exporters/README.md) |
 | Curate representative scenarios across unit, integration, and performance suites. | [engine/tests/README.md](engine/tests/README.md) |
 | Define component schemas and authoring utilities for the runtime. | [engine/scene/components/README.md](engine/scene/components/README.md) |
@@ -88,7 +89,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Extend engine core services for application control, configuration, and diagnostics. | [engine/core/README.md](engine/core/README.md) |
 | Harden the loader API and expose ergonomic runtime bindings. | [python/engine3g/README.md](python/engine3g/README.md) |
 | Hook materials into the rendering backend and asset pipeline. | [engine/rendering/materials/README.md](engine/rendering/materials/README.md) |
-| Implement CI harness scripts mirroring the documented workflow. | [scripts/ci/README.md](scripts/ci/README.md) |
+| Integrate the preset runner into hosted CI once Windows agents are available. | [scripts/ci/README.md](scripts/ci/README.md) |
 | Implement GPU resource management for buffers, textures, and samplers. | [engine/rendering/resources/README.md](engine/rendering/resources/README.md)<br>[engine/rendering/resources/buffers/README.md](engine/rendering/resources/buffers/README.md)<br>[engine/rendering/resources/samplers/README.md](engine/rendering/resources/samplers/README.md) |
 | Implement GPU-backed dispatch and integrate with runtime scheduling. | [engine/compute/README.md](engine/compute/README.md) |
 | Implement actual input device polling per platform. | [engine/platform/input/README.md](engine/platform/input/README.md) |

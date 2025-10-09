@@ -7,11 +7,12 @@ add_library(${target_name}
     src/material_system.cpp
 )
 
-target_include_directories(${target_name}
-    PUBLIC
+engine_apply_module_defaults(${target_name}
+    PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PRIVATE_INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}
-    )
+)
 
 target_compile_definitions(${target_name}
     PRIVATE

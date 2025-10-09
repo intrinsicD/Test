@@ -7,8 +7,9 @@
 
 ## Usage
 
-- Include `<engine/core/api.hpp>` and link against `engine_core` to use the base facilities.
+- Include `<engine/core/api.hpp>` and link against `engine_core`; the target inherits `engine::project_options` and exposes headers through `engine::headers` for downstream modules.
 - Extend ECS features or add new core services in the dedicated subdirectories.
+- Build and validate changes with the repository presets (`cmake --preset linux-gcc-debug`, `ctest --preset linux-gcc-debug`, etc.).
 
 ## TODO / Next Steps
 

@@ -5,13 +5,9 @@ add_executable(engine_scene_tests
     test_serialization.cpp
 )
 
-set_target_properties(engine_scene_tests PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED YES
-)
-
 target_link_libraries(engine_scene_tests
     PRIVATE
+        engine::project_options
         engine_scene
         GTest::gtest_main
 )
