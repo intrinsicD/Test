@@ -10,7 +10,7 @@
 
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/frame_graph_types.hpp"
-#include "../../rendering/resources/synchronization.hpp"
+#include "engine/rendering/resources/synchronization.hpp"
 
 namespace engine::rendering
 {
