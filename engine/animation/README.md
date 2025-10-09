@@ -7,8 +7,9 @@
 
 ## Usage
 
-- Link against `engine_animation` and include `<engine/animation/api.hpp>` to access the API.
+- Link against `engine_animation` and include `<engine/animation/api.hpp>`; the target inherits the shared `engine::project_options` compile features and contributes its headers to `engine::headers`.
 - Extend controllers or clips under `src/` and update accompanying tests in `tests/`.
+- Build and test the module with the canonical presets (for example `cmake --preset linux-gcc-debug` followed by `ctest --preset linux-gcc-debug`).
 
 ## TODO / Next Steps
 

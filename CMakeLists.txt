@@ -2,6 +2,21 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Modular3GEngine LANGUAGES CXX C)
 
+set(ENGINE_MODULES
+    math
+    animation
+    assets
+    compute
+    core
+    geometry
+    io
+    physics
+    platform
+    rendering
+    scene
+    runtime
+)
+
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
 
@@ -9,15 +24,72 @@ if(ENGINE_ENABLE_PYTHON AND NOT BUILD_SHARED_LIBS)
     message(FATAL_ERROR "Python interoperability requires BUILD_SHARED_LIBS=ON. Set ENGINE_ENABLE_PYTHON=OFF to build static libraries.")
 endif()
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+add_library(engine_project_options INTERFACE)
+target_compile_features(engine_project_options INTERFACE cxx_std_20)
 
-# Use libc++ only when compiling with Clang
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(-stdlib=libc++)
-    add_link_options(-stdlib=libc++)
+    target_compile_options(engine_project_options INTERFACE -stdlib=libc++)
+    target_link_options(engine_project_options INTERFACE -stdlib=libc++)
 endif()
+
+add_library(engine_module_headers INTERFACE)
+
+add_library(engine::project_options ALIAS engine_project_options)
+add_library(engine::headers ALIAS engine_module_headers)
+
+target_link_libraries(engine_module_headers INTERFACE engine::project_options)
+
+function(engine_apply_module_defaults target)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "engine_apply_module_defaults called with unknown target '${target}'")
+    endif()
+
+    set(options)
+    set(one_value_args)
+    set(multi_value_args PUBLIC_INCLUDE_DIRS PRIVATE_INCLUDE_DIRS)
+    cmake_parse_arguments(ENGINE_MODULE "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
+    if(ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
+        target_include_directories(engine_module_headers INTERFACE
+            ${ENGINE_MODULE_PUBLIC_INCLUDE_DIRS}
+        )
+    endif()
+
+    get_target_property(_target_type ${target} TYPE)
+
+    if(_target_type STREQUAL "INTERFACE_LIBRARY")
+        if(ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
+            target_include_directories(${target}
+                INTERFACE
+                    ${ENGINE_MODULE_PUBLIC_INCLUDE_DIRS}
+            )
+        endif()
+
+        target_link_libraries(${target}
+            INTERFACE
+                engine::project_options
+        )
+    else()
+        if(ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
+            target_include_directories(${target}
+                PUBLIC
+                    ${ENGINE_MODULE_PUBLIC_INCLUDE_DIRS}
+            )
+        endif()
+
+        if(ENGINE_MODULE_PRIVATE_INCLUDE_DIRS)
+            target_include_directories(${target}
+                PRIVATE
+                    ${ENGINE_MODULE_PRIVATE_INCLUDE_DIRS}
+            )
+        endif()
+
+        target_link_libraries(${target}
+            PUBLIC
+                engine::project_options
+        )
+    endif()
+endfunction()
 
 include(CTest)
 include(FetchContent)

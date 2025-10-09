@@ -7,8 +7,9 @@
 
 ## Usage
 
-- Link against `engine_geometry` and include `<engine/geometry/api.hpp>` to manipulate meshes.
+- Link against `engine_geometry` and include `<engine/geometry/api.hpp>` to manipulate meshes; the target inherits `engine::project_options` and participates in the shared `engine::headers` interface.
 - Extend mesh processing algorithms under `src/` and pair them with tests in `tests/`.
+- Exercise the module via the standard presets (`cmake --preset linux-gcc-debug`, `ctest --preset linux-gcc-debug`).
 
 ## TODO / Next Steps
 

@@ -1,7 +1,7 @@
 add_library(engine_math INTERFACE)
 
-target_include_directories(engine_math
-    INTERFACE
+engine_apply_module_defaults(engine_math
+    PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 

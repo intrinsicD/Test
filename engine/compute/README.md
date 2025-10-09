@@ -7,8 +7,9 @@
 
 ## Usage
 
-- Link against `engine_compute` to enqueue kernels and dispatch them via the topological scheduler.
+- Link against `engine_compute` to enqueue kernels and dispatch them via the topological scheduler; the target inherits `engine::project_options` and contributes headers to `engine::headers` alongside `engine_compute_cuda`.
 - Extend the dispatcher or integrate GPU execution paths under the CUDA submodule.
+- Configure with the canonical presets (for example `cmake --preset linux-gcc-debug`) and run smoke tests via `ctest --preset linux-gcc-debug` when iterating.
 
 ## TODO / Next Steps
 

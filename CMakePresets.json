@@ -1,0 +1,12 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "include": [
+    "scripts/build/presets/linux.json",
+    "scripts/build/presets/windows.json"
+  ]
+}

@@ -1,0 +1,9 @@
+set(CMAKE_SYSTEM_NAME Linux)
+
+set(CMAKE_C_COMPILER gcc CACHE FILEPATH "GCC compiler" FORCE)
+set(CMAKE_CXX_COMPILER g++ CACHE FILEPATH "G++ compiler" FORCE)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Export compilation database" FORCE)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "Enable -fPIC by default" FORCE)
+
+set(ENGINE_THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third_party" CACHE PATH "Pinned third-party source directory" FORCE)
