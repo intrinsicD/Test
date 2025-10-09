@@ -6,7 +6,7 @@
 
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/forward_pipeline.hpp"
-#include "engine/scene/components/transform.hpp"
+#include "engine/scene/components.hpp"
 #include "engine/scene/scene.hpp"
 
 namespace

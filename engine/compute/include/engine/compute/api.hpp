@@ -18,6 +18,8 @@
 #  define ENGINE_COMPUTE_API
 #endif
 
+#define MAYBE_UNUSED_CONST_AUTO [[maybe_unused]] const auto
+
 namespace engine::compute {
 
 struct ExecutionReport {

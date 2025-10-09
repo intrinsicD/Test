@@ -63,7 +63,7 @@ void ensure_initialized(runtime_state& state) {
     engine::physics::RigidBody body;
     body.mass = 2.0F;
     body.position = engine::math::vec3{0.0F, 0.25F, 0.0F};
-    engine::physics::add_body(state.world, body);
+    MAYBE_UNUSED_CONST_AUTO id = engine::physics::add_body(state.world, body);
     state.body_positions.clear();
     state.body_positions.push_back(body.position);
     state.pose = engine::animation::evaluate_controller(state.controller);
@@ -167,7 +167,7 @@ runtime_frame_state tick(double dt) {
         },
         {physics_integrate});
 
-    state.dispatcher.add_kernel(
+    MAYBE_UNUSED_CONST_AUTO a = state.dispatcher.add_kernel(
         "geometry.finalize",
         [&]() {
             engine::geometry::update_bounds(state.mesh);

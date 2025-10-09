@@ -124,6 +124,31 @@ namespace testing
             }
             return std::strcmp(lhs, rhs) == 0;
         }
+
+        class FatalFailureMessage
+        {
+        public:
+            FatalFailureMessage(const char* file, int line) : file_(file), line_(line)
+            {
+            }
+
+            [[noreturn]] ~FatalFailureMessage()
+            {
+                ReportFatalFailure(file_, line_, stream_.str());
+            }
+
+            template <typename T>
+            FatalFailureMessage& operator<<(const T& value)
+            {
+                stream_ << value;
+                return *this;
+            }
+
+        private:
+            const char* file_;
+            int line_;
+            std::ostringstream stream_;
+        };
     } // namespace internal
 
     class TestRegistrar
@@ -361,3 +386,5 @@ namespace testing
                 ::testing::internal::FormatComparison(#val1, #val2, gtest_val1, gtest_val2));            \
         }                                                                                                 \
     } while (false)
+
+#define FAIL() ::testing::internal::FatalFailureMessage(__FILE__, __LINE__)

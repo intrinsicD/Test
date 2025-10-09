@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Modular3GEngine LANGUAGES CXX C)
 
+
 set(ENGINE_MODULES
     math
     animation
@@ -30,6 +31,7 @@ target_compile_features(engine_project_options INTERFACE cxx_std_20)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(engine_project_options INTERFACE -stdlib=libc++)
     target_link_options(engine_project_options INTERFACE -stdlib=libc++)
+    target_link_libraries(engine_project_options INTERFACE c++)
 endif()
 
 add_library(engine_module_headers INTERFACE)
