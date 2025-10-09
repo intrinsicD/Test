@@ -1,12 +1,14 @@
-# Physics
+# Engine Physics Public Headers
 
-_Path: `engine/physics/include/engine/physics`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
 
+## Usage
 
-## Contents
+- Include headers from `<engine/physics/...>` when consuming the public API.
+- Keep header changes paired with updates to the module tests and documentation.
 
-### Files
+## TODO / Next Steps
 
-- `api.hpp` – C++ header.
+- Document the public headers once the API stabilises.

@@ -1,21 +1,15 @@
-# Src
+# Engine Geometry Sources
 
-_Path: `engine/geometry/src`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Implements the module logic across Api.
+- Hosts subdirectories for Graph, Mesh, Point Cloud, Properties, Shapes, Utils.
 
+## Usage
 
-## Contents
+- Source files compile into `engine_geometry`; ensure the build target stays warning-clean.
+- Mirror API additions with implementation updates in this directory.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `graph/` – contains 1 file.
-- `mesh/` – contains 1 file.
-- `point_cloud/` – contains 1 file.
-- `properties/` – contains 2 files.
-- `shapes/` – documented in its own README; contains 10 files.
-- `utils/` – contains 1 file.
-
-### Files
-
-- `api.cpp` – C++ source file.
+- Add scenario-driven examples and profiling to exercise the implementation.

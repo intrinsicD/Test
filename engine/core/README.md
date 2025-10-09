@@ -1,26 +1,15 @@
-# Core
+# Core Module
 
-_Path: `engine/core`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Implements foundational services such as the entity registry wrapper and module naming API.
+- Provides scaffolding for application lifecycle, configuration, diagnostics, and plugin subsystems.
 
+## Usage
 
-## Contents
+- Include `<engine/core/api.hpp>` and link against `engine_core` to use the base facilities.
+- Extend ECS features or add new core services in the dedicated subdirectories.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `application/` – documented in its own README; contains 1 file.
-- `configuration/` – documented in its own README; contains 1 file.
-- `diagnostics/` – documented in its own README; contains 1 file.
-- `ecs/` – documented in its own README; contains 1 file.
-- `include/` – contains 1 subdirectory.
-- `memory/` – documented in its own README; contains 1 file.
-- `parallel/` – documented in its own README; contains 1 file.
-- `plugin/` – documented in its own README; contains 1 file.
-- `runtime/` – documented in its own README; contains 1 file.
-- `src/` – documented in its own README; contains 1 file.
-- `tests/` – documented in its own README; contains 2 files.
-
-### Files
-
-- `CMakeLists.txt` – Text resource.
+- Extend engine core services for application control, configuration, and diagnostics.

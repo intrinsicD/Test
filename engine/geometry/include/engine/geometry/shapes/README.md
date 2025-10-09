@@ -1,21 +1,14 @@
-# Shapes
+# Engine Geometry Public Headers Shapes
 
-_Path: `engine/geometry/include/engine/geometry/shapes`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
 
+## Usage
 
-## Contents
+- Include headers from `<engine/geometry/shapes/...>` when consuming the public API.
+- Keep header changes paired with updates to the module tests and documentation.
 
-### Files
+## TODO / Next Steps
 
-- `aabb.hpp` – C++ header.
-- `cylinder.hpp` – C++ header.
-- `ellipsoid.hpp` – C++ header.
-- `line.hpp` – C++ header.
-- `obb.hpp` – C++ header.
-- `plane.hpp` – C++ header.
-- `ray.hpp` – C++ header.
-- `segment.hpp` – C++ header.
-- `sphere.hpp` – C++ header.
-- `triangle.hpp` – C++ header.
+- Document the public headers once the API stabilises.

@@ -1,8 +1,13 @@
-# Common
+# Engine Rendering Materials Shader Assets Common
 
-_Path: `engine/rendering/materials/shaders/common`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Contains scaffolding files that will evolve alongside the subsystem.
 
+## Usage
 
-This directory currently contains no tracked artifacts besides this README.
+- Keep this directory aligned with its parent module and update the README as features land.
+
+## TODO / Next Steps
+
+- Author representative shader assets once the rendering pipeline is defined.

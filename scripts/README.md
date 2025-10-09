@@ -1,28 +1,15 @@
-# Developer Scripts
+# Automation Scripts
 
-Automation helpers for building, validating, and packaging the workspace live under `scripts/`.
+## Current State
 
-## Module Purpose
+- Provides entry points for local developer workflows and CI orchestration.
+- Currently outlines the script categories without concrete implementations in place.
 
-- `build/` – Shell and Python helpers that wrap common build invocations.
-- `ci/` – Continuous integration entry points for linting, building, and testing in automation environments.
-- Top-level scripts – Ad-hoc utilities such as documentation validators.
+## Usage
 
-## Dependencies
+- Run scripts from the repository root to maintain consistent relative paths.
+- Reflect any workflow changes across CI and local scripts to avoid divergence.
 
-- Python 3.12+
-- CMake and Ninja when invoking build wrappers.
-- Additional tooling specified in the individual scripts (e.g., environment variables for CI).
+## TODO / Next Steps
 
-## Setup
-
-No installation step is required beyond ensuring Python and the build toolchain from the root README are available on
-your `PATH`.
-
-## Build/Test Commands
-
-- `python scripts/validate_docs.py` – Validates Markdown links across `docs/`.
-- `pytest scripts/tests` – Runs unit tests that exercise the documentation validator helpers.
-- See `scripts/build/README.md` and `scripts/ci/README.md` for subsystem-specific commands.
-
-_Last updated: 2025-02-14_
+- Consolidate automation entry points for developers and CI environments.

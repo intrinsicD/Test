@@ -1,13 +1,14 @@
-# Io
+# Engine Io Public Headers
 
-_Path: `engine/io/include/engine/io`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
 
+## Usage
 
-## Contents
+- Include headers from `<engine/io/...>` when consuming the public API.
+- Keep header changes paired with updates to the module tests and documentation.
 
-### Files
+## TODO / Next Steps
 
-- `api.hpp` – C++ header.
-- `geometry_io.hpp` – Geometry-aware import/export utilities.
+- Document the public headers once the API stabilises.

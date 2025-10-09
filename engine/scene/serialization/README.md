@@ -1,8 +1,14 @@
-# Serialization
+# Engine Scene Serialization
 
-_Path: `engine/scene/serialization`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
+- Implements the module logic across Serializer.
 
+## Usage
 
-This directory currently contains no tracked artifacts besides this README.
+- Keep this directory aligned with its parent module and update the README as features land.
+
+## TODO / Next Steps
+
+- Implement scene serialization and deserialization compatible with runtime assets.

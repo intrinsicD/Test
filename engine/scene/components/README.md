@@ -1,8 +1,13 @@
-# Components
+# Engine Scene Components
 
-_Path: `engine/scene/components`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
 
+## Usage
 
-This directory currently contains no tracked artifacts besides this README.
+- Keep this directory aligned with its parent module and update the README as features land.
+
+## TODO / Next Steps
+
+- Define component schemas and authoring utilities for the runtime.

@@ -1,14 +1,15 @@
-# Tools
+# Tools Module
 
-_Path: `engine/tools`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Houses editor, pipeline automation, and profiling utilities that sit atop the runtime.
+- Presently acts as scaffolding for future tooling features.
 
+## Usage
 
-## Contents
+- Extend tooling subdirectories with standalone applications or scripts as capabilities evolve.
+- Keep tooling build targets optional to avoid bloating the default configuration.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `editor/` – documented in its own README; contains 1 file.
-- `pipelines/` – documented in its own README; contains 1 file.
-- `profiling/` – documented in its own README; contains 1 file.
+- Stand up tooling flows for content pipelines, profiling, and editor workflows.

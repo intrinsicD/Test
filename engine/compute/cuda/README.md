@@ -1,18 +1,13 @@
-# Cuda
+# Engine Compute CUDA
 
-_Path: `engine/compute/cuda`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Hosts subdirectories for Public Headers, Sources, Tests.
 
+## Usage
 
-## Contents
+- Keep this directory aligned with its parent module and update the README as features land.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `include/` – contains 1 subdirectory.
-- `src/` – documented in its own README; contains 1 file.
-- `tests/` – documented in its own README; contains 2 files.
-
-### Files
-
-- `CMakeLists.txt` – Text resource.
+- Integrate CUDA kernels and scheduling into the dispatcher.

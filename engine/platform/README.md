@@ -1,21 +1,15 @@
-# Platform
+# Platform Module
 
-_Path: `engine/platform`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Defines abstractions for filesystem access, input, windowing, and platform-specific utilities.
+- Currently stubs out real OS integration pending backend work.
 
+## Usage
 
-## Contents
+- Link against `engine_platform` when consuming platform services from other modules.
+- Implement platform-specific backends in the dedicated subdirectories as requirements mature.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `filesystem/` – documented in its own README; contains 1 file.
-- `include/` – contains 1 subdirectory.
-- `input/` – documented in its own README; contains 1 file.
-- `src/` – documented in its own README; contains 1 file.
-- `tests/` – documented in its own README; contains 2 files.
-- `windowing/` – documented in its own README; contains 1 file.
-
-### Files
-
-- `CMakeLists.txt` – Text resource.
+- Bind platform abstractions to OS windowing, input, and filesystem APIs.

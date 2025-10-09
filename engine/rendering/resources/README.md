@@ -1,13 +1,13 @@
-# Resources
+# Engine Rendering Resources
 
-_Path: `engine/rendering/resources`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Hosts subdirectories for Buffers, Samplers.
 
+## Usage
 
-## Contents
+- Keep this directory aligned with its parent module and update the README as features land.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `buffers/` – documented in its own README; contains 1 file.
-- `samplers/` – documented in its own README; contains 1 file.
+- Implement GPU resource management for buffers, textures, and samplers.

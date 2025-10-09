@@ -1,8 +1,14 @@
-# Integration
+# Engine Tests Integration
 
-_Path: `engine/tests/integration`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Contains scaffolding for future automated tests.
 
+## Usage
 
-This directory currently contains no tracked artifacts besides this README.
+- Enable testing in the build and run `ctest --test-dir build` to execute this suite.
+- Expand the scenarios here to cover the behaviours introduced by the parent module.
+
+## TODO / Next Steps
+
+- Expand regression coverage beyond the current smoke checks.

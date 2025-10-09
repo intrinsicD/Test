@@ -1,13 +1,13 @@
-# Materials
+# Engine Rendering Materials
 
-_Path: `engine/rendering/materials`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Hosts subdirectories for Shader Assets, Textures.
 
+## Usage
 
-## Contents
+- Keep this directory aligned with its parent module and update the README as features land.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `shaders/` – documented in its own README; contains 3 subdirectories; contains 1 file.
-- `textures/` – documented in its own README; contains 1 file.
+- Hook materials into the rendering backend and asset pipeline.

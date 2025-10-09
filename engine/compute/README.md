@@ -1,33 +1,15 @@
-# Compute
+# Compute Module
 
-_Path: `engine/compute`_
+## Current State
 
-_Last updated: 2025-03-15_
-
-
-## Overview
-
-The compute subsystem now provides a minimal CPU execution graph that mirrors the structure expected from GPU
-schedulers. [`KernelDispatcher`](include/engine/compute/api.hpp) records kernels with dependency information,
-performs a Kahn topological traversal, and surfaces an `ExecutionReport` so the runtime can introspect execution
-order in tests.
-
-The CUDA subdirectory still hosts backend-specific experiments; the dispatcher is backend-agnostic and can be reused
-to prototype task graphs before offloading them to GPUs.
+- Hosts a CPU kernel dispatcher capable of enforcing dependency order and emitting execution traces.
+- Exposes a minimal math helper (`identity_transform`) shared across GPU and CPU code paths.
 
 ## Usage
 
-```cpp
-#include <engine/compute/api.hpp>
+- Link against `engine_compute` to enqueue kernels and dispatch them via the topological scheduler.
+- Extend the dispatcher or integrate GPU execution paths under the CUDA submodule.
 
-engine::compute::KernelDispatcher dispatcher;
-const auto prepare = dispatcher.add_kernel("prepare", [] {});
-dispatcher.add_kernel("dispatch", [] {}, {prepare});
-const auto report = dispatcher.dispatch();
-```
+## TODO / Next Steps
 
-## TODO
-
-- Add timing instrumentation to `ExecutionReport` once a high-resolution clock abstraction lands in `engine/core`.
-- Support asynchronous completion callbacks for GPU-backed kernels.
-- Extend the dependency graph to carry resource state transitions (read/write barriers).
+- Implement GPU-backed dispatch and integrate with runtime scheduling.

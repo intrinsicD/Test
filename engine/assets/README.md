@@ -1,20 +1,15 @@
-# Assets
+# Asset Module
 
-_Path: `engine/assets`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Defines the staging area for runtime asset management across samples, shaders, and packaging.
+- Currently focuses on directory scaffolding; concrete asset loaders remain to be implemented.
 
+## Usage
 
-## Contents
+- Organise engine-owned assets here so runtime modules can locate them consistently.
+- Keep asset metadata in sync with runtime expectations while pipelines mature.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `include/` – contains 1 subdirectory.
-- `samples/` – documented in its own README; contains 1 file.
-- `shaders/` – documented in its own README; contains 1 file.
-- `src/` – documented in its own README; contains 1 file.
-- `tests/` – documented in its own README; contains 2 files.
-
-### Files
-
-- `CMakeLists.txt` – Text resource.
+- Design asset pipelines that feed runtime modules beyond sample data.
