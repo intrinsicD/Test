@@ -19,4 +19,4 @@ namespace engine::rendering
             return lhs.index == rhs.index;
         }
     };
-}  // namespace engine::rendering::resources
+}  // namespace engine::rendering

@@ -3,7 +3,7 @@
 ## Current State
 
 - Exposes public headers that mirror the module API and guard ABI compatibility.
-- Publishes the `IGpuScheduler` interface and frame-graph contracts used by the runtime.
+- Publishes the `IGpuScheduler` interface, frame-graph contracts, and resource synchronisation primitives used by the runtime.
 
 ## Usage
 
