@@ -4,6 +4,7 @@
 
 - Wraps vector, matrix, and quaternion helpers that support animation, geometry, and physics subsystems.
 - Acts as the shared numerical foundation for both native and Python bindings.
+- Provides orthonormal basis construction via `engine::math::utils::orthonormal_basis` for tangent-frame derivation.
 
 ## Usage
 

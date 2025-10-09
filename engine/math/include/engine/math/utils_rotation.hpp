@@ -3,6 +3,9 @@
 #include "engine/math/common.hpp"
 #include "engine/math/matrix.hpp"
 #include "engine/math/quaternion.hpp"
+#include "engine/math/vector.hpp"
+
+#include <array>
 
 namespace engine::math::utils
 {
@@ -176,5 +179,48 @@ namespace engine::math::utils
         axis[1] = angle_axis[2];
         axis[2] = angle_axis[3];
         return to_rotation_matrix(angle, axis);
+    }
+
+    template <typename T>
+    ENGINE_MATH_INLINE std::array<Vector<T, 3>, 3> orthonormal_basis(const Vector<T, 3>& direction) noexcept
+    {
+        using math::detail::one;
+        using math::detail::zero;
+
+        Vector<T, 3> n = direction;
+        const T len_sq = length_squared(n);
+        const T eps = static_cast<T>(1e-10);
+        if (len_sq <= eps)
+        {
+            return {
+                Vector<T, 3>{one<T>(), zero<T>(), zero<T>()},
+                Vector<T, 3>{zero<T>(), one<T>(), zero<T>()},
+                Vector<T, 3>{zero<T>(), zero<T>(), one<T>()},
+            };
+        }
+
+        n = normalize(n);
+
+        Vector<T, 3> tangent;
+        if (n[2] < -one<T>() + static_cast<T>(1e-6))
+        {
+            tangent = Vector<T, 3>{zero<T>(), -one<T>(), zero<T>()};
+            const Vector<T, 3> bitangent{-one<T>(), zero<T>(), zero<T>()};
+            return {tangent, bitangent, n};
+        }
+
+        const T a = one<T>() / (one<T>() + n[2]);
+        const T b = -n[0] * n[1] * a;
+        tangent = Vector<T, 3>{
+            one<T>() - n[0] * n[0] * a,
+            b,
+            -n[0],
+        };
+
+        tangent = normalize(tangent);
+        Vector<T, 3> bitangent = cross(n, tangent);
+        bitangent = normalize(bitangent);
+
+        return {tangent, bitangent, n};
     }
 } // namespace engine::math::utils
