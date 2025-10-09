@@ -6,7 +6,6 @@
 #include <utility>
 
 #include "engine/assets/handles.hpp"
-#include "engine/rendering/api.hpp"
 #include "engine/rendering/gpu_scheduler.hpp"
 
 namespace engine::scene

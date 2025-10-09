@@ -8,8 +8,8 @@
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/rendering/render_pass.hpp"
-#include "engine/rendering/tests/scheduler_test_utils.hpp"
 #include "engine/scene/scene.hpp"
+#include "scheduler_test_utils.hpp"
 
 namespace
 {

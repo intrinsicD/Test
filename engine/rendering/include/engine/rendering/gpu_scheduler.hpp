@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-#include "engine/rendering/resources/synchronization.hpp"
+#include "../../rendering/resources/synchronization.hpp"
 
 namespace engine::rendering
 {

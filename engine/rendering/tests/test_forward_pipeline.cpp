@@ -8,7 +8,7 @@
 #include "engine/rendering/forward_pipeline.hpp"
 #include "engine/scene/components.hpp"
 #include "engine/scene/scene.hpp"
-#include "engine/rendering/tests/scheduler_test_utils.hpp"
+#include "scheduler_test_utils.hpp"
 
 namespace
 {

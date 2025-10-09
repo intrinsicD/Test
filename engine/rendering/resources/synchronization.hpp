@@ -5,11 +5,10 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <ostream>
 
-namespace engine::rendering
-{
-    struct FrameGraphResourceHandle;
-}
+#include "engine/rendering/frame_graph_types.hpp"
+
 
 namespace engine::rendering::resources
 {
@@ -28,6 +27,35 @@ namespace engine::rendering::resources
         Read,
         Write,
     };
+
+    inline std::ostream& operator<<(std::ostream& os, PipelineStage stage)
+    {
+        switch (stage)
+        {
+        case PipelineStage::Graphics:
+            return os << "Graphics";
+        case PipelineStage::Compute:
+            return os << "Compute";
+        case PipelineStage::Transfer:
+            return os << "Transfer";
+        }
+        return os;
+    }
+
+    inline std::ostream& operator<<(std::ostream& os, Access access)
+    {
+        switch (access)
+        {
+        case Access::None:
+            return os << "None";
+        case Access::Read:
+            return os << "Read";
+        case Access::Write:
+            return os << "Write";
+        }
+        return os;
+    }
+
 
     /// Description of a resource barrier issued around a render pass execution.
     struct Barrier
@@ -122,4 +150,3 @@ namespace engine::rendering::resources
         std::uint64_t value{0};
     };
 }
-

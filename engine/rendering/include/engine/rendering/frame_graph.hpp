@@ -3,34 +3,21 @@
 #include <cstddef>
 #include <limits>
 #include <memory>
-#include <ostream>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "engine/rendering/render_pass.hpp"
-#include "engine/rendering/resources/synchronization.hpp"
+#include "engine/rendering/frame_graph_types.hpp"
+#include "../../rendering/resources/synchronization.hpp"
 
 namespace engine::rendering
 {
     class FrameGraph;
 
     /// Handle identifying resources declared inside the frame-graph.
-    struct FrameGraphResourceHandle
-    {
-        std::size_t index{std::numeric_limits<std::size_t>::max()};
 
-        [[nodiscard]] bool valid() const noexcept
-        {
-            return index != std::numeric_limits<std::size_t>::max();
-        }
-
-        friend bool operator==(FrameGraphResourceHandle lhs, FrameGraphResourceHandle rhs) noexcept
-        {
-            return lhs.index == rhs.index;
-        }
-    };
 
     /// Lifetime category of a frame-graph resource.
     enum class ResourceLifetime
