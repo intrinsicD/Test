@@ -3,7 +3,8 @@
 ## Current State
 
 - Exposes public headers that mirror the module API and guard ABI compatibility.
-- Publishes the `IGpuScheduler` interface, frame-graph contracts, and resource synchronisation primitives used by the runtime.
+- Publishes the `IGpuScheduler` interface, frame-graph contracts, resource synchronisation primitives, and the
+  backend-neutral `resources::IGpuResourceProvider` contract used by the runtime.
 
 ## Usage
 
@@ -14,3 +15,4 @@
 
 - Document the public headers once the API stabilises.
 - Provide backend-specific scheduler documentation when hardware integrations land.
+- Publish example implementations of `IGpuResourceProvider` for each backend.

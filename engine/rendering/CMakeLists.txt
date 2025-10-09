@@ -5,6 +5,7 @@ add_library(${target_name}
     src/frame_graph.cpp
     src/forward_pipeline.cpp
     src/material_system.cpp
+    resources/recording_gpu_resource_provider.cpp
 )
 
 engine_apply_module_defaults(${target_name}

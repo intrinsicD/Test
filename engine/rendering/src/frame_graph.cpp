@@ -278,6 +278,8 @@ namespace engine::rendering
         resources::Fence frame_fence{"FrameGraphFence", 0};
         std::uint64_t timeline_value = 0;
 
+        context.device_resources.begin_frame();
+
         for (std::size_t order_index = 0; order_index < execution_order_.size(); ++order_index)
         {
             const std::size_t pass_index = execution_order_[order_index];
@@ -294,6 +296,9 @@ namespace engine::rendering
                     alive[handle.index] = true;
                     resource_events_.push_back(ResourceEvent{ResourceEvent::Type::Acquire, resource.name,
                                                               std::string(pass.pass->name())});
+                    context.device_resources.on_transient_acquire(handle,
+                                                                   FrameGraphResourceInfo{resource.name,
+                                                                                           resource.lifetime});
                 }
             };
 
@@ -305,6 +310,9 @@ namespace engine::rendering
                     alive[handle.index] = false;
                     resource_events_.push_back(ResourceEvent{ResourceEvent::Type::Release, resource.name,
                                                               std::string(pass.pass->name())});
+                    context.device_resources.on_transient_release(handle,
+                                                                   FrameGraphResourceInfo{resource.name,
+                                                                                           resource.lifetime});
                 }
             };
 
@@ -378,6 +386,8 @@ namespace engine::rendering
             context.scheduler.recycle(command_buffer);
             timeline_value = submission_value;
         }
+
+        context.device_resources.end_frame();
     }
 
     const std::vector<std::size_t>& FrameGraph::execution_order() const noexcept

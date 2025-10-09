@@ -8,6 +8,7 @@
 #include "engine/rendering/forward_pipeline.hpp"
 #include "engine/scene/components.hpp"
 #include "engine/scene/scene.hpp"
+#include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 #include "scheduler_test_utils.hpp"
 
 namespace
@@ -98,9 +99,10 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     engine::rendering::FrameGraph graph;
     engine::rendering::ForwardPipeline pipeline;
     RecordingProvider provider;
+    engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
 
-    pipeline.render(scene, provider, materials, scheduler, graph);
+    pipeline.render(scene, provider, materials, device_provider, scheduler, graph);
 
     ASSERT_EQ(scheduler.submissions.size(), 1);  // NOLINT
     EXPECT_EQ(scheduler.submissions.front().pass_name, "ForwardGeometry");
@@ -151,4 +153,9 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     EXPECT_TRUE(std::find(provider.shaders.begin(), provider.shaders.end(),
                           engine::assets::ShaderHandle{std::string{"cloud_shader"}})
                 != provider.shaders.end());
+
+    EXPECT_EQ(device_provider.frames_begun(), 1U);
+    EXPECT_EQ(device_provider.frames_completed(), 1U);
+    ASSERT_EQ(device_provider.acquired().size(), 2);  // NOLINT
+    ASSERT_EQ(device_provider.released().size(), 2);  // NOLINT
 }

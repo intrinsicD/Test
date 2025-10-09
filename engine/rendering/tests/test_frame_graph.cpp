@@ -8,6 +8,7 @@
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/rendering/render_pass.hpp"
+#include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 #include "engine/scene/scene.hpp"
 #include "scheduler_test_utils.hpp"
 
@@ -61,8 +62,10 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
     engine::scene::Scene scene;
     engine::rendering::MaterialSystem materials;
     NullProvider provider;
+    engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene}, scheduler};
+    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
+                                                     scheduler, device_provider};
     graph.execute(context);
 
     ASSERT_EQ(order.size(), 3);  // NOLINT
@@ -100,12 +103,19 @@ TEST(FrameGraph, TracksResourceLifetimes)
     engine::scene::Scene scene;
     engine::rendering::MaterialSystem materials;
     NullProvider provider;
+    engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene}, scheduler};
+    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
+                                                     scheduler, device_provider};
     graph.execute(context);
 
     const auto& events = graph.resource_events();
     ASSERT_EQ(events.size(), 4);  // NOLINT
+
+    EXPECT_EQ(device_provider.frames_begun(), 1U);
+    EXPECT_EQ(device_provider.frames_completed(), 1U);
+    ASSERT_EQ(device_provider.acquired().size(), 2);  // NOLINT
+    ASSERT_EQ(device_provider.released().size(), 2);  // NOLINT
 
     EXPECT_EQ(events[0].type, engine::rendering::ResourceEvent::Type::Acquire);
     EXPECT_EQ(events[0].resource_name, "Depth");
@@ -153,12 +163,17 @@ TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
     engine::scene::Scene scene;
     engine::rendering::MaterialSystem materials;
     NullProvider provider;
+    engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene}, scheduler};
+    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
+                                                     scheduler, device_provider};
     graph.execute(context);
 
     const auto& submissions = scheduler.submissions;
     ASSERT_EQ(submissions.size(), 3);  // NOLINT
+
+    EXPECT_EQ(device_provider.frames_begun(), 1U);
+    EXPECT_EQ(device_provider.frames_completed(), 1U);
 
     const auto& depth_submission = submissions[0];
     EXPECT_EQ(depth_submission.pass_name, "DepthPrepass");

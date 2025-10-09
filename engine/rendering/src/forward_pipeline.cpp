@@ -83,7 +83,8 @@ namespace engine::rendering
     } // namespace
 
     void ForwardPipeline::render(scene::Scene& scene, RenderResourceProvider& resources,
-                                 MaterialSystem& materials, IGpuScheduler& scheduler, FrameGraph& graph)
+                                 MaterialSystem& materials, resources::IGpuResourceProvider& device_resources,
+                                 IGpuScheduler& scheduler, FrameGraph& graph)
     {
         graph.reset();
 
@@ -93,7 +94,7 @@ namespace engine::rendering
         graph.add_pass(std::make_unique<ForwardGeometryPass>(color, depth));
         graph.compile();
 
-        RenderExecutionContext context{resources, materials, RenderView{scene}, scheduler};
+        RenderExecutionContext context{resources, materials, RenderView{scene}, scheduler, device_resources};
         graph.execute(context);
     }
 }
