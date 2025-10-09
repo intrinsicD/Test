@@ -2,6 +2,7 @@
 
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/material_system.hpp"
+#include "engine/rendering/resources/resource_provider.hpp"
 
 namespace engine::rendering
 {
@@ -12,6 +13,7 @@ namespace engine::rendering
     {
     public:
         void render(scene::Scene& scene, RenderResourceProvider& resources, MaterialSystem& materials,
-                    IGpuScheduler& scheduler, FrameGraph& graph);
+                    resources::IGpuResourceProvider& device_resources, IGpuScheduler& scheduler,
+                    FrameGraph& graph);
     };
 }
