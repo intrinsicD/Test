@@ -1,4 +1,6 @@
 # Agents
+- make sure xrandr is installed and working
+- use clang 22 to compile
 - make sure to read all README.md files first
 - make sure to recognize all dependencies and install them if necessary
 - update the respective README.md files to reflect the new/current state of the project
