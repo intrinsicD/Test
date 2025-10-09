@@ -2,66 +2,56 @@
 
 #include <cstdint>
 #include <string>
-#include <string_view>
 #include <vector>
 
-#include "engine/rendering/backend/native_scheduler_base.hpp"
+#include "../native_scheduler_base.hpp"
 
-namespace engine::rendering::backend::metal
+namespace engine::rendering::backend::opengl
 {
-    struct MetalTimelineSubmit
+    struct OpenGLTimelineSubmit
     {
         resources::TimelineSemaphoreNativeHandle semaphore{};
         std::uint64_t value{0};
     };
 
-    struct MetalCommandEncoderSubmit
+    struct OpenGLCommandEncoderSubmit
     {
         resources::QueueNativeHandle queue{};
         resources::CommandBufferNativeHandle command_buffer{};
     };
 
-    struct MetalSubmission
+    struct OpenGLSubmission
     {
         std::string pass_name;
-        MetalCommandEncoderSubmit command_buffer;
+        OpenGLCommandEncoderSubmit command_buffer;
         std::vector<resources::Barrier> begin_barriers;
         std::vector<resources::Barrier> end_barriers;
-        std::vector<MetalTimelineSubmit> waits;
-        std::vector<MetalTimelineSubmit> signals;
+        std::vector<OpenGLTimelineSubmit> waits;
+        std::vector<OpenGLTimelineSubmit> signals;
         resources::FenceNativeHandle fence{};
         std::uint64_t fence_value{0};
     };
 
-    /// GPU scheduler that mirrors Metal command encoder routing.
-    class MetalGpuScheduler final : public backend::NativeSchedulerBase<MetalGpuScheduler, MetalSubmission>
+    /// Scheduler that maps frame-graph work onto an OpenGL command stream.
+    class OpenGLGpuScheduler final : public backend::NativeSchedulerBase<OpenGLGpuScheduler, OpenGLSubmission>
     {
     public:
-        using Base = backend::NativeSchedulerBase<MetalGpuScheduler, MetalSubmission>;
+        using Base = backend::NativeSchedulerBase<OpenGLGpuScheduler, OpenGLSubmission>;
 
-        explicit MetalGpuScheduler(resources::IGpuResourceProvider& provider)
+        explicit OpenGLGpuScheduler(resources::IGpuResourceProvider& provider)
             : Base(provider)
         {
         }
 
-        QueueType select_queue(const RenderPass& pass) override
+        QueueType select_queue(const RenderPass&) override
         {
-            const auto name = pass.name();
-            if (name.find("Blit") != std::string_view::npos)
-            {
-                return QueueType::Transfer;
-            }
-            if (name.find("Compute") != std::string_view::npos)
-            {
-                return QueueType::Compute;
-            }
             return QueueType::Graphics;
         }
 
-        [[nodiscard]] MetalSubmission build_submission(const GpuSubmitInfo& info,
-                                                        const typename Base::EncoderRecord& encoder)
+        [[nodiscard]] OpenGLSubmission build_submission(const GpuSubmitInfo& info,
+                                                         const typename Base::EncoderRecord& encoder)
         {
-            MetalSubmission submission{};
+            OpenGLSubmission submission{};
             submission.pass_name = std::string{info.pass_name};
             submission.command_buffer.queue = provider_.queue_handle(info.queue);
             submission.command_buffer.command_buffer = encoder.native;
@@ -81,7 +71,7 @@ namespace engine::rendering::backend::metal
                 {
                     continue;
                 }
-                MetalTimelineSubmit submit{};
+                OpenGLTimelineSubmit submit{};
                 submit.semaphore = provider_.resolve_semaphore(*wait.semaphore);
                 submit.value = wait.value;
                 submission.waits.push_back(submit);
@@ -94,7 +84,7 @@ namespace engine::rendering::backend::metal
                 {
                     continue;
                 }
-                MetalTimelineSubmit submit{};
+                OpenGLTimelineSubmit submit{};
                 submit.semaphore = provider_.resolve_semaphore(*signal.semaphore);
                 submit.value = signal.value;
                 submission.signals.push_back(submit);

@@ -2,56 +2,66 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "engine/rendering/backend/native_scheduler_base.hpp"
+#include "../native_scheduler_base.hpp"
 
-namespace engine::rendering::backend::opengl
+namespace engine::rendering::backend::vulkan
 {
-    struct OpenGLTimelineSubmit
+    struct VulkanSemaphoreSubmit
     {
         resources::TimelineSemaphoreNativeHandle semaphore{};
         std::uint64_t value{0};
     };
 
-    struct OpenGLCommandEncoderSubmit
+    struct VulkanCommandBufferSubmit
     {
         resources::QueueNativeHandle queue{};
         resources::CommandBufferNativeHandle command_buffer{};
     };
 
-    struct OpenGLSubmission
+    struct VulkanSubmission
     {
         std::string pass_name;
-        OpenGLCommandEncoderSubmit command_buffer;
+        VulkanCommandBufferSubmit command_buffer;
         std::vector<resources::Barrier> begin_barriers;
         std::vector<resources::Barrier> end_barriers;
-        std::vector<OpenGLTimelineSubmit> waits;
-        std::vector<OpenGLTimelineSubmit> signals;
+        std::vector<VulkanSemaphoreSubmit> waits;
+        std::vector<VulkanSemaphoreSubmit> signals;
         resources::FenceNativeHandle fence{};
         std::uint64_t fence_value{0};
     };
 
-    /// Scheduler that maps frame-graph work onto an OpenGL command stream.
-    class OpenGLGpuScheduler final : public backend::NativeSchedulerBase<OpenGLGpuScheduler, OpenGLSubmission>
+    /// GPU scheduler that translates frame-graph submissions into Vulkan primitives.
+    class VulkanGpuScheduler final : public backend::NativeSchedulerBase<VulkanGpuScheduler, VulkanSubmission>
     {
     public:
-        using Base = backend::NativeSchedulerBase<OpenGLGpuScheduler, OpenGLSubmission>;
+        using Base = backend::NativeSchedulerBase<VulkanGpuScheduler, VulkanSubmission>;
 
-        explicit OpenGLGpuScheduler(resources::IGpuResourceProvider& provider)
+        explicit VulkanGpuScheduler(resources::IGpuResourceProvider& provider)
             : Base(provider)
         {
         }
 
-        QueueType select_queue(const RenderPass&) override
+        QueueType select_queue(const RenderPass& pass) override
         {
+            const auto name = pass.name();
+            if (name.find("Transfer") != std::string_view::npos || name.find("Copy") != std::string_view::npos)
+            {
+                return QueueType::Transfer;
+            }
+            if (name.find("Compute") != std::string_view::npos)
+            {
+                return QueueType::Compute;
+            }
             return QueueType::Graphics;
         }
 
-        [[nodiscard]] OpenGLSubmission build_submission(const GpuSubmitInfo& info,
+        [[nodiscard]] VulkanSubmission build_submission(const GpuSubmitInfo& info,
                                                          const typename Base::EncoderRecord& encoder)
         {
-            OpenGLSubmission submission{};
+            VulkanSubmission submission{};
             submission.pass_name = std::string{info.pass_name};
             submission.command_buffer.queue = provider_.queue_handle(info.queue);
             submission.command_buffer.command_buffer = encoder.native;
@@ -71,7 +81,7 @@ namespace engine::rendering::backend::opengl
                 {
                     continue;
                 }
-                OpenGLTimelineSubmit submit{};
+                VulkanSemaphoreSubmit submit{};
                 submit.semaphore = provider_.resolve_semaphore(*wait.semaphore);
                 submit.value = wait.value;
                 submission.waits.push_back(submit);
@@ -84,7 +94,7 @@ namespace engine::rendering::backend::opengl
                 {
                     continue;
                 }
-                OpenGLTimelineSubmit submit{};
+                VulkanSemaphoreSubmit submit{};
                 submit.semaphore = provider_.resolve_semaphore(*signal.semaphore);
                 submit.value = signal.value;
                 submission.signals.push_back(submit);

@@ -20,6 +20,20 @@ namespace engine::rendering
         Transfer,
     };
 
+    inline std::ostream& operator<<(std::ostream& os, QueueType type)
+    {
+        switch (type)
+        {
+        case QueueType::Graphics:
+            return os << "Graphics";
+        case QueueType::Compute:
+            return os << "Compute";
+        case QueueType::Transfer:
+            return os << "Transfer";
+        }
+        return os;
+    }
+
     /// Handle referencing a backend-specific command buffer.
     struct CommandBufferHandle
     {
@@ -76,4 +90,3 @@ namespace engine::rendering
         virtual void recycle(CommandBufferHandle handle) = 0;
     };
 }
-

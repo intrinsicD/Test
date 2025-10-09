@@ -26,6 +26,24 @@ namespace engine::rendering::resources
         OpenGL,
     };
 
+    inline std::ostream& operator<<(std::ostream& os, GraphicsApi api)
+    {
+        switch (api)
+        {
+        case GraphicsApi::Unknown:
+            return os << "Unknown";
+        case GraphicsApi::Vulkan:
+            return os << "Vulkan";
+        case GraphicsApi::DirectX12:
+            return os << "DirectX12";
+        case GraphicsApi::Metal:
+            return os << "Metal";
+        case GraphicsApi::OpenGL:
+            return os << "OpenGL";
+        }
+        return os;
+    }
+
     /// Native GPU queue identifier surfaced to backend adapters.
     struct QueueNativeHandle
     {
