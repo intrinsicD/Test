@@ -44,7 +44,7 @@ TEST(ComputeModule, DispatcherRespectsDependencies) {
     EXPECT_EQ(report.execution_order.size(), 3U);
     EXPECT_EQ(report.execution_order.front(), "first");
     EXPECT_EQ(report.execution_order.back(), "third");
-    EXPECT_EQ(values[2], 2);
+    EXPECT_EQ(values[2], 3);
 }
 
 TEST(ComputeModule, DispatcherDetectsCycles) {

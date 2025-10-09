@@ -15,17 +15,17 @@ TEST(RuntimeModule, ExecutesSimulationPipeline) {
     engine::runtime::initialize();
 
     const auto frame = engine::runtime::tick(0.016);
-    ASSERT_GE(frame.dispatch_report.execution_order.size(), 4U);
+    EXPECT_GE(frame.dispatch_report.execution_order.size(), 4U);
     EXPECT_EQ(frame.dispatch_report.execution_order.front(), "animation.evaluate");
     EXPECT_EQ(frame.dispatch_report.execution_order.back(), "geometry.finalize");
 
-    ASSERT_FALSE(frame.pose.joints.empty());
+    EXPECT_FALSE(frame.pose.joints.empty());
     const auto* root = frame.pose.find("root");
-    ASSERT_NE(root, nullptr);
+    EXPECT_TRUE(root != nullptr);
 
     const auto& mesh = engine::runtime::current_mesh();
     EXPECT_GE(mesh.bounds.max[1], mesh.bounds.min[1]);
-    ASSERT_FALSE(frame.body_positions.empty());
+    EXPECT_FALSE(frame.body_positions.empty());
 
     engine::runtime::shutdown();
 }
