@@ -1,14 +1,14 @@
-# Tests
+# Engine Io Tests
 
-_Path: `engine/io/tests`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Contains automated tests covering Geometry Io, Module.
 
+## Usage
 
-## Contents
+- Build the module with testing enabled and execute `ctest --test-dir build` to run this suite.
+- Extend the cases alongside new runtime features to maintain behavioural coverage.
 
-### Files
+## TODO / Next Steps
 
-- `CMakeLists.txt` – Text resource.
-- `test_module.cpp` – C++ source file.
-- `test_geometry_io.cpp` – Tests for geometry detection, loading, and writing.
+- Expand regression coverage beyond the current smoke checks.

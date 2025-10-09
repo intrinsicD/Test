@@ -1,21 +1,14 @@
-# Shapes
+# Engine Geometry Sources Shapes
 
-_Path: `engine/geometry/src/shapes`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Implements the module logic across Aabb, Cylinder, Ellipsoid, Line, Obb, Plane, Random, Ray, Segment, Sphere, Triangle.
 
+## Usage
 
-## Contents
+- Source files compile into `engine_geometry`; ensure the build target stays warning-clean.
+- Mirror API additions with implementation updates in this directory.
 
-### Files
+## TODO / Next Steps
 
-- `aabb.cpp` – C++ source file.
-- `cylinder.cpp` – C++ source file.
-- `ellipsoid.cpp` – C++ source file.
-- `line.cpp` – C++ source file.
-- `obb.cpp` – C++ source file.
-- `plane.cpp` – C++ source file.
-- `ray.cpp` – C++ source file.
-- `segment.cpp` – C++ source file.
-- `sphere.cpp` – C++ source file.
-- `triangle.cpp` – C++ source file.
+- Add scenario-driven examples and profiling to exercise the implementation.

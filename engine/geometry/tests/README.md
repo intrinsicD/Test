@@ -1,19 +1,14 @@
-# Tests
+# Engine Geometry Tests
 
-_Path: `engine/geometry/tests`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Contains automated tests covering Graph, Halfedge Mesh, Module, Octree, Point Cloud, Property Registry, Shape Interactions, Shapes.
 
+## Usage
 
-## Contents
+- Build the module with testing enabled and execute `ctest --test-dir build` to run this suite.
+- Extend the cases alongside new runtime features to maintain behavioural coverage.
 
-### Files
+## TODO / Next Steps
 
-- `CMakeLists.txt` – Text resource.
-- `test_graph.cpp` – C++ source file.
-- `test_halfedge_mesh.cpp` – C++ source file.
-- `test_module.cpp` – C++ source file.
-- `test_point_cloud.cpp` – C++ source file.
-- `test_property_registry.cpp` – C++ source file.
-- `test_shape_interactions.cpp` – C++ source file.
-- `test_shapes.cpp` – C++ source file.
+- Expand regression coverage beyond the current smoke checks.

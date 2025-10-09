@@ -1,8 +1,15 @@
-# Ci
+# CI Scripts
 
-_Path: `scripts/ci`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Reserved for continuous integration helpers mirroring the documented workflow.
+- Currently empty aside from the README scaffold.
 
+## Usage
 
-This directory currently contains no tracked artifacts besides this README.
+- Populate with pipeline definitions or helper scripts used by CI providers.
+- Ensure local and CI workflows remain consistent to prevent surprises.
+
+## TODO / Next Steps
+
+- Implement CI harness scripts mirroring the documented workflow.

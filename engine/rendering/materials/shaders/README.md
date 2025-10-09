@@ -1,14 +1,13 @@
-# Shaders
+# Engine Rendering Materials Shader Assets
 
-_Path: `engine/rendering/materials/shaders`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Hosts subdirectories for Common, GLSL, HLSL.
 
+## Usage
 
-## Contents
+- Keep this directory aligned with its parent module and update the README as features land.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `common/` – documented in its own README; contains 1 file.
-- `glsl/` – documented in its own README; contains 1 file.
-- `hlsl/` – documented in its own README; contains 1 file.
+- Author representative shader assets once the rendering pipeline is defined.

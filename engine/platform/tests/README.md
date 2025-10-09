@@ -1,14 +1,14 @@
-# Tests
+# Engine Platform Tests
 
-_Path: `engine/platform/tests`_
+## Current State
 
-_Last updated: 2025-10-06_
+- Contains automated tests covering Module, Window Console Tests, Window Test App.
 
-## Contents
+## Usage
 
-### Files
+- Build the module with testing enabled and execute `ctest --test-dir build` to run this suite.
+- Extend the cases alongside new runtime features to maintain behavioural coverage.
 
-- `CMakeLists.txt` – Text resource.
-- `test_module.cpp` – GoogleTest suite covering module exports, headless behaviour, and the GLFW backend lifecycle (skipped automatically when GLFW cannot initialise).
-- `window_console_tests.cpp` – GoogleTest coverage for the reusable interactive console behaviour.
-- `window_test_app.cpp` – Interactive console harness for manually exercising window backends and event delivery.
+## TODO / Next Steps
+
+- Expand regression coverage beyond the current smoke checks.

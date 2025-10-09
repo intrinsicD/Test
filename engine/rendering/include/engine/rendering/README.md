@@ -1,17 +1,14 @@
-# Rendering
+# Engine Rendering Public Headers
 
-_Path: `engine/rendering/include/engine/rendering`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
 
+## Usage
 
-## Contents
+- Include headers from `<engine/rendering/...>` when consuming the public API.
+- Keep header changes paired with updates to the module tests and documentation.
 
-### Files
+## TODO / Next Steps
 
-- `api.hpp` – C++ header.
-- `components.hpp` – Rendering-specific scene component definitions.
-- `frame_graph.hpp` – Frame graph interfaces.
-- `forward_pipeline.hpp` – Forward rendering pipeline interface.
-- `material_system.hpp` – Material management interfaces.
-- `render_pass.hpp` – Render pass abstractions.
+- Document the public headers once the API stabilises.

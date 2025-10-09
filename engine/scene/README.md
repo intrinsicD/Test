@@ -1,35 +1,15 @@
-# Scene
+# Scene Module
 
-_Path: `engine/scene`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Outlines the scene graph, component storage, serialization, and system execution layout.
+- Currently focuses on structure and scaffolding pending concrete implementations.
 
+## Usage
 
-## Contents
+- Link against `engine_scene` to host world state once components and systems are implemented.
+- Keep serialization and graph updates coordinated with runtime requirements.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `components/` – documented in its own README; contains 1 file.
-- `graph/` – documented in its own README; contains 1 file.
-- `include/` – contains 1 subdirectory.
-- `serialization/` – documented in its own README; contains 1 file.
-- `src/` – documented in its own README; contains 1 file.
-- `systems/` – documented in its own README; contains 1 file.
-- `tests/` – documented in its own README; contains 2 files.
-
-### Files
-
-- `CMakeLists.txt` – Text resource.
-
-## Public headers
-
-The scene module exposes both its root directory and the `include/` tree as
-public include directories. This allows client code to include implementation
-details such as
-
-```cpp
-#include "components/hierarchy.hpp"
-#include "systems/registry.hpp"
-```
-
-without relying on fragile, relative paths.
+- Implement scene graph serialization, systems, and runtime traversal.

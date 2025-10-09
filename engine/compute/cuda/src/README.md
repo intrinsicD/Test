@@ -1,12 +1,14 @@
-# Src
+# Engine Compute CUDA Sources
 
-_Path: `engine/compute/cuda/src`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Implements the module logic across Api.
 
+## Usage
 
-## Contents
+- Source files compile into `engine_compute`; ensure the build target stays warning-clean.
+- Mirror API additions with implementation updates in this directory.
 
-### Files
+## TODO / Next Steps
 
-- `api.cpp` – C++ source file.
+- Integrate CUDA kernels and scheduling into the dispatcher.

@@ -1,19 +1,14 @@
-# Math
+# Engine Math Public Headers
 
-_Path: `engine/math/include/engine/math`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
 
+## Usage
 
-## Contents
+- Include headers from `<engine/math/...>` when consuming the public API.
+- Keep header changes paired with updates to the module tests and documentation.
 
-### Files
+## TODO / Next Steps
 
-- `common.hpp` – C++ header.
-- `math.hpp` – C++ header.
-- `matrix.hpp` – C++ header.
-- `quaternion.hpp` – C++ header.
-- `utils.hpp` – C++ header.
-- `utils_camera.hpp` – C++ header.
-- `utils_rotation.hpp` – C++ header.
-- `vector.hpp` – C++ header.
+- Document the public headers once the API stabilises.

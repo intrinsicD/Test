@@ -1,13 +1,14 @@
-# Tests
+# Engine Compute Tests
 
-_Path: `engine/compute/tests`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Contains automated tests covering Module.
 
+## Usage
 
-## Contents
+- Build the module with testing enabled and execute `ctest --test-dir build` to run this suite.
+- Extend the cases alongside new runtime features to maintain behavioural coverage.
 
-### Files
+## TODO / Next Steps
 
-- `CMakeLists.txt` – Text resource.
-- `test_module.cpp` – C++ source file.
+- Expand regression coverage beyond the current smoke checks.

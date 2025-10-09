@@ -1,12 +1,14 @@
-# Src
+# Engine Physics Sources
 
-_Path: `engine/physics/src`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Implements the module logic across Api.
 
+## Usage
 
-## Contents
+- Source files compile into `engine_physics`; ensure the build target stays warning-clean.
+- Mirror API additions with implementation updates in this directory.
 
-### Files
+## TODO / Next Steps
 
-- `api.cpp` – C++ source file.
+- Add scenario-driven examples and profiling to exercise the implementation.

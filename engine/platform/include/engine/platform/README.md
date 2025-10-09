@@ -1,14 +1,14 @@
-# Platform
+# Engine Platform Public Headers
 
-_Path: `engine/platform/include/engine/platform`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
 
+## Usage
 
-## Contents
+- Include headers from `<engine/platform/...>` when consuming the public API.
+- Keep header changes paired with updates to the module tests and documentation.
 
-### Files
+## TODO / Next Steps
 
-- `api.hpp` – Module metadata exports.
-- `window.hpp` – Public windowing abstractions and factory helpers.
-- `window_console.hpp` – Reusable interactive console for exercising window implementations.
+- Document the public headers once the API stabilises.

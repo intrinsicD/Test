@@ -1,15 +1,13 @@
-# Backend
+# Engine Rendering Backend
 
-_Path: `engine/rendering/backend`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Hosts subdirectories for DirectX 12, Metal, OpenGL, Vulkan.
 
+## Usage
 
-## Contents
+- Keep this directory aligned with its parent module and update the README as features land.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `directx12/` – documented in its own README; contains 1 file.
-- `metal/` – documented in its own README; contains 1 file.
-- `opengl/` – documented in its own README; contains 1 file.
-- `vulkan/` – documented in its own README; contains 1 file.
+- Implement the actual backend integration using the target API.

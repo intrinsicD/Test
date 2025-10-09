@@ -1,16 +1,15 @@
-# Design Documents
+# Design Records
 
-The `docs/design/` directory stores higher-level architectural proposals, diagrams, and exploratory notes that guide the
-engine roadmap.
+## Current State
 
-## Current Assets
+- Houses architecture explorations, design rationales, and decision records for the engine.
+- Tracks historical context for feature planning and subsystem experiments.
 
-- [Engine Architecture Overview](architecture.md) — Module boundaries, ECS layering, and runtime discovery.
+## Usage
 
-## Contribution Guidelines
+- Capture design proposals here before landing major subsystem work.
+- Reference these documents in pull requests so reviewers can trace the intent.
 
-- Keep diagrams and figures co-located with their editable source formats.
-- Cross-reference engine headers or source files when describing behaviour.
-- Update the document history or changelog section (when present) so readers can track revisions.
+## TODO / Next Steps
 
-_Last updated: 2025-02-14_
+- Capture design rationales and outcomes for upcoming milestones.

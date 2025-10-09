@@ -1,25 +1,15 @@
-# Rendering
+# Rendering Module
 
-_Path: `engine/rendering`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Implements a prototype frame graph and forward pipeline within the native renderer.
+- Structures backend, resource, material, and pass directories for platform-specific integrations.
 
+## Usage
 
-## Contents
+- Link against `engine_rendering` to access render pass orchestration and frame graph primitives.
+- Add backend-specific code under `backend/` and keep resource and material definitions in sync.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `backend/` – documented in its own README; contains 4 subdirectories; contains 1 file.
-- `include/` – contains 1 subdirectory.
-- `lighting/` – documented in its own README; contains 1 file.
-- `materials/` – documented in its own README; contains 2 subdirectories; contains 1 file.
-- `passes/` – documented in its own README; contains 1 file.
-- `pipeline/` – documented in its own README; contains 1 file.
-- `resources/` – documented in its own README; contains 2 subdirectories; contains 1 file.
-- `src/` – documented in its own README; contains 1 file.
-- `tests/` – documented in its own README; contains 2 files.
-- `visibility/` – documented in its own README; contains 1 file.
-
-### Files
-
-- `CMakeLists.txt` – Text resource.
+- Connect the frame graph to concrete GPU backends and resource providers.

@@ -1,23 +1,15 @@
-# Io
+# I/O Module
 
-_Path: `engine/io`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Establishes the directory layout for importers, exporters, caching, and runtime I/O infrastructure.
+- Provides initial stubs that will host asset streaming and persistence logic.
 
+## Usage
 
-## Contents
+- Implement specific format handlers under `importers/` and `exporters/` as pipelines solidify.
+- Keep cache policies and runtime integration code in `src/` aligned with subsystem expectations.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `cache/` – documented in its own README; contains 1 file.
-- `exporters/` – documented in its own README; contains 1 file.
-- `importers/` – documented in its own README; contains 1 file.
-- `include/` – contains 1 subdirectory.
-- `src/` – documented in its own README; contains 1 file.
-- `tests/` – documented in its own README; contains 2 files.
-
-### Files
-
-- `CMakeLists.txt` – Text resource.
-- `include/engine/io/geometry_io.hpp` – Public API for mesh, point cloud, and graph serialization.
-- `src/geometry_io.cpp` – Implementation of geometry IO and auto-detection helpers.
+- Wire format import/export and caching to serve real content pipelines.

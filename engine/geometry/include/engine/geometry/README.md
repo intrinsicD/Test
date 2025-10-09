@@ -1,23 +1,15 @@
-# Geometry
+# Engine Geometry Public Headers
 
-_Path: `engine/geometry/include/engine/geometry`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Exposes public headers that mirror the module API and guard ABI compatibility.
+- Hosts subdirectories for Graph, Mesh, Octree, Point Cloud, Properties, Shapes, Utils.
 
+## Usage
 
-## Contents
+- Include headers from `<engine/geometry/...>` when consuming the public API.
+- Keep header changes paired with updates to the module tests and documentation.
 
-### Subdirectories
+## TODO / Next Steps
 
-- `graph/` – contains 1 file.
-- `mesh/` – contains 1 file.
-- `octree/` – contains 1 file.
-- `point_cloud/` – contains 1 file.
-- `properties/` – contains 3 files.
-- `shapes/` – documented in its own README; contains 10 files.
-- `utils/` – contains 6 files.
-
-### Files
-
-- `api.hpp` – C++ header.
-- `shapes.hpp` – C++ header.
+- Document the public headers once the API stabilises.

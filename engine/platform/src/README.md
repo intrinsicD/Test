@@ -1,21 +1,15 @@
-# Src
+# Engine Platform Sources
 
-_Path: `engine/platform/src`_
+## Current State
 
-_Last updated: 2025-10-06_
+- Implements the module logic across Api, Window Console, Window System.
+- Hosts subdirectories for Windowing.
 
-## Contents
+## Usage
 
-### Files
+- Source files compile into `engine_platform`; ensure the build target stays warning-clean.
+- Mirror API additions with implementation updates in this directory.
 
-- `api.cpp` – Exposes the module metadata entry points.
-- `window_console.cpp` – Implements the reusable interactive window console.
-- `window_system.cpp` – Builds the public window/event queue factory and routes backend selection.
+## TODO / Next Steps
 
-### Directories
-
-- `windowing/` – Concrete backend implementations shared by the window system (headless, GLFW, SDL stubs).
-
-## Notes
-
-- The GLFW backend pulls in `third_party/glfw` during configuration. Ensure your toolchain has access to the necessary windowing dependencies for your platform (X11/Wayland on Linux, Cocoa on macOS, Win32 on Windows).
+- Add scenario-driven examples and profiling to exercise the implementation.

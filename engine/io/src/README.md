@@ -1,13 +1,14 @@
-# Src
+# Engine Io Sources
 
-_Path: `engine/io/src`_
+## Current State
 
-_Last updated: 2025-10-05_
+- Implements the module logic across Api, Geometry Io, Geometry Io Registry.
 
+## Usage
 
-## Contents
+- Source files compile into `engine_io`; ensure the build target stays warning-clean.
+- Mirror API additions with implementation updates in this directory.
 
-### Files
+## TODO / Next Steps
 
-- `api.cpp` – C++ source file.
-- `geometry_io.cpp` – Mesh, point cloud, and graph IO implementations.
+- Add scenario-driven examples and profiling to exercise the implementation.
