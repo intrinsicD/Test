@@ -35,6 +35,10 @@ engine::geometry::apply_uniform_translation(mesh, {0.0F, 1.0F, 0.0F});
 engine::geometry::recompute_vertex_normals(mesh);
 ```
 
+`update_bounds` now normalizes degenerate meshes with no vertices to the origin, guaranteeing that
+`MeshBounds::min` and `MeshBounds::max` never expose `±std::numeric_limits<float>` sentinels to
+callers that perform downstream culling or collision tests.
+
 ## TODO
 
 - Add non-uniform deformation helpers so animation weights can drive vertex blends.

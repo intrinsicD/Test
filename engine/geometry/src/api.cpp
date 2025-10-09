@@ -62,6 +62,13 @@ void recompute_vertex_normals(SurfaceMesh& mesh) {
 }
 
 void update_bounds(SurfaceMesh& mesh) {
+    if (mesh.positions.empty()) {
+        // Degenerate meshes have no extents; normalize their bounds to the origin so downstream
+        // consumers never observe infinities.
+        mesh.bounds = MeshBounds{math::vec3{0.0F, 0.0F, 0.0F}, math::vec3{0.0F, 0.0F, 0.0F}};
+        return;
+    }
+
     math::vec3 min_bounds{std::numeric_limits<float>::max()};
     math::vec3 max_bounds{std::numeric_limits<float>::lowest()};
     for (const auto& position : mesh.positions) {
