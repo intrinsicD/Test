@@ -444,6 +444,42 @@ TEST(RotationUtils, AngleAxisOverloadsProduceConsistentMatrices) {
     }
 }
 
+TEST(RotationUtils, OrthonormalBasisProducesRightHandedFrame)
+{
+    const vec3 direction = normalize(vec3{1.0F, 2.0F, 3.0F});
+    const auto basis = utils::orthonormal_basis(direction);
+
+    const vec3& tangent = basis[0];
+    const vec3& bitangent = basis[1];
+    const vec3& normal = basis[2];
+
+    const float tol = 1e-5F;
+    EXPECT_NEAR(length(tangent), 1.0F, tol);
+    EXPECT_NEAR(length(bitangent), 1.0F, tol);
+    EXPECT_NEAR(length(normal), 1.0F, tol);
+
+    EXPECT_NEAR(dot(tangent, bitangent), 0.0F, tol);
+    EXPECT_NEAR(dot(tangent, normal), 0.0F, tol);
+    EXPECT_NEAR(dot(bitangent, normal), 0.0F, tol);
+
+    const vec3 reconstructed = cross(tangent, bitangent);
+    EXPECT_NEAR(dot(reconstructed, normal), 1.0F, tol);
+}
+
+TEST(RotationUtils, OrthonormalBasisHandlesDegenerateInputs)
+{
+    const auto canonical = utils::orthonormal_basis(vec3{0.0F, 0.0F, 0.0F});
+    ExpectVectorEqual(canonical[0], {1.0F, 0.0F, 0.0F});
+    ExpectVectorEqual(canonical[1], {0.0F, 1.0F, 0.0F});
+    ExpectVectorEqual(canonical[2], {0.0F, 0.0F, 1.0F});
+
+    const vec3 negative_z{0.0F, 0.0F, -1.0F};
+    const auto basis = utils::orthonormal_basis(negative_z);
+    ExpectVectorEqual(basis[0], {0.0F, -1.0F, 0.0F});
+    ExpectVectorEqual(basis[1], {-1.0F, 0.0F, 0.0F});
+    ExpectVectorEqual(basis[2], {0.0F, 0.0F, -1.0F});
+}
+
 TEST(Quaternion, FromAngleAxis)
 {
     // Test 90-degree rotation around Z-axis
