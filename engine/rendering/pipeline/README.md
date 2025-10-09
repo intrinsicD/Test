@@ -3,6 +3,8 @@
 ## Current State
 
 - Contains scaffolding files that will evolve alongside the subsystem.
+- The frame graph schedules passes, records resource lifetime events, and synthesises GPU barriers.
+- Execution integrates with the abstract `IGpuScheduler` to issue queue-aware submissions, fences, and timeline semaphores.
 
 ## Usage
 
@@ -10,4 +12,4 @@
 
 ## TODO / Next Steps
 
-- Connect the frame graph to GPU submission and synchronization.
+- Provide concrete backend encoders that translate the scheduler records into API-specific command buffers.

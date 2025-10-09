@@ -7,6 +7,7 @@
 
 #include "engine/assets/handles.hpp"
 #include "engine/rendering/api.hpp"
+#include "engine/rendering/gpu_scheduler.hpp"
 
 namespace engine::scene
 {
@@ -59,6 +60,7 @@ namespace engine::rendering
         RenderResourceProvider& resources;
         MaterialSystem& materials;
         RenderView view;
+        IGpuScheduler& scheduler;
     };
 
     /**

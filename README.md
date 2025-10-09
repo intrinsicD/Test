@@ -72,7 +72,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Build content pipeline automation that feeds assets into the engine. | [engine/tools/pipelines/README.md](engine/tools/pipelines/README.md) |
 | Build scene graph traversal and dependency evaluation. | [engine/scene/graph/README.md](engine/scene/graph/README.md) |
 | Capture design rationales and outcomes for upcoming milestones. | [docs/design/README.md](docs/design/README.md) |
-| Connect the frame graph to GPU submission and synchronization. | [engine/rendering/pipeline/README.md](engine/rendering/pipeline/README.md) |
+| Provide concrete command encoders for the frame graph scheduler. | [engine/rendering/pipeline/README.md](engine/rendering/pipeline/README.md) |
 | Connect the frame graph to concrete GPU backends and resource providers. | [engine/rendering/README.md](engine/rendering/README.md) |
 | Capture shared automation entry points for developers and CI environments. | [scripts/README.md](scripts/README.md) |
 | Create exporters to persist runtime assets back to disk. | [engine/io/exporters/README.md](engine/io/exporters/README.md) |

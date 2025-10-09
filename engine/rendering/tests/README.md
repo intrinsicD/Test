@@ -3,6 +3,7 @@
 ## Current State
 
 - Contains automated tests covering Forward Pipeline, Frame Graph, Module.
+- Provides a recording GPU scheduler harness that validates submission ordering and synchronisation.
 
 ## Usage
 
@@ -12,3 +13,4 @@
 ## TODO / Next Steps
 
 - Expand regression coverage beyond the current smoke checks.
+- Add backend-specific conformance tests once hardware schedulers replace the stubs.

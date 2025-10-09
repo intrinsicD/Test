@@ -8,6 +8,7 @@
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/rendering/render_pass.hpp"
+#include "engine/rendering/tests/scheduler_test_utils.hpp"
 #include "engine/scene/scene.hpp"
 
 namespace
@@ -60,7 +61,8 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
     engine::scene::Scene scene;
     engine::rendering::MaterialSystem materials;
     NullProvider provider;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene}};
+    engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene}, scheduler};
     graph.execute(context);
 
     ASSERT_EQ(order.size(), 3);  // NOLINT
@@ -98,7 +100,8 @@ TEST(FrameGraph, TracksResourceLifetimes)
     engine::scene::Scene scene;
     engine::rendering::MaterialSystem materials;
     NullProvider provider;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene}};
+    engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene}, scheduler};
     graph.execute(context);
 
     const auto& events = graph.resource_events();
@@ -119,6 +122,100 @@ TEST(FrameGraph, TracksResourceLifetimes)
     EXPECT_EQ(events[3].type, engine::rendering::ResourceEvent::Type::Release);
     EXPECT_EQ(events[3].resource_name, "Color");
     EXPECT_EQ(events[3].pass_name, "Lighting");
+}
+
+TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
+{
+    engine::rendering::FrameGraph graph;
+    const auto depth = graph.create_resource("Depth");
+    const auto color = graph.create_resource("Color");
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "DepthPrepass",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(depth); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "GBuffer",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+            builder.read(depth);
+            builder.write(color);
+        },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "Lighting",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+
+    graph.compile();
+
+    engine::scene::Scene scene;
+    engine::rendering::MaterialSystem materials;
+    NullProvider provider;
+    engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene}, scheduler};
+    graph.execute(context);
+
+    const auto& submissions = scheduler.submissions;
+    ASSERT_EQ(submissions.size(), 3);  // NOLINT
+
+    const auto& depth_submission = submissions[0];
+    EXPECT_EQ(depth_submission.pass_name, "DepthPrepass");
+    EXPECT_TRUE(depth_submission.waits.empty());
+    ASSERT_EQ(depth_submission.begin_barriers.size(), 1);  // NOLINT
+    const auto depth_info = graph.resource_info(depth_submission.begin_barriers.front().resource);
+    EXPECT_EQ(depth_info.name, "Depth");
+    EXPECT_EQ(depth_submission.begin_barriers.front().source_access,
+              engine::rendering::resources::Access::Read);
+    EXPECT_EQ(depth_submission.begin_barriers.front().destination_access,
+              engine::rendering::resources::Access::Write);
+    ASSERT_EQ(depth_submission.end_barriers.size(), 1);  // NOLINT
+    EXPECT_EQ(depth_submission.end_barriers.front().source_access,
+              engine::rendering::resources::Access::Write);
+    EXPECT_EQ(depth_submission.end_barriers.front().destination_access,
+              engine::rendering::resources::Access::Read);
+    ASSERT_EQ(depth_submission.signals.size(), 1);  // NOLINT
+    EXPECT_EQ(depth_submission.signals.front().value, 1U);
+    EXPECT_EQ(depth_submission.fence_value, 1U);
+
+    const auto& gbuffer_submission = submissions[1];
+    EXPECT_EQ(gbuffer_submission.pass_name, "GBuffer");
+    ASSERT_EQ(gbuffer_submission.waits.size(), 1);  // NOLINT
+    EXPECT_EQ(gbuffer_submission.waits.front().value, 1U);
+    ASSERT_EQ(gbuffer_submission.begin_barriers.size(), 2);  // NOLINT
+    const auto& gbuffer_read = gbuffer_submission.begin_barriers[0];
+    EXPECT_EQ(graph.resource_info(gbuffer_read.resource).name, "Depth");
+    EXPECT_EQ(gbuffer_read.source_access, engine::rendering::resources::Access::Write);
+    EXPECT_EQ(gbuffer_read.destination_access, engine::rendering::resources::Access::Read);
+    const auto& gbuffer_write = gbuffer_submission.begin_barriers[1];
+    EXPECT_EQ(graph.resource_info(gbuffer_write.resource).name, "Color");
+    EXPECT_EQ(gbuffer_write.source_access, engine::rendering::resources::Access::Read);
+    EXPECT_EQ(gbuffer_write.destination_access, engine::rendering::resources::Access::Write);
+    ASSERT_EQ(gbuffer_submission.end_barriers.size(), 1);  // NOLINT
+    EXPECT_EQ(graph.resource_info(gbuffer_submission.end_barriers.front().resource).name, "Color");
+    EXPECT_EQ(gbuffer_submission.end_barriers.front().source_access,
+              engine::rendering::resources::Access::Write);
+    EXPECT_EQ(gbuffer_submission.end_barriers.front().destination_access,
+              engine::rendering::resources::Access::Read);
+    ASSERT_EQ(gbuffer_submission.signals.size(), 1);  // NOLINT
+    EXPECT_EQ(gbuffer_submission.signals.front().value, 2U);
+    EXPECT_EQ(gbuffer_submission.fence_value, 2U);
+
+    const auto& lighting_submission = submissions[2];
+    EXPECT_EQ(lighting_submission.pass_name, "Lighting");
+    ASSERT_EQ(lighting_submission.waits.size(), 1);  // NOLINT
+    EXPECT_EQ(lighting_submission.waits.front().value, 2U);
+    ASSERT_EQ(lighting_submission.begin_barriers.size(), 1);  // NOLINT
+    EXPECT_EQ(graph.resource_info(lighting_submission.begin_barriers.front().resource).name, "Color");
+    EXPECT_EQ(lighting_submission.begin_barriers.front().source_access,
+              engine::rendering::resources::Access::Write);
+    EXPECT_EQ(lighting_submission.begin_barriers.front().destination_access,
+              engine::rendering::resources::Access::Read);
+    EXPECT_TRUE(lighting_submission.end_barriers.empty());
+    ASSERT_EQ(lighting_submission.signals.size(), 1);  // NOLINT
+    EXPECT_EQ(lighting_submission.signals.front().value, 3U);
+    EXPECT_EQ(lighting_submission.fence_value, 3U);
 }
 
 TEST(FrameGraph, BuilderRejectsInvalidHandles)
