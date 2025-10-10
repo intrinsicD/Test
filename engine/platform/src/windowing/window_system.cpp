@@ -52,12 +52,27 @@ constexpr std::string_view kBackendEnvVar = "ENGINE_PLATFORM_WINDOW_BACKEND";
     return std::nullopt;
 }
 
-[[nodiscard]] std::optional<WindowBackend> parse_backend_override(const std::string& value) {
-    std::string normalised;
-    normalised.reserve(value.size());
-    for (unsigned char ch : value) {
-        normalised.push_back(static_cast<char>(std::tolower(ch)));
+[[nodiscard]] std::string normalise_backend_override(std::string_view value) {
+    const auto* begin = value.data();
+    const auto* end = begin + value.size();
+
+    while (begin != end && std::isspace(static_cast<unsigned char>(*begin)) != 0) {
+        ++begin;
     }
+    while (begin != end && std::isspace(static_cast<unsigned char>(*(end - 1))) != 0) {
+        --end;
+    }
+
+    std::string normalised;
+    normalised.reserve(static_cast<std::size_t>(end - begin));
+    for (const char* it = begin; it != end; ++it) {
+        normalised.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(*it))));
+    }
+    return normalised;
+}
+
+[[nodiscard]] std::optional<WindowBackend> parse_backend_override(const std::string& value) {
+    const auto normalised = normalise_backend_override(value);
 
     if (normalised == "auto") {
         return WindowBackend::Auto;
