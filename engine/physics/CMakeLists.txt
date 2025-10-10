@@ -12,6 +12,7 @@ engine_apply_module_defaults(${target_name}
 target_link_libraries(${target_name}
     PUBLIC
         engine_math
+        engine_geometry
 )
 
 target_compile_definitions(${target_name}

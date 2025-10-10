@@ -3,6 +3,8 @@
 ## Current State
 
 - Offers a simple rigid-body world with force accumulation, Euler integration, and mass management.
+- Associates rigid bodies with optional sphere or axis-aligned bounding-box colliders.
+- Performs narrow-phase collision queries by delegating to `engine::geometry` intersection routines.
 - Exposes safe accessors that validate indices and ensure deterministic updates.
 
 ## Usage
@@ -13,4 +15,6 @@
 
 ## TODO / Next Steps
 
-- Add collision detection, constraints, and stable integration schemes.
+- Extend collider support (OBB, capsules, meshes) and integrate a broad-phase acceleration structure.
+- Implement contact manifold generation and constraint-based resolution for persistent collisions.
+- Add energy-preserving integration schemes and sleeping/activation rules for performance.

@@ -2,7 +2,8 @@
 
 ## Current State
 
-- Implements the module logic across Api.
+- Implements force integration, rigid-body storage, and collider management inside `api.cpp`.
+- Reuses `engine::geometry` intersection predicates for collision detection.
 
 ## Usage
 
@@ -12,3 +13,4 @@
 ## TODO / Next Steps
 
 - Add scenario-driven examples and profiling to exercise the implementation.
+- Separate collision detection into its own translation unit as the feature set grows.
