@@ -27,7 +27,14 @@ TEST(SceneSystems, PropagateTransformsCombinesHierarchy) {
     child_local.value.translation = engine::math::Vector<float, 3>{0.0F, 2.0F, 0.0F};
     systems::mark_transform_dirty(registry, child.id());
 
+    const auto expected_child_world = child_local.value;
+    const auto expected_child_local = engine::math::combine(engine::math::inverse(parent_local.value), expected_child_world);
+
     systems::set_parent(registry, child.id(), parent.id());
+
+    const auto& child_local_after_reparent = registry.get<components::LocalTransform>(child.id());
+    EXPECT_FLOAT_EQ(child_local_after_reparent.value.translation[0], expected_child_local.translation[0]);
+    EXPECT_FLOAT_EQ(child_local_after_reparent.value.translation[1], expected_child_local.translation[1]);
 
     systems::propagate_transforms(registry);
 
@@ -36,8 +43,8 @@ TEST(SceneSystems, PropagateTransformsCombinesHierarchy) {
     EXPECT_FLOAT_EQ(parent_world.value.translation[1], 0.0F);
 
     const auto& child_world = registry.get<components::WorldTransform>(child.id());
-    EXPECT_FLOAT_EQ(child_world.value.translation[0], 1.0F);
-    EXPECT_FLOAT_EQ(child_world.value.translation[1], 2.0F);
+    EXPECT_FLOAT_EQ(child_world.value.translation[0], expected_child_world.translation[0]);
+    EXPECT_FLOAT_EQ(child_world.value.translation[1], expected_child_world.translation[1]);
 }
 
 TEST(SceneSystems, UpdatingLocalTransformPropagatesToChildren) {
@@ -71,7 +78,7 @@ TEST(SceneSystems, UpdatingLocalTransformPropagatesToChildren) {
     EXPECT_FLOAT_EQ(child_world.value.translation[1], -1.0F);
 }
 
-TEST(SceneSystems, ReparentingUpdatesWorldTransform) {
+TEST(SceneSystems, ReparentingPreservesWorldTransform) {
     scene::Scene scene;
 
     auto root = scene.create_entity();
@@ -92,7 +99,8 @@ TEST(SceneSystems, ReparentingUpdatesWorldTransform) {
     new_parent_local.value.translation = engine::math::Vector<float, 3>{0.0F, 3.0F, 0.0F};
     systems::mark_transform_dirty(registry, new_parent.id());
 
-    registry.emplace<components::LocalTransform>(child.id());
+    auto& child_local = registry.emplace<components::LocalTransform>(child.id());
+    child_local.value.translation = engine::math::Vector<float, 3>{2.0F, 1.0F, 0.0F};
     systems::mark_transform_dirty(registry, child.id());
 
     systems::set_parent(registry, old_parent.id(), root.id());
@@ -101,12 +109,23 @@ TEST(SceneSystems, ReparentingUpdatesWorldTransform) {
 
     systems::propagate_transforms(registry);
 
+    const auto baseline_world = registry.get<components::WorldTransform>(child.id()).value;
+    const auto new_parent_world = registry.get<components::WorldTransform>(new_parent.id()).value;
+    const auto expected_local = engine::math::combine(engine::math::inverse(new_parent_world), baseline_world);
+
     systems::set_parent(registry, child.id(), new_parent.id());
+
+    const auto& local_after_reparent = registry.get<components::LocalTransform>(child.id());
+    EXPECT_FLOAT_EQ(local_after_reparent.value.translation[0], expected_local.translation[0]);
+    EXPECT_FLOAT_EQ(local_after_reparent.value.translation[1], expected_local.translation[1]);
+    EXPECT_FLOAT_EQ(local_after_reparent.value.translation[2], expected_local.translation[2]);
+
     systems::propagate_transforms(registry);
 
     const auto& child_world = registry.get<components::WorldTransform>(child.id());
-    EXPECT_FLOAT_EQ(child_world.value.translation[0], 0.0F);
-    EXPECT_FLOAT_EQ(child_world.value.translation[1], 3.0F);
+    EXPECT_FLOAT_EQ(child_world.value.translation[0], baseline_world.translation[0]);
+    EXPECT_FLOAT_EQ(child_world.value.translation[1], baseline_world.translation[1]);
+    EXPECT_FLOAT_EQ(child_world.value.translation[2], baseline_world.translation[2]);
 }
 
 TEST(SceneSystems, PropagateTransformsUpdatesOnlyDirtyEntities) {

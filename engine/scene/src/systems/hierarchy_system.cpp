@@ -1,11 +1,17 @@
 #include "engine/scene/systems/hierarchy_system.hpp"
 #include "engine/scene/systems/transform_system.hpp"
 #include "engine/scene/components/hierarchy.hpp"
+#include "engine/scene/components/transform.hpp"
+#include "engine/math/transform.hpp"
+
+#include <vector>
 
 namespace engine::scene::systems
 {
     namespace
     {
+        using Transform = math::Transform<float>;
+
         components::Hierarchy& assure_hierarchy(entt::registry& registry, entt::entity entity)
         {
             if (auto* existing = registry.try_get<components::Hierarchy>(entity); existing != nullptr)
@@ -14,6 +20,37 @@ namespace engine::scene::systems
             }
 
             return registry.emplace<components::Hierarchy>(entity);
+        }
+
+        // Resolve the current world transform for an entity by walking up the hierarchy and
+        // composing the local transforms. This is used to preserve world-space placement during
+        // reparenting operations without requiring a prior propagation pass.
+        [[nodiscard]] Transform compute_world_transform(entt::registry& registry, entt::entity entity)
+        {
+            if (!registry.valid(entity))
+            {
+                return Transform::Identity();
+            }
+
+            std::vector<entt::entity> chain;
+            auto current = entity;
+            while (current != entt::null && registry.valid(current))
+            {
+                chain.push_back(current);
+                const auto* hierarchy = registry.try_get<components::Hierarchy>(current);
+                current = (hierarchy != nullptr) ? hierarchy->parent : entt::null;
+            }
+
+            Transform world = Transform::Identity();
+            for (auto it = chain.rbegin(); it != chain.rend(); ++it)
+            {
+                if (const auto* local = registry.try_get<components::LocalTransform>(*it); local != nullptr)
+                {
+                    world = math::combine(world, local->value);
+                }
+            }
+
+            return world;
         }
 
         void detach_internal(entt::registry& registry, entt::entity child)
@@ -106,14 +143,42 @@ namespace engine::scene::systems
             return;
         }
 
+        const bool preserve_world = registry.any_of<components::LocalTransform>(child);
+        Transform child_world = Transform::Identity();
+        if (preserve_world)
+        {
+            child_world = compute_world_transform(registry, child);
+        }
+
+        const bool parent_valid = parent != entt::null;
+        Transform parent_world = Transform::Identity();
+        if (preserve_world && parent_valid)
+        {
+            parent_world = compute_world_transform(registry, parent);
+        }
+
         detach_internal(registry, child);
 
         hierarchy.parent = parent;
 
         // If the new parent is entt::null, we don't need to attach.
-        if (parent != entt::null)
+        if (parent_valid)
         {
             attach_internal(registry, child, hierarchy);
+        }
+
+        if (preserve_world)
+        {
+            // Preserve the child's world transform by redefining its local frame relative to the new parent.
+            auto& local = registry.get<components::LocalTransform>(child);
+            if (parent_valid)
+            {
+                local.value = math::combine(math::inverse(parent_world), child_world);
+            }
+            else
+            {
+                local.value = child_world;
+            }
         }
 
         mark_subtree_dirty(registry, child);
@@ -123,8 +188,23 @@ namespace engine::scene::systems
     {
         if (auto* hierarchy = registry.try_get<components::Hierarchy>(child); hierarchy != nullptr)
         {
+            const bool preserve_world = registry.any_of<components::LocalTransform>(child);
+            Transform child_world = Transform::Identity();
+            if (preserve_world)
+            {
+                child_world = compute_world_transform(registry, child);
+            }
+
             detach_internal(registry, child);
             hierarchy->parent = entt::null;
+
+            if (preserve_world)
+            {
+                // When detaching, bake the world transform back into the local component so the entity doesn't jump.
+                auto& local = registry.get<components::LocalTransform>(child);
+                local.value = child_world;
+            }
+
             mark_subtree_dirty(registry, child);
         }
     }
