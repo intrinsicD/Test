@@ -2,12 +2,18 @@
 
 ## Current State
 
-- Contains scaffolding files that will evolve alongside the subsystem.
+- Exposes sandboxed filesystem accessors and a virtual filesystem aggregator
+  used to combine multiple mount points under stable aliases.
 
 ## Usage
 
-- Keep this directory aligned with its parent module and update the README as features land.
+- Use `engine::platform::filesystem::Filesystem` to perform read-only queries
+  and file loads relative to a declared root directory.
+- Mount the providers into `engine::platform::filesystem::VirtualFilesystem`
+  to compose in-memory and on-disk assets under logical prefixes such as
+  `"assets:/"`.
 
 ## TODO / Next Steps
 
-- Integrate local and virtual filesystem providers for asset loading.
+- Extend the API with write/streaming capabilities and directory iteration
+  helpers to support tooling workflows.
