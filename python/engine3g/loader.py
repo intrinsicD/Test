@@ -79,6 +79,17 @@ class EngineRuntimeHandle:
         self.library.engine_runtime_dispatch_count.argtypes = []
         self.library.engine_runtime_dispatch_name.restype = ctypes.c_char_p
         self.library.engine_runtime_dispatch_name.argtypes = [ctypes.c_size_t]
+        self.library.engine_runtime_scene_node_count.restype = ctypes.c_size_t
+        self.library.engine_runtime_scene_node_count.argtypes = []
+        self.library.engine_runtime_scene_node_name.restype = ctypes.c_char_p
+        self.library.engine_runtime_scene_node_name.argtypes = [ctypes.c_size_t]
+        self.library.engine_runtime_scene_node_transform.restype = None
+        self.library.engine_runtime_scene_node_transform.argtypes = [
+            ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_float),
+            ctypes.POINTER(ctypes.c_float),
+            ctypes.POINTER(ctypes.c_float),
+        ]
 
     def name(self) -> str:
         """Return the runtime library name."""
@@ -153,6 +164,57 @@ class EngineRuntimeHandle:
             if name_ptr:
                 names.append(name_ptr.decode("utf-8"))
         return names
+
+    def scene_nodes(
+        self,
+    ) -> List[
+        Tuple[
+            str,
+            Tuple[float, float, float],
+            Tuple[float, float, float, float],
+            Tuple[float, float, float],
+        ]
+    ]:
+        """Return the scene graph nodes mirrored by the runtime."""
+        count = int(self.library.engine_runtime_scene_node_count())
+        scales = (ctypes.c_float * 3)()
+        rotations = (ctypes.c_float * 4)()
+        translations = (ctypes.c_float * 3)()
+        nodes: List[
+            Tuple[
+                str,
+                Tuple[float, float, float],
+                Tuple[float, float, float, float],
+                Tuple[float, float, float],
+            ]
+        ] = []
+        for index in range(count):
+            name_ptr = self.library.engine_runtime_scene_node_name(index)
+            name = name_ptr.decode("utf-8") if name_ptr else ""
+            self.library.engine_runtime_scene_node_transform(
+                index,
+                scales,
+                rotations,
+                translations,
+            )
+            nodes.append(
+                (
+                    name,
+                    (float(scales[0]), float(scales[1]), float(scales[2])),
+                    (
+                        float(rotations[0]),
+                        float(rotations[1]),
+                        float(rotations[2]),
+                        float(rotations[3]),
+                    ),
+                    (
+                        float(translations[0]),
+                        float(translations[1]),
+                        float(translations[2]),
+                    ),
+                )
+            )
+        return nodes
 
     def load_modules(
         self, search_paths: Optional[Iterable[os.PathLike[str] | str]] = None

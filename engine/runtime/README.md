@@ -2,7 +2,8 @@
 
 ## Current State
 
-- Provides the aggregation layer that will stitch subsystems into an executable runtime.
+- Provides the aggregation layer that stitches animation, physics, compute, and geometry into an executable runtime loop.
+- Mirrors the active joint transforms into an `engine::scene::Scene` so callers can inspect a synchronized scene graph.
 - Includes scaffolding for lifecycle management and module loading.
 
 ## Usage
@@ -13,4 +14,4 @@
 
 ## TODO / Next Steps
 
-- Drive subsystem lifecycles and state management for end-to-end scenarios.
+- Expand runtime orchestration with streaming asset loading and render scheduling hooks.

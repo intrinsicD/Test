@@ -173,6 +173,7 @@ namespace engine::core::ecs
 
     private:
         entt::registry registry_;
+        std::size_t alive_entities_{0};
     };
 
     ENGINE_CORE_API void
