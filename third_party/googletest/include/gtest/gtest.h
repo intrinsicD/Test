@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstring>
 #include <exception>
 #include <functional>
 #include <iostream>
