@@ -6,6 +6,7 @@ add_executable(engine_geometry_tests
         test_point_cloud.cpp
         test_shapes.cpp
         test_octree.cpp
+        test_kdtree.cpp
 )
 
 add_executable(engine_geometry_shape_interactions_tests
