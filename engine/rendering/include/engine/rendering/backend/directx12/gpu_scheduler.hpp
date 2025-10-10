@@ -5,7 +5,7 @@
 #include <string_view>
 #include <vector>
 
-#include "../native_scheduler_base.hpp"
+#include "engine/rendering/backend/native_scheduler_base.hpp"
 #include "engine/rendering/frame_graph.hpp"
 
 namespace engine::rendering::backend::directx12

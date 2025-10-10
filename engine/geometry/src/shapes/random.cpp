@@ -1,9 +1,6 @@
 #include "engine/geometry/shapes.hpp"
 #include "engine/geometry/random.hpp"
-#include "engine/math/utils.hpp"
-#include "engine/math/utils_rotation.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <numbers>
@@ -26,7 +23,7 @@ namespace engine::geometry
             return engine;
         }
 
-        float uniform(RandomEngine& rng, float min_value, float max_value) noexcept
+        float uniform(RandomEngine& rng, const float min_value, const float max_value) noexcept
         {
             std::uniform_real_distribution<float> dist(min_value, max_value);
             return dist(rng);

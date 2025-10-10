@@ -1,7 +1,7 @@
 #include "engine/geometry/utils/shape_interactions.hpp"
 #include "engine/geometry/shapes.hpp"
-#include "engine/math/utils.hpp"
-#include "engine/math/utils_rotation.hpp"
+#include "../../../math/include/engine/math/utils/utils.hpp"
+#include "engine/math/utils/utils_rotation.hpp"
 
 #include <algorithm>
 #include <array>

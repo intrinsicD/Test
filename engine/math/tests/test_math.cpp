@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/math/common.hpp"
-#include "engine/math/utils_rotation.hpp"
+#include "../include/engine/math/utils/utils_rotation.hpp"
 #include "engine/math/math.hpp"
 
 using namespace engine::math;

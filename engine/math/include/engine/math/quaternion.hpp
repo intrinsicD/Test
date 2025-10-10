@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils.hpp"
+#include "utils/utils.hpp"
 #include "engine/math/common.hpp"
 #include "engine/math/vector.hpp"
 #include "engine/math/matrix.hpp"

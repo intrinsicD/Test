@@ -70,14 +70,14 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Bind platform abstractions to OS windowing, input, and filesystem APIs. | [engine/platform/README.md](engine/platform/README.md) |
 | Broaden math primitives and numerics beyond the current minimal set. | [engine/math/README.md](engine/math/README.md) |
 | Build content pipeline automation that feeds assets into the engine. | [engine/tools/pipelines/README.md](engine/tools/pipelines/README.md) |
-| Build scene graph traversal and dependency evaluation. | [engine/scene/graph/README.md](engine/scene/graph/README.md) |
+| Build scene graph traversal and dependency evaluation. | [engine/scene/graph/README.md](engine/scene/include/engine/scene/graph/README.md) |
 | Capture design rationales and outcomes for upcoming milestones. | [docs/design/README.md](docs/design/README.md) |
 | Provide concrete command encoders for the frame graph scheduler. | [engine/rendering/pipeline/README.md](engine/rendering/pipeline/README.md) |
 | Connect the frame graph to concrete GPU backends and resource providers. | [engine/rendering/README.md](engine/rendering/README.md) |
 | Capture shared automation entry points for developers and CI environments. | [scripts/README.md](scripts/README.md) |
 | Create exporters to persist runtime assets back to disk. | [engine/io/exporters/README.md](engine/io/exporters/README.md) |
 | Curate representative scenarios across unit, integration, and performance suites. | [engine/tests/README.md](engine/tests/README.md) |
-| Define component schemas and authoring utilities for the runtime. | [engine/scene/components/README.md](engine/scene/components/README.md) |
+| Define component schemas and authoring utilities for the runtime. | [engine/scene/components/README.md](engine/scene/include/engine/scene/components/README.md) |
 | Design asset pipelines that feed runtime modules beyond sample data. | [engine/assets/README.md](engine/assets/README.md) |
 | Design render passes and pipelines once a resource provider is available. | [engine/rendering/passes/README.md](engine/rendering/passes/README.md) |
 | Develop the editor shell and hook it into the runtime subsystems. | [engine/tools/editor/README.md](engine/tools/editor/README.md) |
@@ -96,8 +96,8 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Implement lighting models and data flows for the renderer. | [engine/rendering/lighting/README.md](engine/rendering/lighting/README.md) |
 | Implement persistent cache strategies for imported assets. | [engine/io/cache/README.md](engine/io/cache/README.md) |
 | Implement scene graph serialization, systems, and runtime traversal. | [engine/scene/README.md](engine/scene/README.md) |
-| Implement scene serialization and deserialization compatible with runtime assets. | [engine/scene/serialization/README.md](engine/scene/serialization/README.md) |
-| Implement scene systems that operate over ECS data during the frame. | [engine/scene/systems/README.md](engine/scene/systems/README.md) |
+| Implement scene serialization and deserialization compatible with runtime assets. | [engine/scene/serialization/README.md](engine/scene/include/engine/scene/serialization/README.md) |
+| Implement scene systems that operate over ECS data during the frame. | [engine/scene/systems/README.md](engine/scene/include/engine/scene/systems/README.md) |
 | Implement the actual backend integration using the target API. | [engine/rendering/backend/README.md](engine/rendering/backend/README.md)<br>[engine/rendering/backend/directx12/README.md](engine/rendering/backend/directx12/README.md)<br>[engine/rendering/backend/metal/README.md](engine/rendering/backend/metal/README.md)<br>[engine/rendering/backend/opengl/README.md](engine/rendering/backend/opengl/README.md)<br>[engine/rendering/backend/vulkan/README.md](engine/rendering/backend/vulkan/README.md) |
 | Implement visibility determination algorithms to drive culling. | [engine/rendering/visibility/README.md](engine/rendering/visibility/README.md) |
 | Instrument and visualise profiling data for frame and job execution. | [engine/tools/profiling/README.md](engine/tools/profiling/README.md) |

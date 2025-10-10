@@ -1,4 +1,4 @@
-#include "../../include/engine/geometry/point_cloud/point_cloud.hpp"
+#include "engine/geometry/point_cloud/point_cloud.hpp"
 
 #include <string>
 #include <string_view>

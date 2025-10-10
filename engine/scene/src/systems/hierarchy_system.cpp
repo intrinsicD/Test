@@ -1,6 +1,6 @@
-#include "hierarchy_system.hpp"
-#include "transform_system.hpp"
-#include "components/hierarchy.hpp"
+#include "engine/scene/systems/hierarchy_system.hpp"
+#include "engine/scene/systems/transform_system.hpp"
+#include "engine/scene/components/hierarchy.hpp"
 
 namespace engine::scene::systems
 {

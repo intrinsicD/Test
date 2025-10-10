@@ -18,10 +18,10 @@ major building blocks.
   helpers, and product operators.
 
 ## Utility algorithms
-- [`engine/math/utils.hpp`](../../engine/math/include/engine/math/utils.hpp) collects inline utilities
+- [`engine/math/utils.hpp`](../../engine/math/include/engine/math/utils/utils.hpp) collects inline utilities
   for clamping, extrema queries, elementary functions, and tolerance-based comparisons. These helpers
   preserve type generality while interoperating with the core vector and matrix structures.
-- [`engine/math/utils_rotation.hpp`](../../engine/math/include/engine/math/utils_rotation.hpp) (not
+- [`engine/math/utils_rotation.hpp`](../../engine/math/include/engine/math/utils/utils_rotation.hpp) (not
   shown) supplements quaternion and matrix math with routines for constructing rotation primitives from
   canonical parameterizations.
 

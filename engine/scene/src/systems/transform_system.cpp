@@ -1,12 +1,9 @@
-#include "transform_system.hpp"
-
-#include "components/hierarchy.hpp"
-#include "components/transform.hpp"
-
+#include "engine/scene/systems/transform_system.hpp"
+#include "engine/scene/components/hierarchy.hpp"
+#include "engine/scene/components/transform.hpp"
 #include "engine/math/transform.hpp"
 
-#include <entt/entt.hpp>
-
+#include <entt/entity/registry.hpp>
 #include <vector>
 
 namespace engine::scene::systems

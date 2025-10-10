@@ -1,6 +1,6 @@
 #include "engine/geometry/shapes/ellipsoid.hpp"
-#include "engine/math/utils.hpp"
-#include "engine/math/utils_rotation.hpp"
+#include "../../../math/include/engine/math/utils/utils.hpp"
+#include "engine/math/utils/utils_rotation.hpp"
 
 #include <cmath>
 #include <numbers>

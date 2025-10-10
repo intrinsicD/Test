@@ -1,15 +1,14 @@
-#include "serializer.hpp"
+#include "engine/scene/serialization/serializer.hpp"
 
-#include "components/hierarchy.hpp"
-#include "components/name.hpp"
-#include "components/transform.hpp"
+#include "engine/scene/components/hierarchy.hpp"
+#include "engine/scene/components/name.hpp"
+#include "engine/scene/components/transform.hpp"
 #include "engine/scene/scene.hpp"
 
 #include <algorithm>
 #include <iomanip>
 #include <stdexcept>
 #include <string>
-#include <tuple>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -29,9 +28,8 @@ namespace engine::scene::serialization
             auto& registry = const_cast<Scene::registry_type&>(scene.registry());
             auto view = registry.view<entt::entity>();
             entities.reserve(view.size());
-            for (auto it = view.begin(); it != view.end(); ++it)
+            for (auto entity : view)
             {
-                auto entity = *it;
                 entities.push_back(entity);
             }
 
@@ -145,7 +143,7 @@ namespace engine::scene::serialization
         std::unordered_map<underlying_type, entity_type> id_map;
         id_map.reserve(entity_count);
 
-        const auto expect_token = [&](std::string expected) {
+        const auto expect_token = [&](const std::string& expected) {
             std::string actual;
             if (!(input >> actual) || actual != expected)
             {

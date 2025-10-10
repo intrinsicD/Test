@@ -1,14 +1,13 @@
 #include "engine/geometry/shapes/aabb.hpp"
-
 #include "engine/geometry/shapes.hpp"
 #include "engine/math/matrix.hpp"
-#include "engine/math/utils.hpp"
+#include "engine/math/utils/utils.hpp"
+#include "engine/math/utils/utils_rotation.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <limits>
-#include <engine/math/utils_rotation.hpp>
 
 namespace engine::geometry {
     math::vec3 Center(const Aabb &box) noexcept {

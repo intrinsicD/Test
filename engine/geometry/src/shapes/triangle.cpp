@@ -11,7 +11,7 @@
 #include "engine/geometry/utils/shape_interactions.hpp"
 
 #include "engine/math/matrix.hpp"
-#include "engine/math/utils.hpp"
+#include "../../../math/include/engine/math/utils/utils.hpp"
 
 #include <algorithm>
 #include <array>

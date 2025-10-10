@@ -1,9 +1,9 @@
-#include "registry.hpp"
+#include "engine/scene/systems/registry.hpp"
 
-#include "hierarchy_system.hpp"
-#include "transform_system.hpp"
+#include "engine/scene/systems/hierarchy_system.hpp"
+#include "engine/scene/systems/transform_system.hpp"
 
-#include <entt/entt.hpp>
+#include <entt/entity/registry.hpp>
 
 namespace engine::scene::systems
 {

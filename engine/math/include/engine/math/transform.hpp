@@ -3,8 +3,8 @@
 #include "engine/math/common.hpp"
 #include "engine/math/matrix.hpp"
 #include "engine/math/quaternion.hpp"
-#include "engine/math/utils.hpp"
-#include "engine/math/utils_rotation.hpp"
+#include "utils/utils.hpp"
+#include "utils/utils_rotation.hpp"
 #include "engine/math/vector.hpp"
 
 namespace engine::math

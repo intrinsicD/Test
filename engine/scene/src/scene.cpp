@@ -1,7 +1,7 @@
 #include "engine/scene/scene.hpp"
 #include "engine/scene/components.hpp"
 #include "engine/scene/systems.hpp"
-#include "serialization/serializer.hpp"
+#include "engine/scene/serialization/serializer.hpp"
 
 #include <utility>
 

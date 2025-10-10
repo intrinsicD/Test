@@ -1,5 +1,5 @@
 #pragma once
 
-#include "../components/hierarchy.hpp"
-#include "../components/name.hpp"
-#include "../components/transform.hpp"
+#include "engine/scene/components/hierarchy.hpp"
+#include "engine/scene/components/name.hpp"
+#include "engine/scene/components/transform.hpp"
