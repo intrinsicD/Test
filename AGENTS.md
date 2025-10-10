@@ -3,6 +3,10 @@
 - use clang 22 to compile
 - make sure to read all README.md files first
 - make sure to recognize all dependencies and install them if necessary
+  - xrandr-dev
+  - xinerama
+  - xi-dev
+  - xcursor-dev
 - update the respective README.md files to reflect the new/current state of the project
   - they should provide a good overview of the local structure and how to get started
   - they should also provide a TODO list of what needs to be done

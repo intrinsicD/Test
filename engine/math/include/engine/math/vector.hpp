@@ -4,6 +4,7 @@
 
 #include <ostream>
 #include <cassert>
+#include <array>
 
 namespace engine::math
 {
@@ -15,7 +16,7 @@ namespace engine::math
         using value_type = T;
         using size_type = std::size_t;
 
-        value_type elements[N];
+        std::array<value_type, N> elements;
 
         ENGINE_MATH_INLINE Vector() noexcept : elements{}
         {

@@ -210,4 +210,16 @@ namespace engine::math
     {
         return Transform<T>{scale, from_cayley_parameters(cayley), translation};
     }
+
+    template <typename T>
+    ENGINE_MATH_INLINE Vector<T, 4> make_point(const Vector<T, 3>& p)
+    {
+        return {p[0], p[1], p[2], detail::one<T>()};
+    }
+
+    template <typename T>
+    ENGINE_MATH_INLINE Vector<T, 4> make_dir(const Vector<T, 3>& d)
+    {
+        return {d[0], d[1], d[2], detail::zero<T>()};
+    }
 } // namespace engine::math
