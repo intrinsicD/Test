@@ -2,8 +2,9 @@
 
 ## Current State
 
-- Implements the module logic across Api, Window Console, Window System.
-- Hosts subdirectories for Windowing.
+- Implements the module logic across Api, Window Console, Window System, and
+  the filesystem providers.
+- Hosts subdirectories for filesystem and windowing code.
 
 ## Usage
 

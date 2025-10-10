@@ -3,7 +3,8 @@
 ## Current State
 
 - Defines abstractions for filesystem access, input, windowing, and platform-specific utilities.
-- Currently stubs out real OS integration pending backend work.
+- Provides sandboxed filesystem providers with a virtual mounting layer while
+  windowing/input continue to use mock backends until OS integrations land.
 
 ## Usage
 
@@ -14,4 +15,5 @@
 
 ## TODO / Next Steps
 
-- Bind platform abstractions to OS windowing, input, and filesystem APIs.
+- Bind platform abstractions to real OS windowing and input APIs and expand the
+  filesystem layer with write/watch capabilities.
