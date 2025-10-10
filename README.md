@@ -92,7 +92,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Integrate the preset runner into hosted CI once Windows agents are available. | [scripts/ci/README.md](scripts/ci/README.md) |
 | Implement GPU resource management for buffers, textures, and samplers. | [engine/rendering/resources/README.md](engine/rendering/resources/README.md)<br>[engine/rendering/resources/buffers/README.md](engine/rendering/resources/buffers/README.md)<br>[engine/rendering/resources/samplers/README.md](engine/rendering/resources/samplers/README.md) |
 | Implement GPU-backed dispatch and integrate with runtime scheduling. | [engine/compute/README.md](engine/compute/README.md) |
-| Implement actual input device polling per platform. | [engine/platform/input/README.md](engine/platform/include/engine/platform/input/README.md) |
+| Integrate `InputState` with windowing backends to surface real device data. | [engine/platform/input/README.md](engine/platform/include/engine/platform/input/README.md) |
 | Implement lighting models and data flows for the renderer. | [engine/rendering/lighting/README.md](engine/rendering/lighting/README.md) |
 | Implement persistent cache strategies for imported assets. | [engine/io/cache/README.md](engine/io/include/engine/io/cache/README.md) |
 | Implement scene graph serialization, systems, and runtime traversal. | [engine/scene/README.md](engine/scene/README.md) |

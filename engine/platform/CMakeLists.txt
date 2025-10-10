@@ -8,6 +8,7 @@ add_library(${target_name}
     src/windowing/mock_window.cpp
     src/windowing/glfw_window.cpp
     src/windowing/sdl_window.cpp
+    src/input/input_state.cpp
 )
 
 engine_apply_module_defaults(${target_name}
