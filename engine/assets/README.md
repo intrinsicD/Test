@@ -3,7 +3,7 @@
 ## Current State
 
 - Defines the staging area for runtime asset management across samples, shaders, and packaging.
-- Currently focuses on directory scaffolding; concrete asset loaders remain to be implemented.
+- Provides runtime caches for geometry (meshes, point clouds, graphs) and rendering assets with hot-reload support.
 
 ## Usage
 

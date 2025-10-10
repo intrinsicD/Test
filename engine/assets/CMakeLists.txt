@@ -2,8 +2,10 @@ set(target_name engine_assets)
 
 add_library(${target_name}
     src/api.cpp
+    src/graph_asset.cpp
     src/material_asset.cpp
     src/mesh_asset.cpp
+    src/point_cloud_asset.cpp
     src/shader_asset.cpp
     src/texture_asset.cpp
 )
