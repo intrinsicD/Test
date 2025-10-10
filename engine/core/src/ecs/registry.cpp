@@ -12,6 +12,7 @@ entity_id registry::create() {
     const auto entity = registry_.create();
     const auto id = entity_id{entity};
     spdlog::debug("Created entity [{}:{}]", id.index(), id.generation());
+    ++alive_entities_;
     return id;
 }
 
@@ -27,6 +28,9 @@ void registry::destroy(entity_id entity) {
 
     spdlog::debug("Destroying entity [{}:{}]", entity.index(), entity.generation());
     registry_.destroy(entity.value());
+    if (alive_entities_ > 0) {
+        --alive_entities_;
+    }
 }
 
 bool registry::is_alive(entity_id entity) const {
@@ -34,12 +38,13 @@ bool registry::is_alive(entity_id entity) const {
 }
 
 std::size_t registry::alive_count() const {
-    return registry_.view<entt::entity>().size();
+    return alive_entities_;
 }
 
 void registry::clear() {
     spdlog::debug("Clearing registry ({} entities)", alive_count());
     registry_.clear();
+    alive_entities_ = 0;
 }
 
 void draw_registry_debug_ui(const registry& registry, std::string_view window_name) {

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <cmath>
 #include <string_view>
 
 #include "engine/runtime/api.hpp"
@@ -21,11 +22,23 @@ TEST(RuntimeModule, ExecutesSimulationPipeline) {
 
     EXPECT_FALSE(frame.pose.joints.empty());
     const auto* root = frame.pose.find("root");
-    EXPECT_TRUE(root != nullptr);
+    ASSERT_TRUE(root != nullptr);
 
     const auto& mesh = engine::runtime::current_mesh();
     EXPECT_GE(mesh.bounds.max[1], mesh.bounds.min[1]);
     EXPECT_FALSE(frame.body_positions.empty());
+    EXPECT_FALSE(frame.scene_nodes.empty());
+    const auto& root_node = frame.scene_nodes.front();
+    EXPECT_EQ(root_node.name, "root");
+    const float expected_root_height = frame.body_positions.front()[1] + root->translation[1];
+    EXPECT_NEAR(root_node.transform.translation[1], expected_root_height, 1e-4F);
+    EXPECT_EQ(engine_runtime_scene_node_count(), frame.scene_nodes.size());
+    EXPECT_STREQ(engine_runtime_scene_node_name(0), "root");
+    float scales[3]{};
+    float rotations[4]{};
+    float translations[3]{};
+    engine_runtime_scene_node_transform(0, scales, rotations, translations);
+    EXPECT_FLOAT_EQ(translations[1], root_node.transform.translation[1]);
 
     engine::runtime::shutdown();
 }

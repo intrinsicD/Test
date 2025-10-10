@@ -27,7 +27,7 @@ namespace engine::scene::serialization
 
             auto& registry = const_cast<Scene::registry_type&>(scene.registry());
             auto view = registry.view<entt::entity>();
-            entities.reserve(view.size());
+            entities.reserve(scene.size());
             for (auto entity : view)
             {
                 entities.push_back(entity);

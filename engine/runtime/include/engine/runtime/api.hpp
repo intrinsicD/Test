@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -32,6 +33,11 @@ struct runtime_frame_state {
     geometry::MeshBounds bounds{};
     std::vector<math::vec3> body_positions{};
     compute::ExecutionReport dispatch_report{};
+    struct scene_node_state {
+        std::string name{};
+        math::Transform<float> transform{};
+    };
+    std::vector<scene_node_state> scene_nodes{};
 };
 
 ENGINE_RUNTIME_API void initialize();
@@ -55,4 +61,11 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_joint_translation(std::size_t 
 extern "C" ENGINE_RUNTIME_API void engine_runtime_mesh_bounds(float* out_min, float* out_max) noexcept;
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_dispatch_count() noexcept;
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_dispatch_name(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_scene_node_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_scene_node_name(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
+    std::size_t index,
+    float* out_scale,
+    float* out_rotation,
+    float* out_translation) noexcept;
 

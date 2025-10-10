@@ -2,6 +2,7 @@
 
 #include <array>
 #include <string>
+#include <utility>
 
 #include "engine/assets/api.hpp"
 #include "engine/compute/cuda/api.hpp"
@@ -10,6 +11,9 @@
 #include "engine/platform/api.hpp"
 #include "engine/rendering/api.hpp"
 #include "engine/scene/api.hpp"
+#include "engine/scene/components.hpp"
+#include "engine/scene/scene.hpp"
+#include "engine/scene/systems.hpp"
 
 namespace {
 
@@ -25,6 +29,9 @@ struct runtime_state {
     engine::compute::ExecutionReport last_report{};
     std::vector<engine::math::vec3> body_positions{};
     std::vector<std::string> joint_names{};
+    engine::scene::Scene scene{};
+    std::vector<engine::scene::Entity> joint_entities{};
+    std::vector<engine::runtime::runtime_frame_state::scene_node_state> scene_nodes{};
 
     runtime_state() {
         engine::geometry::recompute_vertex_normals(mesh);
@@ -54,6 +61,79 @@ const std::array<std::string_view, 11>& module_names() noexcept {
     return names;
 }
 
+// Rebuild the runtime scene hierarchy so that a scene entity exists for every joint in the pose.
+void rebuild_scene_entities(runtime_state& state) {
+    state.scene = engine::scene::Scene{"runtime.scene"};
+    state.joint_entities.clear();
+    state.joint_entities.reserve(state.pose.joints.size());
+
+    for (const auto& entry : state.pose.joints) {
+        auto entity = state.scene.create_entity();
+        auto& name_component = entity.emplace<engine::scene::components::Name>();
+        name_component.value = entry.first;
+        entity.emplace<engine::scene::components::LocalTransform>();
+        entity.emplace<engine::scene::components::WorldTransform>();
+        entity.emplace<engine::scene::components::Hierarchy>();
+        engine::scene::systems::mark_transform_dirty(state.scene.registry(), entity.id());
+        state.joint_entities.push_back(entity);
+    }
+}
+
+// Update scene transforms and cache the resulting world-space nodes for external inspection.
+void synchronize_scene_graph(runtime_state& state, const engine::math::vec3& body_translation) {
+    if (state.joint_entities.size() != state.pose.joints.size()) {
+        rebuild_scene_entities(state);
+    }
+
+    auto& registry = state.scene.registry();
+    state.scene_nodes.clear();
+
+    for (std::size_t index = 0; index < state.joint_entities.size() && index < state.pose.joints.size(); ++index) {
+        auto entity = state.joint_entities[index];
+        if (!entity.valid()) {
+            continue;
+        }
+
+        const auto entt_entity = entity.id();
+        auto& local = registry.get<engine::scene::components::LocalTransform>(entt_entity);
+        const auto& pose_entry = state.pose.joints[index];
+        local.value.scale = pose_entry.second.scale;
+        local.value.rotation = pose_entry.second.rotation;
+        local.value.translation = pose_entry.second.translation;
+        if (pose_entry.first == "root") {
+            local.value.translation += body_translation;
+        }
+
+        auto* name_component = registry.try_get<engine::scene::components::Name>(entt_entity);
+        if (name_component == nullptr) {
+            name_component = &registry.emplace<engine::scene::components::Name>(entt_entity);
+        }
+        name_component->value = pose_entry.first;
+
+        engine::scene::systems::mark_transform_dirty(registry, entt_entity);
+    }
+
+    engine::scene::systems::propagate_transforms(registry);
+
+    for (const auto& entity : state.joint_entities) {
+        if (!entity.valid()) {
+            continue;
+        }
+
+        const auto entt_entity = entity.id();
+        const auto* name_component = registry.try_get<engine::scene::components::Name>(entt_entity);
+        const auto* world = registry.try_get<engine::scene::components::WorldTransform>(entt_entity);
+        if (!name_component || !world) {
+            continue;
+        }
+
+        engine::runtime::runtime_frame_state::scene_node_state node{};
+        node.name = name_component->value;
+        node.transform = world->value;
+        state.scene_nodes.push_back(std::move(node));
+    }
+}
+
 void ensure_initialized(runtime_state& state) {
     if (state.initialized) {
         return;
@@ -72,6 +152,10 @@ void ensure_initialized(runtime_state& state) {
         state.joint_names.push_back(entry.first);
     }
     state.last_report.execution_order.clear();
+    const engine::math::vec3 body_translation = !state.body_positions.empty() ? state.body_positions.front() :
+                                                                                 engine::math::vec3{0.0F, 0.0F, 0.0F};
+    rebuild_scene_entities(state);
+    synchronize_scene_graph(state, body_translation);
     state.initialized = true;
 }
 
@@ -109,6 +193,9 @@ void shutdown() {
     state.body_positions.clear();
     state.joint_names.clear();
     state.last_report.execution_order.clear();
+    state.scene = engine::scene::Scene{};
+    state.joint_entities.clear();
+    state.scene_nodes.clear();
     engine::geometry::apply_uniform_translation(state.mesh, engine::math::vec3{0.0F, 0.0F, 0.0F});
     engine::geometry::recompute_vertex_normals(state.mesh);
 }
@@ -176,6 +263,9 @@ runtime_frame_state tick(double dt) {
             for (const auto& entry : state.pose.joints) {
                 state.joint_names.push_back(entry.first);
             }
+            const engine::math::vec3 body_translation = !state.body_positions.empty() ? state.body_positions.front() :
+                                                                                         engine::math::vec3{0.0F, 0.0F, 0.0F};
+            synchronize_scene_graph(state, body_translation);
         },
         {deform});
 
@@ -188,6 +278,7 @@ runtime_frame_state tick(double dt) {
     frame.bounds = state.mesh.bounds;
     frame.body_positions = state.body_positions;
     frame.dispatch_report = state.last_report;
+    frame.scene_nodes = state.scene_nodes;
     return frame;
 }
 
@@ -301,5 +392,49 @@ extern "C" ENGINE_RUNTIME_API const char* engine_runtime_dispatch_name(std::size
         return nullptr;
     }
     return state.last_report.execution_order[index].c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_scene_node_count() noexcept {
+    auto& state = global_state();
+    ensure_initialized(state);
+    return state.scene_nodes.size();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_scene_node_name(std::size_t index) noexcept {
+    auto& state = global_state();
+    ensure_initialized(state);
+    if (index >= state.scene_nodes.size()) {
+        return nullptr;
+    }
+    return state.scene_nodes[index].name.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
+    std::size_t index,
+    float* out_scale,
+    float* out_rotation,
+    float* out_translation) noexcept {
+    auto& state = global_state();
+    ensure_initialized(state);
+    if (index >= state.scene_nodes.size()) {
+        return;
+    }
+    const auto& node = state.scene_nodes[index];
+    if (out_scale != nullptr) {
+        out_scale[0] = node.transform.scale[0];
+        out_scale[1] = node.transform.scale[1];
+        out_scale[2] = node.transform.scale[2];
+    }
+    if (out_rotation != nullptr) {
+        out_rotation[0] = node.transform.rotation.w;
+        out_rotation[1] = node.transform.rotation.x;
+        out_rotation[2] = node.transform.rotation.y;
+        out_rotation[3] = node.transform.rotation.z;
+    }
+    if (out_translation != nullptr) {
+        out_translation[0] = node.transform.translation[0];
+        out_translation[1] = node.transform.translation[1];
+        out_translation[2] = node.transform.translation[2];
+    }
 }
 
