@@ -3,16 +3,13 @@
 #include <array>
 #include <cmath>
 #include <numbers>
-#include <engine/math/utils_rotation.hpp>
 
 #include "engine/geometry/shapes.hpp"
 #include "engine/math/quaternion.hpp"
 #include "engine/math/utils.hpp"
+#include "engine/math/utils_rotation.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
 
-using engine::geometry::Aabb;
-using engine::geometry::BoundingAabb;
-using engine::geometry::Triangle;
 using engine::math::mat3;
 using engine::math::mat4;
 using engine::math::vec3;
@@ -31,7 +28,7 @@ namespace
 
 TEST(Aabb, ComputesDerivedQuantities)
 {
-    const Aabb box{vec3{-1.0f, 0.0f, 1.0f}, vec3{3.0f, 6.0f, 5.0f}};
+    const engine::geometry::Aabb box{vec3{-1.0f, 0.0f, 1.0f}, vec3{3.0f, 6.0f, 5.0f}};
 
     const vec3 expected_center{1.0f, 3.0f, 3.0f};
     expect_vec3_eq(engine::geometry::Center(box), expected_center);
@@ -53,13 +50,13 @@ TEST(Aabb, ConversionsContainmentAndIntersections)
 {
     const vec3 min_corner{-1.0f, -1.0f, -1.0f};
     const vec3 max_corner{1.0f, 1.0f, 1.0f};
-    const Aabb outer{min_corner, max_corner};
+    const engine::geometry::Aabb outer{min_corner, max_corner};
 
-    const Aabb from_point_box = engine::geometry::BoundingAabb(vec3{0.5f, 0.5f, 0.5f});
+    const engine::geometry::Aabb from_point_box = engine::geometry::BoundingAabb(vec3{0.5f, 0.5f, 0.5f});
     expect_vec3_eq(from_point_box.min, vec3{0.5f, 0.5f, 0.5f});
     expect_vec3_eq(from_point_box.max, vec3{0.5f, 0.5f, 0.5f});
 
-    const Aabb inner = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{0.25f});
+    const engine::geometry::Aabb inner = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{0.25f});
     EXPECT_TRUE(engine::geometry::Contains(outer, inner));
 
     const engine::geometry::Sphere inner_sphere{vec3{0.0f}, 0.5f};
@@ -69,7 +66,7 @@ TEST(Aabb, ConversionsContainmentAndIntersections)
     EXPECT_TRUE(engine::geometry::Contains(outer, inner_obb));
 
     const engine::geometry::Sphere bounding = engine::geometry::BoundingSphere(outer);
-    const Aabb inflated = engine::geometry::BoundingAabb(bounding);
+    const engine::geometry::Aabb inflated = BoundingAabb(bounding);
     EXPECT_TRUE(engine::geometry::Contains(inflated, outer));
 
     EXPECT_TRUE(engine::geometry::Intersects(outer, outer));
@@ -81,7 +78,7 @@ TEST(Aabb, ConversionsContainmentAndIntersections)
 TEST(Aabb, ContainsCylinderAndEllipsoid)
 {
     const vec3 center{0.0f};
-    const Aabb outer = engine::geometry::MakeAabbFromCenterExtent(center, vec3{2.0f, 2.0f, 2.0f});
+    const engine::geometry::Aabb outer = engine::geometry::MakeAabbFromCenterExtent(center, vec3{2.0f, 2.0f, 2.0f});
 
     const engine::geometry::Cylinder cylinder_inside{
         vec3{0.0f, 0.0f, 0.0f},
@@ -117,7 +114,7 @@ TEST(Aabb, ContainsCylinderAndEllipsoid)
 
 TEST(Aabb, IntersectsAdvancedShapes)
 {
-    const Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{1.0f});
+    const engine::geometry::Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{1.0f});
 
     const engine::geometry::Cylinder cylinder{
         vec3{1.5f, 0.0f, 0.0f},
@@ -222,7 +219,7 @@ TEST(Aabb, BoundingVolumesForCompositeShapes)
         1.0f,
         2.0f,
     };
-    const Aabb cylinder_bounds = engine::geometry::BoundingAabb(cylinder);
+    const engine::geometry::Aabb cylinder_bounds = engine::geometry::BoundingAabb(cylinder);
     const vec3 cylinder_extent = engine::geometry::Extent(cylinder_bounds);
     EXPECT_TRUE(std::fabs(cylinder_bounds.min[2] + 2.0f) <= 1e-5f);
     EXPECT_TRUE(std::fabs(cylinder_bounds.max[2] - 0.0f) <= 1e-5f);
@@ -241,14 +238,14 @@ TEST(Aabb, BoundingVolumesForCompositeShapes)
         vec3{1.0f, 2.0f, 0.5f},
         rotation_quat,
     };
-    const Aabb ellipsoid_bounds = engine::geometry::BoundingAabb(ellipsoid);
+    const engine::geometry::Aabb ellipsoid_bounds = engine::geometry::BoundingAabb(ellipsoid);
     const vec3 ellipsoid_extent = engine::geometry::Extent(ellipsoid_bounds);
     EXPECT_TRUE(std::fabs(ellipsoid_extent[0] - 2.1213203f) <= 1e-4f);
     EXPECT_TRUE(std::fabs(ellipsoid_extent[1] - 2.1213203f) <= 1e-4f);
     EXPECT_FLOAT_EQ(ellipsoid_extent[2], 0.5f);
 
     const engine::geometry::Segment segment{vec3{-1.0f, 2.0f, 3.0f}, vec3{4.0f, -1.0f, 5.0f}};
-    const Aabb segment_bounds = engine::geometry::BoundingAabb(segment);
+    const engine::geometry::Aabb segment_bounds = engine::geometry::BoundingAabb(segment);
     expect_vec3_eq(segment_bounds.min, vec3{-1.0f, -1.0f, 3.0f});
     expect_vec3_eq(segment_bounds.max, vec3{4.0f, 2.0f, 5.0f});
 
@@ -257,7 +254,7 @@ TEST(Aabb, BoundingVolumesForCompositeShapes)
         vec3{-3.0f, 4.0f, 2.0f},
         vec3{0.5f, 1.5f, -1.0f},
     };
-    const Aabb triangle_bounds = engine::geometry::BoundingAabb(triangle);
+    const engine::geometry::Aabb triangle_bounds = engine::geometry::BoundingAabb(triangle);
     expect_vec3_eq(triangle_bounds.min, vec3{-3.0f, -2.0f, -1.0f});
     expect_vec3_eq(triangle_bounds.max, vec3{1.0f, 4.0f, 2.0f});
 }
@@ -287,7 +284,7 @@ TEST(Obb, ContainsAndBoundingBox)
         engine::math::utils::to_rotation_matrix(box.orientation) * vec3{2.5f, 0.0f, 0.0f});
     EXPECT_TRUE(!engine::geometry::Contains(box, outside));
 
-    const Aabb bounds = BoundingAabb(box);
+    const engine::geometry::Aabb bounds = BoundingAabb(box);
     EXPECT_TRUE(std::fabs(bounds.min[0] + 2.1213205f) <= 1e-5f);
     EXPECT_TRUE(std::fabs(bounds.min[1] + 2.1213205f) <= 1e-5f);
     EXPECT_FLOAT_EQ(bounds.min[2], -0.5f);
@@ -404,7 +401,7 @@ TEST(Sphere, ContainmentAndConversions)
     EXPECT_FLOAT_EQ(s.radius, 0.0f);
     expect_vec3_eq(s.center, vec3{1.0f, 2.0f, 3.0f});
 
-    const Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{1.0f, 2.0f, 3.0f}, vec3{1.0f});
+    const engine::geometry::Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{1.0f, 2.0f, 3.0f}, vec3{1.0f});
     const engine::geometry::Sphere enclosing = engine::geometry::BoundingSphere(box);
     EXPECT_TRUE(engine::geometry::Contains(enclosing, box));
 
@@ -502,7 +499,7 @@ TEST(Ray, ClosestPointAndDistance)
 TEST(Ray, Intersections)
 {
     const engine::geometry::Ray r{vec3{-2.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}};
-    const Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{1.0f});
+    const engine::geometry::Aabb box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f}, vec3{1.0f});
     {
         engine::geometry::Result result{};
         EXPECT_TRUE(engine::geometry::Intersects(r, box, &result));
@@ -553,7 +550,7 @@ TEST(Line, Projection)
 
 TEST(Triangle, DerivedQuantities)
 {
-    const Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
+    const engine::geometry::Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
 
     const vec3 expected_normal{0.0f, 0.0f, 1.0f};
     expect_vec3_eq(engine::geometry::Normal(triangle), expected_normal);
@@ -564,14 +561,14 @@ TEST(Triangle, DerivedQuantities)
 
 TEST(Triangle, ContainsAndBarycentric)
 {
-    const Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
+    const engine::geometry::Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
     const vec3 interior{0.25f, 0.25f, 0.0f};
     const vec3 exterior{0.5f, 0.5f, 0.2f};
 
     EXPECT_TRUE(engine::geometry::Contains(triangle, interior));
     EXPECT_FALSE(engine::geometry::Contains(triangle, exterior));
 
-    const Triangle smaller{vec3{0.1f, 0.1f, 0.0f}, vec3{0.3f, 0.1f, 0.0f}, vec3{0.1f, 0.3f, 0.0f}};
+    const engine::geometry::Triangle smaller{vec3{0.1f, 0.1f, 0.0f}, vec3{0.3f, 0.1f, 0.0f}, vec3{0.1f, 0.3f, 0.0f}};
     EXPECT_TRUE(engine::geometry::Contains(triangle, smaller));
 
     const vec3 bary = engine::geometry::ToBarycentricCoords(triangle, engine::geometry::Normal(triangle), interior);
@@ -581,11 +578,11 @@ TEST(Triangle, ContainsAndBarycentric)
 
 TEST(Triangle, IntersectionsWithShapes)
 {
-    const Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
+    const engine::geometry::Triangle triangle{vec3{0.0f, 0.0f, 0.0f}, vec3{1.0f, 0.0f, 0.0f}, vec3{0.0f, 1.0f, 0.0f}};
 
-    const Aabb intersecting_box = engine::geometry::MakeAabbFromCenterExtent(
+    const engine::geometry::Aabb intersecting_box = engine::geometry::MakeAabbFromCenterExtent(
         vec3{0.25f, 0.25f, 0.0f}, vec3{0.3f, 0.3f, 0.1f});
-    const Aabb far_box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f, 0.0f, 1.5f}, vec3{0.2f});
+    const engine::geometry::Aabb far_box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f, 0.0f, 1.5f}, vec3{0.2f});
     EXPECT_TRUE(engine::geometry::Intersects(triangle, intersecting_box));
     EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_box));
 
@@ -627,8 +624,8 @@ TEST(Triangle, IntersectionsWithShapes)
     EXPECT_TRUE(engine::geometry::Intersects(triangle, segment));
     EXPECT_TRUE(!engine::geometry::Intersects(triangle, miss_segment));
 
-    const Triangle other{vec3{0.25f, 0.25f, 0.0f}, vec3{0.75f, 0.25f, 0.0f}, vec3{0.25f, 0.75f, 0.0f}};
-    const Triangle far_triangle{vec3{0.0f, 0.0f, 1.0f}, vec3{0.5f, 0.0f, 1.0f}, vec3{0.0f, 0.5f, 1.0f}};
+    const engine::geometry::Triangle other{vec3{0.25f, 0.25f, 0.0f}, vec3{0.75f, 0.25f, 0.0f}, vec3{0.25f, 0.75f, 0.0f}};
+    const engine::geometry::Triangle far_triangle{vec3{0.0f, 0.0f, 1.0f}, vec3{0.5f, 0.0f, 1.0f}, vec3{0.0f, 0.5f, 1.0f}};
     EXPECT_TRUE(engine::geometry::Intersects(triangle, other));
     EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_triangle));
 }
@@ -700,134 +697,134 @@ TEST(Cylinder, IntersectsSphere)
 
 TEST(CylinderGeometry, ClosestPointInsideCylinder)
 {
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 2.0f, 3.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 2.0f, 3.0f};
     const vec3 inside{1.0f, 0, 1.0f};
 
-    const vec3 closest = ClosestPoint(cyl, inside);
+    const vec3 closest = ClosestPoint(cylinder, inside);
 
     // Point inside should return itself
     EXPECT_FLOAT_EQ(closest[0], inside[0]);
     EXPECT_FLOAT_EQ(closest[1], inside[1]);
     EXPECT_FLOAT_EQ(closest[2], inside[2]);
 
-    EXPECT_EQ(SquaredDistance(cyl, inside), 0.0);
+    EXPECT_EQ(SquaredDistance(cylinder, inside), 0.0);
 }
 
 TEST(CylinderGeometry, ClosestPointOnLateralSurface)
 {
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
     const vec3 outside{3.0f, 0, 0};
 
-    const vec3 closest = ClosestPoint(cyl, outside);
+    const vec3 closest = ClosestPoint(cylinder, outside);
 
     // Should be on lateral surface at x=1, z=0
     EXPECT_FLOAT_EQ(closest[0], 1.0f);
     EXPECT_FLOAT_EQ(closest[1], 0.0f);
     EXPECT_FLOAT_EQ(closest[2], 0.0f);
 
-    const double dist_sq = SquaredDistance(cyl, outside);
+    const double dist_sq = SquaredDistance(cylinder, outside);
     EXPECT_EQ(dist_sq, 4.0); // (3-1)^2 = 4
 }
 
 TEST(CylinderGeometry, ClosestPointOnTopCap)
 {
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
     const vec3 above{0, 0, 5.0f};
 
-    const vec3 closest = ClosestPoint(cyl, above);
+    const vec3 closest = ClosestPoint(cylinder, above);
 
     // Should be at center of top cap
     EXPECT_FLOAT_EQ(closest[0], 0.0f);
     EXPECT_FLOAT_EQ(closest[1], 0.0f);
     EXPECT_FLOAT_EQ(closest[2], 2.0f);
 
-    const double dist_sq = SquaredDistance(cyl, above);
+    const double dist_sq = SquaredDistance(cylinder, above);
     EXPECT_EQ(dist_sq, 9.0); // (5-2)^2 = 9
 }
 
 TEST(CylinderGeometry, ClosestPointOnBottomCap)
 {
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
     const vec3 below{0, 0, -5.0f};
 
-    const vec3 closest = ClosestPoint(cyl, below);
+    const vec3 closest = ClosestPoint(cylinder, below);
 
     // Should be at center of bottom cap
     EXPECT_FLOAT_EQ(closest[0], 0.0f);
     EXPECT_FLOAT_EQ(closest[1], 0.0f);
     EXPECT_FLOAT_EQ(closest[2], -2.0f);
 
-    const double dist_sq = SquaredDistance(cyl, below);
+    const double dist_sq = SquaredDistance(cylinder, below);
     EXPECT_EQ(dist_sq, 9.0); // (-5-(-2))^2 = 9
 }
 
 TEST(CylinderGeometry, ClosestPointOnCapEdge)
 {
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
     const vec3 diagonal{2.0f, 0, 3.0f};
 
-    const vec3 closest = ClosestPoint(cyl, diagonal);
+    const vec3 closest = ClosestPoint(cylinder, diagonal);
 
     // Should be on edge of top cap
     EXPECT_FLOAT_EQ(closest[0], 1.0f);
     EXPECT_FLOAT_EQ(closest[1], 0.0f);
     EXPECT_FLOAT_EQ(closest[2], 2.0f);
 
-    const double dist_sq = SquaredDistance(cyl, diagonal);
+    const double dist_sq = SquaredDistance(cylinder, diagonal);
     EXPECT_EQ(dist_sq, 2.0); // (2-1)^2 + (3-2)^2 = 2
 }
 
 TEST(CylinderGeometry, ClosestPointOnSurface)
 {
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
     const vec3 on_surface{1.0f, 0, 0};
 
-    const vec3 closest = ClosestPoint(cyl, on_surface);
+    const vec3 closest = ClosestPoint(cylinder, on_surface);
 
     // Point already on surface
     EXPECT_FLOAT_EQ(closest[0], 1.0f);
     EXPECT_FLOAT_EQ(closest[1], 0.0f);
     EXPECT_FLOAT_EQ(closest[2], 0.0f);
 
-    EXPECT_TRUE(engine::math::utils::nearly_equal(SquaredDistance(cyl, on_surface), 0.0, 1e-6));
+    EXPECT_TRUE(engine::math::utils::nearly_equal(SquaredDistance(cylinder, on_surface), 0.0, 1e-6));
 }
 
 TEST(CylinderGeometry, ClosestPointWithOffset)
 {
-    const engine::geometry::Cylinder cyl{{5, 3, 2}, {0, 1, 0}, 2.0f, 3.0f};
+    const engine::geometry::Cylinder cylinder{{5, 3, 2}, {0, 1, 0}, 2.0f, 3.0f};
     const vec3 point{10, 3, 2};
 
-    const vec3 closest = ClosestPoint(cyl, point);
+    const vec3 closest = ClosestPoint(cylinder, point);
 
     // Should be on lateral surface at x=7, y=3, z=2
     EXPECT_FLOAT_EQ(closest[0], 7.0f);
     EXPECT_FLOAT_EQ(closest[1], 3.0f);
     EXPECT_FLOAT_EQ(closest[2], 2.0f);
 
-    const double dist_sq = SquaredDistance(cyl, point);
+    const double dist_sq = SquaredDistance(cylinder, point);
     EXPECT_EQ(dist_sq, 9.0); // (10-7)^2 = 9
 }
 
 TEST(CylinderGeometry, ClosestPointNonAxisAligned)
 {
     // Cylinder along x-axis
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {1, 0, 0}, 1.0f, 2.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {1, 0, 0}, 1.0f, 2.0f};
     const vec3 point{0, 3, 0};
 
-    const vec3 closest = ClosestPoint(cyl, point);
+    const vec3 closest = ClosestPoint(cylinder, point);
 
     // Should be on lateral surface
     EXPECT_FLOAT_EQ(closest[0], 0.0f);
     EXPECT_FLOAT_EQ(closest[1], 1.0f);
     EXPECT_FLOAT_EQ(closest[2], 0.0f);
 
-    const double dist_sq = SquaredDistance(cyl, point);
+    const double dist_sq = SquaredDistance(cylinder, point);
     EXPECT_EQ(dist_sq, 4.0); // (3-1)^2 = 4
 }
 
 TEST(CylinderGeometry, SquaredDistanceConsistency)
 {
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.5f, 3.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 1.5f, 3.0f};
 
     // Test multiple points
     const std::vector<vec3> test_points = {
@@ -840,8 +837,8 @@ TEST(CylinderGeometry, SquaredDistanceConsistency)
 
     for (const auto& point : test_points)
     {
-        const vec3 closest = ClosestPoint(cyl, point);
-        const double dist_sq = SquaredDistance(cyl, point);
+        const vec3 closest = ClosestPoint(cylinder, point);
+        const double dist_sq = SquaredDistance(cylinder, point);
         const double expected_dist_sq = length_squared(point - closest);
 
         EXPECT_TRUE(engine::math::utils::nearly_equal(dist_sq, expected_dist_sq, 1e-5));
@@ -851,32 +848,32 @@ TEST(CylinderGeometry, SquaredDistanceConsistency)
 TEST(CylinderGeometry, EdgeCaseZeroRadius)
 {
     // Degenerate cylinder (line segment)
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 0.0f, 2.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 0.0f, 2.0f};
     const vec3 point{1, 0, 0};
 
-    const vec3 closest = ClosestPoint(cyl, point);
+    const vec3 closest = ClosestPoint(cylinder, point);
 
     // Should be on the axis
     EXPECT_FLOAT_EQ(closest[0], 0.0f);
     EXPECT_FLOAT_EQ(closest[1], 0.0f);
 
-    const double dist_sq = SquaredDistance(cyl, point);
+    const double dist_sq = SquaredDistance(cylinder, point);
     EXPECT_EQ(dist_sq, 1.0);
 }
 
 TEST(CylinderGeometry, EdgeCaseZeroHeight)
 {
     // Flat disk
-    const engine::geometry::Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 2.0f, 0.0f};
+    const engine::geometry::Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 2.0f, 0.0f};
     const vec3 above{1, 0, 3};
 
-    const vec3 closest = ClosestPoint(cyl, above);
+    const vec3 closest = ClosestPoint(cylinder, above);
 
     // Should be on the disk at z=0
     EXPECT_FLOAT_EQ(closest[0], 1.0f);
     EXPECT_FLOAT_EQ(closest[1], 0.0f);
     EXPECT_FLOAT_EQ(closest[2], 0.0f);
 
-    const double dist_sq = SquaredDistance(cyl, above);
+    const double dist_sq = SquaredDistance(cylinder, above);
     EXPECT_EQ(dist_sq, 9.0); // z-distance squared
 }

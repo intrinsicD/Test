@@ -2,16 +2,13 @@
 #include <cmath>
 #include <type_traits>
 #include <numbers>
-#include <engine/math/utils_rotation.hpp>
+
 
 #include <gtest/gtest.h>
 
 #include "engine/math/common.hpp"
+#include "engine/math/utils_rotation.hpp"
 #include "engine/math/math.hpp"
-#include "engine/math/matrix.hpp"
-#include "engine/math/vector.hpp"
-#include "engine/math/quaternion.hpp"
-#include "engine/math/transform.hpp"
 
 using namespace engine::math;
 
@@ -874,4 +871,375 @@ TEST(Transform, InverseAndCombineReturnIdentity)
     const vec3 forward = transform_point(transform, point);
     const vec3 back = transform_point(inverse_transform, forward);
     ExpectVectorNear(back, {point[0], point[1], point[2]}, 1e-4F);
+}
+
+// ===================== SparseMatrix tests =====================
+
+TEST(SparseMatrix, BuildFromTripletsAndMultiply)
+{
+    using T = float;
+    using SM = SparseMatrix<T>;
+
+    // Matrix:
+    // [ 10  2  0 ]
+    // [  0  3  4 ]
+    // [  1  0  5 ]
+    std::vector<SM::Triplet> trips = {
+        {0,0,10}, {2,0,1},
+        {0,1, 2}, {1,1,3},
+        {1,2, 4}, {2,2,5}
+    };
+    SM A = SM::from_triplets(3, 3, trips, /*sum_duplicates*/true);
+
+    ASSERT_EQ(A.rows(), 3u);
+    ASSERT_EQ(A.cols(), 3u);
+    ASSERT_TRUE(A.is_column_sorted());
+    ASSERT_EQ(A.nnz(), 6u);
+
+    // Multiply by x = [1,2,3]^T
+    const std::vector<T> x{1,2,3};
+    const auto y = A * x;
+
+    ASSERT_EQ(y.size(), 3u);
+    // Expected y = [10*1 + 2*2, 3*2 + 4*3, 1*1 + 5*3] = [14, 18, 16]
+    EXPECT_NEAR(y[0], 14.0F, 1e-6F);
+    EXPECT_NEAR(y[1], 18.0F, 1e-6F);
+    EXPECT_NEAR(y[2], 16.0F, 1e-6F);
+
+    // accumulate into y2
+    std::vector<T> y2(3, 1.0F); // start from [1,1,1]
+    A.multiply_accumulate(x, y2);
+    EXPECT_NEAR(y2[0], 15.0F, 1e-6F);
+    EXPECT_NEAR(y2[1], 19.0F, 1e-6F);
+    EXPECT_NEAR(y2[2], 17.0F, 1e-6F);
+}
+
+TEST(SparseMatrix, TryGetSetAddToAndOrdering)
+{
+    using T = double;
+    using SM = SparseMatrix<T>;
+
+    // Start with a single column, test ordering on inserts
+    SM A(4, 3);
+    // Insert via set (new entries)
+    A.set(2, 0, 5.0); // (2,0)=5
+    A.set(0, 0, 1.0); // (0,0)=1  (should keep rows sorted: 0 then 2)
+    A.set(3, 0, 7.0); // (3,0)=7
+
+    // Another column
+    A.add_to(1, 1, 2.5); // (1,1)+=2.5  (creates)
+    A.add_to(1, 1, 0.5); // (1,1)+=0.5  (now 3.0)
+    A.set(0, 2, -4.0);
+
+    ASSERT_TRUE(A.is_column_sorted());
+    EXPECT_EQ(A.nnz(), 5u);
+
+    auto v00 = A.try_get(0,0); ASSERT_TRUE(v00.has_value()); EXPECT_NEAR(*v00, 1.0, 1e-12);
+    auto v20 = A.try_get(2,0); ASSERT_TRUE(v20.has_value()); EXPECT_NEAR(*v20, 5.0, 1e-12);
+    auto v30 = A.try_get(3,0); ASSERT_TRUE(v30.has_value()); EXPECT_NEAR(*v30, 7.0, 1e-12);
+    auto v11 = A.try_get(1,1); ASSERT_TRUE(v11.has_value()); EXPECT_NEAR(*v11, 3.0, 1e-12);
+    auto v02 = A.try_get(0,2); ASSERT_TRUE(v02.has_value()); EXPECT_NEAR(*v02, -4.0, 1e-12);
+    auto v12 = A.try_get(1,2); EXPECT_FALSE(v12.has_value()); // not present
+
+    // mat-vec quick check
+    const std::vector<T> x{1.0, 2.0, -1.0}; // size=cols
+    const auto y = A * x;
+    ASSERT_EQ(y.size(), 4u);
+    // y = col0*1 + col1*2 + col2*(-1)
+    // col0 = [(0,0)=1, (2,0)=5, (3,0)=7] -> [1,0,5,7]
+    // col1 = [(1,1)=3] -> [0,3,0,0]
+    // col2 = [(0,2)=-4] -> [-4,0,0,0]
+    // y = [1 + 0*2 + (-4)*(-1), 0 + 3*2 + 0, 5 + 0 + 0, 7 + 0 + 0]
+    //   = [1 + 0 + 4, 6, 5, 7] = [5, 6, 5, 7]
+    EXPECT_NEAR(y[0], 5.0, 1e-12);
+    EXPECT_NEAR(y[1], 6.0, 1e-12);
+    EXPECT_NEAR(y[2], 5.0, 1e-12);
+    EXPECT_NEAR(y[3], 7.0, 1e-12);
+}
+
+TEST(SparseMatrix, FromTripletsSumsDuplicatesAndDropsZeros)
+{
+    using T = int;
+    using SM = SparseMatrix<T>;
+
+    std::vector<SM::Triplet> trips = {
+        {0,0, 2}, {0,0, -2}, // cancels to zero -> dropped
+        {1,0, 3}, {1,0, 1},  // sums to 4
+        {0,1, 5}
+    };
+    SM A = SM::from_triplets(2, 2, trips, /*sum_duplicates*/true);
+
+    EXPECT_EQ(A.nnz(), 2u);
+    auto v10 = A.try_get(1,0); ASSERT_TRUE(v10.has_value()); EXPECT_EQ(*v10, 4);
+    auto v01 = A.try_get(0,1); ASSERT_TRUE(v01.has_value()); EXPECT_EQ(*v01, 5);
+    auto v00 = A.try_get(0,0); EXPECT_FALSE(v00.has_value());
+}
+
+TEST(SparseMatrix, PlusMinusScalarMulAndPrune)
+{
+    using T = float;
+    using SM = SparseMatrix<T>;
+
+    // A:
+    // [ 1 0 ]
+    // [ 2 3 ]
+    // [ 0 4 ]
+    std::vector<SM::Triplet> Ta = {{0,0,1},{1,0,2},{1,1,3},{2,1,4}};
+    SM A = SM::from_triplets(3, 2, Ta, true);
+
+    // B:
+    // [ 2 5 ]
+    // [ 0 0 ]
+    // [ 1 1 ]
+    std::vector<SM::Triplet> Tb = {{0,0,2},{0,1,5},{2,0,1},{2,1,1}};
+    SM B = SM::from_triplets(3, 2, Tb, true);
+
+    SM C = A + B;
+    // C expected:
+    // [ 3 5 ]
+    // [ 2 3 ]
+    // [ 1 5 ]
+    {
+        auto c00 = C.try_get(0,0); ASSERT_TRUE(c00.has_value()); EXPECT_NEAR(*c00, 3.0F, 1e-6F);
+        auto c10 = C.try_get(1,0); ASSERT_TRUE(c10.has_value()); EXPECT_NEAR(*c10, 2.0F, 1e-6F);
+        auto c20 = C.try_get(2,0); ASSERT_TRUE(c20.has_value()); EXPECT_NEAR(*c20, 1.0F, 1e-6F);
+
+        auto c01 = C.try_get(0,1); ASSERT_TRUE(c01.has_value()); EXPECT_NEAR(*c01, 5.0F, 1e-6F);
+        auto c11 = C.try_get(1,1); ASSERT_TRUE(c11.has_value()); EXPECT_NEAR(*c11, 3.0F, 1e-6F);
+        auto c21 = C.try_get(2,1); ASSERT_TRUE(c21.has_value()); EXPECT_NEAR(*c21, 5.0F, 1e-6F);
+    }
+
+    SM D = C - A; // should equal B
+    EXPECT_EQ(D.nnz(), B.nnz());
+    // spot-check via multiply
+    const std::vector<T> x{2.0F, -1.0F};
+    const auto yB = B * x;
+    const auto yD = D * x;
+    ASSERT_EQ(yB.size(), yD.size());
+    for (size_t i = 0; i < yB.size(); ++i) {
+        EXPECT_NEAR(yB[i], yD[i], 1e-6F);
+    }
+
+    // Scalar multiply then prune
+    C *= 0.0F;
+    // Now all stored values are explicit zeros; prune_zeros should drop them.
+    const auto nnz_before = C.nnz();
+    C.prune_zeros();
+    EXPECT_LE(C.nnz(), nnz_before);
+    EXPECT_EQ((SM::size_type)0, C.nnz());
+}
+
+TEST(SparseMatrix, TransposeAdjointIdentity)
+{
+    using T = double;
+    using SM = SparseMatrix<T>;
+
+    // Random-looking small A (3x4)
+    std::vector<SM::Triplet> trips = {
+        {0,0, 1.0}, {2,0, -2.0},
+        {1,1, 3.0},
+        {0,2, 4.0}, {2,2, 5.0},
+        {1,3, -1.0}
+    };
+    SM A = SM::from_triplets(3, 4, trips, true);
+    SM AT = A.transpose();
+
+    // Check (A x, y) == (x, A^T y)
+    // x in R^4, y in R^3
+    const std::vector<T> x{1.0, -2.0, 0.5, 3.0};
+    const std::vector<T> y{0.25, -1.0, 2.0};
+
+    const auto Ax = A * x;          // size 3
+    ASSERT_EQ(Ax.size(), y.size());
+
+    // dot(Ax, y)
+    T lhs = 0.0;
+    for (size_t i = 0; i < y.size(); ++i) lhs += Ax[i] * y[i];
+
+    // A^T y
+    const auto ATy = AT * y;        // size 4
+    ASSERT_EQ(ATy.size(), x.size());
+
+    // dot(x, ATy)
+    T rhs = 0.0;
+    for (size_t i = 0; i < x.size(); ++i) rhs += x[i] * ATy[i];
+
+    EXPECT_NEAR(lhs, rhs, 1e-12);
+}
+
+TEST(SparseMatrix, MultiplyAccumulateMatchesOperatorTimes)
+{
+    using T = float;
+    using SM = SparseMatrix<T>;
+
+    // Diagonal-ish 5x5
+    std::vector<SM::Triplet> trips;
+    trips.push_back({0,0, 2});
+    trips.push_back({1,1, 3});
+    trips.push_back({2,2, 4});
+    trips.push_back({3,3, 5});
+    trips.push_back({4,4, 6});
+    trips.push_back({4,0, 1}); // some off-diagonal
+    SM A = SM::from_triplets(5, 5, trips, true);
+
+    std::vector<T> x{1,2,3,4,5};
+    const auto y = A * x;
+
+    std::vector<T> y_acc(5, 0.0F);
+    A.multiply_accumulate(x, y_acc);
+
+    ASSERT_EQ(y.size(), y_acc.size());
+    for (size_t i = 0; i < y.size(); ++i) {
+        EXPECT_NEAR(y[i], y_acc[i], 1e-6F);
+    }
+}
+
+TEST(SparseMatrix, IsColumnSortedPersistsAfterEdits)
+{
+    using T = float;
+    using SM = SparseMatrix<T>;
+
+    SM A(6, 2);
+    // Insert in shuffled order in col 1 and 0
+    A.set(5, 1, 1.0F);
+    A.set(0, 1, 2.0F);
+    A.set(3, 1, 3.0F);
+    A.add_to(2, 0, 1.0F);
+    A.add_to(1, 0, 1.0F);
+    A.add_to(4, 0, 1.0F);
+
+    ASSERT_TRUE(A.is_column_sorted());
+
+    // Add in-between entries (should stay sorted)
+    A.set(2, 1, 4.0F);
+    A.add_to(3, 0, 2.0F);
+    ASSERT_TRUE(A.is_column_sorted());
+}
+
+TEST(SparseMatrix, DenseVsSparse_MatVec_Consistency)
+{
+    using T = float;
+    constexpr std::size_t Rows = 5;
+    constexpr std::size_t Cols = 4;
+
+    // Build a deterministic dense matrix with some zeros and negatives.
+    Matrix<T, Rows, Cols> M{};
+    for (std::size_t r = 0; r < Rows; ++r) {
+        for (std::size_t c = 0; c < Cols; ++c) {
+            // Pattern: base value with sign flip, and introduce sparsity by zeroing some entries.
+            T v = static_cast<T>((r + 1) * (c + 2));
+            if ((r + c) % 2 == 0) v = -v;           // flip sign on a checkerboard
+            if (((r + 2 * c) % 3) == 0) v = T(0);   // zero-out every ~3rd entry to ensure sparsity
+            M[r][c] = v;
+        }
+    }
+
+    // Convert to triplets (drop zeros) and build SparseMatrix.
+    using SM = SparseMatrix<T>;
+    std::vector<SM::Triplet> trips;
+    trips.reserve(Rows * Cols);
+    for (std::size_t c = 0; c < Cols; ++c) {
+        for (std::size_t r = 0; r < Rows; ++r) {
+            const T v = M[r][c];
+            if (v != T(0)) trips.push_back({r, c, v});
+        }
+    }
+    SM A = SM::from_triplets(Rows, Cols, trips, /*sum_duplicates*/true);
+    ASSERT_TRUE(A.is_column_sorted());
+    ASSERT_EQ(A.rows(), Rows);
+    ASSERT_EQ(A.cols(), Cols);
+
+    // Helper to compare dense vs sparse y = A * x
+    auto check_vec = [&](const std::array<T, Cols>& x_arr) {
+        // Dense y = M * x
+        Vector<T, Cols> x_dense{};
+        for (std::size_t i = 0; i < Cols; ++i) x_dense[i] = x_arr[i];
+        const Vector<T, Rows> y_dense = M * x_dense;
+
+        // Sparse y = A * x
+        std::vector<T> x_sparse(Cols);
+        for (std::size_t i = 0; i < Cols; ++i) x_sparse[i] = x_arr[i];
+        const std::vector<T> y_sparse = A * x_sparse;
+
+        ASSERT_EQ(y_sparse.size(), Rows);
+        for (std::size_t r = 0; r < Rows; ++r) {
+            EXPECT_NEAR(y_sparse[r], y_dense[r], 1e-5F);
+        }
+    };
+
+    // Test multiple input vectors (basis, ones, ramp, mixed)
+    check_vec({1, 0, 0, 0});         // e0
+    check_vec({0, 1, 0, 0});         // e1
+    check_vec({0, 0, 1, 0});         // e2
+    check_vec({0, 0, 0, 1});         // e3
+    check_vec({1, 1, 1, 1});         // all ones
+    check_vec({-1, 2, -3, 4});       // mixed signs
+    check_vec({0.5F, -0.25F, 1.5F, -2.0F}); // fractional
+}
+
+TEST(SparseMatrix, DenseVsSparse_MatVec_TransposeConsistency)
+{
+    using T = double;
+    constexpr std::size_t Rows = 4;
+    constexpr std::size_t Cols = 6;
+
+    // Dense matrix with explicit structure: diagonal-ish plus some off-diagonals; enforce zeros too.
+    Matrix<T, Rows, Cols> M{};
+    for (std::size_t r = 0; r < Rows; ++r) {
+        for (std::size_t c = 0; c < Cols; ++c) {
+            T v = (r == (c % Rows)) ? T(2 + r) : T(0); // place a diagonal pattern
+            if ((r + 3*c) % 5 == 0) v = -v;            // some negatives
+            if (((r + c) % 4) == 0) v = T(0);          // induce sparsity
+            M[r][c] = v;
+        }
+    }
+
+    // Build sparse from triplets
+    using SM = SparseMatrix<T>;
+    std::vector<SM::Triplet> trips;
+    for (std::size_t c = 0; c < Cols; ++c) {
+        for (std::size_t r = 0; r < Rows; ++r) {
+            const T v = M[r][c];
+            if (v != T(0)) trips.push_back({r, c, v});
+        }
+    }
+    SM A = SM::from_triplets(Rows, Cols, trips, /*sum_duplicates*/true);
+    ASSERT_TRUE(A.is_column_sorted());
+
+    // Choose y in R^Rows and x in R^Cols, test inner-product adjoint identity:
+    // <A x, y> == <x, A^T y>
+    const std::array<T, Cols> x_arr = {1.0, -2.0, 0.5, 3.0, -1.0, 2.5};
+    const std::array<T, Rows> y_arr = {0.25, -1.0, 2.0, -0.5};
+
+    // Dense side
+    Vector<T, Cols> x_dense{};
+    for (std::size_t i = 0; i < Cols; ++i) x_dense[i] = x_arr[i];
+    Vector<T, Rows> y_dense{};
+    for (std::size_t i = 0; i < Rows; ++i) y_dense[i] = y_arr[i];
+
+    const Vector<T, Rows> Ax_dense = M * x_dense;                   // (Rows)
+    const Matrix<T, Cols, Rows> MT = transpose(M);                  // Cols x Rows
+    const Vector<T, Cols> ATy_dense = MT * y_dense;                 // (Cols)
+
+    T lhs_dense = T(0), rhs_dense = T(0);
+    for (std::size_t i = 0; i < Rows; ++i) lhs_dense += Ax_dense[i] * y_dense[i];
+    for (std::size_t i = 0; i < Cols; ++i) rhs_dense += x_dense[i] * ATy_dense[i];
+
+    // Sparse side
+    const std::vector<T> x_sparse(x_arr.begin(), x_arr.end());
+    const std::vector<T> y_sparse(y_arr.begin(), y_arr.end());
+
+    const std::vector<T> Ax_sparse = A * x_sparse;                  // (Rows)
+    const SM AT = A.transpose();
+    const std::vector<T> ATy_sparse = AT * y_sparse;                // (Cols)
+
+    T lhs_sparse = T(0), rhs_sparse = T(0);
+    for (std::size_t i = 0; i < Rows; ++i) lhs_sparse += Ax_sparse[i] * y_sparse[i];
+    for (std::size_t i = 0; i < Cols; ++i) rhs_sparse += x_sparse[i] * ATy_sparse[i];
+
+    // Cross-check dense vs sparse results and adjoint identity
+    EXPECT_NEAR(lhs_sparse, rhs_sparse, 1e-12);
+    EXPECT_NEAR(lhs_dense,  rhs_dense,  1e-12);
+    EXPECT_NEAR(lhs_sparse, lhs_dense,  1e-12);
+    EXPECT_NEAR(rhs_sparse, rhs_dense,  1e-12);
 }

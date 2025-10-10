@@ -321,6 +321,18 @@ namespace testing
         }                                                                                                 \
     } while (false)
 
+#define EXPECT_LE(val1, val2)                                                                             \
+    do {                                                                                                  \
+        const auto gtest_val1 = (val1);                                                                   \
+        const auto gtest_val2 = (val2);                                                                   \
+        if (!(gtest_val1 <= gtest_val2)) {                                                                 \
+            std::ostringstream gtest_message;                                                             \
+            gtest_message << "Expected: (" << #val1 << ") <= (" << #val2 << "), actual: " << gtest_val1  \
+            << " vs " << gtest_val2;                                                        \
+            ::testing::internal::ReportFailure(__FILE__, __LINE__, gtest_message.str());                  \
+        }                                                                                                 \
+    } while (false)
+
 #define EXPECT_NEAR(val, exp, tol)                                                      \
     do {                                                                                \
         const auto gtest_val1 = (val);                                                  \
