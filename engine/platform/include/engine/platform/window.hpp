@@ -226,6 +226,8 @@ public:
 /// last reference releases the native resources held by the window as well as
 /// the associated event queue. When \p backend is WindowBackend::Auto the
 /// implementation selects the most suitable backend for the current build.
+/// Set the environment variable `ENGINE_PLATFORM_WINDOW_BACKEND` to override
+/// the automatic selection (accepted values: `auto`, `mock`, `glfw`, `sdl`).
 [[nodiscard]] ENGINE_PLATFORM_API std::shared_ptr<Window> create_window(
     WindowConfig config,
     WindowBackend backend = WindowBackend::Auto,

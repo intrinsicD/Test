@@ -1,15 +1,75 @@
 #include <gtest/gtest.h>
 
+#include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 #include <variant>
 
 #include "engine/platform/api.hpp"
 #include "engine/platform/window.hpp"
 
 namespace {
+
+class ScopedEnvironmentVariable {
+public:
+    ScopedEnvironmentVariable(std::string name, std::string value)
+        : name_{std::move(name)}, has_previous_{capture_previous()}, previous_value_{previous_raw_ == nullptr ? std::string{} : previous_raw_} {
+        set(value.c_str());
+    }
+
+    ScopedEnvironmentVariable(const ScopedEnvironmentVariable&) = delete;
+    ScopedEnvironmentVariable& operator=(const ScopedEnvironmentVariable&) = delete;
+
+    ScopedEnvironmentVariable(ScopedEnvironmentVariable&&) = delete;
+    ScopedEnvironmentVariable& operator=(ScopedEnvironmentVariable&&) = delete;
+
+    ~ScopedEnvironmentVariable() {
+        restore();
+    }
+
+    void restore() {
+        if (restored_) {
+            return;
+        }
+        if (has_previous_) {
+            set(previous_value_.c_str());
+        } else {
+            set(nullptr);
+        }
+        restored_ = true;
+    }
+
+private:
+    [[nodiscard]] bool capture_previous() {
+        previous_raw_ = std::getenv(name_.c_str());
+        return previous_raw_ != nullptr;
+    }
+
+    void set(const char* value) {
+#if defined(_WIN32)
+        if (value != nullptr) {
+            _putenv_s(name_.c_str(), value);
+        } else {
+            _putenv_s(name_.c_str(), "");
+        }
+#else
+        if (value != nullptr) {
+            setenv(name_.c_str(), value, 1);
+        } else {
+            unsetenv(name_.c_str());
+        }
+#endif
+    }
+
+    std::string name_{};
+    const char* previous_raw_{nullptr};
+    bool has_previous_{false};
+    std::string previous_value_{};
+    bool restored_{false};
+};
 
 class HookedSurface final : public engine::platform::SwapchainSurface {
 public:
@@ -80,6 +140,34 @@ TEST(PlatformWindowing, MockWindowLifecycle) {
     ASSERT_TRUE(window->event_queue().poll(event));
     EXPECT_TRUE(event.type == EventType::CloseRequested);
     EXPECT_TRUE(window->event_queue().empty());
+}
+
+TEST(PlatformWindowing, AutoBackendUsesEnvironmentOverride) {
+    using namespace engine::platform;
+
+    ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "mock"};
+    auto window = create_window(WindowConfig{}, WindowBackend::Auto);
+    ASSERT_TRUE(window != nullptr);
+    EXPECT_EQ(window->backend_name(), "mock");
+}
+
+TEST(PlatformWindowing, AutoBackendIgnoresInvalidOverride) {
+    using namespace engine::platform;
+
+    ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "invalid"};
+    auto window = create_window(WindowConfig{}, WindowBackend::Auto);
+    ASSERT_TRUE(window != nullptr);
+    EXPECT_EQ(window->backend_name(), "mock");
+}
+
+TEST(PlatformWindowing, AutoBackendFallsBackWhenOverrideFails) {
+    using namespace engine::platform;
+
+    ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "glfw"};
+    auto window = create_window(WindowConfig{}, WindowBackend::Auto);
+    ASSERT_TRUE(window != nullptr);
+    const auto backend_name = window->backend_name();
+    EXPECT_TRUE(backend_name == "glfw" || backend_name == "mock");
 }
 
 TEST(PlatformWindowing, EventDispatchFlow) {
