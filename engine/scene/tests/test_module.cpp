@@ -1,7 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "engine/math/vector.hpp"
+
 #include "engine/scene/api.hpp"
+#include "engine/scene/components.hpp"
 #include "engine/scene/scene.hpp"
+#include "engine/scene/systems.hpp"
 
 TEST(SceneModule, ModuleNameMatchesNamespace) {
     EXPECT_EQ(engine::scene::module_name(), "scene");
@@ -53,4 +57,40 @@ TEST(Scene, CreateAndManipulateEntity) {
 
     entity.destroy();
     EXPECT_FALSE(entity.valid());
+}
+
+TEST(Scene, CreateNamedEntityAndUpdateHierarchy) {
+    engine::scene::Scene scene;
+
+    auto parent = scene.create_entity("parent");
+    auto child = scene.create_entity("child");
+
+    EXPECT_TRUE(parent.has<engine::scene::components::Name>());
+    EXPECT_EQ(parent.get<engine::scene::components::Name>().value, "parent");
+
+    auto& registry = scene.registry();
+    auto& parent_local = registry.emplace<engine::scene::components::LocalTransform>(parent.id());
+    parent_local.value.translation = engine::math::Vector<float, 3>{1.0F, 0.0F, 0.0F};
+    auto& child_local = registry.emplace<engine::scene::components::LocalTransform>(child.id());
+    child_local.value.translation = engine::math::Vector<float, 3>{0.0F, 1.0F, 0.0F};
+
+    engine::scene::systems::mark_transform_dirty(registry, parent.id());
+    engine::scene::systems::mark_transform_dirty(registry, child.id());
+
+    child.set_parent(parent);
+    scene.update();
+
+    auto parent_of_child = child.parent();
+    ASSERT_TRUE(parent_of_child.valid());
+    EXPECT_EQ(parent_of_child.id(), parent.id());
+
+    const auto& child_world = registry.get<engine::scene::components::WorldTransform>(child.id());
+    EXPECT_FLOAT_EQ(child_world.value.translation[0], 1.0F);
+    EXPECT_FLOAT_EQ(child_world.value.translation[1], 1.0F);
+
+    child.detach_from_parent();
+    scene.update();
+
+    parent_of_child = child.parent();
+    EXPECT_FALSE(parent_of_child.valid());
 }

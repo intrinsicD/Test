@@ -33,6 +33,13 @@ namespace engine::scene
         return Entity{entity, this};
     }
 
+    Entity Scene::create_entity(std::string name)
+    {
+        auto entity = create_entity();
+        entity.emplace<components::Name>(components::Name{std::move(name)});
+        return entity;
+    }
+
     void Scene::destroy_entity(Entity& entity)
     {
         if (entity.scene_ != this)
@@ -88,6 +95,58 @@ namespace engine::scene
     bool Scene::valid(entity_type entity) const noexcept
     {
         return registry_.valid(entity);
+    }
+
+    void Scene::set_parent(Entity& child, Entity parent)
+    {
+        // Validate that the child belongs to this scene before mutating the hierarchy.
+        if (child.scene_ != this)
+        {
+            throw std::logic_error{"Child entity does not belong to this scene"};
+        }
+
+        if (!child.valid())
+        {
+            throw std::logic_error{"Child entity is not valid"};
+        }
+
+        entt::entity parent_id = entt::null;
+        if (parent.scene_ != nullptr)
+        {
+            if (parent.scene_ != this)
+            {
+                throw std::logic_error{"Parent entity does not belong to this scene"};
+            }
+
+            if (!parent.valid())
+            {
+                throw std::logic_error{"Parent entity is not valid"};
+            }
+
+            parent_id = parent.id_;
+        }
+
+        systems::set_parent(registry_, child.id_, parent_id);
+    }
+
+    void Scene::detach_from_parent(Entity& child)
+    {
+        if (child.scene_ != this)
+        {
+            throw std::logic_error{"Child entity does not belong to this scene"};
+        }
+
+        if (!child.valid())
+        {
+            return;
+        }
+
+        systems::detach_from_parent(registry_, child.id_);
+    }
+
+    void Scene::update()
+    {
+        systems::propagate_transforms(registry_);
     }
 
     Scene::registry_type& Scene::registry() noexcept
