@@ -11,6 +11,7 @@
 - Link against `engine_scene` to host world state; the target inherits `engine::project_options` and publishes headers through `engine::headers` for dependent modules.
 - Use `Scene::create_entity(std::string)` to attach a `Name` component at creation time or `Scene::create_entity()` for anonymous entities.
 - Manage hierarchy relationships via the `Entity::set_parent`/`Entity::detach_from_parent` helpers which validate cross-scene usage.
+  - Pass `preserve_world_transform = true` when re-parenting or detaching to keep an entity's world transform constant while its local transform is recomputed relative to the new parent.
 - Call `Scene::update()` each frame (or whenever systems should run) to propagate dirty transforms throughout the scene graph.
 - Build and test via the shared presets (`cmake --preset linux-gcc-debug`, `ctest --preset linux-gcc-debug`) to track integration regressions.
 

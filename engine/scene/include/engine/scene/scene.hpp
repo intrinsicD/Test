@@ -45,8 +45,8 @@ namespace engine::scene
         void reset() noexcept;
         void destroy();
 
-        void set_parent(Entity parent);
-        void detach_from_parent();
+        void set_parent(Entity parent, bool preserve_world_transform = false);
+        void detach_from_parent(bool preserve_world_transform = false);
         [[nodiscard]] Entity parent() const;
 
         template <typename Component, typename... Args>
@@ -95,8 +95,8 @@ namespace engine::scene
         [[nodiscard]] Entity wrap(entity_type entity) noexcept;
         [[nodiscard]] bool valid(entity_type entity) const noexcept;
 
-        void set_parent(Entity& child, Entity parent);
-        void detach_from_parent(Entity& child);
+        void set_parent(Entity& child, Entity parent, bool preserve_world_transform = false);
+        void detach_from_parent(Entity& child, bool preserve_world_transform = false);
 
         void update();
 
@@ -159,14 +159,14 @@ namespace engine::scene
         }
     }
 
-    inline void Entity::set_parent(Entity parent)
+    inline void Entity::set_parent(Entity parent, bool preserve_world_transform)
     {
-        scene().set_parent(*this, parent);
+        scene().set_parent(*this, parent, preserve_world_transform);
     }
 
-    inline void Entity::detach_from_parent()
+    inline void Entity::detach_from_parent(bool preserve_world_transform)
     {
-        scene().detach_from_parent(*this);
+        scene().detach_from_parent(*this, preserve_world_transform);
     }
 
     inline Entity Entity::parent() const

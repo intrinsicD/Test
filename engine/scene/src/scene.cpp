@@ -97,7 +97,7 @@ namespace engine::scene
         return registry_.valid(entity);
     }
 
-    void Scene::set_parent(Entity& child, Entity parent)
+    void Scene::set_parent(Entity& child, Entity parent, bool preserve_world_transform)
     {
         // Validate that the child belongs to this scene before mutating the hierarchy.
         if (child.scene_ != this)
@@ -126,10 +126,10 @@ namespace engine::scene
             parent_id = parent.id_;
         }
 
-        systems::set_parent(registry_, child.id_, parent_id);
+        systems::set_parent(registry_, child.id_, parent_id, preserve_world_transform);
     }
 
-    void Scene::detach_from_parent(Entity& child)
+    void Scene::detach_from_parent(Entity& child, bool preserve_world_transform)
     {
         if (child.scene_ != this)
         {
@@ -141,7 +141,7 @@ namespace engine::scene
             return;
         }
 
-        systems::detach_from_parent(registry_, child.id_);
+        systems::detach_from_parent(registry_, child.id_, preserve_world_transform);
     }
 
     void Scene::update()
