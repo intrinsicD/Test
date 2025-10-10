@@ -3,7 +3,7 @@
 ## Current State
 
 - Exposes public headers that mirror the module API and guard ABI compatibility.
-- Hosts subdirectories for Graph, Mesh, Octree, Point Cloud, Properties, Shapes, Utils.
+- Hosts subdirectories for Graph, Mesh, Octree, KdTree, Point Cloud, Properties, Shapes, Utils.
 
 ## Usage
 
