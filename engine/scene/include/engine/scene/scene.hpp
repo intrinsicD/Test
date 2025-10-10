@@ -7,6 +7,8 @@
 #include <string_view>
 #include <utility>
 
+#include "engine/scene/components/hierarchy.hpp"
+
 #include <entt/entt.hpp>
 
 namespace entt
@@ -42,6 +44,10 @@ namespace engine::scene
 
         void reset() noexcept;
         void destroy();
+
+        void set_parent(Entity parent);
+        void detach_from_parent();
+        [[nodiscard]] Entity parent() const;
 
         template <typename Component, typename... Args>
         Component& emplace(Args&&... args);
@@ -82,11 +88,17 @@ namespace engine::scene
         void set_name(std::string name);
 
         [[nodiscard]] Entity create_entity();
+        [[nodiscard]] Entity create_entity(std::string name);
         void destroy_entity(Entity& entity);
         void destroy_entity(entity_type entity);
 
         [[nodiscard]] Entity wrap(entity_type entity) noexcept;
         [[nodiscard]] bool valid(entity_type entity) const noexcept;
+
+        void set_parent(Entity& child, Entity parent);
+        void detach_from_parent(Entity& child);
+
+        void update();
 
         registry_type& registry() noexcept;
         const registry_type& registry() const noexcept;
@@ -145,6 +157,31 @@ namespace engine::scene
         {
             scene_->destroy_entity(*this);
         }
+    }
+
+    inline void Entity::set_parent(Entity parent)
+    {
+        scene().set_parent(*this, parent);
+    }
+
+    inline void Entity::detach_from_parent()
+    {
+        scene().detach_from_parent(*this);
+    }
+
+    inline Entity Entity::parent() const
+    {
+        if (!valid())
+        {
+            return {};
+        }
+
+        if (auto* hierarchy = scene_->registry().try_get<components::Hierarchy>(id_); hierarchy != nullptr)
+        {
+            return scene_->wrap(hierarchy->parent);
+        }
+
+        return {};
     }
 
     template <typename Component, typename... Args>
