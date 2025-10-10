@@ -19,11 +19,11 @@ namespace engine::geometry {
     double SurfaceArea(const Obb &box) noexcept {
         return (box.half_sizes[0] * box.half_sizes[1] +
                 box.half_sizes[1] * box.half_sizes[2] +
-                box.half_sizes[0] * box.half_sizes[2]) * 4.0;
+                box.half_sizes[0] * box.half_sizes[2]) * 8.0;
     }
 
     double Volume(const Obb &box) noexcept {
-        return box.half_sizes[0] * box.half_sizes[1] * box.half_sizes[2] * 2;
+        return box.half_sizes[0] * box.half_sizes[1] * box.half_sizes[2] * 8.0;
     }
 
     Obb MakeObbFromCenterHalfSizes(const math::vec3 &center, const math::vec3 &half_sizes,

@@ -1,13 +1,11 @@
 #pragma once
 
 #include <cmath>
-#include <cstring>
 #include <exception>
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -65,7 +63,7 @@ namespace testing
         class AssertionFailure : public std::exception
         {
         public:
-            const char* what() const noexcept override { return "fatal assertion"; }
+            [[nodiscard]] const char* what() const noexcept override { return "fatal assertion"; }
         };
 
         inline void ReportFailure(const char* file, int line, const std::string& message)

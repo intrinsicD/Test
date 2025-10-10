@@ -182,7 +182,7 @@ namespace engine::math
     {
         const auto M_inv = try_inverse(cast<double>(to_matrix(transform))); // your reliable 4×4 inverse
         assert(M_inv.has_value() && "Transform::inverse: singular matrix");
-        return from_matrix(cast<float>(M_inv.value()));
+        return from_matrix(cast<T>(M_inv.value()));
     }
 
     template <typename T>
