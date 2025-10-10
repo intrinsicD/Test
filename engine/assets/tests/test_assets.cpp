@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
+#include "engine/assets/graph_asset.hpp"
 #include "engine/assets/material_asset.hpp"
 #include "engine/assets/mesh_asset.hpp"
+#include "engine/assets/point_cloud_asset.hpp"
 #include "engine/assets/shader_asset.hpp"
 #include "engine/assets/texture_asset.hpp"
 
@@ -107,6 +109,170 @@ TEST(MeshCache, HotReloadNotifies)
                "v 0 1 0\n"
                "f 1 2 3\n"
                "f 1 3 4\n");
+
+    cache.poll();
+    EXPECT_TRUE(reloaded);
+}
+
+TEST(PointCloudCache, LoadsPointCloudData)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "cloud.ply";
+    write_text(path,
+               "ply\n"
+               "format ascii 1.0\n"
+               "element vertex 3\n"
+               "property float x\n"
+               "property float y\n"
+               "property float z\n"
+               "end_header\n"
+               "0 0 0\n"
+               "1 0 0\n"
+               "0 1 0\n");
+
+    engine::assets::PointCloudCache cache;
+    const auto descriptor = engine::assets::PointCloudAssetDescriptor::from_file(
+        path, engine::io::PointCloudFileFormat::ply);
+    const auto& asset = cache.load(descriptor);
+
+    EXPECT_EQ(asset.point_cloud.interface.vertex_count(), 3U);
+
+    const auto& cached = cache.get(descriptor.handle);
+    EXPECT_EQ(&asset, &cached);
+}
+
+TEST(PointCloudCache, HotReloadNotifies)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "cloud_reload.ply";
+    write_text(path,
+               "ply\n"
+               "format ascii 1.0\n"
+               "element vertex 2\n"
+               "property float x\n"
+               "property float y\n"
+               "property float z\n"
+               "end_header\n"
+               "0 0 0\n"
+               "1 0 0\n");
+
+    engine::assets::PointCloudCache cache;
+    const auto descriptor = engine::assets::PointCloudAssetDescriptor::from_file(
+        path, engine::io::PointCloudFileFormat::ply);
+
+    bool reloaded = false;
+    cache.register_hot_reload_callback(descriptor.handle,
+                                       [&](const engine::assets::PointCloudAsset& updated) {
+                                           reloaded = true;
+                                           EXPECT_EQ(updated.point_cloud.interface.vertex_count(), 3U);
+                                       });
+
+    [[maybe_unused]] const auto& initial_asset = cache.load(descriptor);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    write_text(path,
+               "ply\n"
+               "format ascii 1.0\n"
+               "element vertex 3\n"
+               "property float x\n"
+               "property float y\n"
+               "property float z\n"
+               "end_header\n"
+               "0 0 0\n"
+               "1 0 0\n"
+               "0 1 0\n");
+
+    cache.poll();
+    EXPECT_TRUE(reloaded);
+}
+
+TEST(GraphCache, LoadsGraphData)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "graph.ply";
+    write_text(path,
+               "ply\n"
+               "format ascii 1.0\n"
+               "element vertex 3\n"
+               "property float x\n"
+               "property float y\n"
+               "property float z\n"
+               "element edge 2\n"
+               "property int vertex1\n"
+               "property int vertex2\n"
+               "end_header\n"
+               "0 0 0\n"
+               "1 0 0\n"
+               "0 1 0\n"
+               "0 1\n"
+               "1 2\n");
+
+    engine::assets::GraphCache cache;
+    const auto descriptor = engine::assets::GraphAssetDescriptor::from_file(
+        path, engine::io::GraphFileFormat::ply);
+    const auto& asset = cache.load(descriptor);
+
+    EXPECT_EQ(asset.graph.interface.vertex_count(), 3U);
+    EXPECT_EQ(asset.graph.interface.edge_count(), 2U);
+
+    const auto& cached = cache.get(descriptor.handle);
+    EXPECT_EQ(&asset, &cached);
+}
+
+TEST(GraphCache, HotReloadNotifies)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "graph_reload.ply";
+    write_text(path,
+               "ply\n"
+               "format ascii 1.0\n"
+               "element vertex 4\n"
+               "property float x\n"
+               "property float y\n"
+               "property float z\n"
+               "element edge 2\n"
+               "property int vertex1\n"
+               "property int vertex2\n"
+               "end_header\n"
+               "0 0 0\n"
+               "1 0 0\n"
+               "1 1 0\n"
+               "0 1 0\n"
+               "0 1\n"
+               "1 2\n");
+
+    engine::assets::GraphCache cache;
+    const auto descriptor = engine::assets::GraphAssetDescriptor::from_file(
+        path, engine::io::GraphFileFormat::ply);
+
+    bool reloaded = false;
+    cache.register_hot_reload_callback(descriptor.handle,
+                                       [&](const engine::assets::GraphAsset& updated) {
+                                           reloaded = true;
+                                           EXPECT_EQ(updated.graph.interface.edge_count(), 3U);
+                                       });
+
+    [[maybe_unused]] const auto& initial_asset = cache.load(descriptor);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    write_text(path,
+               "ply\n"
+               "format ascii 1.0\n"
+               "element vertex 4\n"
+               "property float x\n"
+               "property float y\n"
+               "property float z\n"
+               "element edge 3\n"
+               "property int vertex1\n"
+               "property int vertex2\n"
+               "end_header\n"
+               "0 0 0\n"
+               "1 0 0\n"
+               "1 1 0\n"
+               "0 1 0\n"
+               "0 1\n"
+               "1 2\n"
+               "2 3\n");
 
     cache.poll();
     EXPECT_TRUE(reloaded);
