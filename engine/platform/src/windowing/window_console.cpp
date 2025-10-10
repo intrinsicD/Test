@@ -1,4 +1,4 @@
-#include "engine/platform/window_console.hpp"
+#include "../../include/engine/platform/windowing/window_console.hpp"
 
 #include <cctype>
 #include <iostream>

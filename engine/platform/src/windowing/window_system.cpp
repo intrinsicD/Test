@@ -1,4 +1,4 @@
-#include "engine/platform/window.hpp"
+#include "engine/platform/windowing/window.hpp"
 
 #include <algorithm>
 #include <cctype>

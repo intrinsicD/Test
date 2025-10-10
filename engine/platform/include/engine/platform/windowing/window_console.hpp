@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/platform/window.hpp"
+#include "window.hpp"
 
 #include <iosfwd>
 #include <iostream>
