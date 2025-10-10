@@ -116,6 +116,10 @@ namespace engine::math
             const value_type inv = detail::one<value_type>() / scalar;
             return (*this) *= inv;
         }
+
+        ENGINE_MATH_INLINE T* data() noexcept { return elements; }
+
+        ENGINE_MATH_INLINE const T* data() const noexcept { return elements; }
     };
 
     template <typename T, std::size_t N>
@@ -231,7 +235,8 @@ namespace engine::math
     ENGINE_MATH_INLINE Vector<T, N> reflect(const Vector<T, N>& incident, const Vector<T, N>& normal) noexcept
     {
         // Reflection across a plane with normal $n$ follows $r = i - 2\langle i, n \rangle n$.
-        return incident - static_cast<T>(2) * dot(incident, normal) * normal;
+        const auto normalized_normal = normalize(normal);
+        return incident - static_cast<T>(2) * dot(incident, normalized_normal) * normalized_normal;
     }
 
     template <typename T, std::size_t N>

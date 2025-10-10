@@ -111,8 +111,12 @@ namespace engine::math
             return *this;
         }
 
-        ENGINE_MATH_INLINE RowProxy operator[](size_type row) noexcept { return RowProxy{this, row}; }
-        ENGINE_MATH_INLINE ConstRowProxy operator[](size_type row) const noexcept { return ConstRowProxy{this, row}; }
+        ENGINE_MATH_INLINE RowProxy operator[](size_type i) noexcept { return RowProxy{this, i}; }
+        ENGINE_MATH_INLINE ConstRowProxy operator[](size_type i) const noexcept { return ConstRowProxy{this, i}; }
+        ENGINE_MATH_INLINE RowProxy row(size_type i) noexcept { return RowProxy{this, i}; }
+        ENGINE_MATH_INLINE ConstRowProxy row(size_type i) const noexcept { return ConstRowProxy{this, i}; }
+        ENGINE_MATH_INLINE Vector<T, Rows>& col(size_type j) noexcept { return columns[j]; }
+        ENGINE_MATH_INLINE const Vector<T, Rows>& col(size_type j) const noexcept { return columns[j]; }
 
         ENGINE_MATH_INLINE Matrix& operator+=(const Matrix& rhs) noexcept
         {
@@ -140,6 +144,14 @@ namespace engine::math
             }
             return *this;
         }
+
+        ENGINE_MATH_INLINE T& operator()(size_type r, size_type c) noexcept { return columns[c][r]; }
+
+        ENGINE_MATH_INLINE const T& operator()(size_type r, size_type c) const noexcept { return columns[c][r]; }
+
+        ENGINE_MATH_INLINE T* data() noexcept { return columns[0].elements; }
+
+        ENGINE_MATH_INLINE const T* data() const noexcept { return columns[0].elements; }
     };
 
     template <typename T, std::size_t Rows, std::size_t Cols>
