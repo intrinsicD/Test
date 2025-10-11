@@ -19,7 +19,18 @@
 
 namespace engine::geometry::mesh
 {
-    struct ENGINE_GEOMETRY_API IOFlags;
+    struct ENGINE_GEOMETRY_API IOFlags
+    {
+        enum class Format
+        {
+            kAuto,
+            kOBJ,
+        };
+
+        Format format{Format::kAuto};
+        int precision{9};
+        bool include_header_comment{true};
+    };
 
     class ENGINE_GEOMETRY_API HalfedgeMeshInterface
     {
