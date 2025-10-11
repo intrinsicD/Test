@@ -16,7 +16,8 @@
 
 The current implementation provides in-memory caches with hot-reload support, but the
 module still lacks the surrounding content pipeline needed for real projects. The next
-milestones should be tackled in the following order:
+milestones should be tackled in the following order so they mesh with the
+[global roadmap](../../docs/global_roadmap.md):
 
 1. **Establish authoritative asset metadata.** Define per-asset descriptors that capture
    source provenance, transformation settings, dependency graphs, and runtime usage

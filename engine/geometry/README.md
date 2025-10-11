@@ -14,6 +14,8 @@
 
 ## Proposed Roadmap
 
+The milestones below roll up into the shared plan captured in [docs/global_roadmap.md](../../docs/global_roadmap.md).
+
 ### 1. Stabilise Core Data Structures
 
 - Implement the declared read/write entry points for graphs, point clouds, and halfedge meshes so that the property-backed

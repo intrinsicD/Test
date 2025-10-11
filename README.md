@@ -55,9 +55,30 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 - Keep module TODO bullets synchronised with the aggregate table below.
 - Run the available tests and documentation checks before submitting changes.
 
+## Global Roadmap Alignment
+
+The consolidated sequencing across major subsystems lives in
+[`docs/global_roadmap.md`](docs/global_roadmap.md). Near-term priorities focus on:
+
+- Finalising animation clip/rig serialization and blend-tree authoring so runtime clients
+  can composite motion sources.
+- Hardening the physics world while preparing broad-phase/contact management for richer
+  scenes.
+- Extending rendering resource descriptors and scheduler plumbing ahead of backend
+  integration.
+- Completing geometry's foundational read/write utilities to unblock deformation and
+  collision consumers.
+- Formalising runtime lifecycle ownership with an explicit `RuntimeHost` and more flexible
+  dispatch graphs.
+- Standing up shared tooling infrastructure that consumes the telemetry emitted by the
+  subsystems above.
+
 ## TODO / Next Steps
 
 ### Aggregated README Backlog
+
+Keep this table synchronised with the per-module roadmaps and the global alignment summary
+referenced above.
 
 | TODO / Next Steps | Modules |
 | --- | --- |

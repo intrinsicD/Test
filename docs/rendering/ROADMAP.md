@@ -36,4 +36,4 @@ The rendering module currently provides a CPU-side frame graph and a forward pip
 
 - Coordinate resource description changes with the assets module to align on material/shader metadata.
 - Collaborate with the platform module to ensure windowing and swap-chain abstractions expose the surfaces required by the backend implementations.
-- Update the aggregated workspace backlog once the short-term milestones are complete to reflect progress toward backend enablement.
+- Update the aggregated workspace backlog and [global roadmap](../global_roadmap.md) once the short-term milestones are complete to reflect progress toward backend enablement.

@@ -33,6 +33,9 @@ The animation subsystem currently exposes deterministic clip sampling, a single 
 3. Integrate deformation paths after blend trees produce composite poses suitable for rendering.
 4. Close with profiling and diagnostics to ensure stability before exposing tooling.
 
+Keep the aggregated backlog and the cross-subsystem view in [docs/global_roadmap.md](global_roadmap.md)
+updated as these phases progress so animation stays aligned with dependent teams.
+
 ## Open Questions
 
 - Which serialization format best balances readability and load-time performance?

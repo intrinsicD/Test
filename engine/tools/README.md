@@ -18,6 +18,9 @@
 
 ## Roadmap
 
+The phase breakdown below participates in the shared priorities outlined in
+[docs/global_roadmap.md](../../docs/global_roadmap.md).
+
 | Phase | Focus | Key Tasks | Dependencies |
 | --- | --- | --- | --- |
 | **Phase 0: Foundations** | Establish build targets and shared infrastructure | <ul><li>Create `engine_tools_common` utility library for shared UI, logging, and service wiring.</li><li>Define configuration schema for tooling (hot-reloadable JSON/TOML).</li><li>Integrate Dear ImGui/ImPlot backends as optional third-party dependencies.</li></ul> | Requires stable runtime service locator and platform windowing hooks. |

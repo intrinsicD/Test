@@ -13,4 +13,5 @@
 
 ## TODO / Next Steps
 
-- Stabilise cross-module integration and build targets for contributors.
+- Stabilise cross-module integration and build targets for contributors while keeping the
+  per-module plans aligned with the [global roadmap](../docs/global_roadmap.md).

@@ -15,7 +15,8 @@
 
 The dispatcher is currently limited to CPU execution. The roadmap below sequences
 the work required to deliver heterogeneous (CPU + GPU) dispatch that can plug
-into the broader runtime scheduler.
+into the broader runtime scheduler and complements the priorities tracked in the
+[global alignment overview](../../docs/global_roadmap.md).
 
 1. **Unify the dispatch abstractions.**
    - Formalise a backend-agnostic command description that can be consumed by

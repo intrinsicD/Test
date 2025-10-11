@@ -17,6 +17,9 @@
 
 ## TODO / Next Steps
 
+These milestones coordinate with the content-pipeline initiatives outlined in the
+[global roadmap](../../docs/global_roadmap.md).
+
 1. **Harden geometry detection and parsing.**
    - Extend `detect_geometry_file` beyond extension heuristics by inspecting headers for ambiguous formats (binary PLY, STL
      signatures, compressed payloads).

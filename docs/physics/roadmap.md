@@ -30,4 +30,4 @@
 
 - Coordinate collision primitive expansion with `engine::geometry` so new predicates land alongside the physics features that consume them.
 - Update module documentation (`engine/physics/README.md`, `engine/physics/include/engine/physics/README.md`, and related READMEs) as the roadmap items graduate from planning to implementation.
-- Track aggregated progress in the workspace root `README.md` backlog to keep the physics roadmap aligned with adjacent subsystems (scene, runtime, and rendering).
+- Track aggregated progress in the workspace root `README.md` backlog to keep the physics roadmap aligned with adjacent subsystems (scene, runtime, and rendering) and the shared priorities recorded in [docs/global_roadmap.md](../global_roadmap.md).

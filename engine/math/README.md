@@ -14,6 +14,10 @@
 
 ## TODO / Next Steps
 
+The roadmap below feeds the numerical needs surfaced in the
+[global alignment overview](../../docs/global_roadmap.md) and should be revisited as
+adjacent modules evolve.
+
 1. **Stabilise the public surface.**
    - Catalogue the current vector, matrix, quaternion, transform, and utility facilities and capture invariants (storage order, handedness conventions, implicit normalisation rules) directly in the header `README.md` files.
    - Add Doxygen summaries for every public struct/function and wire those headers into the docs build so downstream teams can reason about ABI expectations before we introduce breaking changes.

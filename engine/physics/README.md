@@ -15,7 +15,8 @@
 
 ## TODO / Next Steps
 
-Roadmap items are prioritised in [docs/physics/roadmap.md](../../docs/physics/roadmap.md). The near-term focus is summarised below:
+Roadmap items are prioritised in [docs/physics/roadmap.md](../../docs/physics/roadmap.md) and reflected in the
+[global alignment overview](../../docs/global_roadmap.md). The near-term focus is summarised below:
 
 - Stabilise the rigid-body core by tightening mass/force invariants, documenting API usage, and splitting collision helpers into dedicated units.
 - Introduce a scalable collision pipeline (broad-phase acceleration, contact manifolds, and a constraint solver) before widening collider coverage.
