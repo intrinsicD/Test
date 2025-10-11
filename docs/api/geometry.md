@@ -41,6 +41,8 @@ of the core math types. Public headers live under [`engine/geometry/include`](..
 authoring. It stores both rest-state and deformed vertex positions, indices, normals, and cached bounds. Key helpers:
 
 - `make_unit_quad()` – Generates a planar quad used by the runtime smoke test.
+- `load_surface_mesh(path)` / `save_surface_mesh(mesh, path[, flags])` – Round-trip indexed triangle surfaces through the
+  OBJ importer/exporter without exposing the halfedge API.
 - `apply_uniform_translation(SurfaceMesh&, vec3)` – Applies rigid offsets while keeping the rest positions intact.
 - `recompute_vertex_normals(SurfaceMesh&)` – Rebuilds area-weighted vertex normals after deformation.
 - `update_bounds(SurfaceMesh&)` / `centroid(const SurfaceMesh&)` – Provide inexpensive spatial queries.

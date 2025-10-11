@@ -4,6 +4,7 @@
 
 - Supplies a `SurfaceMesh` abstraction with helpers for bounds updates, centroid evaluation, and normals.
 - Provides procedural generation for a unit quad to seed rendering and physics smoke tests.
+- Exposes `load_surface_mesh`/`save_surface_mesh` wrappers so runtime surfaces can round-trip standard asset formats.
 - Implements spatial acceleration structures such as octrees and k-d trees for geometric queries.
 - Implements ASCII edge-list import/export for graph connectivity, enabling property-backed graphs to persist and reload their topology.
 - Implements ASCII PLY import/export for point clouds, preserving normals, colours, alpha, and scalar vertex properties.
