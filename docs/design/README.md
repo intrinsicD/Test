@@ -13,3 +13,4 @@
 ## TODO / Next Steps
 
 - Capture design rationales and outcomes for upcoming milestones.
+- Track the [First Rendering Milestone Plan](first_rendering_milestone.md) as the integration slice linking runtime and rendering.
