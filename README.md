@@ -61,7 +61,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 
 | TODO / Next Steps | Modules |
 | --- | --- |
-| Add blend-tree authoring and clip serialization to unlock complex rigs. | [engine/animation/README.md](engine/animation/README.md) |
+| Add blend-tree authoring and clip serialization to unlock complex rigs. | [engine/animation/README.md](engine/animation/README.md)<br>[docs/animation_roadmap.md](docs/animation_roadmap.md) |
 | Execute the physics roadmap: stabilise the core world, add scalable collision management, and broaden collider coverage. | [engine/physics/README.md](engine/physics/README.md)<br>[docs/physics/roadmap.md](docs/physics/roadmap.md) |
 | Add format importers to translate real data into runtime structures. | [engine/io/importers/README.md](engine/io/include/engine/io/importers/README.md) |
 | Expand the preset matrix to cover Clang and macOS toolchains once dependencies are in place. | [scripts/build/README.md](scripts/build/README.md) |
