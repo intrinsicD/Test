@@ -16,6 +16,15 @@
 
 ## TODO / Next Steps
 
-- Connect the frame graph to concrete GPU backends and resource providers.
-- Implement production-ready schedulers that translate submissions into API calls.
-- Surface resource descriptions (formats, usage flags) alongside the native handles to simplify backend allocation.
+Consult [docs/rendering/ROADMAP.md](../../docs/rendering/ROADMAP.md) for the detailed roadmap. Immediate priorities are:
+
+1. **Short-term – unblock backend integration**
+   - Extend frame-graph resource descriptions with formats, dimensions, and usage flags so resource providers can allocate GPU objects deterministically.
+   - Propagate queue/command-buffer metadata through render passes and the execution context to prepare for scheduler translation.
+   - Prototype a reference GPU scheduler that replays compiled frame graphs into an abstract command encoder for validation.
+2. **Mid-term – backend hookups**
+   - Implement resource providers and schedulers for Vulkan and DirectX 12 using the enriched descriptors.
+   - Build a library of core passes (geometry, lighting, post-processing) that exercises backend integrations and defines explicit dependencies.
+3. **Long-term – robustness and tooling**
+   - Add stress tests under `engine/rendering/tests` to validate resource lifetime management and synchronization.
+   - Integrate profiling hooks and author documentation/samples that demonstrate pass registration and backend configuration.
