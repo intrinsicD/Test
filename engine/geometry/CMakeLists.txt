@@ -8,6 +8,7 @@ add_library(${target_name}
     src/properties/property_handle.cpp
     src/mesh/halfedge_mesh.cpp
     src/mesh/halfedge_mesh_io.cpp
+    src/mesh/surface_mesh_conversion.cpp
     src/point_cloud/point_cloud.cpp
     src/point_cloud/point_cloud_io.cpp
     src/shapes/aabb.cpp

@@ -8,6 +8,8 @@
 - Implements ASCII edge-list import/export for graph connectivity, enabling property-backed graphs to persist and reload their topology.
 - Implements ASCII PLY import/export for point clouds, preserving normals, colours, alpha, and scalar vertex properties.
 - Implements ASCII OBJ import/export for halfedge meshes so polygonal data can be round-tripped into the topology-aware core.
+- Provides conversion helpers between the lightweight `SurfaceMesh` struct and the halfedge mesh core, enabling algorithms to
+  reuse shared connectivity while keeping the public API ergonomic.
 
 ## Usage
 
