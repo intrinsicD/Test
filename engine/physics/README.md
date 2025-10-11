@@ -15,6 +15,8 @@
 
 ## TODO / Next Steps
 
-- Extend collider support (OBB, capsules, meshes) and integrate a broad-phase acceleration structure.
-- Implement contact manifold generation and constraint-based resolution for persistent collisions.
-- Add energy-preserving integration schemes and sleeping/activation rules for performance.
+Roadmap items are prioritised in [docs/physics/roadmap.md](../../docs/physics/roadmap.md). The near-term focus is summarised below:
+
+- Stabilise the rigid-body core by tightening mass/force invariants, documenting API usage, and splitting collision helpers into dedicated units.
+- Introduce a scalable collision pipeline (broad-phase acceleration, contact manifolds, and a constraint solver) before widening collider coverage.
+- Advance dynamics fidelity with improved integration schemes, sleeping/activation heuristics, and an extensible collider set (OBB, capsules, meshes).
