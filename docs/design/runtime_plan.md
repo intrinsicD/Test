@@ -2,7 +2,7 @@
 
 ## Current Observations
 
-- The module centralises state inside an internal `runtime_state` singleton and synchronously advances animation, physics, geometry, and scene mirroring each frame. The dispatcher executes a fixed kernel chain (`animation.evaluate → physics.accumulate → physics.integrate → geometry.deform → geometry.finalize`) before packaging a `runtime_frame_state`.
+- The module now exposes a `RuntimeHost` that owns subsystem dependencies, replacing the ad-hoc `runtime_state` singleton while still advancing animation, physics, geometry, and scene mirroring through the fixed kernel chain (`animation.evaluate → physics.accumulate → physics.integrate → geometry.deform → geometry.finalize`).
 - Initialization constructs a toy physics world, generates a linear animation clip, and mirrors joint transforms into an EnTT-based scene registry, exposing the result through both C++ and C ABI front-ends.
 - Shutdown simply resets transient buffers without releasing subsystem services or surfacing diagnostics, leaving lifecycle management, content streaming, and render scheduling unimplemented.
 
@@ -10,10 +10,10 @@ These constraints make the runtime suitable for smoke tests but insufficient for
 
 ## Near-Term Goals (1–2 Milestones)
 
-1. **Formalise lifecycle management.**
-   - Replace the implicit singleton with an explicit `RuntimeHost` that owns subsystem handles (animation rig database, physics world pools, scene registry) and configure it via dependency injection.
-   - Introduce idempotent `initialize()`/`shutdown()` semantics that propagate to dependent modules, log failures, and expose status through the public API for validation.
-   - Author unit tests that cover repeated initialize/shutdown cycles and invalid usage sequences to prevent regression.
+1. **Formalise lifecycle management.** *(In progress — RuntimeHost landed)*
+   - ✅ Replace the implicit singleton with an explicit `RuntimeHost` that owns subsystem handles (animation rig database, physics world pools, scene registry) and supports dependency injection.
+   - ✅ Introduce idempotent `initialize()`/`shutdown()` semantics that propagate to dependent modules and expose status through the public API for validation.
+   - Continue building out lifecycle diagnostics (logging, error propagation) and extend the gtests that now cover repeated initialize/shutdown cycles to also stress invalid usage sequences.
 
 2. **Extend frame orchestration.**
    - Promote the dispatcher from a fixed linear chain to a graph driven by a frame graph description so the runtime can register optional subsystems (e.g., rendering, audio) without code changes.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -40,10 +41,52 @@ struct runtime_frame_state {
     std::vector<scene_node_state> scene_nodes{};
 };
 
+struct RuntimeHostDependencies {
+    animation::AnimationController controller{
+        animation::make_linear_controller(animation::make_default_clip())};
+    geometry::SurfaceMesh mesh{geometry::make_unit_quad()};
+    physics::PhysicsWorld world{};
+    std::string scene_name{"runtime.scene"};
+};
+
+class RuntimeHost {
+public:
+    RuntimeHost();
+    explicit RuntimeHost(RuntimeHostDependencies dependencies);
+    RuntimeHost(RuntimeHost&&) noexcept;
+    RuntimeHost& operator=(RuntimeHost&&) noexcept;
+    RuntimeHost(const RuntimeHost&) = delete;
+    RuntimeHost& operator=(const RuntimeHost&) = delete;
+    ~RuntimeHost();
+
+    void initialize();
+    void shutdown() noexcept;
+    [[nodiscard]] bool is_initialized() const noexcept;
+    runtime_frame_state tick(double dt);
+    [[nodiscard]] const geometry::SurfaceMesh& current_mesh() const;
+    [[nodiscard]] const animation::AnimationRigPose& current_pose() const;
+    [[nodiscard]] const std::vector<math::vec3>& body_positions() const;
+    [[nodiscard]] const std::vector<std::string>& joint_names() const;
+    [[nodiscard]] const compute::ExecutionReport& last_dispatch_report() const;
+    [[nodiscard]] const std::vector<runtime_frame_state::scene_node_state>& scene_nodes() const;
+    [[nodiscard]] double simulation_time() const noexcept;
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+};
+
 ENGINE_RUNTIME_API void initialize();
 ENGINE_RUNTIME_API void shutdown();
 ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
 [[nodiscard]] ENGINE_RUNTIME_API const geometry::SurfaceMesh& current_mesh();
+[[nodiscard]] ENGINE_RUNTIME_API bool is_initialized() noexcept;
+[[nodiscard]] ENGINE_RUNTIME_API const animation::AnimationRigPose& current_pose();
+[[nodiscard]] ENGINE_RUNTIME_API const std::vector<math::vec3>& body_positions();
+[[nodiscard]] ENGINE_RUNTIME_API const std::vector<std::string>& joint_names();
+[[nodiscard]] ENGINE_RUNTIME_API const compute::ExecutionReport& last_dispatch_report();
+[[nodiscard]] ENGINE_RUNTIME_API const std::vector<runtime_frame_state::scene_node_state>& scene_nodes();
+[[nodiscard]] ENGINE_RUNTIME_API double simulation_time() noexcept;
 
 }  // namespace engine::runtime
 

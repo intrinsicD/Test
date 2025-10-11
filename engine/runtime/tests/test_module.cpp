@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cmath>
+#include <stdexcept>
 #include <string_view>
 
 #include "engine/runtime/api.hpp"
@@ -41,6 +42,64 @@ TEST(RuntimeModule, ExecutesSimulationPipeline) {
     EXPECT_FLOAT_EQ(translations[1], root_node.transform.translation[1]);
 
     engine::runtime::shutdown();
+}
+
+TEST(RuntimeHost, EnforcesLifecycleSemantics) {
+    engine::runtime::RuntimeHost host{};
+    EXPECT_FALSE(host.is_initialized());
+    EXPECT_THROW(host.tick(0.016), std::runtime_error);
+
+    host.initialize();
+    EXPECT_TRUE(host.is_initialized());
+    const auto first_frame = host.tick(0.016);
+    EXPECT_NEAR(first_frame.simulation_time, 0.016, 1e-9);
+
+    host.shutdown();
+    EXPECT_FALSE(host.is_initialized());
+
+    host.shutdown();
+    host.initialize();
+    const auto second_frame = host.tick(0.008);
+    EXPECT_NEAR(second_frame.simulation_time, 0.008, 1e-9);
+
+    host.shutdown();
+    EXPECT_FALSE(host.is_initialized());
+}
+
+TEST(RuntimeHost, AcceptsInjectedDependencies) {
+    engine::animation::AnimationClip clip{};
+    clip.name = "custom";
+    clip.duration = 1.0;
+    engine::animation::JointTrack track{};
+    track.joint_name = "custom_joint";
+    track.keyframes.push_back(engine::animation::Keyframe{});
+    clip.tracks.push_back(track);
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.controller = engine::animation::make_linear_controller(std::move(clip));
+    deps.scene_name = "custom.scene";
+
+    engine::physics::PhysicsWorld world{};
+    world.gravity = engine::math::vec3{0.0F, -1.0F, 0.0F};
+    engine::physics::RigidBody body{};
+    body.mass = 3.0F;
+    body.position = engine::math::vec3{1.0F, 2.0F, 3.0F};
+    engine::physics::add_body(world, body);
+    deps.world = world;
+
+    engine::geometry::SurfaceMesh mesh = engine::geometry::make_unit_quad();
+    engine::geometry::apply_uniform_translation(mesh, engine::math::vec3{0.0F, 2.0F, 0.0F});
+    engine::geometry::update_bounds(mesh);
+    deps.mesh = mesh;
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+    EXPECT_TRUE(host.is_initialized());
+    EXPECT_FALSE(host.body_positions().empty());
+    ASSERT_FALSE(host.joint_names().empty());
+    EXPECT_EQ(host.joint_names().front(), "custom_joint");
+    EXPECT_NEAR(host.current_mesh().bounds.min[1], mesh.bounds.min[1], 1e-5F);
+    host.shutdown();
 }
 
 TEST(RuntimeModule, EnumeratesAllEngineModules) {
