@@ -60,8 +60,8 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 The consolidated sequencing across major subsystems lives in
 [`docs/global_roadmap.md`](docs/global_roadmap.md). The roadmap is ultimately aimed at delivering an engine that makes advanced yet accessible graphics and geometry processing research straightforward, with every required tool slated for future implementation. Near-term priorities focus on:
 
-- Finalising animation clip/rig serialization and blend-tree authoring so runtime clients
-  can composite motion sources.
+- Advancing animation blend-tree authoring on top of the new clip validation/serialization
+  pipeline so runtime clients can composite motion sources.
 - Hardening the physics world while preparing broad-phase/contact management for richer
   scenes.
 - Extending rendering resource descriptors and scheduler plumbing ahead of backend
@@ -82,7 +82,7 @@ referenced above.
 
 | TODO / Next Steps | Modules |
 | --- | --- |
-| Add blend-tree authoring and clip serialization to unlock complex rigs. | [engine/animation/README.md](engine/animation/README.md)<br>[docs/animation_roadmap.md](docs/animation_roadmap.md) |
+| Deliver blend-tree authoring on top of the new clip validation/serialization pipeline to unlock complex rigs. | [engine/animation/README.md](engine/animation/README.md)<br>[docs/animation_roadmap.md](docs/animation_roadmap.md) |
 | Execute the physics roadmap: stabilise the core world, add scalable collision management, and broaden collider coverage. | [engine/physics/README.md](engine/physics/README.md)<br>[docs/physics/roadmap.md](docs/physics/roadmap.md) |
 | Add format importers to translate real data into runtime structures. | [engine/io/importers/README.md](engine/io/include/engine/io/importers/README.md) |
 | Expand the preset matrix to cover Clang and macOS toolchains once dependencies are in place. | [scripts/build/README.md](scripts/build/README.md) |

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstddef>
+#include <filesystem>
+#include <iosfwd>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -59,6 +62,27 @@ struct AnimationRigPose {
 [[nodiscard]] ENGINE_ANIMATION_API std::string_view module_name() noexcept;
 
 ENGINE_ANIMATION_API void sort_keyframes(JointTrack& track);
+
+struct ClipValidationError {
+    std::string message;
+    std::string joint_name;
+    std::size_t track_index{std::numeric_limits<std::size_t>::max()};
+    std::size_t keyframe_index{std::numeric_limits<std::size_t>::max()};
+};
+
+[[nodiscard]] ENGINE_ANIMATION_API std::vector<ClipValidationError> validate_clip(const AnimationClip& clip);
+
+ENGINE_ANIMATION_API void write_clip_json(const AnimationClip& clip,
+                                          std::ostream& stream,
+                                          bool pretty = true);
+
+[[nodiscard]] ENGINE_ANIMATION_API AnimationClip read_clip_json(std::istream& stream);
+
+ENGINE_ANIMATION_API void save_clip_json(const AnimationClip& clip,
+                                         const std::filesystem::path& path,
+                                         bool pretty = true);
+
+[[nodiscard]] ENGINE_ANIMATION_API AnimationClip load_clip_json(const std::filesystem::path& path);
 
 [[nodiscard]] ENGINE_ANIMATION_API JointPose sample_track(const JointTrack& track, double time);
 

@@ -2,7 +2,8 @@
 
 ## Current State
 
-- Contains automated tests covering Module.
+- Contains automated tests covering module metadata and clip evaluation.
+- Adds validation and JSON serialization round-trip coverage for clips.
 
 ## Usage
 
