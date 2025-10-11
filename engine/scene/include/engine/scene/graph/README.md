@@ -2,7 +2,8 @@
 
 ## Current State
 
-- Contains scaffolding files that will evolve alongside the subsystem.
+- Placeholder for higher-level traversal helpers layered on top of the raw EnTT registry views.
+- Planned home for iterators that expose hierarchical orderings (pre/post-order) and dependency queries for system scheduling.
 
 ## Usage
 
@@ -10,4 +11,6 @@
 
 ## TODO / Next Steps
 
-- Build scene graph traversal and dependency evaluation.
+- Formalise traversal primitives (depth-first iterators, ancestor/descendant queries, sibling ranges).
+- Describe dependency evaluation rules that systems can consume to reason about update ordering.
+- Provide benchmarks and documentation once the initial traversal utilities are implemented.

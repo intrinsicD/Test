@@ -2,7 +2,9 @@
 
 ## Current State
 
-- Implements the module logic across Api, Scene.
+- Implements the module logic for the public API entry points and scene lifecycle.
+- Registers transform systems on construction and pipes update calls through to the system layer.
+- Hosts serialization helpers that marshal components to/from the streaming API.
 
 ## Usage
 
@@ -11,4 +13,6 @@
 
 ## TODO / Next Steps
 
-- Add scenario-driven examples and profiling to exercise the implementation.
+- Build scenario-driven examples and profiling entry points to exercise large hierarchies.
+- Layer in instrumentation that measures dirty-propagation and serialization performance.
+- Keep implementation notes in sync with documentation as new component families land.
