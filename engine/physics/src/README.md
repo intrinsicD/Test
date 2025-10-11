@@ -4,6 +4,7 @@
 
 - Implements force integration, rigid-body storage, and collider management inside `api.cpp`.
 - Reuses `engine::geometry` intersection predicates for collision detection.
+- Isolates collision detection routines in `collisions.cpp` so narrow-phase logic evolves independently of integration code.
 
 ## Usage
 
@@ -13,4 +14,3 @@
 ## TODO / Next Steps
 
 - Add scenario-driven examples and profiling to exercise the implementation.
-- Separate collision detection into its own translation unit as the feature set grows.

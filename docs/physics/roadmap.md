@@ -11,7 +11,7 @@
 ### 1. Stabilise the Core World Representation (Short Term)
 
 - **Mass and force handling** – With static body behaviour enforced and degenerate-mass tests in place, focus next on documenting invariants and surfacing samples that exercise static bodies alongside dynamic actors.
-- **API factoring** – Move collision-specific helpers out of `api.cpp` into dedicated headers/translation units (as hinted by `engine/physics/src/README.md`) to reduce rebuild costs and clarify ownership boundaries between dynamics and collision subsystems.
+- ✅ **API factoring** – Collision-specific helpers now live in `engine/physics/src/collisions.cpp`, reducing rebuild costs and clarifying ownership between dynamics and collision subsystems.
 - **Instrumentation** – Introduce lightweight profiling hooks and scenario-driven samples to validate stability under typical workloads before expanding functionality.
 
 ### 2. Introduce Robust Collision Management (Mid Term)
