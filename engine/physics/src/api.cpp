@@ -86,6 +86,10 @@ std::size_t add_body(PhysicsWorld& world, const RigidBody& body) {
     RigidBody instance = body;
     instance.mass = std::max(body.mass, 0.0F);
     instance.inverse_mass = safe_inverse_mass(instance.mass);
+    if (instance.inverse_mass == 0.0F) {
+        instance.velocity = math::vec3{0.0F, 0.0F, 0.0F};
+        instance.accumulated_force = math::vec3{0.0F, 0.0F, 0.0F};
+    }
     world.bodies.push_back(instance);
     return world.bodies.size() - 1U;
 }
@@ -106,6 +110,10 @@ void apply_force(PhysicsWorld& world, std::size_t index, const math::vec3& force
 void integrate(PhysicsWorld& world, double dt) {
     const float step = static_cast<float>(dt);
     for (auto& body : world.bodies) {
+        if (body.inverse_mass == 0.0F) {
+            body.accumulated_force = math::vec3{0.0F, 0.0F, 0.0F};
+            continue;
+        }
         const math::vec3 acceleration = body.accumulated_force * body.inverse_mass + world.gravity;
         body.velocity += acceleration * step;
         body.position += body.velocity * step;

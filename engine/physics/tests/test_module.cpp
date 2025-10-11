@@ -12,6 +12,24 @@ TEST(PhysicsModule, ModuleNameMatchesNamespace) {
     EXPECT_STREQ(engine_physics_module_name(), "physics");
 }
 
+TEST(PhysicsModule, NegativeMassClampsToStaticBody) {
+    engine::physics::PhysicsWorld world;
+
+    engine::physics::RigidBody body;
+    body.mass = -5.0F;
+    body.velocity = engine::math::vec3{3.0F, -2.0F, 1.0F};
+    body.accumulated_force = engine::math::vec3{4.0F, 0.0F, 0.0F};
+
+    const auto index = engine::physics::add_body(world, body);
+    ASSERT_EQ(0U, index);
+
+    const auto& stored = engine::physics::body_at(world, index);
+    EXPECT_FLOAT_EQ(0.0F, stored.mass);
+    EXPECT_FLOAT_EQ(0.0F, stored.inverse_mass);
+    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, stored.velocity);
+    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, stored.accumulated_force);
+}
+
 TEST(PhysicsModule, IntegratesBodiesUnderForce) {
     engine::physics::PhysicsWorld world;
     world.gravity = engine::math::vec3{0.0F, 0.0F, 0.0F};
@@ -28,6 +46,24 @@ TEST(PhysicsModule, IntegratesBodiesUnderForce) {
     const auto& simulated = engine::physics::body_at(world, index);
     EXPECT_NEAR(simulated.velocity[0], 1.0F, 1e-4F);
     EXPECT_NEAR(simulated.position[0], 1.0F, 1e-4F);
+}
+
+TEST(PhysicsModule, StaticBodiesIgnoreForcesAndGravity) {
+    engine::physics::PhysicsWorld world;
+    world.gravity = engine::math::vec3{0.0F, -9.81F, 0.0F};
+
+    engine::physics::RigidBody body;
+    body.mass = 0.0F;
+    body.position = engine::math::vec3{1.0F, 2.0F, 3.0F};
+
+    const auto index = engine::physics::add_body(world, body);
+    engine::physics::apply_force(world, index, engine::math::vec3{15.0F, 0.0F, 0.0F});
+    engine::physics::integrate(world, 0.5);
+
+    const auto& simulated = engine::physics::body_at(world, index);
+    EXPECT_EQ(engine::math::vec3{1.0F, 2.0F, 3.0F}, simulated.position);
+    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, simulated.velocity);
+    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, simulated.accumulated_force);
 }
 
 TEST(PhysicsWorld, ClearForcesResetsAccumulatedForce) {
