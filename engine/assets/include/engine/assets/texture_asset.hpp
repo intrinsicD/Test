@@ -9,52 +9,50 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine::assets
-{
-    enum class TextureColorSpace : std::uint8_t
+namespace engine::assets {
+
+enum class TextureColorSpace : std::uint8_t {
+    linear = 0,
+    srgb
+};
+
+struct TextureAssetDescriptor {
+    TextureHandle handle;
+    std::filesystem::path source;
+    TextureColorSpace color_space{TextureColorSpace::linear};
+
+    [[nodiscard]] static TextureAssetDescriptor from_file(
+        const std::filesystem::path& path,
+        TextureColorSpace space = TextureColorSpace::linear)
     {
-        linear = 0,
-        srgb
-    };
+        return TextureAssetDescriptor{TextureHandle{path}, path, space};
+    }
+};
 
-    struct TextureAssetDescriptor
-    {
-        TextureHandle handle;
-        std::filesystem::path source;
-        TextureColorSpace color_space{TextureColorSpace::linear};
+struct TextureAsset {
+    TextureAssetDescriptor descriptor{};
+    std::vector<std::byte> data{};
+    std::filesystem::file_time_type last_write{};
+};
 
-        [[nodiscard]] static TextureAssetDescriptor from_file(const std::filesystem::path& path,
-                                                              TextureColorSpace space = TextureColorSpace::linear)
-        {
-            return TextureAssetDescriptor{TextureHandle{path}, path, space};
-        }
-    };
+class TextureCache {
+public:
+    using HotReloadCallback = std::function<void(const TextureAsset&)>;
 
-    struct TextureAsset
-    {
-        TextureAssetDescriptor descriptor{};
-        std::vector<std::byte> data{};
-        std::filesystem::file_time_type last_write{};
-    };
+    [[nodiscard]] const TextureAsset& load(const TextureAssetDescriptor& descriptor);
+    [[nodiscard]] bool contains(const TextureHandle& handle) const;
+    [[nodiscard]] const TextureAsset& get(const TextureHandle& handle) const;
 
-    class TextureCache
-    {
-    public:
-        using HotReloadCallback = std::function<void(const TextureAsset&)>;
+    void unload(const TextureHandle& handle);
+    void register_hot_reload_callback(const TextureHandle& handle, HotReloadCallback callback);
+    void poll();
 
-        [[nodiscard]] const TextureAsset& load(const TextureAssetDescriptor& descriptor);
-        [[nodiscard]] bool contains(const TextureHandle& handle) const;
-        [[nodiscard]] const TextureAsset& get(const TextureHandle& handle) const;
+private:
+    void reload_asset(const TextureHandle& handle, TextureAsset& asset, bool notify);
 
-        void unload(const TextureHandle& handle);
-        void register_hot_reload_callback(const TextureHandle& handle, HotReloadCallback callback);
-        void poll();
+    std::unordered_map<TextureHandle, TextureAsset> assets_{};
+    std::unordered_map<TextureHandle, std::vector<HotReloadCallback>> callbacks_{};
+};
 
-    private:
-        void reload_asset(const TextureHandle& handle, TextureAsset& asset, bool notify);
-
-        std::unordered_map<TextureHandle, TextureAsset> assets_{};
-        std::unordered_map<TextureHandle, std::vector<HotReloadCallback>> callbacks_{};
-    };
-} // namespace engine::assets
+}  // namespace engine::assets
 
