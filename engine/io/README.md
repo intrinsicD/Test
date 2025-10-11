@@ -6,6 +6,8 @@
 - Provides geometry I/O entry points that wrap format-specific helpers for OBJ/OFF/PLY meshes, PLY/XYZ/PCD point clouds, and
   edgelist/PLY graphs.
 - Exposes a registry facade so formats can be supplied via plugins while the global accessor installs built-in ASCII handlers.
+- Detects geometry content by inspecting PLY headers and ASCII/binary STL signatures, allowing robust classification even when
+  file extensions are ambiguous.
 - Lacks persistence and residency policies; caching directories only contain scaffolding.
 
 ## Usage
@@ -21,8 +23,8 @@ These milestones coordinate with the content-pipeline initiatives outlined in th
 [global roadmap](../../docs/global_roadmap.md).
 
 1. **Harden geometry detection and parsing.**
-   - Extend `detect_geometry_file` beyond extension heuristics by inspecting headers for ambiguous formats (binary PLY, STL
-     signatures, compressed payloads).
+   - Extend `detect_geometry_file` beyond extension heuristics by inspecting headers for remaining ambiguous formats (e.g.,
+     compressed payloads) and reporting richer diagnostics.
    - Add binary decoding paths (binary PLY/PCD/STL) and richer attribute support (normals, colours, UVs) while keeping failure
      diagnostics precise.
    - Introduce fuzz and regression samples that exercise malformed files, large indices, and non-manifold elements.
