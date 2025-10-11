@@ -3,6 +3,7 @@
 ## Current State
 
 - Offers a simple rigid-body world with force accumulation, Euler integration, and mass management.
+- Clamps non-positive masses to produce static bodies that ignore forces and gravity, ensuring stable placeholders.
 - Associates rigid bodies with optional sphere or axis-aligned bounding-box colliders.
 - Performs narrow-phase collision queries by delegating to `engine::geometry` intersection routines.
 - Exposes safe accessors that validate indices and ensure deterministic updates.
