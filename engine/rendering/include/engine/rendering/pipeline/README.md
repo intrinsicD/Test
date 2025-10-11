@@ -36,5 +36,15 @@ work is submitted.
 
 ## TODO / Next Steps
 
-- Extend the frame graph with explicit resource descriptions (formats, extents) to inform backend allocation.
-- Add pass-level debugging utilities that capture the translated submissions for offline analysis.
+Align the pipeline work with the rendering roadmap documented in
+[`docs/rendering/ROADMAP.md`](../../../../../../docs/rendering/ROADMAP.md) and the
+[global alignment overview](../../../../../../docs/global_roadmap.md):
+
+- Extend frame-graph resource descriptions with explicit formats, dimensions,
+  and usage flags so backend providers can allocate GPU objects deterministically.
+- Propagate queue and command-encoder metadata through
+  `FrameGraphPassExecutionContext` to prime the scheduler for backend
+  translation.
+- Prototype the reference command encoder bridge that replays compiled passes
+  into the `IGpuScheduler`, providing the concrete submission hooks tracked in
+  the workspace backlog.

@@ -93,7 +93,7 @@ referenced above.
 | Build content pipeline automation that feeds assets into the engine. | [engine/tools/pipelines/README.md](engine/tools/pipelines/README.md) |
 | Design scene graph traversal primitives and dependency evaluation rules. | [engine/scene/graph/README.md](engine/scene/include/engine/scene/graph/README.md) |
 | Capture design rationales and outcomes for upcoming milestones. | [docs/design/README.md](docs/design/README.md) |
-| Provide concrete command encoders for the frame graph scheduler. | [engine/rendering/pipeline/README.md](engine/rendering/pipeline/README.md) |
+| Enrich frame-graph descriptors, surface queue metadata, and deliver the scheduler's command encoders. | [engine/rendering/include/engine/rendering/pipeline/README.md](engine/rendering/include/engine/rendering/pipeline/README.md) |
 | Execute the rendering roadmap: enrich resource descriptors, stand up schedulers, and integrate Vulkan/DX12 backends. | [engine/rendering/README.md](engine/rendering/README.md) |
 | Capture shared automation entry points for developers and CI environments. | [scripts/README.md](scripts/README.md) |
 | Create exporters to persist runtime assets back to disk. | [engine/io/exporters/README.md](engine/io/include/engine/io/exporters/README.md) |
