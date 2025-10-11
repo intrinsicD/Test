@@ -24,24 +24,24 @@
 
 namespace engine::runtime {
 
-[[nodiscard]] std::string_view module_name() noexcept;
-[[nodiscard]] std::size_t module_count() noexcept;
-[[nodiscard]] std::string_view module_name_at(std::size_t index) noexcept;
+[[nodiscard]] ENGINE_RUNTIME_API std::string_view module_name() noexcept;
+[[nodiscard]] ENGINE_RUNTIME_API std::size_t module_count() noexcept;
+[[nodiscard]] ENGINE_RUNTIME_API std::string_view module_name_at(std::size_t index) noexcept;
 
-struct runtime_frame_state {
+struct ENGINE_RUNTIME_API runtime_frame_state {
     double simulation_time{0.0};
     animation::AnimationRigPose pose{};
     geometry::MeshBounds bounds{};
     std::vector<math::vec3> body_positions{};
     compute::ExecutionReport dispatch_report{};
-    struct scene_node_state {
+    struct ENGINE_RUNTIME_API scene_node_state {
         std::string name{};
         math::Transform<float> transform{};
     };
     std::vector<scene_node_state> scene_nodes{};
 };
 
-struct RuntimeHostDependencies {
+struct ENGINE_RUNTIME_API RuntimeHostDependencies {
     animation::AnimationController controller{
         animation::make_linear_controller(animation::make_default_clip())};
     geometry::SurfaceMesh mesh{geometry::make_unit_quad()};
@@ -49,7 +49,7 @@ struct RuntimeHostDependencies {
     std::string scene_name{"runtime.scene"};
 };
 
-class RuntimeHost {
+class ENGINE_RUNTIME_API RuntimeHost {
 public:
     RuntimeHost();
     explicit RuntimeHost(RuntimeHostDependencies dependencies);
