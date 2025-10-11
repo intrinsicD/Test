@@ -14,4 +14,6 @@
 
 ## TODO / Next Steps
 
-- Expand runtime orchestration with streaming asset loading and render scheduling hooks.
+- **Near term (1–2 milestones)** – Formalise lifecycle ownership, expose deterministic lifecycle APIs, extend the dispatcher beyond the fixed kernel chain, and harden scene mirroring for dynamic rigs.
+- **Mid term (3–5 milestones)** – Introduce asynchronous asset streaming, render scheduling hooks, and telemetry surfaces that can feed profiling tools.
+- **Long term (5+ milestones)** – Integrate with the engine-wide job system, support deterministic replay/state capture, and add hot-reloadable configuration. See [docs/design/runtime_plan.md](../../docs/design/runtime_plan.md) for the full roadmap and status tracking.
