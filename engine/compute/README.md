@@ -13,4 +13,27 @@
 
 ## TODO / Next Steps
 
-- Implement GPU-backed dispatch and integrate with runtime scheduling.
+The dispatcher is currently limited to CPU execution. The roadmap below sequences
+the work required to deliver heterogeneous (CPU + GPU) dispatch that can plug
+into the broader runtime scheduler.
+
+1. **Unify the dispatch abstractions.**
+   - Formalise a backend-agnostic command description that can be consumed by
+     both CPU and GPU executors.
+   - Extend `KernelDispatcher` with explicit resource lifetime metadata so that
+     dependency tracking is no longer implicit in the user-defined callbacks.
+   - Document the public API changes under `engine/compute/include` once
+     stabilised.
+2. **Introduce GPU execution backends.**
+   - Stand up a CUDA-backed executor that consumes the unified command format
+     and mirrors the CPU topological scheduler.
+   - Surface device/stream management hooks so the runtime can provide shared
+     pools and avoid redundant initialisation.
+   - Instrument both CPU and GPU paths with lightweight timing markers to feed
+     profiling tools.
+3. **Integrate with the runtime scheduler.**
+   - Expose submission queues that the runtime frame graph can drive, including
+     synchronisation primitives for cross-backend dependencies.
+   - Author regression scenarios in `engine/compute/tests` that exercise mixed
+     CPU/GPU graphs and validate determinism of the reported execution order.
+   - Produce usage samples under `docs/` once the runtime integration settles.

@@ -11,4 +11,9 @@
 
 ## TODO / Next Steps
 
-- Expand regression coverage beyond the current smoke checks.
+- Capture fixtures that model heterogeneous dependency chains (CPU-only,
+  GPU-only, and mixed) and assert deterministic execution ordering.
+- Add failure-path regression tests that exercise invalid dependency graphs and
+  resource lifetime violations once the API surfaces them.
+- Integrate micro-benchmarks to watch for scheduler regressions as GPU paths
+  come online.
