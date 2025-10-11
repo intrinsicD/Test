@@ -108,6 +108,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Prototype deformation and rigging utilities for the animation pipeline. | [engine/animation/deformation/README.md](engine/animation/include/engine/animation/deformation/README.md)<br>[engine/animation/rigging/README.md](engine/animation/include/engine/animation/rigging/README.md)<br>[engine/animation/skinning/README.md](engine/animation/include/engine/animation/skinning/README.md) |
 | Provide curated sample assets demonstrating runtime features. | [engine/assets/samples/README.md](engine/assets/samples/README.md) |
 | Publish the Python packaging and dependency manifest for automation helpers. | [python/README.md](python/README.md) |
+| Expand Python loader tests with real libraries, diagnostics, and shared fixtures. | [python/tests/README.md](python/tests/README.md) |
 | Replace the stub window factories with real OS backends. | [engine/platform/windowing/README.md](engine/platform/include/engine/platform/windowing/README.md) |
 | Stabilise cross-module integration and build targets for contributors. | [README.md](README.md) |
 | Stand up tooling flows for content pipelines, profiling, and editor workflows. | [engine/tools/README.md](engine/tools/README.md) |
