@@ -11,4 +11,9 @@
 
 ## TODO / Next Steps
 
-- Add scenario-driven examples and profiling to exercise the implementation.
+- Prototype CPU vs. GPU parity tests that submit identical graphs to each backend
+  and compare execution traces.
+- Layer opt-in instrumentation hooks so that downstream tooling can emit timing
+  markers without recompiling the module.
+- Publish example dispatch graphs (smoke, stress, failure-injection) to guide
+  integration and debugging.
