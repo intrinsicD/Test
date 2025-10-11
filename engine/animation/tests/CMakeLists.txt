@@ -1,6 +1,7 @@
 add_executable(engine_animation_tests
     test_module.cpp
     test_clip_serialization.cpp
+    test_blend_tree.cpp
 )
 
 target_link_libraries(engine_animation_tests

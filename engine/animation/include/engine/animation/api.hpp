@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "engine/math/math.hpp"
@@ -59,6 +60,25 @@ struct AnimationRigPose {
     [[nodiscard]] JointPose* find(std::string_view joint) noexcept;
 };
 
+struct BlendTreeClipNode {
+    AnimationController controller{};
+};
+
+struct BlendTreeLinearBlendNode {
+    std::size_t lhs{std::numeric_limits<std::size_t>::max()};
+    std::size_t rhs{std::numeric_limits<std::size_t>::max()};
+    float weight{0.5F};
+};
+
+struct BlendTreeNode {
+    std::variant<BlendTreeClipNode, BlendTreeLinearBlendNode> data;
+};
+
+struct AnimationBlendTree {
+    std::vector<BlendTreeNode> nodes;
+    std::size_t root{std::numeric_limits<std::size_t>::max()};
+};
+
 [[nodiscard]] ENGINE_ANIMATION_API std::string_view module_name() noexcept;
 
 ENGINE_ANIMATION_API void sort_keyframes(JointTrack& track);
@@ -98,6 +118,26 @@ ENGINE_ANIMATION_API void advance_controller(AnimationController& controller, do
 [[nodiscard]] ENGINE_ANIMATION_API AnimationController make_linear_controller(AnimationClip clip);
 
 [[nodiscard]] ENGINE_ANIMATION_API AnimationClip make_default_clip();
+
+[[nodiscard]] ENGINE_ANIMATION_API std::size_t add_clip_node(AnimationBlendTree& tree, AnimationClip clip);
+
+[[nodiscard]] ENGINE_ANIMATION_API std::size_t add_controller_node(AnimationBlendTree& tree,
+                                                                   AnimationController controller);
+
+[[nodiscard]] ENGINE_ANIMATION_API std::size_t add_linear_blend_node(AnimationBlendTree& tree,
+                                                                     std::size_t lhs,
+                                                                     std::size_t rhs,
+                                                                     float weight);
+
+ENGINE_ANIMATION_API void set_blend_tree_root(AnimationBlendTree& tree, std::size_t node) noexcept;
+
+ENGINE_ANIMATION_API void set_linear_blend_weight(AnimationBlendTree& tree, std::size_t node, float weight) noexcept;
+
+ENGINE_ANIMATION_API void advance_blend_tree(AnimationBlendTree& tree, double dt) noexcept;
+
+[[nodiscard]] ENGINE_ANIMATION_API bool blend_tree_valid(const AnimationBlendTree& tree) noexcept;
+
+[[nodiscard]] ENGINE_ANIMATION_API AnimationRigPose evaluate_blend_tree(const AnimationBlendTree& tree);
 
 }  // namespace engine::animation
 

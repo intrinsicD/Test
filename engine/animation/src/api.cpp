@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
+#include <unordered_map>
 
 namespace engine::animation {
 
@@ -9,8 +11,81 @@ namespace {
 
 constexpr double epsilon_time = 1e-6;
 
+using PoseMap = std::unordered_map<std::string, JointPose>;
+
 [[nodiscard]] math::vec3 lerp(const math::vec3& a, const math::vec3& b, float t) {
     return a + (b - a) * t;
+}
+
+[[nodiscard]] PoseMap to_pose_map(const AnimationRigPose& pose) {
+    PoseMap map;
+    map.reserve(pose.joints.size());
+    for (const auto& entry : pose.joints) {
+        map.insert(entry);
+    }
+    return map;
+}
+
+[[nodiscard]] AnimationRigPose to_rig_pose(PoseMap map) {
+    AnimationRigPose pose;
+    pose.joints.reserve(map.size());
+    for (auto& entry : map) {
+        pose.joints.emplace_back(entry.first, entry.second);
+    }
+    std::sort(pose.joints.begin(), pose.joints.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.first < rhs.first;
+    });
+    return pose;
+}
+
+[[nodiscard]] JointPose blend_joint_pose(const JointPose& lhs, const JointPose& rhs, float weight) {
+    JointPose blended;
+    blended.translation = lerp(lhs.translation, rhs.translation, weight);
+    blended.scale = lerp(lhs.scale, rhs.scale, weight);
+    blended.rotation = math::normalize(math::slerp(lhs.rotation, rhs.rotation, weight));
+    return blended;
+}
+
+[[nodiscard]] AnimationRigPose blend_linear(const AnimationRigPose& lhs,
+                                            const AnimationRigPose& rhs,
+                                            float weight) {
+    if (weight <= 0.0F) {
+        return lhs;
+    }
+    if (weight >= 1.0F) {
+        return rhs;
+    }
+
+    auto lhs_map = to_pose_map(lhs);
+    auto rhs_map = to_pose_map(rhs);
+    PoseMap result;
+    result.reserve(lhs_map.size() + rhs_map.size());
+
+    const auto accumulate = [&](const PoseMap& map) {
+        for (const auto& [joint, pose] : map) {
+            result.insert({joint, pose});
+        }
+    };
+    accumulate(lhs_map);
+    accumulate(rhs_map);
+
+    for (auto& [joint, pose] : result) {
+        const auto lhs_it = lhs_map.find(joint);
+        const auto rhs_it = rhs_map.find(joint);
+        if (lhs_it != lhs_map.end() && rhs_it != rhs_map.end()) {
+            pose = blend_joint_pose(lhs_it->second, rhs_it->second, weight);
+        } else if (rhs_it != rhs_map.end()) {
+            pose = blend_joint_pose(JointPose{}, rhs_it->second, weight);
+        } else if (lhs_it != lhs_map.end()) {
+            pose = blend_joint_pose(lhs_it->second, JointPose{}, weight);
+        }
+    }
+
+    return to_rig_pose(std::move(result));
+}
+
+[[nodiscard]] bool node_index_valid(const AnimationBlendTree& tree, std::size_t node) noexcept {
+    return node < tree.nodes.size();
 }
 
 }  // namespace
@@ -156,6 +231,106 @@ AnimationClip make_default_clip() {
     clip.tracks.push_back(std::move(root_track));
 
     return clip;
+}
+
+std::size_t add_clip_node(AnimationBlendTree& tree, AnimationClip clip) {
+    BlendTreeNode node;
+    node.data = BlendTreeClipNode{make_linear_controller(std::move(clip))};
+    tree.nodes.push_back(std::move(node));
+    return tree.nodes.size() - 1U;
+}
+
+std::size_t add_controller_node(AnimationBlendTree& tree, AnimationController controller) {
+    BlendTreeNode node;
+    node.data = BlendTreeClipNode{std::move(controller)};
+    tree.nodes.push_back(std::move(node));
+    return tree.nodes.size() - 1U;
+}
+
+std::size_t add_linear_blend_node(AnimationBlendTree& tree, std::size_t lhs, std::size_t rhs, float weight) {
+    BlendTreeNode node;
+    BlendTreeLinearBlendNode blend;
+    blend.lhs = lhs;
+    blend.rhs = rhs;
+    blend.weight = std::clamp(weight, 0.0F, 1.0F);
+    node.data = blend;
+    tree.nodes.push_back(node);
+    return tree.nodes.size() - 1U;
+}
+
+void set_blend_tree_root(AnimationBlendTree& tree, std::size_t node) noexcept {
+    tree.root = node;
+}
+
+void set_linear_blend_weight(AnimationBlendTree& tree, std::size_t node, float weight) noexcept {
+    if (!node_index_valid(tree, node)) {
+        return;
+    }
+    auto& variant = tree.nodes[node].data;
+    if (auto* blend = std::get_if<BlendTreeLinearBlendNode>(&variant)) {
+        blend->weight = std::clamp(weight, 0.0F, 1.0F);
+    }
+}
+
+void advance_blend_tree(AnimationBlendTree& tree, double dt) noexcept {
+    for (auto& node : tree.nodes) {
+        if (auto* clip = std::get_if<BlendTreeClipNode>(&node.data)) {
+            advance_controller(clip->controller, dt);
+        }
+    }
+}
+
+bool blend_tree_valid(const AnimationBlendTree& tree) noexcept {
+    if (!node_index_valid(tree, tree.root)) {
+        return false;
+    }
+    for (const auto& node : tree.nodes) {
+        if (const auto* blend = std::get_if<BlendTreeLinearBlendNode>(&node.data)) {
+            if (!node_index_valid(tree, blend->lhs) || !node_index_valid(tree, blend->rhs)) {
+                return false;
+            }
+            if (!std::isfinite(blend->weight)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+namespace {
+
+AnimationRigPose evaluate_node(const AnimationBlendTree& tree,
+                               std::size_t index,
+                               std::vector<std::optional<AnimationRigPose>>& cache) {
+    if (!node_index_valid(tree, index)) {
+        return {};
+    }
+    if (cache[index].has_value()) {
+        return cache[index].value();
+    }
+
+    const auto& node = tree.nodes[index].data;
+    AnimationRigPose pose;
+    if (const auto* clip = std::get_if<BlendTreeClipNode>(&node)) {
+        pose = evaluate_controller(clip->controller);
+    } else if (const auto* blend = std::get_if<BlendTreeLinearBlendNode>(&node)) {
+        const auto lhs = evaluate_node(tree, blend->lhs, cache);
+        const auto rhs = evaluate_node(tree, blend->rhs, cache);
+        pose = blend_linear(lhs, rhs, blend->weight);
+    }
+
+    cache[index] = pose;
+    return pose;
+}
+
+}  // namespace
+
+AnimationRigPose evaluate_blend_tree(const AnimationBlendTree& tree) {
+    if (!blend_tree_valid(tree)) {
+        return {};
+    }
+    std::vector<std::optional<AnimationRigPose>> cache(tree.nodes.size());
+    return evaluate_node(tree, tree.root, cache);
 }
 
 }  // namespace engine::animation

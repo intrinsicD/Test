@@ -5,6 +5,8 @@
 - Modular real-time engine prototype written in modern C++20 with optional Python tooling for automation and validation.
 - Subsystems live under `engine/` and build as individual libraries (animation, compute, geometry, physics, rendering, runtime, scene, tools, and platform glue).
 - Documentation under `docs/` captures design decisions and API notes, while `python/` and `scripts/` provide automation entry points.
+- Animation now layers blend-tree authoring and evaluation on top of deterministic clip sampling, with JSON import/export shared through the I/O module.
+- Physics integrates configurable damping and substepping with a sweep-and-prune broad phase and capsule colliders, ensuring more stable collision detection.
 
 ### Module Overview
 
@@ -82,9 +84,6 @@ referenced above.
 
 | TODO / Next Steps | Modules |
 | --- | --- |
-| Deliver blend-tree authoring on top of the new clip validation/serialization pipeline to unlock complex rigs. | [engine/animation/README.md](engine/animation/README.md)<br>[docs/animation_roadmap.md](docs/animation_roadmap.md) |
-| Execute the physics roadmap: stabilise the core world, add scalable collision management, and broaden collider coverage. | [engine/physics/README.md](engine/physics/README.md)<br>[docs/physics/roadmap.md](docs/physics/roadmap.md) |
-| Add format importers to translate real data into runtime structures. | [engine/io/importers/README.md](engine/io/include/engine/io/importers/README.md) |
 | Expand the preset matrix to cover Clang and macOS toolchains once dependencies are in place. | [scripts/build/README.md](scripts/build/README.md) |
 | Add scenario-driven examples and profiling to exercise the implementation. | [engine/animation/src/README.md](engine/animation/src/README.md)<br>[engine/assets/src/README.md](engine/assets/src/README.md)<br>[engine/compute/src/README.md](engine/compute/src/README.md)<br>[engine/core/ecs/README.md](engine/core/include/engine/core/ecs/README.md)<br>[engine/core/src/README.md](engine/core/src/README.md)<br>[engine/geometry/src/README.md](engine/geometry/src/README.md)<br>[engine/geometry/src/shapes/README.md](engine/geometry/src/shapes/README.md)<br>[engine/io/src/README.md](engine/io/src/README.md)<br>[engine/physics/src/README.md](engine/physics/src/README.md)<br>[engine/platform/src/README.md](engine/platform/src/README.md)<br>[engine/rendering/src/README.md](engine/rendering/src/README.md)<br>[engine/runtime/src/README.md](engine/runtime/src/README.md)<br>[engine/scene/src/README.md](engine/scene/src/README.md) |
 | Author representative shader assets once the rendering pipeline is defined. | [engine/assets/shaders/README.md](engine/assets/shaders/README.md)<br>[engine/rendering/materials/shaders/README.md](engine/rendering/materials/shaders/README.md)<br>[engine/rendering/materials/shaders/common/README.md](engine/rendering/materials/shaders/common/README.md)<br>[engine/rendering/materials/shaders/glsl/README.md](engine/rendering/materials/shaders/glsl/README.md)<br>[engine/rendering/materials/shaders/hlsl/README.md](engine/rendering/materials/shaders/hlsl/README.md) |

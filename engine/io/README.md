@@ -5,6 +5,7 @@
 - Establishes the directory layout for importers, exporters, caching, and runtime I/O infrastructure.
 - Provides geometry I/O entry points that wrap format-specific helpers for OBJ/OFF/PLY meshes, PLY/XYZ/PCD point clouds, and
   edgelist/PLY graphs.
+- Supplies animation clip import/export helpers (`engine::io::animation`) that forward to the animation module's JSON serializers for tooling reuse.
 - Exposes a registry facade so formats can be supplied via plugins while the global accessor installs built-in ASCII handlers.
 - Detects geometry content by inspecting PLY headers and ASCII/binary STL signatures, allowing robust classification even when
   file extensions are ambiguous.

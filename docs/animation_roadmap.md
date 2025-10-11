@@ -2,18 +2,18 @@
 
 ## Context
 
-The animation subsystem currently exposes deterministic clip sampling, a single linear controller, and a smoke-test oscillator clip. Public headers provide data structures for joint poses, keyframes, and clips, and the runtime test suite validates interpolation for a single joint. There is no persistent format, no rig authoring hooks, and no tooling for blending or deformation.
+The animation subsystem exposes deterministic clip sampling, a single linear controller, a smoke-test oscillator clip, and now a blend-tree authoring API capable of mixing multiple motion sources. Public headers provide data structures for joint poses, keyframes, and clips, and the runtime test suite validates interpolation for a single joint. JSON serialization is available alongside the shared I/O importer, but tooling for parameterised blending and deformation remains open.
 
 ## Objectives
 
 1. **Asset and Clip Lifecycle**
    - ✅ Clip validation and JSON serialization now exist in `engine::animation` (`validate_clip`, `write_clip_json`, `read_clip_json`).
-   - 🔜 Provide import/export adapters within the `engine::io` module to integrate with asset pipelines and consider binary representations for runtime efficiency.
+   - ✅ Provide import/export adapters within the `engine::io` module to integrate with asset pipelines and consider binary representations for runtime efficiency.
 
 2. **Rig Evaluation and Blend Trees**
-   - Design a node-based blend tree representation (state machine nodes, blend nodes, procedural nodes).
-   - Implement evaluators that operate over cached joint pose buffers with deterministic sampling order.
-   - Support parameter binding (floats, bools, events) for runtime control and debugging hooks.
+   - ✅ Design a node-based blend tree representation (clip/controller nodes and linear blend nodes are implemented; state machines remain future work).
+   - ✅ Implement evaluators that operate over cached joint pose buffers with deterministic sampling order.
+   - 🔜 Support parameter binding (floats, bools, events) for runtime control and debugging hooks.
 
 3. **Deformation Integration**
    - Define rig binding data that links sampled poses to mesh skinning weights (interfacing with `engine::geometry`).

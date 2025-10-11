@@ -18,19 +18,17 @@ concert.
 
 ### Animation
 
-- **Near-Term** – Clip validation and JSON serialization are available; next unlock
-  blend-tree authoring so runtime clients can composite multiple motion sources. (See
-  [docs/animation_roadmap.md](animation_roadmap.md).)
+- **Near-Term** – Clip validation, JSON serialization, and the first blend-tree
+  evaluators are available; next integrate deformation bindings and parameterised
+  blending per [docs/animation_roadmap.md](animation_roadmap.md).
 - **Mid-Term** – Integrate deformation paths with the geometry module and publish GPU
   pose buffers for rendering.
 - **Long-Term** – Expand diagnostics, profiling, and tooling coverage to monitor large
   rigs and complex state machines.
 
-### Physics
-
-- **Near-Term** – Stabilise the rigid-body world (mass/force invariants, API factoring)
-  and introduce instrumentation before widening scope. Detailed tasks live in
-  [docs/physics/roadmap.md](physics/roadmap.md).
+- **Near-Term** – The rigid-body world now supports damping, substepping, a sweep-and-
+  prune broad phase, and capsule colliders. Next, focus on contact manifolds and
+  instrumentation as outlined in [docs/physics/roadmap.md](physics/roadmap.md).
 - **Mid-Term** – Stand up scalable collision management (broad-phase, contact manifolds,
   constraint solver) so physics can participate in richer runtime scenes.
 - **Long-Term** – Advance dynamics fidelity with improved integrators, sleeping/activation
