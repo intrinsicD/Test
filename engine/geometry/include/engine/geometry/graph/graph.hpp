@@ -16,7 +16,19 @@
 #include <vector>
 
 namespace engine::geometry::graph {
-    struct ENGINE_GEOMETRY_API IOFlags;
+    struct ENGINE_GEOMETRY_API IOFlags
+    {
+        enum class Format
+        {
+            kAuto,
+            kEdgeList,
+        };
+
+        Format format{Format::kAuto};
+        int precision{9};
+        bool include_header_comment{true};
+        bool include_counts{true};
+    };
 
     class ENGINE_GEOMETRY_API GraphInterface {
     public:
@@ -276,11 +288,19 @@ namespace engine::geometry::graph {
 
         bool has_garbage_{false};
     };
+
+    ENGINE_GEOMETRY_API void read(GraphInterface &graph, const std::filesystem::path &path);
+
+    ENGINE_GEOMETRY_API void write(const GraphInterface &graph,
+                                   const std::filesystem::path &path,
+                                   const IOFlags &flags = {});
 } // namespace engine::geometry::graph
 
 
 namespace engine::geometry {
     using GraphInterface = graph::GraphInterface;
+
+    using GraphIOFlags = graph::IOFlags;
 
     struct ENGINE_GEOMETRY_API GraphData {
         Vertices vertex_props;
