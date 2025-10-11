@@ -206,3 +206,58 @@ TEST(PhysicsWorldColliders, DetectsSphereAabbCollisionAndIgnoresSeparatedBodies)
     EXPECT_FALSE(engine::physics::has_collider(world, static_cast<std::size_t>(42U)));
     EXPECT_EQ(nullptr, engine::physics::collider_at(world, static_cast<std::size_t>(42U)));
 }
+
+TEST(PhysicsWorld, SubsteppingAndDampingStabiliseIntegration) {
+    engine::physics::PhysicsWorld world;
+    world.gravity = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    engine::physics::set_linear_damping(world, 2.0F);
+    engine::physics::set_substepping(world, 0.1F, 3U);
+
+    engine::physics::RigidBody body;
+    body.mass = 1.0F;
+    body.position = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    body.velocity = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    const auto index = engine::physics::add_body(world, body);
+
+    engine::physics::apply_force(world, index, engine::math::vec3{2.0F, 0.0F, 0.0F});
+    engine::physics::integrate(world, 0.5);
+
+    const auto& simulated = engine::physics::body_at(world, index);
+    EXPECT_LT(simulated.velocity[0], 1.0F);
+    EXPECT_GT(simulated.velocity[0], 0.0F);
+    EXPECT_NEAR(simulated.position[0], 0.5F, 0.2F);
+    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, simulated.accumulated_force);
+}
+
+TEST(PhysicsWorldColliders, CapsuleIntersectionsAreDetected) {
+    engine::physics::PhysicsWorld world;
+
+    engine::physics::RigidBody capsule_body;
+    capsule_body.position = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    const auto capsule_index = engine::physics::add_body(world, capsule_body);
+    engine::physics::Collider::Capsule capsule_shape;
+    capsule_shape.point_a = engine::math::vec3{0.0F, -0.5F, 0.0F};
+    capsule_shape.point_b = engine::math::vec3{0.0F, 0.5F, 0.0F};
+    capsule_shape.radius = 0.25F;
+    engine::physics::set_collider(world, capsule_index, engine::physics::Collider::make_capsule(capsule_shape));
+
+    engine::physics::RigidBody sphere_body;
+    sphere_body.position = engine::math::vec3{0.2F, 0.5F, 0.0F};
+    const auto sphere_index = engine::physics::add_body(world, sphere_body);
+    engine::physics::set_collider(world, sphere_index, engine::physics::Collider::make_sphere(0.5F));
+
+    auto collisions = engine::physics::detect_collisions(world);
+    ASSERT_EQ(1U, collisions.size());
+    EXPECT_EQ(capsule_index, collisions[0].first);
+    EXPECT_EQ(sphere_index, collisions[0].second);
+
+    engine::physics::RigidBody second_capsule_body;
+    second_capsule_body.position = engine::math::vec3{0.0F, 2.0F, 0.0F};
+    const auto second_capsule_index = engine::physics::add_body(world, second_capsule_body);
+    engine::physics::set_collider(world, second_capsule_index, engine::physics::Collider::make_capsule(capsule_shape));
+
+    collisions = engine::physics::detect_collisions(world);
+    ASSERT_EQ(1U, collisions.size());
+    EXPECT_EQ(capsule_index, collisions[0].first);
+    EXPECT_EQ(sphere_index, collisions[0].second);
+}

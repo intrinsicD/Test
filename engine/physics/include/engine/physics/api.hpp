@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 #include <vector>
 
@@ -24,12 +25,18 @@ struct Collider {
         None,
         Sphere,
         Aabb,
+        Capsule,
     };
 
     Type type{Type::None};
     math::vec3 offset{0.0F, 0.0F, 0.0F};
     engine::geometry::Sphere sphere{{0.0F, 0.0F, 0.0F}, 0.0F};
     engine::geometry::Aabb aabb{{0.0F, 0.0F, 0.0F}, {0.0F, 0.0F, 0.0F}};
+    struct Capsule {
+        math::vec3 point_a{0.0F, 0.0F, 0.0F};
+        math::vec3 point_b{0.0F, 0.0F, 0.0F};
+        float radius{0.0F};
+    } capsule{};
 
     [[nodiscard]] static Collider none() noexcept {
         return Collider{};
@@ -62,6 +69,15 @@ struct Collider {
         collider.aabb = shape;
         return collider;
     }
+
+    [[nodiscard]] static Collider make_capsule(const Capsule& shape,
+                                               const math::vec3& offset = math::vec3{0.0F, 0.0F, 0.0F}) noexcept {
+        Collider collider;
+        collider.type = Type::Capsule;
+        collider.offset = offset;
+        collider.capsule = shape;
+        return collider;
+    }
 };
 
 struct RigidBody {
@@ -75,6 +91,9 @@ struct RigidBody {
 
 struct PhysicsWorld {
     math::vec3 gravity{0.0F, -9.81F, 0.0F};
+    float linear_damping{0.0F};
+    float max_substep{1.0F / 60.0F};
+    std::uint32_t max_substeps{8U};
     std::vector<RigidBody> bodies;
 };
 
@@ -92,6 +111,10 @@ ENGINE_PHYSICS_API void clear_forces(PhysicsWorld& world) noexcept;
 ENGINE_PHYSICS_API void apply_force(PhysicsWorld& world, std::size_t index, const math::vec3& force);
 
 ENGINE_PHYSICS_API void integrate(PhysicsWorld& world, double dt);
+
+ENGINE_PHYSICS_API void set_linear_damping(PhysicsWorld& world, float damping) noexcept;
+
+ENGINE_PHYSICS_API void set_substepping(PhysicsWorld& world, float max_step, std::uint32_t max_substeps) noexcept;
 
 [[nodiscard]] ENGINE_PHYSICS_API std::size_t body_count(const PhysicsWorld& world) noexcept;
 

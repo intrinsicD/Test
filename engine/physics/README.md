@@ -2,10 +2,10 @@
 
 ## Current State
 
-- Offers a simple rigid-body world with force accumulation, Euler integration, and mass management.
+- Offers a simple rigid-body world with force accumulation, Euler integration, configurable damping/substepping, and mass management.
 - Clamps non-positive masses to produce static bodies that ignore forces and gravity, ensuring stable placeholders.
-- Associates rigid bodies with optional sphere or axis-aligned bounding-box colliders.
-- Performs narrow-phase collision queries by delegating to `engine::geometry` intersection routines.
+- Associates rigid bodies with optional sphere, capsule, or axis-aligned bounding-box colliders.
+- Performs broad-phase sweep-and-prune pruning before delegating narrow-phase collision queries to `engine::geometry` intersection routines.
 - Exposes safe accessors that validate indices and ensure deterministic updates.
 
 ## Usage
@@ -19,6 +19,6 @@
 Roadmap items are prioritised in [docs/physics/roadmap.md](../../docs/physics/roadmap.md) and reflected in the
 [global alignment overview](../../docs/global_roadmap.md). The near-term focus is summarised below:
 
-- Stabilise the rigid-body core by tightening mass/force invariants, documenting API usage, and splitting collision helpers into dedicated units.
-- Introduce a scalable collision pipeline (broad-phase acceleration, contact manifolds, and a constraint solver) before widening collider coverage.
-- Advance dynamics fidelity with improved integration schemes, sleeping/activation heuristics, and an extensible collider set (OBB, capsules, meshes).
+- Prioritise contact-manifold generation and constraint solving now that broad-phase pruning and capsule support are available.
+- Document damping/substepping guidance and expand regression scenarios that stress-test high-velocity and stacked-body cases.
+- Extend collider coverage beyond capsules (OBB, triangle meshes) and integrate constraint resolution per the shared roadmap.

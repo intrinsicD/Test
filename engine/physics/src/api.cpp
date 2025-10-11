@@ -1,6 +1,8 @@
 #include "engine/physics/api.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <cstdint>
 #include <stdexcept>
 #include <vector>
 
@@ -8,9 +10,27 @@ namespace engine::physics {
 
 namespace {
 
+constexpr float minimum_step = 1e-6F;
+
 [[nodiscard]] float safe_inverse_mass(float mass) noexcept {
     constexpr float epsilon = 1e-6F;
     return (mass <= epsilon) ? 0.0F : 1.0F / mass;
+}
+
+void integrate_substep(PhysicsWorld& world, float step) {
+    const float damping = std::max(world.linear_damping, 0.0F);
+    const float damping_factor = std::exp(-damping * step);
+    for (auto& body : world.bodies) {
+        if (body.inverse_mass == 0.0F) {
+            body.accumulated_force = math::vec3{0.0F, 0.0F, 0.0F};
+            continue;
+        }
+        const math::vec3 acceleration = body.accumulated_force * body.inverse_mass + world.gravity;
+        body.velocity += acceleration * step;
+        body.velocity *= damping_factor;
+        body.position += body.velocity * step;
+        body.accumulated_force = math::vec3{0.0F, 0.0F, 0.0F};
+    }
 }
 
 }  // namespace
@@ -45,17 +65,33 @@ void apply_force(PhysicsWorld& world, std::size_t index, const math::vec3& force
 }
 
 void integrate(PhysicsWorld& world, double dt) {
-    const float step = static_cast<float>(dt);
-    for (auto& body : world.bodies) {
-        if (body.inverse_mass == 0.0F) {
-            body.accumulated_force = math::vec3{0.0F, 0.0F, 0.0F};
-            continue;
-        }
-        const math::vec3 acceleration = body.accumulated_force * body.inverse_mass + world.gravity;
-        body.velocity += acceleration * step;
-        body.position += body.velocity * step;
-        body.accumulated_force = math::vec3{0.0F, 0.0F, 0.0F};
+    if (dt <= static_cast<double>(minimum_step)) {
+        return;
     }
+    const float max_step = std::max(world.max_substep, minimum_step);
+    const std::uint32_t max_substeps = std::max(world.max_substeps, 1U);
+
+    double remaining = dt;
+    std::uint32_t steps = 0U;
+    while (remaining > static_cast<double>(minimum_step) && steps < max_substeps) {
+        const float step = static_cast<float>(std::min(remaining, static_cast<double>(max_step)));
+        integrate_substep(world, step);
+        remaining -= step;
+        ++steps;
+    }
+
+    if (remaining > static_cast<double>(minimum_step)) {
+        integrate_substep(world, static_cast<float>(remaining));
+    }
+}
+
+void set_linear_damping(PhysicsWorld& world, float damping) noexcept {
+    world.linear_damping = std::max(damping, 0.0F);
+}
+
+void set_substepping(PhysicsWorld& world, float max_step, std::uint32_t max_substeps) noexcept {
+    world.max_substep = std::max(max_step, minimum_step);
+    world.max_substeps = std::max(max_substeps, 1U);
 }
 
 std::size_t body_count(const PhysicsWorld& world) noexcept {

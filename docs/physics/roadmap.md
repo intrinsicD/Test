@@ -2,8 +2,8 @@
 
 ## Current Observations
 
-- `engine/physics/api.hpp` exposes a lightweight rigid-body world that stores mass properties, integrates linear motion, and optional colliders limited to spheres and axis-aligned bounding boxes. Runtime mass safety clamps to non-negative values before computing the inverse mass to avoid division by zero and now treats non-positive masses as static placeholders that ignore forces and gravity.
-- `engine/physics/src/api.cpp` implements Euler integration, naïve $O(n^2)$ pairwise collision checks, and delegates shape intersection queries to `engine::geometry`. Colliders are stored directly on bodies, and collision detection does not persist contact state beyond the current frame.
+- `engine/physics/api.hpp` exposes a lightweight rigid-body world that stores mass properties, integrates linear motion, and now supports spheres, axis-aligned bounding boxes, and capsule colliders. Runtime mass safety clamps to non-negative values before computing the inverse mass to avoid division by zero and treats non-positive masses as static placeholders that ignore forces and gravity.
+- `engine/physics/src/api.cpp` implements Euler integration with configurable damping/substepping, a sweep-and-prune broad phase, and delegates shape intersection queries to `engine::geometry`. Colliders are stored directly on bodies, and collision detection still resolves overlaps per-frame without persistent contact state.
 - Unit tests in `engine/physics/tests/test_module.cpp` validate force application, integration correctness, collider attachment, and a subset of sphere–sphere / sphere–AABB collision scenarios. Coverage does not yet address degenerate masses, sleeping, or resolution strategies.
 
 ## Roadmap
@@ -16,7 +16,7 @@
 
 ### 2. Introduce Robust Collision Management (Mid Term)
 
-- **Broad-phase acceleration** – Replace the current $O(n^2)$ sweep with a spatial partition (sweep-and-prune, BVH, or spatial hash) suited to dynamic scenes, and add regression tests to ensure determinism.
+- ✅ **Broad-phase acceleration** – A sweep-and-prune broad phase reduces the $O(n^2)$ collider checks; future work will evaluate BVH/spatial hashes and add determinism regression tests.
 - **Contact manifolds** – Persist overlapping pairs and compute contact normals/penetration depths so constraint solvers can operate on consistent manifolds frame-to-frame.
 - **Constraint solver** – Implement impulse-based or sequential impulse solvers to resolve collisions, starting with perfectly elastic contacts and expanding towards frictional constraints.
 
@@ -24,7 +24,7 @@
 
 - **Integration schemes** – Provide semi-implicit (symplectic Euler) and optionally higher-order integrators to improve energy behaviour. Tie integrator selection to tests that monitor long-term drift.
 - **Sleeping and activation** – Add heuristics to put resting bodies to sleep and wake them when external forces or contacts occur to keep broad-phase queries tractable.
-- **Extensible collider set** – Add OBB, capsule, and mesh colliders layered on top of existing geometry predicates, ensuring each new shape ships with dedicated narrow-phase tests.
+- **Extensible collider set** – Capsule support and tests are now available; extend the coverage to OBB and mesh colliders layered on top of existing geometry predicates.
 
 ## Dependencies and Coordination
 
