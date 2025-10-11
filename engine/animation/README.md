@@ -14,7 +14,8 @@
 
 ## Roadmap
 
-The high-level roadmap is captured in [docs/animation_roadmap.md](../../docs/animation_roadmap.md). The immediate sequencing is:
+The high-level roadmap is captured in [docs/animation_roadmap.md](../../docs/animation_roadmap.md) and summarised in the
+[global alignment overview](../../docs/global_roadmap.md). The immediate sequencing is:
 
 1. **Harden clip assets** – Formalise validation rules, add serialization, and expose import/export hooks through the I/O module.
 2. **Author blend trees** – Introduce a node graph with evaluators that blend multiple clips and procedural nodes at runtime.

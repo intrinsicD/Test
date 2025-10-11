@@ -13,6 +13,9 @@
 
 ## TODO / Next Steps
 
+The sequencing below underpins the runtime and tooling plans captured in the
+[global roadmap](../../docs/global_roadmap.md).
+
 1. **Establish the runtime nucleus.**
    - Define the application lifecycle abstractions (bootstrap, tick, shutdown) and surface them through `engine::core::application`.
    - Provide a bootstrap harness that wires the EnTT registry wrapper into the lifecycle so higher-level modules can register systems without bespoke glue.
