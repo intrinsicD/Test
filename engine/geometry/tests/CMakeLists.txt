@@ -4,6 +4,7 @@ add_executable(engine_geometry_tests
         test_halfedge_mesh.cpp
         test_halfedge_io.cpp
         test_graph.cpp
+        test_graph_io.cpp
         test_point_cloud.cpp
         test_shapes.cpp
         test_octree.cpp

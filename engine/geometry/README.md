@@ -5,6 +5,7 @@
 - Supplies a `SurfaceMesh` abstraction with helpers for bounds updates, centroid evaluation, and normals.
 - Provides procedural generation for a unit quad to seed rendering and physics smoke tests.
 - Implements spatial acceleration structures such as octrees and k-d trees for geometric queries.
+- Implements ASCII edge-list import/export for graph connectivity, enabling property-backed graphs to persist and reload their topology.
 - Implements ASCII PLY import/export for point clouds, preserving normals, colours, alpha, and scalar vertex properties.
 - Implements ASCII OBJ import/export for halfedge meshes so polygonal data can be round-tripped into the topology-aware core.
 
