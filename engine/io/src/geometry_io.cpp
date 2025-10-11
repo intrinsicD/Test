@@ -6,8 +6,10 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <ostream>
@@ -108,6 +110,19 @@ namespace engine::io
             bool ascii{true};
         };
 
+        [[nodiscard]] std::string_view ltrim(std::string_view value)
+        {
+            const auto it = std::find_if_not(value.begin(), value.end(), [](unsigned char c) {
+                return std::isspace(c) != 0;
+            });
+            if (it == value.end())
+            {
+                return std::string_view{};
+            }
+            const auto offset = static_cast<std::size_t>(std::distance(value.begin(), it));
+            return value.substr(offset);
+        }
+
         [[nodiscard]] PlyHeaderInfo inspect_ply_header(const std::filesystem::path& path)
         {
             PlyHeaderInfo info{};
@@ -188,6 +203,99 @@ namespace engine::io
             }
 
             return info;
+        }
+
+        [[nodiscard]] bool looks_like_binary_stl(std::istream& stream, std::uintmax_t file_size)
+        {
+            if (file_size < 84U)
+            {
+                return false;
+            }
+
+            std::array<char, 80U> header{};
+            stream.read(header.data(), static_cast<std::streamsize>(header.size()));
+            if (stream.gcount() != static_cast<std::streamsize>(header.size()))
+            {
+                return false;
+            }
+
+            std::uint32_t triangle_count = 0U;
+            stream.read(reinterpret_cast<char*>(&triangle_count), sizeof(triangle_count));
+            if (stream.gcount() != static_cast<std::streamsize>(sizeof(triangle_count)))
+            {
+                return false;
+            }
+
+            const std::uintmax_t expected_size = 84U + static_cast<std::uintmax_t>(triangle_count) * 50U;
+            if (expected_size == file_size)
+            {
+                return true;
+            }
+
+            if (expected_size < file_size)
+            {
+                const auto remainder = file_size - expected_size;
+                return remainder <= 512U;
+            }
+
+            return false;
+        }
+
+        [[nodiscard]] bool looks_like_ascii_stl(std::istream& stream)
+        {
+            std::string line;
+            if (!std::getline(stream, line))
+            {
+                return false;
+            }
+
+            const auto trimmed = ltrim(line);
+            if (trimmed.size() < 5U)
+            {
+                return false;
+            }
+
+            if (!starts_with(to_lower(std::string{trimmed.substr(0U, 5U)}), "solid"))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < 64 && std::getline(stream, line); ++i)
+            {
+                const auto lower = to_lower(line);
+                if (lower.find("facet normal") != std::string::npos || lower.find("endsolid") != std::string::npos)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [[nodiscard]] GeometryDetectionResult detect_stl_from_signature(const std::filesystem::path& path)
+        {
+            GeometryDetectionResult detection{};
+
+            const auto file_size = std::filesystem::file_size(path);
+
+            {
+                std::ifstream binary_stream{path, std::ios::binary};
+                if (binary_stream && looks_like_binary_stl(binary_stream, file_size))
+                {
+                    detection.kind = GeometryKind::mesh;
+                    detection.mesh_format = MeshFileFormat::stl;
+                    return detection;
+                }
+            }
+
+            std::ifstream ascii_stream{path};
+            if (ascii_stream && looks_like_ascii_stl(ascii_stream))
+            {
+                detection.kind = GeometryKind::mesh;
+                detection.mesh_format = MeshFileFormat::stl;
+            }
+
+            return detection;
         }
 
         [[nodiscard]] MeshFileFormat mesh_format_from_extension(const std::string& ext)
@@ -1341,6 +1449,28 @@ namespace engine::io
                 result.point_cloud_format = PointCloudFileFormat::ply;
             }
             return result;
+        }
+
+        if (ext == ".stl" || result.kind == GeometryKind::unknown)
+        {
+            if (auto stl_result = detect_stl_from_signature(path); stl_result.kind != GeometryKind::unknown)
+            {
+                if (result.kind == GeometryKind::unknown)
+                {
+                    result = stl_result;
+                }
+                else
+                {
+                    result.mesh_format = MeshFileFormat::stl;
+                }
+
+                if (result.format_hint.empty())
+                {
+                    result.format_hint = ".stl";
+                }
+
+                return result;
+            }
         }
 
         if (result.kind != GeometryKind::unknown)

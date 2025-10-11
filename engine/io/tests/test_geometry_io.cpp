@@ -2,7 +2,10 @@
 
 #include "engine/io/geometry_io.hpp"
 
+#include <algorithm>
+#include <array>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -35,6 +38,35 @@ namespace
         std::ofstream stream{path};
         ASSERT_TRUE(stream.good());
         stream << content;
+    }
+
+    void write_binary_stl(const std::filesystem::path& path)
+    {
+        std::filesystem::create_directories(path.parent_path());
+        std::ofstream stream{path, std::ios::binary};
+        ASSERT_TRUE(stream.good());
+
+        std::array<char, 80U> header{};
+        const std::string name = "binary stl";
+        std::copy(name.begin(), name.end(), header.begin());
+        stream.write(header.data(), static_cast<std::streamsize>(header.size()));
+
+        constexpr std::uint32_t triangle_count = 1U;
+        stream.write(reinterpret_cast<const char*>(&triangle_count), sizeof(triangle_count));
+
+        const std::array<float, 12U> values{
+            0.0F, 0.0F, 1.0F, // normal
+            0.0F, 0.0F, 0.0F, // vertex 0
+            1.0F, 0.0F, 0.0F, // vertex 1
+            0.0F, 1.0F, 0.0F  // vertex 2
+        };
+        for (float value : values)
+        {
+            stream.write(reinterpret_cast<const char*>(&value), sizeof(value));
+        }
+
+        constexpr std::uint16_t attribute_byte_count = 0U;
+        stream.write(reinterpret_cast<const char*>(&attribute_byte_count), sizeof(attribute_byte_count));
     }
 } // namespace
 
@@ -90,6 +122,37 @@ TEST(GeometryDetection, DistinguishesPlyVariants)
     const auto cloud_detection = engine::io::detect_geometry_file(cloud_path);
     EXPECT_EQ(cloud_detection.kind, engine::io::GeometryKind::point_cloud);
     EXPECT_EQ(cloud_detection.point_cloud_format, engine::io::PointCloudFileFormat::ply);
+}
+
+TEST(GeometryDetection, DetectsAsciiStlBySignature)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "triangle.stl";
+    write_file(path,
+               "solid ascii\n"
+               "  facet normal 0 0 1\n"
+               "    outer loop\n"
+               "      vertex 0 0 0\n"
+               "      vertex 1 0 0\n"
+               "      vertex 0 1 0\n"
+               "    endloop\n"
+               "  endfacet\n"
+               "endsolid ascii\n");
+
+    const auto detection = engine::io::detect_geometry_file(path);
+    EXPECT_EQ(detection.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(detection.mesh_format, engine::io::MeshFileFormat::stl);
+}
+
+TEST(GeometryDetection, DetectsBinaryStlByStructure)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "triangle.bin";
+    write_binary_stl(path);
+
+    const auto detection = engine::io::detect_geometry_file(path);
+    EXPECT_EQ(detection.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(detection.mesh_format, engine::io::MeshFileFormat::stl);
 }
 
 TEST(GeometryIO, ReadAndWriteMesh)
