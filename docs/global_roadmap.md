@@ -18,8 +18,8 @@ concert.
 
 ### Animation
 
-- **Near-Term** – Finish clip/rig serialization and validation, then unlock blend-tree
-  authoring so runtime clients can composite multiple motion sources. (See
+- **Near-Term** – Clip validation and JSON serialization are available; next unlock
+  blend-tree authoring so runtime clients can composite multiple motion sources. (See
   [docs/animation_roadmap.md](animation_roadmap.md).)
 - **Mid-Term** – Integrate deformation paths with the geometry module and publish GPU
   pose buffers for rendering.

@@ -7,9 +7,8 @@ The animation subsystem currently exposes deterministic clip sampling, a single 
 ## Objectives
 
 1. **Asset and Clip Lifecycle**
-   - Formalise clip validation rules (unique joint names, monotonically increasing keyframes, consistent transforms).
-   - Introduce serialization (JSON or binary chunk) for clips and rigs with versioned schemas.
-   - Provide import/export adapters within the `engine::io` module to integrate with asset pipelines.
+   - ✅ Clip validation and JSON serialization now exist in `engine::animation` (`validate_clip`, `write_clip_json`, `read_clip_json`).
+   - 🔜 Provide import/export adapters within the `engine::io` module to integrate with asset pipelines and consider binary representations for runtime efficiency.
 
 2. **Rig Evaluation and Blend Trees**
    - Design a node-based blend tree representation (state machine nodes, blend nodes, procedural nodes).

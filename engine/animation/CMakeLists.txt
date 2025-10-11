@@ -2,6 +2,7 @@ set(target_name engine_animation)
 
 add_library(${target_name}
     src/api.cpp
+    src/serialization.cpp
 )
 
 engine_apply_module_defaults(${target_name}

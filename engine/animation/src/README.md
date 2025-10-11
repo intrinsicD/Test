@@ -2,7 +2,7 @@
 
 ## Current State
 
-- Implements the module logic across Api.
+- Implements the module logic across API and serialization helpers.
 
 ## Usage
 
