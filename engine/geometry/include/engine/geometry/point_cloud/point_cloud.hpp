@@ -13,7 +13,24 @@
 
 namespace engine::geometry::point_cloud
 {
-    struct ENGINE_GEOMETRY_API IOFlags;
+    struct ENGINE_GEOMETRY_API IOFlags
+    {
+        enum class Format
+        {
+            kAuto,
+            kPLY,
+        };
+
+        Format format{Format::kAuto};
+        bool binary{false};
+        bool export_normals{true};
+        bool export_colors{true};
+        bool export_alpha{true};
+        bool export_custom_scalar_properties{true};
+        std::string normal_property{"p:normal"};
+        std::string color_property{"p:color"};
+        std::string alpha_property{"p:alpha"};
+    };
 
     class ENGINE_GEOMETRY_API PointCloudInterface
     {
@@ -100,9 +117,9 @@ namespace engine::geometry::point_cloud
         [[nodiscard]] bool has_garbage() const noexcept { return has_garbage_; }
 
     private:
-        friend ENGINE_GEOMETRY_API void read(PointCloudInterface &, const std::filesystem::path &);
+        friend ENGINE_GEOMETRY_API void read(PointCloudInterface&, const std::filesystem::path&);
 
-        friend ENGINE_GEOMETRY_API void write(const PointCloudInterface &, const std::filesystem::path &, const IOFlags &);
+        friend ENGINE_GEOMETRY_API void write(const PointCloudInterface&, const std::filesystem::path&, const IOFlags&);
 
         void ensure_properties();
 
@@ -116,11 +133,19 @@ namespace engine::geometry::point_cloud
 
         bool has_garbage_{false};
     };
-} // namespace engine::geometry
+
+    ENGINE_GEOMETRY_API void read(PointCloudInterface& cloud, const std::filesystem::path& path);
+
+    ENGINE_GEOMETRY_API void write(const PointCloudInterface& cloud,
+                                   const std::filesystem::path& path,
+                                   const IOFlags& flags = {});
+} // namespace engine::geometry::point_cloud
 
 namespace engine::geometry
 {
     using PointCloudInterface = point_cloud::PointCloudInterface;
+
+    using PointCloudIOFlags = point_cloud::IOFlags;
 
     struct ENGINE_GEOMETRY_API PointCloudData
     {
