@@ -4,6 +4,7 @@
 
 - Provides clip, track, and controller primitives with sampling implemented in `src/api.cpp`.
 - Supplies a deterministic oscillator clip that powers runtime smoke tests and demonstrations.
+- Public headers expose the core data structures consumed by other subsystems; implementation is kept ABI-stable for external tooling.
 
 ## Usage
 
@@ -11,6 +12,15 @@
 - Extend controllers or clips under `src/` and update accompanying tests in `tests/`.
 - Build and test the module with the canonical presets (for example `cmake --preset linux-gcc-debug` followed by `ctest --preset linux-gcc-debug`).
 
+## Roadmap
+
+The high-level roadmap is captured in [docs/animation_roadmap.md](../../docs/animation_roadmap.md). The immediate sequencing is:
+
+1. **Harden clip assets** – Formalise validation rules, add serialization, and expose import/export hooks through the I/O module.
+2. **Author blend trees** – Introduce a node graph with evaluators that blend multiple clips and procedural nodes at runtime.
+3. **Integrate deformation** – Provide rig binding metadata and deformation utilities that interface with geometry and rendering.
+4. **Expand coverage** – Build profiling scenarios and broaden the test suite to exercise non-looping playback, edge cases, and performance hot spots.
+
 ## TODO / Next Steps
 
-- Add blend-tree authoring and clip serialization to unlock complex rigs.
+- Execute the roadmap steps above to enable complex rig playback, blending, and deformation workflows.
