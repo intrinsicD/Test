@@ -111,4 +111,4 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Replace the stub window factories with real OS backends. | [engine/platform/windowing/README.md](engine/platform/include/engine/platform/windowing/README.md) |
 | Stabilise cross-module integration and build targets for contributors. | [README.md](README.md) |
 | Stand up tooling flows for content pipelines, profiling, and editor workflows. | [engine/tools/README.md](engine/tools/README.md) |
-| Wire format import/export and caching to serve real content pipelines. | [engine/io/README.md](engine/io/README.md) |
+| Execute the geometry I/O roadmap (robust detection, pluggable formats, cache/stream integration). | [engine/io/README.md](engine/io/README.md) |
