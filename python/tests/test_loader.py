@@ -24,9 +24,38 @@ class _DummyFunction:
     def __init__(self, func):
         self._func = func
         self.restype = None
+        self.argtypes = None
 
     def __call__(self, *args, **kwargs):
         return self._func(*args, **kwargs)
+
+
+def _make_runtime_namespace(**overrides):
+    """Construct a fake runtime namespace with required entry points."""
+
+    defaults = {
+        "engine_runtime_module_name": _DummyFunction(lambda: b"runtime"),
+        "engine_runtime_module_count": _DummyFunction(lambda: 0),
+        "engine_runtime_module_at": _DummyFunction(lambda index: b""),
+        "engine_runtime_initialize": _DummyFunction(lambda: None),
+        "engine_runtime_shutdown": _DummyFunction(lambda: None),
+        "engine_runtime_tick": _DummyFunction(lambda dt: None),
+        "engine_runtime_body_count": _DummyFunction(lambda: 0),
+        "engine_runtime_body_position": _DummyFunction(lambda index, out: None),
+        "engine_runtime_joint_count": _DummyFunction(lambda: 0),
+        "engine_runtime_joint_name": _DummyFunction(lambda index: b""),
+        "engine_runtime_joint_translation": _DummyFunction(lambda index, out: None),
+        "engine_runtime_mesh_bounds": _DummyFunction(lambda mins, maxs: None),
+        "engine_runtime_dispatch_count": _DummyFunction(lambda: 0),
+        "engine_runtime_dispatch_name": _DummyFunction(lambda index: b""),
+        "engine_runtime_scene_node_count": _DummyFunction(lambda: 0),
+        "engine_runtime_scene_node_name": _DummyFunction(lambda index: b""),
+        "engine_runtime_scene_node_transform": _DummyFunction(
+            lambda index, scales, rotations, translations: None
+        ),
+    }
+    defaults.update(overrides)
+    return types.SimpleNamespace(**defaults)
 
 
 class CanonicalIdentifierTests(unittest.TestCase):
@@ -127,7 +156,7 @@ class HandleBehaviourTests(unittest.TestCase):
         module_count = _DummyFunction(lambda: 2)
         module_names = [b"mod.a", b"mod.b"]
         module_at = _DummyFunction(lambda index: module_names[index])
-        fake_library = types.SimpleNamespace(
+        fake_library = _make_runtime_namespace(
             engine_runtime_module_name=runtime_name,
             engine_runtime_module_count=module_count,
             engine_runtime_module_at=module_at,
@@ -141,8 +170,7 @@ class HandleBehaviourTests(unittest.TestCase):
 
     def test_engine_runtime_handle_load_modules(self) -> None:
         runtime = loader.EngineRuntimeHandle(
-            types.SimpleNamespace(
-                engine_runtime_module_name=_DummyFunction(lambda: b"runtime"),
+            _make_runtime_namespace(
                 engine_runtime_module_count=_DummyFunction(lambda: 1),
                 engine_runtime_module_at=_DummyFunction(lambda index: b"graphics"),
             )
@@ -158,10 +186,11 @@ class HandleBehaviourTests(unittest.TestCase):
 
     def test_engine_runtime_handle_load_modules_supports_generators(self) -> None:
         runtime = loader.EngineRuntimeHandle(
-            types.SimpleNamespace(
-                engine_runtime_module_name=_DummyFunction(lambda: b"runtime"),
+            _make_runtime_namespace(
                 engine_runtime_module_count=_DummyFunction(lambda: 2),
-                engine_runtime_module_at=_DummyFunction(lambda index: [b"graphics", b"physics"][index]),
+                engine_runtime_module_at=_DummyFunction(
+                    lambda index: [b"graphics", b"physics"][index]
+                ),
             )
         )
 
@@ -194,10 +223,11 @@ class HandleBehaviourTests(unittest.TestCase):
 
     def test_engine_runtime_handle_filters_null_module_names(self) -> None:
         runtime = loader.EngineRuntimeHandle(
-            types.SimpleNamespace(
-                engine_runtime_module_name=_DummyFunction(lambda: b"runtime"),
+            _make_runtime_namespace(
                 engine_runtime_module_count=_DummyFunction(lambda: 3),
-                engine_runtime_module_at=_DummyFunction(lambda index: [b"graphics", None, b""][index]),
+                engine_runtime_module_at=_DummyFunction(
+                    lambda index: [b"graphics", None, b""][index]
+                ),
             )
         )
 
@@ -206,11 +236,7 @@ class HandleBehaviourTests(unittest.TestCase):
 
 class PublicLoaderHelpersTests(unittest.TestCase):
     def test_load_runtime_returns_handle(self) -> None:
-        fake_library = types.SimpleNamespace(
-            engine_runtime_module_name=_DummyFunction(lambda: b"runtime"),
-            engine_runtime_module_count=_DummyFunction(lambda: 0),
-            engine_runtime_module_at=_DummyFunction(lambda index: b""),
-        )
+        fake_library = _make_runtime_namespace()
 
         with mock.patch.object(loader, "_load_shared_library", return_value=fake_library) as mocked_load:
             handle = loader.load_runtime(search_paths=["/libs"])
