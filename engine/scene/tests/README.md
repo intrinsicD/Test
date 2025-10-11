@@ -2,7 +2,7 @@
 
 ## Current State
 
-- Contains automated tests covering Components, Module, Serialization, Systems.
+- Contains automated tests covering component plumbing, module lifecycle, transform systems, and serialization round-trips.
 
 ## Usage
 
@@ -11,4 +11,6 @@
 
 ## TODO / Next Steps
 
-- Expand regression coverage beyond the current smoke checks.
+- Grow scenario-based fixtures that validate complex hierarchy reparenting, bulk entity churn, and cross-component interactions.
+- Add golden serialization assets to detect backward-compatibility breaks.
+- Integrate performance-sensitive tests once traversal utilities land.

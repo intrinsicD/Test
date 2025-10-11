@@ -2,7 +2,8 @@
 
 ## Current State
 
-- Exposes public headers that mirror the module API and guard ABI compatibility.
+- Exposes the stable public headers for scene entities, systems, serialization, and component definitions.
+- Provides a single aggregation point (`components.hpp`, `systems.hpp`) to simplify downstream includes.
 
 ## Usage
 
@@ -11,4 +12,5 @@
 
 ## TODO / Next Steps
 
-- Document the public headers once the API stabilises.
+- Document each public header (entry points, ownership rules, threading expectations) as the API hardens.
+- Track ABI-impacting changes and reflect them in release notes for downstream tooling.

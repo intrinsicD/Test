@@ -70,7 +70,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Bind platform abstractions to OS windowing, input, and filesystem APIs. | [engine/platform/README.md](engine/platform/README.md) |
 | Broaden math primitives and numerics beyond the current minimal set. | [engine/math/README.md](engine/math/README.md) |
 | Build content pipeline automation that feeds assets into the engine. | [engine/tools/pipelines/README.md](engine/tools/pipelines/README.md) |
-| Build scene graph traversal and dependency evaluation. | [engine/scene/graph/README.md](engine/scene/include/engine/scene/graph/README.md) |
+| Design scene graph traversal primitives and dependency evaluation rules. | [engine/scene/graph/README.md](engine/scene/include/engine/scene/graph/README.md) |
 | Capture design rationales and outcomes for upcoming milestones. | [docs/design/README.md](docs/design/README.md) |
 | Provide concrete command encoders for the frame graph scheduler. | [engine/rendering/pipeline/README.md](engine/rendering/pipeline/README.md) |
 | Execute the rendering roadmap: enrich resource descriptors, stand up schedulers, and integrate Vulkan/DX12 backends. | [engine/rendering/README.md](engine/rendering/README.md) |
@@ -95,8 +95,8 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 | Integrate `InputState` with windowing backends to surface real device data. | [engine/platform/input/README.md](engine/platform/include/engine/platform/input/README.md) |
 | Implement lighting models and data flows for the renderer. | [engine/rendering/lighting/README.md](engine/rendering/lighting/README.md) |
 | Implement persistent cache strategies for imported assets. | [engine/io/cache/README.md](engine/io/include/engine/io/cache/README.md) |
-| Implement scene graph serialization, systems, and runtime traversal. | [engine/scene/README.md](engine/scene/README.md) |
-| Implement scene serialization and deserialization compatible with runtime assets. | [engine/scene/serialization/README.md](engine/scene/include/engine/scene/serialization/README.md) |
+| Expand the scene module with richer component systems, traversal helpers, and serialization coverage. | [engine/scene/README.md](engine/scene/README.md) |
+| Harden scene serialization with extended component coverage and explicit versioning. | [engine/scene/serialization/README.md](engine/scene/include/engine/scene/serialization/README.md) |
 | Implement scene systems that operate over ECS data during the frame. | [engine/scene/systems/README.md](engine/scene/include/engine/scene/systems/README.md) |
 | Implement the actual backend integration using the target API. | [engine/rendering/backend/README.md](engine/rendering/backend/README.md)<br>[engine/rendering/backend/directx12/README.md](engine/rendering/backend/directx12/README.md)<br>[engine/rendering/backend/metal/README.md](engine/rendering/backend/metal/README.md)<br>[engine/rendering/backend/opengl/README.md](engine/rendering/backend/opengl/README.md)<br>[engine/rendering/backend/vulkan/README.md](engine/rendering/backend/vulkan/README.md) |
 | Implement visibility determination algorithms to drive culling. | [engine/rendering/visibility/README.md](engine/rendering/visibility/README.md) |
