@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -20,6 +21,11 @@
 #endif
 
 namespace engine::geometry {
+
+namespace mesh
+{
+    struct IOFlags;
+} // namespace mesh
 
 struct MeshBounds {
     math::vec3 min{0.0F, 0.0F, 0.0F};
@@ -45,6 +51,14 @@ ENGINE_GEOMETRY_API void update_bounds(SurfaceMesh& mesh);
 ENGINE_GEOMETRY_API void apply_uniform_translation(SurfaceMesh& mesh, const math::vec3& translation);
 
 [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 centroid(const SurfaceMesh& mesh);
+
+[[nodiscard]] ENGINE_GEOMETRY_API SurfaceMesh load_surface_mesh(const std::filesystem::path& path);
+
+ENGINE_GEOMETRY_API void save_surface_mesh(const SurfaceMesh& mesh, const std::filesystem::path& path);
+
+ENGINE_GEOMETRY_API void save_surface_mesh(const SurfaceMesh& mesh,
+                                           const std::filesystem::path& path,
+                                           const mesh::IOFlags& flags);
 
 }  // namespace engine::geometry
 
