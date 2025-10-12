@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "engine/rendering/components.hpp"
@@ -9,6 +10,7 @@
 #include "engine/scene/components.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
+#include "command_encoder_test_utils.hpp"
 #include "scheduler_test_utils.hpp"
 
 namespace
@@ -101,11 +103,38 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     RecordingProvider provider;
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::tests::RecordingCommandEncoderProvider command_encoders;
 
-    pipeline.render(scene, provider, materials, device_provider, scheduler, graph);
+    pipeline.render(scene, provider, materials, device_provider, scheduler, command_encoders, graph);
 
     ASSERT_EQ(scheduler.submissions.size(), 1);  // NOLINT
     EXPECT_EQ(scheduler.submissions.front().pass_name, "ForwardGeometry");
+
+    ASSERT_EQ(command_encoders.begin_records.size(), 1);  // NOLINT
+    EXPECT_EQ(command_encoders.begin_records.front().pass_name, "ForwardGeometry");
+    ASSERT_EQ(command_encoders.completed_encoders.size(), 1);  // NOLINT
+    const auto& recorded_encoder = *command_encoders.completed_encoders.front();
+    ASSERT_EQ(recorded_encoder.draws.size(), 3);  // NOLINT
+    const auto& mesh_draw = recorded_encoder.draws[0];
+    ASSERT_TRUE(std::holds_alternative<engine::assets::MeshHandle>(mesh_draw.geometry));  // NOLINT
+    EXPECT_EQ(std::get<engine::assets::MeshHandle>(mesh_draw.geometry).id(), std::string{"mesh"});
+    EXPECT_EQ(mesh_draw.material.id(), std::string{"mesh_material"});
+    EXPECT_EQ(mesh_draw.transform.translation,
+              engine::math::Vector<float, 3>{1.0F, 2.0F, 3.0F});
+
+    const auto& graph_draw = recorded_encoder.draws[1];
+    ASSERT_TRUE(std::holds_alternative<engine::assets::GraphHandle>(graph_draw.geometry));  // NOLINT
+    EXPECT_EQ(std::get<engine::assets::GraphHandle>(graph_draw.geometry).id(), std::string{"graph"});
+    EXPECT_EQ(graph_draw.material.id(), std::string{"graph_material"});
+    EXPECT_EQ(graph_draw.transform.translation,
+              engine::math::Vector<float, 3>{-1.0F, 0.5F, 4.0F});
+
+    const auto& cloud_draw = recorded_encoder.draws[2];
+    ASSERT_TRUE(std::holds_alternative<engine::assets::PointCloudHandle>(cloud_draw.geometry));  // NOLINT
+    EXPECT_EQ(std::get<engine::assets::PointCloudHandle>(cloud_draw.geometry).id(), std::string{"cloud"});
+    EXPECT_EQ(cloud_draw.material.id(), std::string{"cloud_material"});
+    EXPECT_EQ(cloud_draw.transform.translation,
+              engine::math::Vector<float, 3>{0.0F, -3.0F, -1.0F});
 
     ASSERT_EQ(graph.execution_order().size(), 1);  // NOLINT
     const auto& events = graph.resource_events();

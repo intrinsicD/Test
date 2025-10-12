@@ -6,8 +6,8 @@ The rendering module currently provides a CPU-side frame graph and a forward pip
 
 ## Observations
 
-- The frame graph builds read/write dependencies and produces an execution order, but the compiled plan is not yet translated into backend command buffers.
-- `IGpuScheduler` and `resources::IGpuResourceProvider` are pure interfaces; the runtime lacks concrete implementations for DirectX 12, Vulkan, Metal, or OpenGL.
+- The frame graph builds read/write dependencies, produces an execution order, and now streams geometry draw calls through a command encoder provider, but the encoded work still needs translating into backend command buffers.
+- `IGpuScheduler` and `resources::IGpuResourceProvider` expose abstract hooks with recording stubs; production-grade implementations for DirectX 12, Vulkan, Metal, or OpenGL remain absent.
 - Resource descriptions expose names and lifetimes yet omit format/usage metadata required for backend allocation and barrier translation.
 - Render pass definitions do not advertise the queue/command-buffer semantics that backend schedulers will require to batch work.
 - There are no module-level validation tests that exercise the frame graph compilation or verify resource lifetime rules under realistic workloads.

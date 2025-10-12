@@ -10,6 +10,7 @@
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 #include "engine/scene/scene.hpp"
+#include "command_encoder_test_utils.hpp"
 #include "scheduler_test_utils.hpp"
 
 namespace
@@ -64,8 +65,9 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
     NullProvider provider;
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::tests::NullCommandEncoderProvider command_encoders;
     engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
-                                                     scheduler, device_provider};
+                                                     scheduler, device_provider, command_encoders};
     graph.execute(context);
 
     ASSERT_EQ(order.size(), 3);  // NOLINT
@@ -105,8 +107,9 @@ TEST(FrameGraph, TracksResourceLifetimes)
     NullProvider provider;
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::tests::NullCommandEncoderProvider command_encoders;
     engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
-                                                     scheduler, device_provider};
+                                                     scheduler, device_provider, command_encoders};
     graph.execute(context);
 
     const auto& events = graph.resource_events();
@@ -165,8 +168,9 @@ TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
     NullProvider provider;
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::tests::NullCommandEncoderProvider command_encoders;
     engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
-                                                     scheduler, device_provider};
+                                                     scheduler, device_provider, command_encoders};
     graph.execute(context);
 
     const auto& submissions = scheduler.submissions;

@@ -7,6 +7,8 @@
 - Defines a portable GPU scheduling interface wired into the frame graph execution.
 - Provides a backend-neutral GPU resource provider contract that exposes API-native handles to the schedulers and
   records transient resource lifetimes.
+- Supplies a command encoder provider hook so render passes can record draw calls onto scheduler-managed command
+  buffers.
 
 ## Usage
 
