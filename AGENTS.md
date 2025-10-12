@@ -8,6 +8,15 @@
   - Its local TODO items and how they map back to the aggregated backlog table in the root README.
 - Keep documentation in sync with the implementation. Whenever behaviour, dependencies, or workflows change, update the relevant README(s) and design notes under `docs/`.
 
+## 1.1 Architecture Improvement Plan Alignment
+- Treat [`docs/design/architecture_improvement_plan.md`](docs/design/architecture_improvement_plan.md) as the authoritative backlog
+  for architectural work. When landing changes that map to a plan identifier, update the checklists, dependencies, and priority
+  ordering in that document.
+- Keep at-a-glance summaries in the root `README.md`, this guidance file, and any module README in sync with the plan. Update
+  them within the same change that edits the plan so contributors always see consistent priorities.
+- Reference plan identifiers (e.g., `DC-001`, `AI-003`) in commits, PR descriptions, and documentation where applicable to ease
+  traceability for reviewers.
+
 ## 2. Environment & Dependencies
 - **Compilers**: Use a modern C++20 toolchain (MSVC 19.3x, Clang ≥22, or GCC ≥12). Prefer Clang 22 when compiling locally.
 - **CMake & Generators**: Require CMake ≥3.20. Use the provided presets (`cmake --preset <name>`) which default to Ninja generators. Add new presets under `scripts/build/` when new configurations are needed.
