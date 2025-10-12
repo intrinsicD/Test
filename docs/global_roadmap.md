@@ -26,6 +26,52 @@ concert.
 - **Long-Term** – Expand diagnostics, profiling, and tooling coverage to monitor large rigs
   and complex state machines.
 
+### Assets
+
+- **Near-Term** – Formalise asset descriptors, improve hot-reload diagnostics, and align
+  cache metadata with IO importers so pipelines can reason about provenance.
+- **Mid-Term** – Stand up staged import graphs that feed runtime caches and persist cooked
+  artefacts for reuse across runs.
+- **Long-Term** – Automate validation with representative sample sets and integrate cache
+  residency policies into tooling workflows.
+
+### Compute
+
+- **Near-Term** – Unify dispatch descriptions so CPU and GPU executors can share the kernel
+  scheduler and timing instrumentation.
+- **Mid-Term** – Introduce the CUDA-backed executor, surface device/stream management hooks,
+  and expose mixed CPU/GPU regression scenarios.
+- **Long-Term** – Integrate with the runtime job system and extend profiling/telemetry so
+  heterogeneous workloads remain observable.
+
+### Core
+
+- **Near-Term** – Define the application lifecycle, configuration, and diagnostics services
+  that the runtime will host, leveraging the existing EnTT façade.
+- **Mid-Term** – Implement plugin discovery/loading with deterministic teardown and expand
+  configuration layering (defaults, file overrides, command line).
+- **Long-Term** – Harden coverage and author examples that demonstrate how downstream modules
+  consume the shared services.
+
+### Geometry & IO
+
+- **Near-Term** – Complete the foundational read/write paths for meshes, point clouds, and
+  graphs while keeping property registries and spatial structures aligned with runtime
+  needs.
+- **Mid-Term** – Add remeshing, parameterisation, and reconstruction algorithms that feed
+  deformation and collision pipelines, alongside richer detection diagnostics.
+- **Long-Term** – Institutionalise benchmarking, profiling, and documentation to maintain
+  data quality as advanced algorithms land.
+
+### Math
+
+- **Near-Term** – Catalogue the current primitives, document invariants, and broaden unit
+  tests around existing helpers (reflection, inversion, decomposition).
+- **Mid-Term** – Introduce fixed-size factorisation routines (QR/SVD/Cholesky) and SIMD
+  specialisations required by animation/physics.
+- **Long-Term** – Expand interoperability layers with geometry/physics and expose conversion
+  utilities to the Python bindings.
+
 ### Physics
 
 - **Near-Term** – The rigid-body world exposes damping, substepping, sweep-and-prune
@@ -47,16 +93,6 @@ concert.
 - **Long-Term** – Layer on validation, profiling, and extensive documentation/samples to
   support production use.
 
-### Geometry & IO
-
-- **Near-Term** – Complete the foundational read/write paths for meshes, point clouds, and
-  graphs while keeping property registries and spatial structures aligned with runtime
-  needs.
-- **Mid-Term** – Add remeshing, parameterisation, and reconstruction algorithms that feed
-  deformation and collision pipelines.
-- **Long-Term** – Institutionalise benchmarking, profiling, and documentation to maintain
-  data quality as advanced algorithms land.
-
 ### Runtime
 
 - **Near-Term** – `RuntimeHost` already orchestrates animation → physics → geometry via the
@@ -67,14 +103,32 @@ concert.
 - **Long-Term** – Move onto the global job system, support deterministic replay, and expose
   hot-reloadable configuration for live tuning.
 
-### Platform & Tooling
+### Scene
+
+- **Near-Term** – Define schemas for first-class runtime components (lights, cameras,
+  visibility volumes) and extend traversal helpers beyond raw registry views.
+- **Mid-Term** – Broaden serialization to cover the new component families, add versioning,
+  and ensure forward/backward compatibility tests land alongside loaders.
+- **Long-Term** – Maintain profiling scenarios and authoring tooling that stress lifecycle,
+  hierarchy manipulation, and serialization throughput.
+
+### Platform
 
 - **Near-Term** – Replace mock window/input providers with real GLFW/SDL integrations and
   extend the virtual filesystem with write/watch utilities to unblock hot reload.
-- **Mid-Term** – Build profiling surfaces and editor shells that leverage runtime/rendering
-  telemetry.
-- **Long-Term** – Package the tooling ecosystem with distribution, documentation, and
-  diagnostics suitable for production teams.
+- **Mid-Term** – Harden backend selection, expose advanced window features (high DPI,
+  fullscreen, swapchain surfaces), and wire real input sampling into the runtime.
+- **Long-Term** – Deliver robust diagnostics, configuration toggles, and automated coverage
+  for cross-platform deployments.
+
+### Tools
+
+- **Near-Term** – Stand up shared tooling infrastructure (common utilities, Dear ImGui
+  backends) and prototype the asset pipeline CLI.
+- **Mid-Term** – Integrate profiling data capture and live viewers, then iterate on editor
+  shells with dockable panels and hot-reload hooks.
+- **Long-Term** – Package distribution-ready tooling with documentation, telemetry options,
+  and reproducible sample projects.
 
 ## Cross-Cutting Dependencies
 
