@@ -4,7 +4,7 @@
 - Defines rigid-body representations (`PhysicsWorld`, `RigidBody`) with configurable gravity, damping, and substepping controls, plus collider authoring helpers for spheres, AABBs, and capsules.
 - Implements force integration, collider assignment, and collision detection leveraging geometry intersection utilities.
 - Exposes module metadata via `module_name()` and integrates with runtime orchestration.
-- Smoke tests in `engine/physics/tests/` validate module registration; collision algorithms are exercised indirectly through runtime coverage.
+- Tests in `engine/physics/tests/` cover module registration, force integration, damping/substepping, collider management, and direct collision detection scenarios across sphere/AABB/capsule pairs.
 
 ## Usage
 - Build using `cmake --build --preset <preset> --target engine_physics`; this links against `engine_math` and `engine_geometry`.
