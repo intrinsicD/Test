@@ -2,11 +2,13 @@
 
 #include <cstddef>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "engine/animation/api.hpp"
+#include "engine/core/plugin/isubsystem_interface.hpp"
 #include "engine/compute/api.hpp"
 #include "engine/geometry/api.hpp"
 #include "engine/math/math.hpp"
@@ -47,6 +49,7 @@ struct ENGINE_RUNTIME_API RuntimeHostDependencies {
     geometry::SurfaceMesh mesh{geometry::make_unit_quad()};
     physics::PhysicsWorld world{};
     std::string scene_name{"runtime.scene"};
+    std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> subsystem_plugins{};
 };
 
 class ENGINE_RUNTIME_API RuntimeHost {
@@ -70,6 +73,7 @@ public:
     [[nodiscard]] const compute::ExecutionReport& last_dispatch_report() const;
     [[nodiscard]] const std::vector<runtime_frame_state::scene_node_state>& scene_nodes() const;
     [[nodiscard]] double simulation_time() const noexcept;
+    [[nodiscard]] std::span<const std::string_view> subsystem_names() const noexcept;
 
 private:
     struct Impl;

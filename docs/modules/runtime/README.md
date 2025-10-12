@@ -4,6 +4,7 @@
 - Aggregates all engine subsystems through `RuntimeHost`, orchestrating animation playback, physics simulation, compute dispatching, and scene graph mirroring each tick.
 - Exposes both C++ and C-compatible entry points for lifecycle control (`initialize`, `tick`, `shutdown`) and telemetry queries (joint names, body positions, dispatch timings).
 - Maintains a default dependency bundle (`RuntimeHostDependencies`) that seeds sample controllers, meshes, and physics worlds for quick-start scenarios.
+- Accepts subsystem plugins through `RuntimeHostDependencies::subsystem_plugins`, invoking their lifecycle hooks during initialization, shutdown, and tick to support dependency-injected extensions.
 - Smoke tests in `engine/runtime/tests/` validate module registration; full integration coverage lives in higher-level scenarios.
 
 ## Usage
