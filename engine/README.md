@@ -76,17 +76,30 @@ Module-level backlogs are tracked in their respective READMEs. The highest-prior
 milestones that cut across modules are summarised below; keep this list synchronised with
 the workspace root `README.md` and the detailed roadmaps under `docs/`.
 
-- **Geometry & IO** – Finish round-tripping meshes/graphs/point clouds through the
-  import/export interfaces and extend the property-backed acceleration structures with
+- **Animation** – Layer additive/deformation-aware blend nodes onto the existing controller
+  stack and expand profiling coverage.
+- **Assets** – Formalise asset metadata, stage import task graphs, and persist cache
+  artefacts with hot-reload diagnostics.
+- **Compute** – Unify dispatch descriptions so CPU/GPU executors share infrastructure before
+  standing up the CUDA path.
+- **Core** – Deliver application lifecycle, configuration, diagnostics, and plugin services
+  that downstream modules can rely on.
+- **Geometry & IO** – Finish round-tripping meshes/graphs/point clouds through import/export
+  interfaces while extending spatial structures and diagnostics.
+- **Math** – Document public headers, broaden decomposition/numerics support, and raise
   regression coverage.
-- **Physics** – Build on the existing sweep-and-prune broad phase by introducing
-  contact-manifold generation and the first constraint solver hooks.
-- **Rendering** – Enrich frame-graph resource descriptions and prototype the reference
-  GPU scheduler before wiring backend integrations.
-- **Runtime** – Expand `RuntimeHost` diagnostics, lifecycle checks, and scene mirroring to
-  cope with dynamically streamed rigs and meshes.
-- **Platform & Tooling** – Replace mock window/input providers with GLFW/SDL backends and
-  surface filesystem write/watch utilities to unblock hot-reload workflows.
+- **Physics** – Build on the sweep-and-prune foundation with contact manifolds, constraint
+  solving, and instrumentation.
+- **Rendering** – Enrich frame-graph resource descriptors and prototype the reference GPU
+  scheduler ahead of backend integrations.
+- **Runtime** – Expand `RuntimeHost` diagnostics, dispatcher programmability, and streaming
+  hooks for end-to-end orchestration scenarios.
+- **Scene** – Define schemas for core components, broaden traversal helpers, and version the
+  serialization format.
+- **Platform** – Replace mock window/input providers with GLFW/SDL backends and add
+  filesystem write/watch utilities alongside real device plumbing.
+- **Tools** – Stand up shared tooling infrastructure, automate content pipelines, and grow
+  profiling/editor workflows.
 
 ## Contributing
 
