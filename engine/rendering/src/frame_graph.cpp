@@ -8,6 +8,8 @@
 #include <string>
 #include <utility>
 
+#include "engine/rendering/command_encoder.hpp"
+
 namespace engine::rendering
 {
     FrameGraphPassBuilder::FrameGraphPassBuilder(FrameGraph& graph, std::size_t pass_index)
@@ -88,6 +90,16 @@ namespace engine::rendering
     QueueType FrameGraphPassExecutionContext::queue_type() const noexcept
     {
         return queue;
+    }
+
+    CommandEncoder& FrameGraphPassExecutionContext::command_encoder() const
+    {
+        if (encoder == nullptr)
+        {
+            throw std::logic_error{
+                "FrameGraphPassExecutionContext::command_encoder accessed without an active encoder"};
+        }
+        return *encoder;
     }
 
     FrameGraph::FrameGraph() = default;
@@ -288,6 +300,13 @@ namespace engine::rendering
             const auto queue = context.scheduler.select_queue(*pass.pass);
             const auto command_buffer = context.scheduler.request_command_buffer(queue, pass.pass->name());
 
+            CommandEncoderDescriptor encoder_descriptor{pass.pass->name(), queue, command_buffer};
+            auto encoder = context.encoders.begin_encoder(encoder_descriptor);
+            if (encoder == nullptr)
+            {
+                throw std::runtime_error{"CommandEncoderProvider returned null encoder"};
+            }
+
             auto signal_acquire = [&](FrameGraphResourceHandle handle) {
                 auto& resource = resources_[handle.index];
                 if (resource.lifetime == ResourceLifetime::Transient &&
@@ -324,7 +343,9 @@ namespace engine::rendering
             FrameGraphPassExecutionContext pass_context{context, *this, pass_index};
             pass_context.command_buffer = command_buffer;
             pass_context.queue = queue;
+            pass_context.encoder = encoder.get();
             pass.pass->execute(pass_context);
+            pass_context.encoder = nullptr;
 
             for (const auto handle : pass.reads)
             {
@@ -384,6 +405,7 @@ namespace engine::rendering
 
             context.scheduler.submit(submit_info);
             context.scheduler.recycle(command_buffer);
+            context.encoders.end_encoder(encoder_descriptor, std::move(encoder));
             timeline_value = submission_value;
         }
 

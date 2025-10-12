@@ -5,8 +5,8 @@
 - Contains scaffolding files that will evolve alongside the subsystem.
 - The frame graph schedules passes, records resource lifetime events, and synthesises GPU barriers.
 - Execution integrates with the abstract `IGpuScheduler` to issue queue-aware submissions, fences, and timeline semaphores.
-- `RenderExecutionContext` now carries both the asset facing `RenderResourceProvider` and the GPU-facing
-  `resources::IGpuResourceProvider`, allowing passes to surface API-native state during execution.
+- `RenderExecutionContext` now carries both the asset facing `RenderResourceProvider`, the GPU-facing
+  `resources::IGpuResourceProvider`, and a `CommandEncoderProvider` that supplies pass-scoped encoders.
 
 ## Data Flow Between Passes and the Scheduler
 
@@ -17,12 +17,13 @@ Render passes receive a `FrameGraphPassExecutionContext` that mirrors the work e
 - `describe(handle)` – immutable metadata (name and lifetime) for any registered resource.
 - `command_buffer_handle()` – the logical encoder identifier allocated by the active `IGpuScheduler`.
 - `queue_type()` – the queue family selected for execution.
+- `command_encoder()` – the pass-local encoder used to record geometry submissions.
 
 Once a pass completes, the frame graph packages its work into a `GpuSubmitInfo` structure that contains the queue
 selection, logical command buffer, resource barriers, timeline semaphore waits/signals, and an optional fence. The
 `IGpuScheduler` implementation translates this payload into API-specific submissions. Backend adapters obtain the
 native queue, command buffer, fence, and semaphore handles from the `resources::IGpuResourceProvider` instance bound
-to the frame.
+to the frame, while the `CommandEncoderProvider` finalises the recorded commands.
 
 Transient frame-graph resources trigger lifetime notifications via `IGpuResourceProvider::on_transient_acquire` and
 `on_transient_release`. Backends can use these callbacks to allocate aliases or stage layout transitions before the

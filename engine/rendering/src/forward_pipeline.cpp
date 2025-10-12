@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "engine/rendering/components.hpp"
+#include "engine/rendering/command_encoder.hpp"
 #include "engine/scene/components/transform.hpp"
 #include "engine/scene/scene.hpp"
 
@@ -59,18 +60,17 @@ namespace engine::rendering
                     }
 
                     draw_commands_.push_back(
-                        DrawCommand{geometry.geometry(), geometry.material, world.value});
+                        GeometryDrawCommand{geometry.geometry(), geometry.material, world.value});
+                }
+
+                auto& encoder = context.command_encoder();
+                for (const auto& command : draw_commands_)
+                {
+                    encoder.draw_geometry(command);
                 }
             }
 
-            struct DrawCommand
-            {
-                components::RenderGeometry::Geometry geometry;
-                engine::assets::MaterialHandle material;
-                engine::math::Transform<float> transform;
-            };
-
-            [[nodiscard]] const std::vector<DrawCommand>& draw_commands() const noexcept
+            [[nodiscard]] const std::vector<GeometryDrawCommand>& draw_commands() const noexcept
             {
                 return draw_commands_;
             }
@@ -78,13 +78,13 @@ namespace engine::rendering
         private:
             FrameGraphResourceHandle color_;
             FrameGraphResourceHandle depth_;
-            std::vector<DrawCommand> draw_commands_{};
+            std::vector<GeometryDrawCommand> draw_commands_{};
         };
     } // namespace
 
     void ForwardPipeline::render(scene::Scene& scene, RenderResourceProvider& resources,
                                  MaterialSystem& materials, resources::IGpuResourceProvider& device_resources,
-                                 IGpuScheduler& scheduler, FrameGraph& graph)
+                                 IGpuScheduler& scheduler, CommandEncoderProvider& encoders, FrameGraph& graph)
     {
         graph.reset();
 
@@ -94,7 +94,8 @@ namespace engine::rendering
         graph.add_pass(std::make_unique<ForwardGeometryPass>(color, depth));
         graph.compile();
 
-        RenderExecutionContext context{resources, materials, RenderView{scene}, scheduler, device_resources};
+        RenderExecutionContext context{resources, materials, RenderView{scene}, scheduler, device_resources,
+                                       encoders};
         graph.execute(context);
     }
 }

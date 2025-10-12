@@ -19,6 +19,8 @@ namespace engine::rendering
     class FrameGraphPassBuilder;
     struct FrameGraphPassExecutionContext;
     class MaterialSystem;
+    class CommandEncoder;
+    class CommandEncoderProvider;
 
     /**
      * \brief Interface exposed by the platform layer to satisfy GPU resource requests.
@@ -62,6 +64,7 @@ namespace engine::rendering
         RenderView view;
         IGpuScheduler& scheduler;
         resources::IGpuResourceProvider& device_resources;
+        CommandEncoderProvider& encoders;
     };
 
     /**

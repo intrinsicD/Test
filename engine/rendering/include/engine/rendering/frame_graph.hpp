@@ -15,6 +15,7 @@
 namespace engine::rendering
 {
     class FrameGraph;
+    class CommandEncoder;
 
     /// Handle identifying resources declared inside the frame-graph.
 
@@ -53,6 +54,7 @@ namespace engine::rendering
         std::size_t pass_index{std::numeric_limits<std::size_t>::max()};
         CommandBufferHandle command_buffer{};
         QueueType queue{QueueType::Graphics};
+        CommandEncoder* encoder{nullptr};
 
         [[nodiscard]] std::string_view pass_name() const;
         [[nodiscard]] std::span<const FrameGraphResourceHandle> reads() const;
@@ -60,6 +62,7 @@ namespace engine::rendering
         [[nodiscard]] FrameGraphResourceInfo describe(FrameGraphResourceHandle handle) const;
         [[nodiscard]] CommandBufferHandle command_buffer_handle() const noexcept;
         [[nodiscard]] QueueType queue_type() const noexcept;
+        [[nodiscard]] CommandEncoder& command_encoder() const;
     };
 
     /// Event emitted whenever the lifetime of a transient resource changes.
