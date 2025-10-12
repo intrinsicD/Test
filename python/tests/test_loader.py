@@ -48,6 +48,7 @@ def _make_runtime_namespace(**overrides):
         "engine_runtime_mesh_bounds": _DummyFunction(lambda mins, maxs: None),
         "engine_runtime_dispatch_count": _DummyFunction(lambda: 0),
         "engine_runtime_dispatch_name": _DummyFunction(lambda index: b""),
+        "engine_runtime_dispatch_duration": _DummyFunction(lambda index: 0.0),
         "engine_runtime_scene_node_count": _DummyFunction(lambda: 0),
         "engine_runtime_scene_node_name": _DummyFunction(lambda index: b""),
         "engine_runtime_scene_node_transform": _DummyFunction(
@@ -167,6 +168,22 @@ class HandleBehaviourTests(unittest.TestCase):
         self.assertIs(runtime_name.restype, ctypes.c_char_p)
         self.assertIs(module_count.restype, ctypes.c_size_t)
         self.assertIs(module_at.restype, ctypes.c_char_p)
+        self.assertIs(
+            fake_library.engine_runtime_dispatch_duration.restype, ctypes.c_double
+        )
+
+    def test_engine_runtime_handle_dispatch_durations(self) -> None:
+        durations = [0.25, 0.5]
+
+        def fake_duration(index: int) -> float:
+            return durations[index]
+
+        fake_library = _make_runtime_namespace(
+            engine_runtime_dispatch_count=_DummyFunction(lambda: len(durations)),
+            engine_runtime_dispatch_duration=_DummyFunction(fake_duration),
+        )
+        handle = loader.EngineRuntimeHandle(fake_library)
+        self.assertEqual(handle.dispatch_durations(), durations)
 
     def test_engine_runtime_handle_load_modules(self) -> None:
         runtime = loader.EngineRuntimeHandle(

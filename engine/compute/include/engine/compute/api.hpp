@@ -24,6 +24,7 @@ namespace engine::compute {
 
 struct ExecutionReport {
     std::vector<std::string> execution_order;
+    std::vector<double> kernel_durations;
 };
 
 class ENGINE_COMPUTE_API KernelDispatcher {

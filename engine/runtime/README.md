@@ -5,7 +5,7 @@
 - Provides the aggregation layer that stitches animation, physics, compute, and geometry into an executable runtime loop.
 - Mirrors the active joint transforms into an `engine::scene::Scene` so callers can inspect a synchronized scene graph.
 - Exposes a `RuntimeHost` that owns subsystem dependencies, enforces explicit `initialize()`/`shutdown()` semantics, and
-  caches the most recent `runtime_frame_state` for inspection.
+  caches the most recent `runtime_frame_state` (including per-kernel dispatch timings) for inspection.
 
 ## Usage
 

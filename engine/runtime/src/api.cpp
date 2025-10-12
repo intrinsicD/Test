@@ -234,6 +234,7 @@ struct RuntimeHost::Impl
         initialized = false;
         dispatcher.clear();
         last_report.execution_order.clear();
+        last_report.kernel_durations.clear();
         scene = scene::Scene{};
         joint_entities.clear();
         scene_nodes.clear();
@@ -707,6 +708,23 @@ extern "C" ENGINE_RUNTIME_API const char* engine_runtime_dispatch_name(std::size
     catch (...)
     {
         return nullptr;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_dispatch_duration(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& report = engine::runtime::last_dispatch_report();
+        if (index >= report.kernel_durations.size())
+        {
+            return 0.0;
+        }
+        return report.kernel_durations[index];
+    }
+    catch (...)
+    {
+        return 0.0;
     }
 }
 

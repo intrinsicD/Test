@@ -48,9 +48,14 @@ TEST(ComputeModule, DispatcherRespectsDependencies)
         {second});
 
     const auto report = dispatcher.dispatch();
-    EXPECT_EQ(report.execution_order.size(), 3U);
+    ASSERT_EQ(report.execution_order.size(), 3U);
+    ASSERT_EQ(report.kernel_durations.size(), report.execution_order.size());
     EXPECT_EQ(report.execution_order.front(), "first");
     EXPECT_EQ(report.execution_order.back(), "third");
+    for (const auto duration : report.kernel_durations)
+    {
+        EXPECT_GE(duration, 0.0);
+    }
     EXPECT_EQ(values[2], 3);
 }
 

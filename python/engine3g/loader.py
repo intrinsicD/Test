@@ -79,6 +79,8 @@ class EngineRuntimeHandle:
         self.library.engine_runtime_dispatch_count.argtypes = []
         self.library.engine_runtime_dispatch_name.restype = ctypes.c_char_p
         self.library.engine_runtime_dispatch_name.argtypes = [ctypes.c_size_t]
+        self.library.engine_runtime_dispatch_duration.restype = ctypes.c_double
+        self.library.engine_runtime_dispatch_duration.argtypes = [ctypes.c_size_t]
         self.library.engine_runtime_scene_node_count.restype = ctypes.c_size_t
         self.library.engine_runtime_scene_node_count.argtypes = []
         self.library.engine_runtime_scene_node_name.restype = ctypes.c_char_p
@@ -164,6 +166,14 @@ class EngineRuntimeHandle:
             if name_ptr:
                 names.append(name_ptr.decode("utf-8"))
         return names
+
+    def dispatch_durations(self) -> List[float]:
+        """Return per-kernel durations (in seconds) for the last dispatch."""
+        count = int(self.library.engine_runtime_dispatch_count())
+        durations: List[float] = []
+        for index in range(count):
+            durations.append(float(self.library.engine_runtime_dispatch_duration(index)))
+        return durations
 
     def scene_nodes(
         self,

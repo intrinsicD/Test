@@ -20,6 +20,11 @@ TEST(RuntimeModule, ExecutesSimulationPipeline) {
     EXPECT_GE(frame.dispatch_report.execution_order.size(), 4U);
     EXPECT_EQ(frame.dispatch_report.execution_order.front(), "animation.evaluate");
     EXPECT_EQ(frame.dispatch_report.execution_order.back(), "geometry.finalize");
+    ASSERT_EQ(frame.dispatch_report.execution_order.size(), frame.dispatch_report.kernel_durations.size());
+    for (const auto duration : frame.dispatch_report.kernel_durations)
+    {
+        EXPECT_GE(duration, 0.0);
+    }
 
     EXPECT_FALSE(frame.pose.joints.empty());
     const auto* root = frame.pose.find("root");
@@ -40,6 +45,13 @@ TEST(RuntimeModule, ExecutesSimulationPipeline) {
     float translations[3]{};
     engine_runtime_scene_node_transform(0, scales, rotations, translations);
     EXPECT_FLOAT_EQ(translations[1], root_node.transform.translation[1]);
+
+    const auto dispatch_count = engine_runtime_dispatch_count();
+    ASSERT_EQ(dispatch_count, frame.dispatch_report.execution_order.size());
+    for (std::size_t index = 0; index < dispatch_count; ++index)
+    {
+        EXPECT_DOUBLE_EQ(engine_runtime_dispatch_duration(index), frame.dispatch_report.kernel_durations[index]);
+    }
 
     engine::runtime::shutdown();
 }

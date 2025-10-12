@@ -1,5 +1,6 @@
 #include "engine/compute/api.hpp"
 
+#include <chrono>
 #include <queue>
 #include <stdexcept>
 
@@ -45,15 +46,20 @@ ExecutionReport KernelDispatcher::dispatch() {
 
     ExecutionReport report;
     report.execution_order.reserve(count);
+    report.kernel_durations.reserve(count);
 
     while (!ready.empty()) {
         const auto node = ready.front();
         ready.pop();
 
+        report.execution_order.push_back(kernels_[node].name);
+        const auto start = std::chrono::steady_clock::now();
         if (kernels_[node].callback) {
             kernels_[node].callback();
         }
-        report.execution_order.push_back(kernels_[node].name);
+        const auto end = std::chrono::steady_clock::now();
+        report.kernel_durations.push_back(
+            std::chrono::duration<double>(end - start).count());
 
         for (const auto successor : adjacency[node]) {
             if (--indegree[successor] == 0U) {
