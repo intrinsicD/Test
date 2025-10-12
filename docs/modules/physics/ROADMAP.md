@@ -1,12 +1,35 @@
 # Physics Module Roadmap
 
-## Near Term
-- Implement contact manifold generation and persistent contact caching to accompany `detect_collisions`, ensuring collisions feed usable constraints.
-- Add regression tests for integration and damping behaviour, covering extreme mass ratios and substep configurations.
+## Current Observations
 
-## Mid Term
-- Introduce constraint solvers (e.g., sequential impulses) with extensible constraint descriptors for joints and limits.
-- Optimise broadphase by introducing sweep-and-prune structures and spatial partitioning to accelerate collider pairing.
+- `engine/physics/api.hpp` exposes a lightweight rigid-body world that stores mass properties, integrates linear motion, and now supports spheres, axis-aligned bounding boxes, and capsule colliders. Runtime mass safety clamps to non-negative values before computing the inverse mass to avoid division by zero and treats non-positive masses as static placeholders that ignore forces and gravity.
+- `engine/physics/src/api.cpp` implements Euler integration with configurable damping/substepping, a sweep-and-prune broad phase, and delegates shape intersection queries to `engine::geometry`. Colliders are stored directly on bodies, and collision detection still resolves overlaps per-frame without persistent contact state.
+- Unit tests in `engine/physics/tests/test_module.cpp` validate force application, integration correctness, collider attachment, and representative sphere/AABB/capsule collision scenarios. Coverage does not yet address degenerate contact manifolds, sleeping, or resolution strategies.
 
-## Long Term
-- Support articulated bodies, sleeping/activation heuristics, and authoring tools that visualise colliders and forces during runtime debugging.
+## Roadmap
+
+### 1. Stabilise the Core World Representation (Short Term)
+
+- **Mass and force handling** – With static body behaviour enforced and degenerate-mass tests in place, focus next on documenting invariants and surfacing samples that exercise static bodies alongside dynamic actors.
+- ✅ **API factoring** – Collision-specific helpers now live in `engine/physics/src/collisions.cpp`, reducing rebuild costs and clarifying ownership between dynamics and collision subsystems.
+- **Instrumentation** – Introduce lightweight profiling hooks and scenario-driven samples to validate stability under typical workloads before expanding functionality.
+- **Integration regression suite** – Add regression tests for integration and damping behaviour, covering extreme mass ratios and substep configurations to lock in recent fixes.
+
+### 2. Introduce Robust Collision Management (Mid Term)
+
+- ✅ **Broad-phase acceleration** – A sweep-and-prune broad phase reduces the $O(n^2)$ collider checks; future work will evaluate BVH/spatial hashes and add determinism regression tests.
+- **Contact manifolds** – Persist overlapping pairs and compute contact normals/penetration depths so constraint solvers can operate on consistent manifolds frame-to-frame.
+- **Constraint solver** – Implement impulse-based or sequential impulse solvers to resolve collisions, starting with perfectly elastic contacts and expanding towards frictional constraints.
+
+### 3. Advance Dynamics Fidelity (Long Term)
+
+- **Integration schemes** – Provide semi-implicit (symplectic Euler) and optionally higher-order integrators to improve energy behaviour. Tie integrator selection to tests that monitor long-term drift.
+- **Sleeping and activation** – Add heuristics to put resting bodies to sleep and wake them when external forces or contacts occur to keep broad-phase queries tractable.
+- **Extensible collider set** – Capsule support and tests are now available; extend the coverage to OBB and mesh colliders layered on top of existing geometry predicates.
+- **Authoring and visualisation** – Deliver tools that visualise colliders, forces, and contact states during runtime debugging to aid iteration on dynamics features.
+
+## Dependencies and Coordination
+
+- Coordinate collision primitive expansion with `engine::geometry` so new predicates land alongside the physics features that consume them.
+- Update module documentation (`engine/physics/README.md`, `engine/physics/include/engine/physics/README.md`, and related READMEs) as the roadmap items graduate from planning to implementation.
+- Track aggregated progress in the workspace root `README.md` backlog to keep the physics roadmap aligned with adjacent subsystems (scene, runtime, and rendering) and the shared priorities recorded in [docs/ROADMAP.md](../../ROADMAP.md#subsystem-alignment).
