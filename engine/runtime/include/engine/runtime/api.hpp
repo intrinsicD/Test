@@ -104,6 +104,7 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_joint_translation(std::size_t 
 extern "C" ENGINE_RUNTIME_API void engine_runtime_mesh_bounds(float* out_min, float* out_max) noexcept;
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_dispatch_count() noexcept;
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_dispatch_name(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_dispatch_duration(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_scene_node_count() noexcept;
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_scene_node_name(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(

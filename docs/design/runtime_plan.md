@@ -17,7 +17,7 @@ These constraints make the runtime suitable for smoke tests but insufficient for
 
 2. **Extend frame orchestration.**
    - Promote the dispatcher from a fixed linear chain to a graph driven by a frame graph description so the runtime can register optional subsystems (e.g., rendering, audio) without code changes.
-   - Track per-kernel timing and surface it through `runtime_frame_state` for profiling hooks.
+   - ✅ Track per-kernel timing and surface it through `runtime_frame_state` for profiling hooks.
    - Validate ordering and data dependencies through additional gtests that assert topological execution and telemetry integrity.
 
 3. **Scene synchronisation hardening.**
