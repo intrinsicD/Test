@@ -5,8 +5,8 @@
 - Modular real-time engine prototype written in modern C++20 with optional Python tooling for automation and validation.
 - Subsystems live under `engine/` and build as individual libraries (animation, compute, geometry, physics, rendering, runtime, scene, tools, and platform glue).
 - Documentation under `docs/` captures design decisions and API notes, while `python/` and `scripts/` provide automation entry points.
-- Animation now layers blend-tree authoring and evaluation on top of deterministic clip sampling, with JSON import/export shared through the I/O module.
-- Physics integrates configurable damping and substepping with a sweep-and-prune broad phase and capsule colliders, ensuring more stable collision detection.
+- Animation layers blend-tree authoring and evaluation on top of deterministic clip sampling and linear controllers, with JSON import/export handled through the IO module's clip adapters.
+- Physics integrates configurable damping, force accumulation, and substepping with sweep-and-prune broad-phase pruning and sphere/AABB/capsule collider support for collision detection.
 
 ### Module Overview
 
@@ -62,18 +62,18 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 The consolidated sequencing across major subsystems lives in
 [`docs/global_roadmap.md`](docs/global_roadmap.md). The roadmap is ultimately aimed at delivering an engine that makes advanced yet accessible graphics and geometry processing research straightforward, with every required tool slated for future implementation. Near-term priorities focus on:
 
-- Advancing animation blend-tree authoring on top of the new clip validation/serialization
-  pipeline so runtime clients can composite motion sources.
-- Hardening the physics world while preparing broad-phase/contact management for richer
-  scenes.
-- Extending rendering resource descriptors and scheduler plumbing ahead of backend
-  integration.
-- Completing geometry's foundational read/write utilities to unblock deformation and
-  collision consumers.
-- Formalising runtime lifecycle ownership with an explicit `RuntimeHost` and more flexible
-  dispatch graphs.
-- Standing up shared tooling infrastructure that consumes the telemetry emitted by the
-  subsystems above.
+- Extending animation with deformation bindings and richer parameterisation now that clip
+  validation, serialization, and blend-tree evaluation are in place.
+- Building contact manifolds, constraint hooks, and instrumentation on top of the existing
+  physics broad phase and collider coverage.
+- Enriching rendering resource descriptors and GPU scheduler plumbing ahead of backend
+  integrations.
+- Finishing geometry/IO round-tripping for meshes, point clouds, and graphs so deformation
+  and collision pipelines can rely on shared data structures.
+- Hardening `RuntimeHost` lifecycle diagnostics and scene mirroring before layering on
+  streaming and render submission.
+- Replacing platform mock backends with GLFW/SDL integrations and surfacing filesystem
+  write/watch utilities to unblock hot reload and tooling.
 
 ## TODO / Next Steps
 

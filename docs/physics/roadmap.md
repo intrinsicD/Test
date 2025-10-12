@@ -4,7 +4,7 @@
 
 - `engine/physics/api.hpp` exposes a lightweight rigid-body world that stores mass properties, integrates linear motion, and now supports spheres, axis-aligned bounding boxes, and capsule colliders. Runtime mass safety clamps to non-negative values before computing the inverse mass to avoid division by zero and treats non-positive masses as static placeholders that ignore forces and gravity.
 - `engine/physics/src/api.cpp` implements Euler integration with configurable damping/substepping, a sweep-and-prune broad phase, and delegates shape intersection queries to `engine::geometry`. Colliders are stored directly on bodies, and collision detection still resolves overlaps per-frame without persistent contact state.
-- Unit tests in `engine/physics/tests/test_module.cpp` validate force application, integration correctness, collider attachment, and a subset of sphere–sphere / sphere–AABB collision scenarios. Coverage does not yet address degenerate masses, sleeping, or resolution strategies.
+- Unit tests in `engine/physics/tests/test_module.cpp` validate force application, integration correctness, collider attachment, and representative sphere/AABB/capsule collision scenarios. Coverage does not yet address degenerate contact manifolds, sleeping, or resolution strategies.
 
 ## Roadmap
 

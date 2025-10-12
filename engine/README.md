@@ -7,16 +7,23 @@ Aggregate the engine subsystems into a cohesive runtime capable of driving games
 
 ```
 engine/
-├── math/        # Core math primitives (Layer 0)
-├── platform/    # OS/window abstraction (Layer 1)
-├── memory/      # Memory management (Layer 1)
-├── geometry/    # Shapes, meshes, spatial queries (Layer 2)
-├── animation/   # Skeletal animation, blend trees (Layer 2)
-├── physics/     # Dynamics simulation (Layer 3)
-└── rendering/   # Graphics abstraction, scene graph (Layer 4)
+├── animation/   # Clip sampling, controllers, and blend-tree evaluation
+├── assets/      # Runtime caches and hot-reload hooks for imported content
+├── compute/     # Kernel dispatcher and execution profiling utilities
+├── core/        # Shared identifiers and module discovery helpers
+├── geometry/    # Meshes, graphs, spatial queries, property registries
+├── io/          # Geometry/animation importers, exporters, and detection
+├── math/        # Vector, matrix, quaternion, and transform primitives
+├── physics/     # Rigid-body world, colliders, and collision detection
+├── platform/    # Filesystem, windowing, and input abstractions
+├── rendering/   # Frame graph prototype and forward pipeline scaffolding
+├── runtime/     # `RuntimeHost` orchestration over animation/physics/geometry
+├── scene/       # EnTT façade, hierarchy systems, serialization helpers
+└── tools/       # Staging area for editor/profiling utilities
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for dependency rules and layering guidance.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for dependency rules and layering guidance. Each
+module ships a local README that records its current behaviour and TODO items.
 
 ## Usage
 
@@ -51,13 +58,11 @@ All modules inherit shared compile options via `engine::project_options` and pub
 - Each module exports exactly one `engine::<module>` target and matching `ENGINE_<MODULE>_API` macro.
 - Static and shared builds must respect the dependency layers documented in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## API Stability Roadmap
+## API Stability Snapshot
 
-- **Stable (1.0+)**: `engine::math`, `engine::platform`
-- **Beta (0.9+)**: `engine::geometry`, `engine::physics`
-- **Alpha (0.5+)**: `engine::rendering`, `engine::animation`
-
-Consult individual module READMEs for finer-grained status.
+All modules are currently **pre-1.0 prototypes**. Public headers are evolving while the
+engine solidifies core behaviours. Refer to individual module READMEs and the
+[global roadmap](../docs/global_roadmap.md) for the most recent stability notes.
 
 ## Versioning Strategy
 
@@ -67,17 +72,21 @@ Modules version independently but must interoperate within a given engine major 
 
 ## TODO / Next Steps
 
-### Pre-1.0 Release (Target: Q2 2026)
-- [ ] @alice — Finalise geometry API (shapes, intersection tests). Due: 2026-01-31.
-- [ ] @bob — Complete physics↔geometry integration tests. Due: 2026-02-15.
-- [ ] @carol — Author rendering↔animation binding design doc. Due: 2026-02-28.
-- [ ] @dave — Produce performance benchmarks across all modules. Due: 2026-03-15.
-- [ ] @team — Lock module APIs and begin 90-day stability period. Due: 2026-04-01.
+Module-level backlogs are tracked in their respective READMEs. The highest-priority
+milestones that cut across modules are summarised below; keep this list synchronised with
+the workspace root `README.md` and the detailed roadmaps under `docs/`.
 
-### Post-1.0
-- [ ] Stand up plugin system for extending modules without recompilation.
-- [ ] Generate scripting bindings from C++ headers.
-- [ ] Enable hot-reload workflows for development builds.
+- **Geometry & IO** – Finish round-tripping meshes/graphs/point clouds through the
+  import/export interfaces and extend the property-backed acceleration structures with
+  regression coverage.
+- **Physics** – Build on the existing sweep-and-prune broad phase by introducing
+  contact-manifold generation and the first constraint solver hooks.
+- **Rendering** – Enrich frame-graph resource descriptions and prototype the reference
+  GPU scheduler before wiring backend integrations.
+- **Runtime** – Expand `RuntimeHost` diagnostics, lifecycle checks, and scene mirroring to
+  cope with dynamically streamed rigs and meshes.
+- **Platform & Tooling** – Replace mock window/input providers with GLFW/SDL backends and
+  surface filesystem write/watch utilities to unblock hot-reload workflows.
 
 ## Contributing
 
