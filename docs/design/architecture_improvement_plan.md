@@ -12,9 +12,9 @@ This document consolidates high-priority architectural corrections and forward-l
   - [x] Introduce an `ISubsystemInterface` abstraction in the Core module to formalize subsystem capabilities.
   - [x] Refactor `RuntimeHost` to accept subsystem plugins via dependency injection, removing direct module references.
   - [x] Implement a `SubsystemRegistry` to discover and optionally load subsystem plugins at startup.
-  - [ ] Update `engine/runtime/src/api.cpp` to expose the plugin-based initialization surface.
-  - [ ] Add `ENABLE_<MODULE>` build-time flags for each optional subsystem.
-  - [ ] Document the subsystem plugin contract in `docs/design/plugin_architecture.md`.
+  - [x] Update `engine/runtime/src/api.cpp` to expose the plugin-based initialization surface.
+  - [x] Add `ENABLE_<MODULE>` build-time flags for each optional subsystem.
+  - [x] Document the subsystem plugin contract in `docs/design/plugin_architecture.md`.
 - **Artifacts:** `engine/core/include/engine/core/ISubsystemInterface.hpp`, `engine/runtime/include/engine/runtime/runtime_host.hpp`, `engine/runtime/src/runtime_host.cpp`, `engine/runtime/src/api.cpp`, `engine/runtime/src/subsystem_registry.cpp`, `docs/design/plugin_architecture.md`, `CMakeLists.txt` updates for feature flags.
 - **Tests:** Runtime initialization smoke tests covering combinations of enabled subsystems; CI preset that exercises CPU-only runtime configuration.
 - **Docs:** Update runtime README with plugin usage; extend build documentation to reference the new flags.

@@ -141,6 +141,8 @@ ctest --preset linux-gcc-debug
 
 Presets live under `scripts/build/` and currently cover Linux (GCC) and Windows (MSVC) compiler stacks. Additional variants can be invoked with `cmake --preset <name>` or orchestrated collectively via `scripts/ci/run_presets.py`. Each subsystem still produces a library named `engine_<subsystem>`; linking to any of them automatically imports the shared usage requirements published by `engine::project_options` and the aggregated headers exposed through `engine::headers`.
 
+Subsystem availability can be tailored at configure time through the `ENGINE_ENABLE_<MODULE>` options (for example `-DENGINE_ENABLE_RENDERING=OFF`). Disabled modules are omitted from the default runtime subsystem registry but can be re-enabled explicitly by calling the helper configuration APIs in `engine/runtime/api.hpp`.
+
 ### Testing
 
 - **C++ suites** – Execute `ctest --preset <preset>` (for example `ctest --preset linux-gcc-debug`) to honour the generator and cache variables baked into the presets.
@@ -189,11 +191,11 @@ boundaries.
 ### Runtime Subsystem Discovery
 
 The runtime module surfaces all loadable subsystems. Its
-[`api.cpp`](engine/runtime/src/api.cpp) composes a static array of module identifiers by invoking
-`module_name()` on each dependency. The exported C ABI (`engine_runtime_module_*`) allows host applications
-to enumerate available modules at startup, enabling dynamic linking or scripting layers to request only the
-services they need. Extending this array is sufficient for new modules to appear in the discovery list,
-keeping runtime configuration declarative and centralised.
+[`api.cpp`](engine/runtime/src/api.cpp) queries a configurable `SubsystemRegistry` to populate
+module identifiers and expose them through the exported C ABI (`engine_runtime_module_*`). Hosts can
+toggle availability at build time via `ENGINE_ENABLE_<MODULE>` flags or at runtime by calling the helper
+configuration APIs in `engine/runtime/api.hpp`. Extending the registry is sufficient for new modules to
+appear in the discovery list, keeping runtime configuration declarative and centralised.
 
 ## API Surface Summary
 

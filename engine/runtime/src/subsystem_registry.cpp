@@ -4,17 +4,39 @@
 #include <initializer_list>
 #include <stdexcept>
 
-#include "engine/animation/api.hpp"
-#include "engine/assets/api.hpp"
-#include "engine/compute/api.hpp"
-#include "engine/compute/cuda/api.hpp"
-#include "engine/core/api.hpp"
-#include "engine/geometry/api.hpp"
-#include "engine/io/api.hpp"
-#include "engine/physics/api.hpp"
-#include "engine/platform/api.hpp"
-#include "engine/rendering/api.hpp"
-#include "engine/scene/api.hpp"
+#if ENGINE_ENABLE_ANIMATION
+#    include "engine/animation/api.hpp"
+#endif
+#if ENGINE_ENABLE_ASSETS
+#    include "engine/assets/api.hpp"
+#endif
+#if ENGINE_ENABLE_COMPUTE
+#    include "engine/compute/api.hpp"
+#endif
+#if ENGINE_ENABLE_COMPUTE_CUDA
+#    include "engine/compute/cuda/api.hpp"
+#endif
+#if ENGINE_ENABLE_CORE
+#    include "engine/core/api.hpp"
+#endif
+#if ENGINE_ENABLE_GEOMETRY
+#    include "engine/geometry/api.hpp"
+#endif
+#if ENGINE_ENABLE_IO
+#    include "engine/io/api.hpp"
+#endif
+#if ENGINE_ENABLE_PHYSICS
+#    include "engine/physics/api.hpp"
+#endif
+#if ENGINE_ENABLE_PLATFORM
+#    include "engine/platform/api.hpp"
+#endif
+#if ENGINE_ENABLE_RENDERING
+#    include "engine/rendering/api.hpp"
+#endif
+#if ENGINE_ENABLE_SCENE
+#    include "engine/scene/api.hpp"
+#endif
 
 namespace engine::runtime {
 
@@ -174,21 +196,29 @@ std::vector<std::shared_ptr<engine::core::plugin::ISubsystemInterface>> Subsyste
 SubsystemRegistry make_default_subsystem_registry()
 {
     SubsystemRegistry registry{};
+    (void)registry;
+#if ENGINE_ENABLE_ANIMATION
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::animation::module_name()},
         {},
         []() { return make_static_plugin(engine::animation::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_ASSETS
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::assets::module_name()},
         {},
         []() { return make_static_plugin(engine::assets::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_COMPUTE
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::compute::module_name()},
         {},
         []() { return make_static_plugin(engine::compute::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_COMPUTE && ENGINE_ENABLE_COMPUTE_CUDA
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::compute::cuda::module_name()},
         {std::string{engine::compute::module_name()}},
@@ -198,41 +228,56 @@ SubsystemRegistry make_default_subsystem_registry()
                 {engine::compute::module_name()});
         },
         true});
+#endif
+#if ENGINE_ENABLE_CORE
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::core::module_name()},
         {},
         []() { return make_static_plugin(engine::core::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_GEOMETRY
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::geometry::module_name()},
         {},
         []() { return make_static_plugin(engine::geometry::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_IO
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::io::module_name()},
         {},
         []() { return make_static_plugin(engine::io::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_PHYSICS
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::physics::module_name()},
         {},
         []() { return make_static_plugin(engine::physics::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_PLATFORM
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::platform::module_name()},
         {},
         []() { return make_static_plugin(engine::platform::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_RENDERING
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::rendering::module_name()},
         {},
         []() { return make_static_plugin(engine::rendering::module_name()); },
         true});
+#endif
+#if ENGINE_ENABLE_SCENE
     registry.register_subsystem(SubsystemDescriptor{
         std::string{engine::scene::module_name()},
         {},
         []() { return make_static_plugin(engine::scene::module_name()); },
         true});
+#endif
     return registry;
 }
 

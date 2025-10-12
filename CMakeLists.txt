@@ -18,6 +18,30 @@ set(ENGINE_MODULES
     runtime
 )
 
+set(ENGINE_OPTIONAL_SUBSYSTEMS
+    animation
+    assets
+    compute
+    compute_cuda
+    core
+    geometry
+    io
+    physics
+    platform
+    rendering
+    scene
+)
+
+foreach(subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
+    string(TOUPPER "${subsystem}" subsystem_upper)
+    option(ENGINE_ENABLE_${subsystem_upper} "Enable ${subsystem} subsystem integration" ON)
+    if(ENGINE_ENABLE_${subsystem_upper})
+        add_compile_definitions(ENGINE_ENABLE_${subsystem_upper}=1)
+    else()
+        add_compile_definitions(ENGINE_ENABLE_${subsystem_upper}=0)
+    endif()
+endforeach()
+
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
 
