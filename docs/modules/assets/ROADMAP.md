@@ -1,7 +1,8 @@
 # Assets Module Roadmap
 
 ## Near Term
-- Extend the cache system to track non-geometry assets (textures, shaders, materials) with timestamp monitoring and callbacks, mirroring the facilities implemented for meshes.
+- Add material asset persistence and hot-reload by introducing descriptor serialization plus file-backed change detection that mirrors the existing mesh/point-cloud/shader caches.
+- Consolidate duplicated cache lifecycle logic (load, poll, reload) into shared helpers to reduce maintenance overhead across asset types.
 - Surface import diagnostics by attaching loader provenance, error codes, and detected formats to `MeshAsset` and friends so tooling can report actionable failures.
 
 ## Mid Term
