@@ -8,17 +8,9 @@
 #include <utility>
 #include <vector>
 
+#include "engine/geometry/export.hpp"
+#include "engine/geometry/shapes/aabb.hpp"
 #include "engine/math/math.hpp"
-
-#if defined(_WIN32)
-#  if defined(ENGINE_GEOMETRY_EXPORTS)
-#    define ENGINE_GEOMETRY_API __declspec(dllexport)
-#  else
-#    define ENGINE_GEOMETRY_API __declspec(dllimport)
-#  endif
-#else
-#  define ENGINE_GEOMETRY_API
-#endif
 
 namespace engine::geometry {
 
@@ -27,17 +19,12 @@ namespace mesh
     struct IOFlags;
 } // namespace mesh
 
-struct MeshBounds {
-    math::vec3 min{0.0F, 0.0F, 0.0F};
-    math::vec3 max{0.0F, 0.0F, 0.0F};
-};
-
 struct SurfaceMesh {
     std::vector<math::vec3> rest_positions;
     std::vector<math::vec3> positions;
     std::vector<math::vec3> normals;
     std::vector<std::uint32_t> indices;
-    MeshBounds bounds{};
+    Aabb bounds{};
 };
 
 [[nodiscard]] ENGINE_GEOMETRY_API std::string_view module_name() noexcept;

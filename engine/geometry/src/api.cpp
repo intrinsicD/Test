@@ -69,7 +69,7 @@ void update_bounds(SurfaceMesh& mesh) {
     if (mesh.positions.empty()) {
         // Degenerate meshes have no extents; normalize their bounds to the origin so downstream
         // consumers never observe infinities.
-        mesh.bounds = MeshBounds{math::vec3{0.0F, 0.0F, 0.0F}, math::vec3{0.0F, 0.0F, 0.0F}};
+        mesh.bounds = Aabb{math::vec3{0.0F, 0.0F, 0.0F}, math::vec3{0.0F, 0.0F, 0.0F}};
         return;
     }
 
@@ -81,7 +81,7 @@ void update_bounds(SurfaceMesh& mesh) {
             max_bounds[axis] = std::max(max_bounds[axis], position[axis]);
         }
     }
-    mesh.bounds = MeshBounds{min_bounds, max_bounds};
+    mesh.bounds = Aabb{min_bounds, max_bounds};
 }
 
 void apply_uniform_translation(SurfaceMesh& mesh, const math::vec3& translation) {
