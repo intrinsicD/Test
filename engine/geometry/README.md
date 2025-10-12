@@ -1,53 +1,75 @@
-# Geometry Module
+# Engine Geometry Module
 
 ## Current State
 
-- Supplies a `SurfaceMesh` abstraction with helpers for bounds updates, centroid evaluation, and normals.
-- Provides procedural generation for a unit quad to seed rendering and physics smoke tests.
-- Exposes `load_surface_mesh`/`save_surface_mesh` wrappers so runtime surfaces can round-trip standard asset formats.
-- Implements spatial acceleration structures such as octrees and k-d trees for geometric queries.
-- Implements ASCII edge-list import/export for graph connectivity, enabling property-backed graphs to persist and reload their topology.
-- Implements ASCII PLY import/export for point clouds, preserving normals, colours, alpha, and scalar vertex properties.
-- Implements ASCII OBJ import/export for halfedge meshes so polygonal data can be round-tripped into the topology-aware core.
-- Provides conversion helpers between the lightweight `SurfaceMesh` struct and the halfedge mesh core, enabling algorithms to
-  reuse shared connectivity while keeping the public API ergonomic.
+- ✅ Core shape primitives (`Aabb`, `Sphere`, `Obb`, `Cylinder`, etc.) power bounds queries and collision scaffolding.
+- ✅ Mesh utilities support surface/volumetric bounds, centroid extraction, and spatial indices (BVH, kd-tree prototypes).
+- ✅ ASCII import/export paths round-trip meshes, graphs, and point clouds for toolchain validation.
+- 🚧 API refinement in progress while naming and bounds types converge ahead of the v2.0 freeze.
+- ⏳ Public documentation is staged under `include/engine/geometry/` and will be finalised once the stability goals below land.
+
+Known limitations:
+- `MeshBounds` and `Aabb` coexist and require consolidation before the ABI can be considered frozen.
+- Header comments cover behaviour but lack the full complexity/precondition guidance expected for stable release notes.
+- Shape benchmarks are sampled manually and do not yet run under the automated performance harness.
+
+## API Stability
+
+Target stable release: **v2.0** (see the [global roadmap](../../docs/global_roadmap.md)).
+
+### Breaking changes planned before v2.0
+- [ ] Replace `MeshBounds` with `Aabb` across mesh and import/export utilities (#123).
+- [ ] Align naming conventions (PascalCase types, camelCase free functions) for all geometry headers (#124).
+- [ ] Document `IOFlags` and serialization policies for public consumption (#125).
+
+### Guarantees after v2.0
+- Semantic versioning (`MAJOR.MINOR.PATCH`) with ABI compatibility within a major release.
+- Deprecated features remain available for one major version before removal.
+- Public headers ship with explicit layout/ownership annotations to guard DLL interoperability.
+
+## Module Dependencies
+
+```
+geometry
+├── depends on: math (vector/matrix/quaternion primitives)
+├── used by: physics (collision detection)
+├── used by: rendering (mesh data, bounds culling)
+└── used by: animation (vertex deformation)
+```
 
 ## Usage
 
-- Link against `engine_geometry` and include `<engine/geometry/api.hpp>` to manipulate meshes; the target inherits `engine::project_options` and participates in the shared `engine::headers` interface.
-- Extend mesh processing algorithms under `src/` and pair them with tests in `tests/`.
-- Exercise the module via the standard presets (`cmake --preset linux-gcc-debug`, `ctest --preset linux-gcc-debug`).
+The module builds as part of the aggregated engine configuration or can be compiled in isolation:
 
-## Proposed Roadmap
+```bash
+cmake -B build -S ../../ -DBUILD_GEOMETRY_ONLY=ON
+cmake --build build --target engine_geometry
+```
 
-The milestones below roll up into the shared plan captured in [docs/global_roadmap.md](../../docs/global_roadmap.md).
+Link the produced target alongside `engine::project_options` when embedding it in external tooling.
 
-### 1. Stabilise Core Data Structures
+## Public API Surface
 
-- Implement the declared read/write entry points for graphs, point clouds, and halfedge meshes so that the property-backed
-  containers can round-trip standard formats (OBJ/PLY) and feed the rest of the engine without bespoke loaders. The
-  interfaces already expose `friend` hooks for this work; wiring them up in `src/graph`, `src/mesh`, and `src/point_cloud`
-  should be the first milestone.
-- Provide conversion utilities that translate between the light-weight `SurfaceMesh` used by the public API and the richer
-  halfedge mesh implementation. This enables reuse of topology-aware algorithms while keeping the simple struct convenient
-  for tooling.
-- Audit the existing acceleration structures (k-d tree, octree) and formalise a shared data layout for spatial indices so
-  that they ingest either raw arrays or property handles without duplication.
+- `<engine/geometry/api.hpp>` – Mesh definitions, property queries, import/export helpers.
+- `<engine/geometry/shapes/*.hpp>` – Geometric primitives and associated algorithms.
+- `<engine/geometry/random.hpp>` – Randomised shape generation for testing and sampling workflows.
+- `<engine/geometry/detail/*>` – Internal headers; not part of the supported ABI.
 
-### 2. Algorithmic Expansion
+## TODO / Next Steps
 
-- Add mesh cleanup passes (duplicate vertex welding, degenerate face pruning) and curvature/feature estimators to feed later
-  remeshing and UV workflows.
-- Implement adaptive remeshing and parameterisation pipelines (edge collapse/flip/split operations, Loop subdivision,
-  harmonic or LSCM UV solves) on top of the halfedge core.
-- Extend point-cloud tooling with surface reconstruction (Poisson/ball-pivoting) to bridge scanned data into the mesh
-  pipeline.
+Keep these items synchronised with the workspace root backlog table and the global roadmap.
 
-### 3. Integration, Tooling, and Tests
+### Immediate (v2.0 readiness)
+- [ ] Finalise mesh/shapes bounds consolidation (`MeshBounds` → `Aabb`) and update import/export tests (#123).
+- [ ] Complete API naming audit and update documentation/comments to match conventions (#124).
+- [ ] Publish `IOFlags` usage notes alongside serialization examples (#125).
 
-- Record benchmark scenes and regression datasets that exercise the new import/export and meshing routines, and grow the
-  GoogleTest suite accordingly.
-- Surface profiling hooks and statistics so the runtime can monitor build times, vertex/face counts, and memory usage when
-  geometry assets are loaded.
-- Update the module and top-level READMEs whenever features land, keeping the roadmap aligned with the aggregated project
-  backlog.
+### Short-term (post-freeze polish)
+- [ ] Produce comprehensive documentation for every public header, including complexity and precondition notes.
+- [ ] Add usage-driven samples demonstrating collision, rendering culling, and deformation integrations.
+- [ ] Integrate geometry performance benchmarks into the automated harness.
+
+### Long-term (roadmap alignment)
+- [ ] Extend remeshing and graph refinement utilities aligned with physics interoperability goals.
+- [ ] Deliver integration guides for physics and rendering modules that highlight data flow and ownership.
+- [ ] Formalise ABI verification jobs in CI to track layout drift across toolchains.

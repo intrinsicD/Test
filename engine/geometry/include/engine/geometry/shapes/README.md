@@ -1,11 +1,13 @@
 # Engine Geometry Public Headers — Shapes
 
-## Purpose
-Provide primitive geometric volumes for collision detection, bounding operations, and spatial queries.
+## Overview
+Primitive volume types (e.g., `Aabb`, `Sphere`, `Obb`, `Cylinder`) backed by free-function utilities for intersection tests,
+bounds construction, and sampling. These headers surface the stable ABI for geometry consumers; see the parent
+[geometry module README](../../../README.md) for the broader roadmap and stability criteria.
 
 ## Current State (v0.9-beta)
 
-**Stable shapes**
+**Stable primitives**
 - `Aabb` — Axis-aligned bounding box
 - `Sphere` — Spherical volume
 - `Segment` — Line segment
@@ -13,31 +15,30 @@ Provide primitive geometric volumes for collision detection, bounding operations
 - `Plane` — Infinite plane
 - `Triangle` — 3D triangle
 
-**Experimental shapes**
-- `Obb` — Oriented bounding box (orientation representation under review)
-- `Cylinder` — Cylindrical volume (end-cap handling under evaluation)
-- `Ellipsoid` — Ellipsoidal volume (orientation may switch to matrix form)
+**Experimental primitives**
+- `Obb` — Orientation representation being finalised (quaternion vs. matrix)
+- `Cylinder` — End-cap handling under evaluation
+- `Ellipsoid` — Orientation may switch to matrix form for consistency
+
+Stability of these headers follows the geometry module milestones targeting v2.0. Experimental types may change layout until the
+`MeshBounds` → `Aabb` consolidation and naming audit complete.
 
 ## Why a Dedicated Subdirectory?
 
-Shapes are the foundation of the geometry module:
-- Consumed by mesh processing for bounding volumes.
-- Required by intersection testing utilities.
-- Power spatial partitioning structures (BVH, octree).
-- Depend only on `engine::math`, keeping compile times low and ABI stable.
-
-Separating the headers keeps the API surface explicit, enables selective inclusion, and allows shapes to stabilise ahead of heavier geometry features.
+- Keeps compile-time dependencies minimal: `shapes/` depends only on `engine::math`.
+- Enables incremental ABI guarantees so consumers can rely on stable primitive layouts before heavier mesh utilities freeze.
+- Supports selective inclusion for downstream modules that only require bounds/intersection helpers.
 
 ## Usage
 
 ```cpp
-#include "engine/geometry/shapes/aabb.hpp"
-#include "engine/geometry/shapes/sphere.hpp"
+#include <engine/geometry/shapes/aabb.hpp>
+#include <engine/geometry/shapes/sphere.hpp>
 
 using namespace engine::geometry;
 
-Sphere s{{0.0f, 0.0f, 0.0f}, 5.0f};
-Aabb bounds = BoundingAabb(s);
+Sphere sphere{{0.0f, 0.0f, 0.0f}, 5.0f};
+Aabb bounds = BoundingAabb(sphere);
 
 auto centre = Center(bounds);
 auto volume = Volume(bounds);
@@ -47,7 +48,7 @@ auto nearest = ClosestPoint(bounds, {10.0f, 0.0f, 0.0f});
 ## Design Principles
 1. Prefer free functions over member methods for extensibility.
 2. Maintain consistent naming across shapes (`ClosestPoint`, `SquaredDistance`, etc.).
-3. Keep value semantics (POD types) for cheap copies and ABI stability.
+3. Preserve value semantics (POD types) for ABI transparency.
 4. Avoid virtual dispatch in performance-critical code paths.
 
 ## Relationship to the Geometry Module
@@ -57,11 +58,8 @@ engine/geometry/
 ├── include/engine/geometry/
 │   ├── api.hpp                 # Mesh types, I/O helpers
 │   ├── shapes/                 # This directory
-│   │   ├── aabb.hpp
-│   │   ├── sphere.hpp
-│   │   └── ...
-│   ├── intersection/           # Future: shape-shape tests
-│   └── spatial/                # Future: BVH, octree
+│   ├── intersection/           # Shape-shape tests (planned)
+│   └── spatial/                # Acceleration structures (planned)
 └── src/
     ├── shapes/                 # Implementations
     ├── mesh/
@@ -70,14 +68,8 @@ engine/geometry/
 
 Dependency flow:
 - `shapes/` depends only on `engine::math`.
-- `api.hpp` (meshes) depends on `shapes/` for bounds.
-- `intersection/` and `spatial/` consume `shapes/` types.
-
-## Performance Notes
-- Construction: $Ο(1)$
-- `ClosestPoint`: $Ο(1)$ for all shapes
-- `BoundingAabb`: $Ο(1)$ for primitives, $Ο(n)$ for point clouds
-- `Merge`: $Ο(1)$
+- Mesh APIs depend on `shapes/` for bounds definitions.
+- Intersection and spatial modules consume `shapes/` types for queries and acceleration structures.
 
 ## Testing
 
@@ -86,22 +78,25 @@ ctest -R engine_geometry_shapes_tests
 ctest -R engine_geometry_shapes_tests -V
 ```
 
-Test cases live under `engine/geometry/tests/shapes/`.
+Tests live under `engine/geometry/tests/shapes/`.
 
 ## ABI Compatibility
 - Standard-layout types with explicit padding for alignment.
 - No virtual functions or hidden allocations.
-- Layout frozen post-1.0 to maintain DLL compatibility via `ENGINE_GEOMETRY_API`.
+- Layout will freeze with the geometry v2.0 release; follow the [geometry README](../../../README.md) for status.
 
 ## TODO / Next Steps
 
-### Towards v1.0 (Stable Release)
-- [ ] @alice — Finalise `Obb` orientation representation (quaternion vs. matrix). Due: 2026-01-15.
-- [ ] @bob — Document all public functions with complexity and precondition notes. Due: 2026-01-31.
-- [ ] @carol — Benchmark shape operations and highlight optimisation targets. Due: 2026-02-15.
-- [ ] @dave — Write a shapes usage tutorial covering collision and rendering workflows. Due: 2026-02-28.
+Stay aligned with the geometry module backlog to keep documentation consistent.
 
-### Post-v1.0
-- [ ] Add convex hull primitive.
-- [ ] Introduce frustum shape for view culling.
-- [ ] Implement capsule shape (currently approximated with cylinders).
+### Immediate (v2.0 readiness)
+- [ ] Finalise `Obb` orientation representation in tandem with the module-wide naming audit (#124).
+- [ ] Document complexity/precondition notes for every public function once the API freezes.
+
+### Short-term (post-freeze polish)
+- [ ] Add per-shape usage examples covering collision, rendering culling, and deformation workflows.
+- [ ] Integrate shape benchmarks into the automated performance harness alongside mesh metrics.
+
+### Long-term (roadmap alignment)
+- [ ] Introduce additional primitives (convex hull, frustum, capsule) as downstream modules require them.
+- [ ] Cross-reference shapes documentation with collision detection algorithms and spatial structures once those READMEs land.
