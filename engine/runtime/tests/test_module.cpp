@@ -15,6 +15,45 @@
 
 namespace {
 
+std::vector<std::string_view> expected_default_modules()
+{
+    std::vector<std::string_view> modules{};
+#if ENGINE_ENABLE_ANIMATION
+    modules.emplace_back("animation");
+#endif
+#if ENGINE_ENABLE_ASSETS
+    modules.emplace_back("assets");
+#endif
+#if ENGINE_ENABLE_COMPUTE
+    modules.emplace_back("compute");
+#endif
+#if ENGINE_ENABLE_COMPUTE && ENGINE_ENABLE_COMPUTE_CUDA
+    modules.emplace_back("compute.cuda");
+#endif
+#if ENGINE_ENABLE_CORE
+    modules.emplace_back("core");
+#endif
+#if ENGINE_ENABLE_GEOMETRY
+    modules.emplace_back("geometry");
+#endif
+#if ENGINE_ENABLE_IO
+    modules.emplace_back("io");
+#endif
+#if ENGINE_ENABLE_PHYSICS
+    modules.emplace_back("physics");
+#endif
+#if ENGINE_ENABLE_PLATFORM
+    modules.emplace_back("platform");
+#endif
+#if ENGINE_ENABLE_RENDERING
+    modules.emplace_back("rendering");
+#endif
+#if ENGINE_ENABLE_SCENE
+    modules.emplace_back("scene");
+#endif
+    return modules;
+}
+
 class TestSubsystem final : public engine::core::plugin::ISubsystemInterface {
 public:
     TestSubsystem(std::string name, std::vector<std::string> dependencies)
@@ -228,23 +267,12 @@ TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection) {
     defaults.subsystem_plugins = default_registry->load_defaults();
     engine::runtime::configure(std::move(defaults));
 
-    ASSERT_EQ(engine::runtime::module_count(), 11U);
+    const auto expected = expected_default_modules();
+    ASSERT_EQ(engine::runtime::module_count(), expected.size());
 }
 
 TEST(RuntimeModule, EnumeratesAllEngineModules) {
-    constexpr std::array expected{
-        std::string_view{"animation"},
-        std::string_view{"assets"},
-        std::string_view{"compute"},
-        std::string_view{"compute.cuda"},
-        std::string_view{"core"},
-        std::string_view{"geometry"},
-        std::string_view{"io"},
-        std::string_view{"physics"},
-        std::string_view{"platform"},
-        std::string_view{"rendering"},
-        std::string_view{"scene"},
-    };
+    const auto expected = expected_default_modules();
 
     ASSERT_EQ(engine::runtime::module_count(), expected.size());
     EXPECT_EQ(engine_runtime_module_count(), expected.size());
@@ -257,3 +285,41 @@ TEST(RuntimeModule, EnumeratesAllEngineModules) {
     EXPECT_TRUE(engine::runtime::module_name_at(expected.size()).empty());
     EXPECT_EQ(engine_runtime_module_at(expected.size()), nullptr);
 }
+
+TEST(RuntimeModule, ReportsDefaultSubsystemNames) {
+    const auto names = engine::runtime::default_subsystem_names();
+    const auto expected = expected_default_modules();
+    ASSERT_EQ(names.size(), expected.size());
+    for (std::size_t index = 0; index < expected.size(); ++index) {
+        EXPECT_EQ(names[index], expected[index]);
+    }
+}
+
+TEST(RuntimeModule, ConfigureWithDefaultSubsystemHelper) {
+    engine::runtime::shutdown();
+    engine::runtime::configure_with_default_subsystems();
+    EXPECT_EQ(engine::runtime::module_count(), expected_default_modules().size());
+}
+
+#if ENGINE_ENABLE_ANIMATION && ENGINE_ENABLE_SCENE
+TEST(RuntimeModule, ConfigureSubsetViaHelpers) {
+    engine::runtime::shutdown();
+    const std::array selections{
+        std::string_view{"animation"},
+        std::string_view{"scene"},
+    };
+    engine::runtime::configure_with_default_subsystems(selections);
+    ASSERT_EQ(engine::runtime::module_count(), selections.size());
+    EXPECT_EQ(engine::runtime::module_name_at(0), selections[0]);
+    EXPECT_EQ(engine::runtime::module_name_at(1), selections[1]);
+}
+
+TEST(RuntimeModule, ConfigureSubsetViaCInterface) {
+    engine::runtime::shutdown();
+    const char* modules[] = {"animation", "scene"};
+    engine_runtime_configure_with_modules(modules, std::size(modules));
+    ASSERT_EQ(engine::runtime::module_count(), std::size(modules));
+    EXPECT_STREQ(engine_runtime_module_at(0), modules[0]);
+    EXPECT_STREQ(engine_runtime_module_at(1), modules[1]);
+}
+#endif

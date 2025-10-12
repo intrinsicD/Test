@@ -88,6 +88,8 @@ private:
 ENGINE_RUNTIME_API void initialize();
 ENGINE_RUNTIME_API void shutdown();
 ENGINE_RUNTIME_API void configure(RuntimeHostDependencies dependencies);
+ENGINE_RUNTIME_API void configure_with_default_subsystems();
+ENGINE_RUNTIME_API void configure_with_default_subsystems(std::span<const std::string_view> enabled_subsystems);
 ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
 [[nodiscard]] ENGINE_RUNTIME_API const geometry::SurfaceMesh& current_mesh();
 [[nodiscard]] ENGINE_RUNTIME_API bool is_initialized() noexcept;
@@ -97,12 +99,17 @@ ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
 [[nodiscard]] ENGINE_RUNTIME_API const compute::ExecutionReport& last_dispatch_report();
 [[nodiscard]] ENGINE_RUNTIME_API const std::vector<runtime_frame_state::scene_node_state>& scene_nodes();
 [[nodiscard]] ENGINE_RUNTIME_API double simulation_time() noexcept;
+[[nodiscard]] ENGINE_RUNTIME_API std::vector<std::string> default_subsystem_names();
 
 }  // namespace engine::runtime
 
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_module_name() noexcept;
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_module_count() noexcept;
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_module_at(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API void engine_runtime_configure_with_default_modules() noexcept;
+extern "C" ENGINE_RUNTIME_API void engine_runtime_configure_with_modules(
+    const char* const* module_names,
+    std::size_t count) noexcept;
 extern "C" ENGINE_RUNTIME_API void engine_runtime_initialize() noexcept;
 extern "C" ENGINE_RUNTIME_API void engine_runtime_shutdown() noexcept;
 extern "C" ENGINE_RUNTIME_API void engine_runtime_tick(double dt) noexcept;

@@ -7,13 +7,27 @@
 #include <string_view>
 #include <utility>
 
-#include "engine/assets/api.hpp"
-#include "engine/compute/cuda/api.hpp"
-#include "engine/core/api.hpp"
-#include "engine/io/api.hpp"
-#include "engine/platform/api.hpp"
-#include "engine/rendering/api.hpp"
-#include "engine/scene/api.hpp"
+#if ENGINE_ENABLE_ASSETS
+#    include "engine/assets/api.hpp"
+#endif
+#if ENGINE_ENABLE_COMPUTE_CUDA
+#    include "engine/compute/cuda/api.hpp"
+#endif
+#if ENGINE_ENABLE_CORE
+#    include "engine/core/api.hpp"
+#endif
+#if ENGINE_ENABLE_IO
+#    include "engine/io/api.hpp"
+#endif
+#if ENGINE_ENABLE_PLATFORM
+#    include "engine/platform/api.hpp"
+#endif
+#if ENGINE_ENABLE_RENDERING
+#    include "engine/rendering/api.hpp"
+#endif
+#if ENGINE_ENABLE_SCENE
+#    include "engine/scene/api.hpp"
+#endif
 #include "engine/scene/components.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/scene/systems.hpp"
@@ -26,7 +40,6 @@ engine::runtime::RuntimeHostDependencies make_default_dependencies()
     auto registry = std::make_shared<engine::runtime::SubsystemRegistry>(
         engine::runtime::make_default_subsystem_registry());
     deps.subsystem_registry = registry;
-    deps.subsystem_plugins = registry->load_defaults();
     return deps;
 }
 
@@ -517,6 +530,34 @@ engine::runtime::RuntimeHost& global_host()
 
 } // namespace
 
+namespace engine::runtime {
+
+void configure_with_default_subsystems()
+{
+    global_host().configure(make_default_dependencies());
+}
+
+void configure_with_default_subsystems(std::span<const std::string_view> enabled_subsystems)
+{
+    auto dependencies = make_default_dependencies();
+    dependencies.enabled_subsystems.assign(enabled_subsystems.begin(), enabled_subsystems.end());
+    dependencies.subsystem_plugins.clear();
+    global_host().configure(std::move(dependencies));
+}
+
+std::vector<std::string> default_subsystem_names()
+{
+    const auto registry = make_default_subsystem_registry();
+    const auto registered = registry.registered_names();
+    std::vector<std::string> names{};
+    names.reserve(registered.size());
+    for (const auto name : registered)
+    {
+        names.emplace_back(name);
+    }
+    return names;
+}
+
 std::string_view module_name() noexcept
 {
     return "runtime";
@@ -648,6 +689,48 @@ extern "C" ENGINE_RUNTIME_API const char* engine_runtime_module_at(std::size_t i
 {
     const auto name = engine::runtime::module_name_at(index);
     return name.empty() ? nullptr : name.data();
+}
+
+extern "C" ENGINE_RUNTIME_API void engine_runtime_configure_with_default_modules() noexcept
+{
+    try
+    {
+        engine::runtime::configure_with_default_subsystems();
+    }
+    catch (...)
+    {
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API void engine_runtime_configure_with_modules(
+    const char* const* module_names,
+    std::size_t count) noexcept
+{
+    try
+    {
+        if (module_names == nullptr)
+        {
+            engine::runtime::configure_with_default_subsystems();
+            return;
+        }
+
+        std::vector<std::string_view> enabled{};
+        enabled.reserve(count);
+        for (std::size_t index = 0; index < count; ++index)
+        {
+            const char* name = module_names[index];
+            if (name == nullptr || name[0] == '\0')
+            {
+                continue;
+            }
+            enabled.emplace_back(name);
+        }
+
+        engine::runtime::configure_with_default_subsystems(enabled);
+    }
+    catch (...)
+    {
+    }
 }
 
 extern "C" ENGINE_RUNTIME_API void engine_runtime_initialize() noexcept
