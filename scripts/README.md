@@ -10,6 +10,7 @@
 - Run scripts from the repository root to maintain consistent relative paths.
 - Use `cmake --preset <name>` for day-to-day configuration/build/test flows.
 - Invoke `./scripts/ci/run_presets.py` in CI and local smoke runs to mirror the documented workflow.
+- Run `python scripts/update_agents_tree.py` after layout changes to refresh the generated hierarchy in `AGENTS.md`.
 
 ## TODO / Next Steps
 

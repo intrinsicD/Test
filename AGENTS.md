@@ -27,7 +27,48 @@
 
 ## 3. Build & Run Workflow
 1. Configure using the desired preset:
+   ```bash
+   cmake --preset <preset>
    ```
+2. Build the selected configuration:
+   ```bash
+   cmake --build --preset <preset>
+   ```
+3. Execute the C++ test suites:
+   ```bash
+   ctest --preset <preset>
+   ```
+4. Run the Python unit tests covering both the runtime bindings and maintenance scripts:
+   ```bash
+   pytest python/tests scripts/tests
+   ```
+5. Validate that documentation links remain coherent:
+   ```bash
+   python scripts/validate_docs.py
+   ```
+6. Extend CI orchestration via the scripts in `scripts/ci/` when you add new presets or automation paths.
+
+## 4. Coding & Testing Standards
+- Follow the conventions in `CODING_STYLE.md` (modern, high-performance C++20+). Do not wrap imports in try/catch blocks. Match the existing naming, formatting, and error-handling patterns.
+- Comment complex algorithms with *why* and *how* rationales, not just *what*. Leverage docstrings or Doxygen-style comments for public headers.
+- Every new feature must include accompanying unit/integration tests inside the relevant `engine/<module>/tests/` directory and be wired into CTest.
+- Keep the aggregated TODO table in `README.md` synchronised with per-module README TODO sections.
+
+## 5. Submission Checklist
+- [ ] All affected README files updated to describe the current behaviour, dependencies, and TODO items.
+- [ ] Required dependencies documented and, when possible, install scripts updated.
+- [ ] Code adheres to `CODING_STYLE.md` and is sufficiently commented.
+- [ ] `cmake --build`, `ctest`, Python tests, and `scripts/validate_docs.py` executed for the relevant presets; record the commands and results.
+- [ ] No warnings or regressions introduced in existing tests.
+
+Keep this guidance up to date as workflows evolve so newcomers can build, test, and extend the engine without surprises.
+
+## Repository Hierarchy
+
+Complete repository file hierarchy (excluding hidden entries). Regenerate this block whenever files are added, removed, or reorganised to keep guidance accurate.
+
+<!-- BEGIN GENERATED FILE TREE -->
+```text
 .
     AGENTS.md
     CMakeLists.txt
@@ -38,6 +79,8 @@
         README.md
         README_TEMPLATE.md
         ROADMAP.md
+        design/
+            architecture_improvement_plan.md
         modules/
             animation/
                 README.md
@@ -103,8 +146,6 @@
                 engine/
                     assets/
                         api.hpp
-                        detail/
-                            filesystem_utils.hpp
                         graph_asset.hpp
                         handles.hpp
                         material_asset.hpp
@@ -112,6 +153,8 @@
                         point_cloud_asset.hpp
                         shader_asset.hpp
                         texture_asset.hpp
+                        detail/
+                            filesystem_utils.hpp
             samples/
             shaders/
             src/
@@ -166,6 +209,7 @@
                         memory/
                         parallel/
                         plugin/
+                            isubsystem_interface.hpp
                         runtime/
             src/
                 api.cpp
@@ -182,9 +226,11 @@
                 engine/
                     geometry/
                         api.hpp
+                        export.hpp
+                        random.hpp
+                        shapes.hpp
                         csg/
                         decimation/
-                        export.hpp
                         graph/
                             graph.hpp
                         kdtree/
@@ -200,7 +246,6 @@
                             property_handle.hpp
                             property_registry.hpp
                             property_set.hpp
-                        random.hpp
                         shapes/
                             aabb.hpp
                             cylinder.hpp
@@ -212,7 +257,6 @@
                             segment.hpp
                             sphere.hpp
                             triangle.hpp
-                        shapes.hpp
                         surfaces/
                         topology/
                         utils/
@@ -274,10 +318,10 @@
                 engine/
                     io/
                         api.hpp
-                        cache/
-                        exporters/
                         geometry_io.hpp
                         geometry_io_registry.hpp
+                        cache/
+                        exporters/
                         importers/
                             animation.hpp
             src/
@@ -302,11 +346,11 @@
                         quaternion.hpp
                         sparse_matrix.hpp
                         transform.hpp
+                        vector.hpp
                         utils/
                             utils.hpp
                             utils_camera.hpp
                             utils_rotation.hpp
-                        vector.hpp
             tests/
                 CMakeLists.txt
                 test_math.cpp
@@ -364,17 +408,6 @@
                 engine/
                     rendering/
                         api.hpp
-                        backend/
-                            directx12/
-                                gpu_scheduler.hpp
-                            metal/
-                                gpu_scheduler.hpp
-                            native_scheduler_base.hpp
-                            opengl/
-                                gpu_scheduler.hpp
-                            stub_gpu_scheduler_base.hpp
-                            vulkan/
-                                gpu_scheduler.hpp
                         command_encoder.hpp
                         components.hpp
                         components.inl
@@ -382,8 +415,20 @@
                         frame_graph.hpp
                         frame_graph_types.hpp
                         gpu_scheduler.hpp
-                        lighting/
                         material_system.hpp
+                        render_pass.hpp
+                        backend/
+                            native_scheduler_base.hpp
+                            stub_gpu_scheduler_base.hpp
+                            directx12/
+                                gpu_scheduler.hpp
+                            metal/
+                                gpu_scheduler.hpp
+                            opengl/
+                                gpu_scheduler.hpp
+                            vulkan/
+                                gpu_scheduler.hpp
+                        lighting/
                         materials/
                             shaders/
                                 common/
@@ -392,13 +437,12 @@
                             textures/
                         passes/
                         pipeline/
-                        render_pass.hpp
                         resources/
-                            buffers/
                             recording_gpu_resource_provider.hpp
                             resource_provider.hpp
-                            samplers/
                             synchronization.hpp
+                            buffers/
+                            samplers/
                         visibility/
             src/
                 api.cpp
@@ -421,8 +465,10 @@
                 engine/
                     runtime/
                         api.hpp
+                        subsystem_registry.hpp
             src/
                 api.cpp
+                subsystem_registry.cpp
             tests/
                 CMakeLists.txt
                 test_module.cpp
@@ -432,20 +478,20 @@
                 engine/
                     scene/
                         api.hpp
+                        components.hpp
+                        scene.hpp
+                        systems.hpp
                         components/
                             hierarchy.hpp
                             name.hpp
                             transform.hpp
-                        components.hpp
                         graph/
-                        scene.hpp
                         serialization/
                             serializer.hpp
                         systems/
                             hierarchy_system.hpp
                             registry.hpp
                             transform_system.hpp
-                        systems.hpp
             src/
                 api.cpp
                 scene.cpp
@@ -474,28 +520,28 @@
     python/
         README.md
         engine3g/
-            README.md
             __init__.py
             loader.py
+            README.md
         tests/
             README.md
             test_loader.py
     scripts/
         README.md
-        build/
-            README.md
-            presets/
-                linux.json
-                windows.json
-            toolchains/
-                linux-gcc.cmake
-                windows-msvc.cmake
+        update_agents_tree.py
+        validate_docs.py
+        __pycache__/
+            update_agents_tree.cpython-312.pyc
+            validate_docs.cpython-312.pyc
         ci/
             README.md
             run_presets.py
         tests/
+            test_update_agents_tree.py
             test_validate_docs.py
-        validate_docs.py
+            __pycache__/
+                test_update_agents_tree.cpython-312-pytest-8.4.1.pyc
+                test_validate_docs.cpython-312-pytest-8.4.1.pyc
     third_party/
         README.md
         entt/
@@ -505,13 +551,24 @@
             README.md
             include/
                 gtest/
-                    README.md
                     gtest.h
+                    README.md
             src/
-                README.md
                 gtest_main.cpp
+                README.md
         imgui/
             CMakeLists.txt
+            imconfig.h
+            imgui.cpp
+            imgui.h
+            imgui_demo.cpp
+            imgui_draw.cpp
+            imgui_internal.h
+            imgui_tables.cpp
+            imgui_widgets.cpp
+            imstb_rectpack.h
+            imstb_textedit.h
+            imstb_truetype.h
             LICENSE.txt
             backends/
                 imgui_impl_allegro5.cpp
@@ -575,925 +632,14 @@
                 README.md
                 TODO.txt
             examples/
+                imgui_examples.sln
                 README.txt
                 example_allegro5/
-                    README.md
                     example_allegro5.vcxproj
                     example_allegro5.vcxproj.filters
                     imconfig_allegro5.h
                     main.cpp
-                example_android_opengl3/
-                    CMakeLists.txt
-                    android/
-                        app/
-                            build.gradle
-                            src/
-                                main/
-                                    AndroidManifest.xml
-                                    java/
-                                        MainActivity.kt
-                        build.gradle
-                        settings.gradle
-                    main.cpp
-                example_apple_metal/
-                    Makefile
                     README.md
-                    example_apple_metal.xcodeproj/
-                        project.pbxproj
-                    iOS/
-                        Info-iOS.plist
-                        LaunchScreen.storyboard
-                    macOS/
-                        Info-macOS.plist
-                        MainMenu.storyboard
-                    main.mm
-                example_apple_opengl2/
-                    Makefile
-                    example_apple_opengl2.xcodeproj/
-                        project.pbxproj
-                    main.mm
-                example_glfw_metal/
-                    Makefile
-                    main.mm
-                example_glfw_opengl2/
-                    Makefile
-                    build_win32.bat
-                    example_glfw_opengl2.vcxproj
-                    example_glfw_opengl2.vcxproj.filters
-                    main.cpp
-                example_glfw_opengl3/
-                    Makefile
-                    Makefile.emscripten
-                    build_win32.bat
-                    example_glfw_opengl3.vcxproj
-                    example_glfw_opengl3.vcxproj.filters
-                    main.cpp
-                example_glfw_vulkan/
-                    CMakeLists.txt
-                    Makefile
-                    build_win32.bat
-                    build_win64.bat
-                    example_glfw_vulkan.vcxproj
-                    example_glfw_vulkan.vcxproj.filters
-                    main.cpp
-                example_glfw_wgpu/
-                    CMakeLists.txt
-                    Makefile.emscripten
-                    README.md
-                    main.cpp
-                example_glut_opengl2/
-                    Makefile
-                    example_glut_opengl2.vcxproj
-                    example_glut_opengl2.vcxproj.filters
-                    main.cpp
-                example_null/
-                    Makefile
-                    build_win32.bat
-                    main.cpp
-                example_sdl2_directx11/
-                    build_win32.bat
-                    example_sdl2_directx11.vcxproj
-                    example_sdl2_directx11.vcxproj.filters
-                    main.cpp
-                example_sdl2_metal/
-                    Makefile
-                    main.mm
-                example_sdl2_opengl2/
-                    Makefile
-                    README.md
-                    build_win32.bat
-                    example_sdl2_opengl2.vcxproj
-                    example_sdl2_opengl2.vcxproj.filters
-                    main.cpp
-                example_sdl2_opengl3/
-                    Makefile
-                    Makefile.emscripten
-                    README.md
-                    build_win32.bat
-                    example_sdl2_opengl3.vcxproj
-                    example_sdl2_opengl3.vcxproj.filters
-                    main.cpp
-                example_sdl2_sdlrenderer2/
-                    Makefile
-                    README.md
-                    build_win32.bat
-                    example_sdl2_sdlrenderer2.vcxproj
-                    example_sdl2_sdlrenderer2.vcxproj.filters
-                    main.cpp
-                example_sdl2_vulkan/
-                    Makefile
-                    build_win32.bat
-                    build_win64.bat
-                    example_sdl2_vulkan.vcxproj
-                    example_sdl2_vulkan.vcxproj.filters
-                    main.cpp
-                example_sdl3_directx11/
-                    build_win32.bat
-                    example_sdl3_directx11.vcxproj
-                    example_sdl3_directx11.vcxproj.filters
-                    main.cpp
-                example_sdl3_metal/
-                    Makefile
-                    main.mm
-                example_sdl3_opengl3/
-                    Makefile
-                    Makefile.emscripten
-                    README.md
-                    build_win32.bat
-                    build_win64.bat
-                    example_sdl3_opengl3.vcxproj
-                    example_sdl3_opengl3.vcxproj.filters
-                    main.cpp
-                example_sdl3_sdlgpu3/
-                    Makefile
-                    build_win64.bat
-                    example_sdl3_sdlgpu3.vcxproj
-                    example_sdl3_sdlgpu3.vcxproj.filters
-                    main.cpp
-                example_sdl3_sdlrenderer3/
-                    Makefile
-                    build_win32.bat
-                    example_sdl3_sdlrenderer3.vcxproj
-                    example_sdl3_sdlrenderer3.vcxproj.filters
-                    main.cpp
-                example_sdl3_vulkan/
-                    Makefile
-                    build_win32.bat
-                    build_win64.bat
-                    example_sdl3_vulkan.vcxproj
-                    example_sdl3_vulkan.vcxproj.filters
-                    main.cpp
-                example_win32_directx10/
-                    build_win32.bat
-                    example_win32_directx10.vcxproj
-                    example_win32_directx10.vcxproj.filters
-                    main.cpp
-                example_win32_directx11/
-                    build_win32.bat
-                    example_win32_directx11.vcxproj
-                    example_win32_directx11.vcxproj.filters
-                    main.cpp
-                example_win32_directx12/
-                    build_win32.bat
-                    example_win32_directx12.vcxproj
-                    example_win32_directx12.vcxproj.filters
-                    main.cpp
-                example_win32_directx9/
-                    build_win32.bat
-                    example_win32_directx9.vcxproj
-                    example_win32_directx9.vcxproj.filters
-                    main.cpp
-                example_win32_opengl3/
-                    build_mingw.bat
-                    build_win32.bat
-                    example_win32_opengl3.vcxproj
-                    example_win32_opengl3.vcxproj.filters
-                    main.cpp
-                example_win32_vulkan/
-                    build_win32.bat
-                    build_win64.bat
-                    example_win32_vulkan.vcxproj
-                    example_win32_vulkan.vcxproj.filters
-                    main.cpp
-                imgui_examples.sln
-                libs/
-                    emscripten/
-                        emscripten_mainloop_stub.h
-                        shell_minimal.html
-                    glfw/
-                        COPYING.txt
-                        include/
-                            GLFW/
-                                glfw3.h
-                                glfw3native.h
-                        lib-vc2010-32/
-                            glfw3.lib
-                        lib-vc2010-64/
-                            glfw3.lib
-                    usynergy/
-                        README.txt
-                        uSynergy.c
-                        uSynergy.h
-            imconfig.h
-            imgui.cpp
-            imgui.h
-            imgui_demo.cpp
-            imgui_draw.cpp
-            imgui_internal.h
-            imgui_tables.cpp
-            imgui_widgets.cpp
-            imstb_rectpack.h
-            imstb_textedit.h
-            imstb_truetype.h
-            include/
-                imgui.h
-            misc/
-                README.txt
-                cpp/
-                    README.txt
-                    imgui_stdlib.cpp
-                    imgui_stdlib.h
-                debuggers/
-                    README.txt
-                    imgui.gdb
-                    imgui.natstepfilter
-                    imgui.natvis
-                    imgui_lldb.py
-                fonts/
-                    Cousine-Regular.ttf
-                    DroidSans.ttf
-                    Karla-Regular.ttf
-                    ProggyClean.ttf
-                    ProggyTiny.ttf
-                    Roboto-Medium.ttf
-                    binary_to_compressed_c.cpp
-                freetype/
-                    README.md
-                    imgui_freetype.cpp
-                    imgui_freetype.h
-                single_file/
-                    imgui_single_file.h
-        spdlog/
-            CMakeLists.txt
-            include/
-                spdlog/
-                    spdlog.h
-```
-2. Build the project:
-   ```bash
-   cmake --build --preset linux-gcc-debug
-   ```
-3. Execute the C++ test suites:
-   ```bash
-   ctest --preset linux-gcc-debug
-   ```
-4. For Python tooling:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   pytest
-   ```
-   Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shared libraries before invoking Python loaders.
-5. Validate documentation before submitting:
-   ```bash
-   python scripts/validate_docs.py
-   ```
-6. Extend CI orchestration via the scripts in `scripts/ci/` when you add new presets or automation paths.
-
-## 4. Coding & Testing Standards
-- Follow the conventions in `CODING_STYLE.md` (modern, high-performance C++20+). Do not wrap imports in try/catch blocks. Match the existing naming, formatting, and error-handling patterns.
-- Comment complex algorithms with *why* and *how* rationales, not just *what*. Leverage docstrings or Doxygen-style comments for public headers.
-- Every new feature must include accompanying unit/integration tests inside the relevant `engine/<module>/tests/` directory and be wired into CTest.
-- Keep the aggregated TODO table in `README.md` synchronised with per-module README TODO sections.
-
-## 5. Submission Checklist
-- [ ] All affected README files updated to describe the current behaviour, dependencies, and TODO items.
-- [ ] Required dependencies documented and, when possible, install scripts updated.
-- [ ] Code adheres to `CODING_STYLE.md` and is sufficiently commented.
-- [ ] `cmake --build`, `ctest`, Python tests, and `scripts/validate_docs.py` executed for the relevant presets; record the commands and results.
-- [ ] No warnings or regressions introduced in existing tests.
-
-Keep this guidance up to date as workflows evolve so newcomers can build, test, and extend the engine without surprises.
-
-## Repository Hierarchy
-
-Complete repository file hierarchy (excluding hidden entries). Regenerate this block whenever files are added, removed, or reorganised to keep guidance accurate.
-
-```
-.
-    AGENTS.md
-    CMakeLists.txt
-    CMakePresets.json
-    CODING_STYLE.md
-    README.md
-    docs/
-        README.md
-        README_TEMPLATE.md
-        api/
-            README.md
-            animation.md
-            compute.md
-            geometry.md
-            math.md
-            physics.md
-            runtime.md
-            scene.md
-        design/
-            README.md
-            architecture.md
-            cmake-target-inventory.md
-            engineering_notes.md
-            runtime_plan.md
-        notes/
-            include-path-audit.md
-    engine/
-        CMakeLists.txt
-        README.md
-        animation/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    animation/
-                        README.md
-                        api.hpp
-                        deformation/
-                            README.md
-                        rigging/
-                            README.md
-                        skinning/
-                            README.md
-            src/
-                README.md
-                api.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                test_module.cpp
-        assets/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    assets/
-                        README.md
-                        api.hpp
-                        graph_asset.hpp
-                        handles.hpp
-                        material_asset.hpp
-                        mesh_asset.hpp
-                        point_cloud_asset.hpp
-                        shader_asset.hpp
-                        texture_asset.hpp
-                        detail/
-                            filesystem_utils.hpp
-            samples/
-                README.md
-            shaders/
-                README.md
-            src/
-                README.md
-                api.cpp
-                graph_asset.cpp
-                material_asset.cpp
-                mesh_asset.cpp
-                point_cloud_asset.cpp
-                shader_asset.cpp
-                texture_asset.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                test_assets.cpp
-                test_module.cpp
-        compute/
-            CMakeLists.txt
-            README.md
-            cuda/
-                CMakeLists.txt
-                README.md
-                include/
-                    engine/
-                        compute/
-                            cuda/
-                                README.md
-                                api.hpp
-                src/
-                    README.md
-                    api.cpp
-                tests/
-                    CMakeLists.txt
-                    README.md
-                    test_module.cpp
-            include/
-                engine/
-                    compute/
-                        README.md
-                        api.hpp
-            src/
-                README.md
-                api.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                test_module.cpp
-        core/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    core/
-                        README.md
-                        api.hpp
-                        application/
-                            README.md
-                        configuration/
-                            README.md
-                        diagnostics/
-                            README.md
-                        ecs/
-                            README.md
-                            component_storage.hpp
-                            entity_id.hpp
-                            registry.hpp
-                            system.hpp
-                        memory/
-                            README.md
-                        parallel/
-                            README.md
-                        plugin/
-                            README.md
-                        runtime/
-                            README.md
-            src/
-                README.md
-                api.cpp
-                ecs/
-                    registry.cpp
-                    system.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                ecs_registry_tests.cpp
-                test_module.cpp
-        geometry/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    geometry/
-                        README.md
-                        api.hpp
-                        random.hpp
-                        shapes.hpp
-                        csg/
-                            README.md
-                        decimation/
-                            README.md
-                        graph/
-                            graph.hpp
-                        kdtree/
-                            kdtree.hpp
-                        mesh/
-                            halfedge_mesh.hpp
-                        octree/
-                            octree.hpp
-                        point_cloud/
-                            point_cloud.hpp
-                        properties/
-                            property_handle.hpp
-                            property_registry.hpp
-                            property_set.hpp
-                        shapes/
-                            README.md
-                            aabb.hpp
-                            cylinder.hpp
-                            ellipsoid.hpp
-                            line.hpp
-                            obb.hpp
-                            plane.hpp
-                            ray.hpp
-                            segment.hpp
-                            sphere.hpp
-                            triangle.hpp
-                        surfaces/
-                            README.md
-                        topology/
-                            README.md
-                        utils/
-                            bounded_heap.hpp
-                            circulators.hpp
-                            connectivity.hpp
-                            iterators.hpp
-                            ranges.hpp
-                            shape_interactions.hpp
-                        uv/
-                            README.md
-                        volumetric/
-                            README.md
-            src/
-                README.md
-                api.cpp
-                graph/
-                    graph.cpp
-                mesh/
-                    halfedge_mesh.cpp
-                point_cloud/
-                    point_cloud.cpp
-                properties/
-                    property_handle.cpp
-                    property_registry.cpp
-                shapes/
-                    README.md
-                    aabb.cpp
-                    cylinder.cpp
-                    ellipsoid.cpp
-                    line.cpp
-                    obb.cpp
-                    plane.cpp
-                    random.cpp
-                    ray.cpp
-                    segment.cpp
-                    sphere.cpp
-                    triangle.cpp
-                utils/
-                    shape_interactions.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                test_graph.cpp
-                test_halfedge_mesh.cpp
-                test_kdtree.cpp
-                test_module.cpp
-                test_octree.cpp
-                test_point_cloud.cpp
-                test_property_registry.cpp
-                test_shape_interactions.cpp
-                test_shapes.cpp
-        io/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    io/
-                        README.md
-                        api.hpp
-                        geometry_io.hpp
-                        geometry_io_registry.hpp
-                        cache/
-                            README.md
-                        exporters/
-                            README.md
-                        importers/
-                            README.md
-            src/
-                README.md
-                api.cpp
-                geometry_io.cpp
-                geometry_io_registry.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                geometry_io_registry_tests.cpp
-                test_geometry_io.cpp
-                test_module.cpp
-        math/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    math/
-                        README.md
-                        common.hpp
-                        math.hpp
-                        matrix.hpp
-                        quaternion.hpp
-                        sparse_matrix.hpp
-                        transform.hpp
-                        vector.hpp
-                        utils/
-                            utils.hpp
-                            utils_camera.hpp
-                            utils_rotation.hpp
-            tests/
-                CMakeLists.txt
-                README.md
-                test_math.cpp
-        physics/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    physics/
-                        README.md
-                        api.hpp
-                        collision/
-                            README.md
-                        dynamics/
-                            README.md
-            src/
-                README.md
-                api.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                test_module.cpp
-        platform/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    platform/
-                        README.md
-                        api.hpp
-                        filesystem/
-                            README.md
-                            filesystem.hpp
-                        input/
-                            README.md
-                            input_state.hpp
-                        windowing/
-                            README.md
-                            window.hpp
-                            window_console.hpp
-            src/
-                README.md
-                api.cpp
-                filesystem/
-                    filesystem.cpp
-                input/
-                    input_state.cpp
-                windowing/
-                    glfw_window.cpp
-                    mock_window.cpp
-                    sdl_window.cpp
-                    window_base.cpp
-                    window_base.hpp
-                    window_console.cpp
-                    window_system.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                filesystem_tests.cpp
-                input_state_tests.cpp
-                test_module.cpp
-                window_console_tests.cpp
-                window_test_app.cpp
-        rendering/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    rendering/
-                        README.md
-                        api.hpp
-                        components.hpp
-                        components.inl
-                        forward_pipeline.hpp
-                        frame_graph.hpp
-                        frame_graph_types.hpp
-                        gpu_scheduler.hpp
-                        material_system.hpp
-                        render_pass.hpp
-                        backend/
-                            README.md
-                            native_scheduler_base.hpp
-                            stub_gpu_scheduler_base.hpp
-                            directx12/
-                                README.md
-                                gpu_scheduler.hpp
-                            metal/
-                                README.md
-                                gpu_scheduler.hpp
-                            opengl/
-                                README.md
-                                gpu_scheduler.hpp
-                            vulkan/
-                                README.md
-                                gpu_scheduler.hpp
-                        lighting/
-                            README.md
-                        materials/
-                            README.md
-                            shaders/
-                                README.md
-                                common/
-                                    README.md
-                                glsl/
-                                    README.md
-                                hlsl/
-                                    README.md
-                            textures/
-                                README.md
-                        passes/
-                            README.md
-                        pipeline/
-                            README.md
-                        resources/
-                            README.md
-                            recording_gpu_resource_provider.hpp
-                            resource_provider.hpp
-                            synchronization.hpp
-                            buffers/
-                                README.md
-                            samplers/
-                                README.md
-                        visibility/
-                            README.md
-            src/
-                README.md
-                api.cpp
-                forward_pipeline.cpp
-                frame_graph.cpp
-                material_system.cpp
-                resources/
-                    recording_gpu_resource_provider.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                scheduler_test_utils.hpp
-                test_backend_adapters.cpp
-                test_forward_pipeline.cpp
-                test_frame_graph.cpp
-                test_module.cpp
-        runtime/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    runtime/
-                        README.md
-                        api.hpp
-            src/
-                README.md
-                api.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                test_module.cpp
-        scene/
-            CMakeLists.txt
-            README.md
-            include/
-                engine/
-                    scene/
-                        README.md
-                        api.hpp
-                        components.hpp
-                        scene.hpp
-                        systems.hpp
-                        components/
-                            README.md
-                            hierarchy.hpp
-                            name.hpp
-                            transform.hpp
-                        graph/
-                            README.md
-                        serialization/
-                            README.md
-                            serializer.hpp
-                        systems/
-                            README.md
-                            hierarchy_system.hpp
-                            registry.hpp
-                            transform_system.hpp
-            src/
-                README.md
-                api.cpp
-                scene.cpp
-                serialization/
-                    serializer.cpp
-                systems/
-                    hierarchy_system.cpp
-                    registry.cpp
-                    transform_system.cpp
-            tests/
-                CMakeLists.txt
-                README.md
-                scene_destruction_tests.cpp
-                test_components.cpp
-                test_module.cpp
-                test_serialization.cpp
-                test_systems.cpp
-        tests/
-            README.md
-            integration/
-                README.md
-            performance/
-                README.md
-            unit/
-                README.md
-        tools/
-            README.md
-            editor/
-                README.md
-            pipelines/
-                README.md
-            profiling/
-                README.md
-    python/
-        README.md
-        engine3g/
-            README.md
-            __init__.py
-            loader.py
-        tests/
-            README.md
-            test_loader.py
-    scripts/
-        README.md
-        validate_docs.py
-        build/
-            README.md
-            presets/
-                linux.json
-                windows.json
-            toolchains/
-                linux-gcc.cmake
-                windows-msvc.cmake
-        ci/
-            README.md
-            run_presets.py
-        tests/
-            test_validate_docs.py
-    third_party/
-        README.md
-        entt/
-        glfw/
-        googletest/
-            CMakeLists.txt
-            README.md
-            include/
-                gtest/
-                    README.md
-                    gtest.h
-            src/
-                README.md
-                gtest_main.cpp
-        imgui/
-            CMakeLists.txt
-            LICENSE.txt
-            imconfig.h
-            imgui.cpp
-            imgui.h
-            imgui_demo.cpp
-            imgui_draw.cpp
-            imgui_internal.h
-            imgui_tables.cpp
-            imgui_widgets.cpp
-            imstb_rectpack.h
-            imstb_textedit.h
-            imstb_truetype.h
-            backends/
-                imgui_impl_allegro5.cpp
-                imgui_impl_allegro5.h
-                imgui_impl_android.cpp
-                imgui_impl_android.h
-                imgui_impl_dx10.cpp
-                imgui_impl_dx10.h
-                imgui_impl_dx11.cpp
-                imgui_impl_dx11.h
-                imgui_impl_dx12.cpp
-                imgui_impl_dx12.h
-                imgui_impl_dx9.cpp
-                imgui_impl_dx9.h
-                imgui_impl_glfw.cpp
-                imgui_impl_glfw.h
-                imgui_impl_glut.cpp
-                imgui_impl_glut.h
-                imgui_impl_metal.h
-                imgui_impl_metal.mm
-                imgui_impl_opengl2.cpp
-                imgui_impl_opengl2.h
-                imgui_impl_opengl3.cpp
-                imgui_impl_opengl3.h
-                imgui_impl_opengl3_loader.h
-                imgui_impl_osx.h
-                imgui_impl_osx.mm
-                imgui_impl_sdl2.cpp
-                imgui_impl_sdl2.h
-                imgui_impl_sdl3.cpp
-                imgui_impl_sdl3.h
-                imgui_impl_sdlgpu3.cpp
-                imgui_impl_sdlgpu3.h
-                imgui_impl_sdlgpu3_shaders.h
-                imgui_impl_sdlrenderer2.cpp
-                imgui_impl_sdlrenderer2.h
-                imgui_impl_sdlrenderer3.cpp
-                imgui_impl_sdlrenderer3.h
-                imgui_impl_vulkan.cpp
-                imgui_impl_vulkan.h
-                imgui_impl_wgpu.cpp
-                imgui_impl_wgpu.h
-                imgui_impl_win32.cpp
-                imgui_impl_win32.h
-                sdlgpu3/
-                    build_instructions.txt
-                    shader.frag
-                    shader.vert
-                vulkan/
-                    build_instructions.txt
-                    generate_spv.sh
-                    glsl_shader.frag
-                    glsl_shader.vert
-            docs/
-                BACKENDS.md
-                CHANGELOG.txt
-                CONTRIBUTING.md
-                EXAMPLES.md
-                FAQ.md
-                FONTS.md
-                README.md
-                TODO.txt
-            examples/
-                README.txt
-                imgui_examples.sln
-                example_allegro5/
-                    README.md
-                    example_allegro5.vcxproj
-                    example_allegro5.vcxproj.filters
-                    imconfig_allegro5.h
-                    main.cpp
                 example_android_opengl3/
                     CMakeLists.txt
                     main.cpp
@@ -1508,9 +654,9 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                                     java/
                                         MainActivity.kt
                 example_apple_metal/
+                    main.mm
                     Makefile
                     README.md
-                    main.mm
                     example_apple_metal.xcodeproj/
                         project.pbxproj
                     iOS/
@@ -1520,121 +666,121 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         Info-macOS.plist
                         MainMenu.storyboard
                 example_apple_opengl2/
-                    Makefile
                     main.mm
+                    Makefile
                     example_apple_opengl2.xcodeproj/
                         project.pbxproj
                 example_glfw_metal/
-                    Makefile
                     main.mm
-                example_glfw_opengl2/
                     Makefile
+                example_glfw_opengl2/
                     build_win32.bat
                     example_glfw_opengl2.vcxproj
                     example_glfw_opengl2.vcxproj.filters
                     main.cpp
-                example_glfw_opengl3/
                     Makefile
-                    Makefile.emscripten
+                example_glfw_opengl3/
                     build_win32.bat
                     example_glfw_opengl3.vcxproj
                     example_glfw_opengl3.vcxproj.filters
                     main.cpp
-                example_glfw_vulkan/
-                    CMakeLists.txt
                     Makefile
+                    Makefile.emscripten
+                example_glfw_vulkan/
                     build_win32.bat
                     build_win64.bat
+                    CMakeLists.txt
                     example_glfw_vulkan.vcxproj
                     example_glfw_vulkan.vcxproj.filters
                     main.cpp
+                    Makefile
                 example_glfw_wgpu/
                     CMakeLists.txt
+                    main.cpp
                     Makefile.emscripten
                     README.md
-                    main.cpp
                 example_glut_opengl2/
-                    Makefile
                     example_glut_opengl2.vcxproj
                     example_glut_opengl2.vcxproj.filters
                     main.cpp
-                example_null/
                     Makefile
+                example_null/
                     build_win32.bat
                     main.cpp
+                    Makefile
                 example_sdl2_directx11/
                     build_win32.bat
                     example_sdl2_directx11.vcxproj
                     example_sdl2_directx11.vcxproj.filters
                     main.cpp
                 example_sdl2_metal/
-                    Makefile
                     main.mm
-                example_sdl2_opengl2/
                     Makefile
-                    README.md
+                example_sdl2_opengl2/
                     build_win32.bat
                     example_sdl2_opengl2.vcxproj
                     example_sdl2_opengl2.vcxproj.filters
                     main.cpp
-                example_sdl2_opengl3/
                     Makefile
-                    Makefile.emscripten
                     README.md
+                example_sdl2_opengl3/
                     build_win32.bat
                     example_sdl2_opengl3.vcxproj
                     example_sdl2_opengl3.vcxproj.filters
                     main.cpp
-                example_sdl2_sdlrenderer2/
                     Makefile
+                    Makefile.emscripten
                     README.md
+                example_sdl2_sdlrenderer2/
                     build_win32.bat
                     example_sdl2_sdlrenderer2.vcxproj
                     example_sdl2_sdlrenderer2.vcxproj.filters
                     main.cpp
-                example_sdl2_vulkan/
                     Makefile
+                    README.md
+                example_sdl2_vulkan/
                     build_win32.bat
                     build_win64.bat
                     example_sdl2_vulkan.vcxproj
                     example_sdl2_vulkan.vcxproj.filters
                     main.cpp
+                    Makefile
                 example_sdl3_directx11/
                     build_win32.bat
                     example_sdl3_directx11.vcxproj
                     example_sdl3_directx11.vcxproj.filters
                     main.cpp
                 example_sdl3_metal/
-                    Makefile
                     main.mm
-                example_sdl3_opengl3/
                     Makefile
-                    Makefile.emscripten
-                    README.md
+                example_sdl3_opengl3/
                     build_win32.bat
                     build_win64.bat
                     example_sdl3_opengl3.vcxproj
                     example_sdl3_opengl3.vcxproj.filters
                     main.cpp
-                example_sdl3_sdlgpu3/
                     Makefile
+                    Makefile.emscripten
+                    README.md
+                example_sdl3_sdlgpu3/
                     build_win64.bat
                     example_sdl3_sdlgpu3.vcxproj
                     example_sdl3_sdlgpu3.vcxproj.filters
                     main.cpp
-                example_sdl3_sdlrenderer3/
                     Makefile
+                example_sdl3_sdlrenderer3/
                     build_win32.bat
                     example_sdl3_sdlrenderer3.vcxproj
                     example_sdl3_sdlrenderer3.vcxproj.filters
                     main.cpp
-                example_sdl3_vulkan/
                     Makefile
+                example_sdl3_vulkan/
                     build_win32.bat
                     build_win64.bat
                     example_sdl3_vulkan.vcxproj
                     example_sdl3_vulkan.vcxproj.filters
                     main.cpp
+                    Makefile
                 example_win32_directx10/
                     build_win32.bat
                     example_win32_directx10.vcxproj
@@ -1690,27 +836,27 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             misc/
                 README.txt
                 cpp/
-                    README.txt
                     imgui_stdlib.cpp
                     imgui_stdlib.h
-                debuggers/
                     README.txt
+                debuggers/
                     imgui.gdb
                     imgui.natstepfilter
                     imgui.natvis
                     imgui_lldb.py
+                    README.txt
                 fonts/
+                    binary_to_compressed_c.cpp
                     Cousine-Regular.ttf
                     DroidSans.ttf
                     Karla-Regular.ttf
                     ProggyClean.ttf
                     ProggyTiny.ttf
                     Roboto-Medium.ttf
-                    binary_to_compressed_c.cpp
                 freetype/
-                    README.md
                     imgui_freetype.cpp
                     imgui_freetype.h
+                    README.md
                 single_file/
                     imgui_single_file.h
         spdlog/
@@ -1719,3 +865,4 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 spdlog/
                     spdlog.h
 ```
+<!-- END GENERATED FILE TREE -->
