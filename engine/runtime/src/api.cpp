@@ -121,6 +121,17 @@ struct RuntimeHost::Impl
         rebuild_subsystem_cache();
     }
 
+    void configure(RuntimeHostDependencies deps)
+    {
+        if (initialized)
+        {
+            throw std::runtime_error("RuntimeHost cannot be configured while initialized");
+        }
+
+        dependencies = std::move(deps);
+        reset_state();
+    }
+
     [[nodiscard]] std::string_view runtime_name_view() const noexcept
     {
         if (dependencies.scene_name.empty())
@@ -411,6 +422,11 @@ RuntimeHost& RuntimeHost::operator=(RuntimeHost&&) noexcept = default;
 
 RuntimeHost::~RuntimeHost() = default;
 
+void RuntimeHost::configure(RuntimeHostDependencies dependencies)
+{
+    impl_->configure(std::move(dependencies));
+}
+
 void RuntimeHost::initialize()
 {
     impl_->initialize();
@@ -529,6 +545,11 @@ void initialize()
 void shutdown()
 {
     global_host().shutdown();
+}
+
+void configure(RuntimeHostDependencies dependencies)
+{
+    global_host().configure(std::move(dependencies));
 }
 
 runtime_frame_state tick(double dt)

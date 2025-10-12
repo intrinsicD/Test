@@ -78,6 +78,8 @@ public:
     [[nodiscard]] double simulation_time() const noexcept;
     [[nodiscard]] std::span<const std::string_view> subsystem_names() const noexcept;
 
+    void configure(RuntimeHostDependencies dependencies);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
@@ -85,6 +87,7 @@ private:
 
 ENGINE_RUNTIME_API void initialize();
 ENGINE_RUNTIME_API void shutdown();
+ENGINE_RUNTIME_API void configure(RuntimeHostDependencies dependencies);
 ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
 [[nodiscard]] ENGINE_RUNTIME_API const geometry::SurfaceMesh& current_mesh();
 [[nodiscard]] ENGINE_RUNTIME_API bool is_initialized() noexcept;
