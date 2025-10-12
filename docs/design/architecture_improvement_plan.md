@@ -10,7 +10,7 @@ This document consolidates high-priority architectural corrections and forward-l
 - **Dependencies:** []
 - **Tasks:**
   - [x] Introduce an `ISubsystemInterface` abstraction in the Core module to formalize subsystem capabilities.
-  - [ ] Refactor `RuntimeHost` to accept subsystem plugins via dependency injection, removing direct module references.
+  - [x] Refactor `RuntimeHost` to accept subsystem plugins via dependency injection, removing direct module references.
   - [ ] Implement a `SubsystemRegistry` to discover and optionally load subsystem plugins at startup.
   - [ ] Update `engine/runtime/src/api.cpp` to expose the plugin-based initialization surface.
   - [ ] Add `ENABLE_<MODULE>` build-time flags for each optional subsystem.

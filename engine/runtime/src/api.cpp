@@ -1,6 +1,8 @@
 #include "engine/runtime/api.hpp"
 
-#include <array>
+#include <initializer_list>
+#include <memory>
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -19,22 +21,59 @@
 
 namespace {
 
-const std::array<std::string_view, 11>& module_names() noexcept
+class StaticSubsystem final : public engine::core::plugin::ISubsystemInterface
 {
-    static const std::array<std::string_view, 11> names = {
-        engine::animation::module_name(),
-        engine::assets::module_name(),
-        engine::compute::module_name(),
-        engine::compute::cuda::module_name(),
-        engine::core::module_name(),
-        engine::geometry::module_name(),
-        engine::io::module_name(),
-        engine::physics::module_name(),
-        engine::platform::module_name(),
-        engine::rendering::module_name(),
-        engine::scene::module_name(),
+public:
+    StaticSubsystem(std::string_view name, std::vector<std::string_view> dependencies)
+        : name_(name), dependencies_(std::move(dependencies))
+    {
+    }
+
+    [[nodiscard]] std::string_view name() const noexcept override
+    {
+        return name_;
+    }
+
+    [[nodiscard]] std::span<const std::string_view> dependencies() const noexcept override
+    {
+        return dependencies_;
+    }
+
+    void initialize(const engine::core::plugin::SubsystemLifecycleContext&) override {}
+
+    void shutdown(const engine::core::plugin::SubsystemLifecycleContext&) noexcept override {}
+
+    void tick(const engine::core::plugin::SubsystemUpdateContext&) override {}
+
+private:
+    std::string_view name_{};
+    std::vector<std::string_view> dependencies_{};
+};
+
+std::shared_ptr<engine::core::plugin::ISubsystemInterface> make_static_plugin(
+    std::string_view name,
+    std::initializer_list<std::string_view> dependencies = {})
+{
+    return std::make_shared<StaticSubsystem>(name, std::vector<std::string_view>{dependencies});
+}
+
+engine::runtime::RuntimeHostDependencies make_default_dependencies()
+{
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.subsystem_plugins = {
+        make_static_plugin(engine::animation::module_name()),
+        make_static_plugin(engine::assets::module_name()),
+        make_static_plugin(engine::compute::module_name()),
+        make_static_plugin(engine::compute::cuda::module_name(), {engine::compute::module_name()}),
+        make_static_plugin(engine::core::module_name()),
+        make_static_plugin(engine::geometry::module_name()),
+        make_static_plugin(engine::io::module_name()),
+        make_static_plugin(engine::physics::module_name()),
+        make_static_plugin(engine::platform::module_name()),
+        make_static_plugin(engine::rendering::module_name()),
+        make_static_plugin(engine::scene::module_name()),
     };
-    return names;
+    return deps;
 }
 
 } // namespace
@@ -57,11 +96,25 @@ struct RuntimeHost::Impl
     scene::Scene scene{};
     std::vector<scene::Entity> joint_entities{};
     std::vector<runtime_frame_state::scene_node_state> scene_nodes{};
+    std::vector<std::string_view> subsystem_names{};
 
     explicit Impl(RuntimeHostDependencies deps)
         : dependencies(std::move(deps))
     {
         reset_state();
+    }
+
+    void rebuild_subsystem_cache()
+    {
+        subsystem_names.clear();
+        subsystem_names.reserve(dependencies.subsystem_plugins.size());
+        for (const auto& plugin : dependencies.subsystem_plugins)
+        {
+            if (plugin != nullptr)
+            {
+                subsystem_names.push_back(plugin->name());
+            }
+        }
     }
 
     void reset_state()
@@ -81,15 +134,21 @@ struct RuntimeHost::Impl
         scene_nodes.clear();
         joint_entities.clear();
         scene = scene::Scene{scene_name()};
+        rebuild_subsystem_cache();
+    }
+
+    [[nodiscard]] std::string_view runtime_name_view() const noexcept
+    {
+        if (dependencies.scene_name.empty())
+        {
+            return std::string_view{"runtime.scene"};
+        }
+        return dependencies.scene_name;
     }
 
     [[nodiscard]] std::string scene_name() const
     {
-        if (dependencies.scene_name.empty())
-        {
-            return "runtime.scene";
-        }
-        return dependencies.scene_name;
+        return std::string{runtime_name_view()};
     }
 
     void ensure_default_world()
@@ -221,6 +280,14 @@ struct RuntimeHost::Impl
         rebuild_scene_entities();
         const math::vec3 translation = body_positions.empty() ? math::vec3{0.0F, 0.0F, 0.0F} : body_positions.front();
         synchronize_scene_graph(translation);
+        const engine::core::plugin::SubsystemLifecycleContext lifecycle{runtime_name_view()};
+        for (const auto& plugin : dependencies.subsystem_plugins)
+        {
+            if (plugin != nullptr)
+            {
+                plugin->initialize(lifecycle);
+            }
+        }
         initialized = true;
     }
 
@@ -232,6 +299,14 @@ struct RuntimeHost::Impl
         }
 
         initialized = false;
+        const engine::core::plugin::SubsystemLifecycleContext lifecycle{runtime_name_view()};
+        for (auto it = dependencies.subsystem_plugins.rbegin(); it != dependencies.subsystem_plugins.rend(); ++it)
+        {
+            if (*it != nullptr)
+            {
+                (*it)->shutdown(lifecycle);
+            }
+        }
         dispatcher.clear();
         last_report.execution_order.clear();
         last_report.kernel_durations.clear();
@@ -311,6 +386,14 @@ struct RuntimeHost::Impl
 
         last_report = dispatcher.dispatch();
         simulation_time += dt;
+        const engine::core::plugin::SubsystemUpdateContext update_context{dt};
+        for (const auto& plugin : dependencies.subsystem_plugins)
+        {
+            if (plugin != nullptr)
+            {
+                plugin->tick(update_context);
+            }
+        }
 
         runtime_frame_state frame{};
         frame.simulation_time = simulation_time;
@@ -332,7 +415,7 @@ struct RuntimeHost::Impl
     }
 };
 
-RuntimeHost::RuntimeHost() : RuntimeHost(RuntimeHostDependencies{}) {}
+RuntimeHost::RuntimeHost() : RuntimeHost(make_default_dependencies()) {}
 
 RuntimeHost::RuntimeHost(RuntimeHostDependencies dependencies)
     : impl_(std::make_unique<Impl>(std::move(dependencies)))
@@ -419,6 +502,21 @@ double RuntimeHost::simulation_time() const noexcept
     return impl_->simulation_time;
 }
 
+std::span<const std::string_view> RuntimeHost::subsystem_names() const noexcept
+{
+    return impl_->subsystem_names;
+}
+
+namespace {
+
+engine::runtime::RuntimeHost& global_host()
+{
+    static engine::runtime::RuntimeHost host{};
+    return host;
+}
+
+} // namespace
+
 std::string_view module_name() noexcept
 {
     return "runtime";
@@ -426,28 +524,18 @@ std::string_view module_name() noexcept
 
 std::size_t module_count() noexcept
 {
-    return module_names().size();
+    return global_host().subsystem_names().size();
 }
 
 std::string_view module_name_at(std::size_t index) noexcept
 {
-    const auto& names = module_names();
+    const auto names = global_host().subsystem_names();
     if (index >= names.size())
     {
         return {};
     }
     return names[index];
 }
-
-namespace {
-
-RuntimeHost& global_host()
-{
-    static RuntimeHost host{};
-    return host;
-}
-
-} // namespace
 
 void initialize()
 {
