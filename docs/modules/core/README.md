@@ -3,6 +3,7 @@
 ## Current State
 - Wraps the EnTT registry with the engine-facing `engine::core::ecs::registry` façade, exposing typed entity/component management plus debug UI helpers for inspection.
 - Provides module discovery helpers (`module_name`) and scaffolding for runtime subsystems (configuration, diagnostics, plugin, and memory namespaces are staged for expansion).
+- Declares the `engine::core::plugin::ISubsystemInterface` contract that runtime consumers use to register subsystem plugins.
 - Tests under `engine/core/tests/` validate the ECS façade and shared entry points.
 
 ## Usage
