@@ -39,17 +39,88 @@ what is implemented today.
   relevant records in pull requests so reviewers can trace intent.
 - The cross-module architectural backlog is curated in
   [`docs/design/architecture_improvement_plan.md`](docs/design/architecture_improvement_plan.md). Review and
-  update this plan when reprioritising milestones or when new technical debt emerges.
+  update this plan when reprioritising milestones or when new technical debt emerges. The plan is partitioned into
+  **Critical Design Corrections (DC)**, **Architecture Improvements (AI)**, **Roadmap TODOs (RT)**, **Documentation Improvements (DI)**,
+  **Build System Enhancements (BS)**, **Testing Infrastructure (TI)**, **Python Bindings (PY)**, and **Cross-Cutting initiatives (CC)**.
+- Keep README snapshots aligned with that plan so contributors can see which areas are currently emphasised without opening
+  the full design record.
 - As milestones conclude, update the associated notes and mirror outcomes into the roadmap to keep backlog
   discussions synchronised with implementation reality.
-- Rendering and runtime coordination currently centres on the **Rendering/Runtime vertical slice**:
-  - The objective is a deterministic path from runtime orchestration into the rendering frame graph. The
-    milestone crystallises into three TODOs that move in lockstep: enriching frame-graph resource
-    descriptors, prototyping the backend-neutral scheduler, and introducing runtime submission hooks.
-  - Capturing the rationale in a dedicated milestone note keeps rendering and runtime teams aligned on
-    scope while animation, physics, and geometry continue acting as data providers.
-  - As deliverables land, record acceptance outcomes and link test coverage so future contributors
-    understand why the slice was scoped this way and which regressions it guards against.
+- Rendering and runtime coordination currently centres on the **Rendering/Runtime vertical slice**. The active work streams are
+  codified as `AI-003` (frame-graph metadata expansion) and `RT-003` (Vulkan backend prototype) in the architecture improvement
+  plan. Their shared goal is a deterministic path from runtime orchestration into the rendering frame graph, realised through
+  enriched resource descriptors, a backend-neutral scheduler, and runtime submission hooks. Capture the rationale and status in
+  the plan so rendering and runtime teams stay aligned while animation, physics, and geometry continue acting as data providers.
+  As deliverables land, record acceptance outcomes and link test coverage so future contributors understand why the slice was
+  scoped this way and which regressions it guards against.
+
+## Architecture Improvement Plan Snapshot
+
+The architecture improvement plan is the canonical backlog for high-priority system work. The bullet points below summarise the
+current items so this README remains an at-a-glance companion to the full
+[`architecture_improvement_plan.md`](docs/design/architecture_improvement_plan.md) record.
+
+### Critical Design Corrections
+
+- `DC-001` (**High**): Introduce subsystem interfaces, dependency injection, and plugin discovery in the runtime module.
+- `DC-002` (**High**, depends on `DC-001`): Make CUDA optional with feature flags, dispatcher abstractions, and build preset
+  updates.
+- `DC-003` (**Medium**): Support GLFW, SDL, and mock window backends through a configurable factory and document backend
+  selection.
+- `DC-004` (**Medium**): Standardise error handling with `Result<T, Error>` types, error hierarchies, and IO pilot migration.
+
+### Architecture Improvements
+
+- `AI-001` (**High**, depends on `DC-004`): Roll out handle-based resource lifetime management across core, assets, and
+  rendering.
+- `AI-002` (**Medium**, depends on `AI-001` and `DC-001`): Build async asset streaming with background threading, futures, and
+  telemetry.
+- `AI-003` (**High**): Expand frame-graph metadata, queue affinity, and validation to unblock backend work.
+- `AI-004` (**Medium**, depends on `DC-002`): Validate compute kernel dependencies with cycle detection and improved errors.
+
+### Roadmap Advancement TODOs
+
+- `RT-001` (**High**): Deliver the animation deformation pipeline with rig binding, LBS, and integration tests.
+- `RT-002` (**High**): Implement persistent physics contact manifolds and benchmarking.
+- `RT-003` (**High**, depends on `AI-003`): Prototype the Vulkan rendering backend and document prerequisites.
+- `RT-004` (**High**): Add runtime lifecycle diagnostics, telemetry, and dashboards.
+- `RT-005` (**High**): Validate scene hierarchies, guard against cycles, and expose validation reports.
+- `RT-006` (**High**): Harden IO format detection with signature databases, fuzzing, and structured errors.
+
+### Supporting Initiatives
+
+- **Documentation (`DI-001`–`DI-003`)**: Standardise module READMEs, automate completeness checks, generate API references, and
+  author ADRs.
+- **Build System (`BS-001`–`BS-003`)**: Expand presets, formalise versioning, and clean CMake targets with accompanying docs.
+- **Testing (`TI-001`–`TI-003`)**: Establish integration suites, performance benchmarks, and fuzzing harnesses with CI hooks.
+- **Python (`PY-001`)**: Bootstrap core bindings, dependency management, and pytest coverage.
+- **Cross-Cutting (`CC-001`, `CC-002`)**: Develop telemetry instrumentation and hot reload infrastructure across subsystems.
+- **Milestone Coordination (`MC-001`, `MC-002`)**: Maintain milestone dashboards and synchronise module roadmaps through
+  automation.
+
+### Priority Horizon
+
+The plan ranks near-term execution focus as follows:
+
+| Horizon | Rank | Item |
+|---------|------|------|
+| Sprint 1 | 1 | `DC-001` |
+|          | 2 | `DC-002` |
+|          | 3 | `AI-003` |
+|          | 4 | `RT-001` |
+|          | 5 | `TI-001` |
+| Sprint 2-3 | 1 | `DC-004` |
+|            | 2 | `AI-001` |
+|            | 3 | `RT-002` |
+|            | 4 | `RT-004` |
+|            | 5 | `DI-001` |
+| M4-M5 | 1 | `AI-002` |
+|       | 2 | `RT-003` |
+|       | 3 | `CC-001` |
+|       | 4 | `PY-001` |
+
+Revisit the improvement plan at the start of each milestone to adjust priorities, confirm dependencies, and align with evolving
+product goals. Update both the plan and this snapshot together to prevent drift.
 
 ## Usage
 
