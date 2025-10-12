@@ -13,7 +13,7 @@ The animation subsystem exposes deterministic clip sampling, a single linear con
 2. **Rig Evaluation and Blend Trees**
    - ✅ Design a node-based blend tree representation (clip/controller nodes and linear blend nodes are implemented; state machines remain future work).
    - ✅ Implement evaluators that operate over cached joint pose buffers with deterministic sampling order.
-   - 🔜 Support parameter binding (floats, bools, events) for runtime control and debugging hooks.
+   - ✅ Support parameter binding (floats, bools, events) for runtime control and debugging hooks.
 
 3. **Deformation Integration**
    - Define rig binding data that links sampled poses to mesh skinning weights (interfacing with `engine::geometry`).

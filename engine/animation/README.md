@@ -6,6 +6,7 @@
 - Supplies a deterministic oscillator clip that powers runtime smoke tests and demonstrations.
 - Validates clips for structural issues and serialises/deserialises them as JSON to integrate with external asset tooling.
 - Exposes blend-tree authoring helpers (clip nodes, linear blends, tree evaluation/advancement) so runtime clients can compose multiple motion sources.
+- Blend trees support named float, bool, and event parameters that can drive linear blend weights and other runtime controls.
 - Public headers expose the core data structures consumed by other subsystems; implementation is kept ABI-stable for external tooling.
 
 ## Usage
@@ -28,4 +29,4 @@ The high-level roadmap is captured in [docs/animation_roadmap.md](../../docs/ani
 
 ## TODO / Next Steps
 
-- Extend the blend-tree system with parameter binding, additive nodes, and editor tooling while integrating deformation utilities per the roadmap above.
+- Extend the blend-tree system with additive nodes and editor tooling while integrating deformation utilities per the roadmap above.
