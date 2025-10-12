@@ -24,6 +24,59 @@ This roadmap aggregates the actionable plans defined by each engine module and h
 - **Mid-Term (3–5 milestones)** – Broaden functionality and harden subsystems for sustained iteration, including cross-module data flows and tooling.
 - **Long-Term (5+ milestones)** – Deliver robustness, authoring experiences, and extensibility required for production workloads.
 
+## Milestone Spotlight – First Rendering Frame
+
+### Objective
+
+Deliver the first on-screen frame produced by the engine by aligning the rendering and runtime roadmaps
+around a tightly scoped integration slice. The milestone emphasises the minimum vertical path capable of
+submitting a renderable scene graph from the runtime into the rendering frame graph and replaying it through
+a backend-neutral scheduler.
+
+### Selected TODOs
+
+1. **Enrich Frame-Graph Resource Descriptors**
+   - **Source backlog:** `engine/rendering/README.md` short-term roadmap.
+   - **Description:** Extend `FrameGraphResourceInfo` and related creation APIs with explicit format,
+     dimension, and usage metadata so backend resource providers can allocate deterministically and passes
+     publish the constraints required for validation.
+   - **Deliverables:** Schema updates across the rendering resources, a migration guide documenting the new
+     fields and defaults, and unit coverage asserting the metadata appears in compiled graphs.
+   - **Dependencies:** Coordinate schema alignment with the assets module so material and shader descriptors
+     carry matching requirements.
+
+2. **Prototype the Reference GPU Scheduler**
+   - **Source backlog:** Rendering roadmap short-term goals.
+   - **Description:** Implement a backend-neutral scheduler that converts compiled frame-graph passes into a
+     linear submission stream targeting an abstract command encoder. Validate dependency resolution,
+     transient lifetime management, and queue metadata propagation before platform backends exist.
+   - **Deliverables:** Reference scheduler implementation with stub encoder hooks and logging, integration
+     tests covering multi-pass graphs, and diagnostics surfaced through the logging infrastructure to
+     visualise submission order.
+   - **Dependencies:** Builds directly on the enriched resource descriptors and exposes the data needed by
+     runtime scheduling hooks.
+
+3. **Introduce Runtime Render Submission Hooks**
+   - **Source backlog:** Runtime roadmap mid-term goals.
+   - **Description:** Extend `RuntimeHost` with a render submission interface (e.g., `RenderGraphBuilder`)
+     that packages the current scene snapshot, camera parameters, and resource requirements into a form the
+     rendering scheduler consumes. The runtime owns orchestration of visibility queries and pass registration
+     for the initial slice.
+   - **Deliverables:** Runtime façade or adapter that marshals scene data into renderable structures, a smoke
+     test exercising animation → physics → runtime submission → rendering scheduler, and documentation that
+     illustrates the lifecycle from runtime tick to render submission.
+   - **Dependencies:** Requires TODOs 1 and 2 to define the data contracts accepted by the rendering
+     scheduler.
+
+### Acceptance Criteria
+
+- A single example application can tick the runtime, build a frame graph, and submit it through the
+  reference GPU scheduler without backend-specific code.
+- CI includes regression coverage for resource descriptor enrichment, scheduler submission ordering, and
+  runtime-to-rendering handoff.
+- Documentation across runtime and rendering READMEs references this milestone to orient future
+  contributors.
+
 ## Subsystem Alignment
 
 ### Animation
@@ -84,9 +137,34 @@ This roadmap aggregates the actionable plans defined by each engine module and h
 
 ### Runtime
 
-- **Near-Term** – `RuntimeHost` already orchestrates animation → physics → geometry via the compute dispatcher. Harden lifecycle diagnostics, scene mirroring, and streaming hooks as outlined in [design/runtime_plan.md](design/runtime_plan.md).
+- **Near-Term** – `RuntimeHost` already orchestrates animation → physics → geometry via the compute dispatcher. Harden lifecycle diagnostics, scene mirroring, and streaming hooks as detailed in the [Runtime Expansion Plan](#runtime-expansion-plan).
 - **Mid-Term** – Integrate asynchronous asset streaming and render submission so the runtime can coordinate full-frame workloads.
 - **Long-Term** – Move onto the global job system, support deterministic replay, and expose hot-reloadable configuration for live tuning.
+
+#### Runtime Expansion Plan
+
+- **Current Observations**
+  - `RuntimeHost` replaces the ad-hoc singleton while advancing animation, physics, geometry, and scene mirroring through the fixed kernel chain (`animation.evaluate → physics.accumulate → physics.integrate → geometry.deform → geometry.finalize`).
+  - Initialization builds a toy physics world, generates a linear animation clip, and mirrors joint transforms into an EnTT-backed scene registry accessible through C++ and C front-ends.
+  - Shutdown resets transient buffers but lacks subsystem teardown, diagnostics, streaming, or render scheduling.
+
+- **Near-Term Goals (1–2 Milestones)**
+  1. **Formalise lifecycle management.** Replace implicit singletons with explicit ownership, extend lifecycle diagnostics, and expand tests that exercise repeated initialize/shutdown sequences and invalid usage.
+  2. **Extend frame orchestration.** Promote the dispatcher from a fixed linear chain to a frame-graph-driven scheduler, surface per-kernel timing through `runtime_frame_state`, and add tests validating topological execution and telemetry integrity.
+  3. **Scene synchronisation hardening.** Support dynamic entity lifecycles when content streams in, preserve hierarchy metadata, and add regressions that verify world transforms for branching rigs.
+
+- **Mid-Term Goals (3–5 Milestones)**
+  4. **Streaming asset integration.** Interface with assets/IO for asynchronous loading, maintain double-buffered resources, and test resilience to slow streams.
+  5. **Render scheduling hooks.** Define a render submission interface that packages scene snapshots and propagates bounds/camera configuration, then validate an end-to-end smoke test.
+  6. **Diagnostics and tooling.** Emit structured telemetry, integrate profiling hooks, and expand runtime documentation with lifecycle diagrams and troubleshooting guidance.
+
+- **Long-Term Goals (5+ Milestones)**
+  7. **High-frequency job system integration.** Migrate the dispatcher onto the global task graph, track CPU/GPU dependencies, and gate resource usage with completion fences.
+  8. **Deterministic replay and state capture.** Record authoritative simulation inputs each frame, persist snapshots, and feed tooling pipelines for offline analysis.
+  9. **Hot-reloadable configuration.** Expose configuration files or scripting bindings for runtime parameters, backed by validation layers that reject incompatible changes.
+
+- **Documentation and Tracking**
+  - Update the runtime README as milestones close and mirror progress into the central roadmap and CI/backlog dashboards so dependent teams remain aligned.
 
 ### Scene
 
