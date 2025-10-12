@@ -37,6 +37,9 @@ what is implemented today.
 - The `docs/` tree captures architecture explorations, design rationales, and decision records that anchor
   large subsystem work. Capture design proposals here before landing major subsystems and reference the
   relevant records in pull requests so reviewers can trace intent.
+- The cross-module architectural backlog is curated in
+  [`docs/design/architecture_improvement_plan.md`](docs/design/architecture_improvement_plan.md). Review and
+  update this plan when reprioritising milestones or when new technical debt emerges.
 - As milestones conclude, update the associated notes and mirror outcomes into the roadmap to keep backlog
   discussions synchronised with implementation reality.
 - Rendering and runtime coordination currently centres on the **Rendering/Runtime vertical slice**:
