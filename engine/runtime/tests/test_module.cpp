@@ -2,10 +2,60 @@
 
 #include <array>
 #include <cmath>
+#include <span>
 #include <stdexcept>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "engine/runtime/api.hpp"
+#include "engine/runtime/subsystem_registry.hpp"
+
+namespace {
+
+class TestSubsystem final : public engine::core::plugin::ISubsystemInterface {
+public:
+    TestSubsystem(std::string name, std::vector<std::string> dependencies)
+        : name_(std::move(name)), dependencies_storage_(std::move(dependencies))
+    {
+        dependency_views_.reserve(dependencies_storage_.size());
+        for (const auto& dependency : dependencies_storage_)
+        {
+            dependency_views_.push_back(dependency);
+        }
+    }
+
+    [[nodiscard]] std::string_view name() const noexcept override
+    {
+        return name_;
+    }
+
+    [[nodiscard]] std::span<const std::string_view> dependencies() const noexcept override
+    {
+        return dependency_views_;
+    }
+
+    void initialize(const engine::core::plugin::SubsystemLifecycleContext&) override {}
+
+    void shutdown(const engine::core::plugin::SubsystemLifecycleContext&) noexcept override {}
+
+    void tick(const engine::core::plugin::SubsystemUpdateContext&) override {}
+
+private:
+    std::string name_{};
+    std::vector<std::string> dependencies_storage_{};
+    std::vector<std::string_view> dependency_views_{};
+};
+
+std::shared_ptr<engine::core::plugin::ISubsystemInterface> make_test_subsystem(
+    std::string name,
+    std::vector<std::string> dependencies = {})
+{
+    return std::make_shared<TestSubsystem>(std::move(name), std::move(dependencies));
+}
+
+}  // namespace
 
 TEST(RuntimeModule, ModuleNameMatchesNamespace) {
     EXPECT_EQ(engine::runtime::module_name(), "runtime");
@@ -111,6 +161,32 @@ TEST(RuntimeHost, AcceptsInjectedDependencies) {
     ASSERT_FALSE(host.joint_names().empty());
     EXPECT_EQ(host.joint_names().front(), "custom_joint");
     EXPECT_NEAR(host.current_mesh().bounds.min[1], mesh.bounds.min[1], 1e-5F);
+    host.shutdown();
+}
+
+TEST(RuntimeHost, LoadsSubsystemsFromRegistrySelection) {
+    auto registry = std::make_shared<engine::runtime::SubsystemRegistry>();
+    registry->register_subsystem(engine::runtime::SubsystemDescriptor{
+        "alpha",
+        {},
+        []() { return make_test_subsystem("alpha"); },
+        false});
+    registry->register_subsystem(engine::runtime::SubsystemDescriptor{
+        "beta",
+        {"alpha"},
+        []() { return make_test_subsystem("beta", {"alpha"}); },
+        false});
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.subsystem_registry = registry;
+    deps.enabled_subsystems = {"beta"};
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+    const auto names = host.subsystem_names();
+    ASSERT_EQ(names.size(), 2U);
+    EXPECT_EQ(names[0], "alpha");
+    EXPECT_EQ(names[1], "beta");
     host.shutdown();
 }
 
