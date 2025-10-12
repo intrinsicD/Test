@@ -14,7 +14,7 @@
 
 ### Rendering/Runtime vertical slice
 
-- The near-term focus documented in [docs/global_roadmap.md](../global_roadmap.md) is to
+- The near-term focus documented in [docs/ROADMAP.md](../ROADMAP.md#subsystem-alignment) is to
   deliver a deterministic path from runtime orchestration into the rendering frame
   graph. The accompanying [First Rendering Milestone Plan](first_rendering_milestone.md)
   distils that objective into three bounded TODOs that move in lockstep: enriching
@@ -32,7 +32,7 @@
 
 - Capture outcomes for the rendering/runtime vertical slice once the scheduler prototype
   and submission hooks are implemented, then mirror any process adjustments back into
-  [docs/global_roadmap.md](../global_roadmap.md).
+  [docs/ROADMAP.md](../ROADMAP.md#subsystem-alignment).
 - Continue enumerating design rationales for upcoming milestones (physics contact
   manifolds, geometry IO hardening, tooling telemetry) so that every cross-module
   effort references an explicit plan before execution begins.

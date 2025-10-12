@@ -73,10 +73,10 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 - Keep module TODO bullets synchronised with the aggregate table below.
 - Run the available tests and documentation checks before submitting changes.
 
-## Global Roadmap Alignment
+## Roadmap Alignment
 
 The consolidated sequencing across major subsystems lives in
-[`docs/global_roadmap.md`](docs/global_roadmap.md). The roadmap is ultimately aimed at delivering an engine that makes advanced yet accessible graphics and geometry processing research straightforward, with every required tool slated for future implementation. Near-term priorities focus on:
+[`docs/ROADMAP.md`](docs/ROADMAP.md). The roadmap is ultimately aimed at delivering an engine that makes advanced yet accessible graphics and geometry processing research straightforward, with every required tool slated for future implementation. Near-term priorities focus on:
 
 - Extending animation with deformation bindings and richer parameter binding now that clip
   validation, serialization, and blend-tree evaluation are in place.

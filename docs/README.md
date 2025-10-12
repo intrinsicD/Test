@@ -29,6 +29,5 @@ This directory centralises design notes, module overviews, and roadmaps. Start h
 
 ## Planning Resources
 
-- [Central roadmap](ROADMAP.md) aggregates per-module goals and links to cross-cutting initiatives.
-- [Global roadmap overview](global_roadmap.md) captures longer-term sequencing across subsystems.
+- [Central roadmap](ROADMAP.md) aggregates per-module goals, milestone bands, and cross-cutting initiatives.
 - Run `python scripts/validate_docs.py` after edits to check cross-references.

@@ -21,7 +21,7 @@ runtime into the rendering frame graph and replaying it through a backend-neutra
   requirements.
 
 ### 2. Prototype the Reference GPU Scheduler
-- **Source backlog:** `docs/roadmaps/rendering.md` short-term roadmap.
+- **Source backlog:** `docs/modules/rendering/ROADMAP.md` short-term roadmap.
 - **Description:** Implement a backend-neutral scheduler that converts compiled frame-graph passes into a linear submission stream
   targeting an abstract command encoder. The prototype validates dependency resolution, transient lifetime management, and queue
   metadata propagation before platform backends exist.

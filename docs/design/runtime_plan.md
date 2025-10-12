@@ -58,6 +58,6 @@ These constraints make the runtime suitable for smoke tests but insufficient for
 
 ## Documentation and Tracking
 
-- Update the module README as milestones close, linking back to this roadmap to keep the aggregated backlog in the workspace root synchronised and consistent with the [global roadmap](../global_roadmap.md).
+- Update the module README as milestones close, linking back to this roadmap to keep the aggregated backlog in the workspace root synchronised and consistent with the [central roadmap](../ROADMAP.md#subsystem-alignment).
 - Mirror progress into the CI/backlog dashboards so dependent teams can align their deliverables.
 

@@ -72,11 +72,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
     docs/
         README.md
         README_TEMPLATE.md
-        global_roadmap.md
-        roadmaps/
-            animation.md
-            physics.md
-            rendering.md
         api/
             README.md
             animation.md

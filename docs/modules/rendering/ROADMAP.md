@@ -1,12 +1,39 @@
 # Rendering Module Roadmap
 
-## Near Term
-- Expand frame graph resource descriptions with queue and barrier metadata, and extend tests to validate hazard tracking.
-- Prototype a reference GPU scheduler capable of translating frame graph tasks into backend submissions, initially targeting Vulkan.
+## Context Review
 
-## Mid Term
-- Implement backend adapters for Vulkan and Direct3D12 including resource lifetime tracking and descriptor heap management.
-- Build a library of reusable render passes (shadow maps, SSAO, tone mapping) with sample scenes demonstrating integration.
+The rendering module currently provides a CPU-side frame graph and a forward pipeline prototype (`engine/rendering/frame_graph.hpp`, `engine/rendering/forward_pipeline.hpp`) that orchestrate render passes without binding to a concrete GPU backend. Resource abstractions (`engine/rendering/resources`) and the GPU scheduler interface (`engine/rendering/gpu_scheduler.hpp`) expose contracts, but no backend-specific implementations ship yet. Materials, lighting, and visibility subsystems are scaffolded through headers and documentation-only stubs.
 
-## Long Term
-- Integrate runtime telemetry (GPU timing, resource residency) and author documentation/samples to support production rendering workloads.
+## Observations
+
+- The frame graph builds read/write dependencies, produces an execution order, and now streams geometry draw calls through a command encoder provider, but the encoded work still needs translating into backend command buffers.
+- `IGpuScheduler` and `resources::IGpuResourceProvider` expose abstract hooks with recording stubs; production-grade implementations for DirectX 12, Vulkan, Metal, or OpenGL remain absent.
+- Resource descriptions expose names and lifetimes yet omit format/usage metadata required for backend allocation and barrier translation.
+- Render pass definitions do not advertise the queue/command-buffer semantics that backend schedulers will require to batch work.
+- Module-level tests cover frame-graph compilation, pass scheduling, and backend adapter scaffolding, but stress cases around resource lifetimes and queue metadata are still absent.
+
+## Proposed Next Steps
+
+### 1. Short-Term (Unblock backend integration)
+
+1. **Resource Description Extensions** – Extend `FrameGraphResourceInfo` and creation APIs to describe formats, dimensions, and usage flags so providers can materialize buffers, textures, and samplers. Expand existing hazard-tracking tests to assert the new metadata propagates correctly.
+2. **Command Context Plumbing** – Ensure each `RenderPass` can describe queue affinity, command-buffer requirements, and synchronization hints; mirror this in `FrameGraphPassExecutionContext` and cover it with regression tests.
+3. **GPU Scheduler Prototype** – Implement a reference scheduler that converts compiled passes into a linear submission stream calling into an abstract command encoder. Use it to validate the frame graph logic with stub encoders.
+
+### 2. Mid-Term (Backend hookups)
+
+1. **Resource Provider Implementations** – Provide Vulkan and DirectX 12 resource providers that translate the enriched descriptions into API-native allocations and bind them to frame graph handles.
+2. **Backend-Specific Schedulers** – Implement scheduler specializations per backend that translate the reference submission stream into actual API command buffers and queues.
+3. **Render Pass Library** – Author foundational passes (geometry, lighting, post-processing) that exercise the backend implementations and define data dependencies explicitly.
+
+### 3. Long-Term (Robustness and tooling)
+
+1. **Validation & Testing** – Add unit/integration tests under `engine/rendering/tests` that stress the frame graph with branching dependencies, transient lifetimes, and backend mock objects.
+2. **Profiling & Instrumentation** – Integrate GPU timing queries and CPU profiling scopes to expose pass-level performance metrics.
+3. **Documentation & Samples** – Publish backend-specific setup guides, shader samples, and walkthroughs demonstrating how to register new passes and materials.
+
+## Dependencies and Coordination
+
+- Coordinate resource description changes with the assets module to align on material/shader metadata.
+- Collaborate with the platform module to ensure windowing and swap-chain abstractions expose the surfaces required by the backend implementations.
+- Update the aggregated workspace backlog and [central roadmap](../../ROADMAP.md#subsystem-alignment) once the short-term milestones are complete to reflect progress toward backend enablement.
