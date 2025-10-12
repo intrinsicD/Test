@@ -58,11 +58,21 @@ All modules inherit shared compile options via `engine::project_options` and pub
 - Each module exports exactly one `engine::<module>` target and matching `ENGINE_<MODULE>_API` macro.
 - Static and shared builds must respect the dependency layers documented in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## API Stability Snapshot
+## Module Stability Status
 
-All modules are currently **pre-1.0 prototypes**. Public headers are evolving while the
-engine solidifies core behaviours. Refer to individual module READMEs and the
-[global roadmap](../docs/global_roadmap.md) for the most recent stability notes.
+| Module    | Status | Version | ABI Stable | Docs Complete |
+|-----------|--------|---------|------------|---------------|
+| math      | ✅ Stable | 1.0.0 | Yes | Yes |
+| geometry  | 🚧 Beta | 0.9.0 | No | Partial |
+| physics   | 🚧 Beta | 0.8.0 | No | No |
+| rendering | ⏳ Alpha | 0.5.0 | No | No |
+| animation | ⏳ Alpha | 0.3.0 | No | Partial |
+
+**Legend** – ✅ Stable: API frozen with ABI guarantees. 🚧 Beta: API mostly stable but breaking changes possible. ⏳ Alpha: active development; expect rapid iteration.
+
+Refer to individual module READMEs and the
+[global roadmap](../docs/global_roadmap.md) for the most recent stability notes and
+release criteria.
 
 ## Versioning Strategy
 
@@ -72,34 +82,23 @@ Modules version independently but must interoperate within a given engine major 
 
 ## TODO / Next Steps
 
-Module-level backlogs are tracked in their respective READMEs. The highest-priority
-milestones that cut across modules are summarised below; keep this list synchronised with
-the workspace root `README.md` and the detailed roadmaps under `docs/`.
+Keep these milestones synchronised with the workspace root `README.md` and the detailed
+roadmaps under `docs/`.
 
-- **Animation** – Layer additive/deformation-aware blend nodes onto the existing controller
-  stack and expand profiling coverage.
-- **Assets** – Formalise asset metadata, stage import task graphs, and persist cache
-  artefacts with hot-reload diagnostics.
-- **Compute** – Unify dispatch descriptions so CPU/GPU executors share infrastructure before
-  standing up the CUDA path.
-- **Core** – Deliver application lifecycle, configuration, diagnostics, and plugin services
-  that downstream modules can rely on.
-- **Geometry & IO** – Finish round-tripping meshes/graphs/point clouds through import/export
-  interfaces while extending spatial structures and diagnostics.
-- **Math** – Document public headers, broaden decomposition/numerics support, and raise
-  regression coverage.
-- **Physics** – Build on the sweep-and-prune foundation with contact manifolds, constraint
-  solving, and instrumentation.
-- **Rendering** – Enrich frame-graph resource descriptors and prototype the reference GPU
-  scheduler ahead of backend integrations.
-- **Runtime** – Expand `RuntimeHost` diagnostics, dispatcher programmability, and streaming
-  hooks for end-to-end orchestration scenarios.
-- **Scene** – Define schemas for core components, broaden traversal helpers, and version the
-  serialization format.
-- **Platform** – Replace mock window/input providers with GLFW/SDL backends and add
-  filesystem write/watch utilities alongside real device plumbing.
-- **Tools** – Stand up shared tooling infrastructure, automate content pipelines, and grow
-  profiling/editor workflows.
+### Immediate (v2.0 readiness)
+- [ ] Stabilise geometry and physics integration ahead of the v2.0 release target (Q2 2025).
+- [ ] Establish ABI compatibility testing across supported toolchains (#234).
+- [ ] Document cross-module integration patterns so contributors can align module roadmaps (#235).
+
+### Short-term (post-freeze polish)
+- [ ] Produce a module dependency visualisation to surface layering rules (#236).
+- [ ] Expand build presets and CI coverage for standalone module builds.
+- [ ] Ensure per-module README TODO sections mirror the aggregate backlog entries.
+
+### Long-term (roadmap alignment)
+- [ ] Maintain semantic versioning policy updates as modules transition between stability tiers.
+- [ ] Grow contributor onboarding material, including review checklists and workflow guides.
+- [ ] Track performance/benchmark coverage across modules to uphold zero-cost abstractions goals.
 
 ## Contributing
 
