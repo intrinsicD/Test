@@ -31,7 +31,7 @@ namespace engine::runtime {
 struct ENGINE_RUNTIME_API runtime_frame_state {
     double simulation_time{0.0};
     animation::AnimationRigPose pose{};
-    geometry::MeshBounds bounds{};
+    geometry::Aabb bounds{};
     std::vector<math::vec3> body_positions{};
     compute::ExecutionReport dispatch_report{};
     struct ENGINE_RUNTIME_API scene_node_state {

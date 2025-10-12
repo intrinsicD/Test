@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/geometry/api.hpp"
+#include "engine/geometry/export.hpp"
 #include "engine/geometry/random.hpp"
 #include "engine/math/vector.hpp"
 

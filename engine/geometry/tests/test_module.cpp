@@ -21,7 +21,7 @@ TEST(GeometryModule, MeshTranslationUpdatesBounds) {
 
 TEST(GeometryModule, UpdateBoundsZeroesEmptyMeshes) {
     engine::geometry::SurfaceMesh mesh;
-    mesh.bounds = engine::geometry::MeshBounds{
+    mesh.bounds = engine::geometry::Aabb{
         engine::math::vec3{1.0F, 2.0F, 3.0F},
         engine::math::vec3{-1.0F, -2.0F, -3.0F},
     };
