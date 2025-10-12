@@ -2,11 +2,12 @@
 
 #include <array>
 #include <cmath>
+#include <memory>
 #include <span>
+#include <utility>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include "engine/runtime/api.hpp"
@@ -188,6 +189,46 @@ TEST(RuntimeHost, LoadsSubsystemsFromRegistrySelection) {
     EXPECT_EQ(names[0], "alpha");
     EXPECT_EQ(names[1], "beta");
     host.shutdown();
+}
+
+TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection) {
+    engine::runtime::shutdown();
+
+    auto registry = std::make_shared<engine::runtime::SubsystemRegistry>();
+    registry->register_subsystem(engine::runtime::SubsystemDescriptor{
+        "alpha",
+        {},
+        []() { return make_test_subsystem("alpha"); },
+        false});
+    registry->register_subsystem(engine::runtime::SubsystemDescriptor{
+        "beta",
+        {"alpha"},
+        []() { return make_test_subsystem("beta", {"alpha"}); },
+        false});
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.subsystem_registry = registry;
+    deps.enabled_subsystems = {"beta"};
+
+    engine::runtime::configure(std::move(deps));
+
+    EXPECT_FALSE(engine::runtime::is_initialized());
+    ASSERT_EQ(engine::runtime::module_count(), 2U);
+    EXPECT_EQ(engine::runtime::module_name_at(0), "alpha");
+    EXPECT_EQ(engine::runtime::module_name_at(1), "beta");
+
+    engine::runtime::initialize();
+    EXPECT_TRUE(engine::runtime::is_initialized());
+    engine::runtime::shutdown();
+
+    auto default_registry = std::make_shared<engine::runtime::SubsystemRegistry>(
+        engine::runtime::make_default_subsystem_registry());
+    engine::runtime::RuntimeHostDependencies defaults{};
+    defaults.subsystem_registry = default_registry;
+    defaults.subsystem_plugins = default_registry->load_defaults();
+    engine::runtime::configure(std::move(defaults));
+
+    ASSERT_EQ(engine::runtime::module_count(), 11U);
 }
 
 TEST(RuntimeModule, EnumeratesAllEngineModules) {
