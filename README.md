@@ -32,6 +32,22 @@ what is implemented today.
 - **`scripts/`** – Build, validation, and CI orchestration entry points.
 - **`third_party/`** – Vendored dependencies such as EnTT, Dear ImGui, spdlog, and GoogleTest.
 
+## Design Documentation Workflow
+
+- The `docs/` tree captures architecture explorations, design rationales, and decision records that anchor
+  large subsystem work. Capture design proposals here before landing major subsystems and reference the
+  relevant records in pull requests so reviewers can trace intent.
+- As milestones conclude, update the associated notes and mirror outcomes into the roadmap to keep backlog
+  discussions synchronised with implementation reality.
+- Rendering and runtime coordination currently centres on the **Rendering/Runtime vertical slice**:
+  - The objective is a deterministic path from runtime orchestration into the rendering frame graph. The
+    milestone crystallises into three TODOs that move in lockstep: enriching frame-graph resource
+    descriptors, prototyping the backend-neutral scheduler, and introducing runtime submission hooks.
+  - Capturing the rationale in a dedicated milestone note keeps rendering and runtime teams aligned on
+    scope while animation, physics, and geometry continue acting as data providers.
+  - As deliverables land, record acceptance outcomes and link test coverage so future contributors
+    understand why the slice was scoped this way and which regressions it guards against.
+
 ## Usage
 
 ### Prerequisites
@@ -73,6 +89,365 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 - Keep module TODO bullets synchronised with the aggregate table below.
 - Run the available tests and documentation checks before submitting changes.
 
+## Architecture Overview
+
+### Module Boundaries
+
+Each functional domain (math, geometry, scene, rendering, physics, etc.) resides in its own top-level
+subdirectory under [`engine/`](engine). Modules publish a minimal ABI surface through
+`include/engine/<name>` headers, while the corresponding `src/` directories contain the shared-library
+entry points. Shared infrastructure is imported explicitly; no module relies on transitive include paths.
+Math sits at the base of the dependency graph, providing numerics for geometry, physics, and rendering.
+Geometry builds on math to supply shapes, spatial queries, and property registries. The scene module wraps
+the ECS, depending on math for transforms and exposing entity handles consumed by animation, physics, and
+rendering.
+
+### ECS Layering
+
+The [`Scene` façade](engine/scene/include/engine/scene/scene.hpp) wraps an `entt::registry` and owns
+entity creation, destruction, and component storage. High-level systems interact exclusively through the
+`Scene` interface—either by iterating `Scene::view<Components...>()` or by caching `Entity` handles that
+validate themselves before acting. This design enforces a clear ownership model: only the scene owns the
+registry, while other modules supply components and systems that operate on it. Future subsystem
+initializers can extend `Scene::initialize_systems()` without leaking `entt` internals across module
+boundaries.
+
+### Runtime Subsystem Discovery
+
+The runtime module surfaces all loadable subsystems. Its
+[`api.cpp`](engine/runtime/src/api.cpp) composes a static array of module identifiers by invoking
+`module_name()` on each dependency. The exported C ABI (`engine_runtime_module_*`) allows host applications
+to enumerate available modules at startup, enabling dynamic linking or scripting layers to request only the
+services they need. Extending this array is sufficient for new modules to appear in the discovery list,
+keeping runtime configuration declarative and centralised.
+
+## API Surface Summary
+
+The API documentation collects subsystem summaries and call sequences that mirror the exported headers.
+Update the relevant notes whenever a public header changes and keep diagrams or tables close to the code
+they describe to minimise drift. Highlights per module:
+
+### Animation
+
+The animation API exposes lightweight structures used to author and evaluate skeletal clips at runtime.
+Public declarations live in
+[`engine/animation/api.hpp`](engine/animation/include/engine/animation/api.hpp).
+
+- `JointPose` – Stores translation, rotation (quaternion), and scale for an individual joint.
+- `Keyframe` / `JointTrack` – Timestamped pose samples for a named joint.
+- `AnimationClip` – Aggregates tracks and records the clip duration.
+- `AnimationController` – Tracks playback state (time, speed, looping) for a clip.
+- `AnimationBlendTree` – Node-based graph that evaluates clips and blend operators.
+- `BlendTreeParameter` – Runtime parameter binding (float, bool, event) surfaced to the host application.
+- `AnimationRigPose` – Container of joint poses with constant-time name lookup via `find()`.
+
+```cpp
+#include <engine/animation/api.hpp>
+
+auto clip = engine::animation::make_default_clip();
+auto controller = engine::animation::make_linear_controller(std::move(clip));
+engine::animation::advance_controller(controller, 0.016);
+auto pose = engine::animation::evaluate_controller(controller);
+```
+
+`make_default_clip()` returns a procedural oscillation clip used by the runtime smoke test.
+`make_linear_controller` validates keyframe ordering and normalises the clip duration before returning a
+controller ready for playback. `AnimationRigPose::find("root")` returns the active joint pose; the physics
+and geometry subsystems consume it to influence forces and mesh deformation.
+
+Blend trees expose composable nodes that mix clips and controller output based on parameter binding:
+
+```cpp
+using namespace engine::animation;
+
+AnimationBlendTree tree;
+auto idle = add_clip_node(tree, load_clip("idle.json"));
+auto walk = add_clip_node(tree, load_clip("walk.json"));
+auto blend = add_linear_blend_node(tree, idle, walk, 0.5f);
+set_blend_tree_root(tree, blend);
+
+auto speed_param = add_float_parameter(tree, "speed", 0.0f);
+bind_linear_blend_weight(tree, blend, speed_param);
+
+advance_blend_tree(tree, dt);
+auto pose = evaluate_blend_tree(tree);
+```
+
+`add_clip_node` stores the clip handle in the tree and returns a node identifier.
+`add_linear_blend_node` mixes two input nodes according to a bound parameter or constant weight. Parameters
+act as the runtime control surface and advance alongside the blend tree so callers can drive weights,
+events, and boolean gates in lockstep with the host application.
+
+### Compute
+
+The compute API implements a CPU-oriented kernel dispatcher mirroring the dependency management used by GPU
+command graphs. Headers live in
+[`engine/compute/api.hpp`](engine/compute/include/engine/compute/api.hpp). `KernelDispatcher` records named
+kernels and their dependencies. `dispatch()` performs a Kahn topological sort, executes each kernel exactly
+once, and returns an `ExecutionReport` containing the realised execution order together with per-kernel
+durations:
+
+```cpp
+#include <engine/compute/api.hpp>
+
+engine::compute::KernelDispatcher dispatcher;
+const auto prepare = dispatcher.add_kernel("prepare", [] {
+    // upload data, allocate buffers, etc.
+});
+dispatcher.add_kernel("simulate", [] {
+    // run the heavy work
+}, {prepare});
+const auto report = dispatcher.dispatch();
+for (std::size_t i = 0; i < report.execution_order.size(); ++i) {
+    std::cout << report.execution_order[i] << " took "
+              << report.kernel_durations[i] << "s\n";
+}
+```
+
+If a dependency index is invalid or a cycle is detected, the dispatcher raises an exception to prevent
+inconsistent runtime state. The runtime module uses the report to surface kernel ordering and timing through
+the C API.
+
+### Geometry
+
+The geometry module layers geometric primitives, spatial queries, and property management utilities on top
+of the core math types. Public headers live under
+[`engine/geometry/include`](engine/geometry/include).
+
+- [`engine/geometry/shapes/aabb.hpp`](engine/geometry/include/engine/geometry/shapes/aabb.hpp) introduces
+  axis-aligned bounding boxes with helpers for bounding-volume hierarchy construction and intersection
+  queries.
+- [`engine/geometry/shapes.hpp`](engine/geometry/include/engine/geometry/shapes.hpp) aggregates canonical
+  shape definitions so call sites can pull the entire catalogue with a single include.
+- [`engine/geometry/utils/shape_interactions.hpp`](engine/geometry/include/engine/geometry/utils/shape_interactions.hpp)
+  enumerates robust intersection tests with configurable epsilon tolerances.
+- [`engine/geometry/utils/connectivity.hpp`](engine/geometry/include/engine/geometry/utils/connectivity.hpp)
+  provides mesh traversal helpers, circulators, and range adaptors for half-edge data structures.
+- [`engine/geometry/random.hpp`](engine/geometry/include/engine/geometry/random.hpp) defines deterministic
+  sampling APIs for scattering points or randomising bounding volumes.
+- [`engine/geometry/properties/property_set.hpp`](engine/geometry/include/engine/geometry/properties/property_set.hpp)
+  and [`property_registry.hpp`](engine/geometry/include/engine/geometry/properties/property_registry.hpp)
+  manage per-element attributes with type-erased buffers and handle-based access.
+
+`engine/geometry/api.hpp` exposes a compact `SurfaceMesh` struct geared towards runtime deformation. It
+stores rest-state and deformed vertex positions, indices, normals, and cached bounds. Key helpers include
+`make_unit_quad()`, `load_surface_mesh`, `save_surface_mesh`, `apply_uniform_translation`,
+`recompute_vertex_normals`, `update_bounds`, and `centroid`. These functions allow the runtime to preview
+animation- and physics-driven deformation without touching the heavier half-edge mesh infrastructure.
+
+### Math
+
+The math module provides the foundational numeric types and routines that power higher-level systems. Its
+public headers live under [`engine/math/include`](engine/math/include) and expose:
+
+- [`engine/math/common.hpp`](engine/math/include/engine/math/common.hpp) – compile-time traits, literal
+  helpers, and inline macros.
+- [`engine/math/vector.hpp`](engine/math/include/engine/math/vector.hpp) – templated `Vector<T, N>`
+  container with arithmetic operators and dimension-changing constructors.
+- [`engine/math/matrix.hpp`](engine/math/include/engine/math/matrix.hpp) – column-major matrices with proxy
+  types, arithmetic composition, and conversion helpers.
+- [`engine/math/quaternion.hpp`](engine/math/include/engine/math/quaternion.hpp) – Hamiltonian quaternion
+  implementation with scalar/vector constructors and product operators.
+- [`engine/math/utils.hpp`](engine/math/include/engine/math/utils/utils.hpp) – inline utilities for
+  clamping, extrema queries, and tolerance-based comparisons.
+- [`engine/math/utils_rotation.hpp`](engine/math/include/engine/math/utils/utils_rotation.hpp) – rotation
+  helpers supplementing quaternion and matrix math.
+
+All math types are header-only templates. Constructors favour explicit semantics to avoid accidental
+narrowing, and the module intentionally avoids heap allocation for suitability in real-time systems.
+
+### Physics
+
+The physics API provides a compact `PhysicsWorld`/`RigidBody` pair for deterministic, step-based simulation.
+Public interfaces are defined in
+[`engine/physics/api.hpp`](engine/physics/include/engine/physics/api.hpp).
+
+```cpp
+#include <engine/physics/api.hpp>
+
+engine::physics::PhysicsWorld world;
+world.gravity = {0.0F, -9.81F, 0.0F};
+engine::physics::RigidBody body;
+body.mass = 2.0F;
+const auto handle = engine::physics::add_body(world, body);
+engine::physics::apply_force(world, handle, {0.0F, 20.0F, 0.0F});
+engine::physics::integrate(world, 0.016);
+```
+
+`RigidBody` stores mass, inverse mass, position, velocity, and an accumulated force. `add_body` normalises
+the mass field and appends the body to the world. `body_at(world, index)` throws `std::out_of_range` when
+the index is invalid, surfacing configuration mistakes early. `clear_forces` zeroes accumulators when
+callers need a clean slate before the next update.
+
+### Runtime
+
+The runtime module aggregates subsystem entry points and exposes a stable C ABI for dynamic discovery.
+[`engine/runtime/api.hpp`](engine/runtime/include/engine/runtime/api.hpp) defines the public surface:
+
+- `initialize()` / `shutdown()` – Manage lifetime of the shared simulation state.
+- `runtime_frame_state tick(double dt)` – Steps animation, compute, physics, and geometry in a deterministic
+  order and returns the resulting pose, body positions, bounds, scene graph snapshot, and compute execution
+  report with per-kernel timings.
+- `const geometry::SurfaceMesh& current_mesh()` – Provides direct access to the deformed mesh for
+  inspection.
+
+The returned `runtime_frame_state::dispatch_report.execution_order` mirrors the ordering produced by
+`compute::KernelDispatcher`, and `kernel_durations` expose wall-clock timings for profiling overlays. The C
+bindings mirror these helpers (`engine_runtime_initialize`, `engine_runtime_tick`, body/joint accessors,
+dispatch inspection, and scene graph queries), enabling scripting layers such as the Python bindings in
+`python/engine3g/loader.py` to coordinate the simulation.
+
+### Scene
+
+The scene module adapts [`entt`](https://github.com/skypjack/entt) into an engine-friendly façade. The
+[`Scene`](engine/scene/include/engine/scene/scene.hpp) and `Entity` wrappers manage lifetime, component
+insertion, and registry access. Inline implementations forward to the underlying `entt::registry`, providing
+helpers such as `Entity::emplace`, `Entity::destroy`, and templated `Scene::view` iterators. `Scene`
+instances own an `entt::registry` and control system initialisation via an internal `initialize_systems`
+hook. Entities are lightweight handles that validate against their backing scene before performing registry
+operations, preventing accidental use-after-destroy patterns. Aside from the ABI surface, the module is
+header-only, enabling inline component access in performance-critical loops.
+
+## Build Targets and Dependency Graph
+
+This inventory enumerates the CMake targets that originate from the root build and the `engine/**/CMakeLists`
+hierarchy. The goal is to make the dependency structure explicit and highlight gaps or potential refactors
+before introducing additional subsystems.
+
+The root build defines two cross-cutting interface targets:
+
+- `engine::project_options` – Propagates the required C++20 feature set and compiler-specific switches such
+  as `-stdlib=libc++` when building with Clang.
+- `engine::headers` – Aggregates the public header directories registered by each engine module so that
+  tooling, integration tests, or external consumers can attach to the entire header surface with a single
+  dependency.
+
+All module libraries link against `engine::project_options`, and each module registers its public include
+directory through `engine_apply_module_defaults`, which simultaneously forwards that directory to
+`engine::headers`.
+
+### Engine Libraries
+
+| Target | Type | Direct Dependencies |
+| --- | --- | --- |
+| `engine_animation` | SHARED/STATIC | `engine::project_options`, `engine_math` |
+| `engine_assets` | SHARED/STATIC | `engine::project_options`, `engine_io` |
+| `engine_compute` | SHARED/STATIC | `engine::project_options`, `engine_math`, `engine_compute_cuda` |
+| `engine_compute_cuda` | SHARED/STATIC | `engine::project_options`, `engine_math` |
+| `engine_core` | SHARED/STATIC | `engine::project_options`, `EnTT::EnTT`, `spdlog::spdlog_header_only`, `imgui::imgui` |
+| `engine_geometry` | SHARED/STATIC | `engine::project_options`, `engine_math` |
+| `engine_io` | SHARED/STATIC | `engine::project_options`, `engine_geometry` |
+| `engine_math` | INTERFACE | `engine::project_options` |
+| `engine_physics` | SHARED/STATIC | `engine::project_options`, `engine_math` |
+| `engine_platform` | SHARED/STATIC | `engine::project_options`, `glfw` *or* `glfw_shared` (configure-time choice) |
+| `engine_rendering` | SHARED/STATIC | `engine::project_options`, `engine_core`, `engine_assets`, `engine_platform`, `engine_scene` |
+| `engine_runtime` | SHARED/STATIC | `engine::project_options`, `engine_animation`, `engine_assets`, `engine_compute`, `engine_compute_cuda`, `engine_core`, `engine_geometry`, `engine_io`, `engine_math`, `engine_physics`, `engine_platform`, `engine_rendering`, `engine_scene` |
+| `engine_scene` | SHARED/STATIC | `engine::project_options`, `EnTT::EnTT`, `engine_core`, `engine_math` |
+
+`engine::headers` collects the include directories contributed by each module (including
+`engine_compute_cuda`). Consumers that only need the headers can link to this interface target without
+incurring object code dependencies.
+
+### Tests and Utilities
+
+Module-specific test executables share a common shape: they link against the corresponding module library,
+the GoogleTest main target, and `engine::project_options` to inherit the compile feature requirements.
+
+| Target | Purpose |
+| --- | --- |
+| `engine_animation_tests` | Animation unit tests |
+| `engine_assets_tests` | Asset pipeline smoke tests |
+| `engine_compute_tests` | CPU compute façade tests |
+| `engine_compute_cuda_tests` | CUDA compute façade tests |
+| `engine_core_tests` | ECS and core service tests |
+| `engine_geometry_tests` | Geometry primitives and utilities |
+| `engine_geometry_shape_interactions_tests` | Focused geometry interaction suite |
+| `engine_io_tests` | IO registries |
+| `engine_math_tests` | Header-only math validation |
+| `engine_physics_tests` | Physics utilities |
+| `engine_platform_tests` | Windowing abstractions |
+| `engine_platform_window_app` | Manual smoke harness for the platform layer |
+| `engine_rendering_tests` | Rendering orchestrator checks |
+| `engine_runtime_tests` | Runtime aggregation |
+| `engine_scene_tests` | Scene graph tests |
+
+The root build also defines the `docs` custom target that drives `scripts/validate_docs.py` when Python is
+available.
+
+### Third-Party Integrations
+
+Third-party libraries are brought in through their own packages (`EnTT::EnTT`, `spdlog::spdlog_header_only`,
+`imgui::imgui`, `glfw`/`glfw_shared`) and remain isolated from engine internals except through explicit
+`target_link_libraries` usage requirements. FetchContent fallbacks for EnTT and GLFW honour the cache
+variables emitted by the presets, ensuring consistent feature toggles regardless of whether dependencies are
+vendored or fetched at configure time.
+
+### Identified Gaps
+
+1. **CUDA hard dependency** – `engine_compute` and `engine_runtime` always pull in `engine_compute_cuda`.
+   Introducing a configuration option would let CPU-only builds skip CUDA entirely.
+2. **Platform backend selection** – The build assumes GLFW is the active windowing provider. SDL stubs exist
+   in the source tree, but no preset toggle guards their inclusion.
+3. **Header aggregation visibility** – While `engine::headers` simplifies discovery for tooling, external
+   consumers that link only a subset of modules may inadvertently gain include visibility into unrelated
+   subsystems. Monitoring include hygiene in downstream targets is recommended.
+
+The dependency graph contains no cycles. The longest chains currently flow from
+`engine_runtime` → `engine_compute` → `engine_compute_cuda` → `engine_math` and from
+`engine_assets` → `engine_io` → `engine_geometry` → `engine_math`.
+
+## Rendering Module Include Path Audit
+
+- Synchronisation primitives now live in `engine/rendering/include/engine/rendering/resources`, so the
+  public API no longer relies on relative includes.
+- `engine_apply_module_defaults` exposes only the `include/` subtree to dependants, keeping backend and
+  test-only headers private.
+- Public headers consumed by downstream clients all reside under `engine/rendering/include`; backend
+  schedulers and test helpers remain implementation details.
+
+Details:
+
+- `engine_apply_module_defaults` adds the values passed in `PUBLIC_INCLUDE_DIRS` to the module target and to
+  the aggregate interface target `engine::headers`. The rendering module contributes only its `include`
+  directory, restricting exported paths.
+- `PRIVATE_INCLUDE_DIRS` affects only module compilation. Supplying `${CMAKE_SOURCE_DIR}` in the rendering
+  module lets implementation files see the whole source tree without propagating that path to consumers.
+- `engine/rendering/include/engine/rendering/gpu_scheduler.hpp` and `frame_graph.hpp` include
+  `engine/rendering/resources/synchronization.hpp` directly now that the header sits under the exported
+  include tree.
+- Headers outside `engine/rendering/include` (`engine/rendering/backend/*.hpp`,
+  `engine/rendering/tests/scheduler_test_utils.hpp`) are confined to backend scaffolding and test utilities.
+
+Recommendation: continue publishing consumer-facing headers from `engine/rendering/include` and keep
+backend/test helpers private. When future resource abstractions need to be shared, colocate them alongside
+the synchronisation primitives to avoid reintroducing relative includes.
+
+## Engineering Notes — README Reconnaissance (2025-02-14)
+
+Context: audited the repository root `README.md` to extract build, testing, and layout guidance.
+
+Open questions / gaps:
+
+1. **Toolchain specificity** — The build section enumerates the CMake invocation but omits required
+   compiler versions, SDK dependencies (e.g., Vulkan SDK), or minimum CMake version. Clarify to guarantee
+   reproducible builds across platforms.
+2. **Python environment** — `pytest` validates `engine3g.loader`, yet the expected virtual environment,
+   required packages, and binding generation steps remain undocumented.
+3. **Third-party updates** — Vendored library update cadence and contribution workflow are unstated.
+4. **Testing scope** — The README does not list existing test suites or quality gates such as coverage or
+   sanitiser requirements. Align on expectations.
+5. **Feature roadmap prioritisation** — The TODO backlog is exhaustive but unordered. Product guidance is
+   required to understand in-flight milestone focus.
+
+Next steps:
+
+- Sync with build/release owners to enumerate minimum supported toolchains and platform-specific caveats.
+- Draft a Python environment setup guide (potentially under `python/README.md`) once dependencies are
+  confirmed.
+- Propose documentation updates detailing third-party maintenance responsibilities.
+- Audit existing tests to classify by subsystem and recommend coverage metrics.
+- Request product/tech-lead input on TODO sequencing for roadmap planning.
+
 ## Roadmap Alignment
 
 The consolidated sequencing across major subsystems lives in
@@ -109,6 +484,6 @@ summary referenced above.
 | Physics | Build on the rigid-body, collider, and sweep-and-prune foundation by adding contact manifolds, constraint solving, and instrumentation. | [docs/modules/physics/README.md](docs/modules/physics/README.md)<br>[docs/modules/physics/ROADMAP.md](docs/modules/physics/ROADMAP.md) |
 | Platform | Replace mock backends with GLFW/SDL integrations, add filesystem write/watch utilities, and surface real input device plumbing. | [docs/modules/platform/README.md](docs/modules/platform/README.md)<br>[docs/modules/platform/ROADMAP.md](docs/modules/platform/ROADMAP.md) |
 | Rendering | Enrich frame-graph resource descriptors, thread queue/command metadata, and prototype the reference GPU scheduler before wiring backends. | [docs/modules/rendering/README.md](docs/modules/rendering/README.md)<br>[docs/modules/rendering/ROADMAP.md](docs/modules/rendering/ROADMAP.md) |
-| Runtime | Extend `RuntimeHost` diagnostics, dispatcher programmability, and streaming hooks to support end-to-end orchestration scenarios. | [docs/modules/runtime/README.md](docs/modules/runtime/README.md)<br>[docs/modules/runtime/ROADMAP.md](docs/modules/runtime/ROADMAP.md)<br>[docs/design/runtime_plan.md](docs/design/runtime_plan.md) |
+| Runtime | Extend `RuntimeHost` diagnostics, dispatcher programmability, and streaming hooks to support end-to-end orchestration scenarios. | [docs/modules/runtime/README.md](docs/modules/runtime/README.md)<br>[docs/modules/runtime/ROADMAP.md](docs/modules/runtime/ROADMAP.md)<br>[docs/ROADMAP.md#runtime-expansion-plan](docs/ROADMAP.md#runtime-expansion-plan) |
 | Scene | Define schemas for core runtime components, broaden traversal helpers, and version the serialization format alongside expanded tests. | [docs/modules/scene/README.md](docs/modules/scene/README.md)<br>[docs/modules/scene/ROADMAP.md](docs/modules/scene/ROADMAP.md) |
 | Tools | Stand up shared tooling infrastructure, automate content pipelines, surface profiling flows, and iterate towards the editor shell. | [docs/modules/tools/README.md](docs/modules/tools/README.md)<br>[docs/modules/tools/ROADMAP.md](docs/modules/tools/ROADMAP.md) |
