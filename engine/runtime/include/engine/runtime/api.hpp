@@ -9,6 +9,7 @@
 
 #include "engine/animation/api.hpp"
 #include "engine/core/plugin/isubsystem_interface.hpp"
+#include "engine/runtime/subsystem_registry.hpp"
 #include "engine/compute/api.hpp"
 #include "engine/geometry/api.hpp"
 #include "engine/math/math.hpp"
@@ -50,6 +51,8 @@ struct ENGINE_RUNTIME_API RuntimeHostDependencies {
     physics::PhysicsWorld world{};
     std::string scene_name{"runtime.scene"};
     std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> subsystem_plugins{};
+    std::shared_ptr<SubsystemRegistry> subsystem_registry{};
+    std::vector<std::string> enabled_subsystems{};
 };
 
 class ENGINE_RUNTIME_API RuntimeHost {
