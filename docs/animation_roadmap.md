@@ -2,13 +2,14 @@
 
 ## Context
 
-The animation subsystem exposes deterministic clip sampling, a single linear controller, a smoke-test oscillator clip, and now a blend-tree authoring API capable of mixing multiple motion sources. Public headers provide data structures for joint poses, keyframes, and clips, and the runtime test suite validates interpolation for a single joint. JSON serialization is available alongside the shared I/O importer, but tooling for parameterised blending and deformation remains open.
+The animation subsystem exposes deterministic clip sampling, linear controllers, a smoke-test oscillator clip, and a blend-tree authoring API capable of mixing multiple motion sources. Public headers provide data structures for joint poses, keyframes, and clips, and the test suite exercises clip validation, serialization, and parameter-bound blend nodes. JSON serialization ships alongside shared IO helpers, while deformation bindings and richer tooling remain open.
 
 ## Objectives
 
 1. **Asset and Clip Lifecycle**
    - ✅ Clip validation and JSON serialization now exist in `engine::animation` (`validate_clip`, `write_clip_json`, `read_clip_json`).
-   - ✅ Provide import/export adapters within the `engine::io` module to integrate with asset pipelines and consider binary representations for runtime efficiency.
+   - ✅ `engine::io::animation` adapters detect clip formats and route JSON loads/saves through the animation serializers.
+   - ☐ Evaluate binary or compressed representations to reduce load time once the tooling pipeline demands it.
 
 2. **Rig Evaluation and Blend Trees**
    - ✅ Design a node-based blend tree representation (clip/controller nodes and linear blend nodes are implemented; state machines remain future work).

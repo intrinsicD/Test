@@ -10,7 +10,7 @@ The rendering module currently provides a CPU-side frame graph and a forward pip
 - `IGpuScheduler` and `resources::IGpuResourceProvider` expose abstract hooks with recording stubs; production-grade implementations for DirectX 12, Vulkan, Metal, or OpenGL remain absent.
 - Resource descriptions expose names and lifetimes yet omit format/usage metadata required for backend allocation and barrier translation.
 - Render pass definitions do not advertise the queue/command-buffer semantics that backend schedulers will require to batch work.
-- There are no module-level validation tests that exercise the frame graph compilation or verify resource lifetime rules under realistic workloads.
+- Module-level tests cover frame-graph compilation, pass scheduling, and backend adapter scaffolding, but stress cases around resource lifetimes and queue metadata are still absent.
 
 ## Proposed Next Steps
 

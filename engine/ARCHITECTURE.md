@@ -3,30 +3,39 @@
 ## Dependency Layers (Bottom to Top)
 
 ### Layer 0: Foundation (No Engine Dependencies)
-- **math**: Vector, matrix, and quaternion math primitives.
+- **math** – Vector, matrix, quaternion, and transform primitives.
   - Dependencies: C++ standard library only.
   - Consumed by: Every other module.
 
-### Layer 1: Core Utilities
-- **platform**: OS abstraction, window management, input services.
+### Layer 1: Core Data & Services
+- **animation** – Skeletal clip sampling, blend-tree evaluation, controller utilities.
   - Depends on: `engine::math`.
-- **memory**: Allocators and memory pools that back higher-level systems.
-  - Depends on: `engine::platform`.
-
-### Layer 2: Domain Modules (May depend on Layers 0–1)
-- **geometry**: Shapes, meshes, and spatial queries.
+- **compute** – Kernel dispatcher and execution profiling utilities.
   - Depends on: `engine::math`.
-  - Exports: Collision primitives for physics and bounds for rendering.
-- **animation**: Skeletal animation, blend trees, and deformation utilities.
+- **geometry** – Shapes, meshes, spatial queries, and property registries.
+  - Depends on: `engine::math`.
+- **platform** – Filesystem, windowing, and input abstractions with mock backends.
   - Depends on: `engine::math`.
 
-### Layer 3: Simulation (May depend on Layers 0–2)
-- **physics**: Rigid body dynamics, collision detection, and world management.
-  - Depends on: `engine::math`, `engine::geometry`, `engine::platform`.
+### Layer 2: Domain Facades (May depend on Layers 0–1)
+- **assets** – Runtime caches for geometry, textures, and shader metadata with hot-reload hooks.
+  - Depends on: `engine::geometry`, `engine::io`.
+- **core** – Shared identifiers and module discovery helpers that feed the runtime.
+  - Depends on: `engine::math`.
+- **io** – Geometry/animation import-export helpers and format detection.
+  - Depends on: `engine::geometry`.
+- **physics** – Rigid body world, force accumulation, and collider management.
+  - Depends on: `engine::math`, `engine::geometry`.
+- **scene** – EnTT-based entity façade, hierarchy systems, and serialization helpers.
+  - Depends on: `engine::math`, `engine::animation`.
 
-### Layer 4: Presentation (May depend on Layers 0–3)
-- **rendering**: Graphics API abstraction, frame graph orchestration, scene graph.
-  - Depends on: `engine::math`, `engine::geometry`, `engine::platform` (and optionally `engine::animation`, `engine::physics`).
+### Layer 3: Orchestration & Presentation (May depend on Layers 0–2)
+- **rendering** – CPU-side frame graph, forward pipeline prototype, and command encoder contracts.
+  - Depends on: `engine::math`, `engine::geometry` (and optionally `engine::animation`, `engine::physics`).
+- **runtime** – `RuntimeHost` that coordinates animation, physics, geometry, and compute subsystems.
+  - Depends on: `engine::animation`, `engine::assets`, `engine::compute`, `engine::geometry`, `engine::physics`, `engine::scene`.
+- **tools** – Future home for editor shells, profilers, and automation (currently scaffolding only).
+  - Depends on: Modules it integrates; keep adapters thin to avoid new upward edges.
 
 ## Dependency Rules
 
