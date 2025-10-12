@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iterator>
+#include <limits>
 #include <optional>
 #include <unordered_map>
 
@@ -10,6 +12,7 @@ namespace engine::animation {
 namespace {
 
 constexpr double epsilon_time = 1e-6;
+constexpr std::size_t invalid_index = std::numeric_limits<std::size_t>::max();
 
 using PoseMap = std::unordered_map<std::string, JointPose>;
 
@@ -86,6 +89,45 @@ using PoseMap = std::unordered_map<std::string, JointPose>;
 
 [[nodiscard]] bool node_index_valid(const AnimationBlendTree& tree, std::size_t node) noexcept {
     return node < tree.nodes.size();
+}
+
+[[nodiscard]] bool parameter_index_valid(const AnimationBlendTree& tree, std::size_t parameter) noexcept {
+    return parameter < tree.parameters.size();
+}
+
+[[nodiscard]] BlendTreeParameter* parameter_at(AnimationBlendTree& tree, std::size_t parameter) noexcept {
+    if (!parameter_index_valid(tree, parameter)) {
+        return nullptr;
+    }
+    return &tree.parameters[parameter];
+}
+
+[[nodiscard]] const BlendTreeParameter* parameter_at(const AnimationBlendTree& tree, std::size_t parameter) noexcept {
+    if (!parameter_index_valid(tree, parameter)) {
+        return nullptr;
+    }
+    return &tree.parameters[parameter];
+}
+
+[[nodiscard]] std::optional<std::size_t> find_parameter_index(const AnimationBlendTree& tree,
+                                                              std::string_view name) noexcept {
+    const auto it = std::find_if(tree.parameters.begin(), tree.parameters.end(), [&](const auto& parameter) {
+        return parameter.name == name;
+    });
+    if (it == tree.parameters.end()) {
+        return std::nullopt;
+    }
+    return static_cast<std::size_t>(std::distance(tree.parameters.begin(), it));
+}
+
+[[nodiscard]] float resolved_blend_weight(const AnimationBlendTree& tree,
+                                          const BlendTreeLinearBlendNode& node) noexcept {
+    float weight = node.weight;
+    if (const auto* parameter = parameter_at(tree, node.weight_parameter);
+        parameter != nullptr && parameter->type == BlendTreeParameterType::kFloat) {
+        weight = parameter->float_value;
+    }
+    return std::clamp(weight, 0.0F, 1.0F);
 }
 
 }  // namespace
@@ -253,9 +295,64 @@ std::size_t add_linear_blend_node(AnimationBlendTree& tree, std::size_t lhs, std
     blend.lhs = lhs;
     blend.rhs = rhs;
     blend.weight = std::clamp(weight, 0.0F, 1.0F);
+    blend.weight_parameter = invalid_index;
     node.data = blend;
     tree.nodes.push_back(node);
     return tree.nodes.size() - 1U;
+}
+
+std::size_t add_float_parameter(AnimationBlendTree& tree, std::string name, float initial_value) {
+    if (const auto existing = find_parameter_index(tree, name)) {
+        auto& parameter = tree.parameters[*existing];
+        parameter.type = BlendTreeParameterType::kFloat;
+        parameter.float_value = initial_value;
+        parameter.bool_value = false;
+        parameter.event_value = false;
+        return *existing;
+    }
+
+    BlendTreeParameter parameter;
+    parameter.name = std::move(name);
+    parameter.type = BlendTreeParameterType::kFloat;
+    parameter.float_value = initial_value;
+    tree.parameters.push_back(std::move(parameter));
+    return tree.parameters.size() - 1U;
+}
+
+std::size_t add_bool_parameter(AnimationBlendTree& tree, std::string name, bool initial_value) {
+    if (const auto existing = find_parameter_index(tree, name)) {
+        auto& parameter = tree.parameters[*existing];
+        parameter.type = BlendTreeParameterType::kBool;
+        parameter.bool_value = initial_value;
+        parameter.float_value = initial_value ? 1.0F : 0.0F;
+        parameter.event_value = false;
+        return *existing;
+    }
+
+    BlendTreeParameter parameter;
+    parameter.name = std::move(name);
+    parameter.type = BlendTreeParameterType::kBool;
+    parameter.bool_value = initial_value;
+    parameter.float_value = initial_value ? 1.0F : 0.0F;
+    tree.parameters.push_back(std::move(parameter));
+    return tree.parameters.size() - 1U;
+}
+
+std::size_t add_event_parameter(AnimationBlendTree& tree, std::string name) {
+    if (const auto existing = find_parameter_index(tree, name)) {
+        auto& parameter = tree.parameters[*existing];
+        parameter.type = BlendTreeParameterType::kEvent;
+        parameter.event_value = false;
+        parameter.float_value = 0.0F;
+        parameter.bool_value = false;
+        return *existing;
+    }
+
+    BlendTreeParameter parameter;
+    parameter.name = std::move(name);
+    parameter.type = BlendTreeParameterType::kEvent;
+    tree.parameters.push_back(std::move(parameter));
+    return tree.parameters.size() - 1U;
 }
 
 void set_blend_tree_root(AnimationBlendTree& tree, std::size_t node) noexcept {
@@ -270,6 +367,86 @@ void set_linear_blend_weight(AnimationBlendTree& tree, std::size_t node, float w
     if (auto* blend = std::get_if<BlendTreeLinearBlendNode>(&variant)) {
         blend->weight = std::clamp(weight, 0.0F, 1.0F);
     }
+}
+
+void bind_linear_blend_weight(AnimationBlendTree& tree, std::size_t node, std::size_t parameter) noexcept {
+    if (!node_index_valid(tree, node)) {
+        return;
+    }
+    auto& variant = tree.nodes[node].data;
+    if (auto* blend = std::get_if<BlendTreeLinearBlendNode>(&variant)) {
+        const auto* entry = parameter_at(tree, parameter);
+        if (entry != nullptr && entry->type == BlendTreeParameterType::kFloat) {
+            blend->weight_parameter = parameter;
+        } else {
+            blend->weight_parameter = invalid_index;
+        }
+    }
+}
+
+bool set_float_parameter(AnimationBlendTree& tree, std::size_t parameter, float value) noexcept {
+    if (!std::isfinite(value)) {
+        return false;
+    }
+    if (auto* entry = parameter_at(tree, parameter); entry != nullptr && entry->type == BlendTreeParameterType::kFloat) {
+        entry->float_value = value;
+        return true;
+    }
+    return false;
+}
+
+bool set_bool_parameter(AnimationBlendTree& tree, std::size_t parameter, bool value) noexcept {
+    if (auto* entry = parameter_at(tree, parameter); entry != nullptr && entry->type == BlendTreeParameterType::kBool) {
+        entry->bool_value = value;
+        entry->float_value = value ? 1.0F : 0.0F;
+        return true;
+    }
+    return false;
+}
+
+bool trigger_event_parameter(AnimationBlendTree& tree, std::size_t parameter) noexcept {
+    if (auto* entry = parameter_at(tree, parameter); entry != nullptr && entry->type == BlendTreeParameterType::kEvent) {
+        entry->event_value = true;
+        return true;
+    }
+    return false;
+}
+
+bool consume_event_parameter(AnimationBlendTree& tree, std::size_t parameter) noexcept {
+    if (auto* entry = parameter_at(tree, parameter); entry != nullptr && entry->type == BlendTreeParameterType::kEvent) {
+        const bool triggered = entry->event_value;
+        entry->event_value = false;
+        return triggered;
+    }
+    return false;
+}
+
+bool set_float_parameter(AnimationBlendTree& tree, std::string_view name, float value) noexcept {
+    if (const auto index = find_parameter_index(tree, name)) {
+        return set_float_parameter(tree, *index, value);
+    }
+    return false;
+}
+
+bool set_bool_parameter(AnimationBlendTree& tree, std::string_view name, bool value) noexcept {
+    if (const auto index = find_parameter_index(tree, name)) {
+        return set_bool_parameter(tree, *index, value);
+    }
+    return false;
+}
+
+bool trigger_event_parameter(AnimationBlendTree& tree, std::string_view name) noexcept {
+    if (const auto index = find_parameter_index(tree, name)) {
+        return trigger_event_parameter(tree, *index);
+    }
+    return false;
+}
+
+bool consume_event_parameter(AnimationBlendTree& tree, std::string_view name) noexcept {
+    if (const auto index = find_parameter_index(tree, name)) {
+        return consume_event_parameter(tree, *index);
+    }
+    return false;
 }
 
 void advance_blend_tree(AnimationBlendTree& tree, double dt) noexcept {
@@ -291,6 +468,12 @@ bool blend_tree_valid(const AnimationBlendTree& tree) noexcept {
             }
             if (!std::isfinite(blend->weight)) {
                 return false;
+            }
+            if (blend->weight_parameter != invalid_index) {
+                const auto* entry = parameter_at(tree, blend->weight_parameter);
+                if (entry == nullptr || entry->type != BlendTreeParameterType::kFloat) {
+                    return false;
+                }
             }
         }
     }
@@ -316,7 +499,7 @@ AnimationRigPose evaluate_node(const AnimationBlendTree& tree,
     } else if (const auto* blend = std::get_if<BlendTreeLinearBlendNode>(&node)) {
         const auto lhs = evaluate_node(tree, blend->lhs, cache);
         const auto rhs = evaluate_node(tree, blend->rhs, cache);
-        pose = blend_linear(lhs, rhs, blend->weight);
+        pose = blend_linear(lhs, rhs, resolved_blend_weight(tree, *blend));
     }
 
     cache[index] = pose;
