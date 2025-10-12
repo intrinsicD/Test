@@ -72,8 +72,11 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
     docs/
         README.md
         README_TEMPLATE.md
-        animation_roadmap.md
         global_roadmap.md
+        roadmaps/
+            animation.md
+            physics.md
+            rendering.md
         api/
             README.md
             animation.md
@@ -91,10 +94,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             runtime_plan.md
         notes/
             include-path-audit.md
-        physics/
-            roadmap.md
-        rendering/
-            ROADMAP.md
     engine/
         CMakeLists.txt
         README.md

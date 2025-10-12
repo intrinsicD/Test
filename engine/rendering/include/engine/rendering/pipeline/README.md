@@ -38,7 +38,7 @@ work is submitted.
 ## TODO / Next Steps
 
 Align the pipeline work with the rendering roadmap documented in
-[`docs/rendering/ROADMAP.md`](../../../../../../docs/rendering/ROADMAP.md) and the
+[`docs/roadmaps/rendering.md`](../../../../../../docs/roadmaps/rendering.md) and the
 [global alignment overview](../../../../../../docs/global_roadmap.md):
 
 - Extend frame-graph resource descriptions with explicit formats, dimensions,

@@ -10,7 +10,7 @@ what is implemented today.
 
 | Module | Implementation snapshot |
 | --- | --- |
-| Animation | Deterministic clip sampling, validation, JSON import/export, linear controllers, and parameterised blend trees that the runtime consumes for pose evaluation. |
+| Animation | Deterministic clip sampling, validation, JSON import/export, linear controllers, and parameter binding blend trees that the runtime consumes for pose evaluation. |
 | Assets | Runtime caches for meshes, point clouds, materials, shaders, and textures with hot-reload polling and handle-based lookups. |
 | Compute | A topological kernel dispatcher that measures execution time per kernel and exposes a lightweight math helper for identity transforms. |
 | Core | EnTT-backed registry façade, entity helpers, and module discovery utilities that higher-level systems consume. |
@@ -78,7 +78,7 @@ Ensure `ENGINE3G_LIBRARY_PATH` points to the directory containing the built shar
 The consolidated sequencing across major subsystems lives in
 [`docs/global_roadmap.md`](docs/global_roadmap.md). The roadmap is ultimately aimed at delivering an engine that makes advanced yet accessible graphics and geometry processing research straightforward, with every required tool slated for future implementation. Near-term priorities focus on:
 
-- Extending animation with deformation bindings and richer parameterisation now that clip
+- Extending animation with deformation bindings and richer parameter binding now that clip
   validation, serialization, and blend-tree evaluation are in place.
 - Building contact manifolds, constraint hooks, and instrumentation on top of the existing
   physics broad phase and collider coverage.
@@ -100,15 +100,15 @@ summary referenced above.
 
 | Module | Near-term focus | Source |
 | --- | --- | --- |
-| Animation | Layer additive and deformation-aware blend nodes on top of the existing controller/blend-tree stack while expanding profiling coverage. | [engine/animation/README.md](engine/animation/README.md) |
+| Animation | Layer additive and deformation-aware blend nodes on top of the existing controller/blend-tree stack while expanding profiling coverage. | [engine/animation/README.md](engine/animation/README.md)<br>[docs/roadmaps/animation.md](docs/roadmaps/animation.md) |
 | Assets | Define authoritative asset metadata, stage import task graphs, and persist cache artefacts with hot-reload diagnostics. | [engine/assets/README.md](engine/assets/README.md) |
 | Compute | Unify dispatch descriptions so CPU/GPU executors share infrastructure, then stand up the CUDA path and runtime integration. | [engine/compute/README.md](engine/compute/README.md) |
 | Core | Establish application lifecycle/configuration/diagnostics services and thread them through the runtime façade with expanded test coverage. | [engine/core/README.md](engine/core/README.md) |
 | Geometry & IO | Consolidate bounds/naming across geometry headers while finishing graph/mesh/point-cloud pipelines and enriching import/export diagnostics ahead of v2.0. | [engine/geometry/README.md](engine/geometry/README.md)<br>[engine/io/README.md](engine/io/README.md) |
 | Math | Document public headers, broaden decomposition/numerics support, and raise regression coverage around existing primitives. | [engine/math/README.md](engine/math/README.md) |
-| Physics | Build on the rigid-body, collider, and sweep-and-prune foundation by adding contact manifolds, constraint solving, and instrumentation. | [engine/physics/README.md](engine/physics/README.md)<br>[docs/physics/roadmap.md](docs/physics/roadmap.md) |
+| Physics | Build on the rigid-body, collider, and sweep-and-prune foundation by adding contact manifolds, constraint solving, and instrumentation. | [engine/physics/README.md](engine/physics/README.md)<br>[docs/roadmaps/physics.md](docs/roadmaps/physics.md) |
 | Platform | Replace mock backends with GLFW/SDL integrations, add filesystem write/watch utilities, and surface real input device plumbing. | [engine/platform/README.md](engine/platform/README.md) |
-| Rendering | Enrich frame-graph resource descriptors, thread queue/command metadata, and prototype the reference GPU scheduler before wiring backends. | [engine/rendering/README.md](engine/rendering/README.md)<br>[docs/rendering/ROADMAP.md](docs/rendering/ROADMAP.md) |
+| Rendering | Enrich frame-graph resource descriptors, thread queue/command metadata, and prototype the reference GPU scheduler before wiring backends. | [engine/rendering/README.md](engine/rendering/README.md)<br>[docs/roadmaps/rendering.md](docs/roadmaps/rendering.md) |
 | Runtime | Extend `RuntimeHost` diagnostics, dispatcher programmability, and streaming hooks to support end-to-end orchestration scenarios. | [engine/runtime/README.md](engine/runtime/README.md)<br>[docs/design/runtime_plan.md](docs/design/runtime_plan.md) |
 | Scene | Define schemas for core runtime components, broaden traversal helpers, and version the serialization format alongside expanded tests. | [engine/scene/README.md](engine/scene/README.md) |
 | Tools | Stand up shared tooling infrastructure, automate content pipelines, surface profiling flows, and iterate towards the editor shell. | [engine/tools/README.md](engine/tools/README.md) |

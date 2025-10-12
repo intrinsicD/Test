@@ -1,14 +1,18 @@
 # Engine Tests Integration
 
-## Current State
+## Animation Integration Tests
 
-- Contains scaffolding for future automated tests.
+### animation_io_integration
+- **Purpose:** Validate clip loading through IO module
+- **Test:** Load clip from file, validate structure, evaluate pose
+- **Modules:** animation, io
 
-## Usage
+### animation_runtime_integration
+- **Purpose:** Validate animation drives runtime transforms
+- **Test:** Advance blend tree, check scene transforms updated
+- **Modules:** animation, runtime, scene
 
-- Enable testing in the build and run `ctest --test-dir build` to execute this suite.
-- Expand the scenarios here to cover the behaviours introduced by the parent module.
-
-## TODO / Next Steps
-
-- Expand regression coverage beyond the current smoke checks.
+### animation_geometry_integration (Planned M4)
+- **Purpose:** Validate deformation pipeline
+- **Test:** Apply skinning, verify mesh vertices transformed
+- **Modules:** animation, geometry

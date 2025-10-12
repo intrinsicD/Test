@@ -16,7 +16,7 @@
 
 ## TODO / Next Steps
 
-Roadmap items are prioritised in [docs/physics/roadmap.md](../../docs/physics/roadmap.md) and reflected in the
+Roadmap items are prioritised in [docs/roadmaps/physics.md](../../docs/roadmaps/physics.md) and reflected in the
 [global alignment overview](../../docs/global_roadmap.md). The near-term focus is summarised below:
 
 - Prioritise contact-manifold generation and constraint solving now that broad-phase pruning and capsule support are available.
