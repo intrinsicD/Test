@@ -1,9 +1,9 @@
 # Global Roadmap Overview
 
 This document aligns the major engine subsystems around a shared sequencing plan. The
-per-module roadmaps linked below remain authoritative for local details; the goal here
-is to surface cross-cutting priorities and dependencies so work streams progress in
-concert.
+per-module roadmaps under [`docs/roadmaps/`](roadmaps) remain authoritative for local
+details; the goal here is to surface cross-cutting priorities and dependencies so work
+streams progress in concert.
 
 ## Milestone Bands
 
@@ -18,13 +18,17 @@ concert.
 
 ### Animation
 
-- **Near-Term** – Clip validation, JSON serialization, deterministic clip evaluation, and
-  linear blend-tree nodes ship today. Next steps focus on deformation bindings and
-  parameter-driven blending per [animation_roadmap.md](animation_roadmap.md).
-- **Mid-Term** – Share pose buffers with geometry and rendering while introducing richer
-  blend-node types and controller authoring utilities.
-- **Long-Term** – Expand diagnostics, profiling, and tooling coverage to monitor large rigs
-  and complex state machines.
+- **Completed (M1–M2):**
+  - ✅ Clip validation, JSON serialization
+  - ✅ Linear blend trees with parameter binding
+  - ✅ Float, bool, and event parameters
+- **Near-Term (M3):**
+  - Additive blend nodes for pose composition
+  - Deformation binding data structures
+- **Mid-Term (M4–M5):**
+  - Linear and dual quaternion skinning
+  - State machine nodes
+  - Editor authoring tools
 
 ### Assets
 
@@ -77,7 +81,7 @@ concert.
 - **Near-Term** – The rigid-body world exposes damping, substepping, sweep-and-prune
   broad-phase pruning, and capsule/sphere/AABB colliders. The priority now is contact
   manifold generation, constraint solving, and instrumentation as captured in
-  [physics/roadmap.md](physics/roadmap.md).
+  [roadmaps/physics.md](roadmaps/physics.md).
 - **Mid-Term** – Scale collision management with persistent manifolds and constraint
   solvers so physics can drive richer runtime scenes.
 - **Long-Term** – Advance dynamics fidelity with improved integrators, sleeping/activation
@@ -87,7 +91,7 @@ concert.
 
 - **Near-Term** – Extend frame-graph resource descriptors, propagate queue/command metadata,
   and prototype a reference GPU scheduler according to
-  [rendering/ROADMAP.md](rendering/ROADMAP.md).
+  [roadmaps/rendering.md](roadmaps/rendering.md).
 - **Mid-Term** – Provide backend resource providers (Vulkan/DX12) and schedulers along with a
   baseline library of passes.
 - **Long-Term** – Layer on validation, profiling, and extensive documentation/samples to

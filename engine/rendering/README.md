@@ -18,7 +18,7 @@
 
 ## TODO / Next Steps
 
-Consult [docs/rendering/ROADMAP.md](../../docs/rendering/ROADMAP.md) for the detailed roadmap, which is also tracked in the
+Consult [docs/roadmaps/rendering.md](../../docs/roadmaps/rendering.md) for the detailed roadmap, which is also tracked in the
 [global alignment overview](../../docs/global_roadmap.md). Immediate priorities are:
 
 1. **Short-term – unblock backend integration**

@@ -110,6 +110,7 @@ endif()
 
 if(BUILD_TESTING)
     add_subdirectory(third_party/googletest)
+    add_subdirectory(engine/tests/integration)
 endif()
 
 set(THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third_party")
