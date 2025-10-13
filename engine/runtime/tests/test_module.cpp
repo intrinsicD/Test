@@ -140,7 +140,7 @@ TEST(RuntimeModule, ExecutesSimulationPipeline) {
     ASSERT_EQ(dispatch_count, frame.dispatch_report.execution_order.size());
     for (std::size_t index = 0; index < dispatch_count; ++index)
     {
-        EXPECT_DOUBLE_EQ(engine_runtime_dispatch_duration(index), frame.dispatch_report.kernel_durations[index]);
+        EXPECT_EQ(engine_runtime_dispatch_duration(index), frame.dispatch_report.kernel_durations[index]);
     }
 
     engine::runtime::shutdown();

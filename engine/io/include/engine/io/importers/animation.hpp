@@ -14,6 +14,17 @@ namespace engine::io::animation
         json,
     };
 
+    std::ostream & operator<<(std::ostream& os, ClipFormat format)
+    {
+        switch (format)
+        {
+            case ClipFormat::unknown:
+                return os << "unknown";
+            case ClipFormat::json:
+                return os << "json";
+        }
+    }
+
     [[nodiscard]] ENGINE_IO_API ClipFormat detect_clip_format(const std::filesystem::path& path);
 
     [[nodiscard]] ENGINE_IO_API engine::animation::AnimationClip load_clip(const std::filesystem::path& path,

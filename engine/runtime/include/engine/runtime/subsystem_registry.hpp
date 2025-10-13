@@ -11,42 +11,63 @@
 
 #include "engine/core/plugin/isubsystem_interface.hpp"
 
-namespace engine::runtime {
+namespace engine::runtime
+{
+    struct SubsystemDescriptor
+    {
+        std::string name{};
+        std::vector<std::string> dependencies{};
+        std::function<std::shared_ptr<engine::core::plugin::ISubsystemInterface>()> factory{};
+        bool enabled_by_default{true};
+    };
 
-struct SubsystemDescriptor {
-    std::string name{};
-    std::vector<std::string> dependencies{};
-    std::function<std::shared_ptr<engine::core::plugin::ISubsystemInterface>()> factory{};
-    bool enabled_by_default{true};
-};
+    struct StringHash
+    {
+        using is_transparent = void;
 
-class SubsystemRegistry {
-public:
-    SubsystemRegistry() = default;
-    SubsystemRegistry(const SubsystemRegistry&) = default;
-    SubsystemRegistry(SubsystemRegistry&&) noexcept = default;
-    SubsystemRegistry& operator=(const SubsystemRegistry&) = default;
-    SubsystemRegistry& operator=(SubsystemRegistry&&) noexcept = default;
-    ~SubsystemRegistry() = default;
+        [[nodiscard]] std::size_t operator()(std::string_view sv) const noexcept
+        {
+            return std::hash<std::string_view>{}(sv);
+        }
 
-    void register_subsystem(SubsystemDescriptor descriptor);
+        [[nodiscard]] std::size_t operator()(const std::string& s) const noexcept
+        {
+            return std::hash<std::string>{}(s);
+        }
 
-    [[nodiscard]] bool contains(std::string_view name) const noexcept;
+        [[nodiscard]] std::size_t operator()(const char* s) const noexcept
+        {
+            return std::hash<std::string_view>{}(s);
+        }
+    };
 
-    [[nodiscard]] std::vector<std::string_view> registered_names() const;
+    class SubsystemRegistry
+    {
+    public:
+        SubsystemRegistry() = default;
+        SubsystemRegistry(const SubsystemRegistry&) = default;
+        SubsystemRegistry(SubsystemRegistry&&) noexcept = default;
+        SubsystemRegistry& operator=(const SubsystemRegistry&) = default;
+        SubsystemRegistry& operator=(SubsystemRegistry&&) noexcept = default;
+        ~SubsystemRegistry() = default;
 
-    [[nodiscard]] std::vector<std::shared_ptr<engine::core::plugin::ISubsystemInterface>> load(
-        std::span<const std::string_view> requested) const;
+        void register_subsystem(SubsystemDescriptor descriptor);
 
-    [[nodiscard]] std::vector<std::shared_ptr<engine::core::plugin::ISubsystemInterface>> load_defaults() const;
+        [[nodiscard]] bool contains(std::string_view name) const noexcept;
 
-private:
-    void gather_dependencies(std::string_view name, std::unordered_set<std::string>& accumulator) const;
+        [[nodiscard]] std::vector<std::string_view> registered_names() const;
 
-    std::vector<SubsystemDescriptor> descriptors_{};
-    std::unordered_map<std::string, std::size_t, std::hash<std::string>, std::equal_to<>> index_map_{};
-};
+        [[nodiscard]] std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> load(
+            std::span<const std::string_view> requested) const;
 
-SubsystemRegistry make_default_subsystem_registry();
+        [[nodiscard]] std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> load_defaults() const;
 
-}  // namespace engine::runtime
+    private:
+        void gather_dependencies(std::string_view name, std::unordered_set<std::string>& accumulator) const;
+
+        std::vector<SubsystemDescriptor> descriptors_{};
+        std::unordered_map<std::string, std::size_t, StringHash, std::equal_to<>> index_map_{};
+    };
+
+    SubsystemRegistry make_default_subsystem_registry();
+} // namespace engine::runtime

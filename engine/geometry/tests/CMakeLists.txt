@@ -30,6 +30,7 @@ target_link_libraries(engine_geometry_tests
         PRIVATE
         engine::project_options
         engine_geometry
+        engine_platform
         GTest::gtest_main
 )
 

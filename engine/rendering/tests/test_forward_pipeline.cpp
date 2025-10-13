@@ -120,21 +120,21 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     EXPECT_EQ(std::get<engine::assets::MeshHandle>(mesh_draw.geometry).id(), std::string{"mesh"});
     EXPECT_EQ(mesh_draw.material.id(), std::string{"mesh_material"});
     EXPECT_EQ(mesh_draw.transform.translation,
-              engine::math::Vector<float, 3>{1.0F, 2.0F, 3.0F});
+              (engine::math::Vector<float, 3>{1.0F, 2.0F, 3.0F}));
 
     const auto& graph_draw = recorded_encoder.draws[1];
     ASSERT_TRUE(std::holds_alternative<engine::assets::GraphHandle>(graph_draw.geometry));  // NOLINT
     EXPECT_EQ(std::get<engine::assets::GraphHandle>(graph_draw.geometry).id(), std::string{"graph"});
     EXPECT_EQ(graph_draw.material.id(), std::string{"graph_material"});
     EXPECT_EQ(graph_draw.transform.translation,
-              engine::math::Vector<float, 3>{-1.0F, 0.5F, 4.0F});
+              (engine::math::Vector<float, 3>{-1.0F, 0.5F, 4.0F}));
 
     const auto& cloud_draw = recorded_encoder.draws[2];
     ASSERT_TRUE(std::holds_alternative<engine::assets::PointCloudHandle>(cloud_draw.geometry));  // NOLINT
     EXPECT_EQ(std::get<engine::assets::PointCloudHandle>(cloud_draw.geometry).id(), std::string{"cloud"});
     EXPECT_EQ(cloud_draw.material.id(), std::string{"cloud_material"});
     EXPECT_EQ(cloud_draw.transform.translation,
-              engine::math::Vector<float, 3>{0.0F, -3.0F, -1.0F});
+              (engine::math::Vector<float, 3>{0.0F, -3.0F, -1.0F}));
 
     ASSERT_EQ(graph.execution_order().size(), 1);  // NOLINT
     const auto& events = graph.resource_events();

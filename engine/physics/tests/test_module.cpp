@@ -26,8 +26,8 @@ TEST(PhysicsModule, NegativeMassClampsToStaticBody) {
     const auto& stored = engine::physics::body_at(world, index);
     EXPECT_FLOAT_EQ(0.0F, stored.mass);
     EXPECT_FLOAT_EQ(0.0F, stored.inverse_mass);
-    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, stored.velocity);
-    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, stored.accumulated_force);
+    EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), stored.velocity);
+    EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), stored.accumulated_force);
 }
 
 TEST(PhysicsModule, IntegratesBodiesUnderForce) {
@@ -61,9 +61,9 @@ TEST(PhysicsModule, StaticBodiesIgnoreForcesAndGravity) {
     engine::physics::integrate(world, 0.5);
 
     const auto& simulated = engine::physics::body_at(world, index);
-    EXPECT_EQ(engine::math::vec3{1.0F, 2.0F, 3.0F}, simulated.position);
-    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, simulated.velocity);
-    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, simulated.accumulated_force);
+    EXPECT_EQ((engine::math::vec3{1.0F, 2.0F, 3.0F}), simulated.position);
+    EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), simulated.velocity);
+    EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), simulated.accumulated_force);
 }
 
 TEST(PhysicsWorld, ClearForcesResetsAccumulatedForce) {
@@ -226,7 +226,7 @@ TEST(PhysicsWorld, SubsteppingAndDampingStabiliseIntegration) {
     EXPECT_LT(simulated.velocity[0], 1.0F);
     EXPECT_GT(simulated.velocity[0], 0.0F);
     EXPECT_NEAR(simulated.position[0], 0.5F, 0.2F);
-    EXPECT_EQ(engine::math::vec3{0.0F, 0.0F, 0.0F}, simulated.accumulated_force);
+    EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), simulated.accumulated_force);
 }
 
 TEST(PhysicsWorldColliders, CapsuleIntersectionsAreDetected) {

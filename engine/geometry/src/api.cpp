@@ -105,8 +105,8 @@ math::vec3 centroid(const SurfaceMesh& mesh) {
 
 SurfaceMesh load_surface_mesh(const std::filesystem::path& path)
 {
-    mesh::Mesh container{};
-    mesh::read(container.interface, path);
+    Mesh container{};
+    read(container.interface, path);
     return mesh::build_surface_mesh_from_halfedge(container.interface);
 }
 
@@ -119,9 +119,9 @@ void save_surface_mesh(const SurfaceMesh& surface,
                        const std::filesystem::path& path,
                        const mesh::IOFlags& flags)
 {
-    mesh::Mesh container{};
-    mesh::build_halfedge_from_surface_mesh(surface, container.interface);
-    mesh::write(container.interface, path, flags);
+    Mesh container{};
+    build_halfedge_from_surface_mesh(surface, container.interface);
+    write(container.interface, path, flags);
 }
 
 }  // namespace engine::geometry

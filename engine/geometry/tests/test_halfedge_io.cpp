@@ -1,17 +1,20 @@
 #include <gtest/gtest.h>
 
 #include "engine/geometry/mesh/halfedge_mesh.hpp"
+#include "engine/platform/filesystem/filesystem.hpp"
 
-#include <filesystem>
 #include <fstream>
 #include <vector>
+
+namespace fs = engine::platform::filesystem;
 
 namespace
 {
     [[nodiscard]] std::filesystem::path make_temporary_obj_path(const std::string& stem)
     {
-        const auto pattern = stem + "-%%%%-%%%%-%%%%-%%%%.obj";
-        return std::filesystem::temp_directory_path() / std::filesystem::unique_path(pattern);
+        return std::filesystem::temp_directory_path() / (stem + fs::generate_random_suffix() + ".obj");
+       // const auto pattern = stem + "-%%%%-%%%%-%%%%-%%%%.obj";
+       // return std::filesystem::temp_directory_path() / std::filesystem::unique_path(pattern);
     }
 
     void remove_if_exists(const std::filesystem::path& path)
@@ -34,7 +37,7 @@ TEST(HalfedgeMeshIO, ReadsTriangleObj)
     }
 
     engine::geometry::Mesh mesh;
-    ASSERT_NO_THROW(engine::geometry::mesh::read(mesh.interface, path));
+    ASSERT_NO_THROW(read(mesh.interface, path));
 
     EXPECT_EQ(mesh.interface.vertex_count(), 3U);
     EXPECT_EQ(mesh.interface.face_count(), 1U);
@@ -105,10 +108,10 @@ TEST(HalfedgeMeshIO, WritesAndReadsQuadObj)
     flags.precision = 6;
     flags.include_header_comment = false;
 
-    ASSERT_NO_THROW(engine::geometry::mesh::write(mesh.interface, path, flags));
+    ASSERT_NO_THROW(write(mesh.interface, path, flags));
 
     engine::geometry::Mesh round_trip;
-    ASSERT_NO_THROW(engine::geometry::mesh::read(round_trip.interface, path));
+    ASSERT_NO_THROW(read(round_trip.interface, path));
 
     EXPECT_EQ(round_trip.interface.vertex_count(), 4U);
     EXPECT_EQ(round_trip.interface.face_count(), 1U);

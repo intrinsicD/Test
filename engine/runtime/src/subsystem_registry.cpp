@@ -42,7 +42,7 @@ namespace engine::runtime {
 
 namespace {
 
-class StaticSubsystem final : public engine::core::plugin::ISubsystemInterface {
+class StaticSubsystem final : public core::plugin::ISubsystemInterface {
 public:
     StaticSubsystem(std::string_view name, std::vector<std::string_view> dependencies)
         : name_(name), dependencies_(std::move(dependencies))
@@ -59,18 +59,18 @@ public:
         return dependencies_;
     }
 
-    void initialize(const engine::core::plugin::SubsystemLifecycleContext&) override {}
+    void initialize(const core::plugin::SubsystemLifecycleContext&) override {}
 
-    void shutdown(const engine::core::plugin::SubsystemLifecycleContext&) noexcept override {}
+    void shutdown(const core::plugin::SubsystemLifecycleContext&) noexcept override {}
 
-    void tick(const engine::core::plugin::SubsystemUpdateContext&) override {}
+    void tick(const core::plugin::SubsystemUpdateContext&) override {}
 
 private:
     std::string_view name_{};
     std::vector<std::string_view> dependencies_{};
 };
 
-std::shared_ptr<engine::core::plugin::ISubsystemInterface> make_static_plugin(
+std::shared_ptr<core::plugin::ISubsystemInterface> make_static_plugin(
     std::string_view name,
     std::initializer_list<std::string_view> dependencies = {})
 {
@@ -138,7 +138,7 @@ void SubsystemRegistry::gather_dependencies(std::string_view name, std::unordere
     }
 }
 
-std::vector<std::shared_ptr<engine::core::plugin::ISubsystemInterface>> SubsystemRegistry::load(
+std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> SubsystemRegistry::load(
     std::span<const std::string_view> requested) const
 {
     std::unordered_set<std::string> requested_set{};
@@ -168,7 +168,7 @@ std::vector<std::shared_ptr<engine::core::plugin::ISubsystemInterface>> Subsyste
         }
     }
 
-    std::vector<std::shared_ptr<engine::core::plugin::ISubsystemInterface>> plugins{};
+    std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> plugins{};
     plugins.reserve(enabled.size());
 
     for (const auto& descriptor : descriptors_)
@@ -187,10 +187,10 @@ std::vector<std::shared_ptr<engine::core::plugin::ISubsystemInterface>> Subsyste
     return plugins;
 }
 
-std::vector<std::shared_ptr<engine::core::plugin::ISubsystemInterface>> SubsystemRegistry::load_defaults() const
+std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> SubsystemRegistry::load_defaults() const
 {
     constexpr std::string_view empty_selection[]{};
-    return load(empty_selection);
+    return load({empty_selection, 0});
 }
 
 SubsystemRegistry make_default_subsystem_registry()
@@ -199,83 +199,83 @@ SubsystemRegistry make_default_subsystem_registry()
     (void)registry;
 #if ENGINE_ENABLE_ANIMATION
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::animation::module_name()},
+        std::string{animation::module_name()},
         {},
-        []() { return make_static_plugin(engine::animation::module_name()); },
+        []() { return make_static_plugin(animation::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_ASSETS
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::assets::module_name()},
+        std::string{assets::module_name()},
         {},
-        []() { return make_static_plugin(engine::assets::module_name()); },
+        []() { return make_static_plugin(assets::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_COMPUTE
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::compute::module_name()},
+        std::string{compute::module_name()},
         {},
-        []() { return make_static_plugin(engine::compute::module_name()); },
+        []() { return make_static_plugin(compute::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_COMPUTE && ENGINE_ENABLE_COMPUTE_CUDA
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::compute::cuda::module_name()},
-        {std::string{engine::compute::module_name()}},
+        std::string{compute::cuda::module_name()},
+        {std::string{compute::module_name()}},
         []() {
             return make_static_plugin(
-                engine::compute::cuda::module_name(),
-                {engine::compute::module_name()});
+                compute::cuda::module_name(),
+                {compute::module_name()});
         },
         true});
 #endif
 #if ENGINE_ENABLE_CORE
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::core::module_name()},
+        std::string{core::module_name()},
         {},
-        []() { return make_static_plugin(engine::core::module_name()); },
+        []() { return make_static_plugin(core::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_GEOMETRY
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::geometry::module_name()},
+        std::string{geometry::module_name()},
         {},
-        []() { return make_static_plugin(engine::geometry::module_name()); },
+        []() { return make_static_plugin(geometry::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_IO
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::io::module_name()},
+        std::string{io::module_name()},
         {},
-        []() { return make_static_plugin(engine::io::module_name()); },
+        []() { return make_static_plugin(io::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_PHYSICS
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::physics::module_name()},
+        std::string{physics::module_name()},
         {},
-        []() { return make_static_plugin(engine::physics::module_name()); },
+        []() { return make_static_plugin(physics::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_PLATFORM
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::platform::module_name()},
+        std::string{platform::module_name()},
         {},
-        []() { return make_static_plugin(engine::platform::module_name()); },
+        []() { return make_static_plugin(platform::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_RENDERING
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::rendering::module_name()},
+        std::string{rendering::module_name()},
         {},
-        []() { return make_static_plugin(engine::rendering::module_name()); },
+        []() { return make_static_plugin(rendering::module_name()); },
         true});
 #endif
 #if ENGINE_ENABLE_SCENE
     registry.register_subsystem(SubsystemDescriptor{
-        std::string{engine::scene::module_name()},
+        std::string{scene::module_name()},
         {},
-        []() { return make_static_plugin(engine::scene::module_name()); },
+        []() { return make_static_plugin(scene::module_name()); },
         true});
 #endif
     return registry;

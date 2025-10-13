@@ -4,9 +4,11 @@
 #include <gtest/gtest.h>
 
 #include "engine/geometry/graph/graph.hpp"
+#include "engine/platform/filesystem/filesystem.hpp"
 
 namespace geo = engine::geometry;
 namespace graph_ns = engine::geometry::graph;
+namespace fs = engine::platform::filesystem;
 
 namespace
 {
@@ -14,8 +16,7 @@ namespace
     {
         TemporaryPath()
         {
-            const auto temp_directory = std::filesystem::temp_directory_path();
-            path = temp_directory / std::filesystem::unique_path("engine-graph-%%%%-%%%%.graph");
+            path = std::filesystem::temp_directory_path() / ("engine-graph-" + fs::generate_random_suffix() + ".graph");
         }
 
         TemporaryPath(const TemporaryPath&) = delete;

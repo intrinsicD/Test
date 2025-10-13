@@ -347,6 +347,8 @@ namespace engine::geometry {
             }
         }
 
+        operator bool() const { return halfedge_.is_valid(); } // check when the circulator is invalid. is halfedge_.is_valid(); the correct check?
+
         bool operator==(const VertexAroundFaceCirculator &rhs) const {
             assert(data_structure_ != nullptr);
             assert(data_structure_ == rhs.data_structure_);

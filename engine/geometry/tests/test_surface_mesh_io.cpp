@@ -5,8 +5,10 @@
 #include <system_error>
 
 #include "engine/geometry/api.hpp"
+#include "engine/platform/filesystem/filesystem.hpp"
 
 namespace geo = engine::geometry;
+namespace fs = engine::platform::filesystem;
 
 namespace
 {
@@ -22,7 +24,7 @@ TEST(SurfaceMeshIO, SaveAndLoadRoundTrip)
 {
     const geo::SurfaceMesh original = geo::make_unit_quad();
 
-    const auto directory = std::filesystem::temp_directory_path() / std::filesystem::unique_path("geo-surface-io-%%%%");
+    const auto directory = std::filesystem::temp_directory_path() / ("geo-surface-io-" + fs::generate_random_suffix());
     const auto path = directory / "surface.obj";
 
     std::filesystem::create_directories(directory);
@@ -62,7 +64,7 @@ TEST(SurfaceMeshIO, RejectsDegenerateSurfaceOnSave)
                          engine::math::vec3{1.0F, 0.0F, 0.0F}};
     surface.indices = {0U, 1U, 2U};
 
-    const auto directory = std::filesystem::temp_directory_path() / std::filesystem::unique_path("geo-surface-io-invalid-%%%%");
+    const auto directory = std::filesystem::temp_directory_path() / ("geo-surface-io-invalid-" + fs::generate_random_suffix());
     const auto path = directory / "surface.obj";
 
     std::filesystem::create_directories(directory);

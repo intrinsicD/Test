@@ -85,6 +85,8 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
+    //TODO: these free functions need to be implemented (undefined reference errors)
+
 ENGINE_RUNTIME_API void initialize();
 ENGINE_RUNTIME_API void shutdown();
 ENGINE_RUNTIME_API void configure(RuntimeHostDependencies dependencies);

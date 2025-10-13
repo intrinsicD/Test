@@ -10,6 +10,7 @@ namespace
     [[nodiscard]] engine::animation::AnimationClip make_test_clip()
     {
         using namespace engine::animation;
+        using namespace engine::math;
 
         AnimationClip clip;
         clip.name = "test.clip";
@@ -17,13 +18,13 @@ namespace
 
         JointTrack root_track;
         root_track.joint_name = "root";
-        root_track.keyframes.push_back({0.0, JointPose{math::vec3{0.0F, 0.0F, 0.0F}, math::quat{1.0F, 0.0F, 0.0F, 0.0F}, math::vec3{1.0F, 1.0F, 1.0F}}});
-        root_track.keyframes.push_back({1.0, JointPose{math::vec3{0.0F, 1.0F, 0.0F}, math::quat{0.0F, 0.0F, 1.0F, 0.0F}, math::vec3{1.0F, 1.0F, 1.0F}}});
+        root_track.keyframes.push_back({0.0, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
+        root_track.keyframes.push_back({1.0, JointPose{vec3{0.0F, 1.0F, 0.0F}, quat{0.0F, 0.0F, 1.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
 
         JointTrack arm_track;
         arm_track.joint_name = "arm";
-        arm_track.keyframes.push_back({0.0, JointPose{math::vec3{1.0F, 0.0F, 0.0F}, math::quat{1.0F, 0.0F, 0.0F, 0.0F}, math::vec3{1.0F, 1.0F, 1.0F}}});
-        arm_track.keyframes.push_back({1.0, JointPose{math::vec3{1.0F, 0.5F, 0.0F}, math::quat{0.70710677F, 0.0F, 0.70710677F, 0.0F}, math::vec3{1.0F, 1.0F, 1.0F}}});
+        arm_track.keyframes.push_back({0.0, JointPose{vec3{1.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
+        arm_track.keyframes.push_back({1.0, JointPose{vec3{1.0F, 0.5F, 0.0F}, quat{0.70710677F, 0.0F, 0.70710677F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
 
         clip.tracks.push_back(std::move(root_track));
         clip.tracks.push_back(std::move(arm_track));

@@ -387,6 +387,15 @@ namespace testing
         }                                                                                                 \
     } while (false)
 
+#define ASSERT_FALSE(condition)                                                                           \
+    do {                                                                                                  \
+        const bool gtest_condition = static_cast<bool>(condition);                                        \
+        if (gtest_condition) {                                                                           \
+            ::testing::internal::ReportFatalFailure(__FILE__, __LINE__,                                   \
+            ::testing::internal::FormatBoolMessage(#condition));  \
+        }                                                                                                 \
+    } while (false)
+
 #define ASSERT_EQ(val1, val2)                                                                             \
     do {                                                                                                  \
         const auto gtest_val1 = (val1);                                                                   \
@@ -396,6 +405,43 @@ namespace testing
                 __FILE__, __LINE__,                                                                       \
                 ::testing::internal::FormatComparison(#val1, #val2, gtest_val1, gtest_val2));            \
         }                                                                                                 \
+    } while (false)
+
+#define ASSERT_NE(val1, val2)                                                                             \
+    do {                                                                                                  \
+        const auto gtest_val1 = (val1);                                                                   \
+        const auto gtest_val2 = (val2);                                                                   \
+        if (::testing::internal::EqHelper(gtest_val1, gtest_val2)) {                                      \
+            std::ostringstream gtest_message;                                                             \
+            gtest_message << "Expected: (" << #val1 << ") != (" << #val2 << "), actual: "               \
+                          << gtest_val1 << " vs " << gtest_val2;                                         \
+            ::testing::internal::ReportFatalFailure(__FILE__, __LINE__, gtest_message.str());             \
+        }                                                                                                 \
+    } while (false)
+
+#define ASSERT_LT(val1, val2)                                                                             \
+    do {                                                                                                  \
+        const auto gtest_val1 = (val1);                                                                   \
+        const auto gtest_val2 = (val2);                                                                   \
+        if (!(gtest_val1 < gtest_val2)) {                                                                 \
+            std::ostringstream gtest_message;                                                             \
+            gtest_message << "Expected: (" << #val1 << ") < (" << #val2 << "), actual: "                \
+                          << gtest_val1 << " vs " << gtest_val2;                                         \
+            ::testing::internal::ReportFatalFailure(__FILE__, __LINE__, gtest_message.str());             \
+        }                                                                                                 \
+    } while (false)
+
+#define ASSERT_NO_THROW(statement)                                                                    \
+    do {                                                                                              \
+        try {                                                                                          \
+            (void)(statement);                                                                         \
+            } catch (const std::exception& gtest_ex) {                                                     \
+                ::testing::internal::ReportFatalFailure(__FILE__, __LINE__,                               \
+                std::string("Expected no exception but caught: ") + gtest_ex.what());                 \
+            } catch (...) {                                                                                \
+                ::testing::internal::ReportFatalFailure(__FILE__, __LINE__,                               \
+                "Expected no exception but caught unknown exception");                                \
+        }                                                                                              \
     } while (false)
 
 #define FAIL() ::testing::internal::FatalFailureMessage(__FILE__, __LINE__)

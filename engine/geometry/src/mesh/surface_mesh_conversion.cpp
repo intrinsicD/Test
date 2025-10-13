@@ -103,7 +103,7 @@ namespace engine::geometry::mesh
             polygon.clear();
             auto vertices = mesh.vertices(face);
             const auto end = vertices;
-            if (!vertices)
+            if (!vertices) // check when the circulator is invalid
             {
                 continue;
             }

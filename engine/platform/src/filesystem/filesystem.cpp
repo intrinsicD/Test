@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <system_error>
+#include <random>
 
 namespace engine::platform::filesystem {
 
@@ -17,6 +18,21 @@ namespace {
 }
 
 }  // namespace
+
+    std::string generate_random_suffix()
+{
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<> dis(0, 15);
+
+    std::string result;
+    for (int i = 0; i < 8; ++i)
+    {
+        result += "0123456789abcdef"[dis(gen)];
+    }
+    return result;
+}
+
 
 Filesystem::Filesystem(path_type root)
     : root_{normalise_root(std::move(root))} {}
