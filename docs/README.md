@@ -23,7 +23,8 @@ This directory centralises design notes, module overviews, and roadmaps. Start h
 ## Additional References
 
 - [API reference](api/README.md) – generated overviews for public headers.
-- [Design notes](design/README.md) – architecture and engineering decisions.
+- [Architecture improvement plan](ROADMAP.md#architecture-improvement-plan) – cross-module backlog with dependencies and priorities.
+- [Runtime subsystem plugin contract](modules/runtime/README.md#subsystem-plugin-contract) – lifecycle expectations for runtime plugins and host configuration helpers.
 - [Notes](notes/) – audits and exploratory write-ups.
 - [README template](README_TEMPLATE.md) – keep module documentation consistent.
 

@@ -9,7 +9,7 @@
 - Keep documentation in sync with the implementation. Whenever behaviour, dependencies, or workflows change, update the relevant README(s) and design notes under `docs/`.
 
 ## 1.1 Architecture Improvement Plan Alignment
-- Treat [`docs/design/architecture_improvement_plan.md`](docs/design/architecture_improvement_plan.md) as the authoritative backlog
+- Treat [`docs/ROADMAP.md#architecture-improvement-plan`](docs/ROADMAP.md#architecture-improvement-plan) as the authoritative backlog
   for architectural work. When landing changes that map to a plan identifier, update the checklists, dependencies, and priority
   ordering in that document.
 - Keep at-a-glance summaries in the root `README.md`, this guidance file, and any module README in sync with the plan. Update
