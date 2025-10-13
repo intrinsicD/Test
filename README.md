@@ -37,8 +37,8 @@ what is implemented today.
 - The `docs/` tree captures architecture explorations, design rationales, and decision records that anchor
   large subsystem work. Capture design proposals here before landing major subsystems and reference the
   relevant records in pull requests so reviewers can trace intent.
-- The cross-module architectural backlog is curated in
-  [`docs/design/architecture_improvement_plan.md`](docs/design/architecture_improvement_plan.md). Review and
+- The cross-module architectural backlog is curated in the
+  [central roadmap](docs/ROADMAP.md#architecture-improvement-plan). Review and
   update this plan when reprioritising milestones or when new technical debt emerges. The plan is partitioned into
   **Critical Design Corrections (DC)**, **Architecture Improvements (AI)**, **Roadmap TODOs (RT)**, **Documentation Improvements (DI)**,
   **Build System Enhancements (BS)**, **Testing Infrastructure (TI)**, **Python Bindings (PY)**, and **Cross-Cutting initiatives (CC)**.
@@ -58,7 +58,7 @@ what is implemented today.
 
 The architecture improvement plan is the canonical backlog for high-priority system work. The bullet points below summarise the
 current items so this README remains an at-a-glance companion to the full
-[`architecture_improvement_plan.md`](docs/design/architecture_improvement_plan.md) record.
+[roadmap entry](docs/ROADMAP.md#architecture-improvement-plan).
 
 ### Critical Design Corrections
 

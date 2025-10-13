@@ -2,6 +2,428 @@
 
 This roadmap aggregates the actionable plans defined by each engine module and highlights cross-cutting initiatives. Consult the per-module documents for detailed task descriptions.
 
+## Architecture Improvement Plan
+
+The architecture improvement plan captures cross-cutting backlog items that span multiple
+modules. Items are grouped by their intent:
+
+- **Critical Design Corrections (DC)** – rectify architectural flaws that block ongoing work.
+- **Architecture Improvements (AI)** – introduce new systems or structural capabilities.
+- **Roadmap TODOs (RT)** – unlock downstream deliverables by completing feature work.
+- **Documentation Improvements (DI)** – raise the baseline documentation quality.
+- **Build System Enhancements (BS)** – improve build configuration and dependency hygiene.
+- **Testing Infrastructure (TI)** – expand validation and benchmarking coverage.
+- **Python Bindings Completeness (PY)** – ensure the Python façade matches the C++ API.
+- **Cross-Cutting Initiatives (CC)** – deliver functionality that touches multiple modules.
+- **Milestone Coordination (MC)** – maintain planning artefacts and roadmap alignment.
+
+### Critical Design Corrections
+
+#### DC-001: Runtime Module Dependency Inversion
+- **Priority:** HIGH
+- **Module:** Runtime
+- **Dependencies:** []
+- **Tasks:**
+  - [x] Introduce an `ISubsystemInterface` abstraction in the Core module to formalize subsystem capabilities.
+  - [x] Refactor `RuntimeHost` to accept subsystem plugins via dependency injection, removing direct module references.
+  - [x] Implement a `SubsystemRegistry` to discover and optionally load subsystem plugins at startup.
+  - [x] Update `engine/runtime/src/api.cpp` to expose the plugin-based initialization surface.
+  - [x] Add `ENABLE_<MODULE>` build-time flags for each optional subsystem.
+  - [x] Document the subsystem plugin contract in the runtime module README.
+- **Artifacts:** `engine/core/include/engine/core/ISubsystemInterface.hpp`, `engine/runtime/include/engine/runtime/runtime_host.hpp`, `engine/runtime/src/runtime_host.cpp`, `engine/runtime/src/api.cpp`, `engine/runtime/src/subsystem_registry.cpp`, runtime README updates, `CMakeLists.txt` feature flag configuration.
+- **Tests:** Runtime initialization smoke tests covering combinations of enabled subsystems; CI preset that exercises CPU-only runtime configuration.
+- **Docs:** Update runtime README with plugin usage; extend build documentation to reference the new flags.
+
+#### DC-002: CUDA Optional Dependency
+- **Priority:** HIGH
+- **Module:** Compute
+- **Dependencies:** [DC-001]
+- **Tasks:**
+  - [ ] Add a CMake option `ENGINE_ENABLE_CUDA` (default `OFF`).
+  - [ ] Guard the `engine_compute_cuda` target behind the new option.
+  - [ ] Implement `engine_compute::cpu_dispatcher` and `engine_compute::cuda_dispatcher` interfaces with a shared abstraction.
+  - [ ] Add runtime capability detection helpers in `engine/compute/api.hpp`.
+  - [ ] Update build presets in `scripts/build/presets/` to include CUDA-enabled and CPU-only variants.
+  - [ ] Document CUDA setup and fallback semantics in `engine/compute/README.md`.
+- **Artifacts:** `CMakeLists.txt`, `engine/compute/api.hpp`, `engine/compute/src/dispatchers/*.cpp`, `scripts/build/presets/*.json`, `engine/compute/README.md`.
+- **Tests:** Build verification with `ENGINE_ENABLE_CUDA=OFF` and `ON`; runtime unit tests ensuring CPU fallback when CUDA is unavailable; CI preset for CPU-only configuration.
+- **Docs:** Expand compute module README; update root README with the new build option.
+
+#### DC-003: Platform Backend Abstraction
+- **Priority:** MEDIUM
+- **Module:** Platform
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Introduce a configurable CMake option `ENGINE_WINDOW_BACKEND` supporting `GLFW`, `SDL`, and `MOCK` values.
+  - [ ] Implement a factory pattern in `engine/platform/windowing/window_system.cpp` that instantiates the requested backend.
+  - [ ] Complete the SDL implementation in `engine/platform/src/windowing/sdl_window.cpp` and ensure parity with the GLFW path.
+  - [ ] Add backend capability queries to `WindowConfig`.
+  - [ ] Extend the test matrix to cover all backend permutations.
+  - [ ] Document backend selection and supported features in `docs/modules/platform/README.md`.
+- **Artifacts:** `engine/platform/windowing/window_system.cpp`, `engine/platform/src/windowing/sdl_window.cpp`, `engine/platform/include/engine/platform/window_config.hpp`, `CMakeLists.txt`, platform module README updates.
+- **Tests:** Integration tests per backend, selectable via CTest labels; mock backend smoke test for CI.
+- **Docs:** Platform module README updates and root build instructions referencing backend selection.
+
+#### DC-004: Error Handling Standardization
+- **Priority:** MEDIUM
+- **Module:** Cross-cutting
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Define `engine::Result<T, Error>` in `engine/core/diagnostics/result.hpp` and design the supporting type utilities.
+  - [ ] Create an `engine::ErrorCode` hierarchy in `engine/core/diagnostics/error.hpp` that modules can specialize.
+  - [ ] Document the error-handling policy in `CODING_STYLE.md` and supporting design docs.
+  - [ ] Migrate the IO module to the `Result<T>` pattern as a pilot implementation.
+  - [ ] Provide module templates demonstrating correct usage.
+  - [ ] Draft a migration guide for existing subsystems.
+- **Artifacts:** `engine/core/diagnostics/result.hpp`, `engine/core/diagnostics/error.hpp`, `engine/io` implementation updates, module templates, documentation in `docs/design/error_handling_migration.md`.
+- **Tests:** IO module regression suite updated to assert `Result<T>` handling; static analysis or clang-tidy checks for legacy patterns.
+- **Docs:** Update coding standards and IO README; provide migration guide references in module docs.
+
+### Architecture Improvements
+
+#### AI-001: Resource Lifetime Management
+- **Priority:** HIGH
+- **Module:** Rendering, Assets
+- **Dependencies:** [DC-004]
+- **Tasks:**
+  - [ ] Design a resource handle system with generation counters.
+  - [ ] Implement `ResourcePool<T>` in `engine/core/memory/resource_pool.hpp`.
+  - [ ] Provide `ResourceHandle<T>` wrappers with validation logic in `engine/assets/handles.hpp`.
+  - [ ] Document ownership patterns in `docs/design/resource_management.md`.
+  - [ ] Refactor asset caches to use typed handles.
+  - [ ] Add lifetime validation hooks active in debug builds.
+- **Artifacts:** `engine/core/memory/resource_pool.hpp`, `engine/assets/handles.hpp`, asset cache sources, resource management design notes.
+- **Tests:** Rendering and asset unit tests covering handle recycling; debug-only assertions verifying stale handle detection.
+- **Docs:** Asset and rendering module READMEs updated with the ownership model.
+
+#### AI-002: Async Asset Streaming Architecture
+- **Priority:** MEDIUM
+- **Module:** Assets, IO, Runtime
+- **Dependencies:** [AI-001, DC-001]
+- **Tasks:**
+  - [ ] Author the async loading API design in `docs/design/async_streaming.md`.
+  - [ ] Implement `AssetLoadRequest` and `AssetLoadFuture` primitives in the Assets module.
+  - [ ] Provide a background thread pool in Core dedicated to IO workloads.
+  - [ ] Extend asset caches with a streaming state machine.
+  - [ ] Introduce a priority queue scheduling load requests.
+  - [ ] Emit streaming metrics to runtime telemetry.
+  - [ ] Document best practices in the Assets README.
+- **Artifacts:** `docs/design/async_streaming.md`, `engine/assets/include/engine/assets/async.hpp`, `engine/assets/src/streaming/*.cpp`, `engine/core/threading/thread_pool.hpp`, telemetry hooks.
+- **Tests:** Asynchronous loading integration tests with deterministic fixtures; runtime telemetry validation.
+- **Docs:** Assets README streaming section; runtime telemetry overview.
+
+#### AI-003: Frame Graph Resource Metadata
+- **Priority:** HIGH
+- **Module:** Rendering
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Extend `FrameGraphResourceInfo` with `ResourceFormat`, `ResourceDimension`, `UsageFlags`, `InitialState`, and `FinalState` descriptors.
+  - [ ] Update `RenderPass` definitions to include queue affinity.
+  - [ ] Add metadata validation within frame graph compilation.
+  - [ ] Provide a migration guide for existing pass definitions.
+  - [ ] Update unit tests in `engine/rendering/tests/test_frame_graph.cpp` to cover new metadata.
+- **Artifacts:** `engine/rendering/frame_graph/frame_graph.hpp`, `engine/rendering/frame_graph/render_pass.hpp`, `engine/rendering/tests/test_frame_graph.cpp`, migration guide documentation.
+- **Tests:** Frame graph unit tests validating metadata propagation; integration smoke tests.
+- **Docs:** Rendering README updates describing metadata and queue affinity.
+
+#### AI-004: Compute Dependency Validation
+- **Priority:** MEDIUM
+- **Module:** Compute
+- **Dependencies:** [DC-002]
+- **Tasks:**
+  - [ ] Extend the compute dispatcher with dependency metadata.
+  - [ ] Detect cyclic dependencies at registration time.
+  - [ ] Emit diagnostic graphs for debugging scheduling issues.
+  - [ ] Update compute module documentation with dependency modelling guidance.
+- **Artifacts:** Compute dispatcher source updates, diagnostic tooling, compute README guidance.
+- **Tests:** Unit tests covering cycle detection; regression coverage for dispatcher diagnostics.
+- **Docs:** Compute README and tutorials outlining dependency validation workflows.
+
+### Roadmap TODOs
+
+#### RT-001: Animation Deformation Pipeline
+- **Priority:** HIGH
+- **Module:** Animation, Geometry
+- **Dependencies:** [AI-001]
+- **Tasks:**
+  - [ ] Implement rig binding data structures.
+  - [ ] Integrate linear blend skinning into the runtime evaluation path.
+  - [ ] Author deformation regression tests using deterministic fixtures.
+  - [ ] Document deformation workflows in Animation and Geometry READMEs.
+- **Artifacts:** Animation deformation sources, geometry binding helpers, documentation updates.
+- **Tests:** Runtime smoke tests verifying deformation correctness; geometry unit coverage.
+- **Docs:** Animation and geometry module READMEs; deformation migration guides.
+
+#### RT-002: Physics Contact Manifolds
+- **Priority:** HIGH
+- **Module:** Physics
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Design persistent manifold data structures.
+  - [ ] Integrate constraint solving hooks.
+  - [ ] Emit telemetry for collision diagnostics.
+  - [ ] Document manifold usage in Physics README.
+- **Artifacts:** Physics solver sources, manifold data structures, telemetry hooks, documentation updates.
+- **Tests:** Physics regression suite covering manifold stability and constraint solving.
+- **Docs:** Physics README, telemetry references.
+
+#### RT-003: Vulkan Backend Prototype
+- **Priority:** HIGH
+- **Module:** Rendering
+- **Dependencies:** [AI-003]
+- **Tasks:**
+  - [ ] Implement a Vulkan backend conforming to the frame graph scheduler.
+  - [ ] Provide resource translation layers for Vulkan handles.
+  - [ ] Author backend configuration documentation and samples.
+- **Artifacts:** Vulkan backend sources, CMake targets, documentation.
+- **Tests:** Rendering backend smoke tests; CI presets exercising Vulkan.
+- **Docs:** Rendering README backend section; integration notes in root README.
+
+#### RT-004: Runtime Diagnostics
+- **Priority:** HIGH
+- **Module:** Runtime, Core
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Instrument runtime lifecycle stages with telemetry hooks.
+  - [ ] Expose diagnostics through `RuntimeHost` APIs.
+  - [ ] Surface diagnostics in tooling dashboards.
+- **Artifacts:** Runtime diagnostics sources, telemetry exporters, tooling integration.
+- **Tests:** Runtime unit tests covering diagnostics; tooling integration tests.
+- **Docs:** Runtime README diagnostics section; tooling documentation.
+
+#### RT-005: Scene Hierarchy Validation
+- **Priority:** HIGH
+- **Module:** Scene
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Implement hierarchy validation utilities guarding against cycles and invalid transforms.
+  - [ ] Add reporting hooks to surface issues during runtime synchronization.
+  - [ ] Document validation workflows in Scene README.
+- **Artifacts:** Scene validation sources, diagnostics, documentation.
+- **Tests:** Scene regression suite covering hierarchy manipulation; runtime integration tests.
+- **Docs:** Scene README updates; runtime troubleshooting notes.
+
+#### RT-006: IO Format Detection Hardening
+- **Priority:** HIGH
+- **Module:** IO
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Expand signature databases for mesh, animation, and point-cloud formats.
+  - [ ] Integrate fuzzing harnesses for parser robustness.
+  - [ ] Provide structured error reporting.
+- **Artifacts:** IO detection sources, fuzzing harnesses, documentation.
+- **Tests:** IO regression suite; fuzzing automation.
+- **Docs:** IO README detailing detection heuristics and failure modes.
+
+### Documentation Improvements
+
+#### DI-001: README Standardisation
+- **Priority:** MEDIUM
+- **Module:** Documentation
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Ensure every module README follows the shared template.
+  - [ ] Cross-reference module TODOs with the central roadmap.
+  - [ ] Automate linting for README completeness via `scripts/validate_docs.py`.
+- **Artifacts:** Updated README files, validation scripts.
+- **Tests:** Documentation validation in CI.
+- **Docs:** Guidance within `docs/README_TEMPLATE.md`.
+
+#### DI-002: API Reference Generation
+- **Priority:** MEDIUM
+- **Module:** Documentation
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Automate API reference extraction for public headers.
+  - [ ] Publish the output under `docs/api/`.
+  - [ ] Document the generation workflow.
+- **Artifacts:** API generation scripts, published documentation.
+- **Tests:** Documentation validation ensuring links remain valid.
+- **Docs:** Root README build documentation.
+
+#### DI-003: Architecture Decision Records
+- **Priority:** LOW
+- **Module:** Documentation
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Establish an ADR format under `docs/decisions/`.
+  - [ ] Backfill key historical decisions.
+  - [ ] Reference ADRs from module READMEs.
+- **Artifacts:** ADR markdown files, README updates.
+- **Tests:** Documentation validation.
+- **Docs:** Documentation README instructions.
+
+### Build System Enhancements
+
+#### BS-001: Preset Expansion
+- **Priority:** MEDIUM
+- **Module:** Build System
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Add build presets covering common feature-flag combinations.
+  - [ ] Document preset usage in the root README.
+  - [ ] Validate presets via CI.
+- **Artifacts:** `CMakePresets.json`, `scripts/build/presets/*.json`, documentation updates.
+- **Tests:** CI runs for each preset; local build validation.
+- **Docs:** Root README build workflow section.
+
+#### BS-002: Versioning Policy
+- **Priority:** MEDIUM
+- **Module:** Build System
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Document minimum compiler/CMake versions.
+  - [ ] Establish vendored dependency update cadence.
+  - [ ] Integrate checks into CI to enforce versions.
+- **Artifacts:** Documentation updates, CI checks.
+- **Tests:** CI verification of version requirements.
+- **Docs:** Root README and tooling notes.
+
+#### BS-003: CMake Target Hygiene
+- **Priority:** LOW
+- **Module:** Build System
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Audit CMake targets for unnecessary dependencies.
+  - [ ] Apply `PRIVATE`/`PUBLIC` scoping consistently.
+  - [ ] Document conventions in `CODING_STYLE.md` and build docs.
+- **Artifacts:** CMake updates, documentation.
+- **Tests:** Build verification across presets.
+- **Docs:** Build documentation updates.
+
+### Testing Infrastructure
+
+#### TI-001: Integration Suites
+- **Priority:** HIGH
+- **Module:** Testing
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Stand up deterministic integration tests across animation, physics, runtime, and rendering.
+  - [ ] Provide fixtures and harnesses under `engine/tests/integration/`.
+  - [ ] Document integration test guidelines.
+- **Artifacts:** Integration test sources, fixtures, documentation.
+- **Tests:** Integration test executions across configurations.
+- **Docs:** `engine/tests/integration/README.md` and testing overview updates.
+
+#### TI-002: Performance Benchmarks
+- **Priority:** MEDIUM
+- **Module:** Testing
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Add Google Benchmark to `third_party/`.
+  - [ ] Provide benchmark sources for Animation, Physics, and Geometry.
+  - [ ] Add a `make benchmark` target.
+  - [ ] Configure CI regression detection (20% slowdown threshold).
+- **Artifacts:** Benchmark sources, build scripts, CI configuration.
+- **Tests:** Automated benchmark runs comparing against baselines.
+- **Docs:** Testing README documenting benchmark workflow.
+
+#### TI-003: Fuzzing Harnesses
+- **Priority:** LOW
+- **Module:** Testing, IO
+- **Dependencies:** [RT-006]
+- **Tasks:**
+  - [ ] Add libFuzzer-based targets for IO parsers.
+  - [ ] Maintain a corpus under `engine/tests/fuzzing/corpus/`.
+  - [ ] Optionally integrate with OSS-Fuzz.
+  - [ ] Document fuzzing workflow.
+- **Artifacts:** Fuzzing targets, corpus, documentation.
+- **Tests:** Periodic fuzzing jobs; local harness execution instructions.
+- **Docs:** Testing README fuzzing section.
+
+### Python Bindings Completeness
+
+#### PY-001: Core Bindings
+- **Priority:** MEDIUM
+- **Module:** Python Bindings
+- **Dependencies:** [DC-004, AI-001]
+- **Tasks:**
+  - [ ] Document binding generation in `python/README.md`.
+  - [ ] Add `pybind11` to `requirements.txt`.
+  - [ ] Expose Animation and Geometry APIs via `python/engine3g/animation.py` and `python/engine3g/geometry.py`.
+  - [ ] Provide `.pyi` stubs for IDE support.
+  - [ ] Implement `pytest` coverage in `python/tests/test_bindings.py`.
+- **Artifacts:** Python binding modules, requirements, tests, documentation.
+- **Tests:** Pytest suite covering bindings; linting for type hints.
+- **Docs:** Python README and API references.
+
+### Cross-Cutting Initiatives
+
+#### CC-001: Telemetry Framework
+- **Priority:** MEDIUM
+- **Module:** Core, Runtime, All
+- **Dependencies:** [RT-004]
+- **Tasks:**
+  - [ ] Design telemetry API in `engine/core/diagnostics/telemetry.hpp`.
+  - [ ] Implement event recording with timestamps and scoped profiling macros (`ENGINE_PROFILE_SCOPE`).
+  - [ ] Provide telemetry sinks (JSON export, live viewer).
+  - [ ] Instrument Animation, Physics, and Rendering hot paths.
+  - [ ] Build a telemetry viewer in `engine/tools/profiling/viewer/`.
+- **Artifacts:** Telemetry headers, runtime instrumentation, profiling tool, documentation.
+- **Tests:** Unit tests for telemetry buffering; integration tests verifying viewer ingestion.
+- **Docs:** Telemetry API reference and tooling README.
+
+#### CC-002: Hot Reload Infrastructure
+- **Priority:** MEDIUM
+- **Module:** Assets, Platform, Tools
+- **Dependencies:** [AI-001]
+- **Tasks:**
+  - [ ] Implement file watching in `engine/platform/filesystem/watcher.cpp`.
+  - [ ] Add callback registration to asset caches.
+  - [ ] Design a reload transaction log handling failures.
+  - [ ] Add an integration test that modifies a file and validates live updates.
+  - [ ] Document workflows in the Assets README.
+- **Artifacts:** Filesystem watcher, asset cache updates, integration tests, documentation.
+- **Tests:** Automated hot-reload scenario tests.
+- **Docs:** Assets README and tooling notes.
+
+### Milestone Coordination
+
+#### MC-001: Milestone Dashboard
+- **Priority:** LOW
+- **Module:** Project Management
+- **Dependencies:** []
+- **Tasks:**
+  - [ ] Create `docs/milestones/M3.md` aggregating module tasks, dependency graphs, and acceptance criteria.
+  - [ ] Apply milestone labels to GitHub issues.
+  - [ ] Automate milestone progress tracking.
+- **Artifacts:** Milestone documentation, automation scripts.
+- **Tests:** Documentation lints; automation dry runs.
+- **Docs:** Milestone README references.
+
+#### MC-002: Synchronize Module Roadmaps
+- **Priority:** MEDIUM
+- **Module:** Project Management
+- **Dependencies:** [DI-001]
+- **Tasks:**
+  - [ ] Cross-reference module ROADMAPs with the central roadmap, flagging orphaned TODOs.
+  - [ ] Add "Last Updated" metadata to each roadmap file.
+  - [ ] Extend `scripts/validate_docs.py` to check roadmap consistency.
+- **Artifacts:** Updated roadmap documents, validation script enhancements.
+- **Tests:** Documentation validation in CI.
+- **Docs:** Roadmap maintenance guidelines.
+
+### Priority Summary
+
+| Horizon | Rank | Item |
+|---------|------|------|
+| Sprint 1 | 1 | DC-001 |
+|         | 2 | DC-002 |
+|         | 3 | AI-003 |
+|         | 4 | RT-001 |
+|         | 5 | TI-001 |
+| Sprint 2-3 | 1 | DC-004 |
+|            | 2 | AI-001 |
+|            | 3 | RT-002 |
+|            | 4 | RT-004 |
+|            | 5 | DI-001 |
+| M4-M5 | 1 | AI-002 |
+|       | 2 | RT-003 |
+|       | 3 | CC-001 |
+|       | 4 | PY-001 |
+
+This plan should be revisited at the start of each milestone to adjust priorities, confirm dependencies, and align with evolving product goals.
+
 ## Module Roadmaps
 
 - [Animation](modules/animation/ROADMAP.md)
