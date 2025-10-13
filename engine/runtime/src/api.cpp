@@ -538,6 +538,16 @@ namespace engine::runtime
             static engine::runtime::RuntimeHost host{};
             return host;
         }
+
+        engine::runtime::RuntimeHost& ensure_initialized_host()
+        {
+            auto& host = global_host();
+            if (!host.is_initialized())
+            {
+                host.initialize();
+            }
+            return host;
+        }
     } // namespace
 
     namespace engine::runtime
@@ -605,22 +615,13 @@ namespace engine::runtime
 
         runtime_frame_state tick(double dt)
         {
-            auto& host = global_host();
-            if (!host.is_initialized())
-            {
-                host.initialize();
-            }
+            auto& host = ensure_initialized_host();
             return host.tick(dt);
         }
 
         const geometry::SurfaceMesh& current_mesh()
         {
-            auto& host = global_host();
-            if (!host.is_initialized())
-            {
-                host.initialize();
-            }
-            return host.current_mesh();
+            return ensure_initialized_host().current_mesh();
         }
 
         bool is_initialized() noexcept
@@ -630,52 +631,27 @@ namespace engine::runtime
 
         const animation::AnimationRigPose& current_pose()
         {
-            auto& host = global_host();
-            if (!host.is_initialized())
-            {
-                host.initialize();
-            }
-            return host.current_pose();
+            return ensure_initialized_host().current_pose();
         }
 
         const std::vector<math::vec3>& body_positions()
         {
-            auto& host = global_host();
-            if (!host.is_initialized())
-            {
-                host.initialize();
-            }
-            return host.body_positions();
+            return ensure_initialized_host().body_positions();
         }
 
         const std::vector<std::string>& joint_names()
         {
-            auto& host = global_host();
-            if (!host.is_initialized())
-            {
-                host.initialize();
-            }
-            return host.joint_names();
+            return ensure_initialized_host().joint_names();
         }
 
         const compute::ExecutionReport& last_dispatch_report()
         {
-            auto& host = global_host();
-            if (!host.is_initialized())
-            {
-                host.initialize();
-            }
-            return host.last_dispatch_report();
+            return ensure_initialized_host().last_dispatch_report();
         }
 
         const std::vector<runtime_frame_state::scene_node_state>& scene_nodes()
         {
-            auto& host = global_host();
-            if (!host.is_initialized())
-            {
-                host.initialize();
-            }
-            return host.scene_nodes();
+            return ensure_initialized_host().scene_nodes();
         }
 
         double simulation_time() noexcept
