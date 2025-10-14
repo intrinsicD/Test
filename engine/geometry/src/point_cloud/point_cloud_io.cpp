@@ -1,7 +1,12 @@
 #include "engine/geometry/point_cloud/point_cloud.hpp"
 
 #include <algorithm>
+#include <array>
+#include <bit>
 #include <cctype>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -11,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace engine::geometry::point_cloud
@@ -36,17 +42,37 @@ namespace engine::geometry::point_cloud
             kScalar,
         };
 
+        enum class PlyFormat
+        {
+            kAscii,
+            kBinaryLittleEndian,
+            kBinaryBigEndian,
+        };
+
+        enum class PlyScalarType
+        {
+            kInt8,
+            kUInt8,
+            kInt16,
+            kUInt16,
+            kInt32,
+            kUInt32,
+            kFloat32,
+            kFloat64,
+        };
+
         struct PlyProperty
         {
             PlyPropertySemantic semantic{PlyPropertySemantic::kScalar};
             std::size_t scalar_index{std::numeric_limits<std::size_t>::max()};
             std::string name;
+            PlyScalarType type{PlyScalarType::kFloat32};
         };
 
         struct PlyHeader
         {
             std::size_t vertex_count{0};
-            bool binary{false};
+            PlyFormat format{PlyFormat::kAscii};
             bool has_normals{false};
             bool has_colors{false};
             bool has_alpha{false};
@@ -60,6 +86,119 @@ namespace engine::geometry::point_cloud
                 return static_cast<char>(std::tolower(c));
             });
             return value;
+        }
+
+        template <class T>
+        [[nodiscard]] T byteswap(T value) noexcept
+        {
+            static_assert(std::is_trivially_copyable_v<T>, "PLY scalar types must be trivially copyable");
+
+            std::array<std::byte, sizeof(T)> buffer{};
+            std::memcpy(buffer.data(), &value, sizeof(T));
+            std::reverse(buffer.begin(), buffer.end());
+            std::memcpy(&value, buffer.data(), sizeof(T));
+            return value;
+        }
+
+        [[nodiscard]] PlyScalarType parse_property_type(std::string_view token)
+        {
+            const std::string lower = to_lower(std::string{token});
+            if (lower == "char" || lower == "int8")
+            {
+                return PlyScalarType::kInt8;
+            }
+            if (lower == "uchar" || lower == "uint8")
+            {
+                return PlyScalarType::kUInt8;
+            }
+            if (lower == "short" || lower == "int16")
+            {
+                return PlyScalarType::kInt16;
+            }
+            if (lower == "ushort" || lower == "uint16")
+            {
+                return PlyScalarType::kUInt16;
+            }
+            if (lower == "int" || lower == "int32")
+            {
+                return PlyScalarType::kInt32;
+            }
+            if (lower == "uint" || lower == "uint32")
+            {
+                return PlyScalarType::kUInt32;
+            }
+            if (lower == "float" || lower == "float32")
+            {
+                return PlyScalarType::kFloat32;
+            }
+            if (lower == "double" || lower == "float64")
+            {
+                return PlyScalarType::kFloat64;
+            }
+            throw std::runtime_error("Unsupported PLY property type: " + std::string{token});
+        }
+
+        template <class T>
+        [[nodiscard]] T read_binary_scalar(std::istream& stream, PlyFormat format)
+        {
+            T value{};
+            stream.read(reinterpret_cast<char*>(&value), sizeof(T));
+            if (!stream)
+            {
+                throw std::runtime_error("Unexpected end of PLY vertex data");
+            }
+
+            if (format == PlyFormat::kBinaryLittleEndian)
+            {
+                if constexpr (std::endian::native == std::endian::big)
+                {
+                    value = byteswap(value);
+                }
+            }
+            else if (format == PlyFormat::kBinaryBigEndian)
+            {
+                if constexpr (std::endian::native == std::endian::little)
+                {
+                    value = byteswap(value);
+                }
+            }
+
+            return value;
+        }
+
+        template <class T>
+        void write_binary_scalar(std::ostream& stream, T value)
+        {
+            if constexpr (std::endian::native == std::endian::big)
+            {
+                value = byteswap(value);
+            }
+            stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
+        }
+
+        [[nodiscard]] double read_binary_value(std::istream& stream, PlyScalarType type, PlyFormat format)
+        {
+            switch (type)
+            {
+                case PlyScalarType::kInt8:
+                    return static_cast<double>(read_binary_scalar<std::int8_t>(stream, format));
+                case PlyScalarType::kUInt8:
+                    return static_cast<double>(read_binary_scalar<std::uint8_t>(stream, format));
+                case PlyScalarType::kInt16:
+                    return static_cast<double>(read_binary_scalar<std::int16_t>(stream, format));
+                case PlyScalarType::kUInt16:
+                    return static_cast<double>(read_binary_scalar<std::uint16_t>(stream, format));
+                case PlyScalarType::kInt32:
+                    return static_cast<double>(read_binary_scalar<std::int32_t>(stream, format));
+                case PlyScalarType::kUInt32:
+                    return static_cast<double>(read_binary_scalar<std::uint32_t>(stream, format));
+                case PlyScalarType::kFloat32:
+                    return static_cast<double>(read_binary_scalar<float>(stream, format));
+                case PlyScalarType::kFloat64:
+                    return read_binary_scalar<double>(stream, format);
+            }
+
+            return 0.0;
         }
 
         PlyPropertySemantic classify_property(std::string_view name, PlyHeader& header)
@@ -126,6 +265,10 @@ namespace engine::geometry::point_cloud
             {
                 throw std::runtime_error("PLY stream is empty");
             }
+            if (!line.empty() && line.back() == '\r')
+            {
+                line.pop_back();
+            }
             if (to_lower(line) != "ply")
             {
                 throw std::runtime_error("Expected PLY signature at beginning of file");
@@ -134,6 +277,11 @@ namespace engine::geometry::point_cloud
             bool in_vertex_section = false;
             while (std::getline(stream, line))
             {
+                if (!line.empty() && line.back() == '\r')
+                {
+                    line.pop_back();
+                }
+
                 if (line.empty())
                 {
                     continue;
@@ -151,9 +299,22 @@ namespace engine::geometry::point_cloud
                     std::string format;
                     std::string version;
                     line_stream >> format >> version;
-                    if (format != "ascii")
+                    const std::string lower = to_lower(format);
+                    if (lower == "ascii")
                     {
-                        header.binary = true;
+                        header.format = PlyFormat::kAscii;
+                    }
+                    else if (lower == "binary_little_endian")
+                    {
+                        header.format = PlyFormat::kBinaryLittleEndian;
+                    }
+                    else if (lower == "binary_big_endian")
+                    {
+                        header.format = PlyFormat::kBinaryBigEndian;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("Unsupported PLY format: " + format);
                     }
                     continue;
                 }
@@ -185,6 +346,7 @@ namespace engine::geometry::point_cloud
                     if (in_vertex_section)
                     {
                         PlyProperty property{};
+                        property.type = parse_property_type(type);
                         property.semantic = classify_property(name_token, header);
                         if (property.semantic == PlyPropertySemantic::kScalar)
                         {
@@ -200,12 +362,6 @@ namespace engine::geometry::point_cloud
                     break;
                 }
             }
-
-            if (header.binary)
-            {
-                throw std::runtime_error("Binary PLY files are not supported yet");
-            }
-
             if (header.vertex_count == 0U)
             {
                 return header;
@@ -269,88 +425,106 @@ namespace engine::geometry::point_cloud
 
             std::vector<float> scalar_values(header.scalar_names.size(), 0.0F);
 
-            for (std::size_t i = 0; i < header.vertex_count; ++i)
+            auto process_vertices = [&](auto&& read_value) {
+                for (std::size_t i = 0; i < header.vertex_count; ++i)
+                {
+                    math::vec3 position{0.0F, 0.0F, 0.0F};
+                    math::vec3 normal{0.0F, 0.0F, 0.0F};
+                    math::vec3 colour{0.0F, 0.0F, 0.0F};
+                    float alpha = 1.0F;
+
+                    for (float& value : scalar_values)
+                    {
+                        value = 0.0F;
+                    }
+
+                    for (const PlyProperty& property : header.properties)
+                    {
+                        const double value = read_value(property);
+
+                        switch (property.semantic)
+                        {
+                            case PlyPropertySemantic::kPositionX:
+                                position[0] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kPositionY:
+                                position[1] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kPositionZ:
+                                position[2] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kNormalX:
+                                normal[0] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kNormalY:
+                                normal[1] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kNormalZ:
+                                normal[2] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kColorR:
+                                colour[0] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kColorG:
+                                colour[1] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kColorB:
+                                colour[2] = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kAlpha:
+                                alpha = static_cast<float>(value);
+                                break;
+                            case PlyPropertySemantic::kScalar:
+                                if (property.scalar_index < scalar_values.size())
+                                {
+                                    scalar_values[property.scalar_index] = static_cast<float>(value);
+                                }
+                                break;
+                        }
+                    }
+
+                    const VertexHandle handle = cloud.add_vertex(position);
+                    if (header.has_normals && normals_property)
+                    {
+                        normals_property[handle] = normal;
+                    }
+                    if (header.has_colors && colors_property)
+                    {
+                        colors_property[handle] = colour;
+                    }
+                    if (header.has_alpha && alpha_property)
+                    {
+                        alpha_property[handle] = alpha;
+                    }
+                    for (std::size_t scalar_index = 0; scalar_index < scalar_properties.size(); ++scalar_index)
+                    {
+                        if (scalar_properties[scalar_index])
+                        {
+                            scalar_properties[scalar_index][handle] = scalar_values[scalar_index];
+                        }
+                    }
+                }
+            };
+
+            switch (header.format)
             {
-                math::vec3 position{0.0F, 0.0F, 0.0F};
-                math::vec3 normal{0.0F, 0.0F, 0.0F};
-                math::vec3 colour{0.0F, 0.0F, 0.0F};
-                float alpha = 1.0F;
-
-                for (float& value : scalar_values)
-                {
-                    value = 0.0F;
-                }
-
-                for (const PlyProperty& property : header.properties)
-                {
-                    double value = 0.0;
-                    stream >> value;
-                    if (!stream)
-                    {
-                        throw std::runtime_error("Unexpected end of PLY vertex data");
-                    }
-
-                    switch (property.semantic)
-                    {
-                        case PlyPropertySemantic::kPositionX:
-                            position[0] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kPositionY:
-                            position[1] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kPositionZ:
-                            position[2] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kNormalX:
-                            normal[0] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kNormalY:
-                            normal[1] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kNormalZ:
-                            normal[2] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kColorR:
-                            colour[0] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kColorG:
-                            colour[1] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kColorB:
-                            colour[2] = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kAlpha:
-                            alpha = static_cast<float>(value);
-                            break;
-                        case PlyPropertySemantic::kScalar:
-                            if (property.scalar_index < scalar_values.size())
-                            {
-                                scalar_values[property.scalar_index] = static_cast<float>(value);
-                            }
-                            break;
-                    }
-                }
-
-                const VertexHandle handle = cloud.add_vertex(position);
-                if (header.has_normals && normals_property)
-                {
-                    normals_property[handle] = normal;
-                }
-                if (header.has_colors && colors_property)
-                {
-                    colors_property[handle] = colour;
-                }
-                if (header.has_alpha && alpha_property)
-                {
-                    alpha_property[handle] = alpha;
-                }
-                for (std::size_t scalar_index = 0; scalar_index < scalar_properties.size(); ++scalar_index)
-                {
-                    if (scalar_properties[scalar_index])
-                    {
-                        scalar_properties[scalar_index][handle] = scalar_values[scalar_index];
-                    }
-                }
+                case PlyFormat::kAscii:
+                    process_vertices([&](const PlyProperty&) {
+                        double value = 0.0;
+                        stream >> value;
+                        if (!stream)
+                        {
+                            throw std::runtime_error("Unexpected end of PLY vertex data");
+                        }
+                        return value;
+                    });
+                    break;
+                case PlyFormat::kBinaryLittleEndian:
+                case PlyFormat::kBinaryBigEndian:
+                    process_vertices([&](const PlyProperty& property) {
+                        return read_binary_value(stream, property.type, header.format);
+                    });
+                    break;
             }
         }
 
@@ -383,14 +557,14 @@ namespace engine::geometry::point_cloud
                        const std::filesystem::path& path,
                        const IOFlags& flags)
         {
+            ensure_parent_directory(path);
+            std::ios::openmode mode = std::ios::out | std::ios::trunc;
             if (flags.binary)
             {
-                throw std::runtime_error("Binary PLY output is not implemented yet");
+                mode |= std::ios::binary;
             }
 
-            ensure_parent_directory(path);
-
-            std::ofstream output(path, std::ios::out | std::ios::trunc);
+            std::ofstream output(path, mode);
             if (!output)
             {
                 throw std::runtime_error("Failed to open PLY file for writing");
@@ -425,6 +599,13 @@ namespace engine::geometry::point_cloud
                 }
             }
 
+            std::vector<std::string> scalar_property_names;
+            scalar_property_names.reserve(scalar_properties.size());
+            for (const auto& [name, _] : scalar_properties)
+            {
+                scalar_property_names.emplace_back(sanitise_property_name(name));
+            }
+
             std::vector<VertexHandle> handles;
             handles.reserve(cloud.vertex_count());
             for (auto it = cloud.vertices_begin(); it != cloud.vertices_end(); ++it)
@@ -437,7 +618,14 @@ namespace engine::geometry::point_cloud
             }
 
             output << "ply\n";
-            output << "format ascii 1.0\n";
+            if (flags.binary)
+            {
+                output << "format binary_little_endian 1.0\n";
+            }
+            else
+            {
+                output << "format ascii 1.0\n";
+            }
             output << "element vertex " << handles.size() << '\n';
             output << "property float x\n";
             output << "property float y\n";
@@ -458,43 +646,83 @@ namespace engine::geometry::point_cloud
             {
                 output << "property float alpha\n";
             }
-            for (const auto& [name, _] : scalar_properties)
+            for (const auto& name : scalar_property_names)
             {
-                output << "property float " << sanitise_property_name(name) << '\n';
+                output << "property float " << name << '\n';
             }
             output << "end_header\n";
-            output << std::setprecision(7);
 
-            for (const VertexHandle handle : handles)
+            if (flags.binary)
             {
-                const auto pos = cloud.position(handle);
-                output << pos[0] << ' ' << pos[1] << ' ' << pos[2];
-                if (normals)
+                for (const VertexHandle handle : handles)
                 {
-                    const auto n = normals[handle];
-                    output << ' ' << n[0] << ' ' << n[1] << ' ' << n[2];
+                    const auto pos = cloud.position(handle);
+                    write_binary_scalar(output, pos[0]);
+                    write_binary_scalar(output, pos[1]);
+                    write_binary_scalar(output, pos[2]);
+                    if (normals)
+                    {
+                        const auto n = normals[handle];
+                        write_binary_scalar(output, n[0]);
+                        write_binary_scalar(output, n[1]);
+                        write_binary_scalar(output, n[2]);
+                    }
+                    if (colours)
+                    {
+                        const auto c = colours[handle];
+                        write_binary_scalar(output, c[0]);
+                        write_binary_scalar(output, c[1]);
+                        write_binary_scalar(output, c[2]);
+                    }
+                    if (alpha)
+                    {
+                        write_binary_scalar(output, alpha[handle]);
+                    }
+                    for (const auto& property : scalar_properties)
+                    {
+                        write_binary_scalar(output, property.second[handle]);
+                    }
                 }
-                if (colours)
+            }
+            else
+            {
+                output << std::setprecision(7);
+                for (const VertexHandle handle : handles)
                 {
-                    const auto c = colours[handle];
-                    output << ' ' << c[0] << ' ' << c[1] << ' ' << c[2];
+                    const auto pos = cloud.position(handle);
+                    output << pos[0] << ' ' << pos[1] << ' ' << pos[2];
+                    if (normals)
+                    {
+                        const auto n = normals[handle];
+                        output << ' ' << n[0] << ' ' << n[1] << ' ' << n[2];
+                    }
+                    if (colours)
+                    {
+                        const auto c = colours[handle];
+                        output << ' ' << c[0] << ' ' << c[1] << ' ' << c[2];
+                    }
+                    if (alpha)
+                    {
+                        output << ' ' << alpha[handle];
+                    }
+                    for (const auto& property : scalar_properties)
+                    {
+                        output << ' ' << property.second[handle];
+                    }
+                    output << '\n';
                 }
-                if (alpha)
-                {
-                    output << ' ' << alpha[handle];
-                }
-                for (const auto& property : scalar_properties)
-                {
-                    output << ' ' << property.second[handle];
-                }
-                output << '\n';
+            }
+
+            if (!output)
+            {
+                throw std::runtime_error("Failed to write PLY vertex data");
             }
         }
     } // namespace
 
     void read(PointCloudInterface& cloud, const std::filesystem::path& path)
     {
-        std::ifstream input(path, std::ios::in);
+        std::ifstream input(path, std::ios::in | std::ios::binary);
         if (!input)
         {
             throw std::runtime_error("Failed to open PLY file for reading");
