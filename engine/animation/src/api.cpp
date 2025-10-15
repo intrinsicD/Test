@@ -13,6 +13,8 @@ namespace {
 
 constexpr double epsilon_time = 1e-6;
 constexpr std::size_t invalid_index = std::numeric_limits<std::size_t>::max();
+constexpr float weight_min = 0.0F;
+constexpr float weight_max = 1.0F;
 
 using PoseMap = std::unordered_map<std::string, JointPose>;
 
@@ -47,6 +49,32 @@ using PoseMap = std::unordered_map<std::string, JointPose>;
     blended.scale = lerp(lhs.scale, rhs.scale, weight);
     blended.rotation = math::normalize(math::slerp(lhs.rotation, rhs.rotation, weight));
     return blended;
+}
+
+[[nodiscard]] JointPose apply_additive_pose(const JointPose& base, const JointPose& additive, float weight) {
+    if (weight <= weight_min) {
+        return base;
+    }
+
+    JointPose result = base;
+    result.translation = base.translation + additive.translation * weight;
+
+    const auto apply_scale = [&](std::size_t axis) {
+        const float base_scale = base.scale[axis];
+        const float additive_scale = additive.scale[axis];
+        const float delta = (additive_scale - 1.0F) * weight;
+        result.scale[axis] = base_scale * (1.0F + delta);
+    };
+    apply_scale(0);
+    apply_scale(1);
+    apply_scale(2);
+
+    const math::quat identity = math::quat::Identity();
+    const math::quat additive_delta = math::normalize(additive.rotation);
+    const math::quat weighted_delta = math::normalize(math::slerp(identity, additive_delta, weight));
+    result.rotation = math::normalize(weighted_delta * base.rotation);
+
+    return result;
 }
 
 [[nodiscard]] AnimationRigPose blend_linear(const AnimationRigPose& lhs,
@@ -87,6 +115,33 @@ using PoseMap = std::unordered_map<std::string, JointPose>;
     return to_rig_pose(std::move(result));
 }
 
+[[nodiscard]] AnimationRigPose blend_additive(const AnimationRigPose& base,
+                                             const AnimationRigPose& additive,
+                                             float weight) {
+    if (weight <= weight_min) {
+        return base;
+    }
+
+    auto base_map = to_pose_map(base);
+    auto additive_map = to_pose_map(additive);
+
+    PoseMap result = base_map;
+
+    for (auto& [joint, pose] : result) {
+        if (const auto it = additive_map.find(joint); it != additive_map.end()) {
+            pose = apply_additive_pose(pose, it->second, weight);
+        }
+    }
+
+    for (const auto& [joint, pose] : additive_map) {
+        if (result.find(joint) == result.end()) {
+            result.insert({joint, apply_additive_pose(JointPose{}, pose, weight)});
+        }
+    }
+
+    return to_rig_pose(std::move(result));
+}
+
 [[nodiscard]] bool node_index_valid(const AnimationBlendTree& tree, std::size_t node) noexcept {
     return node < tree.nodes.size();
 }
@@ -120,14 +175,28 @@ using PoseMap = std::unordered_map<std::string, JointPose>;
     return static_cast<std::size_t>(std::distance(tree.parameters.begin(), it));
 }
 
-[[nodiscard]] float resolved_blend_weight(const AnimationBlendTree& tree,
-                                          const BlendTreeLinearBlendNode& node) noexcept {
-    float weight = node.weight;
-    if (const auto* parameter = parameter_at(tree, node.weight_parameter);
+[[nodiscard]] float resolved_weight(const AnimationBlendTree& tree,
+                                    float node_weight,
+                                    std::size_t parameter_index) noexcept {
+    float weight = node_weight;
+    if (const auto* parameter = parameter_at(tree, parameter_index);
         parameter != nullptr && parameter->type == BlendTreeParameterType::kFloat) {
         weight = parameter->float_value;
     }
-    return std::clamp(weight, 0.0F, 1.0F);
+    if (!std::isfinite(weight)) {
+        return weight_min;
+    }
+    return std::clamp(weight, weight_min, weight_max);
+}
+
+[[nodiscard]] float resolved_blend_weight(const AnimationBlendTree& tree,
+                                          const BlendTreeLinearBlendNode& node) noexcept {
+    return resolved_weight(tree, node.weight, node.weight_parameter);
+}
+
+[[nodiscard]] float resolved_additive_weight(const AnimationBlendTree& tree,
+                                             const BlendTreeAdditiveNode& node) noexcept {
+    return resolved_weight(tree, node.weight, node.weight_parameter);
 }
 
 }  // namespace
@@ -301,6 +370,21 @@ std::size_t add_linear_blend_node(AnimationBlendTree& tree, std::size_t lhs, std
     return tree.nodes.size() - 1U;
 }
 
+std::size_t add_additive_blend_node(AnimationBlendTree& tree,
+                                    std::size_t base,
+                                    std::size_t additive,
+                                    float weight) {
+    BlendTreeNode node;
+    BlendTreeAdditiveNode blend;
+    blend.base = base;
+    blend.additive = additive;
+    blend.weight = std::clamp(weight, weight_min, weight_max);
+    blend.weight_parameter = invalid_index;
+    node.data = blend;
+    tree.nodes.push_back(node);
+    return tree.nodes.size() - 1U;
+}
+
 std::size_t add_float_parameter(AnimationBlendTree& tree, std::string name, float initial_value) {
     if (const auto existing = find_parameter_index(tree, name)) {
         auto& parameter = tree.parameters[*existing];
@@ -365,7 +449,17 @@ void set_linear_blend_weight(AnimationBlendTree& tree, std::size_t node, float w
     }
     auto& variant = tree.nodes[node].data;
     if (auto* blend = std::get_if<BlendTreeLinearBlendNode>(&variant)) {
-        blend->weight = std::clamp(weight, 0.0F, 1.0F);
+        blend->weight = std::clamp(weight, weight_min, weight_max);
+    }
+}
+
+void set_additive_blend_weight(AnimationBlendTree& tree, std::size_t node, float weight) noexcept {
+    if (!node_index_valid(tree, node)) {
+        return;
+    }
+    auto& variant = tree.nodes[node].data;
+    if (auto* blend = std::get_if<BlendTreeAdditiveNode>(&variant)) {
+        blend->weight = std::clamp(weight, weight_min, weight_max);
     }
 }
 
@@ -375,6 +469,21 @@ void bind_linear_blend_weight(AnimationBlendTree& tree, std::size_t node, std::s
     }
     auto& variant = tree.nodes[node].data;
     if (auto* blend = std::get_if<BlendTreeLinearBlendNode>(&variant)) {
+        const auto* entry = parameter_at(tree, parameter);
+        if (entry != nullptr && entry->type == BlendTreeParameterType::kFloat) {
+            blend->weight_parameter = parameter;
+        } else {
+            blend->weight_parameter = invalid_index;
+        }
+    }
+}
+
+void bind_additive_blend_weight(AnimationBlendTree& tree, std::size_t node, std::size_t parameter) noexcept {
+    if (!node_index_valid(tree, node)) {
+        return;
+    }
+    auto& variant = tree.nodes[node].data;
+    if (auto* blend = std::get_if<BlendTreeAdditiveNode>(&variant)) {
         const auto* entry = parameter_at(tree, parameter);
         if (entry != nullptr && entry->type == BlendTreeParameterType::kFloat) {
             blend->weight_parameter = parameter;
@@ -475,6 +584,19 @@ bool blend_tree_valid(const AnimationBlendTree& tree) noexcept {
                     return false;
                 }
             }
+        } else if (const auto* additive = std::get_if<BlendTreeAdditiveNode>(&node.data)) {
+            if (!node_index_valid(tree, additive->base) || !node_index_valid(tree, additive->additive)) {
+                return false;
+            }
+            if (!std::isfinite(additive->weight)) {
+                return false;
+            }
+            if (additive->weight_parameter != invalid_index) {
+                const auto* entry = parameter_at(tree, additive->weight_parameter);
+                if (entry == nullptr || entry->type != BlendTreeParameterType::kFloat) {
+                    return false;
+                }
+            }
         }
     }
     return true;
@@ -500,6 +622,10 @@ AnimationRigPose evaluate_node(const AnimationBlendTree& tree,
         const auto lhs = evaluate_node(tree, blend->lhs, cache);
         const auto rhs = evaluate_node(tree, blend->rhs, cache);
         pose = blend_linear(lhs, rhs, resolved_blend_weight(tree, *blend));
+    } else if (const auto* additive = std::get_if<BlendTreeAdditiveNode>(&node)) {
+        const auto base = evaluate_node(tree, additive->base, cache);
+        const auto delta = evaluate_node(tree, additive->additive, cache);
+        pose = blend_additive(base, delta, resolved_additive_weight(tree, *additive));
     }
 
     cache[index] = pose;
