@@ -12,7 +12,7 @@ what is implemented today.
 | --- | --- |
 | Animation | Deterministic clip sampling, validation, JSON import/export, linear controllers, and parameter binding blend trees that the runtime consumes for pose evaluation. |
 | Assets | Runtime caches for meshes, point clouds, graphs, textures, and shaders with hot-reload polling plus handle-based lookups; materials currently store descriptor bindings without file-backed reload. |
-| Compute | A topological kernel dispatcher that measures execution time per kernel and exposes a lightweight math helper for identity transforms. |
+| Compute | A topological kernel dispatcher that measures execution time per kernel, reports backend availability, and exposes a lightweight math helper for identity transforms. |
 | Core | EnTT-backed registry façade, entity helpers, and module discovery utilities that higher-level systems consume. |
 | Geometry | `SurfaceMesh` utilities (normals, bounds, centroid), conversions to/from the halfedge core, procedural primitives, and ASCII import/export for meshes, graphs, and point clouds backed by spatial indices such as kd-trees and octrees. |
 | IO | Geometry and animation import/export wrappers with format detection, a plugin-ready registry for mesh/point-cloud/graph handlers, and scaffolding for cache policies. |
