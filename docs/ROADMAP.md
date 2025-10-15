@@ -39,8 +39,8 @@ modules. Items are grouped by their intent:
 - **Module:** Compute
 - **Dependencies:** [DC-001]
 - **Tasks:**
-  - [ ] Add a CMake option `ENGINE_ENABLE_CUDA` (default `OFF`).
-  - [ ] Guard the `engine_compute_cuda` target behind the new option.
+  - [x] Add a CMake option `ENGINE_ENABLE_CUDA` (default `OFF`).
+  - [x] Guard the `engine_compute_cuda` target behind the new option.
   - [ ] Implement `engine_compute::cpu_dispatcher` and `engine_compute::cuda_dispatcher` interfaces with a shared abstraction.
   - [ ] Add runtime capability detection helpers in `engine/compute/api.hpp`.
   - [ ] Update build presets in `scripts/build/presets/` to include CUDA-enabled and CPU-only variants.

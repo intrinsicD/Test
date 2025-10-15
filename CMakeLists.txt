@@ -18,6 +18,8 @@ set(ENGINE_MODULES
     runtime
 )
 
+option(ENGINE_ENABLE_CUDA "Enable CUDA support for compute module targets" OFF)
+
 set(ENGINE_OPTIONAL_SUBSYSTEMS
     animation
     assets
@@ -34,7 +36,20 @@ set(ENGINE_OPTIONAL_SUBSYSTEMS
 
 foreach(subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
     string(TOUPPER "${subsystem}" subsystem_upper)
-    option(ENGINE_ENABLE_${subsystem_upper} "Enable ${subsystem} subsystem integration" ON)
+    set(option_default ON)
+    if(subsystem STREQUAL "compute_cuda")
+        set(option_default ${ENGINE_ENABLE_CUDA})
+    endif()
+    option(ENGINE_ENABLE_${subsystem_upper} "Enable ${subsystem} subsystem integration" ${option_default})
+endforeach()
+
+if(NOT ENGINE_ENABLE_CUDA AND ENGINE_ENABLE_COMPUTE_CUDA)
+    message(WARNING "ENGINE_ENABLE_COMPUTE_CUDA requested but ENGINE_ENABLE_CUDA=OFF; disabling compute CUDA subsystem integration.")
+    set(ENGINE_ENABLE_COMPUTE_CUDA OFF CACHE BOOL "Enable compute_cuda subsystem integration" FORCE)
+endif()
+
+foreach(subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
+    string(TOUPPER "${subsystem}" subsystem_upper)
     if(ENGINE_ENABLE_${subsystem_upper})
         add_compile_definitions(ENGINE_ENABLE_${subsystem_upper}=1)
     else()

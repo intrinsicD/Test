@@ -15,7 +15,6 @@ target_link_libraries(${target_name}
         engine_animation
         engine_assets
         engine_compute
-        engine_compute_cuda
         engine_core
         engine_geometry
         engine_io
@@ -25,6 +24,13 @@ target_link_libraries(${target_name}
         engine_rendering
         engine_scene
 )
+
+if(TARGET engine_compute_cuda AND ENGINE_ENABLE_COMPUTE_CUDA)
+    target_link_libraries(${target_name}
+        PUBLIC
+            engine_compute_cuda
+    )
+endif()
 
 target_compile_definitions(${target_name}
     PRIVATE
