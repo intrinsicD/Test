@@ -134,16 +134,21 @@ product goals. Update both the plan and this snapshot together to prevent drift.
 ### Configure and Build
 
 ```bash
-cmake --preset linux-gcc-debug
+cmake --preset linux-gcc-debug          # CPU-only
 cmake --build --preset linux-gcc-debug
 ctest --preset linux-gcc-debug
+
+# or configure the CUDA variant
+cmake --preset linux-gcc-debug-cuda
+cmake --build --preset linux-gcc-debug-cuda
+ctest --preset linux-gcc-debug-cuda
 ```
 
 Presets live under `scripts/build/` and currently cover Linux (GCC) and Windows (MSVC) compiler stacks. Additional variants can be invoked with `cmake --preset <name>` or orchestrated collectively via `scripts/ci/run_presets.py`. Each subsystem still produces a library named `engine_<subsystem>`; linking to any of them automatically imports the shared usage requirements published by `engine::project_options` and the aggregated headers exposed through `engine::headers`.
 
 Subsystem availability can be tailored at configure time through the `ENGINE_ENABLE_<MODULE>` options (for example `-DENGINE_ENABLE_RENDERING=OFF`). Disabled modules are omitted from the default runtime subsystem registry but can be re-enabled explicitly by calling the helper configuration APIs in `engine/runtime/api.hpp`.
 
-CUDA-oriented components stay disabled unless you configure with `-DENGINE_ENABLE_CUDA=ON`. This flag controls whether the optional `engine_compute_cuda` target is generated, with `ENGINE_ENABLE_COMPUTE_CUDA` further toggling runtime integration for hosts that want the library built but not linked.
+CUDA-oriented components stay disabled unless you opt into the dedicated CUDA presets (for example `linux-gcc-debug-cuda` or `windows-msvc-release-cuda`) or explicitly configure with `-DENGINE_ENABLE_CUDA=ON`. The presets set both `ENGINE_ENABLE_CUDA` and the matching subsystem toggle `ENGINE_ENABLE_COMPUTE_CUDA`, ensuring the optional `engine_compute_cuda` target is generated and integrated when desired while leaving CPU-only variants untouched by default.
 
 ### Testing
 
