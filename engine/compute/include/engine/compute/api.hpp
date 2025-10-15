@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -27,30 +28,28 @@ struct ExecutionReport {
     std::vector<double> kernel_durations;
 };
 
-class ENGINE_COMPUTE_API KernelDispatcher {
+class ENGINE_COMPUTE_API Dispatcher {
 public:
+    using kernel_id = std::size_t;
     using kernel_type = std::function<void()>;
 
-    [[nodiscard]] std::size_t add_kernel(
+    virtual ~Dispatcher() = default;
+
+    [[nodiscard]] virtual kernel_id add_kernel(
         std::string name,
         kernel_type kernel,
-        std::vector<std::size_t> dependencies = {});
+        std::vector<kernel_id> dependencies = {}) = 0;
 
-    void clear() noexcept;
+    virtual void clear() noexcept = 0;
 
-    [[nodiscard]] ExecutionReport dispatch();
+    [[nodiscard]] virtual ExecutionReport dispatch() = 0;
 
-    [[nodiscard]] std::size_t size() const noexcept;
-
-private:
-    struct KernelNode {
-        std::string name;
-        kernel_type callback;
-        std::vector<std::size_t> dependencies;
-    };
-
-    std::vector<KernelNode> kernels_;
+    [[nodiscard]] virtual std::size_t size() const noexcept = 0;
 };
+
+[[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cpu_dispatcher();
+
+[[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cuda_dispatcher();
 
 [[nodiscard]] ENGINE_COMPUTE_API std::string_view module_name() noexcept;
 
