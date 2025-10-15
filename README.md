@@ -34,18 +34,21 @@ what is implemented today.
 
 ## Design Documentation Workflow
 
-- The `docs/` tree captures architecture explorations, design rationales, and decision records that anchor
-  large subsystem work. Capture design proposals here before landing major subsystems and reference the
-  relevant records in pull requests so reviewers can trace intent.
+- **Start every session with [`docs/README.md`](docs/README.md).** It stitches together the working agreement in
+  [`AGENTS.md`](AGENTS.md), subsystem invariants, and the task/specification records so AI assistants and human contributors
+  follow the same breadcrumbs.
+- The `docs/` tree captures architecture explorations, design rationales, and decision records that anchor large subsystem work.
+  Capture design proposals here before landing major subsystems and reference the relevant records in pull requests so reviewers
+  can trace intent.
 - The cross-module architectural backlog is curated in the
-  [central roadmap](docs/ROADMAP.md#architecture-improvement-plan). Review and
-  update this plan when reprioritising milestones or when new technical debt emerges. The plan is partitioned into
-  **Critical Design Corrections (DC)**, **Architecture Improvements (AI)**, **Roadmap TODOs (RT)**, **Documentation Improvements (DI)**,
-  **Build System Enhancements (BS)**, **Testing Infrastructure (TI)**, **Python Bindings (PY)**, and **Cross-Cutting initiatives (CC)**.
-- Keep README snapshots aligned with that plan so contributors can see which areas are currently emphasised without opening
-  the full design record.
-- As milestones conclude, update the associated notes and mirror outcomes into the roadmap to keep backlog
-  discussions synchronised with implementation reality.
+  [central roadmap](docs/ROADMAP.md#architecture-improvement-plan). Review and update this plan when reprioritising milestones or
+  when new technical debt emerges. The plan is partitioned into **Critical Design Corrections (DC)**, **Architecture Improvements
+  (AI)**, **Roadmap TODOs (RT)**, **Documentation Improvements (DI)**, **Build System Enhancements (BS)**, **Testing Infrastructure
+  (TI)**, **Python Bindings (PY)**, and **Cross-Cutting initiatives (CC)**.
+- Keep README snapshots aligned with that plan so contributors can see which areas are currently emphasised without opening the
+  full design record.
+- As milestones conclude, update the associated notes and mirror outcomes into the roadmap to keep backlog discussions
+  synchronised with implementation reality.
 - Rendering and runtime coordination currently centres on the **Rendering/Runtime vertical slice**. The active work streams are
   codified as `AI-003` (frame-graph metadata expansion) and `RT-003` (Vulkan backend prototype) in the architecture improvement
   plan. Their shared goal is a deterministic path from runtime orchestration into the rendering frame graph, realised through
