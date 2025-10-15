@@ -85,8 +85,15 @@ struct BlendTreeLinearBlendNode {
     std::size_t weight_parameter{std::numeric_limits<std::size_t>::max()};
 };
 
+struct BlendTreeAdditiveNode {
+    std::size_t base{std::numeric_limits<std::size_t>::max()};
+    std::size_t additive{std::numeric_limits<std::size_t>::max()};
+    float weight{1.0F};
+    std::size_t weight_parameter{std::numeric_limits<std::size_t>::max()};
+};
+
 struct BlendTreeNode {
-    std::variant<BlendTreeClipNode, BlendTreeLinearBlendNode> data;
+    std::variant<BlendTreeClipNode, BlendTreeLinearBlendNode, BlendTreeAdditiveNode> data;
 };
 
 struct AnimationBlendTree {
@@ -144,6 +151,10 @@ ENGINE_ANIMATION_API void advance_controller(AnimationController& controller, do
                                                                      std::size_t lhs,
                                                                      std::size_t rhs,
                                                                      float weight);
+[[nodiscard]] ENGINE_ANIMATION_API std::size_t add_additive_blend_node(AnimationBlendTree& tree,
+                                                                      std::size_t base,
+                                                                      std::size_t additive,
+                                                                      float weight);
 [[nodiscard]] ENGINE_ANIMATION_API std::size_t add_float_parameter(AnimationBlendTree& tree,
                                                                   std::string name,
                                                                   float initial_value = 0.0F);
@@ -156,10 +167,14 @@ ENGINE_ANIMATION_API void advance_controller(AnimationController& controller, do
 ENGINE_ANIMATION_API void set_blend_tree_root(AnimationBlendTree& tree, std::size_t node) noexcept;
 
 ENGINE_ANIMATION_API void set_linear_blend_weight(AnimationBlendTree& tree, std::size_t node, float weight) noexcept;
+ENGINE_ANIMATION_API void set_additive_blend_weight(AnimationBlendTree& tree, std::size_t node, float weight) noexcept;
 
 ENGINE_ANIMATION_API void bind_linear_blend_weight(AnimationBlendTree& tree,
                                                   std::size_t node,
                                                   std::size_t parameter) noexcept;
+ENGINE_ANIMATION_API void bind_additive_blend_weight(AnimationBlendTree& tree,
+                                                    std::size_t node,
+                                                    std::size_t parameter) noexcept;
 
 ENGINE_ANIMATION_API bool set_float_parameter(AnimationBlendTree& tree,
                                              std::size_t parameter,

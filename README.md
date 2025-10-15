@@ -255,6 +255,8 @@ auto pose = evaluate_blend_tree(tree);
 `add_linear_blend_node` mixes two input nodes according to a bound parameter or constant weight. Parameters
 act as the runtime control surface and advance alongside the blend tree so callers can drive weights,
 events, and boolean gates in lockstep with the host application.
+`add_additive_blend_node` layers a delta pose over a base node, interpreting the additive input relative to the identity pose and
+scaling it by a float weight (direct value or bound parameter) before composing translation, rotation, and scale onto the base.
 
 ### Compute
 

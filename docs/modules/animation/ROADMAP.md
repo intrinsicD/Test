@@ -18,10 +18,10 @@
 - **Owner:** @animation-team
 - **Issue:** #234
 - **Tasks:**
-  - [ ] Design additive pose composition API
-  - [ ] Implement `BlendTreeAdditiveNode`
-  - [ ] Add unit tests for additive blending
-  - [ ] Document usage in API reference
+  - [x] Design additive pose composition API
+  - [x] Implement `BlendTreeAdditiveNode`
+  - [x] Add unit tests for additive blending
+  - [x] Document usage in API reference
 
 ### Deformation Binding
 - **Owner:** @bob
