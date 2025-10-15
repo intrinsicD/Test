@@ -43,8 +43,8 @@ modules. Items are grouped by their intent:
   - [x] Guard the `engine_compute_cuda` target behind the new option.
   - [x] Implement `engine_compute::cpu_dispatcher` and `engine_compute::cuda_dispatcher` interfaces with a shared abstraction.
   - [x] Add runtime capability detection helpers in `engine/compute/api.hpp`.
-  - [ ] Update build presets in `scripts/build/presets/` to include CUDA-enabled and CPU-only variants.
-  - [ ] Document CUDA setup and fallback semantics in `engine/compute/README.md`.
+  - [x] Update build presets in `scripts/build/presets/` to include CUDA-enabled and CPU-only variants.
+  - [x] Document CUDA setup and fallback semantics in `engine/compute/README.md`.
 - **Artifacts:** `CMakeLists.txt`, `engine/compute/api.hpp`, `engine/compute/src/dispatchers/*.cpp`, `scripts/build/presets/*.json`, `engine/compute/README.md`.
 - **Tests:** Build verification with `ENGINE_ENABLE_CUDA=OFF` and `ON`; runtime unit tests ensuring CPU fallback when CUDA is unavailable; CI preset for CPU-only configuration.
 - **Docs:** Expand compute module README; update root README with the new build option.

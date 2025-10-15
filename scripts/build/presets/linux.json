@@ -33,7 +33,20 @@
         "linux-base"
       ],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENGINE_ENABLE_CUDA": "OFF",
+        "ENGINE_ENABLE_COMPUTE_CUDA": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-debug-cuda",
+      "displayName": "Linux GCC Debug (CUDA)",
+      "inherits": [
+        "linux-gcc-debug"
+      ],
+      "cacheVariables": {
+        "ENGINE_ENABLE_CUDA": "ON",
+        "ENGINE_ENABLE_COMPUTE_CUDA": "ON"
       }
     },
     {
@@ -44,7 +57,20 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON",
+        "ENGINE_ENABLE_CUDA": "OFF",
+        "ENGINE_ENABLE_COMPUTE_CUDA": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-release-cuda",
+      "displayName": "Linux GCC Release (CUDA)",
+      "inherits": [
+        "linux-gcc-release"
+      ],
+      "cacheVariables": {
+        "ENGINE_ENABLE_CUDA": "ON",
+        "ENGINE_ENABLE_COMPUTE_CUDA": "ON"
       }
     }
   ],
@@ -55,9 +81,19 @@
       "configurePreset": "linux-gcc-debug"
     },
     {
+      "name": "linux-gcc-debug-cuda",
+      "displayName": "Build (Linux GCC Debug CUDA)",
+      "configurePreset": "linux-gcc-debug-cuda"
+    },
+    {
       "name": "linux-gcc-release",
       "displayName": "Build (Linux GCC Release)",
       "configurePreset": "linux-gcc-release"
+    },
+    {
+      "name": "linux-gcc-release-cuda",
+      "displayName": "Build (Linux GCC Release CUDA)",
+      "configurePreset": "linux-gcc-release-cuda"
     }
   ],
   "testPresets": [
@@ -70,9 +106,26 @@
       }
     },
     {
+      "name": "linux-gcc-debug-cuda",
+      "displayName": "CTest (Linux GCC Debug CUDA)",
+      "configurePreset": "linux-gcc-debug-cuda",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "linux-gcc-release",
       "displayName": "CTest (Linux GCC Release)",
       "configurePreset": "linux-gcc-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-release-cuda",
+      "displayName": "CTest (Linux GCC Release CUDA)",
+      "configurePreset": "linux-gcc-release-cuda",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true
