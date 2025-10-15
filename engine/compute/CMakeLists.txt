@@ -14,13 +14,21 @@ target_compile_definitions(${target_name}
         ENGINE_COMPUTE_EXPORTS
 )
 
-add_subdirectory(cuda)
-
 target_link_libraries(${target_name}
     PUBLIC
         engine_math
-        engine_compute_cuda
 )
+
+if(ENGINE_ENABLE_CUDA)
+    add_subdirectory(cuda)
+endif()
+
+if(TARGET engine_compute_cuda AND ENGINE_ENABLE_COMPUTE_CUDA)
+    target_link_libraries(${target_name}
+        PUBLIC
+            engine_compute_cuda
+    )
+endif()
 
 if(BUILD_TESTING)
     add_subdirectory(tests)

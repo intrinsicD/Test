@@ -143,6 +143,8 @@ Presets live under `scripts/build/` and currently cover Linux (GCC) and Windows 
 
 Subsystem availability can be tailored at configure time through the `ENGINE_ENABLE_<MODULE>` options (for example `-DENGINE_ENABLE_RENDERING=OFF`). Disabled modules are omitted from the default runtime subsystem registry but can be re-enabled explicitly by calling the helper configuration APIs in `engine/runtime/api.hpp`.
 
+CUDA-oriented components stay disabled unless you configure with `-DENGINE_ENABLE_CUDA=ON`. This flag controls whether the optional `engine_compute_cuda` target is generated, with `ENGINE_ENABLE_COMPUTE_CUDA` further toggling runtime integration for hosts that want the library built but not linked.
+
 ### Testing
 
 - **C++ suites** – Execute `ctest --preset <preset>` (for example `ctest --preset linux-gcc-debug`) to honour the generator and cache variables baked into the presets.
