@@ -2,11 +2,12 @@
 
 ## 1. Always Start With the Documentation
 - Read the repository root `README.md` before making changes; it summarises the workspace layout, build presets, and current TODO backlog.
+- Open [`docs/README.md`](docs/README.md) immediately afterwards. It links the working agreement in this file with subsystem invariants, task backlogs, and ADRs so contributors follow the same workflow as our AI collaborators.
 - When touching any module, review its local `README.md`. Create or update it using `docs/README_TEMPLATE.md` so every directory explains:
   - What the component does and how it relates to neighbouring modules.
   - How to build and run its samples/tests.
   - Its local TODO items and how they map back to the aggregated backlog table in the root README.
-- Keep documentation in sync with the implementation. Whenever behaviour, dependencies, or workflows change, update the relevant README(s) and design notes under `docs/`.
+- Keep documentation in sync with the implementation. Whenever behaviour, dependencies, or workflows change, update the relevant README(s) and design notes under `docs/` and cross-link them from [`docs/README.md`](docs/README.md).
 
 ## 1.1 Architecture Improvement Plan Alignment
 - Treat [`docs/ROADMAP.md#architecture-improvement-plan`](docs/ROADMAP.md#architecture-improvement-plan) as the authoritative backlog
