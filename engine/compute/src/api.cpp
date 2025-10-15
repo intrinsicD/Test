@@ -117,6 +117,18 @@ private:
 
 }  // namespace
 
+namespace {
+
+[[nodiscard]] constexpr bool compute_cuda_enabled() noexcept {
+#if defined(ENGINE_ENABLE_COMPUTE_CUDA)
+    return ENGINE_ENABLE_COMPUTE_CUDA != 0;
+#else
+    return false;
+#endif
+}
+
+}  // namespace
+
 std::string_view module_name() noexcept {
     return "compute";
 }
@@ -127,6 +139,21 @@ std::unique_ptr<Dispatcher> make_cpu_dispatcher() {
 
 std::unique_ptr<Dispatcher> make_cuda_dispatcher() {
     return std::make_unique<CudaDispatcher>();
+}
+
+bool is_cpu_dispatcher_available() noexcept {
+    return true;
+}
+
+bool is_cuda_dispatcher_available() noexcept {
+    return compute_cuda_enabled();
+}
+
+DispatcherCapabilities dispatcher_capabilities() noexcept {
+    return DispatcherCapabilities{
+        .cpu_available = is_cpu_dispatcher_available(),
+        .cuda_available = is_cuda_dispatcher_available(),
+    };
 }
 
 math::mat4 identity_transform() noexcept {

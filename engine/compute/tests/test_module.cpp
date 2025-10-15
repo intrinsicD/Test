@@ -135,3 +135,18 @@ TEST(ComputeModule, CudaDispatcherThrowsOnInvalidDependencyIndex)
         {},
         {0U, 2U});
 }
+
+TEST(ComputeModule, ReportsDispatcherAvailability)
+{
+    EXPECT_TRUE(engine::compute::is_cpu_dispatcher_available());
+
+#if ENGINE_ENABLE_COMPUTE_CUDA
+    EXPECT_TRUE(engine::compute::is_cuda_dispatcher_available());
+#else
+    EXPECT_FALSE(engine::compute::is_cuda_dispatcher_available());
+#endif
+
+    const auto capabilities = engine::compute::dispatcher_capabilities();
+    EXPECT_EQ(capabilities.cpu_available, engine::compute::is_cpu_dispatcher_available());
+    EXPECT_EQ(capabilities.cuda_available, engine::compute::is_cuda_dispatcher_available());
+}

@@ -28,6 +28,11 @@ struct ExecutionReport {
     std::vector<double> kernel_durations;
 };
 
+struct DispatcherCapabilities {
+    bool cpu_available{false};
+    bool cuda_available{false};
+};
+
 class ENGINE_COMPUTE_API Dispatcher {
 public:
     using kernel_id = std::size_t;
@@ -50,6 +55,12 @@ public:
 [[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cpu_dispatcher();
 
 [[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cuda_dispatcher();
+
+[[nodiscard]] ENGINE_COMPUTE_API bool is_cpu_dispatcher_available() noexcept;
+
+[[nodiscard]] ENGINE_COMPUTE_API bool is_cuda_dispatcher_available() noexcept;
+
+[[nodiscard]] ENGINE_COMPUTE_API DispatcherCapabilities dispatcher_capabilities() noexcept;
 
 [[nodiscard]] ENGINE_COMPUTE_API std::string_view module_name() noexcept;
 
