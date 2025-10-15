@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -26,20 +27,23 @@ TEST(ComputeModule, IdentityTransformIsMatrixIdentity)
     }
 }
 
-TEST(ComputeModule, DispatcherRespectsDependencies)
+namespace
 {
-    engine::compute::KernelDispatcher dispatcher;
 
+using DispatcherPtr = std::unique_ptr<engine::compute::Dispatcher>;
+
+void ExpectDispatcherRespectsDependencies(DispatcherPtr dispatcher)
+{
     std::array<int, 3> values{0, 0, 0};
-    const auto first = dispatcher.add_kernel("first", [&]() { values[0] = 1; });
-    const auto second = dispatcher.add_kernel(
+    const auto first = dispatcher->add_kernel("first", [&]() { values[0] = 1; });
+    const auto second = dispatcher->add_kernel(
         "second",
         [&]()
         {
             values[1] = values[0] + 1;
         },
         {first});
-    MAYBE_UNUSED_CONST_AUTO third = dispatcher.add_kernel(
+    MAYBE_UNUSED_CONST_AUTO third = dispatcher->add_kernel(
         "third",
         [&]()
         {
@@ -47,7 +51,7 @@ TEST(ComputeModule, DispatcherRespectsDependencies)
         },
         {second});
 
-    const auto report = dispatcher.dispatch();
+    const auto report = dispatcher->dispatch();
     ASSERT_EQ(report.execution_order.size(), 3U);
     ASSERT_EQ(report.kernel_durations.size(), report.execution_order.size());
     EXPECT_EQ(report.execution_order.front(), "first");
@@ -59,44 +63,75 @@ TEST(ComputeModule, DispatcherRespectsDependencies)
     EXPECT_EQ(values[2], 3);
 }
 
-TEST(ComputeModule, DispatcherDetectsCycles)
+template <typename ExceptionType>
+void ExpectDispatcherThrows(
+    DispatcherPtr dispatcher,
+    const char* expected_message,
+    const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_first,
+    const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_second)
 {
-    engine::compute::KernelDispatcher dispatcher;
-    const auto a = dispatcher.add_kernel("a", []
+    MAYBE_UNUSED_CONST_AUTO a = dispatcher->add_kernel("a", []
     {
-    }, {1U});
-    MAYBE_UNUSED_CONST_AUTO b = dispatcher.add_kernel("b", []
+    }, dependencies_for_first);
+    MAYBE_UNUSED_CONST_AUTO b = dispatcher->add_kernel("b", []
     {
-    }, {a});
+    }, dependencies_for_second);
 
     try
     {
-        (void)dispatcher.dispatch();
-        FAIL() << "Expected KernelDispatcher to detect a cycle";
+        (void)dispatcher->dispatch();
+        FAIL() << "Dispatcher did not raise the expected exception";
     }
-    catch (const std::runtime_error& error)
+    catch (const ExceptionType& error)
     {
-        EXPECT_STREQ(error.what(), "KernelDispatcher detected a cycle");
+        EXPECT_STREQ(error.what(), expected_message);
     }
 }
 
-TEST(ComputeModule, DispatcherThrowsOnInvalidDependencyIndex)
-{
-    engine::compute::KernelDispatcher dispatcher;
-    MAYBE_UNUSED_CONST_AUTO a = dispatcher.add_kernel("a", []
-    {
-    });
-    MAYBE_UNUSED_CONST_AUTO b = dispatcher.add_kernel("b", []
-    {
-    }, {0U, 2U});
+}  // namespace
 
-    try
-    {
-        (void)dispatcher.dispatch();
-        FAIL() << "Expected KernelDispatcher to detect invalid dependency index";
-    }
-    catch (const std::out_of_range& error)
-    {
-        EXPECT_STREQ(error.what(), "KernelDispatcher dependency index out of range");
-    }
+TEST(ComputeModule, CpuDispatcherRespectsDependencies)
+{
+    ExpectDispatcherRespectsDependencies(engine::compute::make_cpu_dispatcher());
+}
+
+TEST(ComputeModule, CudaDispatcherRespectsDependencies)
+{
+    ExpectDispatcherRespectsDependencies(engine::compute::make_cuda_dispatcher());
+}
+
+TEST(ComputeModule, CpuDispatcherDetectsCycles)
+{
+    ExpectDispatcherThrows<std::runtime_error>(
+        engine::compute::make_cpu_dispatcher(),
+        "KernelDispatcher detected a cycle",
+        {1U},
+        {0U});
+}
+
+TEST(ComputeModule, CudaDispatcherDetectsCycles)
+{
+    ExpectDispatcherThrows<std::runtime_error>(
+        engine::compute::make_cuda_dispatcher(),
+        "KernelDispatcher detected a cycle",
+        {1U},
+        {0U});
+}
+
+TEST(ComputeModule, CpuDispatcherThrowsOnInvalidDependencyIndex)
+{
+    ExpectDispatcherThrows<std::out_of_range>(
+        engine::compute::make_cpu_dispatcher(),
+        "KernelDispatcher dependency index out of range",
+        {},
+        {0U, 2U});
+}
+
+TEST(ComputeModule, CudaDispatcherThrowsOnInvalidDependencyIndex)
+{
+    ExpectDispatcherThrows<std::out_of_range>(
+        engine::compute::make_cuda_dispatcher(),
+        "KernelDispatcher dependency index out of range",
+        {},
+        {0U, 2U});
 }
