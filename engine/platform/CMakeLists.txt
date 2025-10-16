@@ -20,6 +20,7 @@ engine_apply_module_defaults(${target_name}
 target_compile_definitions(${target_name}
     PRIVATE
         ENGINE_PLATFORM_EXPORTS
+        ENGINE_PLATFORM_DEFAULT_BACKEND="${ENGINE_WINDOW_BACKEND}"
 )
 
 if(TARGET glfw)
