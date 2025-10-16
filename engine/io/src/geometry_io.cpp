@@ -1419,11 +1419,13 @@ namespace engine::io
         register_default_geometry_io_plugins_impl(registry);
     }
 
-    GeometryDetectionResult detect_geometry_file(const std::filesystem::path& path)
+    GeometryIoResult<GeometryDetectionResult> detect_geometry_file(const std::filesystem::path& path)
     {
         if (!std::filesystem::exists(path))
         {
-            throw std::runtime_error("Cannot detect geometry content of non-existent file: " + path.string());
+            return make_geometry_io_error(
+                GeometryIoError::file_not_found,
+                "Cannot detect geometry content of non-existent file: " + path.string());
         }
 
         const auto ext = extension_of(path);
@@ -1481,7 +1483,8 @@ namespace engine::io
         std::ifstream stream{path};
         if (!stream)
         {
-            throw std::runtime_error("Failed to open file for detection: " + path.string());
+            return make_geometry_io_error(GeometryIoError::io_failure,
+                                          "Failed to open file for detection: " + path.string());
         }
 
         std::string line;
@@ -1518,46 +1521,65 @@ namespace engine::io
         return result;
     }
 
-    GeometryDetectionResult load_geometry(const std::filesystem::path& path,
-                                          geometry::MeshInterface* mesh,
-                                          geometry::PointCloudInterface* point_cloud,
-                                          geometry::GraphInterface* graph)
+    GeometryIoResult<GeometryDetectionResult> load_geometry(const std::filesystem::path& path,
+                                                            geometry::MeshInterface* mesh,
+                                                            geometry::PointCloudInterface* point_cloud,
+                                                            geometry::GraphInterface* graph)
     {
-        const auto detection = detect_geometry_file(path);
+        auto detection_result = detect_geometry_file(path);
+        if (!detection_result)
+        {
+            return detection_result.error();
+        }
+
+        auto& detection = detection_result.value();
         switch (detection.kind)
         {
         case GeometryKind::mesh:
             if (mesh == nullptr)
             {
-                throw std::runtime_error("Mesh pointer must not be null when loading a mesh");
+                return make_geometry_io_error(GeometryIoError::invalid_argument,
+                                              "Mesh pointer must not be null when loading a mesh");
             }
-            read_mesh(path, *mesh, detection.mesh_format);
+            if (auto result = read_mesh(path, *mesh, detection.mesh_format); !result)
+            {
+                return result.error();
+            }
             break;
         case GeometryKind::point_cloud:
             if (point_cloud == nullptr)
             {
-                throw std::runtime_error("Point cloud pointer must not be null when loading a point cloud");
+                return make_geometry_io_error(GeometryIoError::invalid_argument,
+                                              "Point cloud pointer must not be null when loading a point cloud");
             }
-            read_point_cloud(path, *point_cloud, detection.point_cloud_format);
+            if (auto result = read_point_cloud(path, *point_cloud, detection.point_cloud_format); !result)
+            {
+                return result.error();
+            }
             break;
         case GeometryKind::graph:
             if (graph == nullptr)
             {
-                throw std::runtime_error("Graph pointer must not be null when loading a graph");
+                return make_geometry_io_error(GeometryIoError::invalid_argument,
+                                              "Graph pointer must not be null when loading a graph");
             }
-            read_graph(path, *graph, detection.graph_format);
+            if (auto result = read_graph(path, *graph, detection.graph_format); !result)
+            {
+                return result.error();
+            }
             break;
         case GeometryKind::unknown:
-            throw std::runtime_error("Unable to determine geometry content type for file: " + path.string());
+            return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                          "Unable to determine geometry content type for file: " + path.string());
         }
 
-        return detection;
+        return detection_result;
     }
 
-    GeometryDetectionResult save_geometry(const std::filesystem::path& path,
-                                          const geometry::MeshInterface* mesh,
-                                          const geometry::PointCloudInterface* point_cloud,
-                                          const geometry::GraphInterface* graph)
+    GeometryIoResult<GeometryDetectionResult> save_geometry(const std::filesystem::path& path,
+                                                            const geometry::MeshInterface* mesh,
+                                                            const geometry::PointCloudInterface* point_cloud,
+                                                            const geometry::GraphInterface* graph)
     {
         const bool has_mesh = mesh != nullptr;
         const bool has_point_cloud = point_cloud != nullptr;
@@ -1565,7 +1587,8 @@ namespace engine::io
         const int provided = static_cast<int>(has_mesh) + static_cast<int>(has_point_cloud) + static_cast<int>(has_graph);
         if (provided != 1)
         {
-            throw std::runtime_error("Exactly one geometry pointer must be provided when saving");
+            return make_geometry_io_error(GeometryIoError::invalid_argument,
+                                          "Exactly one geometry pointer must be provided when saving");
         }
 
         const auto ext = extension_of(path);
@@ -1615,56 +1638,81 @@ namespace engine::io
         case GeometryKind::mesh:
             if (!has_mesh)
             {
-                throw std::runtime_error("Mesh data not provided for mesh export");
+                return make_geometry_io_error(GeometryIoError::invalid_argument,
+                                              "Mesh data not provided for mesh export");
             }
-            write_mesh(path, *mesh, detection.mesh_format);
+            if (auto result = write_mesh(path, *mesh, detection.mesh_format); !result)
+            {
+                return result.error();
+            }
             break;
         case GeometryKind::point_cloud:
             if (!has_point_cloud)
             {
-                throw std::runtime_error("Point cloud data not provided for point cloud export");
+                return make_geometry_io_error(GeometryIoError::invalid_argument,
+                                              "Point cloud data not provided for point cloud export");
             }
-            write_point_cloud(path, *point_cloud, detection.point_cloud_format);
+            if (auto result = write_point_cloud(path, *point_cloud, detection.point_cloud_format); !result)
+            {
+                return result.error();
+            }
             break;
         case GeometryKind::graph:
             if (!has_graph)
             {
-                throw std::runtime_error("Graph data not provided for graph export");
+                return make_geometry_io_error(GeometryIoError::invalid_argument,
+                                              "Graph data not provided for graph export");
             }
-            write_graph(path, *graph, detection.graph_format);
+            if (auto result = write_graph(path, *graph, detection.graph_format); !result)
+            {
+                return result.error();
+            }
             break;
         case GeometryKind::unknown:
-            throw std::runtime_error("Unable to infer target format for export: " + path.string());
+            return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                          "Unable to infer target format for export: " + path.string());
         }
 
         return detection;
     }
 
-    void read_mesh(const std::filesystem::path& path, geometry::MeshInterface& mesh, MeshFileFormat format)
+    GeometryIoResult<void> read_mesh(const std::filesystem::path& path,
+                                     geometry::MeshInterface& mesh,
+                                     MeshFileFormat format)
     {
         MeshFileFormat resolved = format;
         if (resolved == MeshFileFormat::unknown)
         {
-            resolved = detect_geometry_file(path).mesh_format;
+            auto detection = detect_geometry_file(path);
+            if (!detection)
+            {
+                return detection.error();
+            }
+            resolved = detection.value().mesh_format;
         }
 
         if (resolved == MeshFileFormat::unknown)
         {
-            throw std::runtime_error("Unable to determine mesh format for file: " + path.string());
+            return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                          "Unable to determine mesh format for file: " + path.string());
         }
 
         const auto& registry = global_geometry_io_registry();
         const auto* importer = registry.mesh_importer(resolved);
         if (importer == nullptr)
         {
-            throw std::runtime_error("No mesh importer registered for format '" + std::string(to_string(resolved)) +
-                                     "' while reading " + path.string());
+            return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                          "No mesh importer registered for format '" +
+                                              std::string(to_string(resolved)) + "' while reading " + path.string());
         }
 
         importer->import(path, mesh);
+        return {};
     }
 
-    void write_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh, MeshFileFormat format)
+    GeometryIoResult<void> write_mesh(const std::filesystem::path& path,
+                                      const geometry::MeshInterface& mesh,
+                                      MeshFileFormat format)
     {
         MeshFileFormat resolved = format;
         if (resolved == MeshFileFormat::unknown)
@@ -1678,49 +1726,60 @@ namespace engine::io
 
         if (resolved == MeshFileFormat::unknown)
         {
-            throw std::runtime_error("Unable to determine mesh export format for file: " + path.string());
+            return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                          "Unable to determine mesh export format for file: " + path.string());
         }
 
         const auto& registry = global_geometry_io_registry();
         const auto* exporter = registry.mesh_exporter(resolved);
         if (exporter == nullptr)
         {
-            throw std::runtime_error("No mesh exporter registered for format '" + std::string(to_string(resolved)) +
-                                     "' while writing " + path.string());
+            return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                          "No mesh exporter registered for format '" +
+                                              std::string(to_string(resolved)) + "' while writing " + path.string());
         }
 
         exporter->export_mesh(path, mesh);
+        return {};
     }
 
-    void read_point_cloud(const std::filesystem::path& path,
-                          geometry::PointCloudInterface& point_cloud,
-                          PointCloudFileFormat format)
+    GeometryIoResult<void> read_point_cloud(const std::filesystem::path& path,
+                                            geometry::PointCloudInterface& point_cloud,
+                                            PointCloudFileFormat format)
     {
         PointCloudFileFormat resolved = format;
         if (resolved == PointCloudFileFormat::unknown)
         {
-            resolved = detect_geometry_file(path).point_cloud_format;
+            auto detection = detect_geometry_file(path);
+            if (!detection)
+            {
+                return detection.error();
+            }
+            resolved = detection.value().point_cloud_format;
         }
 
         if (resolved == PointCloudFileFormat::unknown)
         {
-            throw std::runtime_error("Unable to determine point cloud format for file: " + path.string());
+            return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                          "Unable to determine point cloud format for file: " + path.string());
         }
 
         const auto& registry = global_geometry_io_registry();
         const auto* importer = registry.point_cloud_importer(resolved);
         if (importer == nullptr)
         {
-            throw std::runtime_error("No point cloud importer registered for format '" + std::string(to_string(resolved)) +
-                                     "' while reading " + path.string());
+            return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                          "No point cloud importer registered for format '" +
+                                              std::string(to_string(resolved)) + "' while reading " + path.string());
         }
 
         importer->import(path, point_cloud);
+        return {};
     }
 
-    void write_point_cloud(const std::filesystem::path& path,
-                           const geometry::PointCloudInterface& point_cloud,
-                           PointCloudFileFormat format)
+    GeometryIoResult<void> write_point_cloud(const std::filesystem::path& path,
+                                             const geometry::PointCloudInterface& point_cloud,
+                                             PointCloudFileFormat format)
     {
         PointCloudFileFormat resolved = format;
         if (resolved == PointCloudFileFormat::unknown)
@@ -1734,45 +1793,60 @@ namespace engine::io
 
         if (resolved == PointCloudFileFormat::unknown)
         {
-            throw std::runtime_error("Unable to determine point cloud export format for file: " + path.string());
+            return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                          "Unable to determine point cloud export format for file: " + path.string());
         }
 
         const auto& registry = global_geometry_io_registry();
         const auto* exporter = registry.point_cloud_exporter(resolved);
         if (exporter == nullptr)
         {
-            throw std::runtime_error("No point cloud exporter registered for format '" + std::string(to_string(resolved)) +
-                                     "' while writing " + path.string());
+            return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                          "No point cloud exporter registered for format '" +
+                                              std::string(to_string(resolved)) + "' while writing " + path.string());
         }
 
         exporter->export_point_cloud(path, point_cloud);
+        return {};
     }
 
-    void read_graph(const std::filesystem::path& path, geometry::GraphInterface& graph, GraphFileFormat format)
+    GeometryIoResult<void> read_graph(const std::filesystem::path& path,
+                                      geometry::GraphInterface& graph,
+                                      GraphFileFormat format)
     {
         GraphFileFormat resolved = format;
         if (resolved == GraphFileFormat::unknown)
         {
-            resolved = detect_geometry_file(path).graph_format;
+            auto detection = detect_geometry_file(path);
+            if (!detection)
+            {
+                return detection.error();
+            }
+            resolved = detection.value().graph_format;
         }
 
         if (resolved == GraphFileFormat::unknown)
         {
-            throw std::runtime_error("Unable to determine graph format for file: " + path.string());
+            return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                          "Unable to determine graph format for file: " + path.string());
         }
 
         const auto& registry = global_geometry_io_registry();
         const auto* importer = registry.graph_importer(resolved);
         if (importer == nullptr)
         {
-            throw std::runtime_error("No graph importer registered for format '" + std::string(to_string(resolved)) +
-                                     "' while reading " + path.string());
+            return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                          "No graph importer registered for format '" + std::string(to_string(resolved)) +
+                                              "' while reading " + path.string());
         }
 
         importer->import(path, graph);
+        return {};
     }
 
-    void write_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph, GraphFileFormat format)
+    GeometryIoResult<void> write_graph(const std::filesystem::path& path,
+                                       const geometry::GraphInterface& graph,
+                                       GraphFileFormat format)
     {
         GraphFileFormat resolved = format;
         if (resolved == GraphFileFormat::unknown)
@@ -1786,18 +1860,21 @@ namespace engine::io
 
         if (resolved == GraphFileFormat::unknown)
         {
-            throw std::runtime_error("Unable to determine graph export format for file: " + path.string());
+            return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                          "Unable to determine graph export format for file: " + path.string());
         }
 
         const auto& registry = global_geometry_io_registry();
         const auto* exporter = registry.graph_exporter(resolved);
         if (exporter == nullptr)
         {
-            throw std::runtime_error("No graph exporter registered for format '" + std::string(to_string(resolved)) +
-                                     "' while writing " + path.string());
+            return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                          "No graph exporter registered for format '" + std::string(to_string(resolved)) +
+                                              "' while writing " + path.string());
         }
 
         exporter->export_graph(path, graph);
+        return {};
     }
 
     std::ostream& operator<<(std::ostream& stream, GeometryKind kind)
