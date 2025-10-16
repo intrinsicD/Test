@@ -27,7 +27,7 @@
 - **Owner:** @bob
 - **Issue:** #236
 - **Tasks:**
-  - [ ] Define `RigBinding` data structure
+  - [x] Define `RigBinding` data structure
   - [ ] Link rig poses to mesh vertices
   - [ ] Implement linear blend skinning
   - [ ] Add integration test with geometry module
