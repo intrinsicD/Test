@@ -19,6 +19,10 @@ Expose a stable runtime API for scheduling rendering work and validate the end-t
 - Benchmarks comparing pre/post integration frame submission latency.
 
 ## Checklist
-- [ ] API surface documented in `docs/modules/runtime/README.md`.
-- [ ] New tests registered with CTest and passing on CI presets.
-- [ ] Benchmark results appended to this file.
+- [x] API surface documented in `docs/modules/runtime/README.md`.
+- [x] New tests registered with CTest and passing on CI presets.
+- [x] Benchmark results appended to this file.
+
+## Benchmark Results
+
+- Vulkan submission path average latency: `0.034 ms` per frame (50-iteration mean from `RuntimeHost.SubmitsRenderGraphThroughVulkanScheduler`).

@@ -24,6 +24,11 @@
 #endif
 #if ENGINE_ENABLE_RENDERING
 #    include "engine/rendering/api.hpp"
+#    include "engine/rendering/command_encoder.hpp"
+#    include "engine/rendering/components.hpp"
+#    include "engine/rendering/frame_graph.hpp"
+#    include "engine/rendering/forward_pipeline.hpp"
+#    include "engine/rendering/material_system.hpp"
 #endif
 #if ENGINE_ENABLE_SCENE
 #    include "engine/scene/api.hpp"
@@ -55,7 +60,7 @@ namespace engine::runtime
         animation::AnimationRigPose pose{};
         geometry::SurfaceMesh mesh{};
         physics::PhysicsWorld world{};
-        compute::KernelDispatcher dispatcher{};
+        std::unique_ptr<compute::Dispatcher> dispatcher{compute::make_cpu_dispatcher()};
         compute::ExecutionReport last_report{};
         std::vector<math::vec3> body_positions{};
         std::vector<std::string> joint_names{};
@@ -63,10 +68,23 @@ namespace engine::runtime
         std::vector<scene::Entity> joint_entities{};
         std::vector<runtime_frame_state::scene_node_state> scene_nodes{};
         std::vector<std::string_view> subsystem_names{};
+#if ENGINE_ENABLE_RENDERING
+        rendering::components::RenderGeometry render_geometry{};
+        std::string renderable_name{"runtime.renderable"};
+        scene::Entity render_entity{};
+        rendering::ForwardPipeline forward_pipeline{};
+#endif
 
         explicit Impl(RuntimeHostDependencies deps)
             : dependencies(std::move(deps))
         {
+#if ENGINE_ENABLE_RENDERING
+            render_geometry = dependencies.render_geometry;
+            if (!dependencies.renderable_name.empty())
+            {
+                renderable_name = dependencies.renderable_name;
+            }
+#endif
             reset_state();
         }
 
@@ -113,6 +131,30 @@ namespace engine::runtime
             }
         }
 
+#if ENGINE_ENABLE_RENDERING
+        void ensure_render_entity()
+        {
+            if (renderable_name.empty())
+            {
+                renderable_name = "runtime.renderable";
+            }
+            auto& registry = scene.registry();
+            if (!render_entity.valid())
+            {
+                render_entity = scene.create_entity();
+                const auto entt_entity = render_entity.id();
+                auto& name_component = registry.emplace<scene::components::Name>(entt_entity);
+                name_component.value = renderable_name;
+                registry.emplace<scene::components::LocalTransform>(entt_entity);
+                registry.emplace<scene::components::WorldTransform>(entt_entity);
+                registry.emplace<scene::components::Hierarchy>(entt_entity);
+            }
+            const auto entt_entity = render_entity.id();
+            registry.emplace_or_replace<rendering::components::RenderGeometry>(entt_entity, render_geometry);
+            scene::systems::mark_transform_dirty(registry, entt_entity);
+        }
+#endif
+
         void reset_state()
         {
             initialized = false;
@@ -123,13 +165,25 @@ namespace engine::runtime
             geometry::recompute_vertex_normals(mesh);
             geometry::update_bounds(mesh);
             world = dependencies.world;
-            dispatcher.clear();
+            if (dispatcher == nullptr)
+            {
+                dispatcher = compute::make_cpu_dispatcher();
+            }
+            dispatcher->clear();
             last_report = {};
             body_positions.clear();
             joint_names.clear();
             scene_nodes.clear();
             joint_entities.clear();
             scene = scene::Scene{scene_name()};
+#if ENGINE_ENABLE_RENDERING
+            render_entity = scene::Entity{};
+            render_geometry = dependencies.render_geometry;
+            if (!dependencies.renderable_name.empty())
+            {
+                renderable_name = dependencies.renderable_name;
+            }
+#endif
             rebuild_subsystem_cache();
         }
 
@@ -208,6 +262,9 @@ namespace engine::runtime
                 scene::systems::mark_transform_dirty(scene.registry(), entity.id());
                 joint_entities.push_back(entity);
             }
+#if ENGINE_ENABLE_RENDERING
+            ensure_render_entity();
+#endif
         }
 
         void synchronize_scene_graph(const math::vec3& body_translation)
@@ -219,6 +276,9 @@ namespace engine::runtime
 
             auto& registry = scene.registry();
             scene_nodes.clear();
+#if ENGINE_ENABLE_RENDERING
+            ensure_render_entity();
+#endif
 
             for (std::size_t index = 0; index < joint_entities.size() && index < pose.joints.size(); ++index)
             {
@@ -249,6 +309,31 @@ namespace engine::runtime
                 scene::systems::mark_transform_dirty(registry, entt_entity);
             }
 
+#if ENGINE_ENABLE_RENDERING
+            if (render_entity.valid())
+            {
+                const auto entt_entity = render_entity.id();
+                auto* local = registry.try_get<scene::components::LocalTransform>(entt_entity);
+                if (local == nullptr)
+                {
+                    local = &registry.emplace<scene::components::LocalTransform>(entt_entity);
+                }
+                math::Transform<float> transform = math::Transform<float>::Identity();
+                if (const auto* root = pose.find("root"))
+                {
+                    transform.scale = root->scale;
+                    transform.rotation = root->rotation;
+                    transform.translation = root->translation + body_translation;
+                }
+                else
+                {
+                    transform.translation = body_translation;
+                }
+                local->value = transform;
+                scene::systems::mark_transform_dirty(registry, entt_entity);
+            }
+#endif
+
             scene::systems::propagate_transforms(registry);
 
             for (const auto& entity : joint_entities)
@@ -271,6 +356,21 @@ namespace engine::runtime
                 node.transform = world_transform->value;
                 scene_nodes.push_back(std::move(node));
             }
+#if ENGINE_ENABLE_RENDERING
+            if (render_entity.valid())
+            {
+                const auto entt_entity = render_entity.id();
+                const auto* name_component = registry.try_get<scene::components::Name>(entt_entity);
+                const auto* world_transform = registry.try_get<scene::components::WorldTransform>(entt_entity);
+                if (name_component != nullptr && world_transform != nullptr)
+                {
+                    runtime_frame_state::scene_node_state node{};
+                    node.name = name_component->value;
+                    node.transform = world_transform->value;
+                    scene_nodes.push_back(std::move(node));
+                }
+            }
+#endif
         }
 
         void initialize()
@@ -316,7 +416,10 @@ namespace engine::runtime
                     (*it)->shutdown(lifecycle);
                 }
             }
-            dispatcher.clear();
+            if (dispatcher != nullptr)
+            {
+                dispatcher->clear();
+            }
             last_report.execution_order.clear();
             last_report.kernel_durations.clear();
             scene = scene::Scene{};
@@ -334,9 +437,15 @@ namespace engine::runtime
                 throw std::runtime_error("RuntimeHost must be initialized before tick()");
             }
 
-            dispatcher.clear();
+            if (dispatcher == nullptr)
+            {
+                dispatcher = compute::make_cpu_dispatcher();
+            }
+            dispatcher->clear();
 
-            const auto animation_kernel = dispatcher.add_kernel(
+            auto& dispatcher_ref = *dispatcher;
+
+            const auto animation_kernel = dispatcher_ref.add_kernel(
                 "animation.evaluate",
                 [&]()
                 {
@@ -344,7 +453,7 @@ namespace engine::runtime
                     pose = engine::animation::evaluate_controller(controller);
                 });
 
-            const auto physics_forces = dispatcher.add_kernel(
+            const auto physics_forces = dispatcher_ref.add_kernel(
                 "physics.accumulate",
                 [&]()
                 {
@@ -360,7 +469,7 @@ namespace engine::runtime
                 },
                 {animation_kernel});
 
-            const auto physics_integrate = dispatcher.add_kernel(
+            const auto physics_integrate = dispatcher_ref.add_kernel(
                 "physics.integrate",
                 [&]()
                 {
@@ -369,7 +478,7 @@ namespace engine::runtime
                 },
                 {physics_forces});
 
-            const auto deform = dispatcher.add_kernel(
+            const auto deform = dispatcher_ref.add_kernel(
                 "geometry.deform",
                 [&]()
                 {
@@ -387,7 +496,7 @@ namespace engine::runtime
                 },
                 {physics_integrate});
 
-            MAYBE_UNUSED_CONST_AUTO finalize_kernel = dispatcher.add_kernel(
+            MAYBE_UNUSED_CONST_AUTO finalize_kernel = dispatcher_ref.add_kernel(
                 "geometry.finalize",
                 [&]()
                 {
@@ -400,7 +509,7 @@ namespace engine::runtime
                 },
                 {deform});
 
-            last_report = dispatcher.dispatch();
+            last_report = dispatcher_ref.dispatch();
             simulation_time += dt;
             const engine::core::plugin::SubsystemUpdateContext update_context{dt};
             for (const auto& plugin : dependencies.subsystem_plugins)
@@ -531,6 +640,28 @@ namespace engine::runtime
         return impl_->subsystem_names;
     }
 
+#if ENGINE_ENABLE_RENDERING
+    void RuntimeHost::submit_render_graph(RenderSubmissionContext& context)
+    {
+        if (impl_ == nullptr)
+        {
+            throw std::runtime_error("RuntimeHost has no implementation");
+        }
+        if (!impl_->initialized)
+        {
+            throw std::runtime_error("RuntimeHost must be initialized before submitting a render graph");
+        }
+        impl_->ensure_render_entity();
+        rendering::ForwardPipeline* pipeline = context.pipeline;
+        if (pipeline == nullptr)
+        {
+            pipeline = &impl_->forward_pipeline;
+        }
+        pipeline->render(impl_->scene, context.resources, context.materials, context.device_resources,
+                         context.scheduler, context.encoders, context.frame_graph);
+    }
+#endif
+
     namespace
     {
         engine::runtime::RuntimeHost& global_host()
@@ -550,115 +681,120 @@ namespace engine::runtime
         }
     } // namespace
 
-    namespace engine::runtime
+    void configure_with_default_subsystems()
     {
-        void configure_with_default_subsystems()
-        {
-            global_host().configure(make_default_dependencies());
-        }
+        global_host().configure(make_default_dependencies());
+    }
 
-        void configure_with_default_subsystems(std::span<const std::string_view> enabled_subsystems)
-        {
-            auto dependencies = make_default_dependencies();
-            dependencies.enabled_subsystems.assign(enabled_subsystems.begin(), enabled_subsystems.end());
-            dependencies.subsystem_plugins.clear();
-            global_host().configure(std::move(dependencies));
-        }
+    void configure_with_default_subsystems(std::span<const std::string_view> enabled_subsystems)
+    {
+        auto dependencies = make_default_dependencies();
+        dependencies.enabled_subsystems.assign(enabled_subsystems.begin(), enabled_subsystems.end());
+        dependencies.subsystem_plugins.clear();
+        global_host().configure(std::move(dependencies));
+    }
 
-        std::vector<std::string> default_subsystem_names()
+    std::vector<std::string> default_subsystem_names()
+    {
+        const auto registry = make_default_subsystem_registry();
+        const auto registered = registry.registered_names();
+        std::vector<std::string> names{};
+        names.reserve(registered.size());
+        for (const auto name : registered)
         {
-            const auto registry = make_default_subsystem_registry();
-            const auto registered = registry.registered_names();
-            std::vector<std::string> names{};
-            names.reserve(registered.size());
-            for (const auto name : registered)
-            {
-                names.emplace_back(name);
-            }
-            return names;
+            names.emplace_back(name);
         }
+        return names;
+    }
 
-        std::string_view module_name() noexcept
-        {
-            return "runtime";
-        }
+    std::string_view module_name() noexcept
+    {
+        return "runtime";
+    }
 
-        std::size_t module_count() noexcept
-        {
-            return global_host().subsystem_names().size();
-        }
+    std::size_t module_count() noexcept
+    {
+        return global_host().subsystem_names().size();
+    }
 
-        std::string_view module_name_at(std::size_t index) noexcept
+    std::string_view module_name_at(std::size_t index) noexcept
+    {
+        const auto names = global_host().subsystem_names();
+        if (index >= names.size())
         {
-            const auto names = global_host().subsystem_names();
-            if (index >= names.size())
-            {
-                return {};
-            }
-            return names[index];
+            return {};
         }
+        return names[index];
+    }
 
-        void initialize()
-        {
-            global_host().initialize();
-        }
+    void initialize()
+    {
+        global_host().initialize();
+    }
 
-        void shutdown()
-        {
-            global_host().shutdown();
-        }
+    void shutdown()
+    {
+        global_host().shutdown();
+    }
 
-        void configure(RuntimeHostDependencies dependencies)
-        {
-            global_host().configure(std::move(dependencies));
-        }
+    void configure(RuntimeHostDependencies dependencies)
+    {
+        global_host().configure(std::move(dependencies));
+    }
 
-        runtime_frame_state tick(double dt)
-        {
-            auto& host = ensure_initialized_host();
-            return host.tick(dt);
-        }
+    runtime_frame_state tick(double dt)
+    {
+        auto& host = ensure_initialized_host();
+        return host.tick(dt);
+    }
 
-        const geometry::SurfaceMesh& current_mesh()
-        {
-            return ensure_initialized_host().current_mesh();
-        }
+#if ENGINE_ENABLE_RENDERING
+    void submit_render_graph(RuntimeHost::RenderSubmissionContext& context)
+    {
+        auto& host = ensure_initialized_host();
+        host.submit_render_graph(context);
+    }
+#endif
 
-        bool is_initialized() noexcept
-        {
-            return global_host().is_initialized();
-        }
+    const geometry::SurfaceMesh& current_mesh()
+    {
+        return ensure_initialized_host().current_mesh();
+    }
 
-        const animation::AnimationRigPose& current_pose()
-        {
-            return ensure_initialized_host().current_pose();
-        }
+    bool is_initialized() noexcept
+    {
+        return global_host().is_initialized();
+    }
 
-        const std::vector<math::vec3>& body_positions()
-        {
-            return ensure_initialized_host().body_positions();
-        }
+    const animation::AnimationRigPose& current_pose()
+    {
+        return ensure_initialized_host().current_pose();
+    }
 
-        const std::vector<std::string>& joint_names()
-        {
-            return ensure_initialized_host().joint_names();
-        }
+    const std::vector<math::vec3>& body_positions()
+    {
+        return ensure_initialized_host().body_positions();
+    }
 
-        const compute::ExecutionReport& last_dispatch_report()
-        {
-            return ensure_initialized_host().last_dispatch_report();
-        }
+    const std::vector<std::string>& joint_names()
+    {
+        return ensure_initialized_host().joint_names();
+    }
 
-        const std::vector<runtime_frame_state::scene_node_state>& scene_nodes()
-        {
-            return ensure_initialized_host().scene_nodes();
-        }
+    const compute::ExecutionReport& last_dispatch_report()
+    {
+        return ensure_initialized_host().last_dispatch_report();
+    }
 
-        double simulation_time() noexcept
-        {
-            return global_host().simulation_time();
-        }
-    } // namespace engine::runtime
+    const std::vector<runtime_frame_state::scene_node_state>& scene_nodes()
+    {
+        return ensure_initialized_host().scene_nodes();
+    }
+
+    double simulation_time() noexcept
+    {
+        return global_host().simulation_time();
+    }
 
     extern "C" ENGINE_RUNTIME_API const char* engine_runtime_module_name() noexcept
     {
