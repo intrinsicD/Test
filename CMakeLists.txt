@@ -20,6 +20,25 @@ set(ENGINE_MODULES
 
 option(ENGINE_ENABLE_CUDA "Enable CUDA support for compute module targets" OFF)
 
+set(_engine_window_backend_options GLFW SDL MOCK)
+set(ENGINE_WINDOW_BACKEND "GLFW" CACHE STRING
+    "Default window backend (GLFW, SDL, MOCK)")
+set_property(CACHE ENGINE_WINDOW_BACKEND PROPERTY STRINGS ${_engine_window_backend_options})
+string(TOUPPER "${ENGINE_WINDOW_BACKEND}" _engine_window_backend_normalised)
+list(FIND _engine_window_backend_options "${_engine_window_backend_normalised}" _engine_window_backend_index)
+if(_engine_window_backend_index EQUAL -1)
+    string(REPLACE ";" ", " _engine_window_backend_valid "${_engine_window_backend_options}")
+    message(FATAL_ERROR
+        "ENGINE_WINDOW_BACKEND must be one of: ${_engine_window_backend_valid}. "
+        "Received '${ENGINE_WINDOW_BACKEND}'.")
+endif()
+set(ENGINE_WINDOW_BACKEND "${_engine_window_backend_normalised}" CACHE STRING
+    "Default window backend (GLFW, SDL, MOCK)" FORCE)
+unset(_engine_window_backend_index)
+unset(_engine_window_backend_normalised)
+unset(_engine_window_backend_valid)
+unset(_engine_window_backend_options)
+
 set(ENGINE_OPTIONAL_SUBSYSTEMS
     animation
     assets

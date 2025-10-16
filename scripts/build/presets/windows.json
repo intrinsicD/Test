@@ -19,6 +19,7 @@
         "GLFW_BUILD_WAYLAND": "OFF",
         "GLFW_BUILD_WIN32": "ON",
         "GLFW_INSTALL": "OFF",
+        "ENGINE_WINDOW_BACKEND": "GLFW",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       },
       "environment": {

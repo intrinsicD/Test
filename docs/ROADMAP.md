@@ -54,14 +54,14 @@ modules. Items are grouped by their intent:
 - **Module:** Platform
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Introduce a configurable CMake option `ENGINE_WINDOW_BACKEND` supporting `GLFW`, `SDL`, and `MOCK` values.
-  - [ ] Implement a factory pattern in `engine/platform/windowing/window_system.cpp` that instantiates the requested backend.
-  - [ ] Complete the SDL implementation in `engine/platform/src/windowing/sdl_window.cpp` and ensure parity with the GLFW path.
-  - [ ] Add backend capability queries to `WindowConfig`.
-  - [ ] Extend the test matrix to cover all backend permutations.
-  - [ ] Document backend selection and supported features in `docs/modules/platform/README.md`.
-- **Artifacts:** `engine/platform/windowing/window_system.cpp`, `engine/platform/src/windowing/sdl_window.cpp`, `engine/platform/include/engine/platform/window_config.hpp`, `CMakeLists.txt`, platform module README updates.
-- **Tests:** Integration tests per backend, selectable via CTest labels; mock backend smoke test for CI.
+  - [x] Introduce a configurable CMake option `ENGINE_WINDOW_BACKEND` supporting `GLFW`, `SDL`, and `MOCK` values.
+  - [x] Implement a factory pattern in `engine/platform/windowing/window_system.cpp` that instantiates the requested backend.
+  - [x] Complete the SDL implementation in `engine/platform/src/windowing/sdl_window.cpp` and ensure parity with the GLFW path.
+  - [x] Add backend capability queries to `WindowConfig`.
+  - [x] Extend the test matrix to cover all backend permutations.
+  - [x] Document backend selection and supported features in `docs/modules/platform/README.md`.
+- **Artifacts:** `engine/platform/windowing/window_system.cpp`, `engine/platform/src/windowing/sdl_window.cpp`, `engine/platform/include/engine/platform/windowing/window.hpp`, `CMakeLists.txt`, platform module README updates.
+- **Tests:** `engine_platform_tests` exercises mock, SDL, and automatic selection paths; CI stays headless-safe via the mock backend.
 - **Docs:** Platform module README updates and root build instructions referencing backend selection.
 
 #### DC-004: Error Handling Standardization

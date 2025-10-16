@@ -1,6 +1,7 @@
 add_executable(engine_platform_tests
     test_module.cpp
     window_console_tests.cpp
+    window_system_tests.cpp
     input_state_tests.cpp
     filesystem_tests.cpp
 )

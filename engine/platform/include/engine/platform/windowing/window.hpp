@@ -15,9 +15,10 @@ namespace engine::platform {
 
 /// \brief Describes the windowing backend that should service a window instance.
 enum class WindowBackend {
-    /// Selects the most appropriate backend for the current platform. In this
-    /// reference implementation the selection prefers the mock backend to keep
-    /// CI headless friendly.
+    /// Selects the most appropriate backend for the current platform using the
+    /// build-time default (`ENGINE_WINDOW_BACKEND`) and runtime overrides, while
+    /// falling back to other supported backends when the preferred choice is
+    /// unavailable or incompatible with the requested capabilities.
     Auto,
     /// Stub entry for a GLFW-driven implementation.
     GLFW,
@@ -27,8 +28,27 @@ enum class WindowBackend {
     Mock,
 };
 
+/// \brief Describes the capabilities provided by a window backend.
+struct WindowBackendCapabilities {
+    /// True when the backend can operate without an active display connection.
+    bool headless_safe{false};
+    /// True when the backend provides a native surface handle suitable for
+    /// swapchain creation.
+    bool native_surface{false};
+};
+
 /// \brief Human readable configuration for constructing a window.
 struct WindowConfig {
+    /// \brief Capability requirements that may constrain backend selection.
+    struct CapabilityRequirements {
+        /// Require the backend to run without a display connection. When true
+        /// only backends that advertise headless support are eligible.
+        bool require_headless_safe{false};
+        /// Require the backend to expose a native surface handle that can be
+        /// consumed by a renderer swapchain implementation.
+        bool require_native_surface{false};
+    };
+
     /// Desired window title. Implementations copy this string during
     /// construction.
     std::string title{"Engine"};
@@ -40,6 +60,30 @@ struct WindowConfig {
     bool visible{true};
     /// Whether the window may be resized by the user.
     bool resizable{true};
+    /// Capability requirements constraining backend selection.
+    CapabilityRequirements capability_requirements{};
+
+    /// Returns true when the configuration requires a headless-safe backend.
+    [[nodiscard]] bool requires_headless_safe() const noexcept {
+        return capability_requirements.require_headless_safe;
+    }
+
+    /// Returns true when the configuration requires a native swapchain surface.
+    [[nodiscard]] bool requires_native_surface() const noexcept {
+        return capability_requirements.require_native_surface;
+    }
+
+    /// Evaluates whether the supplied backend capabilities satisfy the
+    /// configuration requirements.
+    [[nodiscard]] bool allows_backend(const WindowBackendCapabilities& capabilities) const noexcept {
+        if (requires_headless_safe() && !capabilities.headless_safe) {
+            return false;
+        }
+        if (requires_native_surface() && !capabilities.native_surface) {
+            return false;
+        }
+        return true;
+    }
 };
 
 /// \brief Enumerates logical event types emitted by a window backend.

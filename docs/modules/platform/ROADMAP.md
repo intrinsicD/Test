@@ -1,7 +1,7 @@
 # Platform Module Roadmap
 
 ## Near Term
-- Replace the mock-first backend selection with real GLFW/SDL implementations by default, adding runtime detection and configuration flags to fall back when unavailable.
+- Expand backend detection to prefer GLFW/SDL when available, now that build-time and runtime selection is configurable, and integrate the concrete SDL dependency.
 - Harden filesystem helpers with write/watch capabilities to support asset hot reload and document platform-specific behaviour.
 
 ## Mid Term

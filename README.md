@@ -32,6 +32,11 @@ what is implemented today.
 - **`scripts/`** – Build, validation, and CI orchestration entry points.
 - **`third_party/`** – Vendored dependencies such as EnTT, Dear ImGui, spdlog, and GoogleTest.
 
+### Platform Backend Selection
+
+- Configure the default window backend using `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK>` when generating builds. Presets default to `GLFW`, while headless CI jobs can explicitly set `MOCK`.
+- Override the backend at runtime with `ENGINE_PLATFORM_WINDOW_BACKEND` (`auto`, `mock`, `glfw`, `sdl`). Automatic selection honours `WindowConfig::capability_requirements`, skipping backends that cannot run headless or provide a native surface when requested.
+
 ## Design Documentation Workflow
 
 - **Start every session with [`docs/README.md`](docs/README.md).** It stitches together the working agreement in
@@ -570,7 +575,7 @@ summary referenced above.
 | Geometry & IO | Consolidate bounds/naming across geometry headers while finishing graph/mesh/point-cloud pipelines and enriching import/export diagnostics ahead of v2.0. | [docs/modules/geometry/README.md](docs/modules/geometry/README.md)<br>[docs/modules/geometry/ROADMAP.md](docs/modules/geometry/ROADMAP.md)<br>[docs/modules/io/README.md](docs/modules/io/README.md)<br>[docs/modules/io/ROADMAP.md](docs/modules/io/ROADMAP.md) |
 | Math | Document public headers, broaden decomposition/numerics support, and raise regression coverage around existing primitives. | [docs/modules/math/README.md](docs/modules/math/README.md)<br>[docs/modules/math/ROADMAP.md](docs/modules/math/ROADMAP.md) |
 | Physics | Build on the rigid-body, collider, and sweep-and-prune foundation by adding contact manifolds, constraint solving, and instrumentation. | [docs/modules/physics/README.md](docs/modules/physics/README.md)<br>[docs/modules/physics/ROADMAP.md](docs/modules/physics/ROADMAP.md) |
-| Platform | Replace mock backends with GLFW/SDL integrations, add filesystem write/watch utilities, and surface real input device plumbing. | [docs/modules/platform/README.md](docs/modules/platform/README.md)<br>[docs/modules/platform/ROADMAP.md](docs/modules/platform/ROADMAP.md) |
+| Platform | Wire up concrete GLFW/SDL detection on top of the configurable backend selector, add filesystem write/watch utilities, and surface real input device plumbing. | [docs/modules/platform/README.md](docs/modules/platform/README.md)<br>[docs/modules/platform/ROADMAP.md](docs/modules/platform/ROADMAP.md) |
 | Rendering | Enrich frame-graph resource descriptors, thread queue/command metadata, and prototype the reference GPU scheduler before wiring backends. | [docs/modules/rendering/README.md](docs/modules/rendering/README.md)<br>[docs/modules/rendering/ROADMAP.md](docs/modules/rendering/ROADMAP.md) |
 | Runtime | Extend `RuntimeHost` diagnostics, dispatcher programmability, and streaming hooks to support end-to-end orchestration scenarios. | [docs/modules/runtime/README.md](docs/modules/runtime/README.md)<br>[docs/modules/runtime/ROADMAP.md](docs/modules/runtime/ROADMAP.md)<br>[docs/ROADMAP.md#runtime-expansion-plan](docs/ROADMAP.md#runtime-expansion-plan) |
 | Scene | Define schemas for core runtime components, broaden traversal helpers, and version the serialization format alongside expanded tests. | [docs/modules/scene/README.md](docs/modules/scene/README.md)<br>[docs/modules/scene/ROADMAP.md](docs/modules/scene/ROADMAP.md) |
