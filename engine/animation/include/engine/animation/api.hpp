@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "engine/math/math.hpp"
+#include "rigging/rig_binding.hpp"
 
 #if defined(_WIN32)
 #  if defined(ENGINE_ANIMATION_EXPORTS)
