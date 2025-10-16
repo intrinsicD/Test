@@ -115,14 +115,27 @@ namespace engine::rendering
         compiled_ = false;
     }
 
-    FrameGraphResourceHandle FrameGraph::create_resource(std::string name, ResourceLifetime lifetime)
+    FrameGraphResourceHandle FrameGraph::create_resource(FrameGraphResourceDescriptor descriptor)
     {
         compiled_ = false;
         resources_.push_back(ResourceNode{});
         auto& node = resources_.back();
-        node.name = std::move(name);
-        node.lifetime = lifetime;
+        node.name = std::move(descriptor.name);
+        node.lifetime = descriptor.lifetime;
+        node.format = descriptor.format;
+        node.dimension = descriptor.dimension;
+        node.usage = descriptor.usage;
+        node.initial_state = descriptor.initial_state;
+        node.final_state = descriptor.final_state;
         return FrameGraphResourceHandle{resources_.size() - 1};
+    }
+
+    FrameGraphResourceHandle FrameGraph::create_resource(std::string name, ResourceLifetime lifetime)
+    {
+        FrameGraphResourceDescriptor descriptor{};
+        descriptor.name = std::move(name);
+        descriptor.lifetime = lifetime;
+        return create_resource(std::move(descriptor));
     }
 
     std::size_t FrameGraph::add_pass(std::unique_ptr<RenderPass> pass)
@@ -152,6 +165,34 @@ namespace engine::rendering
         {
             compiled_ = true;
             return;
+        }
+
+        for (const auto& resource : resources_)
+        {
+            if (resource.name.empty())
+            {
+                throw std::logic_error{"FrameGraph resource missing debug name"};
+            }
+            if (resource.dimension == ResourceDimension::Unknown)
+            {
+                throw std::logic_error("FrameGraph resource '" + resource.name + "' missing dimension metadata");
+            }
+            if (!any(resource.usage))
+            {
+                throw std::logic_error("FrameGraph resource '" + resource.name + "' missing usage metadata");
+            }
+            if (resource.dimension != ResourceDimension::Buffer && resource.format == ResourceFormat::Unknown)
+            {
+                throw std::logic_error("FrameGraph resource '" + resource.name + "' missing format metadata");
+            }
+            if (resource.initial_state == ResourceState::Undefined)
+            {
+                throw std::logic_error("FrameGraph resource '" + resource.name + "' missing initial state metadata");
+            }
+            if (resource.final_state == ResourceState::Undefined)
+            {
+                throw std::logic_error("FrameGraph resource '" + resource.name + "' missing final state metadata");
+            }
         }
 
         std::vector<std::vector<std::size_t>> adjacency(passes_.size());
@@ -297,7 +338,7 @@ namespace engine::rendering
             const std::size_t pass_index = execution_order_[order_index];
             auto& pass = passes_[pass_index];
 
-            const auto queue = context.scheduler.select_queue(*pass.pass);
+            const auto queue = context.scheduler.select_queue(*pass.pass, pass.pass->queue());
             const auto command_buffer = context.scheduler.request_command_buffer(queue, pass.pass->name());
 
             CommandEncoderDescriptor encoder_descriptor{pass.pass->name(), queue, command_buffer};
@@ -315,9 +356,7 @@ namespace engine::rendering
                     alive[handle.index] = true;
                     resource_events_.push_back(ResourceEvent{ResourceEvent::Type::Acquire, resource.name,
                                                               std::string(pass.pass->name())});
-                    context.device_resources.on_transient_acquire(handle,
-                                                                   FrameGraphResourceInfo{resource.name,
-                                                                                           resource.lifetime});
+                    context.device_resources.on_transient_acquire(handle, resource_info(handle));
                 }
             };
 
@@ -329,9 +368,7 @@ namespace engine::rendering
                     alive[handle.index] = false;
                     resource_events_.push_back(ResourceEvent{ResourceEvent::Type::Release, resource.name,
                                                               std::string(pass.pass->name())});
-                    context.device_resources.on_transient_release(handle,
-                                                                   FrameGraphResourceInfo{resource.name,
-                                                                                           resource.lifetime});
+                    context.device_resources.on_transient_release(handle, resource_info(handle));
                 }
             };
 
@@ -430,7 +467,13 @@ namespace engine::rendering
         }
 
         const auto& resource = resources_[handle.index];
-        return FrameGraphResourceInfo{resource.name, resource.lifetime};
+        return FrameGraphResourceInfo{resource.name,
+                                      resource.lifetime,
+                                      resource.format,
+                                      resource.dimension,
+                                      resource.usage,
+                                      resource.initial_state,
+                                      resource.final_state};
     }
 
     std::span<const FrameGraphResourceHandle> FrameGraph::pass_reads(std::size_t pass_index)

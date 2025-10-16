@@ -73,10 +73,12 @@ namespace engine::rendering
     class RenderPass
     {
     public:
-        explicit RenderPass(std::string name);
+        explicit RenderPass(std::string name, QueueType queue = QueueType::Graphics);
         virtual ~RenderPass() = default;
 
         [[nodiscard]] std::string_view name() const noexcept;
+        void set_queue(QueueType queue) noexcept;
+        [[nodiscard]] QueueType queue() const noexcept;
 
         /// Describe the resources that this pass will access.
         virtual void setup(FrameGraphPassBuilder& builder) = 0;
@@ -86,6 +88,7 @@ namespace engine::rendering
 
     private:
         std::string name_;
+        QueueType queue_{QueueType::Graphics};
     };
 
     /**
@@ -97,7 +100,8 @@ namespace engine::rendering
         using SetupFunction = std::function<void(FrameGraphPassBuilder&)>;
         using ExecuteFunction = std::function<void(FrameGraphPassExecutionContext&)>;
 
-        CallbackRenderPass(std::string name, SetupFunction setup, ExecuteFunction execute);
+        CallbackRenderPass(std::string name, SetupFunction setup, ExecuteFunction execute,
+                           QueueType queue = QueueType::Graphics);
 
         void setup(FrameGraphPassBuilder& builder) override;
         void execute(FrameGraphPassExecutionContext& context) override;
@@ -107,7 +111,8 @@ namespace engine::rendering
         ExecuteFunction execute_;
     };
 
-    inline RenderPass::RenderPass(std::string name) : name_(std::move(name))
+    inline RenderPass::RenderPass(std::string name, QueueType queue)
+        : name_(std::move(name)), queue_(queue)
     {
     }
 
@@ -116,9 +121,19 @@ namespace engine::rendering
         return name_;
     }
 
+    inline void RenderPass::set_queue(QueueType queue) noexcept
+    {
+        queue_ = queue;
+    }
+
+    inline QueueType RenderPass::queue() const noexcept
+    {
+        return queue_;
+    }
+
     inline CallbackRenderPass::CallbackRenderPass(std::string name, SetupFunction setup,
-                                                  ExecuteFunction execute)
-        : RenderPass(std::move(name)), setup_(std::move(setup)), execute_(std::move(execute))
+                                                  ExecuteFunction execute, QueueType queue)
+        : RenderPass(std::move(name), queue), setup_(std::move(setup)), execute_(std::move(execute))
     {
     }
 

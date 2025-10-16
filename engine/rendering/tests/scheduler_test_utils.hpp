@@ -27,9 +27,9 @@ namespace engine::rendering::tests
             std::uint64_t fence_value{0};
         };
 
-        QueueType select_queue(const RenderPass&) override
+        QueueType select_queue(const RenderPass&, QueueType preferred) override
         {
-            return QueueType::Graphics;
+            return preferred;
         }
 
         CommandBufferHandle request_command_buffer(QueueType, std::string_view) override

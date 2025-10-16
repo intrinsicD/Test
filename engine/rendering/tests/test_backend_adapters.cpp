@@ -49,7 +49,7 @@ TEST(BackendAdapters, VulkanSchedulerTranslatesToNativeHandles)
     engine::rendering::CallbackRenderPass transfer_pass{"TransferCopy",
                                                         [](engine::rendering::FrameGraphPassBuilder&) {},
                                                         [](engine::rendering::FrameGraphPassExecutionContext&) {}};
-    const auto queue = scheduler.select_queue(transfer_pass);
+    const auto queue = scheduler.select_queue(transfer_pass, transfer_pass.queue());
     EXPECT_EQ(queue, QueueType::Transfer);
 
     verify_submission_translation(scheduler, provider, QueueType::Graphics);
@@ -76,7 +76,7 @@ TEST(BackendAdapters, DirectX12SchedulerBuildsCommandLists)
     engine::rendering::CallbackRenderPass compute_pass{"Compute",
                                                        [](engine::rendering::FrameGraphPassBuilder&) {},
                                                        [](engine::rendering::FrameGraphPassExecutionContext&) {}};
-    const auto queue = scheduler.select_queue(compute_pass);
+    const auto queue = scheduler.select_queue(compute_pass, compute_pass.queue());
     EXPECT_EQ(queue, QueueType::Compute);
 
     verify_submission_translation(scheduler, provider, QueueType::Graphics);
@@ -95,7 +95,7 @@ TEST(BackendAdapters, MetalSchedulerBuildsCommandBuffers)
     engine::rendering::CallbackRenderPass blit_pass{"BlitResolve",
                                                     [](engine::rendering::FrameGraphPassBuilder&) {},
                                                     [](engine::rendering::FrameGraphPassExecutionContext&) {}};
-    const auto queue = scheduler.select_queue(blit_pass);
+    const auto queue = scheduler.select_queue(blit_pass, blit_pass.queue());
     EXPECT_EQ(queue, QueueType::Transfer);
 
     verify_submission_translation(scheduler, provider, QueueType::Graphics);
@@ -114,7 +114,7 @@ TEST(BackendAdapters, OpenGLSchedulerRecordsGraphicsQueue)
     engine::rendering::CallbackRenderPass graphics_pass{"Any",
                                                         [](engine::rendering::FrameGraphPassBuilder&) {},
                                                         [](engine::rendering::FrameGraphPassExecutionContext&) {}};
-    EXPECT_EQ(scheduler.select_queue(graphics_pass), QueueType::Graphics);
+    EXPECT_EQ(scheduler.select_queue(graphics_pass, graphics_pass.queue()), QueueType::Graphics);
 
     verify_submission_translation(scheduler, provider, QueueType::Graphics);
     ASSERT_EQ(scheduler.submissions().size(), 1);  // NOLINT

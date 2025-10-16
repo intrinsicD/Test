@@ -77,8 +77,8 @@ namespace engine::rendering
     public:
         virtual ~IGpuScheduler() = default;
 
-        /// Select the queue that should execute \p pass.
-        virtual QueueType select_queue(const RenderPass& pass) = 0;
+        /// Select the queue that should execute \p pass given the preferred queue.
+        virtual QueueType select_queue(const RenderPass& pass, QueueType preferred) = 0;
 
         /// Allocate a command buffer compatible with \p queue.
         virtual CommandBufferHandle request_command_buffer(QueueType queue, std::string_view pass_name) = 0;

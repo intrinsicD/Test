@@ -3,6 +3,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "engine/rendering/frame_graph.hpp"
@@ -24,13 +25,38 @@ namespace
         void require_material(const engine::assets::MaterialHandle&) override {}
         void require_shader(const engine::assets::ShaderHandle&) override {}
     };
+
+    engine::rendering::FrameGraphResourceDescriptor make_color_resource(std::string name)
+    {
+        engine::rendering::FrameGraphResourceDescriptor descriptor{};
+        descriptor.name = std::move(name);
+        descriptor.format = engine::rendering::ResourceFormat::Rgba8Unorm;
+        descriptor.dimension = engine::rendering::ResourceDimension::Texture2D;
+        descriptor.usage = engine::rendering::ResourceUsage::ColorAttachment |
+                           engine::rendering::ResourceUsage::ShaderRead;
+        descriptor.initial_state = engine::rendering::ResourceState::ColorAttachment;
+        descriptor.final_state = engine::rendering::ResourceState::ShaderRead;
+        return descriptor;
+    }
+
+    engine::rendering::FrameGraphResourceDescriptor make_depth_resource(std::string name)
+    {
+        engine::rendering::FrameGraphResourceDescriptor descriptor{};
+        descriptor.name = std::move(name);
+        descriptor.format = engine::rendering::ResourceFormat::Depth24Stencil8;
+        descriptor.dimension = engine::rendering::ResourceDimension::Texture2D;
+        descriptor.usage = engine::rendering::ResourceUsage::DepthStencilAttachment;
+        descriptor.initial_state = engine::rendering::ResourceState::DepthStencilAttachment;
+        descriptor.final_state = engine::rendering::ResourceState::DepthStencilAttachment;
+        return descriptor;
+    }
 }
 
 TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
 {
     engine::rendering::FrameGraph graph;
-    const auto depth = graph.create_resource("Depth");
-    const auto color = graph.create_resource("Color");
+    const auto depth = graph.create_resource(make_depth_resource("Depth"));
+    const auto color = graph.create_resource(make_color_resource("Color"));
 
     std::vector<std::string> order;
 
@@ -79,8 +105,8 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
 TEST(FrameGraph, TracksResourceLifetimes)
 {
     engine::rendering::FrameGraph graph;
-    const auto depth = graph.create_resource("Depth");
-    const auto color = graph.create_resource("Color");
+    const auto depth = graph.create_resource(make_depth_resource("Depth"));
+    const auto color = graph.create_resource(make_color_resource("Color"));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "DepthPrepass",
@@ -120,6 +146,26 @@ TEST(FrameGraph, TracksResourceLifetimes)
     ASSERT_EQ(device_provider.acquired().size(), 2);  // NOLINT
     ASSERT_EQ(device_provider.released().size(), 2);  // NOLINT
 
+    const auto& acquired_depth = device_provider.acquired().front().info;
+    EXPECT_EQ(acquired_depth.name, "Depth");
+    EXPECT_EQ(acquired_depth.format, engine::rendering::ResourceFormat::Depth24Stencil8);
+    EXPECT_EQ(acquired_depth.dimension, engine::rendering::ResourceDimension::Texture2D);
+    EXPECT_TRUE(engine::rendering::has_flag(acquired_depth.usage,
+                                            engine::rendering::ResourceUsage::DepthStencilAttachment));
+    EXPECT_EQ(acquired_depth.initial_state, engine::rendering::ResourceState::DepthStencilAttachment);
+    EXPECT_EQ(acquired_depth.final_state, engine::rendering::ResourceState::DepthStencilAttachment);
+
+    const auto& acquired_color = device_provider.acquired().back().info;
+    EXPECT_EQ(acquired_color.name, "Color");
+    EXPECT_EQ(acquired_color.format, engine::rendering::ResourceFormat::Rgba8Unorm);
+    EXPECT_EQ(acquired_color.dimension, engine::rendering::ResourceDimension::Texture2D);
+    EXPECT_TRUE(engine::rendering::has_flag(acquired_color.usage,
+                                            engine::rendering::ResourceUsage::ColorAttachment));
+    EXPECT_TRUE(engine::rendering::has_flag(acquired_color.usage,
+                                            engine::rendering::ResourceUsage::ShaderRead));
+    EXPECT_EQ(acquired_color.initial_state, engine::rendering::ResourceState::ColorAttachment);
+    EXPECT_EQ(acquired_color.final_state, engine::rendering::ResourceState::ShaderRead);
+
     EXPECT_EQ(events[0].type, engine::rendering::ResourceEvent::Type::Acquire);
     EXPECT_EQ(events[0].resource_name, "Depth");
     EXPECT_EQ(events[0].pass_name, "DepthPrepass");
@@ -140,8 +186,8 @@ TEST(FrameGraph, TracksResourceLifetimes)
 TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
 {
     engine::rendering::FrameGraph graph;
-    const auto depth = graph.create_resource("Depth");
-    const auto color = graph.create_resource("Color");
+    const auto depth = graph.create_resource(make_depth_resource("Depth"));
+    const auto color = graph.create_resource(make_color_resource("Color"));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "DepthPrepass",
@@ -237,6 +283,33 @@ TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
     EXPECT_EQ(lighting_submission.fence_value, 3U);
 }
 
+TEST(FrameGraph, PassHonorsQueuePreference)
+{
+    engine::rendering::FrameGraph graph;
+    const auto color = graph.create_resource(make_color_resource("ComputeColor"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "ComputePass",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Compute));
+
+    graph.compile();
+
+    engine::scene::Scene scene;
+    engine::rendering::MaterialSystem materials;
+    NullProvider provider;
+    engine::rendering::resources::RecordingGpuResourceProvider device_provider;
+    engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::tests::NullCommandEncoderProvider command_encoders;
+    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
+                                                     scheduler, device_provider, command_encoders};
+    graph.execute(context);
+
+    ASSERT_EQ(scheduler.submissions.size(), 1);  // NOLINT
+    EXPECT_EQ(scheduler.submissions.front().queue, engine::rendering::QueueType::Compute);
+}
+
 TEST(FrameGraph, BuilderRejectsInvalidHandles)
 {
     engine::rendering::FrameGraph graph;
@@ -259,10 +332,24 @@ TEST(FrameGraph, BuilderRejectsInvalidHandles)
         std::out_of_range);
 }
 
+TEST(FrameGraph, RejectsMissingResourceMetadata)
+{
+    engine::rendering::FrameGraph graph;
+    engine::rendering::FrameGraphResourceDescriptor descriptor{};
+    descriptor.name = "Invalid";
+    const auto handle = graph.create_resource(descriptor);
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "Writer", [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(handle); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+
+    EXPECT_THROW(graph.compile(), std::logic_error);
+}
+
 TEST(FrameGraph, PreventsMultipleWritersForResource)
 {
     engine::rendering::FrameGraph graph;
-    const auto handle = graph.create_resource("Color");
+    const auto handle = graph.create_resource(make_color_resource("Color"));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "WriterA",
@@ -280,8 +367,8 @@ TEST(FrameGraph, PreventsMultipleWritersForResource)
 TEST(FrameGraph, DetectsCyclesDuringCompile)
 {
     engine::rendering::FrameGraph graph;
-    const auto a = graph.create_resource("A");
-    const auto b = graph.create_resource("B");
+    const auto a = graph.create_resource(make_color_resource("A"));
+    const auto b = graph.create_resource(make_color_resource("B"));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "PassA",

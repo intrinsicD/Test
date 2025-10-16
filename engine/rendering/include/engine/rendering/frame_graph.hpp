@@ -32,6 +32,22 @@ namespace engine::rendering
     {
         std::string_view name;
         ResourceLifetime lifetime{ResourceLifetime::Transient};
+        ResourceFormat format{ResourceFormat::Unknown};
+        ResourceDimension dimension{ResourceDimension::Unknown};
+        ResourceUsage usage{ResourceUsage::None};
+        ResourceState initial_state{ResourceState::Undefined};
+        ResourceState final_state{ResourceState::Undefined};
+    };
+
+    struct FrameGraphResourceDescriptor
+    {
+        std::string name;
+        ResourceLifetime lifetime{ResourceLifetime::Transient};
+        ResourceFormat format{ResourceFormat::Unknown};
+        ResourceDimension dimension{ResourceDimension::Unknown};
+        ResourceUsage usage{ResourceUsage::None};
+        ResourceState initial_state{ResourceState::Undefined};
+        ResourceState final_state{ResourceState::Undefined};
     };
 
     class FrameGraphPassBuilder
@@ -99,6 +115,7 @@ namespace engine::rendering
 
         void reset();
 
+        FrameGraphResourceHandle create_resource(FrameGraphResourceDescriptor descriptor);
         FrameGraphResourceHandle create_resource(std::string name,
                                                  ResourceLifetime lifetime = ResourceLifetime::Transient);
 
@@ -119,6 +136,11 @@ namespace engine::rendering
         {
             std::string name;
             ResourceLifetime lifetime{ResourceLifetime::Transient};
+            ResourceFormat format{ResourceFormat::Unknown};
+            ResourceDimension dimension{ResourceDimension::Unknown};
+            ResourceUsage usage{ResourceUsage::None};
+            ResourceState initial_state{ResourceState::Undefined};
+            ResourceState final_state{ResourceState::Undefined};
             std::size_t writer{std::numeric_limits<std::size_t>::max()};
             std::vector<std::size_t> readers;
             std::size_t first_use{std::numeric_limits<std::size_t>::max()};
