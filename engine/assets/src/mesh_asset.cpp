@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <stdexcept>
+#include <string>
 
 namespace engine::assets {
 
@@ -61,7 +62,13 @@ void MeshCache::poll()
 
 void MeshCache::reload_asset(const MeshHandle& handle, MeshAsset& asset, bool notify)
 {
-    const auto detection = io::detect_geometry_file(asset.descriptor.source);
+    const auto detection_result = io::detect_geometry_file(asset.descriptor.source);
+    if (!detection_result) {
+        throw std::runtime_error("Geometry file detection failed: " +
+                                 std::string(detection_result.error().message()));
+    }
+
+    const auto& detection = detection_result.value();
     if (detection.kind != io::GeometryKind::mesh) {
         throw std::runtime_error("Geometry file does not describe a mesh");
     }
@@ -75,7 +82,9 @@ void MeshCache::reload_asset(const MeshHandle& handle, MeshAsset& asset, bool no
     }
 
     asset.mesh.interface.clear();
-    io::read_mesh(asset.descriptor.source, asset.mesh.interface, format);
+    if (auto result = io::read_mesh(asset.descriptor.source, asset.mesh.interface, format); !result) {
+        throw std::runtime_error("Failed to read mesh: " + std::string(result.error().message()));
+    }
     asset.detection = detection;
     asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "mesh");
 

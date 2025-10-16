@@ -7,6 +7,8 @@ This document captures the conventions to follow when contributing C++ and Pytho
 - Write self-documenting code and complement it with concise comments when behaviour is non-obvious.
 - Keep public APIs minimal and focused. Prefer free functions in headers that forward to implementation files.
 - Ensure every new feature includes build or usage instructions in the relevant documentation.
+- Propagate recoverable failures with `engine::Result<T, ErrorCode>` and module-specific error codes instead of throwing
+  exceptions from API entry points.
 
 ## C++ Guidelines
 

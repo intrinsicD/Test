@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <stdexcept>
+#include <string>
 
 namespace engine::assets {
 
@@ -59,7 +60,13 @@ void PointCloudCache::poll()
 
 void PointCloudCache::reload_asset(const PointCloudHandle& handle, PointCloudAsset& asset, bool notify)
 {
-    const auto detection = io::detect_geometry_file(asset.descriptor.source);
+    const auto detection_result = io::detect_geometry_file(asset.descriptor.source);
+    if (!detection_result) {
+        throw std::runtime_error("Geometry file detection failed: " +
+                                 std::string(detection_result.error().message()));
+    }
+
+    const auto& detection = detection_result.value();
     if (detection.kind != io::GeometryKind::point_cloud) {
         throw std::runtime_error("Geometry file does not describe a point cloud");
     }
@@ -73,7 +80,9 @@ void PointCloudCache::reload_asset(const PointCloudHandle& handle, PointCloudAss
     }
 
     asset.point_cloud.interface.clear();
-    io::read_point_cloud(asset.descriptor.source, asset.point_cloud.interface, format);
+    if (auto result = io::read_point_cloud(asset.descriptor.source, asset.point_cloud.interface, format); !result) {
+        throw std::runtime_error("Failed to read point cloud: " + std::string(result.error().message()));
+    }
     asset.detection = detection;
     asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "point cloud");
 

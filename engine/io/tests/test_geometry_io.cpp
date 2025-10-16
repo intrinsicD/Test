@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "engine/io/errors.hpp"
 #include "engine/io/geometry_io.hpp"
 
 #include <algorithm>
@@ -80,8 +81,10 @@ TEST(GeometryDetection, DetectsObjMesh)
                     "f 1 2 3\n");
 
     const auto detection = engine::io::detect_geometry_file(path);
-    EXPECT_EQ(detection.kind, engine::io::GeometryKind::mesh);
-    EXPECT_EQ(detection.mesh_format, engine::io::MeshFileFormat::obj);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::obj);
 }
 
 TEST(GeometryDetection, DistinguishesPlyVariants)
@@ -104,8 +107,10 @@ TEST(GeometryDetection, DistinguishesPlyVariants)
                "3 0 1 2\n");
 
     const auto mesh_detection = engine::io::detect_geometry_file(mesh_path);
-    EXPECT_EQ(mesh_detection.kind, engine::io::GeometryKind::mesh);
-    EXPECT_EQ(mesh_detection.mesh_format, engine::io::MeshFileFormat::ply);
+    ASSERT_TRUE(mesh_detection);
+    const auto& mesh_info = mesh_detection.value();
+    EXPECT_EQ(mesh_info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(mesh_info.mesh_format, engine::io::MeshFileFormat::ply);
 
     const auto cloud_path = temp.path / "points.ply";
     write_file(cloud_path,
@@ -120,8 +125,10 @@ TEST(GeometryDetection, DistinguishesPlyVariants)
                "1 1 1\n");
 
     const auto cloud_detection = engine::io::detect_geometry_file(cloud_path);
-    EXPECT_EQ(cloud_detection.kind, engine::io::GeometryKind::point_cloud);
-    EXPECT_EQ(cloud_detection.point_cloud_format, engine::io::PointCloudFileFormat::ply);
+    ASSERT_TRUE(cloud_detection);
+    const auto& cloud_info = cloud_detection.value();
+    EXPECT_EQ(cloud_info.kind, engine::io::GeometryKind::point_cloud);
+    EXPECT_EQ(cloud_info.point_cloud_format, engine::io::PointCloudFileFormat::ply);
 }
 
 TEST(GeometryDetection, DetectsAsciiStlBySignature)
@@ -140,8 +147,10 @@ TEST(GeometryDetection, DetectsAsciiStlBySignature)
                "endsolid ascii\n");
 
     const auto detection = engine::io::detect_geometry_file(path);
-    EXPECT_EQ(detection.kind, engine::io::GeometryKind::mesh);
-    EXPECT_EQ(detection.mesh_format, engine::io::MeshFileFormat::stl);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::stl);
 }
 
 TEST(GeometryDetection, DetectsBinaryStlByStructure)
@@ -151,8 +160,20 @@ TEST(GeometryDetection, DetectsBinaryStlByStructure)
     write_binary_stl(path);
 
     const auto detection = engine::io::detect_geometry_file(path);
-    EXPECT_EQ(detection.kind, engine::io::GeometryKind::mesh);
-    EXPECT_EQ(detection.mesh_format, engine::io::MeshFileFormat::stl);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::stl);
+}
+
+TEST(GeometryDetection, ReportsMissingFile)
+{
+    const auto path = std::filesystem::path{"/nonexistent/geometry.obj"};
+    const auto detection = engine::io::detect_geometry_file(path);
+    ASSERT_FALSE(detection);
+    const auto& error = detection.error();
+    EXPECT_EQ(error.code(), engine::io::GeometryIoError::file_not_found);
+    EXPECT_EQ(error.identifier(), "file_not_found");
 }
 
 TEST(GeometryIO, ReadAndWriteMesh)
@@ -165,18 +186,20 @@ TEST(GeometryIO, ReadAndWriteMesh)
                     "f 1 2 3\n");
 
     engine::geometry::Mesh mesh;
-    engine::io::read_mesh(path, mesh.interface, engine::io::MeshFileFormat::obj);
+    ASSERT_TRUE(engine::io::read_mesh(path, mesh.interface, engine::io::MeshFileFormat::obj));
 
     EXPECT_EQ(mesh.interface.vertex_count(), 3U);
     EXPECT_EQ(mesh.interface.face_count(), 1U);
 
     const auto out_path = temp.path / "triangle.off";
-    engine::io::write_mesh(out_path, mesh.interface, engine::io::MeshFileFormat::off);
+    ASSERT_TRUE(engine::io::write_mesh(out_path, mesh.interface, engine::io::MeshFileFormat::off));
 
     ASSERT_TRUE(std::filesystem::exists(out_path));
     const auto detection = engine::io::detect_geometry_file(out_path);
-    EXPECT_EQ(detection.kind, engine::io::GeometryKind::mesh);
-    EXPECT_EQ(detection.mesh_format, engine::io::MeshFileFormat::off);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::off);
 }
 
 TEST(GeometryIO, ReadAndWritePointCloud)
@@ -195,17 +218,19 @@ TEST(GeometryIO, ReadAndWritePointCloud)
                "1 2 3\n");
 
     engine::geometry::PointCloud cloud;
-    engine::io::read_point_cloud(path, cloud.interface, engine::io::PointCloudFileFormat::ply);
+    ASSERT_TRUE(engine::io::read_point_cloud(path, cloud.interface, engine::io::PointCloudFileFormat::ply));
 
     EXPECT_EQ(cloud.interface.vertex_count(), 2U);
 
     const auto out_path = temp.path / "points.xyz";
-    engine::io::write_point_cloud(out_path, cloud.interface, engine::io::PointCloudFileFormat::xyz);
+    ASSERT_TRUE(engine::io::write_point_cloud(out_path, cloud.interface, engine::io::PointCloudFileFormat::xyz));
 
     ASSERT_TRUE(std::filesystem::exists(out_path));
     const auto detection = engine::io::detect_geometry_file(out_path);
-    EXPECT_EQ(detection.kind, engine::io::GeometryKind::point_cloud);
-    EXPECT_EQ(detection.point_cloud_format, engine::io::PointCloudFileFormat::xyz);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::point_cloud);
+    EXPECT_EQ(info.point_cloud_format, engine::io::PointCloudFileFormat::xyz);
 }
 
 TEST(GeometryIO, ReadAndWriteGraph)
@@ -217,18 +242,39 @@ TEST(GeometryIO, ReadAndWriteGraph)
                "1 2\n");
 
     engine::geometry::Graph graph;
-    engine::io::read_graph(path, graph.interface, engine::io::GraphFileFormat::edgelist);
+    ASSERT_TRUE(engine::io::read_graph(path, graph.interface, engine::io::GraphFileFormat::edgelist));
 
     EXPECT_EQ(graph.interface.vertex_count(), 3U);
     EXPECT_EQ(graph.interface.edge_count(), 2U);
 
     const auto out_path = temp.path / "graph.ply";
-    engine::io::write_graph(out_path, graph.interface, engine::io::GraphFileFormat::ply);
+    ASSERT_TRUE(engine::io::write_graph(out_path, graph.interface, engine::io::GraphFileFormat::ply));
 
     ASSERT_TRUE(std::filesystem::exists(out_path));
     const auto detection = engine::io::detect_geometry_file(out_path);
-    EXPECT_EQ(detection.kind, engine::io::GeometryKind::graph);
-    EXPECT_EQ(detection.graph_format, engine::io::GraphFileFormat::ply);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::graph);
+    EXPECT_EQ(info.graph_format, engine::io::GraphFileFormat::ply);
+}
+
+TEST(GeometryIO, LoadMeshRejectsMissingPointer)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "triangle.obj";
+    write_file(path, "v 0 0 0\n"
+                    "v 1 0 0\n"
+                    "v 0 1 0\n"
+                    "f 1 2 3\n");
+
+    engine::geometry::Mesh mesh;
+    const auto result = engine::io::load_geometry(path, nullptr, nullptr, nullptr);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error().code(), engine::io::GeometryIoError::invalid_argument);
+
+    const auto mesh_result = engine::io::load_geometry(path, &mesh.interface, nullptr, nullptr);
+    ASSERT_TRUE(mesh_result);
+    EXPECT_EQ(mesh_result.value().kind, engine::io::GeometryKind::mesh);
 }
 
 TEST(GeometryIO, AutoRoutingLoadAndSave)
@@ -260,29 +306,35 @@ TEST(GeometryIO, AutoRoutingLoadAndSave)
     engine::geometry::Graph graph;
 
     const auto mesh_detection = engine::io::load_geometry(mesh_path, &mesh.interface, nullptr, nullptr);
-    EXPECT_EQ(mesh_detection.kind, engine::io::GeometryKind::mesh);
+    ASSERT_TRUE(mesh_detection);
+    EXPECT_EQ(mesh_detection.value().kind, engine::io::GeometryKind::mesh);
     EXPECT_EQ(mesh.interface.face_count(), 1U);
 
     const auto cloud_detection = engine::io::load_geometry(cloud_path, nullptr, &cloud.interface, nullptr);
-    EXPECT_EQ(cloud_detection.kind, engine::io::GeometryKind::point_cloud);
+    ASSERT_TRUE(cloud_detection);
+    EXPECT_EQ(cloud_detection.value().kind, engine::io::GeometryKind::point_cloud);
     EXPECT_EQ(cloud.interface.vertex_count(), 1U);
 
     const auto graph_detection = engine::io::load_geometry(graph_path, nullptr, nullptr, &graph.interface);
-    EXPECT_EQ(graph_detection.kind, engine::io::GeometryKind::graph);
+    ASSERT_TRUE(graph_detection);
+    EXPECT_EQ(graph_detection.value().kind, engine::io::GeometryKind::graph);
     EXPECT_EQ(graph.interface.edge_count(), 1U);
 
     const auto mesh_out = temp.path / "mesh_out.ply";
     const auto mesh_save = engine::io::save_geometry(mesh_out, &mesh.interface, nullptr, nullptr);
-    EXPECT_EQ(mesh_save.kind, engine::io::GeometryKind::mesh);
+    ASSERT_TRUE(mesh_save);
+    EXPECT_EQ(mesh_save.value().kind, engine::io::GeometryKind::mesh);
     ASSERT_TRUE(std::filesystem::exists(mesh_out));
 
     const auto cloud_out = temp.path / "cloud_out.ply";
     const auto cloud_save = engine::io::save_geometry(cloud_out, nullptr, &cloud.interface, nullptr);
-    EXPECT_EQ(cloud_save.kind, engine::io::GeometryKind::point_cloud);
+    ASSERT_TRUE(cloud_save);
+    EXPECT_EQ(cloud_save.value().kind, engine::io::GeometryKind::point_cloud);
     ASSERT_TRUE(std::filesystem::exists(cloud_out));
 
     const auto graph_out = temp.path / "graph_out.edgelist";
     const auto graph_save = engine::io::save_geometry(graph_out, nullptr, nullptr, &graph.interface);
-    EXPECT_EQ(graph_save.kind, engine::io::GeometryKind::graph);
+    ASSERT_TRUE(graph_save);
+    EXPECT_EQ(graph_save.value().kind, engine::io::GeometryKind::graph);
     ASSERT_TRUE(std::filesystem::exists(graph_out));
 }

@@ -32,5 +32,7 @@ Source of truth precedence: **`../AGENTS.md` → this file → `architecture.md`
 - [`docs/README_TEMPLATE.md`](README_TEMPLATE.md) standardises module documentation.
 - [`docs/design/architecture_improvement_plan.md`](design/architecture_improvement_plan.md) expands on the roadmap and decision history.
 - [`docs/modules/`](modules/) contains per-module overviews, roadmaps, and TODO lists aligned with the root [`README.md`](../README.md).
+- [`docs/design/error_handling_migration.md`](design/error_handling_migration.md) documents the `engine::Result`/`ErrorCode`
+  pattern rolled out by `DC-004`.
 
 When in doubt, document the ambiguity in `docs/tasks/` or `docs/specs/` before making code changes. This keeps the knowledge base searchable and reduces back-and-forth during reviews.

@@ -19,6 +19,7 @@ target_compile_definitions(${target_name}
 
 target_link_libraries(${target_name}
     PUBLIC
+        engine_core
         engine_geometry
         engine_animation
 )

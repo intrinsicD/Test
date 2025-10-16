@@ -69,12 +69,12 @@ modules. Items are grouped by their intent:
 - **Module:** Cross-cutting
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Define `engine::Result<T, Error>` in `engine/core/diagnostics/result.hpp` and design the supporting type utilities.
-  - [ ] Create an `engine::ErrorCode` hierarchy in `engine/core/diagnostics/error.hpp` that modules can specialize.
-  - [ ] Document the error-handling policy in `CODING_STYLE.md` and supporting design docs.
-  - [ ] Migrate the IO module to the `Result<T>` pattern as a pilot implementation.
-  - [ ] Provide module templates demonstrating correct usage.
-  - [ ] Draft a migration guide for existing subsystems.
+  - [x] Define `engine::Result<T, Error>` in `engine/core/diagnostics/result.hpp` and design the supporting type utilities.
+  - [x] Create an `engine::ErrorCode` hierarchy in `engine/core/diagnostics/error.hpp` that modules can specialize.
+  - [x] Document the error-handling policy in `CODING_STYLE.md` and supporting design docs.
+  - [x] Migrate the IO module to the `Result<T>` pattern as a pilot implementation.
+  - [x] Provide module templates demonstrating correct usage.
+  - [x] Draft a migration guide for existing subsystems.
 - **Artifacts:** `engine/core/diagnostics/result.hpp`, `engine/core/diagnostics/error.hpp`, `engine/io` implementation updates, module templates, documentation in `docs/design/error_handling_migration.md`.
 - **Tests:** IO module regression suite updated to assert `Result<T>` handling; static analysis or clang-tidy checks for legacy patterns.
 - **Docs:** Update coding standards and IO README; provide migration guide references in module docs.
