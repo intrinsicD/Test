@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <limits>
 #include <queue>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -12,6 +13,111 @@
 
 namespace engine::rendering
 {
+    namespace
+    {
+        [[nodiscard]] std::string to_string(ResourceLifetime lifetime)
+        {
+            switch (lifetime)
+            {
+            case ResourceLifetime::External:
+                return "External";
+            case ResourceLifetime::Transient:
+                return "Transient";
+            }
+            return "Unknown";
+        }
+
+        [[nodiscard]] std::string to_string(ResourceFormat format)
+        {
+            std::ostringstream stream;
+            stream << format;
+            return stream.str();
+        }
+
+        [[nodiscard]] std::string to_string(ResourceDimension dimension)
+        {
+            std::ostringstream stream;
+            stream << dimension;
+            return stream.str();
+        }
+
+        [[nodiscard]] std::string to_string(ResourceUsage usage)
+        {
+            std::ostringstream stream;
+            stream << usage;
+            return stream.str();
+        }
+
+        [[nodiscard]] std::string to_string(ResourceState state)
+        {
+            std::ostringstream stream;
+            stream << state;
+            return stream.str();
+        }
+
+        [[nodiscard]] std::string to_string(QueueType queue)
+        {
+            std::ostringstream stream;
+            stream << queue;
+            return stream.str();
+        }
+
+        [[nodiscard]] std::string to_string(PassPhase phase)
+        {
+            std::ostringstream stream;
+            stream << phase;
+            return stream.str();
+        }
+
+        [[nodiscard]] std::string to_string(ValidationSeverity severity)
+        {
+            std::ostringstream stream;
+            stream << severity;
+            return stream.str();
+        }
+
+        [[nodiscard]] std::string escape_json(std::string_view value)
+        {
+            std::string escaped;
+            escaped.reserve(value.size());
+            for (const char ch : value)
+            {
+                switch (ch)
+                {
+                case '\\':
+                    escaped.append("\\\\");
+                    break;
+                case '\"':
+                    escaped.append("\\\"");
+                    break;
+                case '\n':
+                    escaped.append("\\n");
+                    break;
+                case '\r':
+                    escaped.append("\\r");
+                    break;
+                case '\t':
+                    escaped.append("\\t");
+                    break;
+                default:
+                    escaped.push_back(ch);
+                    break;
+                }
+            }
+            return escaped;
+        }
+
+        [[nodiscard]] std::string quoted(std::string_view value)
+        {
+            std::string result;
+            result.reserve(value.size() + 2);
+            result.push_back('\"');
+            result.append(escape_json(value));
+            result.push_back('\"');
+            return result;
+        }
+    }
+
     FrameGraphPassBuilder::FrameGraphPassBuilder(FrameGraph& graph, std::size_t pass_index)
         : graph_(graph), pass_index_(pass_index)
     {
@@ -90,6 +196,16 @@ namespace engine::rendering
     QueueType FrameGraphPassExecutionContext::queue_type() const noexcept
     {
         return queue;
+    }
+
+    PassPhase FrameGraphPassExecutionContext::pass_phase() const noexcept
+    {
+        return graph.passes_[pass_index].pass->phase();
+    }
+
+    ValidationSeverity FrameGraphPassExecutionContext::validation_severity() const noexcept
+    {
+        return graph.passes_[pass_index].pass->validation_severity();
     }
 
     CommandEncoder& FrameGraphPassExecutionContext::command_encoder() const
@@ -504,5 +620,93 @@ namespace engine::rendering
         }
 
         return passes_[pass_index].pass->name();
+    }
+
+    std::string FrameGraph::serialize() const
+    {
+        if (!compiled_)
+        {
+            throw std::logic_error{"FrameGraph::serialize requires a compiled graph"};
+        }
+
+        std::ostringstream stream;
+        stream << "{\n";
+
+        stream << "  \"resources\": [\n";
+        for (std::size_t index = 0; index < resources_.size(); ++index)
+        {
+            const auto& resource = resources_[index];
+            stream << "    {\n";
+            stream << "      \"name\": " << quoted(resource.name) << ",\n";
+            stream << "      \"lifetime\": " << quoted(to_string(resource.lifetime)) << ",\n";
+            stream << "      \"format\": " << quoted(to_string(resource.format)) << ",\n";
+            stream << "      \"dimension\": " << quoted(to_string(resource.dimension)) << ",\n";
+            stream << "      \"usage\": " << quoted(to_string(resource.usage)) << ",\n";
+            stream << "      \"initial_state\": " << quoted(to_string(resource.initial_state)) << ",\n";
+            stream << "      \"final_state\": " << quoted(to_string(resource.final_state)) << "\n";
+            stream << "    }";
+            if (index + 1 < resources_.size())
+            {
+                stream << ',';
+            }
+            stream << "\n";
+        }
+        stream << "  ],\n";
+
+        stream << "  \"passes\": [\n";
+        for (std::size_t index = 0; index < passes_.size(); ++index)
+        {
+            const auto& pass = passes_[index];
+            stream << "    {\n";
+            stream << "      \"name\": " << quoted(std::string(pass.pass->name())) << ",\n";
+            stream << "      \"queue\": " << quoted(to_string(pass.pass->queue())) << ",\n";
+            stream << "      \"phase\": " << quoted(to_string(pass.pass->phase())) << ",\n";
+            stream << "      \"validation\": " << quoted(to_string(pass.pass->validation_severity())) << ",\n";
+            stream << "      \"reads\": [";
+            for (std::size_t read_index = 0; read_index < pass.reads.size(); ++read_index)
+            {
+                const auto handle = pass.reads[read_index];
+                const auto& resource = resources_.at(handle.index);
+                if (read_index > 0)
+                {
+                    stream << ", ";
+                }
+                stream << quoted(resource.name);
+            }
+            stream << "],\n";
+            stream << "      \"writes\": [";
+            for (std::size_t write_index = 0; write_index < pass.writes.size(); ++write_index)
+            {
+                const auto handle = pass.writes[write_index];
+                const auto& resource = resources_.at(handle.index);
+                if (write_index > 0)
+                {
+                    stream << ", ";
+                }
+                stream << quoted(resource.name);
+            }
+            stream << "]\n";
+            stream << "    }";
+            if (index + 1 < passes_.size())
+            {
+                stream << ',';
+            }
+            stream << "\n";
+        }
+        stream << "  ],\n";
+
+        stream << "  \"execution_order\": [";
+        for (std::size_t index = 0; index < execution_order_.size(); ++index)
+        {
+            if (index > 0)
+            {
+                stream << ", ";
+            }
+            stream << quoted(std::string(pass_name(execution_order_[index])));
+        }
+        stream << "]\n";
+
+        stream << "}\n";
+        return stream.str();
     }
 }

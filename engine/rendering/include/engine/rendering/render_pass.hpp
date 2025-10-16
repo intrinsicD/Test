@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <ostream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -21,6 +22,65 @@ namespace engine::rendering
     class MaterialSystem;
     class CommandEncoder;
     class CommandEncoderProvider;
+
+    /// High-level lifecycle stage associated with a render pass.
+    enum class PassPhase
+    {
+        Unknown,
+        Setup,
+        Geometry,
+        Lighting,
+        PostProcess,
+        Compute,
+        Transfer,
+        Presentation,
+    };
+
+    inline std::ostream& operator<<(std::ostream& os, PassPhase phase)
+    {
+        switch (phase)
+        {
+        case PassPhase::Unknown:
+            return os << "Unknown";
+        case PassPhase::Setup:
+            return os << "Setup";
+        case PassPhase::Geometry:
+            return os << "Geometry";
+        case PassPhase::Lighting:
+            return os << "Lighting";
+        case PassPhase::PostProcess:
+            return os << "PostProcess";
+        case PassPhase::Compute:
+            return os << "Compute";
+        case PassPhase::Transfer:
+            return os << "Transfer";
+        case PassPhase::Presentation:
+            return os << "Presentation";
+        }
+        return os;
+    }
+
+    /// Severity attached to validation diagnostics emitted by a pass.
+    enum class ValidationSeverity
+    {
+        Info,
+        Warning,
+        Error,
+    };
+
+    inline std::ostream& operator<<(std::ostream& os, ValidationSeverity severity)
+    {
+        switch (severity)
+        {
+        case ValidationSeverity::Info:
+            return os << "Info";
+        case ValidationSeverity::Warning:
+            return os << "Warning";
+        case ValidationSeverity::Error:
+            return os << "Error";
+        }
+        return os;
+    }
 
     /**
      * \brief Interface exposed by the platform layer to satisfy GPU resource requests.
@@ -73,12 +133,18 @@ namespace engine::rendering
     class RenderPass
     {
     public:
-        explicit RenderPass(std::string name, QueueType queue = QueueType::Graphics);
+        explicit RenderPass(std::string name, QueueType queue = QueueType::Graphics,
+                            PassPhase phase = PassPhase::Unknown,
+                            ValidationSeverity validation = ValidationSeverity::Info);
         virtual ~RenderPass() = default;
 
         [[nodiscard]] std::string_view name() const noexcept;
         void set_queue(QueueType queue) noexcept;
         [[nodiscard]] QueueType queue() const noexcept;
+        void set_phase(PassPhase phase) noexcept;
+        [[nodiscard]] PassPhase phase() const noexcept;
+        void set_validation_severity(ValidationSeverity severity) noexcept;
+        [[nodiscard]] ValidationSeverity validation_severity() const noexcept;
 
         /// Describe the resources that this pass will access.
         virtual void setup(FrameGraphPassBuilder& builder) = 0;
@@ -89,6 +155,8 @@ namespace engine::rendering
     private:
         std::string name_;
         QueueType queue_{QueueType::Graphics};
+        PassPhase phase_{PassPhase::Unknown};
+        ValidationSeverity validation_{ValidationSeverity::Info};
     };
 
     /**
@@ -101,7 +169,9 @@ namespace engine::rendering
         using ExecuteFunction = std::function<void(FrameGraphPassExecutionContext&)>;
 
         CallbackRenderPass(std::string name, SetupFunction setup, ExecuteFunction execute,
-                           QueueType queue = QueueType::Graphics);
+                           QueueType queue = QueueType::Graphics,
+                           PassPhase phase = PassPhase::Unknown,
+                           ValidationSeverity validation = ValidationSeverity::Info);
 
         void setup(FrameGraphPassBuilder& builder) override;
         void execute(FrameGraphPassExecutionContext& context) override;
@@ -111,8 +181,9 @@ namespace engine::rendering
         ExecuteFunction execute_;
     };
 
-    inline RenderPass::RenderPass(std::string name, QueueType queue)
-        : name_(std::move(name)), queue_(queue)
+    inline RenderPass::RenderPass(std::string name, QueueType queue, PassPhase phase,
+                                  ValidationSeverity validation)
+        : name_(std::move(name)), queue_(queue), phase_(phase), validation_(validation)
     {
     }
 
@@ -131,9 +202,32 @@ namespace engine::rendering
         return queue_;
     }
 
+    inline void RenderPass::set_phase(PassPhase phase) noexcept
+    {
+        phase_ = phase;
+    }
+
+    inline PassPhase RenderPass::phase() const noexcept
+    {
+        return phase_;
+    }
+
+    inline void RenderPass::set_validation_severity(ValidationSeverity severity) noexcept
+    {
+        validation_ = severity;
+    }
+
+    inline ValidationSeverity RenderPass::validation_severity() const noexcept
+    {
+        return validation_;
+    }
+
     inline CallbackRenderPass::CallbackRenderPass(std::string name, SetupFunction setup,
-                                                  ExecuteFunction execute, QueueType queue)
-        : RenderPass(std::move(name), queue), setup_(std::move(setup)), execute_(std::move(execute))
+                                                  ExecuteFunction execute, QueueType queue,
+                                                  PassPhase phase, ValidationSeverity validation)
+        : RenderPass(std::move(name), queue, phase, validation),
+          setup_(std::move(setup)),
+          execute_(std::move(execute))
     {
     }
 

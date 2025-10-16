@@ -21,13 +21,15 @@
   - `initial_state` / `final_state` (`ResourceState`) to document the expected layout before the first pass and after the last pass that touches the resource.
 - `FrameGraphResourceInfo` now exposes the same metadata to passes during execution and to `IGpuResourceProvider::on_transient_{acquire,release}`.
 - `RenderPass` exposes `set_queue` and an optional constructor parameter so passes can declare their queue affinity; schedulers receive the preferred queue alongside the pass reference when making routing decisions.
+- Associate every pass with a `PassPhase` (`Setup`, `Geometry`, `Lighting`, `PostProcess`, `Compute`, `Transfer`, `Presentation`) and a `ValidationSeverity` (`Info`, `Warning`, `Error`). The execution context mirrors these accessors so telemetry and diagnostics can group passes deterministically.
 - `engine::rendering::CallbackRenderPass` accepts the preferred queue as its fourth constructor argument for concise setup of compute or transfer passes.
+- Call `FrameGraph::serialize()` after compilation to materialise a canonical JSON representation of resources, passes, and execution order. The serializer escapes debug names, preserves declaration order, and ensures repeated invocations yield byte-for-byte identical output for diffing and caching.
 
 ## Migration Notes
 
 1. Replace calls to `FrameGraph::create_resource("Name")` with `FrameGraph::create_resource(descriptor)` and populate all descriptor fields for transient resources.
 2. Update custom render passes to either forward the preferred queue through the base-class constructor or call `set_queue` inside their constructor.
-3. Extend tests to assert the propagated metadata using `FrameGraph::resource_info` or the recording GPU resource provider to catch regressions when adding new passes.
+3. Extend tests to assert the propagated metadata using `FrameGraph::resource_info`, `FrameGraphPassExecutionContext::pass_phase`, and the deterministic serializer to catch regressions when adding new passes.
 
 ## Roadmap
 - See [ROADMAP.md](ROADMAP.md) for upcoming work.
