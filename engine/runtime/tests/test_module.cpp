@@ -1,17 +1,27 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
+#include <iostream>
 #include <memory>
 #include <span>
-#include <utility>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "engine/runtime/api.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
+#include "engine/rendering/render_pass.hpp"
+#include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
+#include "engine/rendering/components.hpp"
+#include "engine/rendering/command_encoder.hpp"
+#include "engine/rendering/frame_graph.hpp"
+#include "engine/rendering/material_system.hpp"
+#include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 
 namespace {
 
@@ -94,6 +104,132 @@ std::shared_ptr<engine::core::plugin::ISubsystemInterface> make_test_subsystem(
 {
     return std::make_shared<TestSubsystem>(std::move(name), std::move(dependencies));
 }
+
+class RecordingRenderResourceProvider final : public engine::rendering::RenderResourceProvider
+{
+public:
+    void require_mesh(const engine::assets::MeshHandle& handle) override
+    {
+        meshes.push_back(handle);
+    }
+
+    void require_graph(const engine::assets::GraphHandle& handle) override
+    {
+        graphs.push_back(handle);
+    }
+
+    void require_point_cloud(const engine::assets::PointCloudHandle& handle) override
+    {
+        point_clouds.push_back(handle);
+    }
+
+    void require_material(const engine::assets::MaterialHandle& handle) override
+    {
+        materials.push_back(handle);
+    }
+
+    void require_shader(const engine::assets::ShaderHandle& handle) override
+    {
+        shaders.push_back(handle);
+    }
+
+    std::vector<engine::assets::MeshHandle> meshes;
+    std::vector<engine::assets::GraphHandle> graphs;
+    std::vector<engine::assets::PointCloudHandle> point_clouds;
+    std::vector<engine::assets::MaterialHandle> materials;
+    std::vector<engine::assets::ShaderHandle> shaders;
+};
+
+class RecordingCommandEncoder final : public engine::rendering::CommandEncoder
+{
+public:
+    void draw_geometry(const engine::rendering::GeometryDrawCommand& command) override
+    {
+        draws.push_back(command);
+    }
+
+    std::vector<engine::rendering::GeometryDrawCommand> draws;
+};
+
+class RecordingCommandEncoderProvider final : public engine::rendering::CommandEncoderProvider
+{
+public:
+    struct DescriptorRecord
+    {
+        std::string pass_name;
+        engine::rendering::QueueType queue{engine::rendering::QueueType::Graphics};
+        engine::rendering::CommandBufferHandle command_buffer{};
+    };
+
+    std::unique_ptr<engine::rendering::CommandEncoder> begin_encoder(
+        const engine::rendering::CommandEncoderDescriptor& descriptor) override
+    {
+        begin_records.push_back(DescriptorRecord{std::string{descriptor.pass_name}, descriptor.queue,
+                                                 descriptor.command_buffer});
+        return std::make_unique<RecordingCommandEncoder>();
+    }
+
+    void end_encoder(const engine::rendering::CommandEncoderDescriptor& descriptor,
+                     std::unique_ptr<engine::rendering::CommandEncoder> encoder) override
+    {
+        end_records.push_back(DescriptorRecord{std::string{descriptor.pass_name}, descriptor.queue,
+                                               descriptor.command_buffer});
+        auto* recording = dynamic_cast<RecordingCommandEncoder*>(encoder.release());
+        if (recording != nullptr)
+        {
+            completed_encoders.emplace_back(recording);
+        }
+    }
+
+    std::vector<DescriptorRecord> begin_records;
+    std::vector<DescriptorRecord> end_records;
+    std::vector<std::unique_ptr<RecordingCommandEncoder>> completed_encoders;
+};
+
+class LocalRecordingScheduler final : public engine::rendering::IGpuScheduler
+{
+public:
+    engine::rendering::QueueType select_queue(const engine::rendering::RenderPass&) override
+    {
+        return engine::rendering::QueueType::Graphics;
+    }
+
+    engine::rendering::CommandBufferHandle request_command_buffer(engine::rendering::QueueType,
+                                                                  std::string_view) override
+    {
+        return engine::rendering::CommandBufferHandle{++next_command_buffer_};
+    }
+
+    void submit(const engine::rendering::GpuSubmitInfo& info) override
+    {
+        submissions.push_back(info);
+        if (info.fence != nullptr)
+        {
+            info.fence->signal(info.fence_value);
+        }
+        for (const auto& wait : info.waits)
+        {
+            if (wait.semaphore != nullptr)
+            {
+                wait.semaphore->wait(wait.value);
+            }
+        }
+        for (const auto& signal : info.signals)
+        {
+            if (signal.semaphore != nullptr)
+            {
+                signal.semaphore->signal(signal.value);
+            }
+        }
+    }
+
+    void recycle(engine::rendering::CommandBufferHandle) override {}
+
+    std::vector<engine::rendering::GpuSubmitInfo> submissions;
+
+private:
+    std::size_t next_command_buffer_{0};
+};
 
 }  // namespace
 
@@ -201,6 +337,105 @@ TEST(RuntimeHost, AcceptsInjectedDependencies) {
     ASSERT_FALSE(host.joint_names().empty());
     EXPECT_EQ(host.joint_names().front(), "custom_joint");
     EXPECT_NEAR(host.current_mesh().bounds.min[1], mesh.bounds.min[1], 1e-5F);
+    host.shutdown();
+}
+
+TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(
+        engine::assets::MeshHandle{std::string{"runtime.mesh"}},
+        engine::assets::MaterialHandle{std::string{"runtime.material"}});
+    deps.renderable_name = "runtime.renderable";
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+    const auto frame = host.tick(0.016);
+    ASSERT_FALSE(frame.scene_nodes.empty());  // NOLINT
+
+    engine::rendering::MaterialSystem materials;
+    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
+        engine::assets::MaterialHandle{std::string{"runtime.material"}},
+        engine::assets::ShaderHandle{std::string{"runtime.shader"}},
+    });
+
+    RecordingRenderResourceProvider render_resources;
+    engine::rendering::resources::RecordingGpuResourceProvider device_provider(
+        engine::rendering::resources::GraphicsApi::Vulkan);
+    engine::rendering::backend::vulkan::VulkanGpuScheduler scheduler(device_provider);
+    RecordingCommandEncoderProvider command_encoders;
+    engine::rendering::FrameGraph graph;
+
+    engine::runtime::RuntimeHost::RenderSubmissionContext context{
+        render_resources,
+        materials,
+        device_provider,
+        scheduler,
+        command_encoders,
+        graph,
+        nullptr,
+    };
+
+    host.submit_render_graph(context);
+
+    ASSERT_EQ(scheduler.submissions().size(), 1U);  // NOLINT
+    const auto& submission = scheduler.submissions().front();
+    EXPECT_EQ(submission.pass_name, "ForwardGeometry");
+    EXPECT_EQ(submission.command_buffer.queue.api, engine::rendering::resources::GraphicsApi::Vulkan);
+
+    ASSERT_EQ(command_encoders.completed_encoders.size(), 1U);  // NOLINT
+    const auto& encoder = *command_encoders.completed_encoders.front();
+    ASSERT_EQ(encoder.draws.size(), 1U);  // NOLINT
+    const auto& draw = encoder.draws.front();
+    ASSERT_TRUE(std::holds_alternative<engine::assets::MeshHandle>(draw.geometry));  // NOLINT
+    EXPECT_EQ(std::get<engine::assets::MeshHandle>(draw.geometry).id(), std::string{"runtime.mesh"});
+    EXPECT_EQ(draw.material.id(), std::string{"runtime.material"});
+
+    const auto renderable_node_it = std::find_if(
+        frame.scene_nodes.begin(), frame.scene_nodes.end(),
+        [](const auto& node) { return node.name == "runtime.renderable"; });
+    const bool has_renderable_node = renderable_node_it != frame.scene_nodes.end();
+    EXPECT_TRUE(has_renderable_node);
+    const auto* renderable_node_ptr = has_renderable_node ? &*renderable_node_it : nullptr;
+    ASSERT_NE(renderable_node_ptr, nullptr);
+    const auto& renderable_node = *renderable_node_ptr;
+    EXPECT_EQ(renderable_node.transform.translation, draw.transform.translation);
+
+    ASSERT_EQ(render_resources.meshes.size(), 1U);  // NOLINT
+    EXPECT_EQ(render_resources.meshes.front().id(), std::string{"runtime.mesh"});
+    ASSERT_EQ(render_resources.materials.size(), 1U);  // NOLINT
+    EXPECT_EQ(render_resources.materials.front().id(), std::string{"runtime.material"});
+    EXPECT_EQ(device_provider.frames_begun(), 1U);
+    EXPECT_EQ(device_provider.frames_completed(), 1U);
+
+    RecordingRenderResourceProvider measurement_resources;
+    engine::rendering::resources::RecordingGpuResourceProvider measurement_device(
+        engine::rendering::resources::GraphicsApi::Vulkan);
+    LocalRecordingScheduler measurement_scheduler;
+    RecordingCommandEncoderProvider measurement_encoders;
+    engine::rendering::FrameGraph measurement_graph;
+    engine::runtime::RuntimeHost::RenderSubmissionContext measurement_context{
+        measurement_resources,
+        materials,
+        measurement_device,
+        measurement_scheduler,
+        measurement_encoders,
+        measurement_graph,
+        nullptr,
+    };
+
+    constexpr int iterations = 50;
+    const auto start = std::chrono::steady_clock::now();
+    for (int i = 0; i < iterations; ++i)
+    {
+        host.submit_render_graph(measurement_context);
+    }
+    const auto end = std::chrono::steady_clock::now();
+    const double average_ms = std::chrono::duration<double, std::milli>(end - start).count() / iterations;
+    std::cout << "[runtime.render] average_submit_ms=" << average_ms << '\n';
+    EXPECT_LT(average_ms, 1.0);
+    EXPECT_EQ(measurement_device.frames_begun(), static_cast<std::size_t>(iterations));
+    EXPECT_EQ(measurement_device.frames_completed(), static_cast<std::size_t>(iterations));
+
     host.shutdown();
 }
 
