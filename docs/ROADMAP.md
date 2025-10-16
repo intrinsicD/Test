@@ -117,11 +117,11 @@ modules. Items are grouped by their intent:
 - **Module:** Rendering
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Extend `FrameGraphResourceInfo` with `ResourceFormat`, `ResourceDimension`, `UsageFlags`, `InitialState`, and `FinalState` descriptors.
-  - [ ] Update `RenderPass` definitions to include queue affinity.
-  - [ ] Add metadata validation within frame graph compilation.
-  - [ ] Provide a migration guide for existing pass definitions.
-  - [ ] Update unit tests in `engine/rendering/tests/test_frame_graph.cpp` to cover new metadata.
+  - [x] Extend `FrameGraphResourceInfo` with `ResourceFormat`, `ResourceDimension`, `UsageFlags`, `InitialState`, and `FinalState` descriptors.
+  - [x] Update `RenderPass` definitions to include queue affinity.
+  - [x] Add metadata validation within frame graph compilation.
+  - [x] Provide a migration guide for existing pass definitions.
+  - [x] Update unit tests in `engine/rendering/tests/test_frame_graph.cpp` to cover new metadata.
 - **Artifacts:** `engine/rendering/frame_graph/frame_graph.hpp`, `engine/rendering/frame_graph/render_pass.hpp`, `engine/rendering/tests/test_frame_graph.cpp`, migration guide documentation.
 - **Tests:** Frame graph unit tests validating metadata propagation; integration smoke tests.
 - **Docs:** Rendering README updates describing metadata and queue affinity.

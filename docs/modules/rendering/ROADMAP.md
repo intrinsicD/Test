@@ -16,8 +16,8 @@ The rendering module currently provides a CPU-side frame graph and a forward pip
 
 ### 1. Short-Term (Unblock backend integration)
 
-1. **Resource Description Extensions** – Extend `FrameGraphResourceInfo` and creation APIs to describe formats, dimensions, and usage flags so providers can materialize buffers, textures, and samplers. Expand existing hazard-tracking tests to assert the new metadata propagates correctly.
-2. **Command Context Plumbing** – Ensure each `RenderPass` can describe queue affinity, command-buffer requirements, and synchronization hints; mirror this in `FrameGraphPassExecutionContext` and cover it with regression tests.
+1. **Resource Description Extensions** – Extend `FrameGraphResourceInfo` and creation APIs to describe formats, dimensions, and usage flags so providers can materialize buffers, textures, and samplers. Expand existing hazard-tracking tests to assert the new metadata propagates correctly. ✅ *Completed:* descriptors now include format/dimension/usage/state metadata and tests assert propagation through the recording provider.
+2. **Command Context Plumbing** – Ensure each `RenderPass` can describe queue affinity, command-buffer requirements, and synchronization hints; mirror this in `FrameGraphPassExecutionContext` and cover it with regression tests. ✅ *Completed:* render passes expose queue preferences that schedulers consume, and tests verify compute-queue routing.
 3. **GPU Scheduler Prototype** – Implement a reference scheduler that converts compiled passes into a linear submission stream calling into an abstract command encoder. Use it to validate the frame graph logic with stub encoders.
 
 ### 2. Mid-Term (Backend hookups)

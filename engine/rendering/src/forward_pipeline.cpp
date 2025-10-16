@@ -88,8 +88,23 @@ namespace engine::rendering
     {
         graph.reset();
 
-        const auto color = graph.create_resource("ForwardColor");
-        const auto depth = graph.create_resource("ForwardDepth");
+        FrameGraphResourceDescriptor color_desc{};
+        color_desc.name = "ForwardColor";
+        color_desc.format = ResourceFormat::Rgba16f;
+        color_desc.dimension = ResourceDimension::Texture2D;
+        color_desc.usage = ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead;
+        color_desc.initial_state = ResourceState::ColorAttachment;
+        color_desc.final_state = ResourceState::ShaderRead;
+        const auto color = graph.create_resource(std::move(color_desc));
+
+        FrameGraphResourceDescriptor depth_desc{};
+        depth_desc.name = "ForwardDepth";
+        depth_desc.format = ResourceFormat::Depth24Stencil8;
+        depth_desc.dimension = ResourceDimension::Texture2D;
+        depth_desc.usage = ResourceUsage::DepthStencilAttachment;
+        depth_desc.initial_state = ResourceState::DepthStencilAttachment;
+        depth_desc.final_state = ResourceState::DepthStencilAttachment;
+        const auto depth = graph.create_resource(std::move(depth_desc));
 
         graph.add_pass(std::make_unique<ForwardGeometryPass>(color, depth));
         graph.compile();

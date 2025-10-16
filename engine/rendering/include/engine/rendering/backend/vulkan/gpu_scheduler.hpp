@@ -44,8 +44,12 @@ namespace engine::rendering::backend::vulkan
         {
         }
 
-        QueueType select_queue(const RenderPass& pass) override
+        QueueType select_queue(const RenderPass& pass, QueueType preferred) override
         {
+            if (preferred != QueueType::Graphics)
+            {
+                return preferred;
+            }
             const auto name = pass.name();
             if (name.find("Transfer") != std::string_view::npos || name.find("Copy") != std::string_view::npos)
             {

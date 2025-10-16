@@ -43,9 +43,9 @@ namespace engine::rendering::backend::opengl
         {
         }
 
-        QueueType select_queue(const RenderPass&) override
+        QueueType select_queue(const RenderPass&, QueueType preferred) override
         {
-            return QueueType::Graphics;
+            return preferred;
         }
 
         [[nodiscard]] OpenGLSubmission build_submission(const GpuSubmitInfo& info,

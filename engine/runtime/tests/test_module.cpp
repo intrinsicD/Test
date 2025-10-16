@@ -189,9 +189,10 @@ public:
 class LocalRecordingScheduler final : public engine::rendering::IGpuScheduler
 {
 public:
-    engine::rendering::QueueType select_queue(const engine::rendering::RenderPass&) override
+    engine::rendering::QueueType select_queue(const engine::rendering::RenderPass&,
+                                              engine::rendering::QueueType preferred) override
     {
-        return engine::rendering::QueueType::Graphics;
+        return preferred;
     }
 
     engine::rendering::CommandBufferHandle request_command_buffer(engine::rendering::QueueType,

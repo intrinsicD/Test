@@ -11,7 +11,7 @@ Rendering backends require deterministic pass ordering, explicit resource transi
 ## Decision
 1. **Authoritative Frame-Graph Model:** `engine/rendering/frame_graph.hpp` defines nodes (passes) and resources. Passes declare read/write edges and queue preferences.
 2. **Scheduler Interface:** Runtime submits graphs through an interface that backends implement. The interface exposes hooks for resource acquisition, command encoding, and telemetry collection.
-3. **Metadata Expansion:** Pass descriptors include debug names, execution phases, and validation severity flags. These feed documentation, logging, and testing harnesses.
+3. **Metadata Expansion:** Resource descriptors capture `ResourceFormat`, `ResourceDimension`, `ResourceUsage`, and explicit initial/final `ResourceState` transitions. Pass descriptors include debug names, execution phases, validation severity flags, and queue affinity hints. These feed documentation, logging, scheduling, and testing harnesses.
 4. **Deterministic Serialisation:** Frame-graph instances serialize to a canonical form for caching, diffing, and reproducible builds.
 
 ## Consequences
