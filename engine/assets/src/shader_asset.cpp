@@ -21,7 +21,8 @@ namespace {
     return std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
 }
 
-[[nodiscard]] ShaderBinary compile_internal(std::string_view source, const ShaderCompilationOptions& options)
+[[nodiscard]] ShaderBinary compile_internal(std::string_view source,
+                                            const ShaderCompilationOptions& options)
 {
     (void)options;  // Placeholder for future optimization flags.
 
@@ -61,55 +62,115 @@ ShaderBinary ShaderCompiler::compile_glsl_to_spirv(std::string_view source,
 
 const ShaderAsset& ShaderCache::load(const ShaderAssetDescriptor& descriptor)
 {
-    auto [it, inserted] = assets_.try_emplace(descriptor.handle);
-    ShaderAsset& asset = it->second;
-    asset.descriptor = descriptor;
-
-    const auto current_write = detail::checked_last_write_time(descriptor.source, "shader");
-    const bool needs_reload = inserted || asset.last_write != current_write;
-    if (needs_reload) {
-        reload_asset(descriptor.handle, asset, !inserted);
+    const auto identifier = descriptor.handle.id();
+    if (identifier.empty()) {
+        throw std::invalid_argument("Shader handle identifier cannot be empty");
     }
 
-    return asset;
+    ShaderAsset* asset = nullptr;
+    RawHandle handle{};
+    bool inserted = false;
+
+    const auto lookup = bindings_.find(identifier);
+    if (lookup == bindings_.end()) {
+        auto [acquired_handle, slot] = assets_.acquire();
+        handle = acquired_handle;
+        asset = &slot;
+        bindings_.emplace(identifier, handle);
+        inserted = true;
+    } else {
+        handle = lookup->second;
+        asset = &assets_.get(handle);
+    }
+
+    asset->descriptor = descriptor;
+    descriptor.handle.bind(handle);
+
+    if (auto pending = pending_callbacks_.find(identifier); pending != pending_callbacks_.end()) {
+        auto& target = callbacks_[handle];
+        auto& pending_list = pending->second;
+        target.insert(target.end(),
+                      std::make_move_iterator(pending_list.begin()),
+                      std::make_move_iterator(pending_list.end()));
+        pending_callbacks_.erase(pending);
+    }
+
+    const auto current_write = detail::checked_last_write_time(descriptor.source, "shader");
+    const bool needs_reload = inserted || asset->last_write != current_write;
+    if (needs_reload) {
+        reload_asset(handle, *asset, !inserted);
+    }
+
+    return *asset;
 }
 
 bool ShaderCache::contains(const ShaderHandle& handle) const
 {
-    return assets_.find(handle) != assets_.end();
+    return handle.is_valid(assets_);
 }
 
 const ShaderAsset& ShaderCache::get(const ShaderHandle& handle) const
 {
-    const auto it = assets_.find(handle);
-    if (it == assets_.end()) {
+    if (!handle.is_valid(assets_)) {
         throw std::out_of_range("Shader asset handle not found");
     }
-    return it->second;
+    return assets_.get(handle.raw_handle());
 }
 
 void ShaderCache::unload(const ShaderHandle& handle)
 {
-    assets_.erase(handle);
-    callbacks_.erase(handle);
+    if (!handle.is_bound()) {
+        return;
+    }
+
+    const auto raw = handle.raw_handle();
+    if (!assets_.is_valid(raw)) {
+        handle.reset_binding();
+        return;
+    }
+
+    const auto identifier = assets_.get(raw).descriptor.handle.id();
+
+    if (auto cb_it = callbacks_.find(raw); cb_it != callbacks_.end()) {
+        if (!identifier.empty()) {
+            auto& pending = pending_callbacks_[identifier];
+            pending.insert(pending.end(),
+                           std::make_move_iterator(cb_it->second.begin()),
+                           std::make_move_iterator(cb_it->second.end()));
+        }
+        callbacks_.erase(cb_it);
+    }
+
+    assets_.release(raw);
+    bindings_.erase(identifier);
+    handle.reset_binding();
 }
 
 void ShaderCache::register_hot_reload_callback(const ShaderHandle& handle, HotReloadCallback callback)
 {
-    callbacks_[handle].push_back(std::move(callback));
+    if (handle.is_bound() && handle.is_valid(assets_)) {
+        callbacks_[handle.raw_handle()].push_back(std::move(callback));
+        return;
+    }
+
+    if (handle.id().empty()) {
+        throw std::invalid_argument("Shader handle identifier cannot be empty");
+    }
+
+    pending_callbacks_[handle.id()].push_back(std::move(callback));
 }
 
 void ShaderCache::poll()
 {
-    for (auto& [handle, asset] : assets_) {
+    assets_.for_each([&](const RawHandle& handle, ShaderAsset& asset) {
         const auto current_write = detail::checked_last_write_time(asset.descriptor.source, "shader");
         if (current_write != asset.last_write) {
             reload_asset(handle, asset, true);
         }
-    }
+    });
 }
 
-void ShaderCache::reload_asset(const ShaderHandle& handle, ShaderAsset& asset, bool notify)
+void ShaderCache::reload_asset(const RawHandle& handle, ShaderAsset& asset, bool notify)
 {
     asset.source = read_text(asset.descriptor.source);
     asset.binary = ShaderCompiler::compile_glsl_to_spirv(asset.source, asset.descriptor.options);

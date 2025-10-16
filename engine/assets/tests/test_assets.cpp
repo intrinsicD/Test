@@ -13,10 +13,13 @@
 #include <filesystem>
 #include <fstream>
 #include <span>
+#include <stdexcept>
 #include <thread>
 #include <string_view>
 #include <system_error>
 #include <vector>
+
+#include "engine/core/memory/resource_pool.hpp"
 
 namespace
 {
@@ -71,11 +74,32 @@ TEST(MeshCache, LoadsMeshData)
     const auto descriptor = engine::assets::MeshAssetDescriptor::from_file(path, engine::io::MeshFileFormat::obj);
     const auto& asset = cache.load(descriptor);
 
+    EXPECT_TRUE(descriptor.handle.is_bound());
     EXPECT_EQ(asset.mesh.interface.vertex_count(), 3U);
     EXPECT_EQ(asset.mesh.interface.face_count(), 1U);
 
     const auto& cached = cache.get(descriptor.handle);
     EXPECT_EQ(&asset, &cached);
+}
+
+TEST(AssetHandles, BindingPropagatesAcrossCopies)
+{
+    engine::assets::MeshHandle handle{std::string{"mesh/test"}};
+    engine::assets::MeshHandle copy = handle;
+
+    engine::core::memory::ResourcePool<int, engine::assets::MeshHandleTag> pool;
+    auto [raw_handle, value] = pool.acquire(42);
+    value = 42;
+
+    handle.bind(raw_handle);
+    EXPECT_TRUE(handle.is_bound());
+    EXPECT_TRUE(copy.is_bound());
+    EXPECT_TRUE(handle.is_valid(pool));
+    EXPECT_TRUE(copy.is_valid(pool));
+
+    pool.release(raw_handle);
+    EXPECT_FALSE(handle.is_valid(pool));
+    EXPECT_FALSE(copy.is_valid(pool));
 }
 
 TEST(MeshCache, HotReloadNotifies)
@@ -112,6 +136,26 @@ TEST(MeshCache, HotReloadNotifies)
 
     cache.poll();
     EXPECT_TRUE(reloaded);
+}
+
+TEST(MeshCache, UnloadInvalidatesHandle)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "triangle.obj";
+    write_text(path,
+               "v 0 0 0\n"
+               "v 1 0 0\n"
+               "v 0 1 0\n"
+               "f 1 2 3\n");
+
+    engine::assets::MeshCache cache;
+    const auto descriptor = engine::assets::MeshAssetDescriptor::from_file(path, engine::io::MeshFileFormat::obj);
+    [[maybe_unused]] const auto& asset = cache.load(descriptor);
+    EXPECT_TRUE(cache.contains(descriptor.handle));
+
+    cache.unload(descriptor.handle);
+    EXPECT_FALSE(cache.contains(descriptor.handle));
+    EXPECT_THROW(cache.get(descriptor.handle), std::out_of_range);
 }
 
 TEST(PointCloudCache, LoadsPointCloudData)

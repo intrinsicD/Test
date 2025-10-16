@@ -4,6 +4,8 @@
 #include "engine/assets/shader_asset.hpp"
 #include "engine/assets/texture_asset.hpp"
 
+#include "engine/core/memory/resource_pool.hpp"
+
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -44,7 +46,11 @@ public:
     void unload(const MaterialHandle& handle);
 
 private:
-    std::unordered_map<MaterialHandle, MaterialAsset> assets_{};
+    using Pool = core::memory::ResourcePool<MaterialAsset, MaterialHandleTag>;
+    using RawHandle = typename Pool::handle_type;
+
+    Pool assets_{};
+    std::unordered_map<std::string, RawHandle> bindings_{};
 };
 
 }  // namespace engine::assets

@@ -3,6 +3,7 @@
 #include "engine/assets/detail/filesystem_utils.hpp"
 
 #include <filesystem>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 
@@ -10,55 +11,118 @@ namespace engine::assets {
 
 const PointCloudAsset& PointCloudCache::load(const PointCloudAssetDescriptor& descriptor)
 {
-    auto [it, inserted] = assets_.try_emplace(descriptor.handle);
-    auto& asset = it->second;
-    asset.descriptor = descriptor;
-
-    const auto current_write = detail::checked_last_write_time(descriptor.source, "point cloud");
-    const bool needs_reload = inserted || asset.last_write != current_write;
-    if (needs_reload) {
-        reload_asset(descriptor.handle, asset, !inserted);
+    const auto identifier = descriptor.handle.id();
+    if (identifier.empty()) {
+        throw std::invalid_argument("Point cloud handle identifier cannot be empty");
     }
 
-    return asset;
+    PointCloudAsset* asset = nullptr;
+    RawHandle handle{};
+    bool inserted = false;
+
+    const auto lookup = bindings_.find(identifier);
+    if (lookup == bindings_.end()) {
+        auto [acquired_handle, slot] = assets_.acquire();
+        handle = acquired_handle;
+        asset = &slot;
+        bindings_.emplace(identifier, handle);
+        inserted = true;
+    } else {
+        handle = lookup->second;
+        asset = &assets_.get(handle);
+    }
+
+    asset->descriptor = descriptor;
+    descriptor.handle.bind(handle);
+
+    if (auto pending = pending_callbacks_.find(identifier); pending != pending_callbacks_.end()) {
+        auto& target = callbacks_[handle];
+        auto& pending_list = pending->second;
+        target.insert(target.end(),
+                      std::make_move_iterator(pending_list.begin()),
+                      std::make_move_iterator(pending_list.end()));
+        pending_callbacks_.erase(pending);
+    }
+
+    const auto current_write =
+        detail::checked_last_write_time(descriptor.source, "point cloud");
+    const bool needs_reload = inserted || asset->last_write != current_write;
+    if (needs_reload) {
+        reload_asset(handle, *asset, !inserted);
+    }
+
+    return *asset;
 }
 
 bool PointCloudCache::contains(const PointCloudHandle& handle) const
 {
-    return assets_.find(handle) != assets_.end();
+    return handle.is_valid(assets_);
 }
 
 const PointCloudAsset& PointCloudCache::get(const PointCloudHandle& handle) const
 {
-    const auto it = assets_.find(handle);
-    if (it == assets_.end()) {
+    if (!handle.is_valid(assets_)) {
         throw std::out_of_range("Point cloud asset handle not found");
     }
-    return it->second;
+    return assets_.get(handle.raw_handle());
 }
 
 void PointCloudCache::unload(const PointCloudHandle& handle)
 {
-    assets_.erase(handle);
-    callbacks_.erase(handle);
+    if (!handle.is_bound()) {
+        return;
+    }
+
+    const auto raw = handle.raw_handle();
+    if (!assets_.is_valid(raw)) {
+        handle.reset_binding();
+        return;
+    }
+
+    const auto identifier = assets_.get(raw).descriptor.handle.id();
+
+    if (auto cb_it = callbacks_.find(raw); cb_it != callbacks_.end()) {
+        if (!identifier.empty()) {
+            auto& pending = pending_callbacks_[identifier];
+            pending.insert(pending.end(),
+                           std::make_move_iterator(cb_it->second.begin()),
+                           std::make_move_iterator(cb_it->second.end()));
+        }
+        callbacks_.erase(cb_it);
+    }
+
+    assets_.release(raw);
+    bindings_.erase(identifier);
+    handle.reset_binding();
 }
 
-void PointCloudCache::register_hot_reload_callback(const PointCloudHandle& handle, HotReloadCallback callback)
+void PointCloudCache::register_hot_reload_callback(const PointCloudHandle& handle,
+                                                   HotReloadCallback callback)
 {
-    callbacks_[handle].push_back(std::move(callback));
+    if (handle.is_bound() && handle.is_valid(assets_)) {
+        callbacks_[handle.raw_handle()].push_back(std::move(callback));
+        return;
+    }
+
+    if (handle.id().empty()) {
+        throw std::invalid_argument("Point cloud handle identifier cannot be empty");
+    }
+
+    pending_callbacks_[handle.id()].push_back(std::move(callback));
 }
 
 void PointCloudCache::poll()
 {
-    for (auto& [handle, asset] : assets_) {
-        const auto current_write = detail::checked_last_write_time(asset.descriptor.source, "point cloud");
+    assets_.for_each([&](const RawHandle& handle, PointCloudAsset& asset) {
+        const auto current_write =
+            detail::checked_last_write_time(asset.descriptor.source, "point cloud");
         if (current_write != asset.last_write) {
             reload_asset(handle, asset, true);
         }
-    }
+    });
 }
 
-void PointCloudCache::reload_asset(const PointCloudHandle& handle, PointCloudAsset& asset, bool notify)
+void PointCloudCache::reload_asset(const RawHandle& handle, PointCloudAsset& asset, bool notify)
 {
     const auto detection_result = io::detect_geometry_file(asset.descriptor.source);
     if (!detection_result) {
@@ -80,8 +144,11 @@ void PointCloudCache::reload_asset(const PointCloudHandle& handle, PointCloudAss
     }
 
     asset.point_cloud.interface.clear();
-    if (auto result = io::read_point_cloud(asset.descriptor.source, asset.point_cloud.interface, format); !result) {
-        throw std::runtime_error("Failed to read point cloud: " + std::string(result.error().message()));
+    if (auto result =
+            io::read_point_cloud(asset.descriptor.source, asset.point_cloud.interface, format);
+        !result) {
+        throw std::runtime_error("Failed to read point cloud: " +
+                                 std::string(result.error().message()));
     }
     asset.detection = detection;
     asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "point cloud");

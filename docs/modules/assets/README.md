@@ -1,11 +1,12 @@
 # Assets Module
 
 ## Current State
-- Exposes strongly typed `AssetHandle` wrappers for meshes, graphs, point clouds, textures, shaders, and materials to avoid accidental identifier mixing and provide filesystem-aware constructors.
+- Exposes generational `ResourceHandle<Tag>` wrappers for meshes, graphs, point clouds, textures, shaders, and materials. Handles retain their identifier but bind lazily to a `ResourcePool`, preventing stale references after unloads.
+- Backs every cache with `engine::core::memory::ResourcePool`, a free-list allocator that increments generation counters when slots are recycled. The caches maintain identifier ↔ handle maps and stage hot-reload callbacks until the first load occurs.
 - Provides caches for meshes, point clouds, graphs, textures, and shaders that track descriptors, last-write timestamps, and hot-reload callbacks while delegating format-aware loading to `engine::io` utilities.
 - Defines asset descriptors that capture provenance, format hints, and binding metadata shared between caches and runtime consumers.
 - Stores material assets as descriptor bindings (shader + texture handles); material authoring, serialization, and hot-reload remain TODO.
-- Unit tests under `engine/assets/tests/` validate module registration, cache reload behaviour, and descriptor plumbing.
+- Unit tests under `engine/assets/tests/` validate module registration, cache reload behaviour, descriptor plumbing, generational handle semantics, and unload invalidation.
 
 ## Usage
 - Build the target with `cmake --build --preset <preset> --target engine_assets`; this links against `engine_io` and transitively pulls in geometry readers.

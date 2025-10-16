@@ -1,67 +1,124 @@
 #pragma once
 
+#include "engine/core/memory/resource_pool.hpp"
+
 #include <filesystem>
-#include <functional>
+#include <memory>
 #include <string>
+#include <utility>
 
 namespace engine::assets {
 
-/// Strongly typed identifier used to reference assets stored in caches.
+/// Shared state for asset handles. Multiple handle instances can reference the
+/// same underlying identifier while caches bind them to generational handles as
+/// resources are loaded.
 template <typename Tag>
-class AssetHandle {
+class ResourceHandle {
 public:
-    using tag_type = Tag;
+    using pool_handle_type = core::memory::GenerationalHandle<Tag>;
 
-    AssetHandle() = default;
+    ResourceHandle() = default;
 
-    explicit AssetHandle(std::string identifier) : identifier_(std::move(identifier)) {}
+    explicit ResourceHandle(std::string identifier)
+        : state_(std::make_shared<State>(State{std::move(identifier), {}}))
+    {
+    }
 
-    explicit AssetHandle(const std::filesystem::path& path)
-        : identifier_(path.generic_string()) {}
+    explicit ResourceHandle(const std::filesystem::path& path)
+        : ResourceHandle(path.generic_string())
+    {
+    }
 
-    [[nodiscard]] const std::string& id() const noexcept { return identifier_; }
+    [[nodiscard]] bool empty() const noexcept { return id().empty(); }
 
-    [[nodiscard]] bool empty() const noexcept { return identifier_.empty(); }
+    [[nodiscard]] const std::string& id() const noexcept
+    {
+        static const std::string empty_identifier{};
+        return state_ ? state_->identifier : empty_identifier;
+    }
+
+    [[nodiscard]] pool_handle_type raw_handle() const noexcept
+    {
+        return state_ ? state_->handle : pool_handle_type{};
+    }
+
+    [[nodiscard]] bool is_bound() const noexcept
+    {
+        return state_ && state_->handle.is_valid();
+    }
+
+    template <typename Resource>
+    [[nodiscard]] bool is_valid(const core::memory::ResourcePool<Resource, Tag>& pool) const noexcept
+    {
+        return state_ && pool.is_valid(state_->handle);
+    }
 
     explicit operator bool() const noexcept { return !empty(); }
 
-    friend bool operator==(const AssetHandle& lhs, const AssetHandle& rhs) noexcept {
-        return lhs.identifier_ == rhs.identifier_;
+    /// Bind the handle to a generational slot. The method is const so caches can
+    /// update handles that appear within const descriptors.
+    void bind(pool_handle_type handle) const
+    {
+        ensure_state();
+        state_->handle = handle;
     }
 
-    friend bool operator!=(const AssetHandle& lhs, const AssetHandle& rhs) noexcept {
+    /// Reset the bound generational handle while preserving the identifier.
+    void reset_binding() const
+    {
+        if (state_) {
+            state_->handle = {};
+        }
+    }
+
+    friend bool operator==(const ResourceHandle& lhs, const ResourceHandle& rhs) noexcept
+    {
+        return lhs.id() == rhs.id();
+    }
+
+    friend bool operator!=(const ResourceHandle& lhs, const ResourceHandle& rhs) noexcept
+    {
         return !(lhs == rhs);
     }
 
-    friend bool operator<(const AssetHandle& lhs, const AssetHandle& rhs) noexcept {
-        return lhs.identifier_ < rhs.identifier_;
+private:
+    struct State {
+        std::string identifier{};
+        pool_handle_type handle{};
+    };
+
+    void ensure_state() const
+    {
+        if (!state_) {
+            state_ = std::make_shared<State>();
+        }
     }
 
-private:
-    std::string identifier_{};
+    mutable std::shared_ptr<State> state_{};
 };
 
-struct MeshTag;
-struct GraphTag;
-struct PointCloudTag;
-struct TextureTag;
-struct ShaderTag;
-struct MaterialTag;
+struct MeshHandleTag;
+struct GraphHandleTag;
+struct PointCloudHandleTag;
+struct TextureHandleTag;
+struct ShaderHandleTag;
+struct MaterialHandleTag;
 
-using MeshHandle = AssetHandle<MeshTag>;
-using GraphHandle = AssetHandle<GraphTag>;
-using PointCloudHandle = AssetHandle<PointCloudTag>;
-using TextureHandle = AssetHandle<TextureTag>;
-using ShaderHandle = AssetHandle<ShaderTag>;
-using MaterialHandle = AssetHandle<MaterialTag>;
+using MeshHandle = ResourceHandle<MeshHandleTag>;
+using GraphHandle = ResourceHandle<GraphHandleTag>;
+using PointCloudHandle = ResourceHandle<PointCloudHandleTag>;
+using TextureHandle = ResourceHandle<TextureHandleTag>;
+using ShaderHandle = ResourceHandle<ShaderHandleTag>;
+using MaterialHandle = ResourceHandle<MaterialHandleTag>;
 
 }  // namespace engine::assets
 
 namespace std {
 
 template <typename Tag>
-struct hash<engine::assets::AssetHandle<Tag>> {
-    std::size_t operator()(const engine::assets::AssetHandle<Tag>& handle) const noexcept {
+struct hash<engine::assets::ResourceHandle<Tag>> {
+    [[nodiscard]] std::size_t operator()(const engine::assets::ResourceHandle<Tag>& handle) const noexcept
+    {
         return std::hash<std::string>()(handle.id());
     }
 };

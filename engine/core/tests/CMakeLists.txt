@@ -1,6 +1,7 @@
 add_executable(engine_core_tests
     test_module.cpp
     ecs_registry_tests.cpp
+    resource_pool_tests.cpp
 )
 
 target_link_libraries(engine_core_tests

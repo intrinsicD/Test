@@ -2,10 +2,13 @@
 
 #include "engine/assets/handles.hpp"
 
+#include "engine/core/memory/resource_pool.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -48,10 +51,16 @@ public:
     void poll();
 
 private:
-    void reload_asset(const TextureHandle& handle, TextureAsset& asset, bool notify);
+    using Pool = core::memory::ResourcePool<TextureAsset, TextureHandleTag>;
+    using RawHandle = typename Pool::handle_type;
+    using HandleHasher = typename Pool::handle_hasher;
 
-    std::unordered_map<TextureHandle, TextureAsset> assets_{};
-    std::unordered_map<TextureHandle, std::vector<HotReloadCallback>> callbacks_{};
+    void reload_asset(const RawHandle& handle, TextureAsset& asset, bool notify);
+
+    Pool assets_{};
+    std::unordered_map<std::string, RawHandle> bindings_{};
+    std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
+    std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
 };
 
 }  // namespace engine::assets
