@@ -15,4 +15,5 @@
 - Execute `ctest --preset <preset> --tests-regex engine_assets` with testing enabled to validate cache behaviour after modifications.
 
 ## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+- See [ROADMAP.md](ROADMAP.md) for upcoming work and the asynchronous streaming
+  design captured in [`docs/design/async_streaming.md`](../../design/async_streaming.md).
