@@ -78,6 +78,8 @@ namespace engine::rendering
         [[nodiscard]] FrameGraphResourceInfo describe(FrameGraphResourceHandle handle) const;
         [[nodiscard]] CommandBufferHandle command_buffer_handle() const noexcept;
         [[nodiscard]] QueueType queue_type() const noexcept;
+        [[nodiscard]] PassPhase pass_phase() const noexcept;
+        [[nodiscard]] ValidationSeverity validation_severity() const noexcept;
         [[nodiscard]] CommandEncoder& command_encoder() const;
     };
 
@@ -130,6 +132,7 @@ namespace engine::rendering
         [[nodiscard]] std::span<const FrameGraphResourceHandle> pass_reads(std::size_t pass_index);
         [[nodiscard]] std::span<const FrameGraphResourceHandle> pass_writes(std::size_t pass_index);
         [[nodiscard]] std::string_view pass_name(std::size_t pass_index) const;
+        [[nodiscard]] std::string serialize() const;
 
     private:
         struct ResourceNode

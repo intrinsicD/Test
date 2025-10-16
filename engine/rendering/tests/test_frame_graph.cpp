@@ -65,7 +65,12 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(depth); },
         [&](engine::rendering::FrameGraphPassExecutionContext& context) {
             order.emplace_back(context.pass_name());
-        }));
+            EXPECT_EQ(context.pass_phase(), engine::rendering::PassPhase::Setup);
+            EXPECT_EQ(context.validation_severity(), engine::rendering::ValidationSeverity::Warning);
+        },
+        engine::rendering::QueueType::Graphics,
+        engine::rendering::PassPhase::Setup,
+        engine::rendering::ValidationSeverity::Warning));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "GBuffer",
@@ -75,14 +80,24 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
         },
         [&](engine::rendering::FrameGraphPassExecutionContext& context) {
             order.emplace_back(context.pass_name());
-        }));
+            EXPECT_EQ(context.pass_phase(), engine::rendering::PassPhase::Geometry);
+            EXPECT_EQ(context.validation_severity(), engine::rendering::ValidationSeverity::Error);
+        },
+        engine::rendering::QueueType::Compute,
+        engine::rendering::PassPhase::Geometry,
+        engine::rendering::ValidationSeverity::Error));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "Lighting",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
         [&](engine::rendering::FrameGraphPassExecutionContext& context) {
             order.emplace_back(context.pass_name());
-        }));
+            EXPECT_EQ(context.pass_phase(), engine::rendering::PassPhase::Lighting);
+            EXPECT_EQ(context.validation_severity(), engine::rendering::ValidationSeverity::Info);
+        },
+        engine::rendering::QueueType::Graphics,
+        engine::rendering::PassPhase::Lighting,
+        engine::rendering::ValidationSeverity::Info));
 
     graph.compile();
 
@@ -387,6 +402,99 @@ TEST(FrameGraph, DetectsCyclesDuringCompile)
         [](engine::rendering::FrameGraphPassExecutionContext&) {}));
 
     EXPECT_THROW(graph.compile(), std::logic_error);
+}
+
+TEST(FrameGraph, SerializesDeterministically)
+{
+    engine::rendering::FrameGraph graph;
+    const auto depth = graph.create_resource(make_depth_resource("Depth"));
+    const auto color = graph.create_resource(make_color_resource("Color"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "DepthPrepass",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(depth); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Graphics,
+        engine::rendering::PassPhase::Setup,
+        engine::rendering::ValidationSeverity::Warning));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "GBuffer",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+            builder.read(depth);
+            builder.write(color);
+        },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Compute,
+        engine::rendering::PassPhase::Geometry,
+        engine::rendering::ValidationSeverity::Error));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "Lighting",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Graphics,
+        engine::rendering::PassPhase::Lighting,
+        engine::rendering::ValidationSeverity::Info));
+
+    graph.compile();
+
+    const auto first = graph.serialize();
+    const auto second = graph.serialize();
+    EXPECT_EQ(first, second);
+
+    const std::string expected = R"({
+  "resources": [
+    {
+      "name": "Depth",
+      "lifetime": "Transient",
+      "format": "Depth24Stencil8",
+      "dimension": "Texture2D",
+      "usage": "DepthStencil",
+      "initial_state": "DepthStencilAttachment",
+      "final_state": "DepthStencilAttachment"
+    },
+    {
+      "name": "Color",
+      "lifetime": "Transient",
+      "format": "Rgba8Unorm",
+      "dimension": "Texture2D",
+      "usage": "ColorAttachment|ShaderRead",
+      "initial_state": "ColorAttachment",
+      "final_state": "ShaderRead"
+    }
+  ],
+  "passes": [
+    {
+      "name": "DepthPrepass",
+      "queue": "Graphics",
+      "phase": "Setup",
+      "validation": "Warning",
+      "reads": [],
+      "writes": ["Depth"]
+    },
+    {
+      "name": "GBuffer",
+      "queue": "Compute",
+      "phase": "Geometry",
+      "validation": "Error",
+      "reads": ["Depth"],
+      "writes": ["Color"]
+    },
+    {
+      "name": "Lighting",
+      "queue": "Graphics",
+      "phase": "Lighting",
+      "validation": "Info",
+      "reads": ["Color"],
+      "writes": []
+    }
+  ],
+  "execution_order": ["DepthPrepass", "GBuffer", "Lighting"]
+}
+)";
+
+    EXPECT_EQ(first, expected);
 }
 
 TEST(FrameGraph, ResourceInfoRejectsInvalidHandle)
