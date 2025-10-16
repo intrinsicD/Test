@@ -2,6 +2,8 @@
 
 #include "engine/assets/handles.hpp"
 
+#include "engine/core/memory/resource_pool.hpp"
+
 #include <cstdint>
 #include <filesystem>
 #include <functional>
@@ -67,10 +69,16 @@ public:
     void poll();
 
 private:
-    void reload_asset(const ShaderHandle& handle, ShaderAsset& asset, bool notify);
+    using Pool = core::memory::ResourcePool<ShaderAsset, ShaderHandleTag>;
+    using RawHandle = typename Pool::handle_type;
+    using HandleHasher = typename Pool::handle_hasher;
 
-    std::unordered_map<ShaderHandle, ShaderAsset> assets_{};
-    std::unordered_map<ShaderHandle, std::vector<HotReloadCallback>> callbacks_{};
+    void reload_asset(const RawHandle& handle, ShaderAsset& asset, bool notify);
+
+    Pool assets_{};
+    std::unordered_map<std::string, RawHandle> bindings_{};
+    std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
+    std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
 };
 
 }  // namespace engine::assets

@@ -6,6 +6,7 @@
 - Defines backend interfaces and scheduler stubs so platform-specific renderers can plug in while sharing common orchestration.
 - Extensive tests in `engine/rendering/tests/` cover frame graph construction, backend adapters, and forward pipeline behaviour.
 - Frame graph resources carry explicit format, dimension, usage, and state metadata, and render passes publish queue affinity hints that schedulers consume when selecting submission queues.
+- Material and resource descriptors now consume the generational asset handles introduced in the assets module, ensuring rendering references remain valid across cache reloads.
 
 ## Usage
 - Build via `cmake --build --preset <preset> --target engine_rendering`; this pulls in core, assets, platform, and scene dependencies.

@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <stdexcept>
 
 namespace engine::assets {
@@ -30,55 +31,115 @@ void read_binary(const std::filesystem::path& path, std::vector<std::byte>& outp
 
 const TextureAsset& TextureCache::load(const TextureAssetDescriptor& descriptor)
 {
-    auto [it, inserted] = assets_.try_emplace(descriptor.handle);
-    TextureAsset& asset = it->second;
-    asset.descriptor = descriptor;
-
-    const auto current_write = detail::checked_last_write_time(descriptor.source, "texture");
-    const bool needs_reload = inserted || asset.last_write != current_write;
-    if (needs_reload) {
-        reload_asset(descriptor.handle, asset, !inserted);
+    const auto identifier = descriptor.handle.id();
+    if (identifier.empty()) {
+        throw std::invalid_argument("Texture handle identifier cannot be empty");
     }
 
-    return asset;
+    TextureAsset* asset = nullptr;
+    RawHandle handle{};
+    bool inserted = false;
+
+    const auto lookup = bindings_.find(identifier);
+    if (lookup == bindings_.end()) {
+        auto [acquired_handle, slot] = assets_.acquire();
+        handle = acquired_handle;
+        asset = &slot;
+        bindings_.emplace(identifier, handle);
+        inserted = true;
+    } else {
+        handle = lookup->second;
+        asset = &assets_.get(handle);
+    }
+
+    asset->descriptor = descriptor;
+    descriptor.handle.bind(handle);
+
+    if (auto pending = pending_callbacks_.find(identifier); pending != pending_callbacks_.end()) {
+        auto& target = callbacks_[handle];
+        auto& pending_list = pending->second;
+        target.insert(target.end(),
+                      std::make_move_iterator(pending_list.begin()),
+                      std::make_move_iterator(pending_list.end()));
+        pending_callbacks_.erase(pending);
+    }
+
+    const auto current_write = detail::checked_last_write_time(descriptor.source, "texture");
+    const bool needs_reload = inserted || asset->last_write != current_write;
+    if (needs_reload) {
+        reload_asset(handle, *asset, !inserted);
+    }
+
+    return *asset;
 }
 
 bool TextureCache::contains(const TextureHandle& handle) const
 {
-    return assets_.find(handle) != assets_.end();
+    return handle.is_valid(assets_);
 }
 
 const TextureAsset& TextureCache::get(const TextureHandle& handle) const
 {
-    const auto it = assets_.find(handle);
-    if (it == assets_.end()) {
+    if (!handle.is_valid(assets_)) {
         throw std::out_of_range("Texture asset handle not found");
     }
-    return it->second;
+    return assets_.get(handle.raw_handle());
 }
 
 void TextureCache::unload(const TextureHandle& handle)
 {
-    assets_.erase(handle);
-    callbacks_.erase(handle);
+    if (!handle.is_bound()) {
+        return;
+    }
+
+    const auto raw = handle.raw_handle();
+    if (!assets_.is_valid(raw)) {
+        handle.reset_binding();
+        return;
+    }
+
+    const auto identifier = assets_.get(raw).descriptor.handle.id();
+
+    if (auto cb_it = callbacks_.find(raw); cb_it != callbacks_.end()) {
+        if (!identifier.empty()) {
+            auto& pending = pending_callbacks_[identifier];
+            pending.insert(pending.end(),
+                           std::make_move_iterator(cb_it->second.begin()),
+                           std::make_move_iterator(cb_it->second.end()));
+        }
+        callbacks_.erase(cb_it);
+    }
+
+    assets_.release(raw);
+    bindings_.erase(identifier);
+    handle.reset_binding();
 }
 
 void TextureCache::register_hot_reload_callback(const TextureHandle& handle, HotReloadCallback callback)
 {
-    callbacks_[handle].push_back(std::move(callback));
+    if (handle.is_bound() && handle.is_valid(assets_)) {
+        callbacks_[handle.raw_handle()].push_back(std::move(callback));
+        return;
+    }
+
+    if (handle.id().empty()) {
+        throw std::invalid_argument("Texture handle identifier cannot be empty");
+    }
+
+    pending_callbacks_[handle.id()].push_back(std::move(callback));
 }
 
 void TextureCache::poll()
 {
-    for (auto& [handle, asset] : assets_) {
+    assets_.for_each([&](const RawHandle& handle, TextureAsset& asset) {
         const auto current_write = detail::checked_last_write_time(asset.descriptor.source, "texture");
         if (current_write != asset.last_write) {
             reload_asset(handle, asset, true);
         }
-    }
+    });
 }
 
-void TextureCache::reload_asset(const TextureHandle& handle, TextureAsset& asset, bool notify)
+void TextureCache::reload_asset(const RawHandle& handle, TextureAsset& asset, bool notify)
 {
     read_binary(asset.descriptor.source, asset.data);
     asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "texture");

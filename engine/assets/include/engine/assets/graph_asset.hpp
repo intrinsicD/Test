@@ -6,8 +6,11 @@
 
 #include "engine/geometry/graph/graph.hpp"
 
+#include "engine/core/memory/resource_pool.hpp"
+
 #include <filesystem>
 #include <functional>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -45,10 +48,16 @@ public:
     void poll();
 
 private:
-    void reload_asset(const GraphHandle& handle, GraphAsset& asset, bool notify);
+    using Pool = core::memory::ResourcePool<GraphAsset, GraphHandleTag>;
+    using RawHandle = typename Pool::handle_type;
+    using HandleHasher = typename Pool::handle_hasher;
 
-    std::unordered_map<GraphHandle, GraphAsset> assets_{};
-    std::unordered_map<GraphHandle, std::vector<HotReloadCallback>> callbacks_{};
+    void reload_asset(const RawHandle& handle, GraphAsset& asset, bool notify);
+
+    Pool assets_{};
+    std::unordered_map<std::string, RawHandle> bindings_{};
+    std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
+    std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
 };
 
 }  // namespace engine::assets

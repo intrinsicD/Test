@@ -86,12 +86,12 @@ modules. Items are grouped by their intent:
 - **Module:** Rendering, Assets
 - **Dependencies:** [DC-004]
 - **Tasks:**
-  - [ ] Design a resource handle system with generation counters.
-  - [ ] Implement `ResourcePool<T>` in `engine/core/memory/resource_pool.hpp`.
-  - [ ] Provide `ResourceHandle<T>` wrappers with validation logic in `engine/assets/handles.hpp`.
-  - [ ] Document ownership patterns in `docs/design/resource_management.md`.
-  - [ ] Refactor asset caches to use typed handles.
-  - [ ] Add lifetime validation hooks active in debug builds.
+  - [x] Design a resource handle system with generation counters.
+  - [x] Implement `ResourcePool<T>` in `engine/core/memory/resource_pool.hpp`.
+  - [x] Provide `ResourceHandle<T>` wrappers with validation logic in `engine/assets/handles.hpp`.
+  - [x] Document ownership patterns in `docs/design/resource_management.md`.
+  - [x] Refactor asset caches to use typed handles.
+  - [x] Add lifetime validation hooks active in debug builds.
 - **Artifacts:** `engine/core/memory/resource_pool.hpp`, `engine/assets/handles.hpp`, asset cache sources, resource management design notes.
 - **Tests:** Rendering and asset unit tests covering handle recycling; debug-only assertions verifying stale handle detection.
 - **Docs:** Asset and rendering module READMEs updated with the ownership model.
