@@ -19,6 +19,11 @@ Guarantee lossless round-tripping for meshes, point clouds, and graphs by aligni
 - Updated documentation in module READMEs and specs.
 
 ## Checklist
-- [ ] Added tests exercise fat objects and point-cloud edge cases.
-- [ ] Benchmarks recorded in this file.
-- [ ] Dependency notes updated in `docs/modules/io/README.md` and `docs/modules/geometry/README.md`.
+- [x] Added tests exercise fat objects and point-cloud edge cases.
+- [x] Benchmarks recorded in this file.
+- [x] Dependency notes updated in `docs/modules/io/README.md` and `docs/modules/geometry/README.md`.
+
+## Benchmark Results
+
+- `engine_geometry_tests --gtest_filter=SurfaceMeshIO.RoundTripFatPrismPreservesBounds` (Debug): `0.448 s` wall-clock via shell `time`; run exercises the new fat-prism round-trip alongside existing suite (pre-existing topology assertions still fail).【873a2d†L1-L86】
+- `engine_geometry_tests --gtest_filter=PointCloud.SkipsDeletedVerticesDuringRoundTrip` (Debug): `0.435 s` wall-clock via shell `time`; validates point-cloud deletion handling within the geometry suite (pre-existing halfedge regressions persist).【a87db3†L1-L86】

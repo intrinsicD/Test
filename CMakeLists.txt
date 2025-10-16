@@ -197,7 +197,13 @@ else()
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
     set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
+
+    option(ENGINE_GLFW_BUILD_X11 "Enable the GLFW X11 backend" ON)
+    if(ENGINE_GLFW_BUILD_X11)
+        set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
+    else()
+        set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE)
+    endif()
 
     FetchContent_Declare(glfw_external
         GIT_REPOSITORY https://github.com/glfw/glfw.git
