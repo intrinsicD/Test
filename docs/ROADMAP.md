@@ -102,7 +102,7 @@ modules. Items are grouped by their intent:
 - **Dependencies:** [AI-001, DC-001]
 - **Tasks:**
   - [x] Author the async loading API design in `docs/design/async_streaming.md`.
-  - [ ] Implement `AssetLoadRequest` and `AssetLoadFuture` primitives in the Assets module.
+  - [x] Implement `AssetLoadRequest` and `AssetLoadFuture` primitives in the Assets module.
   - [ ] Provide a background thread pool in Core dedicated to IO workloads.
   - [ ] Extend asset caches with a streaming state machine.
   - [ ] Introduce a priority queue scheduling load requests.

@@ -1,6 +1,6 @@
 # Async Asset Streaming Architecture (AI-002)
 
-**Status:** Draft – design baseline for implementation
+**Status:** In Progress – foundational request/future primitives implemented in `engine/assets/async.hpp`
 
 **Last Updated:** 2025-02-17
 

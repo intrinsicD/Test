@@ -13,6 +13,7 @@
 - Include `<engine/assets/handles.hpp>` plus the relevant cache headers (`mesh_asset.hpp`, `point_cloud_asset.hpp`, `graph_asset.hpp`, `texture_asset.hpp`, `shader_asset.hpp`) to request loads; configure `engine_io` importers for the formats you rely on.
 - Populate `MaterialCache` entries by constructing descriptors that bind preloaded shader/texture handles until material serialization lands.
 - Execute `ctest --preset <preset> --tests-regex engine_assets` with testing enabled to validate cache behaviour after modifications.
+- Use `<engine/assets/async.hpp>` to construct `AssetLoadRequest` descriptors and pair them with `AssetLoadFuture`/`AssetLoadPromise` channels when scheduling asynchronous work. Futures expose progress, cancellation, and structured error propagation while preserving the generational handle guarantees from `AI-001`.
 
 ## Roadmap
 - See [ROADMAP.md](ROADMAP.md) for upcoming work and the asynchronous streaming
