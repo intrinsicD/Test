@@ -11,5 +11,9 @@
 - Include `<engine/io/geometry_io.hpp>` for direct read/write helpers or `<engine/io/geometry_io_registry.hpp>` to inspect registered codecs.
 - Run `ctest --preset <preset> --tests-regex engine_io` to ensure format handlers remain stable.
 
+## Dependencies
+- Requires the geometry module for canonical mesh, point cloud, and graph interfaces plus validation helpers; the IO registry marshals those types through the codec adapters.
+- Relies on the C++17 `<filesystem>` library for staging temporary assets and integrates with `engine::platform::filesystem` utilities when generating transient working directories.
+
 ## Roadmap
 - See [ROADMAP.md](ROADMAP.md) for upcoming work.

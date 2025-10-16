@@ -99,6 +99,53 @@ TEST(PointCloud, RoundTripsAsciiPLY)
     std::filesystem::remove(file);
 }
 
+TEST(PointCloud, SkipsDeletedVerticesDuringRoundTrip)
+{
+    geo::PointCloud cloud;
+    auto intensity = cloud.interface.vertex_property<float>("p:intensity", 0.0F);
+
+    const auto v0 = cloud.interface.add_vertex({-10.0F, 0.0F, 0.0F});
+    const auto v1 = cloud.interface.add_vertex({0.0F, 5.0F, 0.0F});
+    const auto v2 = cloud.interface.add_vertex({10.0F, 0.0F, 2.5F});
+
+    intensity[v0] = 1.0F;
+    intensity[v1] = 5.0F;
+    intensity[v2] = 3.5F;
+
+    cloud.interface.delete_vertex(v1);
+    EXPECT_EQ(cloud.interface.vertex_count(), 2U);
+
+    const auto file = std::filesystem::temp_directory_path() /
+                      "engine_geometry_point_cloud_deleted_filtered.ply";
+
+    geo::PointCloudIOFlags flags;
+    flags.format = geo::PointCloudIOFlags::Format::kPLY;
+    geo::point_cloud::write(cloud.interface, file, flags);
+
+    geo::PointCloud loaded;
+    geo::point_cloud::read(loaded.interface, file);
+
+    EXPECT_EQ(loaded.interface.vertex_count(), 2U);
+
+    auto loaded_intensity = loaded.interface.get_vertex_property<float>("p:intensity");
+    ASSERT_TRUE(loaded_intensity);
+
+    const auto h0 = geo::VertexHandle(0U);
+    const auto h1 = geo::VertexHandle(1U);
+
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[0], cloud.interface.position(v0)[0]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[1], cloud.interface.position(v0)[1]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[2], cloud.interface.position(v0)[2]);
+    EXPECT_FLOAT_EQ(loaded_intensity[h0], intensity[v0]);
+
+    EXPECT_FLOAT_EQ(loaded.interface.position(h1)[0], cloud.interface.position(v2)[0]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h1)[1], cloud.interface.position(v2)[1]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h1)[2], cloud.interface.position(v2)[2]);
+    EXPECT_FLOAT_EQ(loaded_intensity[h1], intensity[v2]);
+
+    std::filesystem::remove(file);
+}
+
 TEST(PointCloud, RoundTripsBinaryPLY)
 {
     geo::PointCloud cloud;
