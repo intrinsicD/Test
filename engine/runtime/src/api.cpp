@@ -1,5 +1,6 @@
 #include "engine/runtime/api.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <span>
 #include <stdexcept>
@@ -42,9 +43,54 @@
 
 namespace
 {
+    [[nodiscard]] engine::geometry::SurfaceMesh make_runtime_skinning_mesh()
+    {
+        constexpr std::uint32_t subdivisions = 128;
+        const std::uint32_t vertices_per_axis = subdivisions + 1;
+        const float step = 1.0F / static_cast<float>(subdivisions);
+
+        engine::geometry::SurfaceMesh mesh{};
+        mesh.rest_positions.reserve(static_cast<std::size_t>(vertices_per_axis) * vertices_per_axis);
+        for (std::uint32_t y = 0; y < vertices_per_axis; ++y)
+        {
+            const float z = -0.5F + step * static_cast<float>(y);
+            for (std::uint32_t x = 0; x < vertices_per_axis; ++x)
+            {
+                const float px = -0.5F + step * static_cast<float>(x);
+                mesh.rest_positions.emplace_back(px, 0.0F, z);
+            }
+        }
+        mesh.positions = mesh.rest_positions;
+        mesh.normals.assign(mesh.rest_positions.size(), engine::math::vec3{0.0F, 1.0F, 0.0F});
+
+        mesh.indices.reserve(static_cast<std::size_t>(subdivisions) * subdivisions * 6U);
+        for (std::uint32_t y = 0; y < subdivisions; ++y)
+        {
+            for (std::uint32_t x = 0; x < subdivisions; ++x)
+            {
+                const std::uint32_t top_left = y * vertices_per_axis + x;
+                const std::uint32_t top_right = top_left + 1U;
+                const std::uint32_t bottom_left = top_left + vertices_per_axis;
+                const std::uint32_t bottom_right = bottom_left + 1U;
+
+                mesh.indices.push_back(top_left);
+                mesh.indices.push_back(top_right);
+                mesh.indices.push_back(bottom_right);
+
+                mesh.indices.push_back(top_left);
+                mesh.indices.push_back(bottom_right);
+                mesh.indices.push_back(bottom_left);
+            }
+        }
+
+        engine::geometry::update_bounds(mesh);
+        return mesh;
+    }
+
     engine::runtime::RuntimeHostDependencies make_default_dependencies()
     {
         engine::runtime::RuntimeHostDependencies deps{};
+        deps.mesh = make_runtime_skinning_mesh();
         auto registry = std::make_shared<engine::runtime::SubsystemRegistry>(
             engine::runtime::make_default_subsystem_registry());
         deps.subsystem_registry = registry;
