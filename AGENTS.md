@@ -77,11 +77,19 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
     CODING_STYLE.md
     README.md
     docs/
+        agents.md
+        architecture.md
+        conventions.md
+        glossary.md
         README.md
         README_TEMPLATE.md
         ROADMAP.md
         design/
             architecture_improvement_plan.md
+            async_streaming.md
+            error_handling_migration.md
+            plugin_architecture.md
+            resource_management.md
         modules/
             animation/
                 README.md
@@ -122,6 +130,21 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             tools/
                 README.md
                 ROADMAP.md
+        prompts/
+            architecture-audit.md
+            refactor-playbook.md
+            review-checklist.md
+        reviews/
+            2025-02-17-runtime-telemetry.md
+        specs/
+            ADR-0003-runtime-frame-graph.md
+            ADR-0005-geometry-io-roundtrip.md
+            README.md
+        tasks/
+            2025-02-17-sprint-06.md
+            README.md
+            T-0104-runtime-frame-graph-integration.md
+            T-0112-geometry-io-roundtrip-hardening.md
     engine/
         CMakeLists.txt
         animation/
@@ -132,6 +155,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         api.hpp
                         deformation/
                         rigging/
+                            rig_binding.hpp
                         skinning/
             src/
                 api.cpp
@@ -141,12 +165,14 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 test_blend_tree.cpp
                 test_clip_serialization.cpp
                 test_module.cpp
+                test_rig_binding.cpp
         assets/
             CMakeLists.txt
             include/
                 engine/
                     assets/
                         api.hpp
+                        async.hpp
                         graph_asset.hpp
                         handles.hpp
                         material_asset.hpp
@@ -169,6 +195,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             tests/
                 CMakeLists.txt
                 test_assets.cpp
+                test_async.cpp
                 test_module.cpp
         compute/
             CMakeLists.txt
@@ -202,12 +229,15 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         application/
                         configuration/
                         diagnostics/
+                            error.hpp
+                            result.hpp
                         ecs/
                             component_storage.hpp
                             entity_id.hpp
                             registry.hpp
                             system.hpp
                         memory/
+                            resource_pool.hpp
                         parallel/
                         plugin/
                             isubsystem_interface.hpp
@@ -220,6 +250,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             tests/
                 CMakeLists.txt
                 ecs_registry_tests.cpp
+                resource_pool_tests.cpp
                 test_module.cpp
         geometry/
             CMakeLists.txt
@@ -319,6 +350,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 engine/
                     io/
                         api.hpp
+                        errors.hpp
                         geometry_io.hpp
                         geometry_io_registry.hpp
                         cache/
@@ -402,6 +434,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 input_state_tests.cpp
                 test_module.cpp
                 window_console_tests.cpp
+                window_system_tests.cpp
                 window_test_app.cpp
         rendering/
             CMakeLists.txt
@@ -531,18 +564,17 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         README.md
         update_agents_tree.py
         validate_docs.py
-        __pycache__/
-            update_agents_tree.cpython-312.pyc
-            validate_docs.cpython-312.pyc
         ci/
             README.md
             run_presets.py
+        diagnostics/
+            README.md
+            runtime_frame_telemetry.py
+            __pycache__/
+                runtime_frame_telemetry.cpython-312.pyc
         tests/
             test_update_agents_tree.py
             test_validate_docs.py
-            __pycache__/
-                test_update_agents_tree.cpython-312-pytest-8.4.1.pyc
-                test_validate_docs.cpython-312-pytest-8.4.1.pyc
     third_party/
         README.md
         entt/
