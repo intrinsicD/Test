@@ -146,7 +146,7 @@ modules. Items are grouped by their intent:
 - **Module:** Animation, Geometry
 - **Dependencies:** [AI-001]
 - **Tasks:**
-  - [ ] Implement rig binding data structures.
+  - [x] Implement rig binding data structures (see [docs/modules/animation/ROADMAP.md](modules/animation/ROADMAP.md)).
   - [ ] Integrate linear blend skinning into the runtime evaluation path.
   - [ ] Author deformation regression tests using deterministic fixtures.
   - [ ] Document deformation workflows in Animation and Geometry READMEs.
@@ -172,7 +172,7 @@ modules. Items are grouped by their intent:
 - **Module:** Rendering
 - **Dependencies:** [AI-003]
 - **Tasks:**
-- [x] Implement a Vulkan backend conforming to the frame graph scheduler (validated through runtime-driven submissions).
+  - [x] Implement a Vulkan backend conforming to the frame graph scheduler (validated through runtime-driven submissions).
   - [ ] Provide resource translation layers for Vulkan handles.
   - [ ] Author backend configuration documentation and samples.
 - **Artifacts:** Vulkan backend sources, CMake targets, documentation.
@@ -210,7 +210,7 @@ modules. Items are grouped by their intent:
 - **Tasks:**
   - [ ] Expand signature databases for mesh, animation, and point-cloud formats.
   - [ ] Integrate fuzzing harnesses for parser robustness.
-  - [ ] Provide structured error reporting.
+  - [x] Provide structured error reporting (landed via [docs/modules/io/ROADMAP.md](modules/io/ROADMAP.md)).
 - **Artifacts:** IO detection sources, fuzzing harnesses, documentation.
 - **Tests:** IO regression suite; fuzzing automation.
 - **Docs:** IO README detailing detection heuristics and failure modes.
