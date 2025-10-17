@@ -56,12 +56,12 @@ what is implemented today.
 - As milestones conclude, update the associated notes and mirror outcomes into the roadmap to keep backlog discussions
   synchronised with implementation reality.
 - Rendering and runtime coordination currently centres on the **Rendering/Runtime vertical slice**. The active work streams are
-  codified as `AI-003` (frame-graph metadata expansion) and `RT-003` (Vulkan backend prototype) in the architecture improvement
-  plan. Their shared goal is a deterministic path from runtime orchestration into the rendering frame graph, realised through
-  enriched resource descriptors, a backend-neutral scheduler, and runtime submission hooks. Capture the rationale and status in
-  the plan so rendering and runtime teams stay aligned while animation, physics, and geometry continue acting as data providers.
-  As deliverables land, record acceptance outcomes and link test coverage so future contributors understand why the slice was
-  scoped this way and which regressions it guards against.
+  codified as `AI-003` (frame-graph metadata alignment) and `RT-003` (Vulkan scheduler integration) in the architecture
+  improvement plan. Their shared goal is a deterministic path from runtime orchestration into the rendering frame graph, realised
+  through enriched resource descriptors, a backend-neutral scheduler, and runtime submission hooks. Capture the rationale and
+  status in the plan so rendering and runtime teams stay aligned while animation, physics, and geometry continue acting as data
+  providers. As deliverables land, record acceptance outcomes and link test coverage so future contributors understand why the
+  slice was scoped this way and which regressions it guards against.
 
 ## Architecture Improvement Plan Snapshot
 
@@ -107,26 +107,54 @@ current items so this README remains an at-a-glance companion to the full
 - **Milestone Coordination (`MC-001`, `MC-002`)**: Maintain milestone dashboards and synchronise module roadmaps through
   automation.
 
+### Outstanding Backlog Focus
+
+The following items remain open and should be prioritised when planning new work:
+
+- **Compute dependency validation (`AI-004`)** – introduce explicit dependency metadata, perform cycle detection, and surface
+  diagnostics for the dispatcher.
+- **Physics contact manifolds (`RT-002`)** – design persistent manifolds, integrate the constraint solver hooks, add telemetry,
+  and document the workflow.
+- **Scene hierarchy validation (`RT-005`)** – implement cycle and transform integrity checks, add reporting hooks, and document
+  validation flows.
+- **IO format detection hardening (`RT-006`)** – expand signature databases and integrate fuzzing harnesses beyond the structured
+  errors that already landed.
+- **Runtime diagnostics (`RT-004`)** – provide lifecycle telemetry, expose diagnostics via `RuntimeHost`, and surface them inside
+  tooling dashboards.
+- **Telemetry framework (`CC-001`)** – build a cross-module telemetry API, implement sinks, instrument hot paths, and ship a
+  profiling viewer.
+- **Hot reload infrastructure (`CC-002`)** – add filesystem watching, asset cache callbacks, transaction logging, integration
+  tests, and documentation.
+- **Benchmarking & fuzzing harnesses (`TI-002`, `TI-003`)** – land performance benchmarks, CI regression detection, IO fuzzing
+  targets, corpora, and documentation.
+- **Python bindings (`PY-001`)** – document binding generation, add dependencies, expose animation/geometry APIs, provide stubs,
+  and add pytest coverage.
+- **Documentation improvements (`DI-001`–`DI-003`)** – standardise READMEs, automate completeness checks, generate API
+  references, and establish ADR infrastructure.
+- **Build system hygiene (`BS-001`–`BS-003`)** – expand presets, document the versioning policy, and audit target dependency
+  hygiene.
+- **Milestone coordination (`MC-001`, `MC-002`)** – create milestone dashboards and keep module roadmaps synchronised with
+  central planning.
+
 ### Priority Horizon
 
-The plan ranks near-term execution focus as follows:
+The plan ranks near-term execution focus as follows. Track status to ensure priorities remain synchronised with the detailed
+roadmap.
 
-| Horizon | Rank | Item |
-|---------|------|------|
-| Sprint 1 | 1 | `DC-001` |
-|          | 2 | `DC-002` |
-|          | 3 | `AI-003` |
-|          | 4 | `RT-001` |
-|          | 5 | `TI-001` |
-| Sprint 2-3 | 1 | `DC-004` |
-|            | 2 | `AI-001` |
-|            | 3 | `RT-002` |
-|            | 4 | `RT-004` |
-|            | 5 | `DI-001` |
-| M4-M5 | 1 | `AI-002` |
-|       | 2 | `RT-003` |
-|       | 3 | `CC-001` |
-|       | 4 | `PY-001` |
+| Horizon | Rank | Item | Status |
+|---------|------|------|--------|
+| Sprint 1 Focus | 1 | `AI-003` | In Progress — keep frame-graph metadata and runtime submission paths aligned across modules. |
+|                 | 2 | `RT-001` | Complete — monitor regressions while extending deformation coverage. |
+|                 | 3 | `TI-001` | Complete — integration suites remain the regression baseline. |
+| Sprint 2-3 | 1 | `DC-004` | In Progress — finalise error-handling rollout and supporting documentation. |
+|            | 2 | `AI-001` | In Progress — expand handle-based lifetime management across caches and rendering. |
+|            | 3 | `RT-002` | Planned — ship persistent manifolds with constraint solving and telemetry. |
+|            | 4 | `RT-004` | Planned — deliver runtime lifecycle diagnostics surfaced through tooling. |
+|            | 5 | `DI-001` | Planned — standardise module READMEs and automate completeness checks. |
+| Mid-Term (M4-M5) | 1 | `AI-002` | Planned — stand up async asset streaming with telemetry integration. |
+|                   | 2 | `RT-003` | In Progress — maintain parity between runtime submission and the Vulkan backend. |
+|                   | 3 | `CC-001` | Planned — design the cross-module telemetry framework and viewer. |
+|                   | 4 | `PY-001` | Planned — expose core bindings with pytest coverage. |
 
 Revisit the improvement plan at the start of each milestone to adjust priorities, confirm dependencies, and align with evolving
 product goals. Update both the plan and this snapshot together to prevent drift.

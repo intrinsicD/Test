@@ -17,6 +17,33 @@ modules. Items are grouped by their intent:
 - **Cross-Cutting Initiatives (CC)** – deliver functionality that touches multiple modules.
 - **Milestone Coordination (MC)** – maintain planning artefacts and roadmap alignment.
 
+### Outstanding Backlog Focus
+
+Near-term planning should prioritise the following open items:
+
+- **`AI-004` – Compute dependency validation**: add dependency metadata, perform cycle detection, emit diagnostics, and update
+  the dispatcher documentation.
+- **`RT-002` – Physics contact manifolds**: introduce persistent manifolds, integrate constraint solving hooks, add telemetry,
+  and document workflows.
+- **`RT-004` – Runtime diagnostics**: instrument lifecycle stages, expose telemetry through `RuntimeHost`, and surface metrics in
+  tooling.
+- **`RT-005` – Scene hierarchy validation**: provide cycle/transform checks, reporting hooks, and documentation.
+- **`RT-006` – IO format detection hardening**: expand signature databases and integrate fuzzing harnesses beyond the structured
+  error work already completed.
+- **`CC-001` – Telemetry framework**: design the cross-module API, implement sinks, instrument hot paths, and build a profiling
+  viewer.
+- **`CC-002` – Hot reload infrastructure**: add filesystem watching, asset cache callbacks, transaction logging, integration
+  tests, and documentation.
+- **`TI-002` & `TI-003` – Benchmarking and fuzzing harnesses**: introduce benchmarks, CI regression detection, libFuzzer targets,
+  corpora, and documentation.
+- **`PY-001` – Python bindings**: document binding generation, add dependencies, expose animation/geometry APIs, provide stubs,
+  and cover them with pytest.
+- **`DI-001`–`DI-003` – Documentation improvements**: standardise READMEs, automate completeness checks, generate API references,
+  and stand up ADR infrastructure.
+- **`BS-001`–`BS-003` – Build system hygiene**: expand presets, codify versioning policy, and audit target dependency hygiene.
+- **`MC-001` & `MC-002` – Milestone coordination**: publish milestone dashboards and ensure module roadmaps stay in sync with this
+  plan.
+
 ### Critical Design Corrections
 
 #### DC-001: Runtime Module Dependency Inversion
@@ -123,6 +150,8 @@ modules. Items are grouped by their intent:
   - [x] Add metadata validation within frame graph compilation.
   - [x] Provide a migration guide for existing pass definitions.
   - [x] Update unit tests in `engine/rendering/tests/test_frame_graph.cpp` to cover new metadata.
+  - [ ] Synchronise runtime-submitted pass descriptors with the expanded metadata schema.
+  - [ ] Document metadata alignment responsibilities across rendering and runtime READMEs.
 - **Artifacts:** `engine/rendering/frame_graph/frame_graph.hpp`, `engine/rendering/frame_graph/render_pass.hpp`, `engine/rendering/tests/test_frame_graph.cpp`, migration guide documentation.
 - **Tests:** Frame graph unit tests validating metadata propagation; integration smoke tests.
 - **Docs:** Rendering README updates describing metadata and queue affinity.
@@ -178,6 +207,8 @@ modules. Items are grouped by their intent:
   - [x] Implement a Vulkan backend conforming to the frame graph scheduler (validated through runtime-driven submissions).
   - [x] Provide resource translation layers for Vulkan handles.
   - [x] Author backend configuration documentation and samples.
+  - [ ] Keep runtime submission hooks and Vulkan translation layers in parity as metadata evolves.
+  - [ ] Document the Rendering/Runtime vertical slice workflow for this backend.
 - **Artifacts:** Vulkan backend sources, CMake targets, documentation.
 - **Tests:** Rendering backend smoke tests; CI presets exercising Vulkan.
 - **Docs:** Rendering README backend section; integration notes in root README.
@@ -411,22 +442,20 @@ modules. Items are grouped by their intent:
 
 ### Priority Summary
 
-| Horizon | Rank | Item |
-|---------|------|------|
-| Sprint 1 | 1 | DC-001 |
-|         | 2 | DC-002 |
-|         | 3 | AI-003 |
-|         | 4 | RT-001 |
-|         | 5 | TI-001 |
-| Sprint 2-3 | 1 | DC-004 |
-|            | 2 | AI-001 |
-|            | 3 | RT-002 |
-|            | 4 | RT-004 |
-|            | 5 | DI-001 |
-| M4-M5 | 1 | AI-002 |
-|       | 2 | RT-003 |
-|       | 3 | CC-001 |
-|       | 4 | PY-001 |
+| Horizon | Rank | Item | Status |
+|---------|------|------|--------|
+| Sprint 1 Focus | 1 | AI-003 | In Progress — align frame-graph metadata with runtime submissions. |
+|                 | 2 | RT-001 | Complete — keep deformation regression coverage healthy. |
+|                 | 3 | TI-001 | Complete — integration suites act as the baseline smoke tests. |
+| Sprint 2-3 | 1 | DC-004 | In Progress — finish the error-handling migration and docs. |
+|            | 2 | AI-001 | In Progress — extend handle-based lifetime management. |
+|            | 3 | RT-002 | Planned — deliver persistent manifolds plus diagnostics. |
+|            | 4 | RT-004 | Planned — surface runtime lifecycle telemetry through tooling. |
+|            | 5 | DI-001 | Planned — enforce README standardisation and automation. |
+| Mid-Term (M4-M5) | 1 | AI-002 | Planned — stand up async asset streaming with telemetry. |
+|                   | 2 | RT-003 | In Progress — maintain Vulkan backend parity with runtime. |
+|                   | 3 | CC-001 | Planned — design and integrate the telemetry framework. |
+|                   | 4 | PY-001 | Planned — expose bindings with pytest coverage. |
 
 This plan should be revisited at the start of each milestone to adjust priorities, confirm dependencies, and align with evolving product goals.
 
