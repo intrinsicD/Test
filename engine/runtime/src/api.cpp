@@ -13,6 +13,7 @@
 
 #if ENGINE_ENABLE_ASSETS
 #    include "engine/assets/api.hpp"
+#    include "engine/assets/async.hpp"
 #endif
 #if ENGINE_ENABLE_COMPUTE_CUDA
 #    include "engine/compute/cuda/api.hpp"
@@ -451,6 +452,7 @@ namespace engine::runtime
                 return;
             }
 
+            core::threading::IoThreadPool::instance().configure(dependencies.streaming_config);
             reset_state();
             ensure_default_world();
             refresh_body_positions();
@@ -491,6 +493,7 @@ namespace engine::runtime
             {
                 dispatcher->clear();
             }
+            core::threading::IoThreadPool::instance().shutdown();
             last_report.execution_order.clear();
             last_report.kernel_durations.clear();
             scene = scene::Scene{};
@@ -797,6 +800,30 @@ namespace engine::runtime
             names.emplace_back(name);
         }
         return names;
+    }
+
+    StreamingMetrics streaming_metrics() noexcept
+    {
+        StreamingMetrics metrics{};
+        const auto stats = core::threading::IoThreadPool::instance().statistics();
+        metrics.worker_count = stats.configured_workers;
+        metrics.queue_capacity = stats.queue_capacity;
+        metrics.pending_tasks = stats.pending_tasks;
+        metrics.active_workers = stats.active_workers;
+        metrics.total_enqueued = stats.total_enqueued;
+        metrics.total_executed = stats.total_executed;
+
+#if ENGINE_ENABLE_ASSETS
+        const auto snapshot = assets::AssetStreamingTelemetry::instance().snapshot();
+        metrics.streaming_pending = snapshot.pending;
+        metrics.streaming_loading = snapshot.loading;
+        metrics.streaming_total_requests = snapshot.total_requests;
+        metrics.streaming_total_completed = snapshot.total_completed;
+        metrics.streaming_total_failed = snapshot.total_failed;
+        metrics.streaming_total_cancelled = snapshot.total_cancelled;
+        metrics.streaming_total_rejected = snapshot.total_rejected;
+#endif
+        return metrics;
     }
 
     std::string_view module_name() noexcept
@@ -1147,12 +1174,12 @@ namespace engine::runtime
         }
     }
 
-    extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
-        std::size_t index,
-        float* out_scale,
-        float* out_rotation,
-        float* out_translation) noexcept
-    {
+extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
+    std::size_t index,
+    float* out_scale,
+    float* out_rotation,
+    float* out_translation) noexcept
+{
         try
         {
             const auto& nodes = engine::runtime::scene_nodes();
@@ -1185,4 +1212,28 @@ namespace engine::runtime
         {
         }
     }
+}
+
+extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
+    engine_runtime_streaming_metrics* out_metrics) noexcept
+{
+    if (out_metrics == nullptr)
+    {
+        return;
+    }
+
+    const auto metrics = streaming_metrics();
+    out_metrics->worker_count = metrics.worker_count;
+    out_metrics->queue_capacity = metrics.queue_capacity;
+    out_metrics->pending_tasks = metrics.pending_tasks;
+    out_metrics->active_workers = metrics.active_workers;
+    out_metrics->total_enqueued = metrics.total_enqueued;
+    out_metrics->total_executed = metrics.total_executed;
+    out_metrics->streaming_pending = metrics.streaming_pending;
+    out_metrics->streaming_loading = metrics.streaming_loading;
+    out_metrics->streaming_total_requests = metrics.streaming_total_requests;
+    out_metrics->streaming_total_completed = metrics.streaming_total_completed;
+    out_metrics->streaming_total_failed = metrics.streaming_total_failed;
+    out_metrics->streaming_total_cancelled = metrics.streaming_total_cancelled;
+    out_metrics->streaming_total_rejected = metrics.streaming_total_rejected;
 }

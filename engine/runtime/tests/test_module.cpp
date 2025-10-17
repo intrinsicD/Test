@@ -547,6 +547,20 @@ TEST(RuntimeHost, LoadsSubsystemsFromRegistrySelection) {
     host.shutdown();
 }
 
+TEST(RuntimeHost, StreamingMetricsReflectConfiguration)
+{
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.streaming_config.worker_count = 1;
+    deps.streaming_config.queue_capacity = 4;
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+    const auto metrics = engine::runtime::streaming_metrics();
+    EXPECT_EQ(metrics.worker_count, deps.streaming_config.worker_count);
+    EXPECT_EQ(metrics.queue_capacity, deps.streaming_config.queue_capacity);
+    host.shutdown();
+}
+
 TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection) {
     engine::runtime::shutdown();
 

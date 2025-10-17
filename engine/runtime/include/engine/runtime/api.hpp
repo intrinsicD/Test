@@ -9,6 +9,7 @@
 
 #include "engine/animation/api.hpp"
 #include "engine/core/plugin/isubsystem_interface.hpp"
+#include "engine/core/threading/io_thread_pool.hpp"
 #include "engine/compute/api.hpp"
 #include "engine/geometry/api.hpp"
 #include "engine/math/math.hpp"
@@ -76,10 +77,28 @@ struct ENGINE_RUNTIME_API RuntimeHostDependencies {
     std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> subsystem_plugins{};
     std::shared_ptr<SubsystemRegistry> subsystem_registry{};
     std::vector<std::string> enabled_subsystems{};
+    core::threading::IoThreadPoolConfig streaming_config{.worker_count = 2, .queue_capacity = 64, .enable = true};
 #if ENGINE_ENABLE_RENDERING
     rendering::components::RenderGeometry render_geometry{};
     std::string renderable_name{"runtime.renderable"};
 #endif
+};
+
+struct ENGINE_RUNTIME_API StreamingMetrics
+{
+    std::size_t worker_count{0};
+    std::size_t queue_capacity{0};
+    std::size_t pending_tasks{0};
+    std::size_t active_workers{0};
+    std::uint64_t total_enqueued{0};
+    std::uint64_t total_executed{0};
+    std::uint64_t streaming_pending{0};
+    std::uint64_t streaming_loading{0};
+    std::uint64_t streaming_total_requests{0};
+    std::uint64_t streaming_total_completed{0};
+    std::uint64_t streaming_total_failed{0};
+    std::uint64_t streaming_total_cancelled{0};
+    std::uint64_t streaming_total_rejected{0};
 };
 
 class ENGINE_RUNTIME_API RuntimeHost {
@@ -141,6 +160,7 @@ ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
 [[nodiscard]] ENGINE_RUNTIME_API const std::vector<runtime_frame_state::scene_node_state>& scene_nodes();
 [[nodiscard]] ENGINE_RUNTIME_API double simulation_time() noexcept;
 [[nodiscard]] ENGINE_RUNTIME_API std::vector<std::string> default_subsystem_names();
+[[nodiscard]] ENGINE_RUNTIME_API StreamingMetrics streaming_metrics() noexcept;
 
 #if ENGINE_ENABLE_RENDERING
 ENGINE_RUNTIME_API void submit_render_graph(RuntimeHost::RenderSubmissionContext& context);
@@ -174,4 +194,22 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
     float* out_scale,
     float* out_rotation,
     float* out_translation) noexcept;
+struct engine_runtime_streaming_metrics
+{
+    std::size_t worker_count;
+    std::size_t queue_capacity;
+    std::size_t pending_tasks;
+    std::size_t active_workers;
+    std::uint64_t total_enqueued;
+    std::uint64_t total_executed;
+    std::uint64_t streaming_pending;
+    std::uint64_t streaming_loading;
+    std::uint64_t streaming_total_requests;
+    std::uint64_t streaming_total_completed;
+    std::uint64_t streaming_total_failed;
+    std::uint64_t streaming_total_cancelled;
+    std::uint64_t streaming_total_rejected;
+};
+extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
+    engine_runtime_streaming_metrics* out_metrics) noexcept;
 

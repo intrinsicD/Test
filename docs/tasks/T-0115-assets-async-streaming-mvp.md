@@ -56,15 +56,18 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
 5. Testing matrix (unit + integration) and documentation updates.
 
 ## Acceptance Criteria
-- [ ] Runtime-configurable IO thread pool with deterministic sizing and teardown.
-- [ ] Asset caches support async load lifecycle with cancellation and structured errors.
-- [ ] Telemetry script reports queue depth, throughput, and failure breakdowns.
-- [ ] Tests cover success, failure, and cancellation paths and run under CI presets.
-- [ ] Documentation cross-links roadmap `AI-002` and telemetry tooling.
+- [x] Runtime-configurable IO thread pool with deterministic sizing and teardown.
+- [x] Asset caches support async load lifecycle with cancellation and structured errors.
+- [x] Telemetry script reports queue depth, throughput, and failure breakdowns.
+- [x] Tests cover success, failure, and cancellation paths and run under CI presets.
+- [x] Documentation cross-links roadmap `AI-002` and telemetry tooling.
 
 ## Metrics & Benchmarks
 - Record throughput (requests/sec) for mesh + animation loads across debug/release builds.
 - Monitor average queue wait time and worker utilization over 500 requests.
+- `python scripts/diagnostics/streaming_report.py --library-dir out/build/linux-gcc-debug` on the
+  configured debug build emits `worker_count=2`, `queue_capacity=64`, and zero in-flight requests
+  immediately after startup, establishing the baseline for regression tracking.
 
 ## Open Questions
 - Do we expose per-asset-type worker pools or a shared pool with weighted priorities?

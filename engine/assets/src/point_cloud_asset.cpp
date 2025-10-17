@@ -11,6 +11,7 @@ namespace engine::assets {
 
 const PointCloudAsset& PointCloudCache::load(const PointCloudAssetDescriptor& descriptor)
 {
+    std::scoped_lock lock{mutex_};
     const auto identifier = descriptor.handle.id();
     if (identifier.empty()) {
         throw std::invalid_argument("Point cloud handle identifier cannot be empty");
@@ -56,11 +57,13 @@ const PointCloudAsset& PointCloudCache::load(const PointCloudAssetDescriptor& de
 
 bool PointCloudCache::contains(const PointCloudHandle& handle) const
 {
+    std::scoped_lock lock{mutex_};
     return handle.is_valid(assets_);
 }
 
 const PointCloudAsset& PointCloudCache::get(const PointCloudHandle& handle) const
 {
+    std::scoped_lock lock{mutex_};
     if (!handle.is_valid(assets_)) {
         throw std::out_of_range("Point cloud asset handle not found");
     }
@@ -69,6 +72,7 @@ const PointCloudAsset& PointCloudCache::get(const PointCloudHandle& handle) cons
 
 void PointCloudCache::unload(const PointCloudHandle& handle)
 {
+    std::scoped_lock lock{mutex_};
     if (!handle.is_bound()) {
         return;
     }
@@ -99,6 +103,7 @@ void PointCloudCache::unload(const PointCloudHandle& handle)
 void PointCloudCache::register_hot_reload_callback(const PointCloudHandle& handle,
                                                    HotReloadCallback callback)
 {
+    std::scoped_lock lock{mutex_};
     if (handle.is_bound() && handle.is_valid(assets_)) {
         callbacks_[handle.raw_handle()].push_back(std::move(callback));
         return;
@@ -113,6 +118,7 @@ void PointCloudCache::register_hot_reload_callback(const PointCloudHandle& handl
 
 void PointCloudCache::poll()
 {
+    std::scoped_lock lock{mutex_};
     assets_.for_each([&](const RawHandle& handle, PointCloudAsset& asset) {
         const auto current_write =
             detail::checked_last_write_time(asset.descriptor.source, "point cloud");
@@ -122,8 +128,46 @@ void PointCloudCache::poll()
     });
 }
 
+AssetLoadFuture<PointCloudHandle> PointCloudCache::load_async(const AssetLoadRequest& request,
+                                                              core::threading::IoThreadPool& pool)
+{
+    if (request.identifier.empty())
+    {
+        throw std::invalid_argument("Asset load request identifier cannot be empty");
+    }
+
+    PointCloudAssetDescriptor descriptor{};
+    descriptor.handle = PointCloudHandle{request.identifier};
+    descriptor.source = std::filesystem::path{request.identifier};
+
+    return async_queue_.schedule(
+        request.identifier,
+        request.priority,
+        request.allow_blocking_fallback,
+        [this, descriptor](detail::AssetLoadPromise<PointCloudHandle>& promise) -> AssetLoadResult<PointCloudHandle> {
+            (void)promise;
+            try
+            {
+                const auto& asset = this->load(descriptor);
+                return AssetLoadResult<PointCloudHandle>{asset.descriptor.handle};
+            }
+            catch (const std::exception& ex)
+            {
+                return AssetLoadResult<PointCloudHandle>{
+                    make_asset_load_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+            }
+        },
+        pool);
+}
+
+AssetLoadState PointCloudCache::async_state(std::string_view identifier) const
+{
+    return async_queue_.state(identifier);
+}
+
 void PointCloudCache::reload_asset(const RawHandle& handle, PointCloudAsset& asset, bool notify)
 {
+    // mutex_ is expected to be held by the caller.
     const auto detection_result = io::detect_geometry_file(asset.descriptor.source);
     if (!detection_result) {
         throw std::runtime_error("Geometry file detection failed: " +
