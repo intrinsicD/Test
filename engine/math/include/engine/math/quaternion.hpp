@@ -267,6 +267,24 @@ namespace engine::math
     }
 
     template <typename T>
+    ENGINE_MATH_INLINE Quaternion<T> angle_axis(T angle, const Vector<T, 3>& axis) noexcept
+    {
+        return from_angle_axis(angle, axis);
+    }
+
+    template <typename T>
+    ENGINE_MATH_INLINE Quaternion<T> angle_axis(const Vector<T, 4>& value) noexcept
+    {
+        return from_angle_axis(value);
+    }
+
+    template <typename T>
+    ENGINE_MATH_INLINE Quaternion<T> angle_axis(const Vector<T, 3>& value) noexcept
+    {
+        return from_angle_axis(value);
+    }
+
+    template <typename T>
     ENGINE_MATH_INLINE Quaternion<T> from_rotation_matrix(const Matrix<T, 3, 3>& value) noexcept
     {
         const T m00 = value[0][0];
