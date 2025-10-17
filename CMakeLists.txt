@@ -78,6 +78,7 @@ endforeach()
 
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
+option(ENGINE_ENABLE_GLFW "Fetch and build GLFW to provide the GLFW window backend" ON)
 
 if(ENGINE_ENABLE_PYTHON AND NOT BUILD_SHARED_LIBS)
     message(FATAL_ERROR "Python interoperability requires BUILD_SHARED_LIBS=ON. Set ENGINE_ENABLE_PYTHON=OFF to build static libraries.")
@@ -188,29 +189,43 @@ endif()
 add_subdirectory(third_party/spdlog)
 add_subdirectory(third_party/imgui)
 
-set(GLFW_DIR "${THIRD_PARTY_DIR}/glfw")
-if(EXISTS "${GLFW_DIR}/CMakeLists.txt")
-    add_subdirectory(${GLFW_DIR})
-else()
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
-
-    option(ENGINE_GLFW_BUILD_X11 "Enable the GLFW X11 backend" ON)
-    if(ENGINE_GLFW_BUILD_X11)
-        set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
-    else()
-        set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE)
+if(ENGINE_ENABLE_GLFW)
+    if(UNIX AND NOT APPLE)
+        find_path(GLFW_XRANDR_INCLUDE_DIR "X11/extensions/Xrandr.h")
+        if(NOT GLFW_XRANDR_INCLUDE_DIR)
+            message(WARNING "Xrandr headers not found; disabling GLFW support. Install libxrandr-dev to enable it.")
+            set(ENGINE_ENABLE_GLFW OFF CACHE BOOL "Fetch and build GLFW to provide the GLFW window backend" FORCE)
+        endif()
     endif()
+endif()
 
-    FetchContent_Declare(glfw_external
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.4
-        GIT_SHALLOW TRUE
-    )
-    FetchContent_MakeAvailable(glfw_external)
+if(ENGINE_ENABLE_GLFW)
+    set(GLFW_DIR "${THIRD_PARTY_DIR}/glfw")
+    if(EXISTS "${GLFW_DIR}/CMakeLists.txt")
+        add_subdirectory(${GLFW_DIR})
+    else()
+        set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+        set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
+
+        option(ENGINE_GLFW_BUILD_X11 "Enable the GLFW X11 backend" ON)
+        if(ENGINE_GLFW_BUILD_X11)
+            set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
+        else()
+            set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE)
+        endif()
+
+        FetchContent_Declare(glfw_external
+            GIT_REPOSITORY https://github.com/glfw/glfw.git
+            GIT_TAG 3.4
+            GIT_SHALLOW TRUE
+        )
+        FetchContent_MakeAvailable(glfw_external)
+    endif()
+else()
+    message(STATUS "GLFW support disabled; platform module will rely on mock/SDL backends only.")
 endif()
 
 add_subdirectory(engine)

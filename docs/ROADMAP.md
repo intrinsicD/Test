@@ -103,11 +103,11 @@ modules. Items are grouped by their intent:
 - **Tasks:**
   - [x] Author the async loading API design in `docs/design/async_streaming.md`.
   - [x] Implement `AssetLoadRequest` and `AssetLoadFuture` primitives in the Assets module.
-  - [ ] Provide a background thread pool in Core dedicated to IO workloads.
-  - [ ] Extend asset caches with a streaming state machine.
-  - [ ] Introduce a priority queue scheduling load requests.
-  - [ ] Emit streaming metrics to runtime telemetry.
-  - [ ] Document best practices in the Assets README.
+  - [x] Provide a background thread pool in Core dedicated to IO workloads.
+  - [x] Extend asset caches with a streaming state machine.
+  - [x] Introduce a priority queue scheduling load requests.
+  - [x] Emit streaming metrics to runtime telemetry.
+  - [x] Document best practices in the Assets README.
 - **Artifacts:** `docs/design/async_streaming.md`, `engine/assets/include/engine/assets/async.hpp`, `engine/assets/src/streaming/*.cpp`, `engine/core/threading/thread_pool.hpp`, telemetry hooks.
 - **Tests:** Asynchronous loading integration tests with deterministic fixtures; runtime telemetry validation.
 - **Docs:** Assets README streaming section; runtime telemetry overview.

@@ -1,8 +1,9 @@
 # Async Asset Streaming Architecture (AI-002)
 
-**Status:** In Progress – foundational request/future primitives implemented in `engine/assets/async.hpp`
+**Status:** MVP Implemented – thread pool, cache scheduling, and telemetry tooling landed in
+`engine/core`, `engine/assets`, `engine/runtime`, and `scripts/diagnostics/streaming_report.py`.
 
-**Last Updated:** 2025-02-17
+**Last Updated:** 2025-02-18
 
 ## Overview
 
@@ -97,13 +98,14 @@ contain a shared state object guarded by a mutex/condition variable.
 A new `engine::core::threading::IoThreadPool` exposes:
 
 - `static IoThreadPool& instance()` – singleton configured during runtime
-  startup. Presets live in `RuntimeHostConfig` and the future tooling CLI.
+  startup. Presets now live directly on `RuntimeHostDependencies::streaming_config`.
 - `void configure(const IoThreadPoolConfig&)` – sets worker count, queue depth,
   and per-thread affinity. The runtime initialises the pool during
-  `RuntimeHost::initialize()`.
-- `void enqueue(const AssetLoadRequest&, std::shared_ptr<AssetLoadState>&)` –
-  inserts work into a priority queue (highest priority first, FIFO within the
-  same bucket). Cancelled tasks are removed lazily during dequeue.
+  `RuntimeHost::initialize()` and tears it down on shutdown.
+- `bool enqueue(IoTaskPriority, std::function<void()>)` – inserts work into a
+  priority queue (highest priority first, FIFO within the same bucket). When the
+  queue is saturated the call returns `false`, allowing caches to fall back to
+  synchronous execution when explicitly permitted.
 
 Workers execute a standard pipeline:
 
@@ -124,19 +126,22 @@ Thread safety is ensured by:
 
 ### Cache Integration
 
-Each cache gains:
+Each cache owns an `AssetAsyncQueue<Handle>`:
 
-- `schedule_async(const AssetLoadRequest&)` that packages type-specific
-  parameters and returns an `AssetLoadFuture`.
-- `process_async_result(PendingBinding&)` invoked on worker threads to bind
-  resource pool slots. `PendingBinding` encapsulates the identifier, optional
-  pre-created handle, and decoded payload.
-- `on_cancel(PendingBinding&)` to undo staged work when cancellation occurs after
-  decoding but before binding.
+- `AssetAsyncQueue::schedule()` packages cache-specific decode lambdas and
+  returns an `AssetLoadFuture`. Mesh and point cloud caches now share this
+  implementation, reusing the existing synchronous `load()` helpers inside the
+  queued job.
+- The queue tracks identifier → state transitions (`Pending → Loading → Ready`)
+  and deduplicates concurrent requests by handing out additional futures backed
+  by the same shared state.
+- Cancellation signals propagate through `AssetLoadPromise` callbacks; when the
+  queue notices a cancellation before the decode begins the state moves directly
+  to `Cancelled` without performing IO.
 
 Caches continue to own descriptor parsing and import logic, so the scheduler
-remains format agnostic. For assets with dependencies (e.g., materials), caches
-enqueue sub-requests and combine their futures before committing the parent.
+remains format agnostic. Material/shader caches will adopt the same queue in a
+future iteration once their async loaders land.
 
 ### Telemetry & Diagnostics
 
@@ -144,9 +149,9 @@ All state transitions generate events consumed by:
 
 - Runtime telemetry: `RuntimeHost::streaming_metrics()` exposes per-request and
   aggregated timings.
-- Scripts: `scripts/diagnostics/streaming_report.py` (placeholder) summarises
-  outstanding requests, failure causes, and throughput. The script will be added
-  when telemetry hooks materialise per the sprint acceptance criteria.
+- Scripts: `scripts/diagnostics/streaming_report.py` queries the runtime C API
+  and reports worker counts, queue occupancy, and per-state totals for
+  asynchronous requests.
 - Logging: worker threads emit structured logs via `spdlog` with request IDs.
 
 Telemetry payload fields include request ID, identifier, type, priority,

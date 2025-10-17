@@ -2,9 +2,13 @@
 
 #include "engine/assets/async.hpp"
 #include "engine/assets/handles.hpp"
+#include "engine/assets/mesh_asset.hpp"
+#include "engine/core/threading/io_thread_pool.hpp"
 
 #include <chrono>
 #include <filesystem>
+#include <filesystem>
+#include <fstream>
 #include <thread>
 
 namespace
@@ -96,5 +100,82 @@ TEST(AssetLoadFuture, FailurePropagatesErrors)
     EXPECT_EQ(std::string{result.error().message()}, "decode failure");
 
     worker.join();
+}
+
+class MeshCacheAsyncTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        engine::core::threading::IoThreadPool::instance().configure({.worker_count = 2, .queue_capacity = 8, .enable = true});
+    }
+
+    void TearDown() override
+    {
+        engine::core::threading::IoThreadPool::instance().shutdown();
+    }
+};
+
+namespace
+{
+    std::filesystem::path write_temporary_obj()
+    {
+        auto path = std::filesystem::temp_directory_path() / "engine_async_mesh.obj";
+        std::ofstream stream{path};
+        stream << "o mesh\n";
+        stream << "v 0 0 0\n";
+        stream << "v 1 0 0\n";
+        stream << "v 0 1 0\n";
+        stream << "f 1 2 3\n";
+        stream.close();
+        return path;
+    }
+}
+
+TEST_F(MeshCacheAsyncTest, LoadAsyncCompletesSuccessfully)
+{
+    engine::assets::MeshCache cache;
+    const auto path = write_temporary_obj();
+    auto request = engine::assets::AssetLoadRequest::from_path(
+        engine::assets::AssetType::mesh, path, {});
+
+    auto future = cache.load_async(request, engine::core::threading::IoThreadPool::instance());
+    future.wait();
+    const auto result = future.get();
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Ready);
+
+    std::filesystem::remove(path);
+}
+
+TEST_F(MeshCacheAsyncTest, LoadAsyncReportsFailures)
+{
+    engine::assets::MeshCache cache;
+    auto request = engine::assets::AssetLoadRequest::from_identifier(
+        engine::assets::AssetType::mesh, "/tmp/non-existent-mesh.obj");
+
+    auto future = cache.load_async(request, engine::core::threading::IoThreadPool::instance());
+    future.wait();
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Failed);
+}
+
+TEST_F(MeshCacheAsyncTest, LoadAsyncHonoursCancellation)
+{
+    engine::assets::MeshCache cache;
+    const auto path = write_temporary_obj();
+    auto request = engine::assets::AssetLoadRequest::from_path(
+        engine::assets::AssetType::mesh, path, {});
+
+    auto future = cache.load_async(request, engine::core::threading::IoThreadPool::instance());
+    future.cancel();
+    future.wait();
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::Cancelled);
+    EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Cancelled);
+
+    std::filesystem::remove(path);
 }
 

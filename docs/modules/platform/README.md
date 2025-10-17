@@ -14,6 +14,7 @@
 ## Configuration
 - Select the default runtime backend at configure time via `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK>`. Presets default to `GLFW` while CI and headless scenarios can override to `MOCK`.
 - Override the selection at runtime with the `ENGINE_PLATFORM_WINDOW_BACKEND` environment variable (`auto`, `mock`, `glfw`, `sdl`). Overrides are validated against the capability requirements declared on the `WindowConfig`.
+- Disable GLFW fetching with `-DENGINE_ENABLE_GLFW=OFF`. When the configure step cannot locate the required X11 headers (for example `libxrandr-dev`) it automatically turns this option off and the platform module runs exclusively with the SDL and mock implementations until the dependency is present.
 - Use `WindowConfig::capability_requirements` to demand `require_headless_safe` or `require_native_surface`. Automatic selection filters out backends that cannot satisfy these flags and raises descriptive errors when an explicit backend is incompatible.
 
 ## Roadmap

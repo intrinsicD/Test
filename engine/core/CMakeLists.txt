@@ -4,6 +4,7 @@ add_library(${target_name}
     src/api.cpp
     src/ecs/registry.cpp
     src/ecs/system.cpp
+    src/threading/io_thread_pool.cpp
 )
 
 engine_apply_module_defaults(${target_name}

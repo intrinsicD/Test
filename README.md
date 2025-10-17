@@ -36,6 +36,7 @@ what is implemented today.
 
 - Configure the default window backend using `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK>` when generating builds. Presets default to `GLFW`, while headless CI jobs can explicitly set `MOCK`.
 - Override the backend at runtime with `ENGINE_PLATFORM_WINDOW_BACKEND` (`auto`, `mock`, `glfw`, `sdl`). Automatic selection honours `WindowConfig::capability_requirements`, skipping backends that cannot run headless or provide a native surface when requested.
+- Control whether GLFW is fetched and built with `-DENGINE_ENABLE_GLFW=<ON|OFF>`. When the required X11 development headers (for example `libxrandr-dev`) are missing the configure step automatically disables GLFW support and falls back to the mock backend until the dependency is available.
 
 ## Design Documentation Workflow
 

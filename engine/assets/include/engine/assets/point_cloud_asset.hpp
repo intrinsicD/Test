@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/assets/async.hpp"
 #include "engine/assets/handles.hpp"
 
 #include "engine/io/geometry_io.hpp"
@@ -10,6 +11,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -44,6 +46,11 @@ public:
     [[nodiscard]] bool contains(const PointCloudHandle& handle) const;
     [[nodiscard]] const PointCloudAsset& get(const PointCloudHandle& handle) const;
 
+    [[nodiscard]] AssetLoadFuture<PointCloudHandle> load_async(
+        const AssetLoadRequest& request,
+        core::threading::IoThreadPool& pool);
+    [[nodiscard]] AssetLoadState async_state(std::string_view identifier) const;
+
     void unload(const PointCloudHandle& handle);
     void register_hot_reload_callback(const PointCloudHandle& handle, HotReloadCallback callback);
     void poll();
@@ -59,6 +66,8 @@ private:
     std::unordered_map<std::string, RawHandle> bindings_{};
     std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
     std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
+    mutable std::mutex mutex_{};
+    AssetAsyncQueue<PointCloudHandle> async_queue_{};
 };
 
 }  // namespace engine::assets

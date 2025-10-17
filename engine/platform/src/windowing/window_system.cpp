@@ -17,13 +17,25 @@
 
 namespace engine::platform {
 
+#ifndef ENGINE_PLATFORM_HAS_GLFW
+#define ENGINE_PLATFORM_HAS_GLFW 0
+#endif
+
+#ifndef ENGINE_PLATFORM_HAS_SDL
+#define ENGINE_PLATFORM_HAS_SDL 1
+#endif
+
 namespace windowing {
 std::shared_ptr<Window> create_mock_window(WindowConfig config,
                                            std::shared_ptr<EventQueue> queue);
+#if ENGINE_PLATFORM_HAS_GLFW
 std::shared_ptr<Window> create_glfw_window(WindowConfig config,
                                            std::shared_ptr<EventQueue> queue);
+#endif
+#if ENGINE_PLATFORM_HAS_SDL
 std::shared_ptr<Window> create_sdl_window(WindowConfig config,
                                           std::shared_ptr<EventQueue> queue);
+#endif
 }  // namespace windowing
 
 namespace {
@@ -33,11 +45,29 @@ namespace {
 #endif
 
 constexpr std::string_view kBackendEnvVar = "ENGINE_PLATFORM_WINDOW_BACKEND";
-constexpr std::array<WindowBackend, 3> kDefaultBackendOrder = {
-    WindowBackend::GLFW,
-    WindowBackend::SDL,
-    WindowBackend::Mock,
-};
+constexpr std::size_t kDefaultBackendOrderCount =
+#if ENGINE_PLATFORM_HAS_GLFW
+    1
+#else
+    0
+#endif
+#if ENGINE_PLATFORM_HAS_SDL
+    +1
+#endif
+    +1;
+
+constexpr auto kDefaultBackendOrder = [] {
+    std::array<WindowBackend, kDefaultBackendOrderCount> order = {{
+#if ENGINE_PLATFORM_HAS_GLFW
+        WindowBackend::GLFW,
+#endif
+#if ENGINE_PLATFORM_HAS_SDL
+        WindowBackend::SDL,
+#endif
+        WindowBackend::Mock,
+    }};
+    return order;
+}();
 
 using WindowFactory = std::shared_ptr<Window> (*)(WindowConfig, std::shared_ptr<EventQueue>);
 
@@ -47,11 +77,28 @@ struct BackendDescriptor {
     WindowFactory factory;
 };
 
-constexpr std::array<BackendDescriptor, 3> kBackendDescriptors = {{
-    {WindowBackend::Mock, WindowBackendCapabilities{true, false}, windowing::create_mock_window},
-    {WindowBackend::GLFW, WindowBackendCapabilities{false, true}, windowing::create_glfw_window},
-    {WindowBackend::SDL, WindowBackendCapabilities{true, true}, windowing::create_sdl_window},
-}};
+constexpr std::size_t kBackendDescriptorCount =
+    1
+#if ENGINE_PLATFORM_HAS_GLFW
+    +1
+#endif
+#if ENGINE_PLATFORM_HAS_SDL
+    +1
+#endif
+    ;
+
+constexpr auto kBackendDescriptors = [] {
+    std::array<BackendDescriptor, kBackendDescriptorCount> descriptors = {{
+        {WindowBackend::Mock, WindowBackendCapabilities{true, false}, windowing::create_mock_window},
+#if ENGINE_PLATFORM_HAS_GLFW
+        {WindowBackend::GLFW, WindowBackendCapabilities{false, true}, windowing::create_glfw_window},
+#endif
+#if ENGINE_PLATFORM_HAS_SDL
+        {WindowBackend::SDL, WindowBackendCapabilities{true, true}, windowing::create_sdl_window},
+#endif
+    }};
+    return descriptors;
+}();
 
 [[nodiscard]] const BackendDescriptor* find_descriptor(WindowBackend backend) noexcept {
     for (const auto& descriptor : kBackendDescriptors) {
@@ -75,6 +122,20 @@ constexpr std::array<BackendDescriptor, 3> kBackendDescriptors = {{
     }
 
     return "unknown";
+}
+
+[[nodiscard]] bool backend_available(WindowBackend backend) noexcept {
+    switch (backend) {
+        case WindowBackend::GLFW:
+            return ENGINE_PLATFORM_HAS_GLFW != 0;
+        case WindowBackend::SDL:
+            return ENGINE_PLATFORM_HAS_SDL != 0;
+        case WindowBackend::Mock:
+        case WindowBackend::Auto:
+            return true;
+    }
+
+    return false;
 }
 
 [[nodiscard]] std::optional<std::string> getenv_string(std::string_view name) {
@@ -142,6 +203,9 @@ constexpr std::array<BackendDescriptor, 3> kBackendDescriptors = {{
         if (*parsed == WindowBackend::Auto) {
             return std::nullopt;
         }
+        if (!backend_available(*parsed)) {
+            return std::nullopt;
+        }
         return parsed;
     }
     return std::nullopt;
@@ -183,6 +247,9 @@ constexpr std::array<BackendDescriptor, 3> kBackendDescriptors = {{
     candidates.reserve(kBackendDescriptors.size() + 1);
 
     auto append_candidate = [&candidates, &config](WindowBackend backend) {
+        if (!backend_available(backend)) {
+            return;
+        }
         if (backend == WindowBackend::Auto) {
             return;
         }
@@ -197,6 +264,12 @@ constexpr std::array<BackendDescriptor, 3> kBackendDescriptors = {{
     };
 
     if (override_backend && *override_backend != WindowBackend::Auto) {
+        if (!backend_available(*override_backend)) {
+            std::ostringstream builder;
+            builder << "Window backend '" << backend_identifier(*override_backend)
+                    << "' is not available in this build";
+            throw std::runtime_error{builder.str()};
+        }
         if (const auto* descriptor = find_descriptor(*override_backend)) {
             if (auto violation = capability_violation(*override_backend, config, *descriptor)) {
                 throw std::runtime_error{*violation};
