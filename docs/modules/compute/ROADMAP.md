@@ -1,6 +1,8 @@
 # Compute Module Roadmap
 
-## Near Term
+_Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
+
+## Near Term (`AI-004`)
 - Add dependency cycle detection and diagnostic reporting to `KernelDispatcher` to guard against invalid job graphs during development.
 - Integrate a configurable clock abstraction so execution reports can capture CPU vs GPU timing domains consistently.
 

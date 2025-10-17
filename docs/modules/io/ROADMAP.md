@@ -1,6 +1,8 @@
 # IO Module Roadmap
 
-## Near Term
+_Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
+
+## Near Term (`RT-006`)
 - Expand format detection heuristics with signature-based inspection to reduce reliance on filename extensions, and add regression tests per codec.
 - ✅ Surface structured error reporting from import/export functions (error enums, context strings) so assets and tooling can diagnose failures via `GeometryIoResult` and `GeometryIoErrorCode`.
 

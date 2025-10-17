@@ -1,5 +1,7 @@
 # Animation Module Roadmap
 
+_Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
+
 ## Status Overview
 - ✅ Phase 1: Foundation (Completed M1–M2)
 - 🔄 Phase 2: Integration (In Progress M3)
@@ -23,11 +25,11 @@
   - [x] Add unit tests for additive blending
   - [x] Document usage in API reference
 
-### Deformation Binding
+### Deformation Binding (`RT-001` alignment)
 - **Owner:** @bob
 - **Issue:** #236
 - **Tasks:**
-  - [x] Define `RigBinding` data structure
+  - [x] Define `RigBinding` data structure (tracks `RT-001` progress)
   - [ ] Link rig poses to mesh vertices
   - [ ] Implement linear blend skinning
   - [ ] Add integration test with geometry module
