@@ -9,11 +9,33 @@
 
 #include "engine/animation/api.hpp"
 #include "engine/core/plugin/isubsystem_interface.hpp"
-#include "engine/runtime/subsystem_registry.hpp"
 #include "engine/compute/api.hpp"
 #include "engine/geometry/api.hpp"
 #include "engine/math/math.hpp"
 #include "engine/physics/api.hpp"
+#include "engine/runtime/subsystem_registry.hpp"
+
+#if ENGINE_ENABLE_RENDERING
+#    include "engine/rendering/components.hpp"
+#    include "engine/rendering/gpu_scheduler.hpp"
+#    include "engine/rendering/resources/resource_provider.hpp"
+#endif
+
+#if ENGINE_ENABLE_RENDERING
+namespace engine::rendering
+{
+    class FrameGraph;
+    class ForwardPipeline;
+    class MaterialSystem;
+    class RenderResourceProvider;
+    class CommandEncoderProvider;
+} // namespace engine::rendering
+
+namespace engine::rendering::resources
+{
+    class IGpuResourceProvider;
+} // namespace engine::rendering::resources
+#endif
 
 #if defined(_WIN32)
 #  if defined(ENGINE_RUNTIME_EXPORTS)
@@ -53,6 +75,10 @@ struct ENGINE_RUNTIME_API RuntimeHostDependencies {
     std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> subsystem_plugins{};
     std::shared_ptr<SubsystemRegistry> subsystem_registry{};
     std::vector<std::string> enabled_subsystems{};
+#if ENGINE_ENABLE_RENDERING
+    rendering::components::RenderGeometry render_geometry{};
+    std::string renderable_name{"runtime.renderable"};
+#endif
 };
 
 class ENGINE_RUNTIME_API RuntimeHost {
@@ -80,6 +106,20 @@ public:
 
     void configure(RuntimeHostDependencies dependencies);
 
+#if ENGINE_ENABLE_RENDERING
+    struct RenderSubmissionContext {
+        rendering::RenderResourceProvider& resources;
+        rendering::MaterialSystem& materials;
+        rendering::resources::IGpuResourceProvider& device_resources;
+        rendering::IGpuScheduler& scheduler;
+        rendering::CommandEncoderProvider& encoders;
+        rendering::FrameGraph& frame_graph;
+        rendering::ForwardPipeline* pipeline{nullptr};
+    };
+
+    void submit_render_graph(RenderSubmissionContext& context);
+#endif
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
@@ -100,6 +140,10 @@ ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
 [[nodiscard]] ENGINE_RUNTIME_API const std::vector<runtime_frame_state::scene_node_state>& scene_nodes();
 [[nodiscard]] ENGINE_RUNTIME_API double simulation_time() noexcept;
 [[nodiscard]] ENGINE_RUNTIME_API std::vector<std::string> default_subsystem_names();
+
+#if ENGINE_ENABLE_RENDERING
+ENGINE_RUNTIME_API void submit_render_graph(RuntimeHost::RenderSubmissionContext& context);
+#endif
 
 }  // namespace engine::runtime
 

@@ -4,6 +4,7 @@
 - Provides a declarative frame graph API for describing render passes, resources, and dependencies, alongside a forward rendering pipeline implementation.
 - Implements command encoder abstractions, resource providers (including a recording GPU resource provider), and a material system coordinating shader bindings.
 - Defines backend interfaces and scheduler stubs so platform-specific renderers can plug in while sharing common orchestration.
+- Provides a `backend::vulkan::VulkanGpuScheduler` that translates the generic submission stream into Vulkan-native handles; runtime integration tests drive it end-to-end via `RuntimeHost::submit_render_graph`.
 - Extensive tests in `engine/rendering/tests/` cover frame graph construction, backend adapters, and forward pipeline behaviour.
 - Frame graph resources carry explicit format, dimension, usage, and state metadata, and render passes publish queue affinity hints that schedulers consume when selecting submission queues.
 - Material and resource descriptors now consume the generational asset handles introduced in the assets module, ensuring rendering references remain valid across cache reloads.
