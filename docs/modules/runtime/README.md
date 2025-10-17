@@ -11,7 +11,11 @@
 - Accepts subsystem plugins through `RuntimeHostDependencies::subsystem_plugins`, invoking their lifecycle hooks during initialization, shutdown, and tick to support dependency-injected extensions.
 - Exposes helper APIs (`configure_with_default_subsystems`, `default_subsystem_names`) and C bindings (`engine_runtime_configure_with_modules`) so hosts can choose which subsystems to load without manually constructing plugin instances.
 - Exposes `RuntimeHost::RenderSubmissionContext` and `RuntimeHost::submit_render_graph` so embedders can feed the mirrored scene graph into the forward rendering pipeline and GPU scheduler (tested end-to-end against the Vulkan prototype).
-- Smoke tests in `engine/runtime/tests/` validate module registration; full integration coverage lives in higher-level scenarios.
+- Smoke tests in `engine/runtime/tests/` validate module registration; cross-module
+  behaviour is exercised by the headless harness under
+  [`engine/tests/integration`](../../../engine/tests/integration/README.md) which covers the
+  animation/physics/runtime loop, asset-driven mesh loading, and runtime →
+  rendering submissions (`TI-001`).
 
 ## Usage
 - Build via `cmake --build --preset <preset> --target engine_runtime`; this pulls every other module as a dependency.

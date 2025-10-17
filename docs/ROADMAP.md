@@ -303,9 +303,9 @@ modules. Items are grouped by their intent:
 - **Module:** Testing
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Stand up deterministic integration tests across animation, physics, runtime, and rendering.
-  - [ ] Provide fixtures and harnesses under `engine/tests/integration/`.
-  - [ ] Document integration test guidelines.
+  - [x] Stand up deterministic integration tests across animation, physics, runtime, and rendering.
+  - [x] Provide fixtures and harnesses under `engine/tests/integration/`.
+  - [x] Document integration test guidelines.
 - **Artifacts:** Integration test sources, fixtures, documentation.
 - **Tests:** Integration test executions across configurations.
 - **Docs:** `engine/tests/integration/README.md` and testing overview updates.
