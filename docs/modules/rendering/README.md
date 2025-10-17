@@ -4,6 +4,8 @@
 - Provides a declarative frame graph API for describing render passes, resources, and dependencies, alongside a forward rendering pipeline implementation.
 - Implements command encoder abstractions, resource providers (including a recording GPU resource provider), and a material system coordinating shader bindings.
 - Defines backend interfaces and scheduler stubs so platform-specific renderers can plug in while sharing common orchestration.
+- Ships a Vulkan resource translation layer that converts frame-graph descriptors and synchronization barriers into `VkImage*`
+  and `VkBuffer*` create info structures, providing a deterministic bridge between engine metadata and backend allocation.
 - Provides a `backend::vulkan::VulkanGpuScheduler` that translates the generic submission stream into Vulkan-native handles; runtime integration tests drive it end-to-end via `RuntimeHost::submit_render_graph`.
 - Extensive tests in `engine/rendering/tests/` cover frame graph construction,
   backend adapters, and forward pipeline behaviour, while
@@ -23,11 +25,24 @@
   - `format` (`ResourceFormat`) and `dimension` (`ResourceDimension`) so GPU resource providers can allocate concrete textures or buffers.
   - `usage` (`ResourceUsage`) to describe how passes will access the resource; combine flags with `operator|` and query them with `has_flag`.
   - `initial_state` / `final_state` (`ResourceState`) to document the expected layout before the first pass and after the last pass that touches the resource.
+  - Texture metadata: `width`, `height`, `depth`, `array_layers`, `mip_levels`, and `sample_count`. These drive Vulkan image creation and layout validation.
+  - Buffer metadata: `size_bytes` must be provided when `dimension == Buffer` so backend allocators can reserve the correct capacity.
 - `FrameGraphResourceInfo` now exposes the same metadata to passes during execution and to `IGpuResourceProvider::on_transient_{acquire,release}`.
 - `RenderPass` exposes `set_queue` and an optional constructor parameter so passes can declare their queue affinity; schedulers receive the preferred queue alongside the pass reference when making routing decisions.
 - Associate every pass with a `PassPhase` (`Setup`, `Geometry`, `Lighting`, `PostProcess`, `Compute`, `Transfer`, `Presentation`) and a `ValidationSeverity` (`Info`, `Warning`, `Error`). The execution context mirrors these accessors so telemetry and diagnostics can group passes deterministically.
 - `engine::rendering::CallbackRenderPass` accepts the preferred queue as its fourth constructor argument for concise setup of compute or transfer passes.
-- Call `FrameGraph::serialize()` after compilation to materialise a canonical JSON representation of resources, passes, and execution order. The serializer escapes debug names, preserves declaration order, and ensures repeated invocations yield byte-for-byte identical output for diffing and caching.
+- Call `FrameGraph::serialize()` after compilation to materialise a canonical JSON representation of resources, passes, and execution order. The serializer escapes debug names, preserves declaration order, and ensures repeated invocations yield byte-for-byte identical output for diffing and caching. Serialized resources now include extent, array-layer, mip-count, sample-count, and buffer-size metadata alongside the format/usage/state snapshot.
+
+## Vulkan Resource Translation
+
+- `engine::rendering::backend::vulkan::translate_resource` converts a `FrameGraphResourceInfo` into either a `VkImageCreateInfo`
+  + `VkImageViewCreateInfo` pair or a `VkBufferCreateInfo`/`VkBufferViewCreateInfo` pair. The function validates that required
+  metadata (dimensions, mip levels, buffer size) is provided and maps `ResourceUsage` flags onto Vulkan usage masks.
+- `translate_pipeline_stage`, `translate_access_mask`, and `translate_barrier` bridge frame-graph synchronization primitives to
+  `VkPipelineStageFlags` and `VkAccessFlags`, ensuring scheduling metadata survives the backend hop.
+- The unit test `engine/rendering/tests/test_vulkan_resource_translation.cpp` demonstrates end-to-end translation of color,
+  depth-stencil, and buffer resources along with barrier mapping. Use it as a reference when wiring additional backends or
+  expanding the Vulkan provider.
 
 ## Migration Notes
 

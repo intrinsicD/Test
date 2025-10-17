@@ -216,4 +216,32 @@ namespace engine::rendering
         }
         return os;
     }
+
+    /// Sample count requested for a texture resource.
+    enum class ResourceSampleCount
+    {
+        Count1 = 1,
+        Count2 = 2,
+        Count4 = 4,
+        Count8 = 8,
+        Count16 = 16,
+    };
+
+    inline std::ostream& operator<<(std::ostream& os, ResourceSampleCount count)
+    {
+        switch (count)
+        {
+        case ResourceSampleCount::Count1:
+            return os << "1";
+        case ResourceSampleCount::Count2:
+            return os << "2";
+        case ResourceSampleCount::Count4:
+            return os << "4";
+        case ResourceSampleCount::Count8:
+            return os << "8";
+        case ResourceSampleCount::Count16:
+            return os << "16";
+        }
+        return os;
+    }
 }  // namespace engine::rendering

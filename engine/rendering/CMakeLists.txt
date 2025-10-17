@@ -2,6 +2,7 @@ set(target_name engine_rendering)
 
 add_library(${target_name}
     src/api.cpp
+    src/backend/vulkan/resource_translation.cpp
     src/frame_graph.cpp
     src/forward_pipeline.cpp
     src/material_system.cpp

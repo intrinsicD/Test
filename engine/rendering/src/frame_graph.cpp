@@ -243,6 +243,13 @@ namespace engine::rendering
         node.usage = descriptor.usage;
         node.initial_state = descriptor.initial_state;
         node.final_state = descriptor.final_state;
+        node.width = descriptor.width;
+        node.height = descriptor.height;
+        node.depth = descriptor.depth;
+        node.array_layers = descriptor.array_layers;
+        node.mip_levels = descriptor.mip_levels;
+        node.sample_count = descriptor.sample_count;
+        node.size_bytes = descriptor.size_bytes;
         return FrameGraphResourceHandle{resources_.size() - 1};
     }
 
@@ -308,6 +315,31 @@ namespace engine::rendering
             if (resource.final_state == ResourceState::Undefined)
             {
                 throw std::logic_error("FrameGraph resource '" + resource.name + "' missing final state metadata");
+            }
+            if (resource.dimension == ResourceDimension::Buffer)
+            {
+                if (resource.size_bytes == 0)
+                {
+                    throw std::logic_error("FrameGraph buffer resource '" + resource.name + "' missing size metadata");
+                }
+            }
+            else
+            {
+                if (resource.width == 0 || resource.height == 0 || resource.depth == 0)
+                {
+                    throw std::logic_error("FrameGraph texture resource '" + resource.name +
+                                           "' missing extent metadata");
+                }
+                if (resource.array_layers == 0)
+                {
+                    throw std::logic_error("FrameGraph texture resource '" + resource.name +
+                                           "' missing array layer metadata");
+                }
+                if (resource.mip_levels == 0)
+                {
+                    throw std::logic_error("FrameGraph texture resource '" + resource.name +
+                                           "' missing mip level metadata");
+                }
             }
         }
 
@@ -589,7 +621,14 @@ namespace engine::rendering
                                       resource.dimension,
                                       resource.usage,
                                       resource.initial_state,
-                                      resource.final_state};
+                                      resource.final_state,
+                                      resource.width,
+                                      resource.height,
+                                      resource.depth,
+                                      resource.array_layers,
+                                      resource.mip_levels,
+                                      resource.sample_count,
+                                      resource.size_bytes};
     }
 
     std::span<const FrameGraphResourceHandle> FrameGraph::pass_reads(std::size_t pass_index)
@@ -641,6 +680,13 @@ namespace engine::rendering
             stream << "      \"lifetime\": " << quoted(to_string(resource.lifetime)) << ",\n";
             stream << "      \"format\": " << quoted(to_string(resource.format)) << ",\n";
             stream << "      \"dimension\": " << quoted(to_string(resource.dimension)) << ",\n";
+            stream << "      \"width\": " << resource.width << ",\n";
+            stream << "      \"height\": " << resource.height << ",\n";
+            stream << "      \"depth\": " << resource.depth << ",\n";
+            stream << "      \"array_layers\": " << resource.array_layers << ",\n";
+            stream << "      \"mip_levels\": " << resource.mip_levels << ",\n";
+            stream << "      \"sample_count\": " << static_cast<std::uint32_t>(resource.sample_count) << ",\n";
+            stream << "      \"size_bytes\": " << resource.size_bytes << ",\n";
             stream << "      \"usage\": " << quoted(to_string(resource.usage)) << ",\n";
             stream << "      \"initial_state\": " << quoted(to_string(resource.initial_state)) << ",\n";
             stream << "      \"final_state\": " << quoted(to_string(resource.final_state)) << "\n";
