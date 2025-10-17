@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <span>
@@ -37,6 +38,13 @@ namespace engine::rendering
         ResourceUsage usage{ResourceUsage::None};
         ResourceState initial_state{ResourceState::Undefined};
         ResourceState final_state{ResourceState::Undefined};
+        std::uint32_t width{1};
+        std::uint32_t height{1};
+        std::uint32_t depth{1};
+        std::uint32_t array_layers{1};
+        std::uint32_t mip_levels{1};
+        ResourceSampleCount sample_count{ResourceSampleCount::Count1};
+        std::uint64_t size_bytes{0};
     };
 
     struct FrameGraphResourceDescriptor
@@ -48,6 +56,13 @@ namespace engine::rendering
         ResourceUsage usage{ResourceUsage::None};
         ResourceState initial_state{ResourceState::Undefined};
         ResourceState final_state{ResourceState::Undefined};
+        std::uint32_t width{1};
+        std::uint32_t height{1};
+        std::uint32_t depth{1};
+        std::uint32_t array_layers{1};
+        std::uint32_t mip_levels{1};
+        ResourceSampleCount sample_count{ResourceSampleCount::Count1};
+        std::uint64_t size_bytes{0};
     };
 
     class FrameGraphPassBuilder
@@ -144,6 +159,13 @@ namespace engine::rendering
             ResourceUsage usage{ResourceUsage::None};
             ResourceState initial_state{ResourceState::Undefined};
             ResourceState final_state{ResourceState::Undefined};
+            std::uint32_t width{1};
+            std::uint32_t height{1};
+            std::uint32_t depth{1};
+            std::uint32_t array_layers{1};
+            std::uint32_t mip_levels{1};
+            ResourceSampleCount sample_count{ResourceSampleCount::Count1};
+            std::uint64_t size_bytes{0};
             std::size_t writer{std::numeric_limits<std::size_t>::max()};
             std::vector<std::size_t> readers;
             std::size_t first_use{std::numeric_limits<std::size_t>::max()};

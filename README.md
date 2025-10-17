@@ -511,6 +511,13 @@ Details:
 - Headers outside `engine/rendering/include` (`engine/rendering/backend/*.hpp`,
   `engine/rendering/tests/scheduler_test_utils.hpp`) are confined to backend scaffolding and test utilities.
 
+- `engine/rendering/backend/vulkan/resource_translation.hpp` now exposes helper utilities that map
+  `FrameGraphResourceInfo` descriptors and synchronisation barriers into Vulkan create-info structures.
+  Frame-graph resources require explicit extent, mip-count, array-layer, sample-count, and buffer-size
+  metadata; these fields are serialized alongside existing format/usage/state data and validated during
+  compilation. See `engine/rendering/tests/test_vulkan_resource_translation.cpp` for example usage and
+  expected Vulkan mappings.
+
 Recommendation: continue publishing consumer-facing headers from `engine/rendering/include` and keep
 backend/test helpers private. When future resource abstractions need to be shared, colocate them alongside
 the synchronisation primitives to avoid reintroducing relative includes.

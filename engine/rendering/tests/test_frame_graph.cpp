@@ -36,6 +36,12 @@ namespace
                            engine::rendering::ResourceUsage::ShaderRead;
         descriptor.initial_state = engine::rendering::ResourceState::ColorAttachment;
         descriptor.final_state = engine::rendering::ResourceState::ShaderRead;
+        descriptor.width = 1920;
+        descriptor.height = 1080;
+        descriptor.depth = 1;
+        descriptor.array_layers = 1;
+        descriptor.mip_levels = 1;
+        descriptor.sample_count = engine::rendering::ResourceSampleCount::Count1;
         return descriptor;
     }
 
@@ -48,6 +54,12 @@ namespace
         descriptor.usage = engine::rendering::ResourceUsage::DepthStencilAttachment;
         descriptor.initial_state = engine::rendering::ResourceState::DepthStencilAttachment;
         descriptor.final_state = engine::rendering::ResourceState::DepthStencilAttachment;
+        descriptor.width = 1920;
+        descriptor.height = 1080;
+        descriptor.depth = 1;
+        descriptor.array_layers = 1;
+        descriptor.mip_levels = 1;
+        descriptor.sample_count = engine::rendering::ResourceSampleCount::Count1;
         return descriptor;
     }
 }
@@ -169,6 +181,12 @@ TEST(FrameGraph, TracksResourceLifetimes)
                                             engine::rendering::ResourceUsage::DepthStencilAttachment));
     EXPECT_EQ(acquired_depth.initial_state, engine::rendering::ResourceState::DepthStencilAttachment);
     EXPECT_EQ(acquired_depth.final_state, engine::rendering::ResourceState::DepthStencilAttachment);
+    EXPECT_EQ(acquired_depth.width, 1920U);
+    EXPECT_EQ(acquired_depth.height, 1080U);
+    EXPECT_EQ(acquired_depth.depth, 1U);
+    EXPECT_EQ(acquired_depth.array_layers, 1U);
+    EXPECT_EQ(acquired_depth.mip_levels, 1U);
+    EXPECT_EQ(acquired_depth.sample_count, engine::rendering::ResourceSampleCount::Count1);
 
     const auto& acquired_color = device_provider.acquired().back().info;
     EXPECT_EQ(acquired_color.name, "Color");
@@ -180,6 +198,12 @@ TEST(FrameGraph, TracksResourceLifetimes)
                                             engine::rendering::ResourceUsage::ShaderRead));
     EXPECT_EQ(acquired_color.initial_state, engine::rendering::ResourceState::ColorAttachment);
     EXPECT_EQ(acquired_color.final_state, engine::rendering::ResourceState::ShaderRead);
+    EXPECT_EQ(acquired_color.width, 1920U);
+    EXPECT_EQ(acquired_color.height, 1080U);
+    EXPECT_EQ(acquired_color.depth, 1U);
+    EXPECT_EQ(acquired_color.array_layers, 1U);
+    EXPECT_EQ(acquired_color.mip_levels, 1U);
+    EXPECT_EQ(acquired_color.sample_count, engine::rendering::ResourceSampleCount::Count1);
 
     EXPECT_EQ(events[0].type, engine::rendering::ResourceEvent::Type::Acquire);
     EXPECT_EQ(events[0].resource_name, "Depth");
@@ -450,6 +474,13 @@ TEST(FrameGraph, SerializesDeterministically)
       "lifetime": "Transient",
       "format": "Depth24Stencil8",
       "dimension": "Texture2D",
+      "width": 1920,
+      "height": 1080,
+      "depth": 1,
+      "array_layers": 1,
+      "mip_levels": 1,
+      "sample_count": 1,
+      "size_bytes": 0,
       "usage": "DepthStencil",
       "initial_state": "DepthStencilAttachment",
       "final_state": "DepthStencilAttachment"
@@ -459,7 +490,14 @@ TEST(FrameGraph, SerializesDeterministically)
       "lifetime": "Transient",
       "format": "Rgba8Unorm",
       "dimension": "Texture2D",
-      "usage": "ColorAttachment|ShaderRead",
+      "width": 1920,
+      "height": 1080,
+      "depth": 1,
+      "array_layers": 1,
+      "mip_levels": 1,
+      "sample_count": 1,
+      "size_bytes": 0,
+      "usage": "ShaderRead|ColorAttachment",
       "initial_state": "ColorAttachment",
       "final_state": "ShaderRead"
     }

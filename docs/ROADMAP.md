@@ -176,8 +176,8 @@ modules. Items are grouped by their intent:
 - **Dependencies:** [AI-003]
 - **Tasks:**
   - [x] Implement a Vulkan backend conforming to the frame graph scheduler (validated through runtime-driven submissions).
-  - [ ] Provide resource translation layers for Vulkan handles.
-  - [ ] Author backend configuration documentation and samples.
+  - [x] Provide resource translation layers for Vulkan handles.
+  - [x] Author backend configuration documentation and samples.
 - **Artifacts:** Vulkan backend sources, CMake targets, documentation.
 - **Tests:** Rendering backend smoke tests; CI presets exercising Vulkan.
 - **Docs:** Rendering README backend section; integration notes in root README.

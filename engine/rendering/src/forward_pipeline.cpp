@@ -95,6 +95,12 @@ namespace engine::rendering
         color_desc.usage = ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead;
         color_desc.initial_state = ResourceState::ColorAttachment;
         color_desc.final_state = ResourceState::ShaderRead;
+        color_desc.width = 1280;
+        color_desc.height = 720;
+        color_desc.depth = 1;
+        color_desc.array_layers = 1;
+        color_desc.mip_levels = 1;
+        color_desc.sample_count = ResourceSampleCount::Count1;
         const auto color = graph.create_resource(std::move(color_desc));
 
         FrameGraphResourceDescriptor depth_desc{};
@@ -104,6 +110,12 @@ namespace engine::rendering
         depth_desc.usage = ResourceUsage::DepthStencilAttachment;
         depth_desc.initial_state = ResourceState::DepthStencilAttachment;
         depth_desc.final_state = ResourceState::DepthStencilAttachment;
+        depth_desc.width = 1280;
+        depth_desc.height = 720;
+        depth_desc.depth = 1;
+        depth_desc.array_layers = 1;
+        depth_desc.mip_levels = 1;
+        depth_desc.sample_count = ResourceSampleCount::Count1;
         const auto depth = graph.create_resource(std::move(depth_desc));
 
         graph.add_pass(std::make_unique<ForwardGeometryPass>(color, depth));
