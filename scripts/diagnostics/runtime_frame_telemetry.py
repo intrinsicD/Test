@@ -13,7 +13,12 @@ Example usage (after building the engine with a shared runtime library)::
         --library-dir build/linux-clang-debug
 
 Set ``--frames`` to record multiple consecutive frames and ``--output`` to
-persist the structured telemetry as JSON for later comparison.
+persist the structured telemetry as JSON for later comparison. ``--window-backend``
+can be used to force the mock window system in headless environments, while
+``--variance-check geometry.deform:5`` asserts that the per-frame skinning cost
+remains stable (≤5% coefficient of variation in this example). Combine with
+``--variance-trim 0.1`` to discard the lowest and highest 10% of samples when
+computing variance, which is useful for ignoring warm-up transients.
 """
 
 from __future__ import annotations
@@ -22,6 +27,8 @@ import argparse
 import ctypes
 import ctypes.util
 import json
+import os
+import statistics
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -50,11 +57,37 @@ class FrameSample:
     frame_total_ms: float
 
 
+@dataclass(frozen=True)
+class VarianceCheck:
+    """Specification for verifying per-dispatch timing stability."""
+
+    dispatch_name: str
+    max_percent: float
+    trim_fraction: float = 0.0
+
+
+@dataclass(frozen=True)
+class VarianceResult:
+    """Outcome of a variance check including descriptive statistics."""
+
+    check: VarianceCheck
+    durations_ms: Sequence[float]
+    mean_ms: float
+    stdev_ms: float
+    percent: float
+    total_samples: int
+
+    @property
+    def passed(self) -> bool:
+        return self.percent <= self.check.max_percent
+
+
 class RuntimeBindings:
     """Thin ctypes wrapper around the runtime C API."""
 
     def __init__(self, library: ctypes.CDLL) -> None:
         self._lib = library
+        self._has_simulation_time = False
         self._configure_signatures()
 
     @staticmethod
@@ -114,7 +147,12 @@ class RuntimeBindings:
         lib.engine_runtime_scene_node_count.restype = ctypes.c_size_t
         lib.engine_runtime_scene_node_name.restype = ctypes.c_char_p
         lib.engine_runtime_scene_node_name.argtypes = [ctypes.c_size_t]
-        lib.engine_runtime_simulation_time.restype = ctypes.c_double
+        try:
+            lib.engine_runtime_simulation_time.restype = ctypes.c_double
+        except AttributeError:
+            self._has_simulation_time = False
+        else:
+            self._has_simulation_time = True
 
     def configure_default_modules(self) -> None:
         self._lib.engine_runtime_configure_with_default_modules()
@@ -139,7 +177,13 @@ class RuntimeBindings:
         return float(self._lib.engine_runtime_dispatch_duration(index) * 1000.0)
 
     def simulation_time(self) -> float:
+        if not self._has_simulation_time:
+            raise RuntimeError("Runtime library does not expose simulation_time().")
         return float(self._lib.engine_runtime_simulation_time())
+
+    @property
+    def has_simulation_time(self) -> bool:
+        return self._has_simulation_time
 
 
 def _candidate_names(base: str) -> Iterable[str]:
@@ -163,9 +207,14 @@ def _categorise_dispatch(name: str) -> str:
 
 def capture_frames(bindings: RuntimeBindings, frames: int, dt: float) -> Sequence[FrameSample]:
     samples: List[FrameSample] = []
+    fallback_simulation_time = 0.0
     for frame_index in range(frames):
         bindings.tick(dt)
-        simulation_time = bindings.simulation_time()
+        if bindings.has_simulation_time:
+            simulation_time = bindings.simulation_time()
+        else:
+            fallback_simulation_time += dt
+            simulation_time = fallback_simulation_time
         dispatches: List[DispatchSample] = []
         category_totals: MutableMapping[str, float] = defaultdict(float)
         frame_total = 0.0
@@ -196,6 +245,91 @@ def capture_frames(bindings: RuntimeBindings, frames: int, dt: float) -> Sequenc
         )
 
     return samples
+
+
+def _parse_variance_checks(
+    values: Optional[Sequence[str]], trim_fraction: float
+) -> Sequence[VarianceCheck]:
+    checks: List[VarianceCheck] = []
+    if not values:
+        return checks
+    if trim_fraction < 0.0 or trim_fraction >= 0.5:
+        raise ValueError("Variance trim fraction must satisfy 0.0 <= value < 0.5.")
+    for raw in values:
+        if ":" not in raw:
+            raise ValueError(
+                "Variance check must use the form '<dispatch>:<max_percent>'."
+            )
+        dispatch, percent_str = raw.split(":", maxsplit=1)
+        dispatch = dispatch.strip()
+        percent_str = percent_str.strip()
+        if not dispatch:
+            raise ValueError("Dispatch name in variance check cannot be empty.")
+        try:
+            percent = float(percent_str)
+        except ValueError as exc:  # pragma: no cover - defensive programming
+            raise ValueError(
+                f"Invalid percentage '{percent_str}' in variance check '{raw}'."
+            ) from exc
+        if percent < 0.0:
+            raise ValueError("Variance percentage must be non-negative.")
+        checks.append(
+            VarianceCheck(
+                dispatch_name=dispatch,
+                max_percent=percent,
+                trim_fraction=trim_fraction,
+            )
+        )
+    return checks
+
+
+def _durations_for_dispatch(
+    samples: Sequence[FrameSample], dispatch_name: str
+) -> tuple[List[float], bool]:
+    durations: List[float] = []
+    seen = False
+    for frame in samples:
+        total = 0.0
+        matched = False
+        for dispatch in frame.dispatches:
+            if dispatch.name == dispatch_name:
+                total += dispatch.duration_ms
+                matched = True
+        durations.append(total)
+        seen = seen or matched
+    return durations, seen
+
+
+def evaluate_variance(
+    samples: Sequence[FrameSample], check: VarianceCheck
+) -> VarianceResult:
+    durations, seen = _durations_for_dispatch(samples, check.dispatch_name)
+    if not seen:
+        raise ValueError(
+            f"No dispatches matched '{check.dispatch_name}' for variance evaluation."
+        )
+    sorted_durations = sorted(durations)
+    trim = int(len(sorted_durations) * check.trim_fraction)
+    if trim * 2 >= len(sorted_durations):
+        raise ValueError("Trim fraction removed all samples for variance evaluation.")
+    if trim > 0:
+        trimmed = sorted_durations[trim:-trim]
+    else:
+        trimmed = sorted_durations
+    mean = statistics.fmean(trimmed)
+    if len(trimmed) == 1:
+        stdev = 0.0
+    else:
+        stdev = statistics.pstdev(trimmed)
+    percent = 0.0 if mean == 0.0 else (stdev / mean) * 100.0
+    return VarianceResult(
+        check=check,
+        durations_ms=trimmed,
+        mean_ms=mean,
+        stdev_ms=stdev,
+        percent=percent,
+        total_samples=len(durations),
+    )
 
 
 def summarise(samples: Sequence[FrameSample]) -> Dict[str, float]:
@@ -300,11 +434,42 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="Print per-frame dispatch timing details in addition to the aggregate summary.",
     )
+    parser.add_argument(
+        "--window-backend",
+        default="mock",
+        help=(
+            "Window backend hint passed via the ENGINE_PLATFORM_WINDOW_BACKEND environment "
+            "variable (default: 'mock'). Use 'auto' to defer to runtime defaults."
+        ),
+    )
+    parser.add_argument(
+        "--variance-check",
+        action="append",
+        default=None,
+        metavar="DISPATCH:PERCENT",
+        help=(
+            "Verify that the coefficient of variation for the named dispatch stays at or below "
+            "the provided percentage. May be specified multiple times."
+        ),
+    )
+    parser.add_argument(
+        "--variance-trim",
+        type=float,
+        default=0.0,
+        help=(
+            "Symmetric fraction to trim from both ends of the sample set before computing variance "
+            "(e.g., 0.1 trims 10% from the minimum and maximum tails)."
+        ),
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
+    backend = args.window_backend.strip()
+    if backend and backend.lower() != "auto":
+        os.environ["ENGINE_PLATFORM_WINDOW_BACKEND"] = backend
+    variance_checks = _parse_variance_checks(args.variance_check, args.variance_trim)
     bindings = RuntimeBindings.load(args.library_name, args.library_dir)
     bindings.configure_default_modules()
     bindings.initialize()
@@ -314,6 +479,29 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         bindings.shutdown()
 
     _print_summary(samples, args.verbose)
+
+    if variance_checks:
+        for result in map(lambda check: evaluate_variance(samples, check), variance_checks):
+            status = "PASS" if result.passed else "FAIL"
+            print(
+                "Variance check for dispatch '",
+                result.check.dispatch_name,
+                "': ",
+                status,
+                sep="",
+            )
+            if result.check.trim_fraction > 0.0:
+                trimmed = len(result.durations_ms)
+                print(
+                    f"  trimmed {result.check.trim_fraction * 100:.1f}% -> "
+                    f"{trimmed}/{result.total_samples} samples"
+                )
+            print(
+                f"  mean={result.mean_ms:.6f} ms stdev={result.stdev_ms:.6f} ms "
+                f"cov={result.percent:.3f}% (limit {result.check.max_percent:.3f}%)"
+            )
+            if not result.passed:
+                return 1
 
     if args.output is not None:
         payload = _samples_to_dict(samples)

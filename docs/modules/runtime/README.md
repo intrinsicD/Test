@@ -4,6 +4,7 @@
 - Aggregates all engine subsystems through `RuntimeHost`, orchestrating animation playback, physics simulation, compute dispatching, and scene graph mirroring each tick.
 - Exposes both C++ and C-compatible entry points for lifecycle control (`initialize`, `tick`, `shutdown`) and telemetry queries (joint names, body positions, dispatch timings).
 - Maintains a default dependency bundle (`RuntimeHostDependencies`) that seeds sample controllers, meshes, and physics worlds for quick-start scenarios.
+- The default mesh is a 128×128 subdivided quad (~16k vertices) so skinning telemetry exercises the 10k-vertex budget targeted by `RT-001`.
 - Applies linear blend skinning during `geometry.deform` using cached rig bindings and animation-supplied joint transforms, falling back to uniform translation when skinning data is absent.
 - When rendering is enabled, `RuntimeHostDependencies` also carries a default `rendering::components::RenderGeometry` descriptor and renderable debug name so the runtime can populate a scene entity for GPU submission.
 - Discovers subsystem plugins through a `SubsystemRegistry`, loading enabled modules (and their dependencies) during runtime initialization.
