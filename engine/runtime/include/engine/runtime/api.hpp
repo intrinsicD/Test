@@ -70,6 +70,7 @@ struct ENGINE_RUNTIME_API RuntimeHostDependencies {
     animation::AnimationController controller{
         animation::make_linear_controller(animation::make_default_clip())};
     geometry::SurfaceMesh mesh{geometry::make_unit_quad()};
+    animation::RigBinding binding{};
     physics::PhysicsWorld world{};
     std::string scene_name{"runtime.scene"};
     std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> subsystem_plugins{};

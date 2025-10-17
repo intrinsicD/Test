@@ -4,6 +4,7 @@
 - Implements half-edge and surface mesh data structures with conversion helpers, property registries, and IO pipelines for meshes, point clouds, and graphs.
 - Provides spatial utilities including kd-trees, octrees, and intersection tests across a breadth of analytic shapes (`Sphere`, `Aabb`, `Capsule`, etc.).
 - Ships procedural shape generators and sampling routines used by physics and runtime initialisation.
+- Offers deformation helpers under `engine/geometry/deform/` that consume animation rig bindings and per-joint transforms to apply linear blend skinning to `SurfaceMesh` instances.
 - Comprehensive unit tests in `engine/geometry/tests/` cover graph/mesh conversions, property storage, kd-tree behaviour, and shape interactions.
 
 ## Usage

@@ -568,7 +568,7 @@ summary referenced above.
 
 | Module | Near-term focus | Source |
 | --- | --- | --- |
-| Animation | Layer additive and deformation-aware blend nodes on top of the existing controller/blend-tree stack while expanding profiling coverage. | [docs/modules/animation/README.md](docs/modules/animation/README.md)<br>[docs/modules/animation/ROADMAP.md](docs/modules/animation/ROADMAP.md) |
+| Animation | Harden linear blend skinning with telemetry and authoring guidance now that runtime deformation is wired through the controller/blend-tree stack. | [docs/modules/animation/README.md](docs/modules/animation/README.md)<br>[docs/modules/animation/ROADMAP.md](docs/modules/animation/ROADMAP.md) |
 | Assets | Define authoritative asset metadata, stage asynchronous streaming task graphs, and persist cache artefacts with hot-reload diagnostics. | [docs/modules/assets/README.md](docs/modules/assets/README.md)<br>[docs/modules/assets/ROADMAP.md](docs/modules/assets/ROADMAP.md) |
 | Compute | Add dependency metadata and cycle diagnostics to `KernelDispatcher`, then layer consistent timing instrumentation ahead of the CUDA executor expansion (`AI-004`). | [docs/modules/compute/README.md](docs/modules/compute/README.md)<br>[docs/modules/compute/ROADMAP.md](docs/modules/compute/ROADMAP.md) |
 | Core | Establish application lifecycle/configuration/diagnostics services and thread them through the runtime façade with expanded test coverage. | [docs/modules/core/README.md](docs/modules/core/README.md)<br>[docs/modules/core/ROADMAP.md](docs/modules/core/ROADMAP.md) |

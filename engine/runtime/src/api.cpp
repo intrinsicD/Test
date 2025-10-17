@@ -7,6 +7,9 @@
 #include <string_view>
 #include <utility>
 
+#include "engine/animation/deformation/linear_blend_skinning.hpp"
+#include "engine/geometry/deform/linear_blend_skinning.hpp"
+
 #if ENGINE_ENABLE_ASSETS
 #    include "engine/assets/api.hpp"
 #endif
@@ -45,6 +48,21 @@ namespace
         auto registry = std::make_shared<engine::runtime::SubsystemRegistry>(
             engine::runtime::make_default_subsystem_registry());
         deps.subsystem_registry = registry;
+
+        deps.binding.joints.clear();
+        engine::animation::RigJoint root{};
+        root.name = "root";
+        root.parent = engine::animation::RigBinding::kInvalidIndex;
+        root.inverse_bind_pose = engine::math::Transform<float>::Identity();
+        deps.binding.joints.push_back(root);
+        deps.binding.resize_vertices(deps.mesh.rest_positions.size());
+        for (auto& vertex : deps.binding.vertices)
+        {
+            vertex.clear();
+            MAYBE_UNUSED_CONST_AUTO added = vertex.add_influence(0U, 1.0F);
+            (void)added;
+            vertex.normalize_weights();
+        }
         return deps;
     }
 } // namespace
@@ -59,6 +77,7 @@ namespace engine::runtime
         animation::AnimationController controller{};
         animation::AnimationRigPose pose{};
         geometry::SurfaceMesh mesh{};
+        animation::RigBinding binding{};
         physics::PhysicsWorld world{};
         std::unique_ptr<compute::Dispatcher> dispatcher{compute::make_cpu_dispatcher()};
         compute::ExecutionReport last_report{};
@@ -68,6 +87,8 @@ namespace engine::runtime
         std::vector<scene::Entity> joint_entities{};
         std::vector<runtime_frame_state::scene_node_state> scene_nodes{};
         std::vector<std::string_view> subsystem_names{};
+        std::vector<math::Transform<float>> joint_global_transforms{};
+        std::vector<math::Transform<float>> skinning_transforms{};
 #if ENGINE_ENABLE_RENDERING
         rendering::components::RenderGeometry render_geometry{};
         std::string renderable_name{"runtime.renderable"};
@@ -162,6 +183,10 @@ namespace engine::runtime
             controller = dependencies.controller;
             pose = animation::evaluate_controller(controller);
             mesh = dependencies.mesh;
+            binding = dependencies.binding;
+            binding.resize_vertices(mesh.rest_positions.size());
+            joint_global_transforms.resize(binding.joints.size());
+            skinning_transforms.resize(binding.joints.size());
             geometry::recompute_vertex_normals(mesh);
             geometry::update_bounds(mesh);
             world = dependencies.world;
@@ -482,17 +507,38 @@ namespace engine::runtime
                 "geometry.deform",
                 [&]()
                 {
-                    math::vec3 translation{0.0F, 0.0F, 0.0F};
+                    math::vec3 root_translation{0.0F, 0.0F, 0.0F};
                     if (!body_positions.empty())
                     {
-                        translation = body_positions.front();
+                        root_translation = body_positions.front();
                     }
-                    if (const auto* root = pose.find("root"))
+
+                    if (!animation::skinning::validate_binding(binding) || binding.joints.empty())
                     {
-                        translation += root->translation;
+                        math::vec3 translation = root_translation;
+                        if (const auto* root_pose = pose.find("root"))
+                        {
+                            translation += root_pose->translation;
+                        }
+                        engine::geometry::apply_uniform_translation(mesh, translation);
+                        engine::geometry::recompute_vertex_normals(mesh);
+                        return;
                     }
-                    engine::geometry::apply_uniform_translation(mesh, translation);
-                    engine::geometry::recompute_vertex_normals(mesh);
+
+                    if (joint_global_transforms.size() != binding.joints.size())
+                    {
+                        joint_global_transforms.resize(binding.joints.size());
+                    }
+                    if (skinning_transforms.size() != binding.joints.size())
+                    {
+                        skinning_transforms.resize(binding.joints.size());
+                    }
+
+                    animation::skinning::build_global_joint_transforms(binding, pose, joint_global_transforms,
+                                                                        root_translation);
+                    animation::skinning::build_skinning_transforms(binding, joint_global_transforms,
+                                                                    skinning_transforms);
+                    engine::geometry::deform::apply_linear_blend_skinning(binding, skinning_transforms, mesh);
                 },
                 {physics_integrate});
 
