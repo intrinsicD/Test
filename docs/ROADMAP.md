@@ -111,6 +111,7 @@ modules. Items are grouped by their intent:
 - **Artifacts:** `docs/design/async_streaming.md`, `engine/assets/include/engine/assets/async.hpp`, `engine/assets/src/streaming/*.cpp`, `engine/core/threading/thread_pool.hpp`, telemetry hooks.
 - **Tests:** Asynchronous loading integration tests with deterministic fixtures; runtime telemetry validation.
 - **Docs:** Assets README streaming section; runtime telemetry overview.
+- **Tracking:** [`T-0115`](tasks/T-0115-assets-async-streaming-mvp.md).
 
 #### AI-003: Frame Graph Resource Metadata
 - **Priority:** HIGH
@@ -125,6 +126,7 @@ modules. Items are grouped by their intent:
 - **Artifacts:** `engine/rendering/frame_graph/frame_graph.hpp`, `engine/rendering/frame_graph/render_pass.hpp`, `engine/rendering/tests/test_frame_graph.cpp`, migration guide documentation.
 - **Tests:** Frame graph unit tests validating metadata propagation; integration smoke tests.
 - **Docs:** Rendering README updates describing metadata and queue affinity.
+- **Tracking:** [`T-0104`](tasks/T-0104-runtime-frame-graph-integration.md) (completed).
 
 #### AI-004: Compute Dependency Validation
 - **Priority:** MEDIUM
@@ -153,6 +155,7 @@ modules. Items are grouped by their intent:
 - **Artifacts:** Animation deformation sources, geometry binding helpers, documentation updates.
 - **Tests:** Runtime smoke tests verifying deformation correctness; geometry unit coverage.
 - **Docs:** Animation and geometry module READMEs; deformation migration guides.
+- **Tracking:** [`T-0113`](tasks/T-0113-animation-runtime-skinning.md).
 
 #### RT-002: Physics Contact Manifolds
 - **Priority:** HIGH
@@ -178,6 +181,7 @@ modules. Items are grouped by their intent:
 - **Artifacts:** Vulkan backend sources, CMake targets, documentation.
 - **Tests:** Rendering backend smoke tests; CI presets exercising Vulkan.
 - **Docs:** Rendering README backend section; integration notes in root README.
+- **Tracking:** [`T-0104`](tasks/T-0104-runtime-frame-graph-integration.md) (scheduler prototype), [`T-0116`](tasks/T-0116-rendering-vulkan-resource-translation.md).
 
 #### RT-004: Runtime Diagnostics
 - **Priority:** HIGH
@@ -214,6 +218,7 @@ modules. Items are grouped by their intent:
 - **Artifacts:** IO detection sources, fuzzing harnesses, documentation.
 - **Tests:** IO regression suite; fuzzing automation.
 - **Docs:** IO README detailing detection heuristics and failure modes.
+- **Tracking:** [`T-0112`](tasks/T-0112-geometry-io-roundtrip-hardening.md).
 
 ### Documentation Improvements
 
@@ -304,6 +309,7 @@ modules. Items are grouped by their intent:
 - **Artifacts:** Integration test sources, fixtures, documentation.
 - **Tests:** Integration test executions across configurations.
 - **Docs:** `engine/tests/integration/README.md` and testing overview updates.
+- **Tracking:** [`T-0114`](tasks/T-0114-testing-integration-suites.md).
 
 #### TI-002: Performance Benchmarks
 - **Priority:** MEDIUM

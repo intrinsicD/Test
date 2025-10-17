@@ -14,5 +14,9 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 - [`2025-02-17-sprint-06.md`](2025-02-17-sprint-06.md) – current sprint alignment.
 - [`T-0104-runtime-frame-graph-integration.md`](T-0104-runtime-frame-graph-integration.md) – runtime/rendering bridge work.
 - [`T-0112-geometry-io-roundtrip-hardening.md`](T-0112-geometry-io-roundtrip-hardening.md) – geometry/IO fidelity tasks.
+- [`T-0113-animation-runtime-skinning.md`](T-0113-animation-runtime-skinning.md) – deliver the remaining `RT-001` deformation pipeline work.
+- [`T-0114-testing-integration-suites.md`](T-0114-testing-integration-suites.md) – build the cross-module integration test harness for `TI-001`.
+- [`T-0115-assets-async-streaming-mvp.md`](T-0115-assets-async-streaming-mvp.md) – complete the async streaming MVP for `AI-002`.
+- [`T-0116-rendering-vulkan-resource-translation.md`](T-0116-rendering-vulkan-resource-translation.md) – finish Vulkan backend deliverables for `RT-003`.
 
 Create new task files as work is planned. Archive completed tasks under a `done/` subdirectory if they remain valuable references.
