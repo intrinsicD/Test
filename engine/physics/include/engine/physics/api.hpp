@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
@@ -19,6 +20,8 @@
 #endif
 
 namespace engine::physics {
+
+struct PhysicsWorld;
 
 struct Collider {
     enum class Type {
@@ -89,17 +92,49 @@ struct RigidBody {
     Collider collider{};
 };
 
-struct PhysicsWorld {
-    math::vec3 gravity{0.0F, -9.81F, 0.0F};
-    float linear_damping{0.0F};
-    float max_substep{1.0F / 60.0F};
-    std::uint32_t max_substeps{8U};
-    std::vector<RigidBody> bodies;
-};
-
 struct CollisionPair {
     std::size_t first{0U};
     std::size_t second{0U};
+};
+
+struct ContactPoint {
+    math::vec3 position{0.0F, 0.0F, 0.0F};
+    math::vec3 normal{0.0F, 1.0F, 0.0F};
+    float penetration{0.0F};
+};
+
+struct ContactManifold {
+    static constexpr std::size_t max_points = 4U;
+
+    std::size_t first{0U};
+    std::size_t second{0U};
+    std::array<ContactPoint, max_points> contacts{};
+    std::uint32_t contact_count{0U};
+    std::uint32_t lifetime{0U};
+};
+
+struct CollisionTelemetry {
+    std::size_t manifold_count{0U};
+    std::size_t contact_count{0U};
+    float max_penetration{0.0F};
+};
+
+struct ConstraintSolverCallbacks {
+    using OnManifoldFn = void (*)(PhysicsWorld& world, const ContactManifold& manifold, void* user_data);
+
+    OnManifoldFn on_manifold{nullptr};
+    void* user_data{nullptr};
+};
+
+struct PhysicsWorld {
+    math::vec3 gravity{0.0F, -9.81F, 0.0F};
+    float linear_damping{0.0F};
+    float max_substep{1.0F};
+    std::uint32_t max_substeps{8U};
+    std::vector<RigidBody> bodies;
+    std::vector<ContactManifold> manifolds;
+    CollisionTelemetry collision_stats{};
+    ConstraintSolverCallbacks constraint_callbacks{};
 };
 
 [[nodiscard]] ENGINE_PHYSICS_API std::string_view module_name() noexcept;
@@ -131,6 +166,14 @@ ENGINE_PHYSICS_API void clear_collider(PhysicsWorld& world, std::size_t index) n
 [[nodiscard]] ENGINE_PHYSICS_API const Collider* collider_at(const PhysicsWorld& world, std::size_t index) noexcept;
 
 [[nodiscard]] ENGINE_PHYSICS_API std::vector<CollisionPair> detect_collisions(const PhysicsWorld& world);
+
+ENGINE_PHYSICS_API void update_contact_manifolds(PhysicsWorld& world);
+
+[[nodiscard]] ENGINE_PHYSICS_API const std::vector<ContactManifold>& contact_manifolds(const PhysicsWorld& world) noexcept;
+
+[[nodiscard]] ENGINE_PHYSICS_API const CollisionTelemetry& collision_telemetry(const PhysicsWorld& world) noexcept;
+
+ENGINE_PHYSICS_API void set_constraint_callbacks(PhysicsWorld& world, ConstraintSolverCallbacks callbacks) noexcept;
 
 }  // namespace engine::physics
 
