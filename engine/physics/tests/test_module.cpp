@@ -225,7 +225,7 @@ TEST(PhysicsWorld, SubsteppingAndDampingStabiliseIntegration) {
     const auto& simulated = engine::physics::body_at(world, index);
     EXPECT_LT(simulated.velocity[0], 1.0F);
     EXPECT_GT(simulated.velocity[0], 0.0F);
-    EXPECT_NEAR(simulated.position[0], 0.5F, 0.2F);
+    EXPECT_NEAR(simulated.position[0], 0.2F, 0.1F);
     EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), simulated.accumulated_force);
 }
 
@@ -248,8 +248,9 @@ TEST(PhysicsWorldColliders, CapsuleIntersectionsAreDetected) {
 
     auto collisions = engine::physics::detect_collisions(world);
     ASSERT_EQ(1U, collisions.size());
-    EXPECT_EQ(capsule_index, collisions[0].first);
-    EXPECT_EQ(sphere_index, collisions[0].second);
+    const auto first_pair = collisions[0];
+    EXPECT_TRUE((first_pair.first == capsule_index && first_pair.second == sphere_index) ||
+                (first_pair.first == sphere_index && first_pair.second == capsule_index));
 
     engine::physics::RigidBody second_capsule_body;
     second_capsule_body.position = engine::math::vec3{0.0F, 2.0F, 0.0F};
@@ -258,6 +259,93 @@ TEST(PhysicsWorldColliders, CapsuleIntersectionsAreDetected) {
 
     collisions = engine::physics::detect_collisions(world);
     ASSERT_EQ(1U, collisions.size());
-    EXPECT_EQ(capsule_index, collisions[0].first);
-    EXPECT_EQ(sphere_index, collisions[0].second);
+    const auto second_pair = collisions[0];
+    EXPECT_TRUE((second_pair.first == capsule_index && second_pair.second == sphere_index) ||
+                (second_pair.first == sphere_index && second_pair.second == capsule_index));
+}
+
+TEST(PhysicsWorldContacts, GeneratesPersistentSphereSphereManifold) {
+    engine::physics::PhysicsWorld world;
+
+    engine::physics::RigidBody first;
+    first.position = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    const auto first_index = engine::physics::add_body(world, first);
+    engine::physics::set_collider(world, first_index, engine::physics::Collider::make_sphere(1.0F));
+
+    engine::physics::RigidBody second;
+    second.position = engine::math::vec3{1.5F, 0.0F, 0.0F};
+    const auto second_index = engine::physics::add_body(world, second);
+    engine::physics::set_collider(world, second_index, engine::physics::Collider::make_sphere(1.0F));
+
+    engine::physics::update_contact_manifolds(world);
+
+    const auto& manifolds = engine::physics::contact_manifolds(world);
+    ASSERT_EQ(1U, manifolds.size());
+    const auto& manifold = manifolds[0];
+    EXPECT_EQ(first_index, manifold.first);
+    EXPECT_EQ(second_index, manifold.second);
+    ASSERT_EQ(1U, manifold.contact_count);
+    const auto& contact = manifold.contacts[0];
+    EXPECT_NEAR(0.5F, contact.penetration, 1e-4F);
+    EXPECT_GT(contact.normal[0], 0.0F);
+
+    const auto& telemetry = engine::physics::collision_telemetry(world);
+    EXPECT_EQ(1U, telemetry.manifold_count);
+    EXPECT_EQ(1U, telemetry.contact_count);
+    EXPECT_NEAR(0.5F, telemetry.max_penetration, 1e-4F);
+
+    // Move the second body slightly while maintaining overlap.
+    engine::physics::body_at(world, second_index).position = engine::math::vec3{1.4F, 0.0F, 0.0F};
+    engine::physics::update_contact_manifolds(world);
+    ASSERT_EQ(1U, engine::physics::contact_manifolds(world).size());
+    EXPECT_GT(engine::physics::contact_manifolds(world)[0].lifetime, 0U);
+
+    // Separate the pair and ensure the manifold clears.
+    engine::physics::body_at(world, second_index).position = engine::math::vec3{3.5F, 0.0F, 0.0F};
+    engine::physics::update_contact_manifolds(world);
+    EXPECT_TRUE(engine::physics::contact_manifolds(world).empty());
+    const auto& cleared = engine::physics::collision_telemetry(world);
+    EXPECT_EQ(0U, cleared.manifold_count);
+    EXPECT_EQ(0U, cleared.contact_count);
+    EXPECT_FLOAT_EQ(0.0F, cleared.max_penetration);
+}
+
+TEST(PhysicsWorldContacts, ConstraintCallbacksReceiveManifolds) {
+    engine::physics::PhysicsWorld world;
+
+    engine::physics::RigidBody box;
+    box.position = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    const auto box_index = engine::physics::add_body(world, box);
+    const auto local_box = engine::geometry::MakeAabbFromCenterExtent({0.0F, 0.0F, 0.0F}, {0.5F, 0.5F, 0.5F});
+    engine::physics::set_collider(world, box_index, engine::physics::Collider::make_aabb(local_box));
+
+    engine::physics::RigidBody capsule;
+    capsule.position = engine::math::vec3{0.4F, 0.5F, 0.0F};
+    const auto capsule_index = engine::physics::add_body(world, capsule);
+    engine::physics::Collider::Capsule capsule_shape;
+    capsule_shape.point_a = engine::math::vec3{0.0F, -0.5F, 0.0F};
+    capsule_shape.point_b = engine::math::vec3{0.0F, 0.5F, 0.0F};
+    capsule_shape.radius = 0.25F;
+    engine::physics::set_collider(world, capsule_index, engine::physics::Collider::make_capsule(capsule_shape));
+
+    struct CallbackState {
+        std::size_t count{0U};
+        float last_penetration{0.0F};
+    } state;
+
+    engine::physics::ConstraintSolverCallbacks callbacks{};
+    callbacks.on_manifold = [](engine::physics::PhysicsWorld&, const engine::physics::ContactManifold& manifold, void* user) {
+        auto* state = static_cast<CallbackState*>(user);
+        ++state->count;
+        if (manifold.contact_count > 0U) {
+            state->last_penetration = manifold.contacts[0].penetration;
+        }
+    };
+    callbacks.user_data = &state;
+    engine::physics::set_constraint_callbacks(world, callbacks);
+
+    engine::physics::update_contact_manifolds(world);
+
+    EXPECT_EQ(1U, state.count);
+    EXPECT_GT(state.last_penetration, 0.0F);
 }

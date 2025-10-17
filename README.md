@@ -113,8 +113,8 @@ The following items remain open and should be prioritised when planning new work
 
 - **Compute dependency validation (`AI-004`)** – introduce explicit dependency metadata, perform cycle detection, and surface
   diagnostics for the dispatcher.
-- **Physics contact manifolds (`RT-002`)** – design persistent manifolds, integrate the constraint solver hooks, add telemetry,
-  and document the workflow.
+- **Physics constraint solver integration (`RT-002-FU1`)** – leverage the manifold callbacks to implement impulse resolution,
+  extend telemetry with solver iterations, and document authoring workflows.
 - **Scene hierarchy validation (`RT-005`)** – implement cycle and transform integrity checks, add reporting hooks, and document
   validation flows.
 - **IO format detection hardening (`RT-006`)** – expand signature databases and integrate fuzzing harnesses beyond the structured

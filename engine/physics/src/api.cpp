@@ -29,7 +29,6 @@ void integrate_substep(PhysicsWorld& world, float step) {
         body.velocity += acceleration * step;
         body.velocity *= damping_factor;
         body.position += body.velocity * step;
-        body.accumulated_force = math::vec3{0.0F, 0.0F, 0.0F};
     }
 }
 
@@ -82,6 +81,10 @@ void integrate(PhysicsWorld& world, double dt) {
 
     if (remaining > static_cast<double>(minimum_step)) {
         integrate_substep(world, static_cast<float>(remaining));
+    }
+
+    for (auto& body : world.bodies) {
+        body.accumulated_force = math::vec3{0.0F, 0.0F, 0.0F};
     }
 }
 

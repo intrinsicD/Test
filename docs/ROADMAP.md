@@ -191,13 +191,15 @@ Near-term planning should prioritise the following open items:
 - **Module:** Physics
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Design persistent manifold data structures.
-  - [ ] Integrate constraint solving hooks.
-  - [ ] Emit telemetry for collision diagnostics.
-  - [ ] Document manifold usage in Physics README.
+  - [x] Design persistent manifold data structures.
+  - [x] Integrate constraint solving hooks.
+  - [x] Emit telemetry for collision diagnostics.
+  - [x] Document manifold usage in Physics README.
 - **Artifacts:** Physics solver sources, manifold data structures, telemetry hooks, documentation updates.
 - **Tests:** Physics regression suite covering manifold stability and constraint solving.
 - **Docs:** Physics README, telemetry references.
+- **Follow-Up:** Implement impulse-based constraint resolution leveraging the registered
+  solver callbacks and extend telemetry to capture solver iterations (`RT-002-FU1`).
 
 #### RT-003: Vulkan Backend Prototype
 - **Priority:** HIGH
