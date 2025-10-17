@@ -6,7 +6,10 @@
 - `skinning::build_global_joint_transforms` and `skinning::build_skinning_transforms` evaluate rig poses into per-joint linear blend skinning transforms that downstream geometry helpers consume.
 - JSON import/export helpers (`write_clip_json`, `read_clip_json`, `save_clip_json`, `load_clip_json`) enable round-tripping clips for offline tools and automated validation flows.
 - Blend-tree authoring helpers cover clip nodes, controller nodes, linear and additive blend nodes, and parameter management (float, bool, event) so higher-level systems can express complex animation graphs.
-- Unit tests under `engine/animation/tests/` exercise module loading, serialization, and blend tree behaviours to guard refactors.
+- Unit tests under `engine/animation/tests/` exercise module loading,
+  serialization, and blend tree behaviours to guard refactors; the integration
+  harness in [`engine/tests/integration`](../../../engine/tests/integration/README.md)
+  validates that animation poses drive physics/runtime pipelines end-to-end.
 
 ## Usage
 - Build the static/shared library target with `cmake --build --preset <preset> --target engine_animation` to expose headers under `engine/animation`.

@@ -6,7 +6,11 @@
 - Provides caches for meshes, point clouds, graphs, textures, and shaders that track descriptors, last-write timestamps, and hot-reload callbacks while delegating format-aware loading to `engine::io` utilities.
 - Defines asset descriptors that capture provenance, format hints, and binding metadata shared between caches and runtime consumers.
 - Stores material assets as descriptor bindings (shader + texture handles); material authoring, serialization, and hot-reload remain TODO.
-- Unit tests under `engine/assets/tests/` validate module registration, cache reload behaviour, descriptor plumbing, generational handle semantics, and unload invalidation.
+- Unit tests under `engine/assets/tests/` validate module registration, cache
+  reload behaviour, descriptor plumbing, generational handle semantics, and
+  unload invalidation. Runtime-level verification of mesh cache loading feeds
+  into the integration suite at [`engine/tests/integration`](../../../engine/tests/integration/README.md)
+  (`TI-001`).
 
 ## Usage
 - Build the target with `cmake --build --preset <preset> --target engine_assets`; this links against `engine_io` and transitively pulls in geometry readers.
