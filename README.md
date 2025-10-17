@@ -19,8 +19,8 @@ what is implemented today.
 | Math | Vector, matrix, quaternion, and transform primitives plus orthonormal basis helpers that feed animation, geometry, and physics. |
 | Physics | Rigid-body world with mass clamping, damping, configurable substepping, sphere/AABB/capsule colliders, and sweep-and-prune broad-phase collision detection. |
 | Platform | Virtual filesystem providers, backend selection plumbing, and mocked window/input services pending concrete OS integrations. |
-| Rendering | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and a backend-neutral GPU scheduler interface. |
-| Runtime | `RuntimeHost` orchestration that advances animation, drives physics via the compute dispatcher, deforms geometry, updates bounds, and mirrors joint transforms into an EnTT-backed scene. |
+| Rendering | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and a Vulkan-backed GPU scheduler prototype validating the submission interface. |
+| Runtime | `RuntimeHost` orchestration that advances animation, drives physics via the compute dispatcher, deforms geometry, updates bounds, mirrors joint transforms into an EnTT-backed scene, and submits the scene to the forward pipeline through the GPU scheduler integration. |
 | Scene | Entity façade with hierarchy and transform propagation systems, deterministic serialization/deserialization, and component helpers used by the runtime. |
 | Tools | Staging area for editor, profiling, and pipeline automation features with roadmap-driven scaffolding. |
 

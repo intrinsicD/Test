@@ -19,7 +19,7 @@ This file distils the coding, testing, and documentation practices that compleme
 - For GPU/backend changes, add integration tests or validation layers that run in CI-compatible configurations.
 
 ## Documentation
-- Use relative links (`[Example](../specs/ADR-0003-runtime-frame-graph.md)`) to keep navigation working across contexts.
+- Use relative links (`[Example](specs/ADR-0003-runtime-frame-graph.md)`) to keep navigation working across contexts.
 - Keep Markdown sections under ~120 lines per heading to improve retrieval quality.
 - When creating a new doc, state purpose, scope, and authoritative references in the first paragraph.
 - Synchronise roadmap identifiers between `docs/ROADMAP.md`, module roadmaps, and any ADR you edit.
