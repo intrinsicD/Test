@@ -13,11 +13,14 @@
 #include <utility>
 #include <vector>
 
+#include "engine/math/transform.hpp"
+
 namespace engine::animation {
 
 struct RigJoint {
     std::string name;
     std::uint32_t parent{std::numeric_limits<std::uint32_t>::max()};
+    math::Transform<float> inverse_bind_pose{math::Transform<float>::Identity()};
 };
 
 struct VertexInfluence {

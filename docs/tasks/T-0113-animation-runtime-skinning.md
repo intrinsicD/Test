@@ -13,7 +13,7 @@ content authors.
   handle safety and rendering contracts; we must extend them to accept skinned geometry buffers.
 
 ## Inputs
-- Code: `engine/animation/skin/`, `engine/geometry/deform/`, `engine/runtime/runtime_host.cpp`,
+- Code: `engine/animation/deformation/`, `engine/geometry/deform/`, `engine/runtime/runtime_host.cpp`,
   `engine/runtime/tests/`, `engine/rendering/frame_graph.hpp`.
 - Docs/specs: [`docs/modules/animation/README.md`](../modules/animation/README.md),
   [`docs/modules/geometry/README.md`](../modules/geometry/README.md),
@@ -58,14 +58,16 @@ content authors.
    - READMEs and roadmap updates referencing completion of `RT-001` LBS tasks.
 
 ## Acceptance Criteria
-- [ ] Runtime can stream a skinned mesh through the rendering pipeline with deterministic results.
-- [ ] Tests cover edge cases: zero-weight vertices, over-subscribed joint indices, missing inverse bind poses.
+- [x] Runtime can stream a skinned mesh through the rendering pipeline with deterministic results.
+- [x] Tests cover edge cases: zero-weight vertices, over-subscribed joint indices, missing inverse bind poses.
 - [ ] Telemetry indicates per-frame skinning cost with variance ≤ 5% over 100 frames in debug build.
-- [ ] Documentation cross-links central roadmap and module READMEs.
+- [x] Documentation cross-links central roadmap and module READMEs.
 
 ## Metrics & Benchmarks
 - Record timings for 10k-vertex rig in debug/release configurations.
 - Track memory footprint of skinning buffers vs. static mesh storage.
+- Attempted to configure the debug preset to gather telemetry, but the build environment lacks the `libxrandr` development
+  headers required by GLFW, blocking execution of `scripts/diagnostics/runtime_frame_telemetry.py` in this run.
 
 ## Open Questions
 - Do we require GPU skinning fallbacks now or defer to future roadmap items?

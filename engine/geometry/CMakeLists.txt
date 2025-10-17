@@ -2,6 +2,7 @@ set(target_name engine_geometry)
 
 add_library(${target_name}
     src/api.cpp
+    src/deform/linear_blend_skinning.cpp
     src/graph/graph.cpp
     src/graph/graph_io.cpp
     src/properties/property_registry.cpp
@@ -32,6 +33,7 @@ engine_apply_module_defaults(${target_name}
 
 target_link_libraries(${target_name}
     PUBLIC
+        engine_animation
         engine_math
 )
 

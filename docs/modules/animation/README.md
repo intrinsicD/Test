@@ -3,6 +3,7 @@
 ## Current State
 - Provides skeletal animation primitives such as `JointPose`, `AnimationClip`, and `AnimationController` along with utilities for keyframe sampling, controller advancement, and blend tree evaluation exposed in `engine/animation/api.hpp`. These routines form the backbone for posing rigs at runtime.
 - `RigBinding`, `RigJoint`, and `VertexBinding` define the skeleton ↔ mesh binding contract, including joint hierarchy metadata and normalized per-vertex influences that upcoming deformation systems consume.
+- `skinning::build_global_joint_transforms` and `skinning::build_skinning_transforms` evaluate rig poses into per-joint linear blend skinning transforms that downstream geometry helpers consume.
 - JSON import/export helpers (`write_clip_json`, `read_clip_json`, `save_clip_json`, `load_clip_json`) enable round-tripping clips for offline tools and automated validation flows.
 - Blend-tree authoring helpers cover clip nodes, controller nodes, linear and additive blend nodes, and parameter management (float, bool, event) so higher-level systems can express complex animation graphs.
 - Unit tests under `engine/animation/tests/` exercise module loading, serialization, and blend tree behaviours to guard refactors.

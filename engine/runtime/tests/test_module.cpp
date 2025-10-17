@@ -341,6 +341,87 @@ TEST(RuntimeHost, AcceptsInjectedDependencies) {
     host.shutdown();
 }
 
+TEST(RuntimeHost, AppliesLinearBlendSkinning) {
+    engine::animation::AnimationClip clip{};
+    clip.name = "skinning";
+    clip.duration = 1.0;
+
+    engine::animation::JointTrack root_track{};
+    root_track.joint_name = "root";
+    root_track.keyframes.push_back(engine::animation::Keyframe{
+        0.0,
+        engine::animation::JointPose{engine::math::vec3{0.0F, 0.0F, 0.0F},
+                                     engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
+                                     engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+    root_track.keyframes.push_back(root_track.keyframes.front());
+
+    engine::animation::JointTrack child_track{};
+    child_track.joint_name = "child";
+    child_track.keyframes.push_back(engine::animation::Keyframe{
+        0.0,
+        engine::animation::JointPose{engine::math::vec3{0.0F, 2.0F, 0.0F},
+                                     engine::math::normalize(engine::math::angle_axis(
+                                         engine::math::radians(90.0F), engine::math::vec3{0.0F, 0.0F, 1.0F})),
+                                     engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+    child_track.keyframes.push_back(child_track.keyframes.front());
+
+    clip.tracks.push_back(root_track);
+    clip.tracks.push_back(child_track);
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.controller = engine::animation::make_linear_controller(std::move(clip));
+
+    engine::geometry::SurfaceMesh mesh{};
+    mesh.rest_positions = {
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{0.0F, 2.0F, 0.0F},
+        engine::math::vec3{0.0F, 3.0F, 0.0F},
+    };
+    mesh.positions = mesh.rest_positions;
+    mesh.indices = {0U, 1U, 2U};
+    deps.mesh = mesh;
+
+    engine::animation::RigBinding binding{};
+    engine::animation::RigJoint root{};
+    root.name = "root";
+    root.parent = engine::animation::RigBinding::kInvalidIndex;
+    root.inverse_bind_pose = engine::math::Transform<float>::Identity();
+    binding.joints.push_back(root);
+
+    engine::animation::RigJoint child{};
+    child.name = "child";
+    child.parent = 0U;
+    child.inverse_bind_pose.translation = engine::math::vec3{0.0F, -2.0F, 0.0F};
+    binding.joints.push_back(child);
+
+    binding.resize_vertices(mesh.rest_positions.size());
+    binding.vertices[0].clear();
+    ASSERT_TRUE(binding.vertices[0].add_influence(0U, 1.0F));
+    binding.vertices[0].normalize_weights();
+    binding.vertices[1].clear();
+    ASSERT_TRUE(binding.vertices[1].add_influence(0U, 0.5F));
+    ASSERT_TRUE(binding.vertices[1].add_influence(1U, 0.5F));
+    binding.vertices[1].normalize_weights();
+    binding.vertices[2].clear();
+    ASSERT_TRUE(binding.vertices[2].add_influence(1U, 1.0F));
+    binding.vertices[2].normalize_weights();
+    deps.binding = binding;
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+    const auto frame = host.tick(0.0);
+    ASSERT_FALSE(frame.scene_nodes.empty());  // NOLINT
+
+    const auto& skinned_mesh = host.current_mesh();
+    ASSERT_EQ(skinned_mesh.positions.size(), 3U);
+    EXPECT_NEAR(skinned_mesh.positions[0][0], 0.0F, 1.0e-5F);
+    EXPECT_NEAR(skinned_mesh.positions[0][1], 0.0F, 1.0e-5F);
+    EXPECT_NEAR(skinned_mesh.positions[2][0], -1.0F, 1.0e-3F);
+    EXPECT_NEAR(skinned_mesh.positions[2][1], 2.0F, 1.0e-3F);
+
+    host.shutdown();
+}
+
 TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     engine::runtime::RuntimeHostDependencies deps{};
     deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(

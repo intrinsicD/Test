@@ -30,9 +30,9 @@ _Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
 - **Issue:** #236
 - **Tasks:**
   - [x] Define `RigBinding` data structure (tracks `RT-001` progress)
-  - [ ] Link rig poses to mesh vertices
-  - [ ] Implement linear blend skinning
-  - [ ] Add integration test with geometry module
+  - [x] Link rig poses to mesh vertices
+  - [x] Implement linear blend skinning
+  - [x] Add integration test with geometry module
 
 ### Clip Validation Hardening
 - **Owner:** @animation-team

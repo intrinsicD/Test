@@ -149,9 +149,9 @@ modules. Items are grouped by their intent:
 - **Dependencies:** [AI-001]
 - **Tasks:**
   - [x] Implement rig binding data structures (see [docs/modules/animation/ROADMAP.md](modules/animation/ROADMAP.md)).
-  - [ ] Integrate linear blend skinning into the runtime evaluation path.
-  - [ ] Author deformation regression tests using deterministic fixtures.
-  - [ ] Document deformation workflows in Animation and Geometry READMEs.
+  - [x] Integrate linear blend skinning into the runtime evaluation path.
+  - [x] Author deformation regression tests using deterministic fixtures.
+  - [x] Document deformation workflows in Animation and Geometry READMEs.
 - **Artifacts:** Animation deformation sources, geometry binding helpers, documentation updates.
 - **Tests:** Runtime smoke tests verifying deformation correctness; geometry unit coverage.
 - **Docs:** Animation and geometry module READMEs; deformation migration guides.
