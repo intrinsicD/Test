@@ -4,6 +4,9 @@
 
 - Aggregates build presets (`build/presets`), toolchains (`build/toolchains`), and CI drivers (`ci/run_presets.py`).
 - `CMakePresets.json` includes the preset fragments so standard `cmake --preset` invocations work from the repository root.
+- Telemetry and diagnostics helpers live in [`diagnostics/`](diagnostics/); see
+  [`diagnostics/README.md`](diagnostics/README.md) for the runtime frame timing
+  capture script that fulfils the sprint 06 telemetry requirement.
 
 ## Usage
 
@@ -16,3 +19,5 @@
 
 - Capture shared automation entry points for developers and CI environments.
 - Document additional scripts as new workflows come online (packaging, deployment, etc.).
+- Integrate telemetry exports with CI once the runtime diagnostics tooling is
+  automated.
