@@ -22,9 +22,9 @@ validation across animation, physics, geometry/IO, assets, and rendering.
 
 ## Determinism & Environment
 
-- Tests assume `ENGINE_WINDOW_BACKEND=MOCK` so no real windowing surface is
-  created. The mock backend is configured automatically by the CMake presets used
-  in CI (`linux-gcc-*`).
+- Tests force `ENGINE_PLATFORM_WINDOW_BACKEND=mock` (and `ENGINE_WINDOW_BACKEND=MOCK`)
+  via the CTest definition so no real windowing surface is created. The harness
+  also applies a 90 s timeout to keep CI runs bounded.
 - Every scenario seeds its own inputs (mesh translation, rig bindings, asset
   identifiers) and avoids random sources to keep telemetry deterministic.
 - Temporary files are created with a monotonic counter under
