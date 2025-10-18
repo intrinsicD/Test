@@ -163,10 +163,10 @@ product goals. Update both the plan and this snapshot together to prevent drift.
 
 ### Prerequisites
 
-- **Compilers** – C++20-capable toolchain (MSVC 19.3x, Clang 15+, or GCC 12+).
-- **Build system** – CMake 3.20+ (per `cmake_minimum_required`) and Ninja or another generator.
+- **Compilers** – C++20-capable toolchain. We validate changes with **Clang 22.0**, **GCC 13.2**, and **MSVC 19.38**; earlier revisions must still satisfy the minimum of **Clang ≥ 22**, **GCC ≥ 12**, or **MSVC ≥ 19.34** to compile the modules. Confirm availability with `clang --version`, `g++ --version`, or `cl.exe /?` before configuring.
+- **Build system** – **CMake ≥ 3.20** (tested with 3.28.3) plus **Ninja ≥ 1.11** or the Visual Studio 2022 generator. Verify with `cmake --version` and `ninja --version` to ensure presets pick up the expected tools.
 - **Python** – Python 3.12+ with `pip` for scripts and test harnesses.
-- **Host libraries** – Platform SDKs/drivers for the rendering backends you plan to target (Vulkan SDK, DirectX 12 Agility SDK, or system OpenGL drivers). Linux builds that enable GLFW require `libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, and `libxi-dev`.
+- **Host libraries** – Platform SDKs/drivers for the rendering backends you plan to target (Vulkan SDK 1.3.x, DirectX 12 Agility SDK, or system OpenGL drivers). Linux builds that enable GLFW require `libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, and `libxi-dev`.
 
 ### Configure and Build
 
