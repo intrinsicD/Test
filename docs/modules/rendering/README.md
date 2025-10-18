@@ -33,6 +33,21 @@
 - `engine::rendering::CallbackRenderPass` accepts the preferred queue as its fourth constructor argument for concise setup of compute or transfer passes.
 - Call `FrameGraph::serialize()` after compilation to materialise a canonical JSON representation of resources, passes, and execution order. The serializer escapes debug names, preserves declaration order, and ensures repeated invocations yield byte-for-byte identical output for diffing and caching. Serialized resources now include extent, array-layer, mip-count, sample-count, and buffer-size metadata alongside the format/usage/state snapshot.
 
+## Runtime Coordination Responsibilities
+
+- The rendering module owns the authoritative metadata schema for frame-graph resources and pass descriptors. Any change to
+  `FrameGraphResourceDescriptor`, pass queue semantics, or serialization fields must be mirrored in the runtime module within the
+  same change set.
+- Rendering reviewers are responsible for flagging runtime call sites—`RuntimeHost::RenderSubmissionContext`, default pass
+  builders, and integration tests in `engine/runtime/tests/`—that need adjustments whenever metadata evolves. Treat the
+  `RuntimeHost::submit_render_graph` helpers as API consumers that must compile and pass existing tests after every metadata
+  update.
+- Runtime contributors must surface new resource requirements (for example additional G-buffer attachments or queue transitions)
+  through the rendering module before expanding submission payloads. Document the expectations in task/PR descriptions and
+  update both module READMEs so downstream teams understand the split of responsibilities.
+- Integration suites under `engine/tests/integration/` act as the shared guardrail: extend or add scenarios whenever metadata
+  changes to ensure runtime-generated passes exercise the new descriptors end-to-end through the Vulkan scheduler.
+
 ## Vulkan Resource Translation
 
 - `engine::rendering::backend::vulkan::translate_resource` converts a `FrameGraphResourceInfo` into either a `VkImageCreateInfo`

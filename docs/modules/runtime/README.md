@@ -30,6 +30,21 @@
 - Run `ctest --preset <preset> --tests-regex engine_runtime` to verify module plumbing before running broader integration suites.
 - Toggle subsystem availability at configure time via the `ENGINE_ENABLE_<MODULE>` CMake options (for example `-DENGINE_ENABLE_RENDERING=OFF`). Disabled subsystems are omitted from the default registry but can still be re-enabled explicitly through the helper APIs.
 
+## Rendering Metadata Alignment Responsibilities
+
+- Runtime submission code (`RuntimeHost::submit_render_graph`, the default forward-pipeline wiring, and test fixtures under
+  `engine/runtime/tests/`) must stay byte-for-byte compatible with the rendering module's `FrameGraphResourceDescriptor`
+  schema. Any change to resource formats, usage flags, queue affinity, or serialization fields in the rendering module requires
+  a matching runtime update in the same change.
+- Runtime reviewers share ownership for spotting rendering metadata changes. Treat the rendering README as the single source of
+  truth for schema fields and cross-check every runtime submission path—including the integration suite under
+  `engine/tests/integration/`—before approving metadata modifications.
+- When runtime requires additional GPU resources (for example, expanding the forward pipeline with new attachments or compute
+  passes), file a rendering task first, align on the metadata contract, and update both READMEs alongside the implementation so
+  downstream teams understand who maintains which descriptors.
+- Extend integration scenarios whenever metadata evolves so the Vulkan-backed vertical slice exercises the updated descriptors
+  through `RuntimeHost::submit_render_graph`. This keeps `RT-003` parity intact across modules.
+
 ## Subsystem Plugin Contract
 
 Subsystems implement `engine::core::plugin::ISubsystemInterface`. Each plugin exposes its
