@@ -16,6 +16,7 @@ If you are ChatGPT or another AI assistant, start here every time you work on th
 | Working agreement & guardrails | [docs/agents.md](agents.md) |
 | System invariants & data flow | [docs/architecture.md](architecture.md) |
 | Coding, testing, and docs rules | [docs/conventions.md](conventions.md) |
+| Implementation & self-review workflow | [docs/prompts/implementation-playbook.md](prompts/implementation-playbook.md) |
 | Task backlog & acceptance criteria | [docs/tasks/README.md](tasks/README.md) |
 | Decision records & specifications | [docs/specs/README.md](specs/README.md) |
 
