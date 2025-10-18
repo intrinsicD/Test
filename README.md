@@ -111,30 +111,11 @@ current items so this README remains an at-a-glance companion to the full
 
 ### Outstanding Backlog Focus
 
-The following items remain open and should be prioritised when planning new work:
+Refer to [docs/ROADMAP.md](docs/ROADMAP.md#outstanding-backlog-focus) for the canonical inventory. At a glance:
 
-- **Compute dependency validation (`AI-004`)** – introduce explicit dependency metadata, perform cycle detection, and surface
-  diagnostics for the dispatcher.
-- **Physics constraint solver integration (`RT-002-FU1`)** – leverage the manifold callbacks to implement impulse resolution,
-  extend telemetry with solver iterations, and document authoring workflows.
-- **Scene hierarchy validation (`RT-005`)** – implement cycle and transform integrity checks, add reporting hooks, and document
-  validation flows.
-- **IO format detection hardening (`RT-006`)** – expand signature databases and integrate fuzzing harnesses beyond the structured
-  errors that already landed.
-- **Telemetry framework (`CC-001`)** – build a cross-module telemetry API, implement sinks, instrument hot paths, and ship a
-  profiling viewer.
-- **Hot reload infrastructure (`CC-002`)** – add filesystem watching, asset cache callbacks, transaction logging, integration
-  tests, and documentation.
-- **Benchmarking & fuzzing harnesses (`TI-002`, `TI-003`)** – land performance benchmarks, CI regression detection, IO fuzzing
-  targets, corpora, and documentation.
-- **Python bindings (`PY-001`)** – document binding generation, add dependencies, expose animation/geometry APIs, provide stubs,
-  and add pytest coverage.
-- **Documentation improvements (`DI-001`–`DI-003`)** – standardise READMEs, automate completeness checks, generate API
-  references, and establish ADR infrastructure.
-- **Build system hygiene (`BS-001`–`BS-003`)** – expand presets, document the versioning policy, and audit target dependency
-  hygiene.
-- **Milestone coordination (`MC-001`, `MC-002`)** – create milestone dashboards and keep module roadmaps synchronised with
-  central planning.
+- **Cross-cutting priorities**: `RT-002-FU1`, `RT-005`, `RT-006`, `CC-001`, `CC-002`, `TI-002`/`TI-003`, `PY-001`, `DI-001`–`DI-003`, `BS-001`–`BS-003`, and `MC-001`/`MC-002` anchor the shared architectural work. Tackle these first so subsystem queues build on consistent APIs, tooling, and telemetry.
+- **Module execution queues**: Animation, Assets, Compute, Core, Geometry, IO, Math, Physics, Platform, Rendering, Runtime, Scene, and Tools each own a curated backlog spanning validation, performance, and roadmap follow-ups. Schedule these once the cross-cutting items above are staffed.
+- **Process & audits**: Close the open architecture audit checklist items to certify invariants (frame-graph determinism, handle safety, geometry fidelity, physics invariants, documentation completeness, telemetry coverage, dependency graphs) before the next audit cycle.
 
 ### Priority Horizon
 

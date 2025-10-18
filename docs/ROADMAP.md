@@ -19,28 +19,45 @@ modules. Items are grouped by their intent:
 
 ### Outstanding Backlog Focus
 
-Near-term planning should prioritise the following open items:
+The backlog is grouped to make ownership and sequencing explicit. Prioritise cross-cutting items first so module work builds on a
+stable architectural base.
 
-- **`RT-002` – Physics contact manifolds**: introduce persistent manifolds, integrate constraint solving hooks, add telemetry,
-  and document workflows.
-- **`RT-004` – Runtime diagnostics**: instrument lifecycle stages, expose telemetry through `RuntimeHost`, and surface metrics in
-  tooling.
-- **`RT-005` – Scene hierarchy validation**: provide cycle/transform checks, reporting hooks, and documentation.
-- **`RT-006` – IO format detection hardening**: expand signature databases and integrate fuzzing harnesses beyond the structured
-  error work already completed.
-- **`CC-001` – Telemetry framework**: design the cross-module API, implement sinks, instrument hot paths, and build a profiling
-  viewer.
-- **`CC-002` – Hot reload infrastructure**: add filesystem watching, asset cache callbacks, transaction logging, integration
-  tests, and documentation.
-- **`TI-002` & `TI-003` – Benchmarking and fuzzing harnesses**: introduce benchmarks, CI regression detection, libFuzzer targets,
-  corpora, and documentation.
-- **`PY-001` – Python bindings**: document binding generation, add dependencies, expose animation/geometry APIs, provide stubs,
-  and cover them with pytest.
-- **`DI-001`–`DI-003` – Documentation improvements**: standardise READMEs, automate completeness checks, generate API references,
-  and stand up ADR infrastructure.
-- **`BS-001`–`BS-003` – Build system hygiene**: expand presets, codify versioning policy, and audit target dependency hygiene.
-- **`MC-001` & `MC-002` – Milestone coordination**: publish milestone dashboards and ensure module roadmaps stay in sync with this
-  plan.
+#### Cross-Cutting Architecture Backlog
+
+| ID | Scope | Key Deliverables |
+| --- | --- | --- |
+| `RT-002-FU1` | Physics / Telemetry | Ship the impulse-based solver on top of the manifold callbacks, extend instrumentation, and finalise authoring docs. |
+| `RT-005` | Scene | Enforce hierarchy integrity with cycle/transform validation, runtime reporting hooks, and documentation. |
+| `RT-006` | IO | Grow signature heuristics, integrate fuzzing harnesses, and document detection workflows. |
+| `CC-001` | Telemetry | Define the telemetry API, implement sinks, instrument hot paths, and deliver a viewer. |
+| `CC-002` | Hot Reload | Provide filesystem watchers, cache callbacks, failure logging, integration tests, and workflow docs. |
+| `TI-002` / `TI-003` | Testing | Stand up benchmarking suites, libFuzzer targets with corpora, and CI orchestration. |
+| `PY-001` | Python | Add binding generation pipelines, expose animation/geometry façades, ship `.pyi` stubs, and backfill pytest coverage. |
+| `DI-001`–`DI-003` | Documentation | Standardise module READMEs, automate completeness checks, generate API references, and publish ADR guidance. |
+| `BS-001`–`BS-003` | Build System | Expand presets, document the dependency update cadence, and enforce version checks in CI. |
+| `MC-001` / `MC-002` | Process | Publish milestone dashboards, synchronise labels, and automate roadmap consistency checks. |
+
+#### Module Execution Backlog
+
+Use these queues to coordinate subsystem-specific work once the cross-cutting items above are staffed.
+
+- **Animation:** Harden clip validation (structured errors, regression suites) and plan GPU/parallel sampling, blend-tree authoring tools, and advanced deformation pipelines.
+- **Assets:** Deliver async streaming helpers, hot-reloadable material persistence, cache lifecycle utilities, rich import diagnostics, dependency graphs, background refresh polling, and long-lived cooked artefact storage.
+- **Compute:** Add a configurable timing clock, then pursue thread-pool executors, CUDA device/stream management, and alignment with the runtime job graph.
+- **Core:** Build layered configuration APIs, diagnostics logging bridges, plugin discovery/shutdown orchestration, a frame-stage scheduler, and long-term multithreading guidance with tests.
+- **Geometry:** Improve property registry ergonomics, benchmark accelerated normals/bounds updates, add remeshing/parameterisation, support dynamic spatial structures, and target robust reconstruction workflows.
+- **IO:** Expand signature heuristics with regression tests, add async streaming hooks and incremental IO, and provide authoring-time validation tools.
+- **Math:** Document invariants with edge-case tests, implement polar/QR decompositions with benchmarks, introduce SIMD specialisations and fixed-size solvers, and expose external-format conversions via Python bindings.
+- **Physics:** Document mass/force invariants, expand instrumentation and regression suites, complete the impulse constraint solver, and plan advanced integrators, sleeping heuristics, richer colliders, and authoring visualisation.
+- **Platform:** Enhance backend detection, add filesystem watch/write support, expose presentation controls, integrate comprehensive input sampling, and wire telemetry plus remote-control hooks.
+- **Rendering:** Follow Vulkan/DX12 parity by delivering resource providers, backend schedulers, a pass library, stress/integration tests, GPU profiling, and extensive documentation/samples.
+- **Runtime:** Finish state reset validation, plan async streaming integration, and develop deterministic replay/scripting tooling.
+- **Scene:** Formalise light/camera/visibility components, add hierarchy validation utilities, support serialization versioning and spatial query tooling, and plan editor-facing inspection workflows.
+- **Tools:** Create asset pipeline CLI targets, bring up a Dear ImGui diagnostics shell, add profiling capture/export with a viewer, prototype an editor shell, and package tooling with automated verification.
+
+#### Process & Audit Items
+
+- **Architecture audit checklist:** Close the remaining verification items covering deterministic frame-graph behaviour, handle safety, geometry fidelity, physics invariants, documentation completeness, error-handling adherence, resource lifetime discipline, telemetry coverage, and dependency graph analysis during the next audit cycle.
 
 ### Critical Design Corrections
 
