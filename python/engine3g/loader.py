@@ -275,15 +275,21 @@ def _shared_library_name(identifier: str) -> str:
 
 def _load_shared_library(identifier: str, search_paths: Optional[Iterable[os.PathLike[str] | str]]) -> ctypes.CDLL:
     library_name = _shared_library_name(identifier)
+    attempted_paths: List[Path] = []
+    last_error: Optional[OSError] = None
     for candidate in _candidate_paths(library_name, search_paths):
+        attempted_paths.append(candidate)
         try:
             return ctypes.CDLL(str(candidate))
-        except OSError:
+        except OSError as error:
+            last_error = error
             continue
+    search_hint = ", ".join(str(path) for path in attempted_paths) or "<none>"
     raise EngineLibraryNotFound(
         f"Unable to locate the shared library '{library_name}'. "
-        "Set ENGINE3G_LIBRARY_PATH or provide explicit search paths."
-    )
+        "Set ENGINE3G_LIBRARY_PATH or provide explicit search paths. "
+        f"Looked in: {search_hint}."
+    ) from last_error
 
 
 def _candidate_paths(library_name: str, search_paths: Optional[Iterable[os.PathLike[str] | str]]):
