@@ -101,7 +101,8 @@ current items so this README remains an at-a-glance companion to the full
 - **Documentation (`DI-001`–`DI-003`)**: Standardise module READMEs, automate completeness checks, generate API references, and
   author ADRs.
 - **Build System (`BS-001`–`BS-003`)**: Expand presets, formalise versioning, and clean CMake targets with accompanying docs.
-- **Testing (`TI-001`–`TI-003`)**: Establish integration suites, performance benchmarks, and fuzzing harnesses with CI hooks.
+- **Testing (`TI-001`–`TI-003`)**: Establish integration suites, performance benchmarks, and fuzzing harnesses with CI hooks. Upgrade the
+  stubbed Googletest fork so the integration harness can build and run fixtures (`T-0118`).
 - **Python (`PY-001`)**: Bootstrap core bindings, dependency management, and pytest coverage.
 - **Cross-Cutting (`CC-001`, `CC-002`)**: Develop telemetry instrumentation and hot reload infrastructure across subsystems.
 - **Milestone Coordination (`MC-001`, `MC-002`)**: Maintain milestone dashboards and synchronise module roadmaps through
@@ -125,6 +126,8 @@ The following items remain open and should be prioritised when planning new work
   tests, and documentation.
 - **Benchmarking & fuzzing harnesses (`TI-002`, `TI-003`)** – land performance benchmarks, CI regression detection, IO fuzzing
   targets, corpora, and documentation.
+- **Googletest upgrade (`T-0118`)** – replace the stubbed testing framework with fixture-capable tooling so integration suites
+  can compile and execute.
 - **Python bindings (`PY-001`)** – document binding generation, add dependencies, expose animation/geometry APIs, provide stubs,
   and add pytest coverage.
 - **Documentation improvements (`DI-001`–`DI-003`)** – standardise READMEs, automate completeness checks, generate API
@@ -143,7 +146,7 @@ roadmap.
 |---------|------|------|--------|
 | Sprint 1 Focus | 1 | `AI-003` | In Progress — keep frame-graph metadata and runtime submission paths aligned across modules. |
 |                 | 2 | `RT-001` | Complete — monitor regressions while extending deformation coverage. |
-|                 | 3 | `TI-001` | Complete — integration suites remain the regression baseline. |
+|                 | 3 | `TI-001` | Blocked — integration suites fail to compile until the vendored Googletest gains fixture support (`T-0118`). |
 | Sprint 2-3 | 1 | `DC-004` | In Progress — finalise error-handling rollout and supporting documentation. |
 |            | 2 | `AI-001` | In Progress — expand handle-based lifetime management across caches and rendering. |
 |            | 3 | `RT-002` | Planned — ship persistent manifolds with constraint solving and telemetry. |

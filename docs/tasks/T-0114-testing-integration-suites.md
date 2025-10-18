@@ -57,16 +57,19 @@ providing a reusable harness under `engine/tests/integration/` with documentatio
    - Create follow-up tasks if additional scenarios identified during authoring.
 
 ## Acceptance Criteria
-- [x] `engine_integration_tests` target builds and runs deterministically on Linux (debug/release) and Windows (debug) presets.
-- [x] Tests cover the three baseline scenarios with pass/fail assertions tied to roadmap invariants.
-- [x] CI pipeline executes the suite (or a filtered subset) and records runtime < 90 s in debug builds.
+- [ ] `engine_integration_tests` target builds and runs deterministically on Linux (debug/release) and Windows (debug) presets (blocked by `T-0118`).
+- [ ] Tests cover the three baseline scenarios with pass/fail assertions tied to roadmap invariants.
+- [ ] CI pipeline executes the suite (or a filtered subset) and records runtime < 90 s in debug builds.
 - [x] Documentation cross-links roadmap `TI-001` and explains how to add scenarios.
 
 ## Metrics & Benchmarks
-- `ctest --preset linux-gcc-debug --tests-regex engine_integration_tests` completes in
-  `0.21 s` wall-clock on the container hardware (single pass covering all three
-  scenarios; telemetry aggregated from the CTest summary). No additional memory
-  regressions observed beyond the baseline runtime footprint.
+- Blocked pending `T-0118`; the integration binary fails to compile because the
+  vendored Googletest lacks fixture support.
+
+## Blockers
+- [`T-0118-testing-framework-upgrade.md`](T-0118-testing-framework-upgrade.md)
+  – replace the stubbed Googletest fork with a fixture-capable build so the
+  integration harness can compile and run.
 
 ## Open Questions
 - Do we need GPU availability checks to skip Vulkan-specific scenarios on unsupported platforms?

@@ -34,6 +34,8 @@ Near-term planning should prioritise the following open items:
   tests, and documentation.
 - **`TI-002` & `TI-003` – Benchmarking and fuzzing harnesses**: introduce benchmarks, CI regression detection, libFuzzer targets,
   corpora, and documentation.
+- **`TI-001` – Googletest upgrade (`T-0118`)**: replace the stubbed testing framework with fixture support so integration
+  suites compile and run.
 - **`PY-001` – Python bindings**: document binding generation, add dependencies, expose animation/geometry APIs, provide stubs,
   and cover them with pytest.
 - **`DI-001`–`DI-003` – Documentation improvements**: standardise READMEs, automate completeness checks, generate API references,
@@ -342,8 +344,9 @@ Near-term planning should prioritise the following open items:
   - [x] Stand up deterministic integration tests across animation, physics, runtime, and rendering.
   - [x] Provide fixtures and harnesses under `engine/tests/integration/`.
   - [x] Document integration test guidelines.
+  - [ ] Upgrade the vendored Googletest implementation to support fixtures/`TEST_F`, unblocking suite execution (`T-0118`).
 - **Artifacts:** Integration test sources, fixtures, documentation.
-- **Tests:** Integration test executions across configurations.
+- **Tests:** Integration test executions across configurations (blocked until `T-0118` lands).
 - **Docs:** `engine/tests/integration/README.md` and testing overview updates.
 - **Tracking:** [`T-0114`](tasks/T-0114-testing-integration-suites.md).
 
@@ -451,7 +454,7 @@ Near-term planning should prioritise the following open items:
 |---------|------|------|--------|
 | Sprint 1 Focus | 1 | AI-003 | In Progress — align frame-graph metadata with runtime submissions. |
 |                 | 2 | RT-001 | Complete — keep deformation regression coverage healthy. |
-|                 | 3 | TI-001 | Complete — integration suites act as the baseline smoke tests. |
+|                 | 3 | TI-001 | Blocked — integration suites cannot run until the Googletest fork supports fixtures (`T-0118`). |
 | Sprint 2-3 | 1 | DC-004 | In Progress — finish the error-handling migration and docs. |
 |            | 2 | AI-001 | In Progress — extend handle-based lifetime management. |
 |            | 3 | RT-002 | Planned — deliver persistent manifolds plus diagnostics. |

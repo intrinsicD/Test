@@ -10,7 +10,8 @@
   damping/substepping, collider management, and direct collision detection
   scenarios across sphere/AABB/capsule pairs, while the runtime integration
   suite in [`engine/tests/integration`](../../../engine/tests/integration/README.md)
-  ensures physics forces couple correctly with animation-driven inputs (`TI-001`).
+  ensures physics forces couple correctly with animation-driven inputs (`TI-001`),
+  once the Googletest fixture upgrade (`T-0118`) restores integration coverage.
 
 ## Usage
 - Build using `cmake --build --preset <preset> --target engine_physics`; this links against `engine_math` and `engine_geometry`.
