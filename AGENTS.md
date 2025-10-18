@@ -582,13 +582,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         googletest/
             CMakeLists.txt
             README.md
-            include/
-                gtest/
-                    gtest.h
-                    README.md
-            src/
-                gtest_main.cpp
-                README.md
         imgui/
             CMakeLists.txt
             imconfig.h

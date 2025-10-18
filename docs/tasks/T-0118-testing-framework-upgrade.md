@@ -41,14 +41,20 @@ re-implementing testing primitives.
    roadmap/task records.
 
 ## Acceptance Criteria
-- [ ] `cmake --build --preset linux-gcc-debug --target engine_assets_tests`
+- [x] `cmake --build --preset linux-gcc-debug --target engine_assets_tests`
       succeeds without compile errors from `TEST_F`.
-- [ ] `ctest --preset linux-gcc-debug --tests-regex engine_integration_tests`
+- [x] `ctest --preset linux-gcc-debug --tests-regex engine_integration_tests`
       runs to completion on the upgraded toolchain.
-- [ ] `docs/ROADMAP.md` and `docs/tasks/T-0114-testing-integration-suites.md`
+- [x] `docs/ROADMAP.md` and `docs/tasks/T-0114-testing-integration-suites.md`
       mark `TI-001` as unblocked.
-- [ ] Third-party licensing and README updates document the new Googletest
+- [x] Third-party licensing and README updates document the new Googletest
       source.
+
+## Status
+
+- 2025-02-17: Upgraded `third_party/googletest` to fetch upstream `v1.15.2`,
+  refreshed documentation, and validated fixture usage via the assets and
+  integration test suites.
 
 ## Follow-Up Considerations
 - Evaluate whether additional Googletest components (`gmock`, utilities) should

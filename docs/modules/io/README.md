@@ -7,8 +7,8 @@
 - Tests under `engine/io/tests/` validate detection, registry configuration, and
   animation import hooks, while the integration harness in
   [`engine/tests/integration`](../../../engine/tests/integration/README.md) verifies geometry
-  assets survive round-tripping through the runtime cache (`TI-001`),
-  pending the Googletest fixture upgrade tracked in `T-0118`.
+  assets survive round-tripping through the runtime cache (`TI-001`) now that the
+  Googletest fixture upgrade in `T-0118` has landed.
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_io`; this links against `engine_geometry` for the core data structures.

@@ -10,7 +10,8 @@
   reload behaviour, descriptor plumbing, generational handle semantics, and
   unload invalidation. Runtime-level verification of mesh cache loading feeds
   into the integration suite at [`engine/tests/integration`](../../../engine/tests/integration/README.md)
-  (`TI-001`), which is currently blocked until the Googletest fork supports fixtures (`T-0118`).
+  (`TI-001`), now backed by the fixture-capable Googletest upgrade delivered in
+  `T-0118`.
 
 ## Usage
 - Build the target with `cmake --build --preset <preset> --target engine_assets`; this links against `engine_io` and transitively pulls in geometry readers.
