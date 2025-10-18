@@ -17,7 +17,12 @@ namespace engine::rendering
         {
         public:
             ForwardGeometryPass(FrameGraphResourceHandle color, FrameGraphResourceHandle depth)
-                : RenderPass("ForwardGeometry"), color_(color), depth_(depth)
+                : RenderPass("ForwardGeometry",
+                              QueueType::Graphics,
+                              PassPhase::Geometry,
+                              ValidationSeverity::Error),
+                  color_(color),
+                  depth_(depth)
             {
             }
 

@@ -109,9 +109,18 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
 
     ASSERT_EQ(scheduler.submissions.size(), 1);  // NOLINT
     EXPECT_EQ(scheduler.submissions.front().pass_name, "ForwardGeometry");
+    EXPECT_EQ(scheduler.submissions.front().queue, engine::rendering::QueueType::Graphics);
+
+    ASSERT_EQ(scheduler.pass_metadata.size(), 1);  // NOLINT
+    const auto& pass_record = scheduler.pass_metadata.front();
+    EXPECT_EQ(pass_record.pass_name, "ForwardGeometry");
+    EXPECT_EQ(pass_record.preferred_queue, engine::rendering::QueueType::Graphics);
+    EXPECT_EQ(pass_record.phase, engine::rendering::PassPhase::Geometry);
+    EXPECT_EQ(pass_record.validation, engine::rendering::ValidationSeverity::Error);
 
     ASSERT_EQ(command_encoders.begin_records.size(), 1);  // NOLINT
     EXPECT_EQ(command_encoders.begin_records.front().pass_name, "ForwardGeometry");
+    EXPECT_EQ(command_encoders.begin_records.front().queue, engine::rendering::QueueType::Graphics);
     ASSERT_EQ(command_encoders.completed_encoders.size(), 1);  // NOLINT
     const auto& recorded_encoder = *command_encoders.completed_encoders.front();
     ASSERT_EQ(recorded_encoder.draws.size(), 3);  // NOLINT
