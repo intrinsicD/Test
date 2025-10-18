@@ -10,7 +10,8 @@
 - Extensive tests in `engine/rendering/tests/` cover frame graph construction,
   backend adapters, and forward pipeline behaviour, while
   [`engine/tests/integration`](../../../engine/tests/integration/README.md) drives end-to-end
-  runtime submissions through the Vulkan scheduler as part of `TI-001`.
+  runtime submissions through the Vulkan scheduler as part of `TI-001`,
+  once the Googletest upgrade in `T-0118` restores fixture support.
 - Frame graph resources carry explicit format, dimension, usage, and state metadata, and render passes publish queue affinity hints that schedulers consume when selecting submission queues.
 - Material and resource descriptors now consume the generational asset handles introduced in the assets module, ensuring rendering references remain valid across cache reloads.
 
