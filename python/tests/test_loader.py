@@ -135,6 +135,9 @@ class LoadSharedLibraryTests(unittest.TestCase):
                     loader._load_shared_library("engine_core", search_paths=None)
 
         self.assertIn("libengine_core.so", str(ctx.exception))
+        self.assertIn(str(candidates[0]), str(ctx.exception))
+        self.assertIsInstance(ctx.exception.__cause__, OSError)
+        self.assertEqual(str(ctx.exception.__cause__), "missing")
 
 
 class HandleBehaviourTests(unittest.TestCase):
