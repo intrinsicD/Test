@@ -3,8 +3,9 @@
 This directory hosts telemetry and profiling utilities that operate on the
 engine's runtime libraries. The first tool, `runtime_frame_telemetry.py`, uses
 the C ABI exposed by `engine_runtime` to capture dispatcher timings for the
-animation → physics → geometry chain before render submission. The measurements
-support the sprint 06 acceptance criterion for telemetry (`AI-003`, `RT-003`).
+animation → physics → geometry chain and now records lifecycle diagnostics from
+`RuntimeHost::diagnostics()`. The measurements support the sprint 06 telemetry
+acceptance criteria (`AI-003`, `RT-003`, `RT-004`).
 
 ## `runtime_frame_telemetry.py`
 
@@ -19,9 +20,11 @@ support the sprint 06 acceptance criterion for telemetry (`AI-003`, `RT-003`).
        --frames 8 --dt 0.016 --output telemetry/frame_timings.json
    ```
 3. **Inspect the output**. The script prints aggregate timings by subsystem and
-   stores detailed per-dispatch metrics in JSON when `--output` is specified. Use
-   these artefacts to track regressions in the animation/physics ↔ rendering
-   hand-off.
+   runtime lifecycle statistics (initialise/tick/shutdown durations plus
+   per-stage samples), and stores detailed per-dispatch metrics in JSON when
+   `--output` is specified. Use these artefacts to track regressions in the
+   animation/physics ↔ rendering hand-off and to monitor subsystem health over
+   time.
 
 Use `--verbose` to emit per-frame tables on stdout when investigating specific
 regressions. The JSON payload can be checked into performance dashboards or

@@ -82,12 +82,56 @@ class VarianceResult:
         return self.percent <= self.check.max_percent
 
 
+@dataclass
+class RuntimeStageMetric:
+    """Lifecycle telemetry for a dispatcher stage captured via the runtime C API."""
+
+    name: str
+    last_ms: float
+    average_ms: float
+    max_ms: float
+    sample_count: int
+
+
+@dataclass
+class RuntimeSubsystemMetric:
+    """Lifecycle timings for a subsystem plugin during initialize/tick/shutdown."""
+
+    name: str
+    last_initialize_ms: float
+    last_tick_ms: float
+    last_shutdown_ms: float
+    max_initialize_ms: float
+    max_tick_ms: float
+    max_shutdown_ms: float
+    initialize_count: int
+    tick_count: int
+    shutdown_count: int
+
+
+@dataclass
+class RuntimeDiagnosticsSnapshot:
+    """Aggregated runtime lifecycle diagnostics exposed through the C ABI."""
+
+    initialize_count: int
+    shutdown_count: int
+    tick_count: int
+    last_initialize_ms: float
+    last_shutdown_ms: float
+    last_tick_ms: float
+    average_tick_ms: float
+    max_tick_ms: float
+    stages: List[RuntimeStageMetric]
+    subsystems: List[RuntimeSubsystemMetric]
+
+
 class RuntimeBindings:
     """Thin ctypes wrapper around the runtime C API."""
 
     def __init__(self, library: ctypes.CDLL) -> None:
         self._lib = library
         self._has_simulation_time = False
+        self._has_diagnostics = False
         self._configure_signatures()
 
     @staticmethod
@@ -153,6 +197,61 @@ class RuntimeBindings:
             self._has_simulation_time = False
         else:
             self._has_simulation_time = True
+        try:
+            lib.engine_runtime_diagnostic_initialize_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_initialize_count.argtypes = []
+            lib.engine_runtime_diagnostic_shutdown_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_shutdown_count.argtypes = []
+            lib.engine_runtime_diagnostic_tick_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_tick_count.argtypes = []
+            lib.engine_runtime_diagnostic_last_initialize_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_last_initialize_ms.argtypes = []
+            lib.engine_runtime_diagnostic_last_shutdown_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_last_shutdown_ms.argtypes = []
+            lib.engine_runtime_diagnostic_last_tick_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_last_tick_ms.argtypes = []
+            lib.engine_runtime_diagnostic_average_tick_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_average_tick_ms.argtypes = []
+            lib.engine_runtime_diagnostic_max_tick_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_max_tick_ms.argtypes = []
+            lib.engine_runtime_diagnostic_stage_count.restype = ctypes.c_size_t
+            lib.engine_runtime_diagnostic_stage_count.argtypes = []
+            lib.engine_runtime_diagnostic_stage_name.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_stage_name.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_stage_last_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_stage_last_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_stage_average_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_stage_average_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_stage_max_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_stage_max_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_stage_samples.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_stage_samples.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_count.restype = ctypes.c_size_t
+            lib.engine_runtime_diagnostic_subsystem_count.argtypes = []
+            lib.engine_runtime_diagnostic_subsystem_name.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_subsystem_name.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_last_initialize_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_subsystem_last_initialize_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_last_tick_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_subsystem_last_tick_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_last_shutdown_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_subsystem_last_shutdown_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_initialize_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_subsystem_initialize_count.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_tick_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_subsystem_tick_count.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_shutdown_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_subsystem_shutdown_count.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_max_initialize_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_subsystem_max_initialize_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_max_tick_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_subsystem_max_tick_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_max_shutdown_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_subsystem_max_shutdown_ms.argtypes = [ctypes.c_size_t]
+        except AttributeError:
+            self._has_diagnostics = False
+        else:
+            self._has_diagnostics = True
 
     def configure_default_modules(self) -> None:
         self._lib.engine_runtime_configure_with_default_modules()
@@ -184,6 +283,83 @@ class RuntimeBindings:
     @property
     def has_simulation_time(self) -> bool:
         return self._has_simulation_time
+
+    @property
+    def has_diagnostics(self) -> bool:
+        return self._has_diagnostics
+
+    def diagnostics_snapshot(self) -> Optional[RuntimeDiagnosticsSnapshot]:
+        if not self._has_diagnostics:
+            return None
+        return RuntimeDiagnosticsSnapshot(
+            initialize_count=int(self._lib.engine_runtime_diagnostic_initialize_count()),
+            shutdown_count=int(self._lib.engine_runtime_diagnostic_shutdown_count()),
+            tick_count=int(self._lib.engine_runtime_diagnostic_tick_count()),
+            last_initialize_ms=float(self._lib.engine_runtime_diagnostic_last_initialize_ms()),
+            last_shutdown_ms=float(self._lib.engine_runtime_diagnostic_last_shutdown_ms()),
+            last_tick_ms=float(self._lib.engine_runtime_diagnostic_last_tick_ms()),
+            average_tick_ms=float(self._lib.engine_runtime_diagnostic_average_tick_ms()),
+            max_tick_ms=float(self._lib.engine_runtime_diagnostic_max_tick_ms()),
+            stages=self._collect_stage_metrics(),
+            subsystems=self._collect_subsystem_metrics(),
+        )
+
+    def _collect_stage_metrics(self) -> List[RuntimeStageMetric]:
+        metrics: List[RuntimeStageMetric] = []
+        count = int(self._lib.engine_runtime_diagnostic_stage_count())
+        for index in range(count):
+            raw_name = self._lib.engine_runtime_diagnostic_stage_name(index)
+            name = raw_name.decode("utf-8") if raw_name else ""
+            metrics.append(
+                RuntimeStageMetric(
+                    name=name,
+                    last_ms=float(self._lib.engine_runtime_diagnostic_stage_last_ms(index)),
+                    average_ms=float(self._lib.engine_runtime_diagnostic_stage_average_ms(index)),
+                    max_ms=float(self._lib.engine_runtime_diagnostic_stage_max_ms(index)),
+                    sample_count=int(self._lib.engine_runtime_diagnostic_stage_samples(index)),
+                )
+            )
+        return metrics
+
+    def _collect_subsystem_metrics(self) -> List[RuntimeSubsystemMetric]:
+        metrics: List[RuntimeSubsystemMetric] = []
+        count = int(self._lib.engine_runtime_diagnostic_subsystem_count())
+        for index in range(count):
+            raw_name = self._lib.engine_runtime_diagnostic_subsystem_name(index)
+            name = raw_name.decode("utf-8") if raw_name else ""
+            metrics.append(
+                RuntimeSubsystemMetric(
+                    name=name,
+                    last_initialize_ms=float(
+                        self._lib.engine_runtime_diagnostic_subsystem_last_initialize_ms(index)
+                    ),
+                    last_tick_ms=float(
+                        self._lib.engine_runtime_diagnostic_subsystem_last_tick_ms(index)
+                    ),
+                    last_shutdown_ms=float(
+                        self._lib.engine_runtime_diagnostic_subsystem_last_shutdown_ms(index)
+                    ),
+                    max_initialize_ms=float(
+                        self._lib.engine_runtime_diagnostic_subsystem_max_initialize_ms(index)
+                    ),
+                    max_tick_ms=float(
+                        self._lib.engine_runtime_diagnostic_subsystem_max_tick_ms(index)
+                    ),
+                    max_shutdown_ms=float(
+                        self._lib.engine_runtime_diagnostic_subsystem_max_shutdown_ms(index)
+                    ),
+                    initialize_count=int(
+                        self._lib.engine_runtime_diagnostic_subsystem_initialize_count(index)
+                    ),
+                    tick_count=int(
+                        self._lib.engine_runtime_diagnostic_subsystem_tick_count(index)
+                    ),
+                    shutdown_count=int(
+                        self._lib.engine_runtime_diagnostic_subsystem_shutdown_count(index)
+                    ),
+                )
+            )
+        return metrics
 
 
 def _candidate_names(base: str) -> Iterable[str]:
@@ -345,7 +521,47 @@ def summarise(samples: Sequence[FrameSample]) -> Dict[str, float]:
     return summary
 
 
-def _samples_to_dict(samples: Sequence[FrameSample]) -> Dict[str, object]:
+def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, object]:
+    return {
+        "initialize_count": snapshot.initialize_count,
+        "shutdown_count": snapshot.shutdown_count,
+        "tick_count": snapshot.tick_count,
+        "last_initialize_ms": snapshot.last_initialize_ms,
+        "last_shutdown_ms": snapshot.last_shutdown_ms,
+        "last_tick_ms": snapshot.last_tick_ms,
+        "average_tick_ms": snapshot.average_tick_ms,
+        "max_tick_ms": snapshot.max_tick_ms,
+        "stages": [
+            {
+                "name": stage.name,
+                "last_ms": stage.last_ms,
+                "average_ms": stage.average_ms,
+                "max_ms": stage.max_ms,
+                "sample_count": stage.sample_count,
+            }
+            for stage in snapshot.stages
+        ],
+        "subsystems": [
+            {
+                "name": subsystem.name,
+                "last_initialize_ms": subsystem.last_initialize_ms,
+                "last_tick_ms": subsystem.last_tick_ms,
+                "last_shutdown_ms": subsystem.last_shutdown_ms,
+                "max_initialize_ms": subsystem.max_initialize_ms,
+                "max_tick_ms": subsystem.max_tick_ms,
+                "max_shutdown_ms": subsystem.max_shutdown_ms,
+                "initialize_count": subsystem.initialize_count,
+                "tick_count": subsystem.tick_count,
+                "shutdown_count": subsystem.shutdown_count,
+            }
+            for subsystem in snapshot.subsystems
+        ],
+    }
+
+
+def _samples_to_dict(
+    samples: Sequence[FrameSample], diagnostics: Optional[RuntimeDiagnosticsSnapshot]
+) -> Dict[str, object]:
     return {
         "frames": [
             {
@@ -366,18 +582,56 @@ def _samples_to_dict(samples: Sequence[FrameSample]) -> Dict[str, object]:
             for sample in samples
         ],
         "summary": summarise(samples),
+        "runtime_diagnostics": _diagnostics_to_dict(diagnostics)
+        if diagnostics is not None
+        else None,
     }
 
 
-def _print_summary(samples: Sequence[FrameSample], verbose: bool) -> None:
+def _print_summary(
+    samples: Sequence[FrameSample],
+    verbose: bool,
+    diagnostics: Optional[RuntimeDiagnosticsSnapshot],
+) -> None:
     data = summarise(samples)
     print("Aggregate category totals (ms):")
     for key, value in data.items():
         if key.startswith("category:"):
             category = key.split(":", maxsplit=1)[1]
-            print(f"  {category:>10}: {value:8.4f}")
+            print(f"  {category:>10}: {value:8.4f} ms")
     print(f"Total recorded frame time: {data['total_ms']:.4f} ms")
     print(f"Physics→Geometry hand-off: {data['handoff_ms']:.4f} ms")
+    if diagnostics is not None:
+        print("\nRuntime diagnostics:")
+        print(
+            "  ticks: "
+            f"count={diagnostics.tick_count} "
+            f"last={diagnostics.last_tick_ms:.4f} ms "
+            f"avg={diagnostics.average_tick_ms:.4f} ms "
+            f"max={diagnostics.max_tick_ms:.4f} ms"
+        )
+        if diagnostics.subsystems:
+            print("  subsystem ticks:")
+            for subsystem in diagnostics.subsystems:
+                if subsystem.tick_count == 0:
+                    continue
+                print(
+                    "    "
+                    f"{subsystem.name:<24} "
+                    f"count={subsystem.tick_count:>3} "
+                    f"last={subsystem.last_tick_ms:8.4f} ms "
+                    f"max={subsystem.max_tick_ms:8.4f} ms"
+                )
+        if diagnostics.stages:
+            print("  dispatcher stages:")
+            for stage in diagnostics.stages:
+                print(
+                    "    "
+                    f"{stage.name:<24} "
+                    f"samples={stage.sample_count:>3} "
+                    f"avg={stage.average_ms:8.4f} ms "
+                    f"last={stage.last_ms:8.4f} ms"
+                )
     if not verbose:
         return
     print("\nPer-frame dispatch timings:")
@@ -473,12 +727,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     bindings = RuntimeBindings.load(args.library_name, args.library_dir)
     bindings.configure_default_modules()
     bindings.initialize()
+    diagnostics: Optional[RuntimeDiagnosticsSnapshot] = None
     try:
         samples = capture_frames(bindings, args.frames, args.dt)
+        diagnostics = bindings.diagnostics_snapshot()
     finally:
         bindings.shutdown()
 
-    _print_summary(samples, args.verbose)
+    _print_summary(samples, args.verbose, diagnostics)
 
     if variance_checks:
         for result in map(lambda check: evaluate_variance(samples, check), variance_checks):
@@ -504,7 +760,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 return 1
 
     if args.output is not None:
-        payload = _samples_to_dict(samples)
+        payload = _samples_to_dict(samples, diagnostics)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return 0

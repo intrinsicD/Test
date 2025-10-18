@@ -38,7 +38,7 @@ namespace engine::core::threading {
         if (!config.enable || config.worker_count == 0)
         {
             config_ = config;
-            shutdown_locked();
+            shutdown_locked(lock);
             return;
         }
 
@@ -47,7 +47,7 @@ namespace engine::core::threading {
             return;
         }
 
-        shutdown_locked();
+        shutdown_locked(lock);
         config_ = config;
         start_workers_locked();
     }
@@ -55,7 +55,7 @@ namespace engine::core::threading {
     void IoThreadPool::shutdown()
     {
         std::unique_lock lock{mutex_};
-        shutdown_locked();
+        shutdown_locked(lock);
     }
 
     bool IoThreadPool::enqueue(IoTaskPriority priority, std::function<void()> task)
@@ -138,18 +138,24 @@ namespace engine::core::threading {
         }
     }
 
-    void IoThreadPool::shutdown_locked()
+    void IoThreadPool::shutdown_locked(std::unique_lock<std::mutex>& lock)
     {
         stopping_ = true;
         condition_.notify_all();
-        for (auto& worker : workers_)
+
+        std::vector<std::thread> workers;
+        workers.swap(workers_);
+
+        lock.unlock();
+        for (auto& worker : workers)
         {
             if (worker.joinable())
             {
                 worker.join();
             }
         }
-        workers_.clear();
+        workers.clear();
+        lock.lock();
 
         while (!queues_[0].empty())
         {

@@ -19,5 +19,5 @@
 
 - Capture shared automation entry points for developers and CI environments.
 - Document additional scripts as new workflows come online (packaging, deployment, etc.).
-- Integrate telemetry exports with CI once the runtime diagnostics tooling is
-  automated.
+- Integrate the runtime diagnostics JSON output into CI dashboards so
+  regressions are tracked continuously.

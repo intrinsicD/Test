@@ -15,6 +15,9 @@
   alongside the C binding `engine_runtime_streaming_metrics` so diagnostics like
   `scripts/diagnostics/streaming_report.py` can track queue depth and request
   outcomes.
+- Captures lifecycle telemetry through `RuntimeHost::diagnostics()`, mirroring the data via
+  `engine_runtime_diagnostic_*` C bindings so scripts can analyse initialize/tick/shutdown
+  timings and dispatcher stage statistics.
 - Smoke tests in `engine/runtime/tests/` validate module registration; cross-module
   behaviour is exercised by the headless harness under
   [`engine/tests/integration`](../../../engine/tests/integration/README.md) which covers the
@@ -26,9 +29,23 @@
 - Include `<engine/runtime/api.hpp>` when hosting the runtime loop or embedding the engine; call `RuntimeHost::initialize()`/`tick()`/`shutdown()` to drive simulation.
 - Adjust `RuntimeHostDependencies::streaming_config` before construction to tune
   asynchronous asset loading worker counts and queue depth.
+- Inspect lifecycle timings via `RuntimeHost::diagnostics()` or the
+  `engine_runtime_diagnostic_*` C functions; pair with
+  `scripts/diagnostics/runtime_frame_telemetry.py` to export JSON suitable for
+  dashboards.
 - When bridging into rendering, construct a `RuntimeHost::RenderSubmissionContext` with your resource/material/scheduler providers and call `RuntimeHost::submit_render_graph(context)` after each `tick()`.
 - Run `ctest --preset <preset> --tests-regex engine_runtime` to verify module plumbing before running broader integration suites.
 - Toggle subsystem availability at configure time via the `ENGINE_ENABLE_<MODULE>` CMake options (for example `-DENGINE_ENABLE_RENDERING=OFF`). Disabled subsystems are omitted from the default registry but can still be re-enabled explicitly through the helper APIs.
+
+## Diagnostics
+
+- `RuntimeHost::diagnostics()` returns counters and timings for initialization, tick, and shutdown
+  phases along with dispatcher stage statistics and subsystem lifecycle metrics.
+- The C ABI mirrors these values via `engine_runtime_diagnostic_*` functions so external tooling can
+  capture snapshots without linking against the C++ API.
+- `scripts/diagnostics/runtime_frame_telemetry.py --frames 120 --dt 0.016` streams the dispatcher
+  timings recorded in `compute::ExecutionReport` and now embeds the lifecycle metrics in its JSON
+  output, making it suitable for dashboards that track regressions over time.
 
 ## Rendering Metadata Alignment Responsibilities
 

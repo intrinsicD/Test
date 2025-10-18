@@ -1,5 +1,7 @@
 #include "engine/runtime/api.hpp"
 
+#include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <span>
@@ -7,6 +9,8 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "engine/animation/deformation/linear_blend_skinning.hpp"
 #include "engine/geometry/deform/linear_blend_skinning.hpp"
@@ -136,6 +140,10 @@ namespace engine::runtime
         std::vector<std::string_view> subsystem_names{};
         std::vector<math::Transform<float>> joint_global_transforms{};
         std::vector<math::Transform<float>> skinning_transforms{};
+        using Clock = std::chrono::steady_clock;
+        RuntimeDiagnostics diagnostics{};
+        std::unordered_map<std::string, std::size_t> stage_lookup{};
+        std::unordered_map<std::string, std::size_t> subsystem_lookup{};
 #if ENGINE_ENABLE_RENDERING
         rendering::components::RenderGeometry render_geometry{};
         std::string renderable_name{"runtime.renderable"};
@@ -197,6 +205,161 @@ namespace engine::runtime
                     subsystem_names.push_back(plugin->name());
                 }
             }
+            sync_subsystem_metrics();
+        }
+
+        static double duration_to_ms(Clock::duration duration)
+        {
+            return std::chrono::duration<double, std::milli>(duration).count();
+        }
+
+        RuntimeStageTiming& ensure_stage_timing(const std::string& name)
+        {
+            auto it = stage_lookup.find(name);
+            if (it != stage_lookup.end())
+            {
+                return diagnostics.stage_timings[it->second];
+            }
+            RuntimeStageTiming timing{};
+            timing.name = name;
+            diagnostics.stage_timings.push_back(std::move(timing));
+            const std::size_t index = diagnostics.stage_timings.size() - 1U;
+            stage_lookup.emplace(name, index);
+            return diagnostics.stage_timings[index];
+        }
+
+        RuntimeSubsystemTiming& ensure_subsystem_timing(const std::string& name)
+        {
+            auto it = subsystem_lookup.find(name);
+            if (it != subsystem_lookup.end())
+            {
+                return diagnostics.subsystem_timings[it->second];
+            }
+            RuntimeSubsystemTiming timing{};
+            timing.name = name;
+            diagnostics.subsystem_timings.push_back(std::move(timing));
+            const std::size_t index = diagnostics.subsystem_timings.size() - 1U;
+            subsystem_lookup[name] = index;
+            return diagnostics.subsystem_timings[index];
+        }
+
+        void sync_subsystem_metrics()
+        {
+            std::unordered_set<std::string> active{};
+            active.reserve(dependencies.subsystem_plugins.size());
+            for (const auto& plugin : dependencies.subsystem_plugins)
+            {
+                if (plugin == nullptr)
+                {
+                    continue;
+                }
+                std::string name{plugin->name()};
+                ensure_subsystem_timing(name);
+                active.insert(std::move(name));
+            }
+
+            for (std::size_t index = 0; index < diagnostics.subsystem_timings.size();)
+            {
+                const auto& entry = diagnostics.subsystem_timings[index];
+                if (active.find(entry.name) == active.end())
+                {
+                    subsystem_lookup.erase(entry.name);
+                    diagnostics.subsystem_timings.erase(
+                        diagnostics.subsystem_timings.begin() +
+                        static_cast<std::vector<RuntimeSubsystemTiming>::difference_type>(index));
+                    for (std::size_t update = index; update < diagnostics.subsystem_timings.size(); ++update)
+                    {
+                        subsystem_lookup[diagnostics.subsystem_timings[update].name] = update;
+                    }
+                    continue;
+                }
+                ++index;
+            }
+        }
+
+        void record_initialize_duration(Clock::duration duration)
+        {
+            const double ms = duration_to_ms(duration);
+            diagnostics.last_initialize_ms = ms;
+            diagnostics.max_initialize_ms = std::max(diagnostics.max_initialize_ms, ms);
+            diagnostics.initialize_count += 1U;
+        }
+
+        void record_shutdown_duration(Clock::duration duration)
+        {
+            const double ms = duration_to_ms(duration);
+            diagnostics.last_shutdown_ms = ms;
+            diagnostics.max_shutdown_ms = std::max(diagnostics.max_shutdown_ms, ms);
+            diagnostics.shutdown_count += 1U;
+        }
+
+        void record_tick_duration(Clock::duration duration)
+        {
+            const double ms = duration_to_ms(duration);
+            diagnostics.last_tick_ms = ms;
+            diagnostics.max_tick_ms = std::max(diagnostics.max_tick_ms, ms);
+            diagnostics.tick_count += 1U;
+            const double count = static_cast<double>(diagnostics.tick_count);
+            if (count > 0.0)
+            {
+                diagnostics.average_tick_ms += (ms - diagnostics.average_tick_ms) / count;
+            }
+        }
+
+        void record_stage_timings(const compute::ExecutionReport& report)
+        {
+            const std::size_t count =
+                std::min(report.execution_order.size(), report.kernel_durations.size());
+            for (std::size_t index = 0; index < count; ++index)
+            {
+                const std::string& name = report.execution_order[index];
+                RuntimeStageTiming& timing = ensure_stage_timing(name);
+                const double duration_ms = report.kernel_durations[index] * 1000.0;
+                timing.last_ms = duration_ms;
+                timing.sample_count += 1U;
+                const double samples = static_cast<double>(timing.sample_count);
+                if (samples > 0.0)
+                {
+                    timing.average_ms += (duration_ms - timing.average_ms) / samples;
+                }
+                timing.max_ms = std::max(timing.max_ms, duration_ms);
+            }
+        }
+
+        enum class SubsystemPhase
+        {
+            Initialize,
+            Tick,
+            Shutdown
+        };
+
+        void record_subsystem_event(const std::string& name, Clock::duration duration, SubsystemPhase phase)
+        {
+            RuntimeSubsystemTiming& timing = ensure_subsystem_timing(name);
+            const double ms = duration_to_ms(duration);
+            switch (phase)
+            {
+            case SubsystemPhase::Initialize:
+                timing.last_initialize_ms = ms;
+                timing.max_initialize_ms = std::max(timing.max_initialize_ms, ms);
+                timing.initialize_count += 1U;
+                break;
+            case SubsystemPhase::Tick:
+                timing.last_tick_ms = ms;
+                timing.max_tick_ms = std::max(timing.max_tick_ms, ms);
+                timing.tick_count += 1U;
+                break;
+            case SubsystemPhase::Shutdown:
+                timing.last_shutdown_ms = ms;
+                timing.max_shutdown_ms = std::max(timing.max_shutdown_ms, ms);
+                timing.shutdown_count += 1U;
+                break;
+            }
+        }
+
+        [[nodiscard]] const RuntimeDiagnostics& diagnostics_view() const noexcept
+        {
+            return diagnostics;
         }
 
 #if ENGINE_ENABLE_RENDERING
@@ -452,6 +615,7 @@ namespace engine::runtime
                 return;
             }
 
+            const auto initialize_start = Clock::now();
             core::threading::IoThreadPool::instance().configure(dependencies.streaming_config);
             reset_state();
             ensure_default_world();
@@ -467,10 +631,15 @@ namespace engine::runtime
             {
                 if (plugin != nullptr)
                 {
+                    const std::string name{plugin->name()};
+                    const auto start = Clock::now();
                     plugin->initialize(lifecycle);
+                    const auto duration = Clock::now() - start;
+                    record_subsystem_event(name, duration, SubsystemPhase::Initialize);
                 }
             }
             initialized = true;
+            record_initialize_duration(Clock::now() - initialize_start);
         }
 
         void shutdown() noexcept
@@ -480,13 +649,18 @@ namespace engine::runtime
                 return;
             }
 
+            const auto shutdown_start = Clock::now();
             initialized = false;
             const engine::core::plugin::SubsystemLifecycleContext lifecycle{runtime_name_view()};
             for (auto it = dependencies.subsystem_plugins.rbegin(); it != dependencies.subsystem_plugins.rend(); ++it)
             {
                 if (*it != nullptr)
                 {
+                    const std::string name{(*it)->name()};
+                    const auto start = Clock::now();
                     (*it)->shutdown(lifecycle);
+                    const auto duration = Clock::now() - start;
+                    record_subsystem_event(name, duration, SubsystemPhase::Shutdown);
                 }
             }
             if (dispatcher != nullptr)
@@ -502,6 +676,7 @@ namespace engine::runtime
             body_positions.clear();
             joint_names.clear();
             reset_state();
+            record_shutdown_duration(Clock::now() - shutdown_start);
         }
 
         runtime_frame_state tick(double dt)
@@ -511,6 +686,7 @@ namespace engine::runtime
                 throw std::runtime_error("RuntimeHost must be initialized before tick()");
             }
 
+            const auto tick_start = Clock::now();
             if (dispatcher == nullptr)
             {
                 dispatcher = compute::make_cpu_dispatcher();
@@ -605,15 +781,21 @@ namespace engine::runtime
                 {deform});
 
             last_report = dispatcher_ref.dispatch();
+            record_stage_timings(last_report);
             simulation_time += dt;
             const engine::core::plugin::SubsystemUpdateContext update_context{dt};
             for (const auto& plugin : dependencies.subsystem_plugins)
             {
                 if (plugin != nullptr)
                 {
+                    const std::string name{plugin->name()};
+                    const auto start = Clock::now();
                     plugin->tick(update_context);
+                    const auto duration = Clock::now() - start;
+                    record_subsystem_event(name, duration, SubsystemPhase::Tick);
                 }
             }
+            record_tick_duration(Clock::now() - tick_start);
 
             runtime_frame_state frame{};
             frame.simulation_time = simulation_time;
@@ -735,6 +917,11 @@ namespace engine::runtime
         return impl_->subsystem_names;
     }
 
+    const RuntimeDiagnostics& RuntimeHost::diagnostics() const noexcept
+    {
+        return impl_->diagnostics_view();
+    }
+
 #if ENGINE_ENABLE_RENDERING
     void RuntimeHost::submit_render_graph(RenderSubmissionContext& context)
     {
@@ -824,6 +1011,11 @@ namespace engine::runtime
         metrics.streaming_total_rejected = snapshot.total_rejected;
 #endif
         return metrics;
+    }
+
+    const RuntimeDiagnostics& diagnostics() noexcept
+    {
+        return global_host().diagnostics();
     }
 
     std::string_view module_name() noexcept
@@ -1215,14 +1407,14 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
 }
 
 extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
-    engine_runtime_streaming_metrics* out_metrics) noexcept
+    struct ::engine_runtime_streaming_metrics* out_metrics) noexcept
 {
     if (out_metrics == nullptr)
     {
         return;
     }
 
-    const auto metrics = streaming_metrics();
+    const auto metrics = engine::runtime::streaming_metrics();
     out_metrics->worker_count = metrics.worker_count;
     out_metrics->queue_capacity = metrics.queue_capacity;
     out_metrics->pending_tasks = metrics.pending_tasks;
@@ -1236,4 +1428,211 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
     out_metrics->streaming_total_failed = metrics.streaming_total_failed;
     out_metrics->streaming_total_cancelled = metrics.streaming_total_cancelled;
     out_metrics->streaming_total_rejected = metrics.streaming_total_rejected;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_count() noexcept
+{
+    return engine::runtime::diagnostics().initialize_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_shutdown_count() noexcept
+{
+    return engine::runtime::diagnostics().shutdown_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_tick_count() noexcept
+{
+    return engine::runtime::diagnostics().tick_count;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_initialize_ms() noexcept
+{
+    return engine::runtime::diagnostics().last_initialize_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_shutdown_ms() noexcept
+{
+    return engine::runtime::diagnostics().last_shutdown_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_tick_ms() noexcept
+{
+    return engine::runtime::diagnostics().last_tick_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_average_tick_ms() noexcept
+{
+    return engine::runtime::diagnostics().average_tick_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_max_tick_ms() noexcept
+{
+    return engine::runtime::diagnostics().max_tick_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_stage_count() noexcept
+{
+    return engine::runtime::diagnostics().stage_timings.size();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_stage_name(std::size_t index) noexcept
+{
+    const auto& stages = engine::runtime::diagnostics().stage_timings;
+    if (index >= stages.size())
+    {
+        return nullptr;
+    }
+    return stages[index].name.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_last_ms(std::size_t index) noexcept
+{
+    const auto& stages = engine::runtime::diagnostics().stage_timings;
+    if (index >= stages.size())
+    {
+        return 0.0;
+    }
+    return stages[index].last_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_average_ms(std::size_t index) noexcept
+{
+    const auto& stages = engine::runtime::diagnostics().stage_timings;
+    if (index >= stages.size())
+    {
+        return 0.0;
+    }
+    return stages[index].average_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_max_ms(std::size_t index) noexcept
+{
+    const auto& stages = engine::runtime::diagnostics().stage_timings;
+    if (index >= stages.size())
+    {
+        return 0.0;
+    }
+    return stages[index].max_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_stage_samples(std::size_t index) noexcept
+{
+    const auto& stages = engine::runtime::diagnostics().stage_timings;
+    if (index >= stages.size())
+    {
+        return 0;
+    }
+    return stages[index].sample_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_subsystem_count() noexcept
+{
+    return engine::runtime::diagnostics().subsystem_timings.size();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_subsystem_name(std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return nullptr;
+    }
+    return subsystems[index].name.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_initialize_ms(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0.0;
+    }
+    return subsystems[index].last_initialize_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_tick_ms(std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0.0;
+    }
+    return subsystems[index].last_tick_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_shutdown_ms(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0.0;
+    }
+    return subsystems[index].last_shutdown_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_initialize_count(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0;
+    }
+    return subsystems[index].initialize_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_tick_count(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0;
+    }
+    return subsystems[index].tick_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_shutdown_count(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0;
+    }
+    return subsystems[index].shutdown_count;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_initialize_ms(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0.0;
+    }
+    return subsystems[index].max_initialize_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_tick_ms(std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0.0;
+    }
+    return subsystems[index].max_tick_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_shutdown_ms(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0.0;
+    }
+    return subsystems[index].max_shutdown_ms;
 }

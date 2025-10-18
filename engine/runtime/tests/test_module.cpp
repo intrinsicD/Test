@@ -323,7 +323,7 @@ TEST(RuntimeHost, AcceptsInjectedDependencies) {
     engine::physics::RigidBody body{};
     body.mass = 3.0F;
     body.position = engine::math::vec3{1.0F, 2.0F, 3.0F};
-    engine::physics::add_body(world, body);
+    [[maybe_unused]] const auto injected_body = engine::physics::add_body(world, body);
     deps.world = world;
 
     engine::geometry::SurfaceMesh mesh = engine::geometry::make_unit_quad();
@@ -406,6 +406,13 @@ TEST(RuntimeHost, AppliesLinearBlendSkinning) {
     ASSERT_TRUE(binding.vertices[2].add_influence(1U, 1.0F));
     binding.vertices[2].normalize_weights();
     deps.binding = binding;
+
+    engine::physics::PhysicsWorld world{};
+    engine::physics::RigidBody anchor{};
+    anchor.mass = 0.0F;
+    anchor.position = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    [[maybe_unused]] const auto anchor_index = engine::physics::add_body(world, anchor);
+    deps.world = world;
 
     engine::runtime::RuntimeHost host{deps};
     host.initialize();
@@ -559,6 +566,40 @@ TEST(RuntimeHost, StreamingMetricsReflectConfiguration)
     EXPECT_EQ(metrics.worker_count, deps.streaming_config.worker_count);
     EXPECT_EQ(metrics.queue_capacity, deps.streaming_config.queue_capacity);
     host.shutdown();
+}
+
+TEST(RuntimeHost, ExposesLifecycleDiagnostics)
+{
+    engine::runtime::RuntimeHost host{};
+    const auto& initial = host.diagnostics();
+    EXPECT_EQ(initial.initialize_count, 0U);
+    EXPECT_EQ(initial.tick_count, 0U);
+
+    host.initialize();
+    const auto& after_initialize = host.diagnostics();
+    EXPECT_EQ(after_initialize.initialize_count, 1U);
+    EXPECT_GE(after_initialize.last_initialize_ms, 0.0);
+    EXPECT_FALSE(after_initialize.subsystem_timings.empty());
+
+    host.tick(0.016);
+    const auto& after_tick = host.diagnostics();
+    EXPECT_EQ(after_tick.tick_count, 1U);
+    EXPECT_GE(after_tick.last_tick_ms, 0.0);
+    const bool has_animation_stage = std::any_of(
+        after_tick.stage_timings.begin(),
+        after_tick.stage_timings.end(),
+        [](const engine::runtime::RuntimeStageTiming& stage) { return stage.name == "animation.evaluate"; });
+    EXPECT_TRUE(has_animation_stage);
+    const bool subsystem_ticked = std::any_of(
+        after_tick.subsystem_timings.begin(),
+        after_tick.subsystem_timings.end(),
+        [](const engine::runtime::RuntimeSubsystemTiming& timing) { return timing.tick_count > 0U; });
+    EXPECT_TRUE(subsystem_ticked);
+
+    host.shutdown();
+    const auto& after_shutdown = host.diagnostics();
+    EXPECT_EQ(after_shutdown.shutdown_count, 1U);
+    EXPECT_GE(after_shutdown.last_shutdown_ms, 0.0);
 }
 
 TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection) {
