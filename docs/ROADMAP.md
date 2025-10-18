@@ -21,8 +21,6 @@ modules. Items are grouped by their intent:
 
 Near-term planning should prioritise the following open items:
 
-- **`AI-004` – Compute dependency validation**: add dependency metadata, perform cycle detection, emit diagnostics, and update
-  the dispatcher documentation.
 - **`RT-002` – Physics contact manifolds**: introduce persistent manifolds, integrate constraint solving hooks, add telemetry,
   and document workflows.
 - **`RT-004` – Runtime diagnostics**: instrument lifecycle stages, expose telemetry through `RuntimeHost`, and surface metrics in
@@ -162,10 +160,12 @@ Near-term planning should prioritise the following open items:
 - **Module:** Compute
 - **Dependencies:** [DC-002]
 - **Tasks:**
-  - [ ] Extend the compute dispatcher with dependency metadata.
-  - [ ] Detect cyclic dependencies at registration time.
-  - [ ] Emit diagnostic graphs for debugging scheduling issues.
-  - [ ] Update compute module documentation with dependency modelling guidance.
+  - [x] Extend the compute dispatcher with dependency metadata.
+  - [x] Detect cyclic dependencies at registration time.
+  - [x] Emit diagnostic graphs for debugging scheduling issues.
+  - [x] Update compute module documentation with dependency modelling guidance.
+- **Status:** Dispatcher registration now validates dependency cycles immediately and surfaces DOT-formatted graphs via the new
+  `DependencyGraph` metadata so developers can visualise execution ordering issues without running a dispatch.
 - **Artifacts:** Compute dispatcher source updates, diagnostic tooling, compute README guidance.
 - **Tests:** Unit tests covering cycle detection; regression coverage for dispatcher diagnostics.
 - **Docs:** Compute README and tutorials outlining dependency validation workflows.

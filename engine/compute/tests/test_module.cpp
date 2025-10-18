@@ -4,6 +4,8 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+#include <vector>
 
 #include "engine/compute/api.hpp"
 
@@ -31,6 +33,14 @@ namespace
 {
 
 using DispatcherPtr = std::unique_ptr<engine::compute::Dispatcher>;
+
+void ExpectSubstring(std::string_view haystack, std::string_view needle)
+{
+    if (haystack.find(needle) == std::string_view::npos)
+    {
+        FAIL() << "Expected substring '" << needle << "' within '" << haystack << "'";
+    }
+}
 
 void ExpectDispatcherRespectsDependencies(DispatcherPtr dispatcher)
 {
@@ -61,14 +71,19 @@ void ExpectDispatcherRespectsDependencies(DispatcherPtr dispatcher)
         EXPECT_GE(duration, 0.0);
     }
     EXPECT_EQ(values[2], 3);
+
+    ASSERT_EQ(report.dependency_graph.nodes.size(), 3U);
+    EXPECT_TRUE(report.dependency_graph.nodes[0].dependencies.empty());
+    ASSERT_EQ(report.dependency_graph.nodes[2].dependencies.size(), 1U);
+    EXPECT_EQ(report.dependency_graph.nodes[2].dependencies.front(), second);
 }
 
 template <typename ExceptionType>
 void ExpectDispatcherThrows(
     DispatcherPtr dispatcher,
-    const char* expected_message,
     const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_first,
-    const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_second)
+    const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_second,
+    std::string_view expected_prefix)
 {
     MAYBE_UNUSED_CONST_AUTO a = dispatcher->add_kernel("a", []
     {
@@ -84,7 +99,9 @@ void ExpectDispatcherThrows(
     }
     catch (const ExceptionType& error)
     {
-        EXPECT_STREQ(error.what(), expected_message);
+        const std::string_view message{error.what()};
+        ExpectSubstring(message, expected_prefix);
+        ExpectSubstring(message, "digraph");
     }
 }
 
@@ -100,40 +117,108 @@ TEST(ComputeModule, CudaDispatcherRespectsDependencies)
     ExpectDispatcherRespectsDependencies(engine::compute::make_cuda_dispatcher());
 }
 
-TEST(ComputeModule, CpuDispatcherDetectsCycles)
+TEST(ComputeModule, CpuDispatcherDetectsCyclesDuringRegistration)
 {
-    ExpectDispatcherThrows<std::runtime_error>(
-        engine::compute::make_cpu_dispatcher(),
-        "KernelDispatcher detected a cycle",
-        {1U},
-        {0U});
+    auto dispatcher = engine::compute::make_cpu_dispatcher();
+    MAYBE_UNUSED_CONST_AUTO first = dispatcher->add_kernel("a", []
+    {
+    }, {1U});
+
+    try
+    {
+        MAYBE_UNUSED_CONST_AUTO second = dispatcher->add_kernel("b", []
+        {
+        }, {0U});
+        FAIL() << "Dispatcher accepted a cyclic registration";
+    }
+    catch (const std::runtime_error& error)
+    {
+        const std::string_view message{error.what()};
+        ExpectSubstring(message, "KernelDispatcher detected a cycle during registration");
+        ExpectSubstring(message, "digraph");
+    }
+
+    EXPECT_EQ(dispatcher->size(), 1U);
 }
 
-TEST(ComputeModule, CudaDispatcherDetectsCycles)
+TEST(ComputeModule, CudaDispatcherDetectsCyclesDuringRegistration)
 {
-    ExpectDispatcherThrows<std::runtime_error>(
-        engine::compute::make_cuda_dispatcher(),
-        "KernelDispatcher detected a cycle",
-        {1U},
-        {0U});
+    auto dispatcher = engine::compute::make_cuda_dispatcher();
+    MAYBE_UNUSED_CONST_AUTO first = dispatcher->add_kernel("a", []
+    {
+    }, {1U});
+
+    try
+    {
+        MAYBE_UNUSED_CONST_AUTO second = dispatcher->add_kernel("b", []
+        {
+        }, {0U});
+        FAIL() << "Dispatcher accepted a cyclic registration";
+    }
+    catch (const std::runtime_error& error)
+    {
+        const std::string_view message{error.what()};
+        ExpectSubstring(message, "KernelDispatcher detected a cycle during registration");
+        ExpectSubstring(message, "digraph");
+    }
+
+    EXPECT_EQ(dispatcher->size(), 1U);
 }
 
 TEST(ComputeModule, CpuDispatcherThrowsOnInvalidDependencyIndex)
 {
     ExpectDispatcherThrows<std::out_of_range>(
         engine::compute::make_cpu_dispatcher(),
-        "KernelDispatcher dependency index out of range",
         {},
-        {0U, 2U});
+        {0U, 2U},
+        "KernelDispatcher dependency index out of range");
 }
 
 TEST(ComputeModule, CudaDispatcherThrowsOnInvalidDependencyIndex)
 {
     ExpectDispatcherThrows<std::out_of_range>(
         engine::compute::make_cuda_dispatcher(),
-        "KernelDispatcher dependency index out of range",
         {},
-        {0U, 2U});
+        {0U, 2U},
+        "KernelDispatcher dependency index out of range");
+}
+
+TEST(ComputeModule, DispatcherDependencyGraphExposesUnresolvedEdges)
+{
+    auto dispatcher = engine::compute::make_cpu_dispatcher();
+    MAYBE_UNUSED_CONST_AUTO first = dispatcher->add_kernel("first", []
+    {
+    }, {3U});
+
+    const auto graph = dispatcher->dependency_graph();
+    ASSERT_EQ(graph.nodes.size(), 1U);
+    ASSERT_TRUE(graph.nodes.front().dependencies.empty());
+    ASSERT_EQ(graph.nodes.front().unresolved_dependencies.size(), 1U);
+    EXPECT_EQ(graph.nodes.front().unresolved_dependencies.front(), 3U);
+
+    const auto dot = graph.to_dot();
+    ExpectSubstring(dot, "pending:3");
+    ExpectSubstring(dot, "node0");
+}
+
+TEST(ComputeModule, DispatcherDependencyGraphTracksResolvedEdges)
+{
+    auto dispatcher = engine::compute::make_cpu_dispatcher();
+    const auto first = dispatcher->add_kernel("first", []
+    {
+    });
+    MAYBE_UNUSED_CONST_AUTO second = dispatcher->add_kernel("second", []
+    {
+    }, {first});
+
+    const auto graph = dispatcher->dependency_graph();
+    ASSERT_EQ(graph.nodes.size(), 2U);
+    ASSERT_EQ(graph.nodes[1].dependencies.size(), 1U);
+    EXPECT_EQ(graph.nodes[1].dependencies.front(), first);
+    EXPECT_TRUE(graph.nodes[1].unresolved_dependencies.empty());
+
+    const auto dot = graph.to_dot();
+    ExpectSubstring(dot, "node0 -> node1");
 }
 
 TEST(ComputeModule, ReportsDispatcherAvailability)

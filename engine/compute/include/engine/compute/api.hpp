@@ -23,9 +23,24 @@
 
 namespace engine::compute {
 
+using kernel_id = std::size_t;
+
+struct DependencyGraph {
+    struct Node {
+        std::string name;
+        std::vector<kernel_id> dependencies;
+        std::vector<kernel_id> unresolved_dependencies;
+    };
+
+    std::vector<Node> nodes;
+
+    [[nodiscard]] ENGINE_COMPUTE_API std::string to_dot() const;
+};
+
 struct ExecutionReport {
     std::vector<std::string> execution_order;
     std::vector<double> kernel_durations;
+    DependencyGraph dependency_graph;
 };
 
 struct DispatcherCapabilities {
@@ -35,7 +50,7 @@ struct DispatcherCapabilities {
 
 class ENGINE_COMPUTE_API Dispatcher {
 public:
-    using kernel_id = std::size_t;
+    using kernel_id = engine::compute::kernel_id;
     using kernel_type = std::function<void()>;
 
     virtual ~Dispatcher() = default;
@@ -50,6 +65,8 @@ public:
     [[nodiscard]] virtual ExecutionReport dispatch() = 0;
 
     [[nodiscard]] virtual std::size_t size() const noexcept = 0;
+
+    [[nodiscard]] virtual DependencyGraph dependency_graph() const = 0;
 };
 
 [[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cpu_dispatcher();
