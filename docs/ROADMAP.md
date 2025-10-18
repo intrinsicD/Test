@@ -310,7 +310,7 @@ Near-term planning should prioritise the following open items:
 - **Module:** Build System
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Document minimum compiler/CMake versions.
+  - [x] Document minimum compiler/CMake versions (captured in the workspace README prerequisites).
   - [ ] Establish vendored dependency update cadence.
   - [ ] Integrate checks into CI to enforce versions.
 - **Artifacts:** Documentation updates, CI checks.
