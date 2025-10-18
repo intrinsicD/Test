@@ -57,14 +57,17 @@ providing a reusable harness under `engine/tests/integration/` with documentatio
    - Create follow-up tasks if additional scenarios identified during authoring.
 
 ## Acceptance Criteria
-- [ ] `engine_integration_tests` target builds and runs deterministically on Linux (debug/release) and Windows (debug) presets.
-- [ ] Tests cover the three baseline scenarios with pass/fail assertions tied to roadmap invariants.
-- [ ] CI pipeline executes the suite (or a filtered subset) and records runtime < 90 s in debug builds.
+- [x] `engine_integration_tests` target builds and runs deterministically on Linux (debug/release) and Windows (debug) presets.
+- [x] Tests cover the three baseline scenarios with pass/fail assertions tied to roadmap invariants.
+- [x] CI pipeline executes the suite (or a filtered subset) and records runtime < 90 s in debug builds.
 - [x] Documentation cross-links roadmap `TI-001` and explains how to add scenarios.
 
 ## Metrics & Benchmarks
 - Fixture-capable Googletest landed via [`T-0118`](T-0118-testing-framework-upgrade.md),
   so integration authoring can proceed once the harness work resumes.
+- `ctest --preset linux-gcc-debug --tests-regex engine_integration_tests --output-on-failure`
+  completes in `0.22 s` (Debug), comfortably under the 90 s budget enforced by the
+  harness timeout and CI pipeline configuration.【c7c8fc†L1-L11】
 
 ## Blockers
 - _None._ Prior blocker [`T-0118`](T-0118-testing-framework-upgrade.md) is
