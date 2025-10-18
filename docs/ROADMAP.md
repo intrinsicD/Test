@@ -150,7 +150,7 @@ Near-term planning should prioritise the following open items:
   - [x] Add metadata validation within frame graph compilation.
   - [x] Provide a migration guide for existing pass definitions.
   - [x] Update unit tests in `engine/rendering/tests/test_frame_graph.cpp` to cover new metadata.
-  - [ ] Synchronise runtime-submitted pass descriptors with the expanded metadata schema.
+  - [x] Synchronise runtime-submitted pass descriptors with the expanded metadata schema.
   - [ ] Document metadata alignment responsibilities across rendering and runtime READMEs.
 - **Artifacts:** `engine/rendering/frame_graph/frame_graph.hpp`, `engine/rendering/frame_graph/render_pass.hpp`, `engine/rendering/tests/test_frame_graph.cpp`, migration guide documentation.
 - **Tests:** Frame graph unit tests validating metadata propagation; integration smoke tests.

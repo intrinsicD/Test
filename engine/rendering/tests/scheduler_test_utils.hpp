@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "engine/rendering/gpu_scheduler.hpp"
+#include "engine/rendering/render_pass.hpp"
 
 namespace engine::rendering::tests
 {
@@ -27,8 +28,18 @@ namespace engine::rendering::tests
             std::uint64_t fence_value{0};
         };
 
-        QueueType select_queue(const RenderPass&, QueueType preferred) override
+        struct PassMetadata
         {
+            std::string pass_name;
+            QueueType preferred_queue{QueueType::Graphics};
+            PassPhase phase{PassPhase::Unknown};
+            ValidationSeverity validation{ValidationSeverity::Info};
+        };
+
+        QueueType select_queue(const RenderPass& pass, QueueType preferred) override
+        {
+            pass_metadata.push_back(PassMetadata{std::string{pass.name()}, preferred, pass.phase(),
+                                                 pass.validation_severity()});
             return preferred;
         }
 
@@ -73,6 +84,7 @@ namespace engine::rendering::tests
         void recycle(CommandBufferHandle) override {}
 
         std::vector<Submission> submissions;
+        std::vector<PassMetadata> pass_metadata;
 
     private:
         std::size_t next_command_buffer_{0};
