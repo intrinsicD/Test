@@ -75,7 +75,7 @@ namespace engine::core::threading {
         };
 
         void start_workers_locked();
-        void shutdown_locked();
+        void shutdown_locked(std::unique_lock<std::mutex>& lock);
         std::optional<TaskEntry> pop_locked();
 
         static constexpr std::size_t priority_count = 3;

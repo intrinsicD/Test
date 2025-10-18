@@ -119,8 +119,6 @@ The following items remain open and should be prioritised when planning new work
   validation flows.
 - **IO format detection hardening (`RT-006`)** – expand signature databases and integrate fuzzing harnesses beyond the structured
   errors that already landed.
-- **Runtime diagnostics (`RT-004`)** – provide lifecycle telemetry, expose diagnostics via `RuntimeHost`, and surface them inside
-  tooling dashboards.
 - **Telemetry framework (`CC-001`)** – build a cross-module telemetry API, implement sinks, instrument hot paths, and ship a
   profiling viewer.
 - **Hot reload infrastructure (`CC-002`)** – add filesystem watching, asset cache callbacks, transaction logging, integration
@@ -149,7 +147,7 @@ roadmap.
 | Sprint 2-3 | 1 | `DC-004` | In Progress — finalise error-handling rollout and supporting documentation. |
 |            | 2 | `AI-001` | In Progress — expand handle-based lifetime management across caches and rendering. |
 |            | 3 | `RT-002` | Planned — ship persistent manifolds with constraint solving and telemetry. |
-|            | 4 | `RT-004` | Planned — deliver runtime lifecycle diagnostics surfaced through tooling. |
+|            | 4 | `RT-004` | Complete — runtime lifecycle diagnostics surface through `RuntimeHost::diagnostics()` and the telemetry tooling. |
 |            | 5 | `DI-001` | Planned — standardise module READMEs and automate completeness checks. |
 | Mid-Term (M4-M5) | 1 | `AI-002` | Planned — stand up async asset streaming with telemetry integration. |
 |                   | 2 | `RT-003` | In Progress — maintain parity between runtime submission and the Vulkan backend. |
@@ -613,6 +611,6 @@ summary referenced above.
 | Physics | Build on the rigid-body, collider, and sweep-and-prune foundation by adding contact manifolds, constraint solving, and instrumentation. | [docs/modules/physics/README.md](docs/modules/physics/README.md)<br>[docs/modules/physics/ROADMAP.md](docs/modules/physics/ROADMAP.md) |
 | Platform | Wire up concrete GLFW/SDL detection on top of the configurable backend selector, add filesystem write/watch utilities, and surface real input device plumbing. | [docs/modules/platform/README.md](docs/modules/platform/README.md)<br>[docs/modules/platform/ROADMAP.md](docs/modules/platform/ROADMAP.md) |
 | Rendering | Enrich frame-graph resource descriptors, thread queue/command metadata, and prototype the reference GPU scheduler before wiring backends. | [docs/modules/rendering/README.md](docs/modules/rendering/README.md)<br>[docs/modules/rendering/ROADMAP.md](docs/modules/rendering/ROADMAP.md) |
-| Runtime | Harden `RuntimeHost` lifecycle diagnostics and dependency reset validation before layering streaming hooks, keeping pace with the runtime diagnostics initiative (`RT-004`). | [docs/modules/runtime/README.md](docs/modules/runtime/README.md)<br>[docs/modules/runtime/ROADMAP.md](docs/modules/runtime/ROADMAP.md)<br>[docs/ROADMAP.md#runtime-expansion-plan](docs/ROADMAP.md#runtime-expansion-plan) |
+| Runtime | Use the new `RuntimeHost::diagnostics()` telemetry to monitor lifecycle performance while tightening dependency reset validation ahead of the streaming hooks. | [docs/modules/runtime/README.md](docs/modules/runtime/README.md)<br>[docs/modules/runtime/ROADMAP.md](docs/modules/runtime/ROADMAP.md)<br>[docs/ROADMAP.md#runtime-expansion-plan](docs/ROADMAP.md#runtime-expansion-plan) |
 | Scene | Define schemas for core runtime components, broaden traversal helpers, and version the serialization format alongside expanded tests. | [docs/modules/scene/README.md](docs/modules/scene/README.md)<br>[docs/modules/scene/ROADMAP.md](docs/modules/scene/ROADMAP.md) |
 | Tools | Stand up shared tooling infrastructure, automate content pipelines, surface profiling flows, and iterate towards the editor shell. | [docs/modules/tools/README.md](docs/modules/tools/README.md)<br>[docs/modules/tools/ROADMAP.md](docs/modules/tools/ROADMAP.md) |

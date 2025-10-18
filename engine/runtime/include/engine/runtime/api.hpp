@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <span>
 #include <string>
@@ -101,6 +102,45 @@ struct ENGINE_RUNTIME_API StreamingMetrics
     std::uint64_t streaming_total_rejected{0};
 };
 
+struct ENGINE_RUNTIME_API RuntimeStageTiming
+{
+    std::string name{};
+    double last_ms{0.0};
+    double average_ms{0.0};
+    double max_ms{0.0};
+    std::uint64_t sample_count{0};
+};
+
+struct ENGINE_RUNTIME_API RuntimeSubsystemTiming
+{
+    std::string name{};
+    double last_initialize_ms{0.0};
+    double last_tick_ms{0.0};
+    double last_shutdown_ms{0.0};
+    double max_initialize_ms{0.0};
+    double max_tick_ms{0.0};
+    double max_shutdown_ms{0.0};
+    std::uint64_t initialize_count{0};
+    std::uint64_t tick_count{0};
+    std::uint64_t shutdown_count{0};
+};
+
+struct ENGINE_RUNTIME_API RuntimeDiagnostics
+{
+    std::uint64_t initialize_count{0};
+    std::uint64_t shutdown_count{0};
+    std::uint64_t tick_count{0};
+    double last_initialize_ms{0.0};
+    double last_shutdown_ms{0.0};
+    double last_tick_ms{0.0};
+    double max_initialize_ms{0.0};
+    double max_shutdown_ms{0.0};
+    double max_tick_ms{0.0};
+    double average_tick_ms{0.0};
+    std::vector<RuntimeStageTiming> stage_timings{};
+    std::vector<RuntimeSubsystemTiming> subsystem_timings{};
+};
+
 class ENGINE_RUNTIME_API RuntimeHost {
 public:
     RuntimeHost();
@@ -123,6 +163,7 @@ public:
     [[nodiscard]] const std::vector<runtime_frame_state::scene_node_state>& scene_nodes() const;
     [[nodiscard]] double simulation_time() const noexcept;
     [[nodiscard]] std::span<const std::string_view> subsystem_names() const noexcept;
+    [[nodiscard]] const RuntimeDiagnostics& diagnostics() const noexcept;
 
     void configure(RuntimeHostDependencies dependencies);
 
@@ -161,6 +202,7 @@ ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
 [[nodiscard]] ENGINE_RUNTIME_API double simulation_time() noexcept;
 [[nodiscard]] ENGINE_RUNTIME_API std::vector<std::string> default_subsystem_names();
 [[nodiscard]] ENGINE_RUNTIME_API StreamingMetrics streaming_metrics() noexcept;
+[[nodiscard]] ENGINE_RUNTIME_API const RuntimeDiagnostics& diagnostics() noexcept;
 
 #if ENGINE_ENABLE_RENDERING
 ENGINE_RUNTIME_API void submit_render_graph(RuntimeHost::RenderSubmissionContext& context);
@@ -212,4 +254,30 @@ struct engine_runtime_streaming_metrics
 };
 extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
     engine_runtime_streaming_metrics* out_metrics) noexcept;
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_count() noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_shutdown_count() noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_tick_count() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_initialize_ms() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_shutdown_ms() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_tick_ms() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_average_tick_ms() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_max_tick_ms() noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_stage_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_stage_name(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_last_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_average_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_max_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_stage_samples(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_subsystem_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_subsystem_name(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_initialize_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_tick_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_shutdown_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_initialize_count(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_tick_count(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_shutdown_count(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_initialize_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_tick_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_shutdown_ms(std::size_t index) noexcept;
 

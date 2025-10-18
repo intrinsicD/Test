@@ -108,3 +108,44 @@ def test_evaluate_variance_raises_for_missing_dispatch() -> None:
     with pytest.raises(ValueError):
         telemetry.evaluate_variance(samples, check)
 
+
+def test_diagnostics_to_dict_roundtrip() -> None:
+    snapshot = telemetry.RuntimeDiagnosticsSnapshot(
+        initialize_count=1,
+        shutdown_count=2,
+        tick_count=3,
+        last_initialize_ms=0.1,
+        last_shutdown_ms=0.2,
+        last_tick_ms=0.3,
+        average_tick_ms=0.25,
+        max_tick_ms=0.4,
+        stages=[
+            telemetry.RuntimeStageMetric(
+                name="animation.evaluate",
+                last_ms=1.1,
+                average_ms=1.0,
+                max_ms=1.2,
+                sample_count=4,
+            )
+        ],
+        subsystems=[
+            telemetry.RuntimeSubsystemMetric(
+                name="physics",
+                last_initialize_ms=0.5,
+                last_tick_ms=0.6,
+                last_shutdown_ms=0.7,
+                max_initialize_ms=0.55,
+                max_tick_ms=0.65,
+                max_shutdown_ms=0.75,
+                initialize_count=1,
+                tick_count=3,
+                shutdown_count=1,
+            )
+        ],
+    )
+    payload = telemetry._diagnostics_to_dict(snapshot)
+    assert payload["initialize_count"] == 1
+    assert payload["tick_count"] == 3
+    assert payload["stages"][0]["name"] == "animation.evaluate"
+    assert payload["subsystems"][0]["last_tick_ms"] == pytest.approx(0.6)
+

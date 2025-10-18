@@ -221,12 +221,15 @@ Near-term planning should prioritise the following open items:
 - **Module:** Runtime, Core
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Instrument runtime lifecycle stages with telemetry hooks.
-  - [ ] Expose diagnostics through `RuntimeHost` APIs.
-  - [ ] Surface diagnostics in tooling dashboards.
+  - [x] Instrument runtime lifecycle stages with telemetry hooks.
+  - [x] Expose diagnostics through `RuntimeHost` APIs.
+  - [x] Surface diagnostics in tooling dashboards.
 - **Artifacts:** Runtime diagnostics sources, telemetry exporters, tooling integration.
 - **Tests:** Runtime unit tests covering diagnostics; tooling integration tests.
 - **Docs:** Runtime README diagnostics section; tooling documentation.
+- **Status:** `RuntimeHost::diagnostics()` now exposes lifecycle counters and stage timings
+  consumed by `scripts/diagnostics/runtime_frame_telemetry.py`, which emits the
+  aggregated data for dashboards.
 
 #### RT-005: Scene Hierarchy Validation
 - **Priority:** HIGH
