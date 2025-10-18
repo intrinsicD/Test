@@ -22,7 +22,8 @@
   behaviour is exercised by the headless harness under
   [`engine/tests/integration`](../../../engine/tests/integration/README.md) which covers the
   animation/physics/runtime loop, asset-driven mesh loading, and runtime →
-  rendering submissions (`TI-001`) once Googletest fixture support lands (`T-0118`).
+  rendering submissions (`TI-001`) now that Googletest fixture support from
+  `T-0118` has landed.
 
 ## Usage
 - Build via `cmake --build --preset <preset> --target engine_runtime`; this pulls every other module as a dependency.

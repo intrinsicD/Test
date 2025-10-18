@@ -1,27 +1,32 @@
-add_library(gtest INTERFACE)
+include(FetchContent)
 
-target_include_directories(gtest
-        INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+set(GOOGLETEST_GIT_TAG "v1.15.2")
+
+set(BUILD_GMOCK OFF CACHE BOOL "Disable Google Mock build" FORCE)
+set(INSTALL_GTEST OFF CACHE BOOL "Disable GoogleTest installation" FORCE)
+set(gtest_force_shared_crt ON CACHE BOOL "Match engine runtime CRT linkage" FORCE)
+
+FetchContent_Declare(googletest_external
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG ${GOOGLETEST_GIT_TAG}
+    GIT_SHALLOW TRUE
 )
 
-target_compile_features(gtest INTERFACE cxx_std_20)
+FetchContent_MakeAvailable(googletest_external)
 
-target_link_libraries(gtest
-        INTERFACE
-        engine::project_options)
+if(NOT TARGET gtest OR NOT TARGET gtest_main)
+    message(FATAL_ERROR "Upstream Googletest targets were not created as expected")
+endif()
 
-add_library(gtest_main STATIC
-        src/gtest_main.cpp
-)
+target_compile_features(gtest PUBLIC cxx_std_20)
+target_link_libraries(gtest PUBLIC engine::project_options)
 
-target_link_libraries(gtest_main
-        PUBLIC
-        gtest
-)
+target_link_libraries(gtest_main PUBLIC engine::project_options)
 
+if(NOT TARGET GTest::gtest)
+    add_library(GTest::gtest ALIAS gtest)
+endif()
 
-target_compile_features(gtest_main PUBLIC cxx_std_20)
-
-add_library(GTest::gtest ALIAS gtest)
-add_library(GTest::gtest_main ALIAS gtest_main)
+if(NOT TARGET GTest::gtest_main)
+    add_library(GTest::gtest_main ALIAS gtest_main)
+endif()

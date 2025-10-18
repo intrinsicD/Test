@@ -9,7 +9,8 @@
   property storage, kd-tree behaviour, and shape interactions, with additional
   asset-driven round-trip coverage exercised by
   [`engine/tests/integration`](../../../engine/tests/integration/README.md) (`TI-001`),
-  which is blocked on Googletest fixture support (`T-0118`).
+  now running against the fixture-enabled Googletest toolchain introduced in
+  `T-0118`.
 
 ## Usage
 - Build via `cmake --build --preset <preset> --target engine_geometry`; this links against `engine_math`.
