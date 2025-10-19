@@ -410,6 +410,7 @@ namespace engine::runtime
             joint_names.clear();
             scene_nodes.clear();
             joint_entities.clear();
+            diagnostics.scene_validation = {};
             scene = scene::Scene{scene_name()};
 #if ENGINE_ENABLE_RENDERING
             render_entity = scene::Entity{};
@@ -570,6 +571,8 @@ namespace engine::runtime
 #endif
 
             scene::systems::propagate_transforms(registry);
+
+            diagnostics.scene_validation = scene::validation::validate_hierarchy(scene);
 
             for (const auto& entity : joint_entities)
             {
@@ -1635,4 +1638,29 @@ extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_shu
         return 0.0;
     }
     return subsystems[index].max_shutdown_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_issue_count() noexcept
+{
+    return engine::runtime::diagnostics().scene_validation.metrics.issue_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_cycle_count() noexcept
+{
+    return engine::runtime::diagnostics().scene_validation.metrics.cycle_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_dangling_parent_count() noexcept
+{
+    return engine::runtime::diagnostics().scene_validation.metrics.dangling_parent_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_non_finite_transform_count() noexcept
+{
+    return engine::runtime::diagnostics().scene_validation.metrics.non_finite_transform_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_transform_mismatch_count() noexcept
+{
+    return engine::runtime::diagnostics().scene_validation.metrics.transform_mismatch_count;
 }

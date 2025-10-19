@@ -16,6 +16,7 @@
 #include "engine/math/math.hpp"
 #include "engine/physics/api.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
+#include "engine/scene/validation.hpp"
 
 #if ENGINE_ENABLE_RENDERING
 #    include "engine/rendering/components.hpp"
@@ -139,6 +140,7 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     double average_tick_ms{0.0};
     std::vector<RuntimeStageTiming> stage_timings{};
     std::vector<RuntimeSubsystemTiming> subsystem_timings{};
+    scene::validation::HierarchyValidationReport scene_validation{};
 };
 
 class ENGINE_RUNTIME_API RuntimeHost {
@@ -280,4 +282,8 @@ extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_initialize_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_tick_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_shutdown_ms(std::size_t index) noexcept;
-
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_issue_count() noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_cycle_count() noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_dangling_parent_count() noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_non_finite_transform_count() noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_transform_mismatch_count() noexcept;

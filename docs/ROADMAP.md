@@ -251,12 +251,15 @@ Use these queues to coordinate subsystem-specific work once the cross-cutting it
 - **Module:** Scene
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Implement hierarchy validation utilities guarding against cycles and invalid transforms.
-  - [ ] Add reporting hooks to surface issues during runtime synchronization.
-  - [ ] Document validation workflows in Scene README.
+  - [x] Implement hierarchy validation utilities guarding against cycles and invalid transforms.
+  - [x] Add reporting hooks to surface issues during runtime synchronization.
+  - [x] Document validation workflows in Scene README.
 - **Artifacts:** Scene validation sources, diagnostics, documentation.
 - **Tests:** Scene regression suite covering hierarchy manipulation; runtime integration tests.
 - **Docs:** Scene README updates; runtime troubleshooting notes.
+- **Status:** Validation reports now surface through `scene::validation::validate_hierarchy`,
+  runtime diagnostics record the latest metrics, and documentation walks contributors
+  through invoking the checks.
 
 #### RT-006: IO Format Detection Hardening
 - **Priority:** HIGH
