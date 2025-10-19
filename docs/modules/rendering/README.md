@@ -49,6 +49,86 @@
 - Integration suites under `engine/tests/integration/` act as the shared guardrail: extend or add scenarios whenever metadata
   changes to ensure runtime-generated passes exercise the new descriptors end-to-end through the Vulkan scheduler.
 
+<a id="runtime-rendering-vertical-slice-vulkan-workflow"></a>
+## Runtime ↔ Rendering Vertical Slice (Vulkan Workflow)
+
+The Vulkan backend shipped for `RT-003` demonstrates the end-to-end submission path between
+`engine::runtime::RuntimeHost` and the rendering frame graph. Follow the checklist below when
+exercising or extending the slice; each step maps directly to the types implemented under
+[`engine/runtime`](../../../engine/runtime/) and [`engine/rendering`](../../../engine/rendering/).
+
+### Prerequisites
+
+- Build with `ENGINE_ENABLE_RENDERING=ON` so the runtime links against the rendering module and
+  default forward pipeline.
+- Ensure the runtime dependencies provide a renderable entity. The default
+  `RuntimeHostDependencies` installs `rendering::components::RenderGeometry` so the runtime can
+  mirror meshes into the scene before submission.
+- Register materials whose handles match the runtime geometry descriptors via
+  `rendering::MaterialSystem::register_material` before invoking the submission step.
+
+### Assemble the Submission Context
+
+Construct `RuntimeHost::RenderSubmissionContext` (see
+[`engine/runtime/api.hpp`](../../../engine/runtime/include/engine/runtime/api.hpp)) immediately
+after the runtime advances a frame. Each field has a concrete responsibility during submission:
+
+1. **`rendering::RenderResourceProvider`** – ensures CPU-side asset handles referenced by the
+   scene are resident on the GPU. Integration tests ship lightweight reference implementations (see
+   [`engine/tests/integration/test_runtime_integration.cpp`](../../../engine/tests/integration/test_runtime_integration.cpp)),
+   while production hosts adapt this interface to their streaming/cache layer.
+2. **`rendering::MaterialSystem`** – resolves material and shader handles during draw-call
+   emission. Populate it with `MaterialRecord` entries whose IDs match the runtime’s
+   `RenderGeometry` component.
+3. **`rendering::resources::IGpuResourceProvider`** – materialises frame-graph resource metadata.
+   For Vulkan, instantiate `resources::RecordingGpuResourceProvider` or a concrete device-backed
+   implementation configured with `GraphicsApi::Vulkan` so the scheduler can resolve images,
+   buffers, fences, and semaphores.
+4. **`rendering::IGpuScheduler`** – translate compiled passes into backend submissions. The Vulkan
+   slice uses [`backend::vulkan::VulkanGpuScheduler`](../../../engine/rendering/include/engine/rendering/backend/vulkan/gpu_scheduler.hpp),
+   which emits `VulkanSubmission` records containing queue handles, barriers, and timeline semaphore
+   payloads.
+5. **`rendering::CommandEncoderProvider`** – supplies command encoders bound to the selected queue.
+   Tests use `rendering::tests::RecordingCommandEncoderProvider`; production builds provide an
+   implementation that records into Vulkan command buffers.
+6. **`rendering::FrameGraph`** – receives the passes compiled by the forward pipeline. Reuse a
+   persistent instance when driving multiple frames so lifetime tracking retains transient resource
+   reuse information.
+7. **`rendering::ForwardPipeline` (optional)** – pass a custom pipeline when overriding the default
+   forward renderer. When left `nullptr`, `RuntimeHost` invokes its internal
+   `ForwardPipeline` instance.
+
+### Submission Flow
+
+Call `RuntimeHost::submit_render_graph(context)` after `RuntimeHost::tick()` completes. The runtime
+ensures its render entity exists, chooses the pipeline (custom or default), and delegates to
+`ForwardPipeline::render`. The pipeline:
+
+1. Collects visible scene nodes and asks the frame graph to create resources using the descriptor
+   metadata defined in `FrameGraphResourceDescriptor`.
+2. Invokes the command encoder provider to record draw calls. For the Vulkan slice, the command
+   buffer records mesh/material handles that `RenderResourceProvider` resolved earlier.
+3. Hands the compiled passes to the Vulkan scheduler. `VulkanGpuScheduler::build_submission`
+   resolves native queue and synchronization handles via the GPU resource provider, yielding a
+   deterministic `VulkanSubmission` stream.
+
+The integration test
+[`engine/tests/integration/test_runtime_integration.cpp`](../../../engine/tests/integration/test_runtime_integration.cpp)
+asserts this flow end-to-end: it ticks the runtime, wires the context with recording providers, and
+verifies that the scheduler emits a single `ForwardGeometry` submission carrying the expected mesh
+and material handles.
+
+### Diagnostics and Regression Guardrails
+
+- Execute `engine_integration_tests` (see
+  [`engine/tests/integration/README.md`](../../../engine/tests/integration/README.md)) to confirm the
+  vertical slice remains deterministic after modifying either module.
+- Capture frame-level timings with `scripts/diagnostics/runtime_frame_telemetry.py`; the script reads
+  the same dispatcher metrics surfaced via the Vulkan slice so performance regressions surface in
+  dashboards tracked by `RT-003`.
+- Mirror any changes to frame-graph metadata or submission ordering into this documentation and the
+  runtime README to keep the cross-module contract explicit.
+
 ## Vulkan Resource Translation
 
 - `engine::rendering::backend::vulkan::translate_resource` converts a `FrameGraphResourceInfo` into either a `VkImageCreateInfo`

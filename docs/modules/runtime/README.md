@@ -35,8 +35,12 @@
   `scripts/diagnostics/runtime_frame_telemetry.py` to export JSON suitable for
   dashboards.
 - When bridging into rendering, construct a `RuntimeHost::RenderSubmissionContext` with your resource/material/scheduler providers and call `RuntimeHost::submit_render_graph(context)` after each `tick()`.
+- Follow the Vulkan workflow documented in [docs/modules/rendering/README.md][rendering-vertical-slice]
+  when wiring the submission context so scheduler, resource provider, and material registrations stay aligned with `RT-003`.
 - Run `ctest --preset <preset> --tests-regex engine_runtime` to verify module plumbing before running broader integration suites.
 - Toggle subsystem availability at configure time via the `ENGINE_ENABLE_<MODULE>` CMake options (for example `-DENGINE_ENABLE_RENDERING=OFF`). Disabled subsystems are omitted from the default registry but can still be re-enabled explicitly through the helper APIs.
+
+[rendering-vertical-slice]: ../rendering/README.md#runtime-rendering-vertical-slice-vulkan-workflow
 
 ## Diagnostics
 
