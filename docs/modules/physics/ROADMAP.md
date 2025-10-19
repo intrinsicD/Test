@@ -20,7 +20,8 @@
 - ✅ **Broad-phase acceleration** – A sweep-and-prune broad phase reduces the $O(n^2)$ collider checks; future work will evaluate BVH/spatial hashes and add determinism regression tests.
 - ✅ **Contact manifolds** – Persistent overlaps now compute contact normals/penetration depths, expose telemetry, and provide
   solver callbacks for downstream constraint resolution.
-- **Constraint solver** – Implement impulse-based or sequential impulse solvers to resolve collisions, starting with perfectly elastic contacts and expanding towards frictional constraints.
+- ✅ **Constraint solver** – Sequential impulse solver resolves collisions today, reports solver iteration telemetry, and
+  establishes hooks for future frictional constraints.
 
 ### 3. Advance Dynamics Fidelity (Long Term)
 

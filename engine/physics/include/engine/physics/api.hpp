@@ -117,6 +117,7 @@ struct CollisionTelemetry {
     std::size_t manifold_count{0U};
     std::size_t contact_count{0U};
     float max_penetration{0.0F};
+    std::uint32_t solver_iterations{0U};
 };
 
 struct ConstraintSolverCallbacks {
@@ -124,6 +125,13 @@ struct ConstraintSolverCallbacks {
 
     OnManifoldFn on_manifold{nullptr};
     void* user_data{nullptr};
+};
+
+struct ConstraintSolverConfig {
+    std::uint32_t iterations{8U};
+    float restitution{0.0F};
+    float baumgarte{0.2F};
+    float penetration_slop{1e-4F};
 };
 
 struct PhysicsWorld {
@@ -135,6 +143,7 @@ struct PhysicsWorld {
     std::vector<ContactManifold> manifolds;
     CollisionTelemetry collision_stats{};
     ConstraintSolverCallbacks constraint_callbacks{};
+    ConstraintSolverConfig solver_config{};
 };
 
 [[nodiscard]] ENGINE_PHYSICS_API std::string_view module_name() noexcept;
@@ -174,6 +183,11 @@ ENGINE_PHYSICS_API void update_contact_manifolds(PhysicsWorld& world);
 [[nodiscard]] ENGINE_PHYSICS_API const CollisionTelemetry& collision_telemetry(const PhysicsWorld& world) noexcept;
 
 ENGINE_PHYSICS_API void set_constraint_callbacks(PhysicsWorld& world, ConstraintSolverCallbacks callbacks) noexcept;
+
+ENGINE_PHYSICS_API void set_constraint_solver_config(PhysicsWorld& world,
+                                                     const ConstraintSolverConfig& config) noexcept;
+
+[[nodiscard]] ENGINE_PHYSICS_API ConstraintSolverConfig constraint_solver_config(const PhysicsWorld& world) noexcept;
 
 }  // namespace engine::physics
 

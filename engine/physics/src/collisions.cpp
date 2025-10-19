@@ -549,6 +549,81 @@ struct SegmentClosestPoints {
            (lhs.min[2] <= rhs.max[2] && lhs.max[2] >= rhs.min[2]);
 }
 
+std::uint32_t solve_contact_constraints(PhysicsWorld& world) {
+    if (world.manifolds.empty()) {
+        return 0U;
+    }
+
+    const ConstraintSolverConfig config = world.solver_config;
+    if (config.iterations == 0U) {
+        return 0U;
+    }
+
+    const float restitution = std::clamp(config.restitution, 0.0F, 1.0F);
+    const float baumgarte = std::max(config.baumgarte, 0.0F);
+    const float penetration_slop = std::max(config.penetration_slop, 0.0F);
+
+    for (std::uint32_t iteration = 0U; iteration < config.iterations; ++iteration) {
+        for (auto& manifold : world.manifolds) {
+            if (manifold.first >= world.bodies.size() || manifold.second >= world.bodies.size()) {
+                continue;
+            }
+
+            auto& body_a = world.bodies[manifold.first];
+            auto& body_b = world.bodies[manifold.second];
+
+            const float inv_mass_a = body_a.inverse_mass;
+            const float inv_mass_b = body_b.inverse_mass;
+            if (inv_mass_a == 0.0F && inv_mass_b == 0.0F) {
+                continue;
+            }
+
+            for (std::uint32_t contact_index = 0U; contact_index < manifold.contact_count; ++contact_index) {
+                const auto& contact = manifold.contacts[contact_index];
+                const math::vec3 normal = safe_normalized(contact.normal);
+
+                const math::vec3 relative_velocity = body_b.velocity - body_a.velocity;
+                const float velocity_along_normal = math::dot(relative_velocity, normal);
+
+                float impulse_velocity = 0.0F;
+                if (velocity_along_normal < 0.0F) {
+                    impulse_velocity = -(1.0F + restitution) * velocity_along_normal;
+                }
+
+                float bias = 0.0F;
+                if (contact.penetration > penetration_slop) {
+                    bias = baumgarte * (contact.penetration - penetration_slop);
+                }
+
+                if (impulse_velocity <= 0.0F && bias <= 0.0F) {
+                    continue;
+                }
+
+                const float inverse_mass_sum = inv_mass_a + inv_mass_b;
+                if (inverse_mass_sum <= std::numeric_limits<float>::epsilon()) {
+                    continue;
+                }
+
+                float impulse_magnitude = (impulse_velocity + bias) / inverse_mass_sum;
+                if (impulse_magnitude <= 0.0F) {
+                    continue;
+                }
+
+                const math::vec3 impulse = normal * impulse_magnitude;
+
+                if (inv_mass_a > 0.0F) {
+                    body_a.velocity -= impulse * inv_mass_a;
+                }
+                if (inv_mass_b > 0.0F) {
+                    body_b.velocity += impulse * inv_mass_b;
+                }
+            }
+        }
+    }
+
+    return config.iterations;
+}
+
 }  // namespace
 
 std::vector<CollisionPair> detect_collisions(const PhysicsWorld& world) {
@@ -644,6 +719,7 @@ void update_contact_manifolds(PhysicsWorld& world) {
     world.collision_stats.manifold_count = world.manifolds.size();
     world.collision_stats.contact_count = total_contacts;
     world.collision_stats.max_penetration = max_penetration;
+    world.collision_stats.solver_iterations = solve_contact_constraints(world);
 
     if (world.constraint_callbacks.on_manifold != nullptr) {
         for (auto& manifold : world.manifolds) {
@@ -662,6 +738,18 @@ const CollisionTelemetry& collision_telemetry(const PhysicsWorld& world) noexcep
 
 void set_constraint_callbacks(PhysicsWorld& world, ConstraintSolverCallbacks callbacks) noexcept {
     world.constraint_callbacks = callbacks;
+}
+
+void set_constraint_solver_config(PhysicsWorld& world, const ConstraintSolverConfig& config) noexcept {
+    ConstraintSolverConfig sanitized = config;
+    sanitized.restitution = std::clamp(config.restitution, 0.0F, 1.0F);
+    sanitized.baumgarte = std::max(config.baumgarte, 0.0F);
+    sanitized.penetration_slop = std::max(config.penetration_slop, 0.0F);
+    world.solver_config = sanitized;
+}
+
+ConstraintSolverConfig constraint_solver_config(const PhysicsWorld& world) noexcept {
+    return world.solver_config;
 }
 
 }  // namespace engine::physics

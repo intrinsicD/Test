@@ -349,3 +349,44 @@ TEST(PhysicsWorldContacts, ConstraintCallbacksReceiveManifolds) {
     EXPECT_EQ(1U, state.count);
     EXPECT_GT(state.last_penetration, 0.0F);
 }
+
+TEST(PhysicsWorldContacts, SequentialImpulseSolverAppliesResolutionAndTelemetry) {
+    engine::physics::PhysicsWorld world;
+    world.gravity = engine::math::vec3{0.0F, 0.0F, 0.0F};
+
+    engine::physics::ConstraintSolverConfig config = engine::physics::constraint_solver_config(world);
+    config.iterations = 4U;
+    config.restitution = 0.0F;
+    config.baumgarte = 0.3F;
+    config.penetration_slop = 1e-4F;
+    engine::physics::set_constraint_solver_config(world, config);
+
+    engine::physics::RigidBody ground;
+    ground.mass = 0.0F;
+    ground.position = engine::math::vec3{0.0F, -0.5F, 0.0F};
+    const auto ground_index = engine::physics::add_body(world, ground);
+    const auto ground_shape = engine::geometry::MakeAabbFromCenterExtent({0.0F, 0.0F, 0.0F}, {2.0F, 0.5F, 2.0F});
+    engine::physics::set_collider(world, ground_index, engine::physics::Collider::make_aabb(ground_shape));
+
+    engine::physics::RigidBody sphere;
+    sphere.mass = 1.0F;
+    sphere.position = engine::math::vec3{0.0F, 0.2F, 0.0F};
+    sphere.velocity = engine::math::vec3{0.0F, -1.0F, 0.0F};
+    const auto sphere_index = engine::physics::add_body(world, sphere);
+    engine::physics::set_collider(world, sphere_index, engine::physics::Collider::make_sphere(0.5F));
+
+    engine::physics::integrate(world, 0.016);
+    engine::physics::update_contact_manifolds(world);
+
+    const auto post_solve_body = engine::physics::body_at(world, sphere_index);
+    EXPECT_GE(post_solve_body.velocity[1], -1e-4F);
+
+    const auto& telemetry = engine::physics::collision_telemetry(world);
+    EXPECT_EQ(config.iterations, telemetry.solver_iterations);
+    EXPECT_EQ(1U, telemetry.manifold_count);
+
+    const float position_before = post_solve_body.position[1];
+    engine::physics::integrate(world, 0.016);
+    const auto post_step_body = engine::physics::body_at(world, sphere_index);
+    EXPECT_GE(post_step_body.position[1], position_before);
+}

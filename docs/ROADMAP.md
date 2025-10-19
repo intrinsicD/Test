@@ -26,7 +26,6 @@ stable architectural base.
 
 | ID | Scope | Key Deliverables |
 | --- | --- | --- |
-| `RT-002-FU1` | Physics / Telemetry | Ship the impulse-based solver on top of the manifold callbacks, extend instrumentation, and finalise authoring docs. |
 | `RT-005` | Scene | Enforce hierarchy integrity with cycle/transform validation, runtime reporting hooks, and documentation. |
 | `RT-006` | IO | Grow signature heuristics, integrate fuzzing harnesses, and document detection workflows. |
 | `CC-001` | Telemetry | Define the telemetry API, implement sinks, instrument hot paths, and deliver a viewer. |
@@ -215,8 +214,7 @@ Use these queues to coordinate subsystem-specific work once the cross-cutting it
 - **Artifacts:** Physics solver sources, manifold data structures, telemetry hooks, documentation updates.
 - **Tests:** Physics regression suite covering manifold stability and constraint solving.
 - **Docs:** Physics README, telemetry references.
-- **Follow-Up:** Implement impulse-based constraint resolution leveraging the registered
-  solver callbacks and extend telemetry to capture solver iterations (`RT-002-FU1`).
+- **Follow-Up:** Completed — sequential impulse solver now leverages the registered callbacks and extends telemetry with solver iteration counts (`RT-002-FU1`).
 
 #### RT-003: Vulkan Backend Prototype
 - **Priority:** HIGH
