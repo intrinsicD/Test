@@ -9,7 +9,7 @@
 ## Usage
 
 - Ensure the repository root is on `PYTHONPATH` (the tests insert it automatically when run from this directory).
-- Execute the suite with `pytest python/tests` or `python -m unittest python.tests.test_loader` after activating the virtual environment described in [`python/README.md`](../README.md).
+- Execute the suite with `pytest python/tests` or `python -m unittest python.tests.test_loader` after activating the virtual environment described in [`python/README.md`](../README.md) and installing dependencies from `python/requirements.txt`.
 - Set `ENGINE3G_LIBRARY_PATH` when you wish to exercise search path logic against real shared libraries compiled from the C++ build.
 
 ## TODO / Next Steps
