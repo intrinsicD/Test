@@ -1,4 +1,12 @@
 # Python automation and test dependencies for the Test Engine workspace.
 # Aligns with the PY-001 roadmap item covering Python bindings.
+
+# Testing
 pytest>=8.0
+
+# Stub generation and packaging pipeline
+pybind11-stubgen>=0.13
+build>=1.2
+wheel>=0.43
+twine>=5.0
 
