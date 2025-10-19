@@ -2,7 +2,8 @@
 
 ## Near Term
 - Formalise component schemas for lights, cameras, and visibility volumes; update systems/serialization to support the new types.
-- Add validation utilities that detect hierarchy cycles, missing parents, and transform inconsistencies.
+- Validation utilities now detect hierarchy cycles, missing parents, and transform inconsistencies; expand tooling surfaces that
+  consume the reports and feed telemetry dashboards.
 
 ## Mid Term
 - Extend serialization with versioning and migration paths to support backward/forward compatibility across saved scenes.

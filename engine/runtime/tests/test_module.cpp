@@ -661,6 +661,8 @@ TEST(RuntimeHost, ExposesLifecycleDiagnostics)
     const auto& after_tick = host.diagnostics();
     EXPECT_EQ(after_tick.tick_count, 1U);
     EXPECT_GE(after_tick.last_tick_ms, 0.0);
+    EXPECT_TRUE(after_tick.scene_validation.ok());
+    EXPECT_EQ(after_tick.scene_validation.metrics.issue_count, 0U);
     const bool has_animation_stage = std::any_of(
         after_tick.stage_timings.begin(),
         after_tick.stage_timings.end(),

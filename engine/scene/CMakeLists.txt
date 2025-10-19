@@ -7,6 +7,7 @@ add_library(${target_name}
         src/systems/hierarchy_system.cpp
         src/systems/registry.cpp
         src/systems/transform_system.cpp
+        src/validation.cpp
 )
 
 engine_apply_module_defaults(${target_name}
