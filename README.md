@@ -566,8 +566,8 @@ Open questions / gaps:
 Next steps:
 
 - Sync with build/release owners to enumerate minimum supported toolchains and platform-specific caveats.
-- Draft a Python environment setup guide (potentially under `python/README.md`) once dependencies are
-  confirmed.
+- Keep the Python environment setup guide in [`python/README.md`](python/README.md)
+  aligned with dependency and tooling updates.
 - Propose documentation updates detailing third-party maintenance responsibilities.
 - Audit existing tests to classify by subsystem and recommend coverage metrics.
 - Request product/tech-lead input on TODO sequencing for roadmap planning.
