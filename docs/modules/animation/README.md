@@ -5,6 +5,8 @@
 - `RigBinding`, `RigJoint`, and `VertexBinding` define the skeleton ↔ mesh binding contract, including joint hierarchy metadata and normalized per-vertex influences that upcoming deformation systems consume.
 - `skinning::build_global_joint_transforms` and `skinning::build_skinning_transforms` evaluate rig poses into per-joint linear blend skinning transforms that downstream geometry helpers consume.
 - JSON import/export helpers (`write_clip_json`, `read_clip_json`, `save_clip_json`, `load_clip_json`) enable round-tripping clips for offline tools and automated validation flows.
+- `validate_clip` emits structured `ClipValidationErrorCode` values alongside descriptive messages so authoring tools can react to
+  specific validation failures without string parsing.
 - Blend-tree authoring helpers cover clip nodes, controller nodes, linear and additive blend nodes, and parameter management (float, bool, event) so higher-level systems can express complex animation graphs.
 - Unit tests under `engine/animation/tests/` exercise module loading,
   serialization, and blend tree behaviours to guard refactors; the integration

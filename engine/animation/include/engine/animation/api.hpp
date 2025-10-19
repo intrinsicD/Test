@@ -107,7 +107,25 @@ struct AnimationBlendTree {
 
 ENGINE_ANIMATION_API void sort_keyframes(JointTrack& track);
 
+enum class ClipValidationErrorCode {
+    kUnknown = 0,
+    kClipNameEmpty,
+    kClipDurationInvalid,
+    kClipMissingTracks,
+    kTrackMissingJointName,
+    kTrackDuplicateJoint,
+    kTrackEmptyKeyframes,
+    kKeyframeTimeInvalid,
+    kKeyframeTimeNonIncreasing,
+    kKeyframeTranslationNonFinite,
+    kKeyframeScaleNonFinite,
+    kKeyframeRotationNonFinite,
+    kKeyframeRotationZeroLength,
+    kClipDurationShorterThanLastKeyframe,
+};
+
 struct ClipValidationError {
+    ClipValidationErrorCode code{ClipValidationErrorCode::kUnknown};
     std::string message;
     std::string joint_name;
     std::size_t track_index{std::numeric_limits<std::size_t>::max()};

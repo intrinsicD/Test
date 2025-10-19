@@ -55,11 +55,11 @@ TEST(AnimationClipValidation, DetectsInvalidTracks)
     bool non_increasing_detected = false;
     for (const auto& error : errors)
     {
-        if (error.message.find("Duplicate joint track") != std::string::npos)
+        if (error.code == ClipValidationErrorCode::kTrackDuplicateJoint)
         {
             duplicate_track_detected = true;
         }
-        if (error.message.find("strictly increasing") != std::string::npos)
+        if (error.code == ClipValidationErrorCode::kKeyframeTimeNonIncreasing)
         {
             non_increasing_detected = true;
         }

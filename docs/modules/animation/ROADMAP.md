@@ -38,7 +38,7 @@ _Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
 - **Owner:** @animation-team
 - **Issue:** #238
 - **Tasks:**
-  - [ ] Emit structured error codes from `validate_clip`
+  - [x] Emit structured error codes from `validate_clip`
   - [ ] Cover empty-track and unordered-key edge cases in tests
   - [ ] Extend controller regression tests for validation failures
 
