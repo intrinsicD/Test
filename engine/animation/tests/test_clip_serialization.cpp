@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -67,6 +69,60 @@ TEST(AnimationClipValidation, DetectsInvalidTracks)
 
     EXPECT_TRUE(duplicate_track_detected);
     EXPECT_TRUE(non_increasing_detected);
+}
+
+TEST(AnimationClipValidation, DetectsEmptyTrackKeyframes)
+{
+    using namespace engine::animation;
+
+    AnimationClip clip;
+    clip.name = "empty_track";
+    clip.duration = 1.0;
+
+    JointTrack track;
+    track.joint_name = "root";
+    clip.tracks.push_back(track);
+
+    const auto errors = validate_clip(clip);
+    ASSERT_FALSE(errors.empty());
+
+    const auto empty_track = std::find_if(errors.begin(),
+                                          errors.end(),
+                                          [](const ClipValidationError& error) {
+                                              return error.code == ClipValidationErrorCode::kTrackEmptyKeyframes;
+                                          });
+    ASSERT_NE(empty_track, errors.end());
+    EXPECT_EQ(empty_track->joint_name, "root");
+    EXPECT_EQ(empty_track->track_index, 0U);
+    EXPECT_EQ(empty_track->keyframe_index, std::numeric_limits<std::size_t>::max());
+}
+
+TEST(AnimationClipValidation, DetectsUnorderedKeyframes)
+{
+    using namespace engine::animation;
+
+    AnimationClip clip;
+    clip.name = "unordered_keys";
+    clip.duration = 1.0;
+
+    JointTrack track;
+    track.joint_name = "root";
+    track.keyframes.push_back({0.25, JointPose{}});
+    track.keyframes.push_back({0.10, JointPose{}});
+    clip.tracks.push_back(track);
+
+    const auto errors = validate_clip(clip);
+    ASSERT_FALSE(errors.empty());
+
+    const auto unordered_key = std::find_if(errors.begin(),
+                                            errors.end(),
+                                            [](const ClipValidationError& error) {
+                                                return error.code == ClipValidationErrorCode::kKeyframeTimeNonIncreasing;
+                                            });
+    ASSERT_NE(unordered_key, errors.end());
+    EXPECT_EQ(unordered_key->joint_name, "root");
+    EXPECT_EQ(unordered_key->track_index, 0U);
+    EXPECT_EQ(unordered_key->keyframe_index, 1U);
 }
 
 TEST(AnimationClipSerialization, RoundTripJson)

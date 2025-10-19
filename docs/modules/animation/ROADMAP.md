@@ -1,6 +1,6 @@
 # Animation Module Roadmap
 
-_Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
+_Last Updated: 2025-02-19 (Clip validation hardening progress)_
 
 ## Status Overview
 - ✅ Phase 1: Foundation (Completed M1–M2)
@@ -39,7 +39,7 @@ _Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
 - **Issue:** #238
 - **Tasks:**
   - [x] Emit structured error codes from `validate_clip`
-  - [ ] Cover empty-track and unordered-key edge cases in tests
+  - [x] Cover empty-track and unordered-key edge cases in tests
   - [ ] Extend controller regression tests for validation failures
 
 ## Phase 3: Advanced Features (M4–M6)
