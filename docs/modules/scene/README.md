@@ -23,5 +23,12 @@
   the C API helpers (`engine_runtime_diagnostic_scene_*`). Use the telemetry
   pipeline or the new C ABI entry points to surface hierarchy health in tooling.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **RT-005:** Continue enforcing hierarchy validation, transform checks, and
+  runtime diagnostics outlined in the [scene hierarchy validation
+  initiative](../../ROADMAP.md#rt-005-scene-hierarchy-validation), keeping
+  coverage aligned with [ROADMAP.md](ROADMAP.md).
+- **Module backlog:** Track component schema expansion and serialization
+  versioning through the [module execution backlog](../../ROADMAP.md#module-execution-backlog)
+  and the local [ROADMAP.md](ROADMAP.md).

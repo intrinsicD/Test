@@ -14,4 +14,8 @@ Use this template to keep documentation consistent across modules. Replace the b
 
 ## TODO / Next Steps
 
-- [List the next set of actionable tasks for this directory. Mirror these entries in the root aggregate table.]
+- [List the next set of actionable tasks for this directory. Reference
+  the identifiers and anchors in `docs/ROADMAP.md` (for example
+  `AI-003`, `RT-005`) so reviewers can trace priority and ownership, and
+  mirror the bullets in the root aggregate table plus the local
+  `docs/modules/<module>/ROADMAP.md` file.]

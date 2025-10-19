@@ -17,5 +17,12 @@
 - Disable GLFW fetching with `-DENGINE_ENABLE_GLFW=OFF`. When the configure step cannot locate the required X11 headers (for example `libxrandr-dev`) it automatically turns this option off and the platform module runs exclusively with the SDL and mock implementations until the dependency is present.
 - Use `WindowConfig::capability_requirements` to demand `require_headless_safe` or `require_native_surface`. Automatic selection filters out backends that cannot satisfy these flags and raises descriptive errors when an explicit backend is incompatible.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **CC-002:** Provide filesystem watching, backend callbacks, and hot reload
+  plumbing required by the [hot reload infrastructure
+  initiative](../../ROADMAP.md#cc-002-hot-reload-infrastructure), aligning
+  with sequencing in [ROADMAP.md](ROADMAP.md).
+- **BS-001:** Expand build presets and backend documentation according to the
+  [preset expansion plan](../../ROADMAP.md#bs-001-preset-expansion) so
+  cross-platform configuration remains reproducible.

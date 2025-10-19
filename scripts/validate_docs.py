@@ -9,7 +9,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS_DIR = ROOT / "docs"
+MODULES_DIR = DOCS_DIR / "modules"
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+ROADMAP_ID_RE = re.compile(r"\b(?:AI|DC|RT|DI|BS|TI|PY|CC|MC)-\d+\b")
+ROADMAP_LINK_TOKEN = "../../ROADMAP.md"
+TODO_SECTION_RE = re.compile(r"## TODO / Next Steps(?P<body>.*?)(?:\n## |\Z)", re.S)
+REQUIRED_SECTIONS = ("## Current State", "## Usage", "## TODO / Next Steps")
 
 
 def _should_skip(target: str) -> bool:
@@ -46,6 +51,40 @@ def main() -> int:
     failures: list[str] = []
     for markdown in DOCS_DIR.rglob("*.md"):
         failures.extend(_validate_markdown(markdown))
+
+    if MODULES_DIR.exists():
+        for module_readme in sorted(MODULES_DIR.glob("*/README.md")):
+            text = module_readme.read_text(encoding="utf-8")
+            missing = [section for section in REQUIRED_SECTIONS if section not in text]
+            if missing:
+                failures.append(
+                    f"{module_readme.relative_to(ROOT)} missing sections: {', '.join(missing)}"
+                )
+                continue
+
+            todo_match = TODO_SECTION_RE.search(text)
+            if not todo_match:
+                failures.append(
+                    f"{module_readme.relative_to(ROOT)} missing '## TODO / Next Steps' section"
+                )
+                continue
+
+            todo_body = todo_match.group("body").strip()
+            todo_bullets = [line for line in todo_body.splitlines() if line.lstrip().startswith("-")]
+            if not todo_bullets:
+                failures.append(
+                    f"{module_readme.relative_to(ROOT)} TODO section missing bullet list"
+                )
+
+            if ROADMAP_LINK_TOKEN not in todo_body:
+                failures.append(
+                    f"{module_readme.relative_to(ROOT)} TODO section missing link to docs/ROADMAP.md"
+                )
+
+            if not ROADMAP_ID_RE.search(todo_body):
+                failures.append(
+                    f"{module_readme.relative_to(ROOT)} TODO section missing roadmap identifier"
+                )
 
     if failures:
         print("Documentation link validation failed:")

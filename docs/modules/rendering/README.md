@@ -146,5 +146,13 @@ and material handles.
 2. Update custom render passes to either forward the preferred queue through the base-class constructor or call `set_queue` inside their constructor.
 3. Extend tests to assert the propagated metadata using `FrameGraph::resource_info`, `FrameGraphPassExecutionContext::pass_phase`, and the deterministic serializer to catch regressions when adding new passes.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **RT-003:** Broaden Vulkan backend coverage (resource providers, scheduler
+  diagnostics, validation) as described in the [Vulkan backend
+  prototype](../../ROADMAP.md#rt-003-vulkan-backend-prototype) while keeping
+  runtime documentation in sync.
+- **AI-003:** Maintain frame-graph metadata, queue affinity, and validation
+  parity in line with the [frame-graph resource metadata
+  plan](../../ROADMAP.md#ai-003-frame-graph-resource-metadata) whenever passes
+  or resource descriptors evolve.

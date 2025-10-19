@@ -15,5 +15,12 @@
 - Run `ctest --preset <preset> --tests-regex engine_compute` after enabling testing to confirm dispatcher behaviour for both implementations.
 - Inspect kernel metadata with `Dispatcher::dependency_graph()` or the `ExecutionReport::dependency_graph` field. `DependencyGraph::to_dot()` emits a DOT graph that visualises execution order, resolved edges, and unresolved references, making it easy to diagnose invalid submissions. Registration now fails immediately when a cycle is detected, so reconcile dependency lists before dispatching.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **AI-004:** Implement the configurable timing abstraction and upcoming
+  thread-pool executor tracked in the [compute dependency validation
+  plan](../../ROADMAP.md#ai-004-compute-dependency-validation) so reports
+  cover CPU/GPU domains and parallel dispatch paths.
+- **DC-002:** Maintain CUDA as an optional dependency by exercising the
+  presets and dispatcher parity outlined in the [CUDA optional dependency
+  workstream](../../ROADMAP.md#dc-002-cuda-optional-dependency).

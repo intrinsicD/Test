@@ -100,5 +100,12 @@ Projects with bespoke requirements can still assemble `RuntimeHostDependencies` 
 helper APIs cover common cases such as disabling expensive subsystems or bootstrapping from a list
 of module names.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **AI-002:** Integrate asynchronous streaming state machines and diagnostics
+  with runtime orchestration per the [async asset streaming
+  architecture](../../ROADMAP.md#ai-002-async-asset-streaming-architecture),
+  keeping sequencing aligned with [ROADMAP.md](ROADMAP.md).
+- **CC-001:** Extend telemetry capture, scoped profiling, and viewer exports as
+  part of the [telemetry framework](../../ROADMAP.md#cc-001-telemetry-framework)
+  so lifecycle metrics remain actionable.

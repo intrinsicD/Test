@@ -11,5 +11,12 @@
 - Include `<engine/core/ecs/registry.hpp>` to manage entities and `<engine/core/api.hpp>` for module exports.
 - Execute `ctest --preset <preset> --tests-regex engine_core` with testing enabled to ensure registry semantics remain intact.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **DC-001:** Expand configuration, plugin discovery, and deterministic
+  shutdown surfaces in lockstep with the [runtime dependency inversion
+  effort](../../ROADMAP.md#dc-001-runtime-module-dependency-inversion);
+  detailed sequencing lives in [ROADMAP.md](ROADMAP.md).
+- **CC-001:** Build diagnostics bridges and telemetry plumbing required by the
+  [telemetry framework initiative](../../ROADMAP.md#cc-001-telemetry-framework)
+  so runtime and tooling can consume structured metrics.
