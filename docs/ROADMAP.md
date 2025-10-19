@@ -224,7 +224,7 @@ Use these queues to coordinate subsystem-specific work once the cross-cutting it
   - [x] Implement a Vulkan backend conforming to the frame graph scheduler (validated through runtime-driven submissions).
   - [x] Provide resource translation layers for Vulkan handles.
   - [x] Author backend configuration documentation and samples.
-  - [ ] Keep runtime submission hooks and Vulkan translation layers in parity as metadata evolves.
+  - [x] Keep runtime submission hooks and Vulkan translation layers in parity as metadata evolves.
   - [ ] Document the Rendering/Runtime vertical slice workflow for this backend.
 - **Artifacts:** Vulkan backend sources, CMake targets, documentation.
 - **Tests:** Rendering backend smoke tests; CI presets exercising Vulkan.

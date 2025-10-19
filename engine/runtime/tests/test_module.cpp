@@ -11,12 +11,14 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
-#include "engine/runtime/api.hpp"
-#include "engine/runtime/subsystem_registry.hpp"
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
+#include "engine/rendering/backend/vulkan/resource_translation.hpp"
+#include "engine/runtime/api.hpp"
+#include "engine/runtime/subsystem_registry.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/command_encoder.hpp"
 #include "engine/rendering/frame_graph.hpp"
@@ -466,10 +468,84 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
 
     host.submit_render_graph(context);
 
+    const auto& acquired_resources = device_provider.acquired();
+    ASSERT_EQ(acquired_resources.size(), 2U);  // NOLINT
+    for (const auto& record : acquired_resources)
+    {
+        const auto& info = record.info;
+        const auto description =
+            engine::rendering::backend::vulkan::translate_resource(info);
+        const auto* image_description = std::get_if<
+            engine::rendering::backend::vulkan::VulkanImageResourceDescription>(&description);
+        ASSERT_NE(image_description, nullptr);
+        EXPECT_EQ(image_description->image.extent.width, 1280U);
+        EXPECT_EQ(image_description->image.extent.height, 720U);
+        EXPECT_EQ(image_description->image.extent.depth, 1U);
+        EXPECT_EQ(image_description->image.mipLevels, 1U);
+        EXPECT_EQ(image_description->image.arrayLayers, 1U);
+        EXPECT_EQ(image_description->image.samples, VK_SAMPLE_COUNT_1_BIT);
+
+        if (info.name == "ForwardColor")
+        {
+            EXPECT_EQ(image_description->image.format, VK_FORMAT_R16G16B16A16_SFLOAT);
+            EXPECT_EQ(image_description->image.usage,
+                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+            EXPECT_EQ(image_description->initial_layout, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            EXPECT_EQ(image_description->final_layout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            EXPECT_EQ(image_description->subresource_range.aspectMask, VK_IMAGE_ASPECT_COLOR_BIT);
+        }
+        else if (info.name == "ForwardDepth")
+        {
+            EXPECT_EQ(image_description->image.format, VK_FORMAT_D24_UNORM_S8_UINT);
+            EXPECT_EQ(image_description->image.usage, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+            EXPECT_EQ(image_description->initial_layout,
+                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+            EXPECT_EQ(image_description->final_layout,
+                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+            EXPECT_EQ(image_description->subresource_range.aspectMask,
+                      VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+        }
+        else
+        {
+            FAIL() << "Unexpected frame-graph resource: " << info.name;
+        }
+    }
+
+    const auto& released_resources = device_provider.released();
+    ASSERT_EQ(released_resources.size(), acquired_resources.size());  // NOLINT
+    for (std::size_t index = 0; index < released_resources.size(); ++index)
+    {
+        EXPECT_EQ(released_resources[index].info.name, acquired_resources[index].info.name);
+    }
+
     ASSERT_EQ(scheduler.submissions().size(), 1U);  // NOLINT
     const auto& submission = scheduler.submissions().front();
     EXPECT_EQ(submission.pass_name, "ForwardGeometry");
     EXPECT_EQ(submission.command_buffer.queue.api, engine::rendering::resources::GraphicsApi::Vulkan);
+
+    ASSERT_EQ(submission.begin_barriers.size(), acquired_resources.size());  // NOLINT
+    for (const auto& barrier : submission.begin_barriers)
+    {
+        const auto info = graph.resource_info(barrier.resource);
+        const auto vk_barrier = engine::rendering::backend::vulkan::translate_barrier(barrier);
+        EXPECT_EQ(vk_barrier.source_stage, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+        EXPECT_EQ(vk_barrier.destination_stage, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+        EXPECT_EQ(vk_barrier.source_access, VK_ACCESS_MEMORY_READ_BIT);
+        EXPECT_EQ(vk_barrier.destination_access, VK_ACCESS_MEMORY_WRITE_BIT);
+        EXPECT_TRUE(info.name == "ForwardColor" || info.name == "ForwardDepth");
+    }
+
+    ASSERT_EQ(submission.end_barriers.size(), acquired_resources.size());  // NOLINT
+    for (const auto& barrier : submission.end_barriers)
+    {
+        const auto info = graph.resource_info(barrier.resource);
+        const auto vk_barrier = engine::rendering::backend::vulkan::translate_barrier(barrier);
+        EXPECT_EQ(vk_barrier.source_stage, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+        EXPECT_EQ(vk_barrier.destination_stage, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+        EXPECT_EQ(vk_barrier.source_access, VK_ACCESS_MEMORY_WRITE_BIT);
+        EXPECT_EQ(vk_barrier.destination_access, VK_ACCESS_MEMORY_READ_BIT);
+        EXPECT_TRUE(info.name == "ForwardColor" || info.name == "ForwardDepth");
+    }
 
     ASSERT_EQ(command_encoders.completed_encoders.size(), 1U);  // NOLINT
     const auto& encoder = *command_encoders.completed_encoders.front();
