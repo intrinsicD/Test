@@ -79,6 +79,7 @@ endforeach()
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
 option(ENGINE_ENABLE_GLFW "Fetch and build GLFW to provide the GLFW window backend" ON)
+option(ENGINE_ENABLE_FUZZING "Enable fuzzing harness targets" OFF)
 
 if(ENGINE_ENABLE_PYTHON AND NOT BUILD_SHARED_LIBS)
     message(FATAL_ERROR "Python interoperability requires BUILD_SHARED_LIBS=ON. Set ENGINE_ENABLE_PYTHON=OFF to build static libraries.")
