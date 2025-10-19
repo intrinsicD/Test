@@ -556,27 +556,39 @@ namespace engine::animation
     std::vector<ClipValidationError> validate_clip(const AnimationClip& clip)
     {
         std::vector<ClipValidationError> errors;
+        const auto push_error = [&](ClipValidationErrorCode code,
+                                    std::string message,
+                                    std::string joint,
+                                    std::size_t track,
+                                    std::size_t keyframe) {
+            errors.push_back(
+                ClipValidationError{code, std::move(message), std::move(joint), track, keyframe});
+        };
+
         if (clip.name.empty())
         {
-            errors.push_back({"Animation clip must have a non-empty name",
-                              {},
-                              std::numeric_limits<std::size_t>::max(),
-                              std::numeric_limits<std::size_t>::max()});
+            push_error(ClipValidationErrorCode::kClipNameEmpty,
+                       "Animation clip must have a non-empty name",
+                       std::string{},
+                       std::numeric_limits<std::size_t>::max(),
+                       std::numeric_limits<std::size_t>::max());
         }
         if (!std::isfinite(clip.duration) || clip.duration < 0.0)
         {
-            errors.push_back({"Animation clip duration must be non-negative and finite",
-                              {},
-                              std::numeric_limits<std::size_t>::max(),
-                              std::numeric_limits<std::size_t>::max()});
+            push_error(ClipValidationErrorCode::kClipDurationInvalid,
+                       "Animation clip duration must be non-negative and finite",
+                       std::string{},
+                       std::numeric_limits<std::size_t>::max(),
+                       std::numeric_limits<std::size_t>::max());
         }
 
         if (clip.tracks.empty())
         {
-            errors.push_back({"Animation clip must contain at least one joint track",
-                              {},
-                              std::numeric_limits<std::size_t>::max(),
-                              std::numeric_limits<std::size_t>::max()});
+            push_error(ClipValidationErrorCode::kClipMissingTracks,
+                       "Animation clip must contain at least one joint track",
+                       std::string{},
+                       std::numeric_limits<std::size_t>::max(),
+                       std::numeric_limits<std::size_t>::max());
         }
 
         std::unordered_set<std::string> joint_names;
@@ -586,22 +598,28 @@ namespace engine::animation
             const JointTrack& track = clip.tracks[track_index];
             if (track.joint_name.empty())
             {
-                errors.push_back({"Joint track must provide a joint name",
-                                  {},
-                                  track_index,
-                                  std::numeric_limits<std::size_t>::max()});
+                push_error(ClipValidationErrorCode::kTrackMissingJointName,
+                           "Joint track must provide a joint name",
+                           std::string{},
+                           track_index,
+                           std::numeric_limits<std::size_t>::max());
             }
             else if (!joint_names.insert(track.joint_name).second)
             {
-                errors.push_back({"Duplicate joint track detected", track.joint_name, track_index, std::numeric_limits<std::size_t>::max()});
+                push_error(ClipValidationErrorCode::kTrackDuplicateJoint,
+                           "Duplicate joint track detected",
+                           track.joint_name,
+                           track_index,
+                           std::numeric_limits<std::size_t>::max());
             }
 
             if (track.keyframes.empty())
             {
-                errors.push_back({"Joint track must contain at least one keyframe",
-                                  track.joint_name,
-                                  track_index,
-                                  std::numeric_limits<std::size_t>::max()});
+                push_error(ClipValidationErrorCode::kTrackEmptyKeyframes,
+                           "Joint track must contain at least one keyframe",
+                           track.joint_name,
+                           track_index,
+                           std::numeric_limits<std::size_t>::max());
                 continue;
             }
 
@@ -611,58 +629,65 @@ namespace engine::animation
                 const Keyframe& keyframe = track.keyframes[keyframe_index];
                 if (!std::isfinite(keyframe.time) || keyframe.time < 0.0)
                 {
-                    errors.push_back({"Keyframe time must be finite and non-negative",
-                                      track.joint_name,
-                                      track_index,
-                                      keyframe_index});
+                    push_error(ClipValidationErrorCode::kKeyframeTimeInvalid,
+                               "Keyframe time must be finite and non-negative",
+                               track.joint_name,
+                               track_index,
+                               keyframe_index);
                 }
                 if (keyframe_index > 0 && keyframe.time <= previous_time + kTimeEpsilon)
                 {
-                    errors.push_back({"Keyframe times must be strictly increasing",
-                                      track.joint_name,
-                                      track_index,
-                                      keyframe_index});
+                    push_error(ClipValidationErrorCode::kKeyframeTimeNonIncreasing,
+                               "Keyframe times must be strictly increasing",
+                               track.joint_name,
+                               track_index,
+                               keyframe_index);
                 }
                 previous_time = keyframe.time;
                 max_time = std::max(max_time, keyframe.time);
 
                 if (!is_finite(keyframe.pose.translation))
                 {
-                    errors.push_back({"Keyframe translation contains non-finite values",
-                                      track.joint_name,
-                                      track_index,
-                                      keyframe_index});
+                    push_error(ClipValidationErrorCode::kKeyframeTranslationNonFinite,
+                               "Keyframe translation contains non-finite values",
+                               track.joint_name,
+                               track_index,
+                               keyframe_index);
                 }
                 if (!is_finite(keyframe.pose.scale))
                 {
-                    errors.push_back({"Keyframe scale contains non-finite values",
-                                      track.joint_name,
-                                      track_index,
-                                      keyframe_index});
+                    push_error(ClipValidationErrorCode::kKeyframeScaleNonFinite,
+                               "Keyframe scale contains non-finite values",
+                               track.joint_name,
+                               track_index,
+                               keyframe_index);
                 }
                 if (!is_finite(keyframe.pose.rotation))
                 {
-                    errors.push_back({"Keyframe rotation contains non-finite values",
-                                      track.joint_name,
-                                      track_index,
-                                      keyframe_index});
+                    push_error(ClipValidationErrorCode::kKeyframeRotationNonFinite,
+                               "Keyframe rotation contains non-finite values",
+                               track.joint_name,
+                               track_index,
+                               keyframe_index);
                 }
                 if (math::length_squared(keyframe.pose.rotation) <= std::numeric_limits<float>::epsilon())
                 {
-                    errors.push_back({"Keyframe rotation must be non-zero",
-                                      track.joint_name,
-                                      track_index,
-                                      keyframe_index});
+                    push_error(ClipValidationErrorCode::kKeyframeRotationZeroLength,
+                               "Keyframe rotation must be non-zero",
+                               track.joint_name,
+                               track_index,
+                               keyframe_index);
                 }
             }
         }
 
         if (clip.duration > 0.0 && clip.duration + kTimeEpsilon < max_time)
         {
-            errors.push_back({"Clip duration is shorter than the final keyframe",
-                              {},
-                              std::numeric_limits<std::size_t>::max(),
-                              std::numeric_limits<std::size_t>::max()});
+            push_error(ClipValidationErrorCode::kClipDurationShorterThanLastKeyframe,
+                       "Clip duration is shorter than the final keyframe",
+                       std::string{},
+                       std::numeric_limits<std::size_t>::max(),
+                       std::numeric_limits<std::size_t>::max());
         }
 
         return errors;
