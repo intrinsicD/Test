@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "engine/compute/api.hpp"
@@ -70,12 +71,52 @@ void ExpectDispatcherRespectsDependencies(DispatcherPtr dispatcher)
     {
         EXPECT_GE(duration, 0.0);
     }
+    EXPECT_EQ(report.clock_domain, engine::compute::TimingDomain::Cpu);
+    EXPECT_EQ(report.clock_name, "steady_clock");
     EXPECT_EQ(values[2], 3);
 
     ASSERT_EQ(report.dependency_graph.nodes.size(), 3U);
     EXPECT_TRUE(report.dependency_graph.nodes[0].dependencies.empty());
     ASSERT_EQ(report.dependency_graph.nodes[2].dependencies.size(), 1U);
     EXPECT_EQ(report.dependency_graph.nodes[2].dependencies.front(), second);
+}
+
+TEST(ComputeModule, DispatcherAcceptsCustomClockConfiguration)
+{
+    auto dispatcher = engine::compute::make_cpu_dispatcher();
+    bool measure_invoked = false;
+    engine::compute::ClockConfiguration configuration{};
+    configuration.name = "cuda_events";
+    configuration.domain = engine::compute::TimingDomain::Gpu;
+    configuration.measure = [&measure_invoked](const engine::compute::kernel_callback& callback) -> double {
+        measure_invoked = true;
+        if (callback)
+        {
+            callback();
+        }
+        return 0.123;
+    };
+    dispatcher->set_clock(std::move(configuration));
+
+    bool kernel_invoked = false;
+    MAYBE_UNUSED_CONST_AUTO kernel = dispatcher->add_kernel("timed", [&kernel_invoked]() {
+        kernel_invoked = true;
+    });
+
+    const auto report = dispatcher->dispatch();
+    ASSERT_EQ(report.kernel_durations.size(), 1U);
+    EXPECT_TRUE(measure_invoked);
+    EXPECT_TRUE(kernel_invoked);
+    EXPECT_DOUBLE_EQ(report.kernel_durations.front(), 0.123);
+    EXPECT_EQ(report.clock_domain, engine::compute::TimingDomain::Gpu);
+    EXPECT_EQ(report.clock_name, "cuda_events");
+}
+
+TEST(ComputeModule, DispatcherRejectsClockWithoutMeasureCallback)
+{
+    auto dispatcher = engine::compute::make_cpu_dispatcher();
+    engine::compute::ClockConfiguration invalid_configuration{};
+    EXPECT_THROW(dispatcher->set_clock(std::move(invalid_configuration)), std::invalid_argument);
 }
 
 template <typename ExceptionType>

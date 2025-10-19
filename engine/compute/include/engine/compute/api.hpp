@@ -24,6 +24,19 @@
 namespace engine::compute {
 
 using kernel_id = std::size_t;
+using kernel_callback = std::function<void()>;
+
+enum class TimingDomain {
+    Unknown,
+    Cpu,
+    Gpu,
+};
+
+struct ClockConfiguration {
+    std::string name;
+    TimingDomain domain{TimingDomain::Unknown};
+    std::function<double(const kernel_callback&)> measure;
+};
 
 struct DependencyGraph {
     struct Node {
@@ -40,6 +53,8 @@ struct DependencyGraph {
 struct ExecutionReport {
     std::vector<std::string> execution_order;
     std::vector<double> kernel_durations;
+    TimingDomain clock_domain{TimingDomain::Unknown};
+    std::string clock_name;
     DependencyGraph dependency_graph;
 };
 
@@ -51,7 +66,7 @@ struct DispatcherCapabilities {
 class ENGINE_COMPUTE_API Dispatcher {
 public:
     using kernel_id = engine::compute::kernel_id;
-    using kernel_type = std::function<void()>;
+    using kernel_type = kernel_callback;
 
     virtual ~Dispatcher() = default;
 
@@ -67,6 +82,10 @@ public:
     [[nodiscard]] virtual std::size_t size() const noexcept = 0;
 
     [[nodiscard]] virtual DependencyGraph dependency_graph() const = 0;
+
+    virtual void set_clock(ClockConfiguration configuration) = 0;
+
+    [[nodiscard]] virtual const ClockConfiguration& clock_configuration() const noexcept = 0;
 };
 
 [[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cpu_dispatcher();
@@ -78,6 +97,8 @@ public:
 [[nodiscard]] ENGINE_COMPUTE_API bool is_cuda_dispatcher_available() noexcept;
 
 [[nodiscard]] ENGINE_COMPUTE_API DispatcherCapabilities dispatcher_capabilities() noexcept;
+
+[[nodiscard]] ENGINE_COMPUTE_API ClockConfiguration make_steady_clock_configuration();
 
 [[nodiscard]] ENGINE_COMPUTE_API std::string_view module_name() noexcept;
 
