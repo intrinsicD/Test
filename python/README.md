@@ -7,9 +7,67 @@
 
 ## Usage
 
-- Create and activate a virtual environment, then install dependencies once `requirements.txt` is defined.
 - Execute `pytest` after building native modules to validate the Python side.
+
+## Environment Setup
+
+Follow these steps to configure a clean workspace-local environment:
+
+1. **Create a virtual environment** (Python 3.12+):
+
+   ```bash
+   cd /path/to/test-engine
+   python3 -m venv .venv
+   ```
+
+2. **Activate the environment**:
+
+   - Linux/macOS:
+
+     ```bash
+     source .venv/bin/activate
+     ```
+
+   - Windows PowerShell:
+
+     ```powershell
+     .venv\Scripts\Activate.ps1
+     ```
+
+3. **Upgrade tooling and install development dependencies**:
+
+   ```bash
+   python -m pip install --upgrade pip
+   python -m pip install pytest
+   ```
+
+   Additional packages (formatters, linters) can be installed as they are
+   introduced; keep this section updated alongside new automation helpers.
+
+4. **Expose the repository to `PYTHONPATH` when running ad-hoc scripts**:
+
+   The tests add the root automatically, but manual invocations should export:
+
+   ```bash
+   export PYTHONPATH="$(pwd)/python:$PYTHONPATH"
+   ```
+
+   On Windows PowerShell use:
+
+   ```powershell
+   $env:PYTHONPATH = "$(Get-Location)\python;" + $env:PYTHONPATH
+   ```
+
+5. **Run the test suite**:
+
+   ```bash
+   pytest python/tests
+   ```
+
+   Use `python -m unittest python.tests.test_loader` when `pytest` is
+   unavailable.
 
 ## TODO / Next Steps
 
-- Publish the Python packaging and dependency manifest for automation helpers.
+- Publish the Python packaging and dependency manifest for automation helpers in
+  support of [PY-001](../docs/ROADMAP.md#py-001-core-bindings).
