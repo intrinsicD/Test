@@ -20,6 +20,12 @@
 - Execute `ctest --preset <preset> --tests-regex engine_assets` with testing enabled to validate cache behaviour after modifications.
 - Use `<engine/assets/async.hpp>` to construct `AssetLoadRequest` descriptors and pair them with `AssetLoadFuture`/`AssetLoadPromise` channels when scheduling asynchronous work. Futures expose progress, cancellation, and structured error propagation while preserving the generational handle guarantees from `AI-001`. `scripts/diagnostics/streaming_report.py` queries `engine::runtime::streaming_metrics()` to monitor queue depth and request outcomes.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work and the asynchronous streaming
-  design captured in [`docs/design/async_streaming.md`](../../design/async_streaming.md).
+## TODO / Next Steps
+
+- **AI-002:** Finalise the asynchronous streaming scheduler and telemetry per
+  the [async asset streaming plan](../../ROADMAP.md#ai-002-async-asset-streaming-architecture);
+  implementation details live in [ROADMAP.md](ROADMAP.md) and
+  [`docs/design/async_streaming.md`](../../design/async_streaming.md).
+- **CC-002:** Integrate filesystem watching and cache callbacks for hot reload
+  as outlined in the [hot reload initiative](../../ROADMAP.md#cc-002-hot-reload-infrastructure),
+  coordinating diagnostics and failure handling across caches.

@@ -11,5 +11,11 @@
 - Include `<engine/math/math.hpp>` or specific headers (e.g., `<engine/math/vector.hpp>`) to access functionality.
 - Run `ctest --preset <preset> --tests-regex engine_math` with testing enabled to verify core operations when modifying the library.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **PY-001:** Export math primitives and conversion helpers through the Python
+  façade for the [core bindings milestone](../../ROADMAP.md#py-001-core-bindings)
+  while documenting usage in [ROADMAP.md](ROADMAP.md).
+- **TI-002:** Build deterministic benchmarks for decomposition and vector/matrix
+  operations in support of the [performance benchmarking
+  initiative](../../ROADMAP.md#ti-002-performance-benchmarks).

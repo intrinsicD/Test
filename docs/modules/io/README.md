@@ -20,5 +20,12 @@
 - Requires the geometry module for canonical mesh, point cloud, and graph interfaces plus validation helpers; the IO registry marshals those types through the codec adapters.
 - Relies on the C++17 `<filesystem>` library for staging temporary assets and integrates with `engine::platform::filesystem` utilities when generating transient working directories.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **RT-006:** Continue expanding detection heuristics, fuzzing coverage, and
+  structured diagnostics under the [IO format detection hardening
+  initiative](../../ROADMAP.md#rt-006-io-format-detection-hardening) while
+  tracking progress in [ROADMAP.md](ROADMAP.md).
+- **AI-002:** Provide streaming-friendly loaders and cancellation hooks that
+  integrate with the asset caches per the [async asset streaming
+  architecture](../../ROADMAP.md#ai-002-async-asset-streaming-architecture).

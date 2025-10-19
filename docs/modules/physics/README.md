@@ -25,5 +25,11 @@
   resolvers. Use `sample_contact_manifold()` or `sample_contact_manifolds()` to extract orthonormal bases around each contact
   for debug/visualisation tools.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **RT-002:** Extend persistent manifold coverage, constraint solving, and
+  benchmarking per the [physics contact manifolds roadmap](../../ROADMAP.md#rt-002-physics-contact-manifolds),
+  keeping sequencing aligned with [ROADMAP.md](ROADMAP.md).
+- **CC-001:** Instrument solver hot paths and publish telemetry into the
+  runtime/tooling pipelines outlined by the [telemetry framework
+  initiative](../../ROADMAP.md#cc-001-telemetry-framework).

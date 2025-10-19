@@ -36,5 +36,12 @@ set_float_parameter(tree, "lean_weight", 0.5F); // Apply 50% of the additive pos
 
 Translations accumulate additively, scales are applied as multiplicative offsets around $1.0$, and rotations slerp between identity and the additive pose before being composed with the base.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **Module backlog:** Continue the clip-validation hardening, GPU sampling,
+  and advanced deformation planning captured in the [module execution
+  backlog](../../ROADMAP.md#module-execution-backlog) and expanded in
+  [ROADMAP.md](ROADMAP.md).
+- **PY-001:** Publish animation bindings and `.pyi` stubs as part of the
+  [core bindings initiative](../../ROADMAP.md#py-001-core-bindings) so the
+  Python façade can drive runtime deformation workflows.

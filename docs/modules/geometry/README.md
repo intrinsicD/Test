@@ -21,5 +21,12 @@
 - Consumes codecs and format detection from the IO module when persisting meshes, graphs, or point clouds; round-trip tests exercise the IO registry directly.
 - Uses C++17 `<filesystem>` together with `engine::platform::filesystem::generate_random_suffix` to stage deterministic temporary paths for disk-based validation.
 
-## Roadmap
-- See [ROADMAP.md](ROADMAP.md) for upcoming work.
+## TODO / Next Steps
+
+- **RT-006:** Coordinate with IO to extend signature databases, fuzzing, and
+  diagnostics described in the [IO format detection hardening plan](../../ROADMAP.md#rt-006-io-format-detection-hardening)
+  so geometry round-trips stay lossless.
+- **TI-002:** Add geometry-focused benchmarks and regression tracking for
+  deformation, spatial queries, and property updates under the
+  [performance benchmarking initiative](../../ROADMAP.md#ti-002-performance-benchmarks),
+  mirroring details in [ROADMAP.md](ROADMAP.md).
