@@ -321,8 +321,8 @@ Use these queues to coordinate subsystem-specific work once the cross-cutting it
 - **Module:** Build System
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Add build presets covering common feature-flag combinations.
-  - [ ] Document preset usage in the root README.
+  - [x] Add build presets covering common feature-flag combinations.
+  - [x] Document preset usage in the root README.
   - [ ] Validate presets via CI.
 - **Artifacts:** `CMakePresets.json`, `scripts/build/presets/*.json`, documentation updates.
 - **Tests:** CI runs for each preset; local build validation.

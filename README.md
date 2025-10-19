@@ -162,6 +162,20 @@ cmake --build --preset linux-gcc-debug-cuda
 ctest --preset linux-gcc-debug-cuda
 ```
 
+Common feature-flag combinations are captured in the presets table below. Use
+them as a starting point before layering module-specific flags:
+
+| Preset | Platform | Purpose | Key Flags |
+| --- | --- | --- | --- |
+| `linux-gcc-debug` / `linux-gcc-release` | Linux | Default GLFW builds | `ENGINE_WINDOW_BACKEND=GLFW` |
+| `linux-gcc-debug-mock` / `linux-gcc-release-mock` | Linux | Headless CI and telemetry runs | `ENGINE_WINDOW_BACKEND=MOCK`, `ENGINE_ENABLE_GLFW=OFF` |
+| `linux-gcc-debug-sdl` / `linux-gcc-release-sdl` | Linux | SDL stub validation without GLFW | `ENGINE_WINDOW_BACKEND=SDL`, `ENGINE_ENABLE_GLFW=OFF` |
+| `linux-gcc-debug-cuda` / `linux-gcc-release-cuda` | Linux | CUDA-enabled builds | `ENGINE_ENABLE_CUDA=ON`, `ENGINE_ENABLE_COMPUTE_CUDA=ON` |
+| `windows-msvc-debug` / `windows-msvc-release` | Windows | Default GLFW builds | `ENGINE_WINDOW_BACKEND=GLFW` |
+| `windows-msvc-debug-mock` / `windows-msvc-release-mock` | Windows | Headless validation on Windows agents | `ENGINE_WINDOW_BACKEND=MOCK`, `ENGINE_ENABLE_GLFW=OFF` |
+| `windows-msvc-debug-sdl` / `windows-msvc-release-sdl` | Windows | SDL stub validation on Windows | `ENGINE_WINDOW_BACKEND=SDL`, `ENGINE_ENABLE_GLFW=OFF` |
+| `windows-msvc-debug-cuda` / `windows-msvc-release-cuda` | Windows | CUDA-enabled builds | `ENGINE_ENABLE_CUDA=ON`, `ENGINE_ENABLE_COMPUTE_CUDA=ON` |
+
 Presets live under `scripts/build/` and currently cover Linux (GCC) and Windows (MSVC) compiler stacks. Additional variants can be invoked with `cmake --preset <name>` or orchestrated collectively via `scripts/ci/run_presets.py`. Each subsystem still produces a library named `engine_<subsystem>`; linking to any of them automatically imports the shared usage requirements published by `engine::project_options` and the aggregated headers exposed through `engine::headers`.
 
 Subsystem availability can be tailored at configure time through the `ENGINE_ENABLE_<MODULE>` options (for example `-DENGINE_ENABLE_RENDERING=OFF`). Disabled modules are omitted from the default runtime subsystem registry but can be re-enabled explicitly by calling the helper configuration APIs in `engine/runtime/api.hpp`.
