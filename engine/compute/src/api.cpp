@@ -6,6 +6,7 @@
 #include <set>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 namespace engine::compute {
 
@@ -126,6 +127,8 @@ public:
         report.execution_order.reserve(count);
         report.kernel_durations.reserve(count);
         report.dependency_graph = graph;
+        report.clock_domain = clock_.domain;
+        report.clock_name = clock_.name;
 
         while (!ready.empty())
         {
@@ -150,6 +153,20 @@ public:
         }
 
         return report;
+    }
+
+    void set_clock(ClockConfiguration configuration) override
+    {
+        if (!configuration.measure)
+        {
+            throw std::invalid_argument{"ClockConfiguration.measure must be callable"};
+        }
+        clock_ = std::move(configuration);
+    }
+
+    [[nodiscard]] const ClockConfiguration& clock_configuration() const noexcept override
+    {
+        return clock_;
     }
 
 protected:
@@ -239,29 +256,20 @@ private:
     }
 
     std::vector<KernelNode> kernels_;
+    ClockConfiguration clock_{make_steady_clock_configuration()};
 };
 
 class CpuDispatcher final : public KernelDispatcherBase {
 private:
     [[nodiscard]] double invoke_kernel(const KernelNode& kernel) override {
-        const auto start = std::chrono::steady_clock::now();
-        if (kernel.callback) {
-            kernel.callback();
-        }
-        const auto end = std::chrono::steady_clock::now();
-        return std::chrono::duration<double>(end - start).count();
+        return clock_configuration().measure(kernel.callback);
     }
 };
 
 class CudaDispatcher final : public KernelDispatcherBase {
 private:
     [[nodiscard]] double invoke_kernel(const KernelNode& kernel) override {
-        const auto launch_start = std::chrono::steady_clock::now();
-        if (kernel.callback) {
-            kernel.callback();
-        }
-        const auto launch_end = std::chrono::steady_clock::now();
-        return std::chrono::duration<double>(launch_end - launch_start).count();
+        return clock_configuration().measure(kernel.callback);
     }
 };
 
@@ -347,6 +355,23 @@ DispatcherCapabilities dispatcher_capabilities() noexcept {
 
 math::mat4 identity_transform() noexcept {
     return math::identity_matrix<float, 4>();
+}
+
+ClockConfiguration make_steady_clock_configuration()
+{
+    ClockConfiguration configuration{};
+    configuration.name = "steady_clock";
+    configuration.domain = TimingDomain::Cpu;
+    configuration.measure = [](const kernel_callback& callback) -> double {
+        const auto start = std::chrono::steady_clock::now();
+        if (callback)
+        {
+            callback();
+        }
+        const auto end = std::chrono::steady_clock::now();
+        return std::chrono::duration<double>(end - start).count();
+    };
+    return configuration;
 }
 
 }  // namespace engine::compute
