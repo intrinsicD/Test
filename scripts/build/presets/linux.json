@@ -51,6 +51,28 @@
       }
     },
     {
+      "name": "linux-gcc-debug-mock",
+      "displayName": "Linux GCC Debug (Mock Backend)",
+      "inherits": [
+        "linux-gcc-debug"
+      ],
+      "cacheVariables": {
+        "ENGINE_WINDOW_BACKEND": "MOCK",
+        "ENGINE_ENABLE_GLFW": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-debug-sdl",
+      "displayName": "Linux GCC Debug (SDL Backend)",
+      "inherits": [
+        "linux-gcc-debug"
+      ],
+      "cacheVariables": {
+        "ENGINE_WINDOW_BACKEND": "SDL",
+        "ENGINE_ENABLE_GLFW": "OFF"
+      }
+    },
+    {
       "name": "linux-gcc-release",
       "displayName": "Linux GCC Release",
       "inherits": [
@@ -73,6 +95,28 @@
         "ENGINE_ENABLE_CUDA": "ON",
         "ENGINE_ENABLE_COMPUTE_CUDA": "ON"
       }
+    },
+    {
+      "name": "linux-gcc-release-mock",
+      "displayName": "Linux GCC Release (Mock Backend)",
+      "inherits": [
+        "linux-gcc-release"
+      ],
+      "cacheVariables": {
+        "ENGINE_WINDOW_BACKEND": "MOCK",
+        "ENGINE_ENABLE_GLFW": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-release-sdl",
+      "displayName": "Linux GCC Release (SDL Backend)",
+      "inherits": [
+        "linux-gcc-release"
+      ],
+      "cacheVariables": {
+        "ENGINE_WINDOW_BACKEND": "SDL",
+        "ENGINE_ENABLE_GLFW": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -87,6 +131,16 @@
       "configurePreset": "linux-gcc-debug-cuda"
     },
     {
+      "name": "linux-gcc-debug-mock",
+      "displayName": "Build (Linux GCC Debug Mock)",
+      "configurePreset": "linux-gcc-debug-mock"
+    },
+    {
+      "name": "linux-gcc-debug-sdl",
+      "displayName": "Build (Linux GCC Debug SDL)",
+      "configurePreset": "linux-gcc-debug-sdl"
+    },
+    {
       "name": "linux-gcc-release",
       "displayName": "Build (Linux GCC Release)",
       "configurePreset": "linux-gcc-release"
@@ -95,6 +149,16 @@
       "name": "linux-gcc-release-cuda",
       "displayName": "Build (Linux GCC Release CUDA)",
       "configurePreset": "linux-gcc-release-cuda"
+    },
+    {
+      "name": "linux-gcc-release-mock",
+      "displayName": "Build (Linux GCC Release Mock)",
+      "configurePreset": "linux-gcc-release-mock"
+    },
+    {
+      "name": "linux-gcc-release-sdl",
+      "displayName": "Build (Linux GCC Release SDL)",
+      "configurePreset": "linux-gcc-release-sdl"
     }
   ],
   "testPresets": [
@@ -115,6 +179,22 @@
       }
     },
     {
+      "name": "linux-gcc-debug-mock",
+      "displayName": "CTest (Linux GCC Debug Mock)",
+      "configurePreset": "linux-gcc-debug-mock",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-debug-sdl",
+      "displayName": "CTest (Linux GCC Debug SDL)",
+      "configurePreset": "linux-gcc-debug-sdl",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "linux-gcc-release",
       "displayName": "CTest (Linux GCC Release)",
       "configurePreset": "linux-gcc-release",
@@ -127,6 +207,24 @@
       "name": "linux-gcc-release-cuda",
       "displayName": "CTest (Linux GCC Release CUDA)",
       "configurePreset": "linux-gcc-release-cuda",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-release-mock",
+      "displayName": "CTest (Linux GCC Release Mock)",
+      "configurePreset": "linux-gcc-release-mock",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-release-sdl",
+      "displayName": "CTest (Linux GCC Release SDL)",
+      "configurePreset": "linux-gcc-release-sdl",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true

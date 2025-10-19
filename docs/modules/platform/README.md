@@ -10,6 +10,10 @@
 - Build with `cmake --build --preset <preset> --target engine_platform`; ensure the GLFW third-party dependency is fetched/configured.
 - Include `<engine/platform/windowing/window.hpp>` and related headers to create windows or query input state; link against `engine_platform`.
 - Run `ctest --preset <preset> --tests-regex engine_platform` (with display backends mocked in CI) to validate behaviour.
+- Use the dedicated presets (`linux-gcc-debug-mock`, `linux-gcc-debug-sdl`,
+  `windows-msvc-debug-mock`, etc.) when validating non-GLFW backends so cache
+  variables for `ENGINE_WINDOW_BACKEND` and `ENGINE_ENABLE_GLFW` are applied
+  consistently across platforms.
 
 ## Configuration
 - Select the default runtime backend at configure time via `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK>`. Presets default to `GLFW` while CI and headless scenarios can override to `MOCK`.
@@ -23,6 +27,6 @@
   plumbing required by the [hot reload infrastructure
   initiative](../../ROADMAP.md#cc-002-hot-reload-infrastructure), aligning
   with sequencing in [ROADMAP.md](ROADMAP.md).
-- **BS-001:** Expand build presets and backend documentation according to the
-  [preset expansion plan](../../ROADMAP.md#bs-001-preset-expansion) so
-  cross-platform configuration remains reproducible.
+- **BS-001:** Exercise the new mock/SDL presets in CI and extend backend
+  documentation per the [preset expansion plan](../../ROADMAP.md#bs-001-preset-expansion)
+  so cross-platform configuration remains reproducible.

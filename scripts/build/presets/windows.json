@@ -50,6 +50,28 @@
       }
     },
     {
+      "name": "windows-msvc-debug-mock",
+      "displayName": "Windows MSVC Debug (Mock Backend)",
+      "inherits": [
+        "windows-msvc-debug"
+      ],
+      "cacheVariables": {
+        "ENGINE_WINDOW_BACKEND": "MOCK",
+        "ENGINE_ENABLE_GLFW": "OFF"
+      }
+    },
+    {
+      "name": "windows-msvc-debug-sdl",
+      "displayName": "Windows MSVC Debug (SDL Backend)",
+      "inherits": [
+        "windows-msvc-debug"
+      ],
+      "cacheVariables": {
+        "ENGINE_WINDOW_BACKEND": "SDL",
+        "ENGINE_ENABLE_GLFW": "OFF"
+      }
+    },
+    {
       "name": "windows-msvc-release",
       "displayName": "Windows MSVC Release",
       "inherits": [
@@ -70,6 +92,28 @@
         "ENGINE_ENABLE_CUDA": "ON",
         "ENGINE_ENABLE_COMPUTE_CUDA": "ON"
       }
+    },
+    {
+      "name": "windows-msvc-release-mock",
+      "displayName": "Windows MSVC Release (Mock Backend)",
+      "inherits": [
+        "windows-msvc-release"
+      ],
+      "cacheVariables": {
+        "ENGINE_WINDOW_BACKEND": "MOCK",
+        "ENGINE_ENABLE_GLFW": "OFF"
+      }
+    },
+    {
+      "name": "windows-msvc-release-sdl",
+      "displayName": "Windows MSVC Release (SDL Backend)",
+      "inherits": [
+        "windows-msvc-release"
+      ],
+      "cacheVariables": {
+        "ENGINE_WINDOW_BACKEND": "SDL",
+        "ENGINE_ENABLE_GLFW": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -86,6 +130,18 @@
       "configuration": "Debug"
     },
     {
+      "name": "windows-msvc-debug-mock",
+      "displayName": "Build (Windows MSVC Debug Mock)",
+      "configurePreset": "windows-msvc-debug-mock",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-msvc-debug-sdl",
+      "displayName": "Build (Windows MSVC Debug SDL)",
+      "configurePreset": "windows-msvc-debug-sdl",
+      "configuration": "Debug"
+    },
+    {
       "name": "windows-msvc-release",
       "displayName": "Build (Windows MSVC Release)",
       "configurePreset": "windows-msvc-release",
@@ -95,6 +151,18 @@
       "name": "windows-msvc-release-cuda",
       "displayName": "Build (Windows MSVC Release CUDA)",
       "configurePreset": "windows-msvc-release-cuda",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-msvc-release-mock",
+      "displayName": "Build (Windows MSVC Release Mock)",
+      "configurePreset": "windows-msvc-release-mock",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-msvc-release-sdl",
+      "displayName": "Build (Windows MSVC Release SDL)",
+      "configurePreset": "windows-msvc-release-sdl",
       "configuration": "Release"
     }
   ],
@@ -118,6 +186,24 @@
       }
     },
     {
+      "name": "windows-msvc-debug-mock",
+      "displayName": "CTest (Windows MSVC Debug Mock)",
+      "configurePreset": "windows-msvc-debug-mock",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-msvc-debug-sdl",
+      "displayName": "CTest (Windows MSVC Debug SDL)",
+      "configurePreset": "windows-msvc-debug-sdl",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "windows-msvc-release",
       "displayName": "CTest (Windows MSVC Release)",
       "configurePreset": "windows-msvc-release",
@@ -130,6 +216,24 @@
       "name": "windows-msvc-release-cuda",
       "displayName": "CTest (Windows MSVC Release CUDA)",
       "configurePreset": "windows-msvc-release-cuda",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-msvc-release-mock",
+      "displayName": "CTest (Windows MSVC Release Mock)",
+      "configurePreset": "windows-msvc-release-mock",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-msvc-release-sdl",
+      "displayName": "CTest (Windows MSVC Release SDL)",
+      "configurePreset": "windows-msvc-release-sdl",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true
