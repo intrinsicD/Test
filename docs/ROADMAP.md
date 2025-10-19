@@ -214,7 +214,7 @@ Use these queues to coordinate subsystem-specific work once the cross-cutting it
 - **Artifacts:** Physics solver sources, manifold data structures, telemetry hooks, documentation updates.
 - **Tests:** Physics regression suite covering manifold stability and constraint solving.
 - **Docs:** Physics README, telemetry references.
-- **Follow-Up:** Completed — sequential impulse solver now leverages the registered callbacks and extends telemetry with solver iteration counts (`RT-002-FU1`).
+- **Follow-Up:** Completed — sequential impulse solver now leverages the registered callbacks and extends telemetry with solver iteration counts (`RT-002-FU1`); Completed — contact manifold sampling utilities expose orthonormal bases for editor visualisation workflows (`RT-002-FU2`).
 
 #### RT-003: Vulkan Backend Prototype
 - **Priority:** HIGH

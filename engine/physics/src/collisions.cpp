@@ -2,6 +2,7 @@
 
 #include "engine/geometry/utils/shape_interactions.hpp"
 #include "engine/geometry/shapes/segment.hpp"
+#include "engine/math/utils/utils_rotation.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -357,8 +358,8 @@ struct SegmentClosestPoints {
 }
 
 [[nodiscard]] std::optional<ContactManifold> build_contact_manifold(const PhysicsWorld& world,
-                                                                    std::size_t first,
-                                                                    std::size_t second) noexcept {
+                                                                   std::size_t first,
+                                                                   std::size_t second) noexcept {
     if (first >= world.bodies.size() || second >= world.bodies.size()) {
         return std::nullopt;
     }
@@ -427,6 +428,23 @@ struct SegmentClosestPoints {
     manifold.contacts[0] = contact;
     manifold.contact_count = 1U;
     return manifold;
+}
+
+[[nodiscard]] ManifoldSample make_sample(const ContactManifold& manifold, std::uint32_t index) noexcept {
+    const auto& contact = manifold.contacts[index];
+    const auto basis = engine::math::utils::orthonormal_basis(contact.normal);
+
+    ManifoldSample sample;
+    sample.first = manifold.first;
+    sample.second = manifold.second;
+    sample.contact_index = index;
+    sample.lifetime = manifold.lifetime;
+    sample.position = contact.position;
+    sample.normal = basis[2];
+    sample.tangent = basis[0];
+    sample.bitangent = basis[1];
+    sample.penetration = contact.penetration;
+    return sample;
 }
 
 [[nodiscard]] bool colliders_intersect(const RigidBody& lhs, const RigidBody& rhs) noexcept {
@@ -734,6 +752,35 @@ const std::vector<ContactManifold>& contact_manifolds(const PhysicsWorld& world)
 
 const CollisionTelemetry& collision_telemetry(const PhysicsWorld& world) noexcept {
     return world.collision_stats;
+}
+
+std::vector<ManifoldSample> sample_contact_manifold(const ContactManifold& manifold) noexcept {
+    std::vector<ManifoldSample> samples;
+    samples.reserve(manifold.contact_count);
+
+    for (std::uint32_t i = 0; i < manifold.contact_count; ++i) {
+        samples.push_back(make_sample(manifold, i));
+    }
+
+    return samples;
+}
+
+std::vector<ManifoldSample> sample_contact_manifolds(const PhysicsWorld& world) noexcept {
+    std::size_t total_contacts = 0U;
+    for (const auto& manifold : world.manifolds) {
+        total_contacts += manifold.contact_count;
+    }
+
+    std::vector<ManifoldSample> samples;
+    samples.reserve(total_contacts);
+
+    for (const auto& manifold : world.manifolds) {
+        for (std::uint32_t i = 0; i < manifold.contact_count; ++i) {
+            samples.push_back(make_sample(manifold, i));
+        }
+    }
+
+    return samples;
 }
 
 void set_constraint_callbacks(PhysicsWorld& world, ConstraintSolverCallbacks callbacks) noexcept {

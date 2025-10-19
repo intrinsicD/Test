@@ -120,6 +120,18 @@ struct CollisionTelemetry {
     std::uint32_t solver_iterations{0U};
 };
 
+struct ManifoldSample {
+    std::size_t first{0U};
+    std::size_t second{0U};
+    std::uint32_t contact_index{0U};
+    std::uint32_t lifetime{0U};
+    math::vec3 position{0.0F, 0.0F, 0.0F};
+    math::vec3 normal{0.0F, 1.0F, 0.0F};
+    math::vec3 tangent{1.0F, 0.0F, 0.0F};
+    math::vec3 bitangent{0.0F, 0.0F, 1.0F};
+    float penetration{0.0F};
+};
+
 struct ConstraintSolverCallbacks {
     using OnManifoldFn = void (*)(PhysicsWorld& world, const ContactManifold& manifold, void* user_data);
 
@@ -181,6 +193,10 @@ ENGINE_PHYSICS_API void update_contact_manifolds(PhysicsWorld& world);
 [[nodiscard]] ENGINE_PHYSICS_API const std::vector<ContactManifold>& contact_manifolds(const PhysicsWorld& world) noexcept;
 
 [[nodiscard]] ENGINE_PHYSICS_API const CollisionTelemetry& collision_telemetry(const PhysicsWorld& world) noexcept;
+
+[[nodiscard]] ENGINE_PHYSICS_API std::vector<ManifoldSample> sample_contact_manifold(const ContactManifold& manifold) noexcept;
+
+[[nodiscard]] ENGINE_PHYSICS_API std::vector<ManifoldSample> sample_contact_manifolds(const PhysicsWorld& world) noexcept;
 
 ENGINE_PHYSICS_API void set_constraint_callbacks(PhysicsWorld& world, ConstraintSolverCallbacks callbacks) noexcept;
 
