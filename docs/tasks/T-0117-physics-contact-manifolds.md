@@ -34,8 +34,10 @@ callback plumbing, and collision telemetry for the physics module.
 ## Metrics & Benchmarks
 - `ctest --preset linux-gcc-debug --tests-regex engine_physics` validates the
   updated physics suite, including the new manifold persistence and callback tests.
+- `engine_physics_tests --gtest_filter=PhysicsWorldContacts.SequentialImpulseSolverAppliesResolutionAndTelemetry`
+  reports stable solver iterations (4 in the regression scenario) confirming the telemetry signal.
 
 ## Follow-Up Tasks
-- [ ] Implement impulse-based constraint resolution using the registered
-      callbacks and extend telemetry with solver iteration counts (`RT-002-FU1`).
+- [x] Implemented sequential impulse constraint resolution using the registered
+      callbacks and extended telemetry with solver iteration counts (`RT-002-FU1`).
 - [ ] Expose manifold sampling utilities for editor visualisation workflows.
