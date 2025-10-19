@@ -32,10 +32,26 @@ namespace engine::io
             return value;
         }
 
+        [[nodiscard]] std::string read_file_prefix(const std::filesystem::path& path, std::size_t max_bytes)
+        {
+            std::ifstream stream{path, std::ios::binary};
+            if (!stream)
+            {
+                return {};
+            }
+
+            std::string buffer(max_bytes, '\0');
+            stream.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+            buffer.resize(static_cast<std::size_t>(stream.gcount()));
+            return buffer;
+        }
+
         [[nodiscard]] std::string extension_of(const std::filesystem::path& path)
         {
             return to_lower(path.extension().string());
         }
+
+        [[nodiscard]] std::string_view ltrim(std::string_view value);
 
         [[nodiscard]] bool starts_with(std::string_view value, std::string_view prefix)
         {
@@ -100,6 +116,244 @@ namespace engine::io
             default:
                 return "unknown";
             }
+        }
+
+        [[nodiscard]] bool is_integer_token(std::string_view token) noexcept
+        {
+            if (token.empty())
+            {
+                return false;
+            }
+
+            std::size_t index = 0U;
+            if (token[0] == '+' || token[0] == '-')
+            {
+                index = 1U;
+            }
+
+            bool has_digit = false;
+            for (; index < token.size(); ++index)
+            {
+                const unsigned char c = static_cast<unsigned char>(token[index]);
+                if (!std::isdigit(c))
+                {
+                    return false;
+                }
+                has_digit = true;
+            }
+
+            return has_digit;
+        }
+
+        [[nodiscard]] bool looks_like_obj_signature(std::string_view text)
+        {
+            std::istringstream stream{std::string{text}};
+            std::string line;
+            int geometry_tokens = 0;
+            int face_tokens = 0;
+            int lines_inspected = 0;
+
+            while (std::getline(stream, line) && lines_inspected < 64)
+            {
+                ++lines_inspected;
+                auto trimmed_view = ltrim(line);
+                if (trimmed_view.empty())
+                {
+                    continue;
+                }
+
+                if (trimmed_view.front() == '#')
+                {
+                    continue;
+                }
+
+                const auto lowered = to_lower(std::string{trimmed_view});
+                bool matched = false;
+                if (starts_with(lowered, "v ") || starts_with(lowered, "vn ") || starts_with(lowered, "vt "))
+                {
+                    ++geometry_tokens;
+                    matched = true;
+                }
+                else if (starts_with(lowered, "f "))
+                {
+                    ++face_tokens;
+                    matched = true;
+                }
+                else if (starts_with(lowered, "o ") || starts_with(lowered, "g ") || starts_with(lowered, "usemtl ")
+                         || starts_with(lowered, "mtllib "))
+                {
+                    ++geometry_tokens;
+                    matched = true;
+                }
+
+                if ((geometry_tokens >= 2 && face_tokens > 0) || (geometry_tokens + face_tokens) >= 3)
+                {
+                    return true;
+                }
+
+                if (!matched && (geometry_tokens + face_tokens) == 0 && lines_inspected > 16)
+                {
+                    break;
+                }
+            }
+
+            return geometry_tokens > 0 && face_tokens > 0;
+        }
+
+        [[nodiscard]] bool looks_like_off_signature(std::string_view text)
+        {
+            std::istringstream stream{std::string{text}};
+            std::string line;
+
+            for (int i = 0; i < 8 && std::getline(stream, line); ++i)
+            {
+                auto trimmed_view = ltrim(line);
+                if (trimmed_view.empty())
+                {
+                    continue;
+                }
+
+                if (trimmed_view.front() == '#')
+                {
+                    continue;
+                }
+
+                const auto lowered = to_lower(std::string{trimmed_view});
+                if (lowered == "off" || lowered == "coff" || lowered == "noff" || lowered == "cnoff")
+                {
+                    return true;
+                }
+
+                break;
+            }
+
+            return false;
+        }
+
+        [[nodiscard]] bool looks_like_pcd_signature(std::string_view text)
+        {
+            std::istringstream stream{std::string{text}};
+            std::string line;
+            int header_hits = 0;
+            bool comment_hint = false;
+            int lines_inspected = 0;
+
+            while (std::getline(stream, line) && lines_inspected < 128)
+            {
+                ++lines_inspected;
+                auto trimmed_view = ltrim(line);
+                if (trimmed_view.empty())
+                {
+                    continue;
+                }
+
+                const auto lowered = to_lower(std::string{trimmed_view});
+                if (trimmed_view.front() == '#')
+                {
+                    if (lowered.find(".pcd") != std::string::npos)
+                    {
+                        comment_hint = true;
+                    }
+                    continue;
+                }
+
+                if (starts_with(lowered, "version ") || starts_with(lowered, "fields ") || starts_with(lowered, "size ")
+                    || starts_with(lowered, "type ") || starts_with(lowered, "count ") || starts_with(lowered, "width ")
+                    || starts_with(lowered, "height ") || starts_with(lowered, "points ") || starts_with(lowered, "data "))
+                {
+                    ++header_hits;
+                    if (starts_with(lowered, "data "))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return header_hits >= 3 || (comment_hint && header_hits >= 1);
+        }
+
+        [[nodiscard]] bool looks_like_edgelist_signature(std::string_view text)
+        {
+            std::istringstream stream{std::string{text}};
+            std::string line;
+            int matches = 0;
+            int lines_inspected = 0;
+
+            while (std::getline(stream, line) && lines_inspected < 128)
+            {
+                ++lines_inspected;
+                auto trimmed_view = ltrim(line);
+                if (trimmed_view.empty())
+                {
+                    continue;
+                }
+
+                if (trimmed_view.front() == '#')
+                {
+                    continue;
+                }
+
+                std::istringstream token_stream{std::string{trimmed_view}};
+                std::string first;
+                std::string second;
+                if (!(token_stream >> first >> second))
+                {
+                    continue;
+                }
+
+                if (!is_integer_token(first) || !is_integer_token(second))
+                {
+                    return false;
+                }
+
+                ++matches;
+                if (matches >= 2)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [[nodiscard]] GeometryDetectionResult detect_geometry_from_signatures(const std::filesystem::path& path)
+        {
+            GeometryDetectionResult detection{};
+            auto prefix = read_file_prefix(path, 4096U);
+            if (prefix.empty())
+            {
+                return detection;
+            }
+
+            if (looks_like_off_signature(prefix))
+            {
+                detection.kind = GeometryKind::mesh;
+                detection.mesh_format = MeshFileFormat::off;
+                return detection;
+            }
+
+            if (looks_like_obj_signature(prefix))
+            {
+                detection.kind = GeometryKind::mesh;
+                detection.mesh_format = MeshFileFormat::obj;
+                return detection;
+            }
+
+            if (looks_like_pcd_signature(prefix))
+            {
+                detection.kind = GeometryKind::point_cloud;
+                detection.point_cloud_format = PointCloudFileFormat::pcd;
+                return detection;
+            }
+
+            if (looks_like_edgelist_signature(prefix))
+            {
+                detection.kind = GeometryKind::graph;
+                detection.graph_format = GraphFileFormat::edgelist;
+                return detection;
+            }
+
+            return detection;
         }
 
         struct PlyHeaderInfo
@@ -1472,6 +1726,18 @@ namespace engine::io
                 }
 
                 return result;
+            }
+        }
+
+        if (result.kind == GeometryKind::unknown)
+        {
+            if (auto signature_result = detect_geometry_from_signatures(path); signature_result.kind != GeometryKind::unknown)
+            {
+                if (!result.format_hint.empty())
+                {
+                    signature_result.format_hint = result.format_hint;
+                }
+                return signature_result;
             }
         }
 

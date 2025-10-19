@@ -267,8 +267,8 @@ Use these queues to coordinate subsystem-specific work once the cross-cutting it
 - **Module:** IO
 - **Dependencies:** []
 - **Tasks:**
-  - [ ] Expand signature databases for mesh, animation, and point-cloud formats.
-  - [ ] Integrate fuzzing harnesses for parser robustness.
+  - [x] Expand signature databases for mesh, animation, and point-cloud formats.
+  - [x] Integrate fuzzing harnesses for parser robustness.
   - [x] Provide structured error reporting (landed via [docs/modules/io/ROADMAP.md](modules/io/ROADMAP.md)).
 - **Artifacts:** IO detection sources, fuzzing harnesses, documentation.
 - **Tests:** IO regression suite; fuzzing automation.

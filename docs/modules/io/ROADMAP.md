@@ -3,8 +3,9 @@
 _Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
 
 ## Near Term (`RT-006`)
-- Expand format detection heuristics with signature-based inspection to reduce reliance on filename extensions, and add regression tests per codec.
+- ✅ Expand format detection heuristics with signature-based inspection to reduce reliance on filename extensions, and add regression tests per codec.
 - ✅ Surface structured error reporting from import/export functions (error enums, context strings) so assets and tooling can diagnose failures via `GeometryIoResult` and `GeometryIoErrorCode`.
+- ✅ Provide a fuzzing harness (`engine_io_geometry_fuzz`) that exercises detection and loaders when `ENGINE_ENABLE_FUZZING=ON`.
 
 ## Mid Term
 - Add asynchronous streaming hooks that load geometry on worker threads and integrate with the asset cache hot-reload pipeline.

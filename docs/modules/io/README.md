@@ -1,7 +1,7 @@
 # IO Module
 
 ## Current State
-- Detects geometry file formats and routes loading/saving through mesh, point cloud, and graph interfaces (`detect_geometry_file`, `load_geometry`, etc.), returning `GeometryIoResult<T>` with structured error codes instead of throwing exceptions.
+- Detects geometry file formats via signature inspection and extension hints, routing loading/saving through mesh, point cloud, and graph interfaces (`detect_geometry_file`, `load_geometry`, etc.) while returning `GeometryIoResult<T>` with structured error codes instead of throwing exceptions.
 - Exposes specialised read/write helpers per format (OBJ, PLY, OFF, STL, XYZ, PCD) and registers them through the geometry IO registry for lookup.
 - Provides animation import scaffolding so clips can be loaded alongside geometry assets.
 - Tests under `engine/io/tests/` validate detection, registry configuration, and
@@ -14,6 +14,7 @@
 - Build with `cmake --build --preset <preset> --target engine_io`; this links against `engine_geometry` for the core data structures.
 - Include `<engine/io/geometry_io.hpp>` for direct read/write helpers or `<engine/io/geometry_io_registry.hpp>` to inspect registered codecs. Recoverable failures are reported via `GeometryIoResult<T>` and `GeometryIoErrorCode`.
 - Run `ctest --preset <preset> --tests-regex engine_io` to ensure format handlers remain stable.
+- Enable fuzzing harnesses with `-DENGINE_ENABLE_FUZZING=ON` to build `engine_io_geometry_fuzz`. When compiled with `-fsanitize=fuzzer,address`, the harness exercises signature detection and all geometry loaders; without libFuzzer it can replay individual corpora by invoking the executable with a file path argument.
 
 ## Dependencies
 - Requires the geometry module for canonical mesh, point cloud, and graph interfaces plus validation helpers; the IO registry marshals those types through the codec adapters.

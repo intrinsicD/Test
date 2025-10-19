@@ -69,6 +69,43 @@ namespace
         constexpr std::uint16_t attribute_byte_count = 0U;
         stream.write(reinterpret_cast<const char*>(&attribute_byte_count), sizeof(attribute_byte_count));
     }
+
+    void write_off_mesh(const std::filesystem::path& path)
+    {
+        write_file(path,
+                   "OFF\n"
+                   "3 1 0\n"
+                   "0 0 0\n"
+                   "1 0 0\n"
+                   "0 1 0\n"
+                   "3 0 1 2\n");
+    }
+
+    void write_pcd_point_cloud(const std::filesystem::path& path)
+    {
+        write_file(path,
+                   "# .PCD v0.7 - Point Cloud Data file format\n"
+                   "VERSION 0.7\n"
+                   "FIELDS x y z\n"
+                   "SIZE 4 4 4\n"
+                   "TYPE F F F\n"
+                   "COUNT 1 1 1\n"
+                   "WIDTH 2\n"
+                   "HEIGHT 1\n"
+                   "POINTS 2\n"
+                   "DATA ascii\n"
+                   "0 0 0\n"
+                   "1 1 1\n");
+    }
+
+    void write_edgelist_graph(const std::filesystem::path& path)
+    {
+        write_file(path,
+                   "# Graph edges\n"
+                   "0 1\n"
+                   "1 2\n"
+                   "2 3\n");
+    }
 } // namespace
 
 TEST(GeometryDetection, DetectsObjMesh)
@@ -164,6 +201,62 @@ TEST(GeometryDetection, DetectsBinaryStlByStructure)
     const auto& info = detection.value();
     EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
     EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::stl);
+}
+
+TEST(GeometryDetection, DetectsObjWithoutExtension)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "triangle";
+    write_file(path,
+               "v 0 0 0\n"
+               "v 1 0 0\n"
+               "v 0 1 0\n"
+               "f 1 2 3\n");
+
+    const auto detection = engine::io::detect_geometry_file(path);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::obj);
+}
+
+TEST(GeometryDetection, DetectsOffWithoutExtension)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "mesh";
+    write_off_mesh(path);
+
+    const auto detection = engine::io::detect_geometry_file(path);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::off);
+}
+
+TEST(GeometryDetection, DetectsPcdWithoutExtension)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "cloud";
+    write_pcd_point_cloud(path);
+
+    const auto detection = engine::io::detect_geometry_file(path);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::point_cloud);
+    EXPECT_EQ(info.point_cloud_format, engine::io::PointCloudFileFormat::pcd);
+}
+
+TEST(GeometryDetection, DetectsEdgelistWithoutExtension)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "graph";
+    write_edgelist_graph(path);
+
+    const auto detection = engine::io::detect_geometry_file(path);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::graph);
+    EXPECT_EQ(info.graph_format, engine::io::GraphFileFormat::edgelist);
 }
 
 TEST(GeometryDetection, ReportsMissingFile)
