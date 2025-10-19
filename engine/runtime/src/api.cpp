@@ -1,9 +1,12 @@
 #include "engine/runtime/api.hpp"
+#include "engine/runtime/errors.hpp"
 
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <limits>
 #include <memory>
+#include <sstream>
 #include <span>
 #include <stdexcept>
 #include <string>
@@ -48,6 +51,113 @@
 
 namespace
 {
+    using engine::runtime::RuntimeError;
+    using engine::runtime::RuntimeErrorCode;
+
+    [[nodiscard]] std::string format_dependency_errors(std::span<const RuntimeErrorCode> errors)
+    {
+        std::ostringstream message;
+        message << "RuntimeHostDependencies validation failed";
+        for (const auto& error : errors)
+        {
+            message << " [" << error.identifier();
+            if (error.has_message())
+            {
+                message << ": " << error.message();
+            }
+            message << ']';
+        }
+        return message.str();
+    }
+
+    [[nodiscard]] std::vector<RuntimeErrorCode> validate_dependencies(
+        const engine::runtime::RuntimeHostDependencies& dependencies)
+    {
+        using engine::runtime::make_runtime_error;
+
+        std::vector<RuntimeErrorCode> errors{};
+
+        const auto mesh_vertex_count = dependencies.mesh.rest_positions.size();
+        if (dependencies.mesh.positions.size() != mesh_vertex_count)
+        {
+            std::ostringstream builder;
+            builder << "mesh.positions size (" << dependencies.mesh.positions.size()
+                    << ") must match mesh.rest_positions size (" << mesh_vertex_count << ")";
+            errors.push_back(make_runtime_error(RuntimeError::dependency_invalid_mesh, builder.str()));
+        }
+
+        const bool binding_has_vertices = !dependencies.binding.vertices.empty();
+        const bool binding_has_joints = !dependencies.binding.joints.empty();
+        if (binding_has_vertices && !binding_has_joints)
+        {
+            errors.push_back(make_runtime_error(
+                RuntimeError::dependency_invalid_binding,
+                "Rig binding provides vertex influences but no joints"));
+        }
+
+        if (binding_has_joints)
+        {
+            if (binding_has_vertices && dependencies.binding.vertices.size() != mesh_vertex_count)
+            {
+                std::ostringstream builder;
+                builder << "Rig binding vertex count (" << dependencies.binding.vertices.size()
+                        << ") must match mesh vertex count (" << mesh_vertex_count << ")";
+                errors.push_back(make_runtime_error(RuntimeError::dependency_invalid_binding, builder.str()));
+            }
+
+            if (binding_has_vertices && !engine::animation::skinning::validate_binding(dependencies.binding))
+            {
+                errors.push_back(make_runtime_error(
+                    RuntimeError::dependency_invalid_binding,
+                    "Rig binding contains invalid joint indices or non-normalized weights"));
+            }
+        }
+
+        const auto clip_errors = engine::animation::validate_clip(dependencies.controller.clip);
+        if (!clip_errors.empty())
+        {
+            std::ostringstream builder;
+            builder << "Animation clip '";
+            if (dependencies.controller.clip.name.empty())
+            {
+                builder << "<unnamed>";
+            }
+            else
+            {
+                builder << dependencies.controller.clip.name;
+            }
+            builder << "' failed validation";
+
+            const std::size_t limit = std::min<std::size_t>(clip_errors.size(), 3U);
+            for (std::size_t index = 0; index < limit; ++index)
+            {
+                const auto& error = clip_errors[index];
+                builder << ": " << error.message;
+                if (!error.joint_name.empty())
+                {
+                    builder << " (joint=" << error.joint_name << ')';
+                }
+                if (error.track_index != std::numeric_limits<std::size_t>::max())
+                {
+                    builder << " (track=" << error.track_index << ')';
+                }
+                if (error.keyframe_index != std::numeric_limits<std::size_t>::max())
+                {
+                    builder << " (keyframe=" << error.keyframe_index << ')';
+                }
+            }
+            if (clip_errors.size() > limit)
+            {
+                builder << " (" << (clip_errors.size() - limit) << " additional issues)";
+            }
+
+            errors.push_back(
+                make_runtime_error(RuntimeError::dependency_invalid_clip, builder.str()));
+        }
+
+        return errors;
+    }
+
     [[nodiscard]] engine::geometry::SurfaceMesh make_runtime_skinning_mesh()
     {
         constexpr std::uint32_t subdivisions = 128;
@@ -151,9 +261,19 @@ namespace engine::runtime
         rendering::ForwardPipeline forward_pipeline{};
 #endif
 
-        explicit Impl(RuntimeHostDependencies deps)
-            : dependencies(std::move(deps))
+        static void throw_if_invalid_dependencies(const RuntimeHostDependencies& deps)
         {
+            const auto errors = validate_dependencies(deps);
+            if (!errors.empty())
+            {
+                throw std::runtime_error(format_dependency_errors(errors));
+            }
+        }
+
+        explicit Impl(RuntimeHostDependencies deps)
+        {
+            throw_if_invalid_dependencies(deps);
+            dependencies = std::move(deps);
 #if ENGINE_ENABLE_RENDERING
             render_geometry = dependencies.render_geometry;
             if (!dependencies.renderable_name.empty())
@@ -410,7 +530,9 @@ namespace engine::runtime
             joint_names.clear();
             scene_nodes.clear();
             joint_entities.clear();
-            diagnostics.scene_validation = {};
+            diagnostics = {};
+            stage_lookup.clear();
+            subsystem_lookup.clear();
             scene = scene::Scene{scene_name()};
 #if ENGINE_ENABLE_RENDERING
             render_entity = scene::Entity{};
@@ -430,6 +552,7 @@ namespace engine::runtime
                 throw std::runtime_error("RuntimeHost cannot be configured while initialized");
             }
 
+            throw_if_invalid_dependencies(deps);
             dependencies = std::move(deps);
             reset_state();
         }

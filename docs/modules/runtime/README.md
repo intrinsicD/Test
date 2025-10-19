@@ -9,6 +9,7 @@
 - When rendering is enabled, `RuntimeHostDependencies` also carries a default `rendering::components::RenderGeometry` descriptor and renderable debug name so the runtime can populate a scene entity for GPU submission.
 - Discovers subsystem plugins through a `SubsystemRegistry`, loading enabled modules (and their dependencies) during runtime initialization.
 - Accepts subsystem plugins through `RuntimeHostDependencies::subsystem_plugins`, invoking their lifecycle hooks during initialization, shutdown, and tick to support dependency-injected extensions.
+- Validates injected dependencies during `configure()` to reject mismatched meshes, invalid rig bindings, or clips that fail `animation::validate_clip` before resetting runtime state.
 - Exposes helper APIs (`configure_with_default_subsystems`, `default_subsystem_names`) and C bindings (`engine_runtime_configure_with_modules`) so hosts can choose which subsystems to load without manually constructing plugin instances.
 - Exposes `RuntimeHost::RenderSubmissionContext` and `RuntimeHost::submit_render_graph` so embedders can feed the mirrored scene graph into the forward rendering pipeline and GPU scheduler (tested end-to-end against the Vulkan prototype).
 - Configures the asynchronous IO thread pool via `RuntimeHostDependencies::streaming_config` and exposes `streaming_metrics()`

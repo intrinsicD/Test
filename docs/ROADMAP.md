@@ -245,7 +245,8 @@ Use these queues to coordinate subsystem-specific work once the cross-cutting it
 - **Docs:** Runtime README diagnostics section; tooling documentation.
 - **Status:** `RuntimeHost::diagnostics()` now exposes lifecycle counters and stage timings
   consumed by `scripts/diagnostics/runtime_frame_telemetry.py`, which emits the
-  aggregated data for dashboards.
+  aggregated data for dashboards. Dependency reset validation enforces mesh,
+  rig-binding, and clip invariants so reconfiguration cannot leak stale state.
 
 #### RT-005: Scene Hierarchy Validation
 - **Priority:** HIGH

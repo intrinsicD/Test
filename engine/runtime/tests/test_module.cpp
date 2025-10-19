@@ -644,6 +644,149 @@ TEST(RuntimeHost, StreamingMetricsReflectConfiguration)
     host.shutdown();
 }
 
+TEST(RuntimeHost, RejectsDependenciesWithMismatchedMeshVertexCounts)
+{
+    engine::runtime::RuntimeHost host{};
+    host.shutdown();
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.mesh.positions = {engine::math::vec3{0.0F, 0.0F, 0.0F}};
+    deps.mesh.rest_positions = {
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{1.0F, 0.0F, 0.0F},
+    };
+
+    EXPECT_THROW(host.configure(std::move(deps)), std::runtime_error);
+}
+
+TEST(RuntimeHost, RejectsDependenciesWithInvalidBinding)
+{
+    engine::runtime::RuntimeHost host{};
+    host.shutdown();
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    engine::geometry::SurfaceMesh mesh{};
+    mesh.rest_positions = {
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{0.5F, 0.0F, 0.0F},
+        engine::math::vec3{1.0F, 0.0F, 0.0F},
+    };
+    mesh.positions = mesh.rest_positions;
+    mesh.normals.assign(mesh.rest_positions.size(), engine::math::vec3{0.0F, 1.0F, 0.0F});
+    mesh.indices = {0U, 1U, 2U};
+    engine::geometry::update_bounds(mesh);
+    deps.mesh = mesh;
+
+    engine::animation::RigJoint root{};
+    root.name = "root";
+    root.parent = engine::animation::RigBinding::kInvalidIndex;
+    deps.binding.joints = {root};
+    deps.binding.resize_vertices(deps.mesh.rest_positions.size());
+    deps.binding.vertices[0].clear();
+    ASSERT_TRUE(deps.binding.vertices[0].add_influence(0U, 1.0F));
+    deps.binding.vertices[0].normalize_weights();
+    deps.binding.vertices[0].influences[0].joint = 5U;
+
+    EXPECT_THROW(host.configure(std::move(deps)), std::runtime_error);
+}
+
+TEST(RuntimeHost, RejectsDependenciesWithInvalidClip)
+{
+    engine::runtime::RuntimeHost host{};
+    host.shutdown();
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.controller.clip.name.clear();
+    deps.controller.clip.duration = -1.0;
+    deps.controller.clip.tracks.clear();
+
+    EXPECT_THROW(host.configure(std::move(deps)), std::runtime_error);
+}
+
+TEST(RuntimeHost, AllowsDependenciesWithEmptyBinding)
+{
+    engine::runtime::RuntimeHost host{};
+    host.shutdown();
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.binding.joints.clear();
+    deps.binding.vertices.clear();
+
+    EXPECT_NO_THROW(host.configure(std::move(deps)));
+    host.initialize();
+    EXPECT_TRUE(host.is_initialized());
+    host.shutdown();
+}
+
+TEST(RuntimeHost, ReconfiguringDependenciesResetsState)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+    host.tick(0.016);
+    host.shutdown();
+
+    engine::runtime::RuntimeHostDependencies deps{};
+
+    engine::geometry::SurfaceMesh custom_mesh{};
+    custom_mesh.rest_positions = {
+        engine::math::vec3{0.0F, 1.0F, 0.0F},
+        engine::math::vec3{1.0F, 1.0F, 0.0F},
+        engine::math::vec3{0.0F, 2.0F, 0.0F},
+    };
+    custom_mesh.positions = custom_mesh.rest_positions;
+    custom_mesh.normals.assign(custom_mesh.rest_positions.size(), engine::math::vec3{0.0F, 1.0F, 0.0F});
+    custom_mesh.indices = {0U, 1U, 2U};
+    engine::geometry::update_bounds(custom_mesh);
+    deps.mesh = custom_mesh;
+
+    engine::animation::RigJoint root{};
+    root.name = "hip";
+    root.parent = engine::animation::RigBinding::kInvalidIndex;
+    deps.binding.joints = {root};
+    deps.binding.resize_vertices(deps.mesh.rest_positions.size());
+    for (auto& vertex : deps.binding.vertices)
+    {
+        vertex.clear();
+        ASSERT_TRUE(vertex.add_influence(0U, 1.0F));
+        vertex.normalize_weights();
+    }
+
+    engine::animation::AnimationClip clip{};
+    clip.name = "reset";
+    clip.duration = 1.0;
+    engine::animation::JointTrack track{};
+    track.joint_name = "hip";
+    track.keyframes.push_back(engine::animation::Keyframe{
+        0.0,
+        engine::animation::JointPose{engine::math::vec3{0.0F, 0.0F, 0.0F},
+                                     engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
+                                     engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+    track.keyframes.push_back(engine::animation::Keyframe{
+        0.5,
+        engine::animation::JointPose{engine::math::vec3{0.0F, 1.0F, 0.0F},
+                                     engine::math::normalize(engine::math::quat{0.9238795F, 0.0F, 0.3826834F, 0.0F}),
+                                     engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+    clip.tracks.push_back(track);
+    deps.controller = engine::animation::make_linear_controller(std::move(clip));
+
+    host.configure(std::move(deps));
+    host.initialize();
+    ASSERT_TRUE(host.is_initialized());
+    EXPECT_EQ(host.diagnostics().tick_count, 0U);
+    ASSERT_EQ(host.joint_names().size(), 1U);
+    EXPECT_EQ(host.joint_names().front(), "hip");
+
+    const auto frame = host.tick(0.016);
+    ASSERT_FALSE(frame.scene_nodes.empty());
+    EXPECT_EQ(frame.scene_nodes.front().name, "hip");
+
+    const auto& runtime_mesh = host.current_mesh();
+    ASSERT_EQ(runtime_mesh.rest_positions.size(), custom_mesh.rest_positions.size());
+    EXPECT_NEAR(runtime_mesh.rest_positions.front()[1], custom_mesh.rest_positions.front()[1], 1e-6F);
+
+    host.shutdown();
+}
+
 TEST(RuntimeHost, ExposesLifecycleDiagnostics)
 {
     engine::runtime::RuntimeHost host{};
