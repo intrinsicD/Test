@@ -38,11 +38,14 @@ Follow these steps to configure a clean workspace-local environment:
 
    ```bash
    python -m pip install --upgrade pip
-   python -m pip install pytest
+   python -m pip install -r python/requirements.txt
    ```
 
-   Additional packages (formatters, linters) can be installed as they are
-   introduced; keep this section updated alongside new automation helpers.
+   The `requirements.txt` manifest lists automation and testing dependencies
+   tracked under the [PY-001 roadmap item](../docs/ROADMAP.md#py-001-core-bindings).
+   Additional packages (formatters, linters) can be added to this manifest as
+   they are introduced; keep this section updated alongside new automation
+   helpers.
 
 4. **Expose the repository to `PYTHONPATH` when running ad-hoc scripts**:
 
@@ -69,5 +72,6 @@ Follow these steps to configure a clean workspace-local environment:
 
 ## TODO / Next Steps
 
-- Publish the Python packaging and dependency manifest for automation helpers in
-  support of [PY-001](../docs/ROADMAP.md#py-001-core-bindings).
+- Expand the published dependency manifest alongside new bindings work to cover
+  stub generation and packaging deliverables for
+  [PY-001](../docs/ROADMAP.md#py-001-core-bindings).

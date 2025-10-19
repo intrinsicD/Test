@@ -1,0 +1,4 @@
+# Python automation and test dependencies for the Test Engine workspace.
+# Aligns with the PY-001 roadmap item covering Python bindings.
+pytest>=8.0
+
