@@ -225,7 +225,8 @@ Use these queues to coordinate subsystem-specific work once the cross-cutting it
   - [x] Provide resource translation layers for Vulkan handles.
   - [x] Author backend configuration documentation and samples.
   - [x] Keep runtime submission hooks and Vulkan translation layers in parity as metadata evolves.
-  - [ ] Document the Rendering/Runtime vertical slice workflow for this backend.
+  - [x] Document the Rendering/Runtime vertical slice workflow for this backend (see
+        [docs/modules/rendering/README.md](modules/rendering/README.md#runtime-rendering-vertical-slice-vulkan-workflow)).
 - **Artifacts:** Vulkan backend sources, CMake targets, documentation.
 - **Tests:** Rendering backend smoke tests; CI presets exercising Vulkan.
 - **Docs:** Rendering README backend section; integration notes in root README.
