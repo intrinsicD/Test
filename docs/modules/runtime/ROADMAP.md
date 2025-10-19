@@ -1,10 +1,10 @@
 # Runtime Module Roadmap
 
-_Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
+_Last Updated: 2025-02-19 (Sprint 06 architecture/task audit)_
 
 ## Near Term (`RT-004`)
 - [x] Ship lifecycle diagnostics via `RuntimeHost::diagnostics()` with subsystem timing and dispatcher stage telemetry mirrored through the C ABI and diagnostics scripts.
-- [ ] Add validation around dependency resets (e.g., reloading meshes/controllers at runtime) to ensure state can be rebuilt without leaks.
+- [x] Add validation around dependency resets (e.g., reloading meshes/controllers at runtime) to ensure state can be rebuilt without leaks. The runtime now rejects mismatched meshes, invalid rig bindings, and clips that fail `validate_clip`, with coverage in `engine/runtime/tests/test_module.cpp`.
 
 ## Mid Term
 - Integrate asynchronous asset streaming so runtime can request geometry/animation data on demand while keeping simulation responsive (`AI-002`).
