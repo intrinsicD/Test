@@ -40,4 +40,4 @@ callback plumbing, and collision telemetry for the physics module.
 ## Follow-Up Tasks
 - [x] Implemented sequential impulse constraint resolution using the registered
       callbacks and extended telemetry with solver iteration counts (`RT-002-FU1`).
-- [ ] Expose manifold sampling utilities for editor visualisation workflows.
+- [x] Expose manifold sampling utilities for editor visualisation workflows.

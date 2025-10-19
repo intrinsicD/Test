@@ -28,7 +28,7 @@
 - **Integration schemes** – Provide semi-implicit (symplectic Euler) and optionally higher-order integrators to improve energy behaviour. Tie integrator selection to tests that monitor long-term drift.
 - **Sleeping and activation** – Add heuristics to put resting bodies to sleep and wake them when external forces or contacts occur to keep broad-phase queries tractable.
 - **Extensible collider set** – Capsule support and tests are now available; extend the coverage to OBB and mesh colliders layered on top of existing geometry predicates.
-- **Authoring and visualisation** – Deliver tools that visualise colliders, forces, and contact states during runtime debugging to aid iteration on dynamics features.
+- **Authoring and visualisation** – Sampling helpers now expose orthonormal bases for contact manifolds to drive editor overlays; extend tooling to visualise colliders, forces, and contact state evolution during runtime debugging.
 
 ## Dependencies and Coordination
 

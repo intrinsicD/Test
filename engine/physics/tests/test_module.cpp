@@ -310,6 +310,51 @@ TEST(PhysicsWorldContacts, GeneratesPersistentSphereSphereManifold) {
     EXPECT_FLOAT_EQ(0.0F, cleared.max_penetration);
 }
 
+TEST(PhysicsWorldContacts, ManifoldSamplingProducesStableBasis) {
+    engine::physics::PhysicsWorld world;
+
+    engine::physics::RigidBody first;
+    first.position = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    const auto first_index = engine::physics::add_body(world, first);
+    engine::physics::set_collider(world, first_index, engine::physics::Collider::make_sphere(0.75F));
+
+    engine::physics::RigidBody second;
+    second.position = engine::math::vec3{1.1F, 0.0F, 0.0F};
+    const auto second_index = engine::physics::add_body(world, second);
+    engine::physics::set_collider(world, second_index, engine::physics::Collider::make_sphere(0.75F));
+
+    engine::physics::update_contact_manifolds(world);
+    const auto& manifolds = engine::physics::contact_manifolds(world);
+    ASSERT_EQ(1U, manifolds.size());
+
+    const auto manifold_samples = engine::physics::sample_contact_manifold(manifolds[0]);
+    ASSERT_EQ(1U, manifold_samples.size());
+    const auto& sample = manifold_samples[0];
+
+    EXPECT_EQ(first_index, sample.first);
+    EXPECT_EQ(second_index, sample.second);
+    EXPECT_EQ(0U, sample.contact_index);
+    EXPECT_EQ(manifolds[0].lifetime, sample.lifetime);
+    EXPECT_NEAR(engine::math::length(sample.normal), 1.0F, 1e-4F);
+    EXPECT_NEAR(engine::math::length(sample.tangent), 1.0F, 1e-4F);
+    EXPECT_NEAR(engine::math::length(sample.bitangent), 1.0F, 1e-4F);
+    EXPECT_NEAR(engine::math::dot(sample.normal, sample.tangent), 0.0F, 1e-4F);
+    EXPECT_NEAR(engine::math::dot(sample.normal, sample.bitangent), 0.0F, 1e-4F);
+    EXPECT_NEAR(engine::math::dot(sample.tangent, sample.bitangent), 0.0F, 1e-4F);
+    EXPECT_NEAR(sample.penetration, manifolds[0].contacts[0].penetration, 1e-4F);
+    EXPECT_EQ(manifolds[0].contacts[0].position, sample.position);
+
+    const auto aggregated = engine::physics::sample_contact_manifolds(world);
+    ASSERT_EQ(1U, aggregated.size());
+    EXPECT_EQ(sample.first, aggregated[0].first);
+    EXPECT_EQ(sample.second, aggregated[0].second);
+    EXPECT_EQ(sample.contact_index, aggregated[0].contact_index);
+    EXPECT_EQ(sample.lifetime, aggregated[0].lifetime);
+    EXPECT_EQ(sample.position, aggregated[0].position);
+    EXPECT_EQ(sample.penetration, aggregated[0].penetration);
+    EXPECT_NEAR(engine::math::dot(sample.normal, aggregated[0].normal), 1.0F, 1e-4F);
+}
+
 TEST(PhysicsWorldContacts, ConstraintCallbacksReceiveManifolds) {
     engine::physics::PhysicsWorld world;
 

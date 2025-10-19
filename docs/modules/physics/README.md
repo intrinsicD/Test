@@ -4,7 +4,8 @@
 - Defines rigid-body representations (`PhysicsWorld`, `RigidBody`) with configurable gravity, damping, and substepping controls, plus collider authoring helpers for spheres, AABBs, and capsules.
 - Implements force integration, collider assignment, and collision detection leveraging geometry intersection utilities.
 - Maintains persistent contact manifolds with a sequential impulse solver, per-frame telemetry (including solver iteration
-  counts), and optional callbacks to drive downstream constraint extensions.
+  counts), optional callbacks to drive downstream constraint extensions, and sampling helpers that expose orthonormal bases for
+  editor visualisation of contact patches.
 - Exposes module metadata via `module_name()` and integrates with runtime orchestration.
 - Tests in `engine/physics/tests/` cover module registration, force integration,
   damping/substepping, collider management, and direct collision detection
@@ -21,7 +22,8 @@
 - After advancing simulation, invoke `update_contact_manifolds()` to refresh persistent contacts, inspect
   `contact_manifolds()` or `collision_telemetry()` for diagnostics, configure solver behaviour with
   `set_constraint_solver_config()`, and register callbacks via `set_constraint_callbacks()` to integrate custom constraint
-  resolvers.
+  resolvers. Use `sample_contact_manifold()` or `sample_contact_manifolds()` to extract orthonormal bases around each contact
+  for debug/visualisation tools.
 
 ## Roadmap
 - See [ROADMAP.md](ROADMAP.md) for upcoming work.
