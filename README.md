@@ -20,7 +20,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Geometry | ✅ Stable | `SurfaceMesh` utilities, halfedge conversions, procedural primitives, ASCII IO, and kd-tree/octree accelerators. | `GE-205`: benchmark accelerated normal recomputation for `TI-002`. |
 | IO | 🔄 In Progress | Geometry/animation import-export wrappers, plugin-ready handlers, and cache policy scaffolding. | `IO-221`: integrate signature database + fuzz harness towards `RT-006`. |
 | Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, and transform utilities feeding animation, geometry, and physics. | `MA-110`: add SIMD validation targets aligned with `TI-003`. |
-| Physics | 🔄 In Progress | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase. | `PH-401`: ship persistent manifold storage for `RT-002`. |
+| Physics | ✅ Stable | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase plus collision telemetry. | `PH-430`: publish collision benchmark telemetry in diagnostics tooling. |
 | Platform | ✅ Stable | Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. | `PL-215`: publish SDL backend parity checklist for `DC-003`. |
 | Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-530`: backend validation tooling and parity tracking follow-up. |
 | Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, geometry deformation, and submission into the rendering pipeline. | `AI-002`: extend async streaming diagnostics once assets hot-reload callbacks land. |
@@ -53,7 +53,7 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | `AI-001` | Handle-based lifetime management across assets + rendering. | Extend debug validation hooks and document ownership patterns. | Assets, Rendering | 🔄 In Progress |
 | `AI-002` | Async asset streaming with telemetry and runtime integration. | Land async queue instrumentation and runtime metrics bridge. | Assets, Runtime | 🟡 Blocked on `AI-001` docs refresh |
 | `AI-003` | Frame-graph metadata + queue affinity for backend parity. | Publish metadata schema and align runtime submission invariants. | Rendering, Runtime | ✅ Done |
-| `RT-002` | Persistent physics manifolds with benchmarking. | Implement manifold cache and expose profiler hooks. | Physics | 🔄 In Progress |
+| `RT-002` | Persistent physics manifolds with benchmarking. | ✅ Completed – manifold cache, telemetry, and collision benchmark harness captured in CI. | Physics | ✅ Done |
 | `RT-003` | Vulkan backend parity and documentation. | Align runtime submission surfaces and publish backend checklist. | Rendering, Runtime | 🔄 In Progress |
 | `RT-005` | Scene hierarchy validation + diagnostics. | Integrate cycle detection and reporting hooks. | Scene, Runtime | ✅ Done |
 | `RT-006` | IO signature hardening + fuzzing. | Wire signature database and libFuzzer corpus seeding. | IO | 🟠 Blocked on fuzz harness infra |
@@ -69,7 +69,7 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 |         | 3 | `TI-001` | Integration harness smoke suite stabilised post `T-0118`. |
 | Sprint 2–3 | 1 | `DC-004` | IO migration merged with documentation updates. |
 |             | 2 | `AI-001` | Handle validation hooks turned on in debug builds. |
-|             | 3 | `RT-002` | Manifold cache instrumentation recorded in telemetry. |
+|             | 3 | `RT-002` | ✅ Completed – collision benchmark harness records throughput metrics for CI. |
 |             | 4 | `DI-001` | Module README refresh complete (follow template below). |
 | Mid-Term (M4–M5) | 1 | `AI-002` | Async streaming MVP validated end-to-end. |
 |                   | 2 | `CC-001` | Diagnostics viewer prototype available. |
