@@ -518,6 +518,27 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
         EXPECT_EQ(released_resources[index].info.name, acquired_resources[index].info.name);
     }
 
+    const auto& diagnostics = host.diagnostics();
+    EXPECT_FALSE(diagnostics.frame_graph_serialization.empty());
+    EXPECT_NE(diagnostics.frame_graph_serialization.find("\"ForwardGeometry\""), std::string::npos);
+    ASSERT_EQ(diagnostics.frame_graph_events.size(), 4U);
+    EXPECT_EQ(diagnostics.frame_graph_events[0].type,
+              engine::rendering::ResourceEvent::Type::Acquire);
+    EXPECT_EQ(diagnostics.frame_graph_events[0].resource_name, "ForwardColor");
+    EXPECT_EQ(diagnostics.frame_graph_events[1].type,
+              engine::rendering::ResourceEvent::Type::Acquire);
+    EXPECT_EQ(diagnostics.frame_graph_events[1].resource_name, "ForwardDepth");
+    EXPECT_EQ(diagnostics.frame_graph_events[2].type,
+              engine::rendering::ResourceEvent::Type::Release);
+    EXPECT_EQ(diagnostics.frame_graph_events[2].resource_name, "ForwardColor");
+    EXPECT_EQ(diagnostics.frame_graph_events[3].type,
+              engine::rendering::ResourceEvent::Type::Release);
+    EXPECT_EQ(diagnostics.frame_graph_events[3].resource_name, "ForwardDepth");
+    for (const auto& event : diagnostics.frame_graph_events)
+    {
+        EXPECT_EQ(event.pass_name, "ForwardGeometry");
+    }
+
     ASSERT_EQ(scheduler.submissions().size(), 1U);  // NOLINT
     const auto& submission = scheduler.submissions().front();
     EXPECT_EQ(submission.pass_name, "ForwardGeometry");
