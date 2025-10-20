@@ -8,6 +8,8 @@
   reject incompatible submissions early.
 - The [`Frame-Graph Metadata Schema`](metadata_schema.md) documents resource and
   pass descriptors adopted by runtime and backend integrations (`RE-503`).
+- The [`Vulkan Backend Checklist`](backend_checklist.md) captures prerequisites
+  and validation steps for exercising the `RT-003` prototype end-to-end.
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_rendering`.
@@ -16,7 +18,7 @@
 
 ## TODO / Next Steps
 
-- Track `RE-503`, `RE-510`, `RE-520` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — critical for `AI-003` and `RT-003`.
+- Track `RE-503`, `RE-510`, and the remaining `RT-003` follow-up (`RT-003.3`) in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — critical for `AI-003` and `RT-003`.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -26,6 +28,6 @@ This module tracks actionable work through the execution checklist below.
 | --- | --- | --- | --- |
 | `RE-503` | Finalise resource metadata schema (`AI-003`). | Schema adopted by runtime + rendering with documentation. | ✅ Done |
 | `RE-510` | Implement queue affinity validation. | Frame-graph rejects invalid transitions with regression coverage. | ✅ Done |
-| `RE-520` | Update backend documentation. | Publish checklist + backend guides covering Vulkan parity. | 🟢 Todo |
+| `RE-520` | Update backend documentation. | Publish checklist + backend guides covering Vulkan parity. | ✅ Done |
 
 See [ROADMAP.md](ROADMAP.md) for broader plan.

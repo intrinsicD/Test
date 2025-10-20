@@ -38,6 +38,7 @@ backend configuration documentation and samples.
      `VK_LAYER_KHRONOS_validation`).
 4. **Documentation & Samples**
    - Expand rendering README with Vulkan setup, feature flags, and troubleshooting.
+   - Publish a backend checklist covering prerequisites, build flags, runtime wiring, and validation steps.
    - Update root README build instructions with Vulkan requirements.
    - Provide a minimal sample (documentation snippet + unit test reference) demonstrating configuration and submission path.
 5. **Telemetry & Diagnostics**
@@ -56,7 +57,7 @@ backend configuration documentation and samples.
 - [x] Vulkan translation layer emits deterministic `VkImage*`/`VkBuffer*` create info from frame-graph metadata, providing the
       data required for future allocation work.
 - [x] Tests cover resource translation and barrier mapping; suites execute under CI-friendly presets.
-- [x] Documentation updates land in rendering README and root README with clear setup steps.
+- [x] Documentation updates land in rendering README, backend checklist, and root README with clear setup steps.
 - [x] Sample usage documented via README snippet and exercised in `engine_rendering_tests`.
 - [x] Roadmap `RT-003` remaining checkboxes can be marked complete.
 
