@@ -3,6 +3,7 @@ set(target_name engine_platform)
 set(platform_sources
     src/api.cpp
     src/filesystem/filesystem.cpp
+    src/filesystem/watcher.cpp
     src/windowing/window_console.cpp
     src/windowing/window_system.cpp
     src/windowing/window_base.cpp
