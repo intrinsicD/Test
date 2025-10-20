@@ -32,6 +32,10 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `DC-004.2` | Migrate IO module APIs to `Result<T>`. | All IO entry points return `Result<T>`, tests cover error paths, and module README updated. | 🔄 In Progress |
 | `DC-004.3` | Add lint/check tooling. | Static check preventing legacy error patterns integrated into CI. | ✅ Done |
 
+- 2025-02-25: Animation clip importer/exporter now return
+  `AnimationIoResult<T>` values, extending the `DC-004.2` migration beyond the
+  geometry pipelines.
+
 #### `AI-001` — Resource Lifetime Management
 
 | Task ID | Description | Exit Criteria | Status |

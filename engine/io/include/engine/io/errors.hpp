@@ -63,5 +63,60 @@ namespace engine::io
 
     template <typename T>
     using GeometryIoResult = engine::Result<T, GeometryIoErrorCode>;
+
+    enum class AnimationIoError : int
+    {
+        file_not_found = 1,
+        io_failure,
+        unsupported_format,
+        decode_failure,
+        serialization_failure
+    };
+
+    [[nodiscard]] constexpr std::string_view to_string(AnimationIoError error) noexcept
+    {
+        switch (error)
+        {
+        case AnimationIoError::file_not_found:
+            return "file_not_found";
+        case AnimationIoError::io_failure:
+            return "io_failure";
+        case AnimationIoError::unsupported_format:
+            return "unsupported_format";
+        case AnimationIoError::decode_failure:
+            return "decode_failure";
+        case AnimationIoError::serialization_failure:
+            return "serialization_failure";
+        }
+
+        return "unknown";
+    }
+
+    class AnimationIoErrorCode final : public engine::EnumeratedErrorCode<AnimationIoError>
+    {
+    public:
+        using EnumeratedErrorCode::EnumeratedErrorCode;
+
+        [[nodiscard]] AnimationIoErrorCode with_message(std::string message) const
+        {
+            AnimationIoErrorCode copy{*this};
+            copy.assign_message(std::move(message));
+            return copy;
+        }
+    };
+
+    [[nodiscard]] inline AnimationIoErrorCode make_animation_io_error(AnimationIoError error,
+                                                                       std::string message = {})
+    {
+        AnimationIoErrorCode code{"engine.io", error, to_string(error)};
+        if (!message.empty())
+        {
+            code = code.with_message(std::move(message));
+        }
+        return code;
+    }
+
+    template <typename T>
+    using AnimationIoResult = engine::Result<T, AnimationIoErrorCode>;
 } // namespace engine::io
 
