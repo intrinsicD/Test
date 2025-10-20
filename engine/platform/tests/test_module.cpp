@@ -176,7 +176,7 @@ TEST(PlatformWindowing, AutoBackendTrimsOverrideValue) {
     ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "  SDL  "};
     auto window = create_window(WindowConfig{}, WindowBackend::Auto);
     ASSERT_TRUE(window != nullptr);
-    EXPECT_EQ(window->backend_name(), "sdl-stub");
+    EXPECT_EQ(window->backend_name(), "sdl");
 }
 
 TEST(PlatformWindowing, AutoBackendIgnoresWhitespaceOnlyOverride) {
@@ -185,7 +185,7 @@ TEST(PlatformWindowing, AutoBackendIgnoresWhitespaceOnlyOverride) {
     ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "   \t  "};
     auto window = create_window(WindowConfig{}, WindowBackend::Auto);
     ASSERT_TRUE(window != nullptr);
-    EXPECT_EQ(window->backend_name(), "mock");
+    EXPECT_EQ(window->backend_name(), "glfw");
 }
 
 TEST(PlatformWindowing, EventDispatchFlow) {
