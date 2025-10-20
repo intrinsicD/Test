@@ -6,7 +6,7 @@
 
 #include "engine/geometry/shapes.hpp"
 #include "engine/math/quaternion.hpp"
-#include "../../math/include/engine/math/utils/utils.hpp"
+#include "engine/math/utils/utils.hpp"
 #include "engine/math/utils/utils_rotation.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
 

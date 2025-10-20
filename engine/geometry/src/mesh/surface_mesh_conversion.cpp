@@ -13,7 +13,18 @@ namespace engine::geometry::mesh
             const auto i0 = surface.indices[base_index];
             const auto i1 = surface.indices[base_index + 1U];
             const auto i2 = surface.indices[base_index + 2U];
-            return i0 != i1 && i1 != i2 && i0 != i2;
+            if (i0 == i1 || i1 == i2 || i0 == i2)
+            {
+                return false;
+            }
+
+            const auto& p0 = surface.positions[i0];
+            const auto& p1 = surface.positions[i1];
+            const auto& p2 = surface.positions[i2];
+
+            const auto area_vector = math::cross(p1 - p0, p2 - p0);
+            const float area_squared = math::dot(area_vector, area_vector);
+            return area_squared > std::numeric_limits<float>::epsilon();
         }
     } // namespace
 
@@ -61,13 +72,20 @@ namespace engine::geometry::mesh
             const auto face = mesh.add_triangle(vertex_handles[i0], vertex_handles[i1], vertex_handles[i2]);
             if (!face.has_value())
             {
-                throw std::runtime_error("Failed to insert triangle while constructing halfedge mesh; topology may be non-manifold");
+                throw std::runtime_error(
+                    "Failed to insert triangle while constructing halfedge mesh; topology may be non-manifold");
             }
         }
     }
 
     SurfaceMesh build_surface_mesh_from_halfedge(const HalfedgeMeshInterface& mesh)
     {
+        if (mesh.has_garbage())
+        {
+            throw std::runtime_error(
+                "Halfedge mesh contains deleted elements; perform garbage collection before exporting");
+        }
+
         SurfaceMesh surface;
         surface.rest_positions.reserve(mesh.vertex_count());
         surface.positions.reserve(mesh.vertex_count());
@@ -144,4 +162,3 @@ namespace engine::geometry::mesh
         return surface;
     }
 } // namespace engine::geometry::mesh
-

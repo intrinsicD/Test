@@ -1,6 +1,5 @@
-#include "../../include/engine/platform/windowing/window_console.hpp"
+#include "engine/platform/windowing/window_console.hpp"
 
-#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <utility>

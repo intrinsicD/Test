@@ -1,9 +1,10 @@
 #include "engine/geometry/shapes/ellipsoid.hpp"
-#include "../../../math/include/engine/math/utils/utils.hpp"
+#include "engine/math/utils/utils.hpp"
 #include "engine/math/utils/utils_rotation.hpp"
 
 #include <cmath>
 #include <numbers>
+#include <cstddef>
 
 namespace engine::geometry {
     float Volume(const Ellipsoid &ellipsoid) noexcept {
@@ -83,7 +84,16 @@ namespace engine::geometry {
             static_cast<float>(lz * rz * rz / denom_z)
         };
 
-        return ellipsoid.center + rotation * closest_local;
+        math::vec3 rotated = rotation * closest_local;
+        for (std::size_t axis = 0; axis < 3; ++axis)
+        {
+            if (std::fabs(rotated[axis]) <= 1e-6F)
+            {
+                rotated[axis] = 0.0F;
+            }
+        }
+
+        return ellipsoid.center + rotated;
     }
 
     double SquaredDistance(const Ellipsoid &ellipsoid, const math::vec3 &point) noexcept {

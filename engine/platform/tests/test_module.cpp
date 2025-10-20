@@ -9,7 +9,7 @@
 #include <variant>
 
 #include "engine/platform/api.hpp"
-#include "../include/engine/platform/windowing/window.hpp"
+#include "engine/platform/windowing/window.hpp"
 
 namespace {
 

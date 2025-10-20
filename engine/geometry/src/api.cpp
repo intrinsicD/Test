@@ -16,7 +16,7 @@ namespace {
     const math::vec3& a,
     const math::vec3& b,
     const math::vec3& c) {
-    return math::normalize(math::cross(b - a, c - a));
+    return math::normalize(math::cross(c - a, b - a));
 }
 
 }  // namespace

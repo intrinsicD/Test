@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include "engine/core/memory/resource_pool.hpp"
+
+#include <gtest/gtest.h>
 
 namespace {
 

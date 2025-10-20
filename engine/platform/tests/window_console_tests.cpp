@@ -3,8 +3,8 @@
 #include <sstream>
 #include <string>
 
-#include "../include/engine/platform/windowing/window.hpp"
-#include "../include/engine/platform/windowing/window_console.hpp"
+#include "engine/platform/windowing/window.hpp"
+#include "engine/platform/windowing/window_console.hpp"
 
 namespace {
 
