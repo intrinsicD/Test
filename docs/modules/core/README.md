@@ -15,7 +15,7 @@
 
 ## TODO / Next Steps
 
-- Track `CR-118`, `CR-125`, `CR-130` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — maintains `DC-001` and supports `CC-001`.
+- Track `CR-125`, `CR-130` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — maintains `DC-001` and supports `CC-001`.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -23,7 +23,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `CR-118` | Draft diagnostics bridge specification (`CC-001`). | Publish design note for telemetry routing; link from module README. | 🔄 In Progress |
+| `CR-118` | Draft diagnostics bridge specification (`CC-001`). | Publish design note for telemetry routing; link from module README. | ✅ Done |
 | `CR-125` | Audit plugin lifecycle contracts (`DC-001`). | Document init/shutdown sequencing, add regression coverage. | 🟢 Todo |
 | `CR-130` | Update configuration docs. | Refresh config API README section with latest presets and defaults. | 🟢 Todo |
 

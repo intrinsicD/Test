@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <span>
 #include <stdexcept>
 #include <string>
@@ -14,6 +15,7 @@
 #include <variant>
 #include <vector>
 
+#include "engine/core/telemetry/schema.hpp"
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/resource_translation.hpp"
@@ -66,6 +68,33 @@ std::vector<std::string_view> expected_default_modules()
     modules.emplace_back("scene");
 #endif
     return modules;
+}
+
+std::optional<std::size_t> find_metric_index(const engine::core::telemetry::MetricSet& metrics,
+                                             std::string_view name,
+                                             std::optional<std::pair<std::string_view, std::string_view>> label = std::nullopt)
+{
+    for (std::size_t index = 0; index < metrics.descriptors.size(); ++index)
+    {
+        const auto& descriptor = metrics.descriptors[index];
+        if (descriptor.name != name)
+        {
+            continue;
+        }
+        if (!label.has_value())
+        {
+            return index;
+        }
+        for (const auto& entry : descriptor.labels)
+        {
+            if (entry.key == label->first && entry.value == label->second)
+            {
+                return index;
+            }
+        }
+    }
+
+    return std::nullopt;
 }
 
 class TestSubsystem final : public engine::core::plugin::ISubsystemInterface {
@@ -690,6 +719,100 @@ TEST(RuntimeHost, DiagnosticsExposeStreamingMetrics)
     EXPECT_EQ(diagnostics.streaming.streaming_total_rejected, direct_metrics.streaming_total_rejected);
 
     host.shutdown();
+}
+
+TEST(RuntimeHost, DiagnosticsExposeMetricSchema)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+    host.tick(0.016);
+
+    const auto& diagnostics = host.diagnostics();
+    const auto& metrics = diagnostics.metrics;
+
+    ASSERT_FALSE(metrics.descriptors.empty());
+    ASSERT_EQ(metrics.descriptors.size(), metrics.samples.size());
+
+    const auto tick_metric = find_metric_index(metrics, "runtime.lifecycle.tick.count");
+    ASSERT_TRUE(tick_metric.has_value());
+    EXPECT_EQ(metrics.samples[*tick_metric].descriptor_index, *tick_metric);
+    EXPECT_EQ(engine::core::telemetry::as_int(metrics.samples[*tick_metric].value),
+              static_cast<std::int64_t>(diagnostics.tick_count));
+
+    const auto stage_metric = find_metric_index(
+        metrics,
+        "runtime.stage.last_ms",
+        std::make_pair(std::string_view{"stage"}, std::string_view{"physics.integrate"}));
+    ASSERT_TRUE(stage_metric.has_value());
+    EXPECT_EQ(metrics.samples[*stage_metric].descriptor_index, *stage_metric);
+    EXPECT_GE(engine::core::telemetry::as_double(metrics.samples[*stage_metric].value), 0.0);
+
+    const auto streaming_metric = find_metric_index(metrics, "runtime.streaming.worker_count");
+    ASSERT_TRUE(streaming_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*streaming_metric].value),
+                     static_cast<double>(diagnostics.streaming.worker_count));
+
+    const auto issue_metric = find_metric_index(
+        metrics,
+        "runtime.scene_validation.issues",
+        std::make_pair(std::string_view{"type"}, std::string_view{"cycle"}));
+    ASSERT_TRUE(issue_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*issue_metric].value), 0.0);
+
+    host.shutdown();
+}
+
+TEST(RuntimeDiagnosticsCAPI, MetricEnumerationsExposeSchema)
+{
+    engine_runtime_shutdown();
+    engine_runtime_initialize();
+    engine_runtime_tick(0.016);
+
+    const std::size_t count = engine_runtime_diagnostic_metric_count();
+    ASSERT_GT(count, 0U);
+
+    bool found_tick = false;
+    bool found_stage_label = false;
+
+    for (std::size_t index = 0; index < count; ++index)
+    {
+        const std::string name = engine_runtime_diagnostic_metric_name(index);
+        const int kind = engine_runtime_diagnostic_metric_kind(index);
+        const int unit = engine_runtime_diagnostic_metric_unit(index);
+        const std::size_t label_count = engine_runtime_diagnostic_metric_label_count(index);
+
+        if (name == "runtime.lifecycle.tick.count")
+        {
+            found_tick = true;
+            EXPECT_EQ(kind, static_cast<int>(engine::core::telemetry::MetricKind::Counter));
+            EXPECT_EQ(unit, static_cast<int>(engine::core::telemetry::MetricUnit::Count));
+            EXPECT_TRUE(engine_runtime_diagnostic_metric_is_integral(index));
+            EXPECT_EQ(engine_runtime_diagnostic_metric_value_int(index),
+                      static_cast<std::int64_t>(engine_runtime_diagnostic_tick_count()));
+        }
+
+        if (name == "runtime.stage.last_ms" && label_count > 0U)
+        {
+            for (std::size_t label = 0; label < label_count; ++label)
+            {
+                const std::string key = engine_runtime_diagnostic_metric_label_key(index, label);
+                const std::string value = engine_runtime_diagnostic_metric_label_value(index, label);
+                if (key == "stage" && value == "physics.integrate")
+                {
+                    found_stage_label = true;
+                    EXPECT_EQ(kind, static_cast<int>(engine::core::telemetry::MetricKind::Gauge));
+                    EXPECT_EQ(unit, static_cast<int>(engine::core::telemetry::MetricUnit::Milliseconds));
+                    EXPECT_FALSE(engine_runtime_diagnostic_metric_is_integral(index));
+                    EXPECT_GE(engine_runtime_diagnostic_metric_value(index), 0.0);
+                }
+            }
+        }
+    }
+
+    EXPECT_TRUE(found_tick);
+    EXPECT_TRUE(found_stage_label);
+
+    engine_runtime_shutdown();
 }
 
 TEST(RuntimeHost, RejectsDependenciesWithMismatchedMeshVertexCounts)

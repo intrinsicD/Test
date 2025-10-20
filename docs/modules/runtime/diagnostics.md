@@ -7,6 +7,11 @@ instrumentation expectations and troubleshooting flows for teams consuming the
 runtime loop. It complements the async streaming design note and captures the
 scene hierarchy validation workflows delivered in `RT-005.2`/`RT-005.3`.
 
+All metrics adhere to the shared schema documented in
+[`docs/design/telemetry_schema.md`](../../design/telemetry_schema.md). Consumers
+should prefer the schema APIs over bespoke structs to remain compatible with
+future tooling such as the diagnostics viewer (`CC-001`).
+
 ## Access Patterns
 
 ### C++ API
@@ -65,7 +70,10 @@ long-running plugins can be analysed over time.
 
 ### Streaming Metrics
 `StreamingMetrics` mirrors `engine::core::threading::IoThreadPool` state and the
-asset streaming caches:
+asset streaming caches. Runtime diagnostics also encode these counters inside
+`RuntimeDiagnostics::metrics` with `MetricDescriptor` entries named
+`runtime.streaming.*` so downstream tooling can extract them using the shared
+schema.
 
 - `worker_count`, `queue_capacity`, `pending_tasks`, `active_workers`
 - Cumulative counters: `total_enqueued`, `total_executed`
@@ -74,8 +82,9 @@ asset streaming caches:
   `streaming_total_cancelled`, `streaming_total_rejected`
 
 These values feed the async streaming diagnostics described in
-[`docs/design/async_streaming.md`](../../design/async_streaming.md) and the
-associated task record [`T-0115`](../../tasks/T-0115-assets-async-streaming-mvp.md).
+[`docs/design/async_streaming.md`](../../design/async_streaming.md), the shared
+schema reference, and the associated task record
+[`T-0115`](../../tasks/T-0115-assets-async-streaming-mvp.md).
 
 ### Scene Validation
 `scene_validation` embeds the latest

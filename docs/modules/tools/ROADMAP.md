@@ -14,7 +14,7 @@ _Last Updated: 2025-02-19_
 
 | Sprint | Tasks | Notes |
 | --- | --- | --- |
-| Sprint 2 | `TL-101` | Dependent on telemetry schema (`CC-001.1`). |
+| Sprint 2 | `TL-101` | Telemetry schema (`CC-001.1`) landed; begin viewer implementation. |
 | Sprint 3 | `TL-110`, `TL-115` | Update docs/tests alongside feature work. |
 
 Coordinate with Core (`CR-118`) for telemetry bridge requirements.
