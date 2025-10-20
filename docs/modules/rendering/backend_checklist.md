@@ -72,6 +72,9 @@ verify parity between the runtime submission path and the backend scheduler.
 - Inspect `engine::runtime::RuntimeDiagnostics::scene_validation` and stage
   timings to confirm deterministic execution when integrating with the runtime
   host.
+- Capture `engine::runtime::RuntimeDiagnostics::frame_graph_serialization` and
+  `frame_graph_events` when auditing metadata mismatches; they mirror the
+  compiled frame-graph and transient resource lifecycle seen by the runtime.
 - Use `python scripts/diagnostics/runtime_frame_telemetry.py` against the debug
   build output to capture submit timings and verify variance stays within the
   `≤ 5%` budget established in the runtime task records.

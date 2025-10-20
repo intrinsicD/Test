@@ -20,6 +20,7 @@
 
 #if ENGINE_ENABLE_RENDERING
 #    include "engine/rendering/components.hpp"
+#    include "engine/rendering/frame_graph.hpp"
 #    include "engine/rendering/gpu_scheduler.hpp"
 #    include "engine/rendering/resources/resource_provider.hpp"
 #endif
@@ -141,6 +142,10 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     std::vector<RuntimeStageTiming> stage_timings{};
     std::vector<RuntimeSubsystemTiming> subsystem_timings{};
     scene::validation::HierarchyValidationReport scene_validation{};
+#if ENGINE_ENABLE_RENDERING
+    std::string frame_graph_serialization{};
+    std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
+#endif
 };
 
 class ENGINE_RUNTIME_API RuntimeHost {

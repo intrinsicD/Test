@@ -1067,6 +1067,9 @@ namespace engine::runtime
         }
         pipeline->render(impl_->scene, context.resources, context.materials, context.device_resources,
                          context.scheduler, context.encoders, context.frame_graph);
+        impl_->diagnostics.frame_graph_serialization = context.frame_graph.serialize();
+        const auto& events = context.frame_graph.resource_events();
+        impl_->diagnostics.frame_graph_events.assign(events.begin(), events.end());
     }
 #endif
 
