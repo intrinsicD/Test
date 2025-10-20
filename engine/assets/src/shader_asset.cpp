@@ -62,6 +62,8 @@ ShaderBinary ShaderCompiler::compile_glsl_to_spirv(std::string_view source,
 
 const ShaderAsset& ShaderCache::load(const ShaderAssetDescriptor& descriptor)
 {
+    std::scoped_lock lock{mutex_};
+
     const auto identifier = descriptor.handle.id();
     if (identifier.empty()) {
         throw std::invalid_argument("Shader handle identifier cannot be empty");
@@ -101,16 +103,20 @@ const ShaderAsset& ShaderCache::load(const ShaderAssetDescriptor& descriptor)
         reload_asset(handle, *asset, !inserted);
     }
 
+    register_watch_locked(handle, *asset);
+
     return *asset;
 }
 
 bool ShaderCache::contains(const ShaderHandle& handle) const
 {
+    std::scoped_lock lock{mutex_};
     return handle.is_valid(assets_);
 }
 
 const ShaderAsset& ShaderCache::get(const ShaderHandle& handle) const
 {
+    std::scoped_lock lock{mutex_};
     if (!handle.is_valid(assets_)) {
         throw std::out_of_range("Shader asset handle not found");
     }
@@ -119,6 +125,7 @@ const ShaderAsset& ShaderCache::get(const ShaderHandle& handle) const
 
 void ShaderCache::unload(const ShaderHandle& handle)
 {
+    std::scoped_lock lock{mutex_};
     if (!handle.is_bound()) {
         return;
     }
@@ -130,6 +137,8 @@ void ShaderCache::unload(const ShaderHandle& handle)
     }
 
     const auto identifier = assets_.get(raw).descriptor.handle.id();
+
+    unregister_watch_locked(raw);
 
     if (auto cb_it = callbacks_.find(raw); cb_it != callbacks_.end()) {
         if (!identifier.empty()) {
@@ -148,6 +157,7 @@ void ShaderCache::unload(const ShaderHandle& handle)
 
 void ShaderCache::register_hot_reload_callback(const ShaderHandle& handle, HotReloadCallback callback)
 {
+    std::scoped_lock lock{mutex_};
     if (handle.is_bound() && handle.is_valid(assets_)) {
         callbacks_[handle.raw_handle()].push_back(std::move(callback));
         return;
@@ -162,10 +172,25 @@ void ShaderCache::register_hot_reload_callback(const ShaderHandle& handle, HotRe
 
 void ShaderCache::poll()
 {
+    watcher_.poll();
+
+    std::scoped_lock lock{mutex_};
     assets_.for_each([&](const RawHandle& handle, ShaderAsset& asset) {
+        if (asset.descriptor.source.empty())
+        {
+            return;
+        }
+
+        if (watch_handles_.find(handle) != watch_handles_.end())
+        {
+            return;
+        }
+
         const auto current_write = detail::checked_last_write_time(asset.descriptor.source, "shader");
-        if (current_write != asset.last_write) {
+        if (current_write != asset.last_write)
+        {
             reload_asset(handle, asset, true);
+            register_watch_locked(handle, asset);
         }
     });
 }
@@ -183,6 +208,56 @@ void ShaderCache::reload_asset(const RawHandle& handle, ShaderAsset& asset, bool
                 callback(asset);
             }
         }
+    }
+}
+
+void ShaderCache::register_watch_locked(const RawHandle& handle, ShaderAsset& asset)
+{
+    if (asset.descriptor.source.empty())
+    {
+        unregister_watch_locked(handle);
+        return;
+    }
+
+    if (auto existing = watch_handles_.find(handle); existing != watch_handles_.end())
+    {
+        watcher_.unwatch(existing->second);
+        watch_handles_.erase(existing);
+    }
+
+    auto callback = [this, handle](const platform::filesystem::WatchEvent& event) {
+        if (event.type == platform::filesystem::WatchEventType::erased)
+        {
+            std::scoped_lock lock{mutex_};
+            if (!assets_.is_valid(handle))
+            {
+                return;
+            }
+
+            assets_.get(handle).last_write = event.timestamp;
+            return;
+        }
+
+        std::scoped_lock lock{mutex_};
+        if (!assets_.is_valid(handle))
+        {
+            return;
+        }
+
+        auto& tracked = assets_.get(handle);
+        reload_asset(handle, tracked, true);
+    };
+
+    const auto watch_handle = watcher_.watch_file(asset.descriptor.source, std::move(callback));
+    watch_handles_.emplace(handle, watch_handle);
+}
+
+void ShaderCache::unregister_watch_locked(const RawHandle& handle)
+{
+    if (auto it = watch_handles_.find(handle); it != watch_handles_.end())
+    {
+        watcher_.unwatch(it->second);
+        watch_handles_.erase(it);
     }
 }
 

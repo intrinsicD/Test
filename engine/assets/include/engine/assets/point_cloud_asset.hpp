@@ -8,6 +8,7 @@
 #include "engine/geometry/point_cloud/point_cloud.hpp"
 
 #include "engine/core/memory/resource_pool.hpp"
+#include "engine/platform/filesystem/watcher.hpp"
 
 #include <filesystem>
 #include <functional>
@@ -61,11 +62,15 @@ private:
     using HandleHasher = typename Pool::handle_hasher;
 
     void reload_asset(const RawHandle& handle, PointCloudAsset& asset, bool notify);
+    void register_watch_locked(const RawHandle& handle, PointCloudAsset& asset);
+    void unregister_watch_locked(const RawHandle& handle);
 
     Pool assets_{};
     std::unordered_map<std::string, RawHandle> bindings_{};
     std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
     std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
+    std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_{};
+    platform::filesystem::FilesystemWatcher watcher_{};
     mutable std::mutex mutex_{};
     AssetAsyncQueue<PointCloudHandle> async_queue_{};
 };

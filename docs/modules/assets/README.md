@@ -6,7 +6,9 @@
   `ResourcePool` instances, preventing stale references after unloads.
 - Caches track descriptors, last-write timestamps, and hot-reload callbacks while
   delegating format-aware loading to `engine::io` utilities. Mesh and point cloud
-  caches offer `load_async()` entry points backed by `AssetAsyncQueue`.
+  caches offer `load_async()` entry points backed by `AssetAsyncQueue`, and all
+  hot-reload capable caches subscribe to the platform filesystem watcher to
+  trigger callbacks without manual polling loops.
 - Asset descriptors capture provenance, format hints, and binding metadata shared
   between caches and runtime consumers.
 - Material assets currently store descriptor bindings (shader + texture handles);
@@ -65,7 +67,7 @@ This module tracks actionable work through the execution checklist below.
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `AS-302` | Instrument async queue telemetry (`AI-002`). | Queue metrics emitted through runtime telemetry, documented in module README and streaming task file. | ✅ Done |
-| `AS-315` | Integrate hot reload callbacks (`CC-002`). | Filesystem watcher hooks update caches, failures logged via diagnostics shell. | 🟢 Todo |
+| `AS-315` | Integrate hot reload callbacks (`CC-002`). | Filesystem watcher hooks update caches, failures logged via diagnostics shell. | ✅ Done |
 | `AS-320` | Define material persistence strategy. | Draft design note covering serialization format and runtime reload semantics. | 🟢 Todo |
 
 See [ROADMAP.md](ROADMAP.md) for sequencing and dependencies.

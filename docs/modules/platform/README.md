@@ -5,6 +5,8 @@
   window/input services pending concrete OS integrations.
 - Exposes a cross-platform filesystem watcher abstraction powering cache hot
   reload flows across modules.
+- Assets module consumes the watcher to resubscribe mesh/graph/point cloud/
+  shader/texture caches on load and unregister on unload.
 - Supports configuration via `ENGINE_WINDOW_BACKEND` and related presets.
 
 ## Usage

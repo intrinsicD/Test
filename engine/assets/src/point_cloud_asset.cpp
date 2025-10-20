@@ -53,6 +53,8 @@ const PointCloudAsset& PointCloudCache::load(const PointCloudAssetDescriptor& de
         reload_asset(handle, *asset, !inserted);
     }
 
+    register_watch_locked(handle, *asset);
+
     return *asset;
 }
 
@@ -85,6 +87,8 @@ void PointCloudCache::unload(const PointCloudHandle& handle)
     }
 
     const auto identifier = assets_.get(raw).descriptor.handle.id();
+
+    unregister_watch_locked(raw);
 
     if (auto cb_it = callbacks_.find(raw); cb_it != callbacks_.end()) {
         if (!identifier.empty()) {
@@ -119,12 +123,26 @@ void PointCloudCache::register_hot_reload_callback(const PointCloudHandle& handl
 
 void PointCloudCache::poll()
 {
+    watcher_.poll();
+
     std::scoped_lock lock{mutex_};
     assets_.for_each([&](const RawHandle& handle, PointCloudAsset& asset) {
+        if (asset.descriptor.source.empty())
+        {
+            return;
+        }
+
+        if (watch_handles_.find(handle) != watch_handles_.end())
+        {
+            return;
+        }
+
         const auto current_write =
             detail::checked_last_write_time(asset.descriptor.source, "point cloud");
-        if (current_write != asset.last_write) {
+        if (current_write != asset.last_write)
+        {
             reload_asset(handle, asset, true);
+            register_watch_locked(handle, asset);
         }
     });
 }
@@ -253,6 +271,56 @@ void PointCloudCache::reload_asset(const RawHandle& handle, PointCloudAsset& ass
                 callback(asset);
             }
         }
+    }
+}
+
+void PointCloudCache::register_watch_locked(const RawHandle& handle, PointCloudAsset& asset)
+{
+    if (asset.descriptor.source.empty())
+    {
+        unregister_watch_locked(handle);
+        return;
+    }
+
+    if (auto existing = watch_handles_.find(handle); existing != watch_handles_.end())
+    {
+        watcher_.unwatch(existing->second);
+        watch_handles_.erase(existing);
+    }
+
+    auto callback = [this, handle](const platform::filesystem::WatchEvent& event) {
+        if (event.type == platform::filesystem::WatchEventType::erased)
+        {
+            std::scoped_lock lock{mutex_};
+            if (!assets_.is_valid(handle))
+            {
+                return;
+            }
+
+            assets_.get(handle).last_write = event.timestamp;
+            return;
+        }
+
+        std::scoped_lock lock{mutex_};
+        if (!assets_.is_valid(handle))
+        {
+            return;
+        }
+
+        auto& tracked = assets_.get(handle);
+        reload_asset(handle, tracked, true);
+    };
+
+    const auto watch_handle = watcher_.watch_file(asset.descriptor.source, std::move(callback));
+    watch_handles_.emplace(handle, watch_handle);
+}
+
+void PointCloudCache::unregister_watch_locked(const RawHandle& handle)
+{
+    if (auto it = watch_handles_.find(handle); it != watch_handles_.end())
+    {
+        watcher_.unwatch(it->second);
+        watch_handles_.erase(it);
     }
 }
 
