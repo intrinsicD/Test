@@ -18,7 +18,9 @@
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/resource_translation.hpp"
 #include "engine/runtime/api.hpp"
+#include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
+#include "engine/scene/validation.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/command_encoder.hpp"
 #include "engine/rendering/frame_graph.hpp"
@@ -938,6 +940,76 @@ TEST(RuntimeModule, ConfigureWithDefaultSubsystemHelper) {
     engine::runtime::shutdown();
     engine::runtime::configure_with_default_subsystems();
     EXPECT_EQ(engine::runtime::module_count(), expected_default_modules().size());
+}
+
+TEST(RuntimeDiagnosticsBridge, DispatchesHierarchyCallbacks)
+{
+    auto& bridge = engine::runtime::DiagnosticsBridge::instance();
+    bridge.reset_for_testing();
+
+    engine::scene::validation::HierarchyValidationReport report{};
+    engine::scene::validation::HierarchyValidationIssue issue{};
+    issue.entity = static_cast<entt::entity>(42);
+    issue.related = static_cast<entt::entity>(24);
+    issue.type = engine::scene::validation::HierarchyIssueType::Cycle;
+    issue.message = "cycle detected";
+    report.issues.push_back(issue);
+    report.metrics.issue_count = report.issues.size();
+    report.metrics.cycle_count = 1U;
+
+    bool invoked = false;
+    const auto callback_id = bridge.register_hierarchy_callback(
+        [&](const engine::scene::validation::HierarchyValidationReport& published, double time) {
+            invoked = true;
+            EXPECT_EQ(published.metrics.issue_count, 1U);
+            EXPECT_DOUBLE_EQ(time, 1.5);
+        });
+
+    bridge.publish_hierarchy_report(report, 1.5);
+    EXPECT_TRUE(invoked);
+
+    bridge.unregister_hierarchy_callback(callback_id);
+    bridge.reset_for_testing();
+}
+
+TEST(RuntimeDiagnosticsBridge, ExposesSceneIssuesThroughCAPI)
+{
+    engine::runtime::shutdown();
+    engine::runtime::configure_with_default_subsystems();
+    engine::runtime::initialize();
+
+    engine::scene::validation::HierarchyValidationReport report{};
+    report.metrics.issue_count = 1U;
+    report.metrics.cycle_count = 1U;
+    report.metrics.dangling_parent_count = 2U;
+    report.metrics.missing_parent_hierarchy_count = 1U;
+    report.metrics.non_finite_transform_count = 0U;
+    report.metrics.transform_mismatch_count = 3U;
+
+    engine::scene::validation::HierarchyValidationIssue issue{};
+    issue.entity = static_cast<entt::entity>(101);
+    issue.related = static_cast<entt::entity>(202);
+    issue.type = engine::scene::validation::HierarchyIssueType::TransformMismatch;
+    issue.message = "mismatched transform";
+    report.issues.push_back(issue);
+
+    auto& diagnostics = const_cast<engine::runtime::RuntimeDiagnostics&>(engine::runtime::diagnostics());
+    diagnostics.scene_validation = report;
+
+    EXPECT_EQ(engine_runtime_diagnostic_scene_issue_count(), 1U);
+    EXPECT_EQ(engine_runtime_diagnostic_scene_cycle_count(), 1U);
+    EXPECT_EQ(engine_runtime_diagnostic_scene_dangling_parent_count(), 2U);
+    EXPECT_EQ(engine_runtime_diagnostic_scene_missing_parent_hierarchy_count(), 1U);
+    EXPECT_EQ(engine_runtime_diagnostic_scene_non_finite_transform_count(), 0U);
+    EXPECT_EQ(engine_runtime_diagnostic_scene_transform_mismatch_count(), 3U);
+
+    ASSERT_EQ(engine_runtime_diagnostic_scene_issue_total(), 1U);
+    EXPECT_EQ(engine_runtime_diagnostic_scene_issue_entity(0), 101U);
+    EXPECT_EQ(engine_runtime_diagnostic_scene_issue_related(0), 202U);
+    EXPECT_STREQ(engine_runtime_diagnostic_scene_issue_type_name(0), "transform_mismatch");
+    EXPECT_STREQ(engine_runtime_diagnostic_scene_issue_message(0), "mismatched transform");
+
+    engine::runtime::shutdown();
 }
 
 #if ENGINE_ENABLE_ANIMATION && ENGINE_ENABLE_SCENE

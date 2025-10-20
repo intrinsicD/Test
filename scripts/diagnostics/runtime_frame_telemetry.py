@@ -129,6 +129,29 @@ class RuntimeStreamingMetrics:
 
 
 @dataclass
+class SceneHierarchyIssue:
+    """Single hierarchy validation issue emitted by the runtime."""
+
+    entity: int
+    related: int
+    type: str
+    message: str
+
+
+@dataclass
+class SceneValidationSnapshot:
+    """Hierarchy validation metrics and issues exposed through the diagnostics bridge."""
+
+    issue_count: int
+    cycle_count: int
+    dangling_parent_count: int
+    missing_parent_hierarchy_count: int
+    non_finite_transform_count: int
+    transform_mismatch_count: int
+    issues: List[SceneHierarchyIssue]
+
+
+@dataclass
 class RuntimeDiagnosticsSnapshot:
     """Aggregated runtime lifecycle diagnostics exposed through the C ABI."""
 
@@ -143,6 +166,7 @@ class RuntimeDiagnosticsSnapshot:
     stages: List[RuntimeStageMetric]
     subsystems: List[RuntimeSubsystemMetric]
     streaming: Optional[RuntimeStreamingMetrics] = None
+    scene_validation: Optional[SceneValidationSnapshot] = None
 
 
 class _CStreamingMetrics(ctypes.Structure):
@@ -171,6 +195,7 @@ class RuntimeBindings:
         self._has_simulation_time = False
         self._has_diagnostics = False
         self._has_streaming_metrics = False
+        self._has_scene_validation = False
         self._streaming_metrics_func = None
         self._configure_signatures()
 
@@ -290,6 +315,7 @@ class RuntimeBindings:
             lib.engine_runtime_diagnostic_subsystem_max_shutdown_ms.argtypes = [ctypes.c_size_t]
         except AttributeError:
             self._has_diagnostics = False
+            self._has_scene_validation = False
         else:
             self._has_diagnostics = True
 
@@ -309,6 +335,35 @@ class RuntimeBindings:
         else:
             self._streaming_metrics_func = lib.engine_runtime_diagnostic_streaming_metrics
             self._has_streaming_metrics = True
+
+        if self._has_diagnostics:
+            try:
+                lib.engine_runtime_diagnostic_scene_issue_count.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_scene_issue_count.argtypes = []
+                lib.engine_runtime_diagnostic_scene_cycle_count.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_scene_cycle_count.argtypes = []
+                lib.engine_runtime_diagnostic_scene_dangling_parent_count.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_scene_dangling_parent_count.argtypes = []
+                lib.engine_runtime_diagnostic_scene_missing_parent_hierarchy_count.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_scene_missing_parent_hierarchy_count.argtypes = []
+                lib.engine_runtime_diagnostic_scene_non_finite_transform_count.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_scene_non_finite_transform_count.argtypes = []
+                lib.engine_runtime_diagnostic_scene_transform_mismatch_count.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_scene_transform_mismatch_count.argtypes = []
+                lib.engine_runtime_diagnostic_scene_issue_total.restype = ctypes.c_size_t
+                lib.engine_runtime_diagnostic_scene_issue_total.argtypes = []
+                lib.engine_runtime_diagnostic_scene_issue_entity.restype = ctypes.c_uint32
+                lib.engine_runtime_diagnostic_scene_issue_entity.argtypes = [ctypes.c_size_t]
+                lib.engine_runtime_diagnostic_scene_issue_related.restype = ctypes.c_uint32
+                lib.engine_runtime_diagnostic_scene_issue_related.argtypes = [ctypes.c_size_t]
+                lib.engine_runtime_diagnostic_scene_issue_type_name.restype = ctypes.c_char_p
+                lib.engine_runtime_diagnostic_scene_issue_type_name.argtypes = [ctypes.c_size_t]
+                lib.engine_runtime_diagnostic_scene_issue_message.restype = ctypes.c_char_p
+                lib.engine_runtime_diagnostic_scene_issue_message.argtypes = [ctypes.c_size_t]
+            except AttributeError:
+                self._has_scene_validation = False
+            else:
+                self._has_scene_validation = True
 
     def configure_default_modules(self) -> None:
         self._lib.engine_runtime_configure_with_default_modules()
@@ -385,6 +440,7 @@ class RuntimeBindings:
             stages=self._collect_stage_metrics(),
             subsystems=self._collect_subsystem_metrics(),
             streaming=self.streaming_metrics(),
+            scene_validation=self._collect_scene_validation(),
         )
 
     def _collect_stage_metrics(self) -> List[RuntimeStageMetric]:
@@ -443,6 +499,44 @@ class RuntimeBindings:
                 )
             )
         return metrics
+
+    def _collect_scene_validation(self) -> Optional[SceneValidationSnapshot]:
+        if not self._has_diagnostics or not self._has_scene_validation:
+            return None
+
+        issue_count = int(self._lib.engine_runtime_diagnostic_scene_issue_count())
+        cycle_count = int(self._lib.engine_runtime_diagnostic_scene_cycle_count())
+        dangling_count = int(self._lib.engine_runtime_diagnostic_scene_dangling_parent_count())
+        non_finite_count = int(self._lib.engine_runtime_diagnostic_scene_non_finite_transform_count())
+        mismatch_count = int(self._lib.engine_runtime_diagnostic_scene_transform_mismatch_count())
+
+        total = int(self._lib.engine_runtime_diagnostic_scene_issue_total())
+        issues: List[SceneHierarchyIssue] = []
+        for index in range(total):
+            raw_type = self._lib.engine_runtime_diagnostic_scene_issue_type_name(index)
+            type_name = raw_type.decode("utf-8") if raw_type else "unknown"
+            raw_message = self._lib.engine_runtime_diagnostic_scene_issue_message(index)
+            message = raw_message.decode("utf-8") if raw_message else ""
+            issues.append(
+                SceneHierarchyIssue(
+                    entity=int(self._lib.engine_runtime_diagnostic_scene_issue_entity(index)),
+                    related=int(self._lib.engine_runtime_diagnostic_scene_issue_related(index)),
+                    type=type_name,
+                    message=message,
+                )
+            )
+
+        return SceneValidationSnapshot(
+            issue_count=issue_count,
+            cycle_count=cycle_count,
+            dangling_parent_count=dangling_count,
+            missing_parent_hierarchy_count=int(
+                self._lib.engine_runtime_diagnostic_scene_missing_parent_hierarchy_count()
+            ),
+            non_finite_transform_count=non_finite_count,
+            transform_mismatch_count=mismatch_count,
+            issues=issues,
+        )
 
 
 def _candidate_names(base: str) -> Iterable[str]:
@@ -640,6 +734,7 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
             }
             for subsystem in snapshot.subsystems
         ],
+        "scene_validation": _scene_validation_to_dict(snapshot.scene_validation),
     }
 
 
@@ -662,6 +757,31 @@ def _streaming_to_dict(
         "streaming_total_failed": metrics.streaming_total_failed,
         "streaming_total_cancelled": metrics.streaming_total_cancelled,
         "streaming_total_rejected": metrics.streaming_total_rejected,
+    }
+
+
+def _scene_validation_to_dict(
+    snapshot: Optional[SceneValidationSnapshot],
+) -> Optional[Dict[str, object]]:
+    if snapshot is None:
+        return None
+
+    return {
+        "issue_count": snapshot.issue_count,
+        "cycle_count": snapshot.cycle_count,
+        "dangling_parent_count": snapshot.dangling_parent_count,
+        "missing_parent_hierarchy_count": snapshot.missing_parent_hierarchy_count,
+        "non_finite_transform_count": snapshot.non_finite_transform_count,
+        "transform_mismatch_count": snapshot.transform_mismatch_count,
+        "issues": [
+            {
+                "entity": issue.entity,
+                "related": issue.related,
+                "type": issue.type,
+                "message": issue.message,
+            }
+            for issue in snapshot.issues
+        ],
     }
 
 
@@ -738,6 +858,25 @@ def _print_summary(
                     f"avg={stage.average_ms:8.4f} ms "
                     f"last={stage.last_ms:8.4f} ms"
                 )
+        if diagnostics.scene_validation is not None:
+            scene = diagnostics.scene_validation
+            print(
+                "  hierarchy: "
+                f"issues={scene.issue_count} cycles={scene.cycle_count} "
+                f"dangling={scene.dangling_parent_count} "
+                f"missing_parent={scene.missing_parent_hierarchy_count} "
+                f"non_finite={scene.non_finite_transform_count} "
+                f"mismatch={scene.transform_mismatch_count}"
+            )
+            if scene.issue_count:
+                limit = min(len(scene.issues), 5)
+                for issue in scene.issues[:limit]:
+                    print(
+                        "    "
+                        f"[{issue.type}] entity={issue.entity} related={issue.related} message={issue.message}"
+                    )
+                if len(scene.issues) > limit:
+                    print(f"    … {len(scene.issues) - limit} additional issue(s)")
         if diagnostics.streaming is not None:
             streaming = diagnostics.streaming
             print("  streaming metrics:")

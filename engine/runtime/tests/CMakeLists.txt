@@ -9,4 +9,9 @@ target_link_libraries(engine_runtime_tests
         GTest::gtest_main
 )
 
+target_compile_definitions(engine_runtime_tests
+    PRIVATE
+        ENGINE_RUNTIME_ENABLE_TEST_API=1
+)
+
 add_test(NAME engine_runtime_tests COMMAND engine_runtime_tests)

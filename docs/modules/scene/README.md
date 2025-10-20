@@ -15,9 +15,9 @@
 
 ## TODO / Next Steps
 
-- Track `SC-215`, `SC-220` in the [central roadmap](../../ROADMAP.md) and
-  update the execution checklist below when status changes — unlocks `RT-005`
-  diagnostics.
+- Track `SC-220` in the [central roadmap](../../ROADMAP.md) and update the
+  execution checklist below when status changes — captures ongoing diagnostics
+  documentation work aligned with `RT-005`.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -26,7 +26,7 @@ This module tracks actionable work through the execution checklist below.
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `SC-208` | Implement cycle detection validation (`RT-005`). | Scene validator detects cycles with structured errors and tests. | ✅ Done |
-| `SC-215` | Runtime diagnostics bridge. | Runtime reports invalid hierarchies via telemetry/logs. | 🟢 Todo |
+| `SC-215` | Runtime diagnostics bridge. | Runtime reports invalid hierarchies via telemetry/logs. | ✅ Done |
 | `SC-220` | Documentation refresh. | Update README + troubleshooting guide with validation workflows. | 🟢 Todo |
 
 Review [ROADMAP.md](ROADMAP.md) for scheduling notes.

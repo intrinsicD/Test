@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <entt/entity/entity.hpp>
@@ -62,6 +63,27 @@ namespace engine::scene::validation
             return metrics.issue_count == 0U;
         }
     };
+
+    [[nodiscard]] constexpr std::string_view to_string(HierarchyIssueType type) noexcept
+    {
+        switch (type)
+        {
+        case HierarchyIssueType::Cycle:
+            return "cycle";
+        case HierarchyIssueType::DanglingParent:
+            return "dangling_parent";
+        case HierarchyIssueType::MissingParentHierarchy:
+            return "missing_parent_hierarchy";
+        case HierarchyIssueType::NonFiniteLocalTransform:
+            return "non_finite_local_transform";
+        case HierarchyIssueType::NonFiniteWorldTransform:
+            return "non_finite_world_transform";
+        case HierarchyIssueType::TransformMismatch:
+            return "transform_mismatch";
+        }
+
+        return "unknown";
+    }
 
     [[nodiscard]] HierarchyValidationReport validate_hierarchy(
         const entt::registry& registry,

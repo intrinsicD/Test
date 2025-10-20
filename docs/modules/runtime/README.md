@@ -9,6 +9,11 @@
   captured during render submissions.
 - Runtime diagnostics capture asynchronous streaming queue metrics mirrored via
   `scripts/diagnostics/runtime_frame_telemetry.py` for `AI-002` observability.
+- Scene hierarchy validation reports are published through the diagnostics
+  bridge so tooling and scripts receive detailed issue metadata (`RT-005.2`).
+- Hierarchy troubleshooting workflows are documented in
+  [diagnostics.md](diagnostics.md#hierarchy-diagnostics-playbook) so runtime and
+  tooling consumers share a common remediation playbook (`RT-005.3`).
 - Detailed instrumentation and troubleshooting workflows live in
   [diagnostics.md](diagnostics.md).
 
@@ -19,7 +24,10 @@
 
 ## TODO / Next Steps
 
-- Track `RT-005.2` (runtime diagnostics bridge) in the [central roadmap](../../ROADMAP.md) and update the execution checklist below as hierarchy validation telemetry is wired into tooling.
+- Coordinate with the scene module documentation refresh (`SC-220`, see the
+  [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation)) so
+  import pipelines reference the runtime troubleshooting guide when explaining
+  hierarchy validation flows and keep `RT-005` artefacts aligned.
 
 This module tracks actionable work through the execution checklist below.
 

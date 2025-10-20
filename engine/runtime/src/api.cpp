@@ -1,4 +1,5 @@
 #include "engine/runtime/api.hpp"
+#include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/errors.hpp"
 
 #include <algorithm>
@@ -156,6 +157,12 @@ namespace
         }
 
         return errors;
+    }
+
+    [[nodiscard]] const char* hierarchy_issue_type_name(
+        engine::scene::validation::HierarchyIssueType type) noexcept
+    {
+        return engine::scene::validation::to_string(type).data();
     }
 
     [[nodiscard]] engine::geometry::SurfaceMesh make_runtime_skinning_mesh()
@@ -702,6 +709,9 @@ namespace engine::runtime
             scene::systems::propagate_transforms(registry);
 
             diagnostics.scene_validation = scene::validation::validate_hierarchy(scene);
+            DiagnosticsBridge::instance().publish_hierarchy_report(
+                diagnostics.scene_validation,
+                simulation_time);
 
             for (const auto& entity : joint_entities)
             {
@@ -1813,6 +1823,11 @@ extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_dang
     return engine::runtime::diagnostics().scene_validation.metrics.dangling_parent_count;
 }
 
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_missing_parent_hierarchy_count() noexcept
+{
+    return engine::runtime::diagnostics().scene_validation.metrics.missing_parent_hierarchy_count;
+}
+
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_non_finite_transform_count() noexcept
 {
     return engine::runtime::diagnostics().scene_validation.metrics.non_finite_transform_count;
@@ -1821,4 +1836,54 @@ extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_non_
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_transform_mismatch_count() noexcept
 {
     return engine::runtime::diagnostics().scene_validation.metrics.transform_mismatch_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_scene_issue_total() noexcept
+{
+    return engine::runtime::diagnostics().scene_validation.issues.size();
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint32_t engine_runtime_diagnostic_scene_issue_entity(std::size_t index) noexcept
+{
+    const auto& issues = engine::runtime::diagnostics().scene_validation.issues;
+    if (index >= issues.size())
+    {
+        return 0U;
+    }
+
+    return static_cast<std::uint32_t>(issues[index].entity);
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint32_t engine_runtime_diagnostic_scene_issue_related(std::size_t index) noexcept
+{
+    const auto& issues = engine::runtime::diagnostics().scene_validation.issues;
+    if (index >= issues.size())
+    {
+        return 0U;
+    }
+
+    return static_cast<std::uint32_t>(issues[index].related);
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_scene_issue_type_name(
+    std::size_t index) noexcept
+{
+    const auto& issues = engine::runtime::diagnostics().scene_validation.issues;
+    if (index >= issues.size())
+    {
+        return "unknown";
+    }
+
+    return hierarchy_issue_type_name(issues[index].type);
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_scene_issue_message(std::size_t index) noexcept
+{
+    const auto& issues = engine::runtime::diagnostics().scene_validation.issues;
+    if (index >= issues.size())
+    {
+        return "";
+    }
+
+    return issues[index].message.c_str();
 }
