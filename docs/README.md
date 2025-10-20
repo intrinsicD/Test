@@ -66,6 +66,8 @@ linking the change downstream.
   resource pool design used by `AI-001`.
 - [`modules/`](modules/) – subsystem overviews, execution checklists, and local
   TODO boards aligned with the roadmap.
+- [`modules/runtime/async_streaming_integration.md`](modules/runtime/async_streaming_integration.md)
+  – runtime integration checklist for async asset streaming (`AI-002.3`).
 
 When in doubt, document the ambiguity before coding. This keeps the agentic
 workflow deterministic and reviewable.

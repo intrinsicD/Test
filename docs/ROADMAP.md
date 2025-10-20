@@ -13,7 +13,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- | --- |
 | `DC-004` | Standardise error handling on `engine::Result<T, Error>` across modules. | – | 🔄 In Progress | Core, IO |
 | `AI-001` | Propagate handle-based lifetime management and validation hooks. | `DC-004` | 🔄 In Progress | Assets, Rendering |
-| `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | 🟡 Blocked on documentation refresh | Assets, Runtime |
+| `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | 🔄 In Progress | Assets, Runtime |
 | `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | ✅ Done | Rendering, Runtime |
 | `RT-002` | Harden physics with persistent manifolds and benchmarking. | – | 🔄 In Progress | Physics |
 | `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | 🔄 In Progress | Rendering, Runtime |
@@ -50,7 +50,11 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `AI-002.1` | Instrument async queue telemetry. | Runtime exposes queue metrics, `scripts/diagnostics/streaming_report.py` documents usage. | ✅ Done |
 | `AI-002.2` | Harden cancellation + failure flows. | Futures support cancellation with integration tests covering failure propagation. | ✅ Done |
-| `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | 🟢 Todo |
+| `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | ✅ Done |
+
+- 2025-02-20: Published [`runtime/async_streaming_integration.md`](modules/runtime/async_streaming_integration.md)
+  detailing configuration, request workflows, and telemetry consumption for the
+  runtime streaming path (`AI-002.3`).
 
 #### `AI-003` — Frame-Graph Metadata
 
