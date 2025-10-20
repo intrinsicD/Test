@@ -30,7 +30,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `DC-004.1` | Publish canonical error-handling guide. | `docs/design/error_handling_migration.md` updated with examples and linked from module READMEs. | ✅ Done |
 | `DC-004.2` | Migrate IO module APIs to `Result<T>`. | All IO entry points return `Result<T>`, tests cover error paths, and module README updated. | 🔄 In Progress |
-| `DC-004.3` | Add lint/check tooling. | Static check preventing legacy error patterns integrated into CI. | 🟢 Todo |
+| `DC-004.3` | Add lint/check tooling. | Static check preventing legacy error patterns integrated into CI. | ✅ Done |
 
 #### `AI-001` — Resource Lifetime Management
 

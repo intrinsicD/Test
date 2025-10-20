@@ -46,6 +46,8 @@ expectations, and captures best practices for module authors.
       public API.
 - [x] Unit tests assert on error codes (e.g., missing files, invalid
       arguments), ensuring regression coverage.
+- [x] Static lint (`scripts/lint/error_handling.py`) prevents reintroducing
+      legacy exception-based error handling in engine sources.
 
 ## Next Steps
 

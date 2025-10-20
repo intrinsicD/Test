@@ -151,5 +151,5 @@ No additional edits after review; final diff matches the patches recorded above.
 ## FOLLOW_UP_TODOS
 - [ ] Coordinate IO telemetry alignment (IO-240) once diagnostics schema lands (owner: IO team, priority: medium, builds on catalog guidance).
 - [ ] Ensure runtime telemetry emits `GeometryIoErrorCode` identifiers for failed streaming loads (owner: Runtime team, priority: medium, closes AI-002 observability gap).
-- [ ] Evaluate static lint for legacy error patterns (owner: Core team, priority: medium-high, satisfies DC-004.3).
+- [x] Evaluate static lint for legacy error patterns (owner: Core team, priority: medium-high, satisfies DC-004.3).
 - [ ] Add troubleshooting runbook section linking error codes to recovery scripts (owner: Docs team, priority: low, improves operator support).
