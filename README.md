@@ -15,7 +15,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | --- | --- | --- | --- |
 | Animation | ✅ Stable | Deterministic clip sampling, validation, JSON import/export, blend-tree controllers, and structured error reporting consumed by the runtime pose system. | `AN-201`: extend regression coverage for validation failures to close out `RT-001`. |
 | Assets | 🔄 In Progress | Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload polling and async queue scaffolding. | `AS-302`: wire telemetry around the async queue as part of `AI-002`. |
-| Compute | ✅ Stable | Kernel dispatcher with per-kernel telemetry, backend capability probing, and math helpers for identity transforms. | `CO-141`: document dispatcher extension points ahead of `AI-004`. |
+| Compute | ✅ Stable | Kernel dispatcher with per-kernel telemetry, backend capability probing, dispatcher extension guidance, and math helpers for identity transforms. | `CO-150`: implement kernel dependency cycle detection tooling. |
 | Core | ✅ Stable | EnTT-backed registry façade, subsystem discovery helpers, and module bootstrap plumbing consumed by higher-level systems. | `CR-118`: author diagnostics bridge spec supporting `CC-001`. |
 | Geometry | ✅ Stable | `SurfaceMesh` utilities, halfedge conversions, procedural primitives, ASCII IO, and kd-tree/octree accelerators. | `GE-205`: benchmark accelerated normal recomputation for `TI-002`. |
 | IO | 🔄 In Progress | Geometry/animation import-export wrappers, plugin-ready handlers, and cache policy scaffolding. | `IO-221`: integrate signature database + fuzz harness towards `RT-006`. |

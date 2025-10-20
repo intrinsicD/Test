@@ -1,6 +1,6 @@
 # Compute Module Roadmap
 
-_Last Updated: 2025-02-19_
+_Last Updated: 2025-10-20_
 
 ## Objectives
 
@@ -14,7 +14,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Description | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| `CO-141` | Author dispatcher extension note covering registration and telemetry. | Compute team | 2025-03-07 | 🔄 In Progress |
+| `CO-141` | Author dispatcher extension note covering registration and telemetry. | Compute team | 2025-03-07 | ✅ Complete |
 | `CO-150` | Implement kernel dependency cycle detection tooling. | Compute team | 2025-03-21 | 🟢 Todo |
 
 ## Upcoming Tasks

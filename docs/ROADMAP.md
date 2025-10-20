@@ -116,8 +116,9 @@ Once staffed, execute module-specific queues below.
   extensions land.
 - **Assets** — `AS-302` telemetry wiring for async queue (`AI-002`), then
   `AS-315` hot reload callback hardening (`CC-002`).
-- **Compute** — `CO-141` dispatcher extension documentation to unblock
-  `AI-004`, then `CO-150` cycle detection tooling.
+- **Compute** — `CO-150` cycle detection tooling is next after landing the
+  dispatcher extension documentation (`CO-141`), followed by `CO-160` CUDA
+  preset alignment.
 - **Core** — `CR-118` diagnostics bridge specification (`CC-001`), followed by
   `CR-125` plugin lifecycle audit to keep `DC-001` fresh.
 - **Geometry** — `GE-205` accelerated normals benchmark for `TI-002`, then
