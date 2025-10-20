@@ -112,8 +112,12 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `CC-002.1` | Filesystem watcher abstraction. | Platform module exposes cross-platform watcher with tests and documentation. | ✅ Done |
-| `CC-002.2` | Cache callback integration. | Assets caches react to change notifications with error telemetry. | 🟢 Todo |
+| `CC-002.2` | Cache callback integration. | Assets caches react to change notifications with error telemetry. | ✅ Done |
 | `CC-002.3` | Failure diagnostics. | Diagnostics shell surfaces reload failures with actionable hints. | 🟢 Todo |
+
+- 2025-03-04: Assets mesh/graph/point cloud/shader/texture caches subscribe to
+  the platform filesystem watcher and unregister on unload, completing
+  `CC-002.2` while preserving pending callback hand-offs.
 
 ## Outstanding Backlog Focus
 
