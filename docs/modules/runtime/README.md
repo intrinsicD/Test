@@ -9,6 +9,8 @@
   captured during render submissions.
 - Runtime diagnostics capture asynchronous streaming queue metrics mirrored via
   `scripts/diagnostics/runtime_frame_telemetry.py` for `AI-002` observability.
+- Detailed instrumentation and troubleshooting workflows live in
+  [diagnostics.md](diagnostics.md).
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_runtime`.
@@ -17,7 +19,7 @@
 
 ## TODO / Next Steps
 
-- Track `RU-307` and `RU-320` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — closes `RT-003` integration and feeds `AI-002`.
+- Track `RT-005.2` (runtime diagnostics bridge) in the [central roadmap](../../ROADMAP.md) and update the execution checklist below as hierarchy validation telemetry is wired into tooling.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -27,6 +29,6 @@ This module tracks actionable work through the execution checklist below.
 | --- | --- | --- | --- |
 | `RU-307` | Reconcile submission hooks with Vulkan backend (`RT-003`). | Unified submission struct validated by integration tests. | ✅ Done |
 | `RU-315` | Expose streaming metrics to telemetry (`AI-002`). | Runtime publishes queue metrics consumed by diagnostics viewer. | ✅ Done |
-| `RU-320` | Update runtime diagnostics guide. | Document lifecycle instrumentation and troubleshooting. | 🟢 Todo |
+| `RU-320` | Update runtime diagnostics guide. | Document lifecycle instrumentation and troubleshooting. | ✅ Done |
 
 See [ROADMAP.md](ROADMAP.md) for detailed sequencing.
