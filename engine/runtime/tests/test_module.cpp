@@ -665,6 +665,31 @@ TEST(RuntimeHost, StreamingMetricsReflectConfiguration)
     host.shutdown();
 }
 
+TEST(RuntimeHost, DiagnosticsExposeStreamingMetrics)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+
+    const auto direct_metrics = engine::runtime::streaming_metrics();
+    const auto& diagnostics = host.diagnostics();
+
+    EXPECT_EQ(diagnostics.streaming.worker_count, direct_metrics.worker_count);
+    EXPECT_EQ(diagnostics.streaming.queue_capacity, direct_metrics.queue_capacity);
+    EXPECT_EQ(diagnostics.streaming.pending_tasks, direct_metrics.pending_tasks);
+    EXPECT_EQ(diagnostics.streaming.active_workers, direct_metrics.active_workers);
+    EXPECT_EQ(diagnostics.streaming.total_enqueued, direct_metrics.total_enqueued);
+    EXPECT_EQ(diagnostics.streaming.total_executed, direct_metrics.total_executed);
+    EXPECT_EQ(diagnostics.streaming.streaming_pending, direct_metrics.streaming_pending);
+    EXPECT_EQ(diagnostics.streaming.streaming_loading, direct_metrics.streaming_loading);
+    EXPECT_EQ(diagnostics.streaming.streaming_total_requests, direct_metrics.streaming_total_requests);
+    EXPECT_EQ(diagnostics.streaming.streaming_total_completed, direct_metrics.streaming_total_completed);
+    EXPECT_EQ(diagnostics.streaming.streaming_total_failed, direct_metrics.streaming_total_failed);
+    EXPECT_EQ(diagnostics.streaming.streaming_total_cancelled, direct_metrics.streaming_total_cancelled);
+    EXPECT_EQ(diagnostics.streaming.streaming_total_rejected, direct_metrics.streaming_total_rejected);
+
+    host.shutdown();
+}
+
 TEST(RuntimeHost, RejectsDependenciesWithMismatchedMeshVertexCounts)
 {
     engine::runtime::RuntimeHost host{};
