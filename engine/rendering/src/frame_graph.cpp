@@ -116,6 +116,44 @@ namespace engine::rendering
             result.push_back('\"');
             return result;
         }
+
+        [[nodiscard]] bool queue_supports_read(QueueType queue, ResourceUsage usage) noexcept
+        {
+            switch (queue)
+            {
+            case QueueType::Graphics:
+                return has_flag(usage, ResourceUsage::ShaderRead) ||
+                       has_flag(usage, ResourceUsage::TransferSource) ||
+                       has_flag(usage, ResourceUsage::ColorAttachment) ||
+                       has_flag(usage, ResourceUsage::DepthStencilAttachment) ||
+                       has_flag(usage, ResourceUsage::Present);
+            case QueueType::Compute:
+                return has_flag(usage, ResourceUsage::ShaderRead) ||
+                       has_flag(usage, ResourceUsage::TransferSource);
+            case QueueType::Transfer:
+                return has_flag(usage, ResourceUsage::TransferSource);
+            }
+            return false;
+        }
+
+        [[nodiscard]] bool queue_supports_write(QueueType queue, ResourceUsage usage) noexcept
+        {
+            switch (queue)
+            {
+            case QueueType::Graphics:
+                return has_flag(usage, ResourceUsage::ShaderWrite) ||
+                       has_flag(usage, ResourceUsage::ColorAttachment) ||
+                       has_flag(usage, ResourceUsage::DepthStencilAttachment) ||
+                       has_flag(usage, ResourceUsage::TransferDestination) ||
+                       has_flag(usage, ResourceUsage::Present);
+            case QueueType::Compute:
+                return has_flag(usage, ResourceUsage::ShaderWrite) ||
+                       has_flag(usage, ResourceUsage::TransferDestination);
+            case QueueType::Transfer:
+                return has_flag(usage, ResourceUsage::TransferDestination);
+            }
+            return false;
+        }
     }
 
     FrameGraphPassBuilder::FrameGraphPassBuilder(FrameGraph& graph, std::size_t pass_index)
@@ -340,6 +378,43 @@ namespace engine::rendering
                     throw std::logic_error("FrameGraph texture resource '" + resource.name +
                                            "' missing mip level metadata");
                 }
+            }
+        }
+
+        for (std::size_t pass_index = 0; pass_index < passes_.size(); ++pass_index)
+        {
+            const auto queue = passes_[pass_index].pass->queue();
+            const auto& pass = passes_[pass_index];
+
+            auto validate_access = [&](FrameGraphResourceHandle handle, bool is_write) {
+                if (!handle.valid() || handle.index >= resources_.size())
+                {
+                    throw std::logic_error{"FrameGraph pass references invalid resource handle"};
+                }
+
+                const auto& resource = resources_[handle.index];
+                const auto usage = resource.usage;
+                const bool supported = is_write ? queue_supports_write(queue, usage)
+                                                : queue_supports_read(queue, usage);
+
+                if (!supported)
+                {
+                    std::ostringstream message;
+                    message << "FrameGraph pass '" << pass.pass->name() << "' on queue "
+                            << to_string(queue) << (is_write ? " cannot write resource '"
+                                                            : " cannot read resource '")
+                            << resource.name << "' with usage '" << to_string(usage) << "'";
+                    throw std::logic_error(message.str());
+                }
+            };
+
+            for (const auto handle : pass.reads)
+            {
+                validate_access(handle, false);
+            }
+            for (const auto handle : pass.writes)
+            {
+                validate_access(handle, true);
             }
         }
 

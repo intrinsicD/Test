@@ -33,7 +33,8 @@ namespace
         descriptor.format = engine::rendering::ResourceFormat::Rgba8Unorm;
         descriptor.dimension = engine::rendering::ResourceDimension::Texture2D;
         descriptor.usage = engine::rendering::ResourceUsage::ColorAttachment |
-                           engine::rendering::ResourceUsage::ShaderRead;
+                           engine::rendering::ResourceUsage::ShaderRead |
+                           engine::rendering::ResourceUsage::ShaderWrite;
         descriptor.initial_state = engine::rendering::ResourceState::ColorAttachment;
         descriptor.final_state = engine::rendering::ResourceState::ShaderRead;
         descriptor.width = 1920;
@@ -51,7 +52,8 @@ namespace
         descriptor.name = std::move(name);
         descriptor.format = engine::rendering::ResourceFormat::Depth24Stencil8;
         descriptor.dimension = engine::rendering::ResourceDimension::Texture2D;
-        descriptor.usage = engine::rendering::ResourceUsage::DepthStencilAttachment;
+        descriptor.usage = engine::rendering::ResourceUsage::DepthStencilAttachment |
+                           engine::rendering::ResourceUsage::ShaderRead;
         descriptor.initial_state = engine::rendering::ResourceState::DepthStencilAttachment;
         descriptor.final_state = engine::rendering::ResourceState::DepthStencilAttachment;
         descriptor.width = 1920;
@@ -60,6 +62,32 @@ namespace
         descriptor.array_layers = 1;
         descriptor.mip_levels = 1;
         descriptor.sample_count = engine::rendering::ResourceSampleCount::Count1;
+        return descriptor;
+    }
+
+    engine::rendering::FrameGraphResourceDescriptor make_storage_buffer(std::string name)
+    {
+        engine::rendering::FrameGraphResourceDescriptor descriptor{};
+        descriptor.name = std::move(name);
+        descriptor.dimension = engine::rendering::ResourceDimension::Buffer;
+        descriptor.usage = engine::rendering::ResourceUsage::ShaderRead |
+                           engine::rendering::ResourceUsage::ShaderWrite;
+        descriptor.initial_state = engine::rendering::ResourceState::ShaderRead;
+        descriptor.final_state = engine::rendering::ResourceState::ShaderWrite;
+        descriptor.size_bytes = 1024;
+        return descriptor;
+    }
+
+    engine::rendering::FrameGraphResourceDescriptor make_transfer_buffer(std::string name)
+    {
+        engine::rendering::FrameGraphResourceDescriptor descriptor{};
+        descriptor.name = std::move(name);
+        descriptor.dimension = engine::rendering::ResourceDimension::Buffer;
+        descriptor.usage = engine::rendering::ResourceUsage::TransferSource |
+                           engine::rendering::ResourceUsage::TransferDestination;
+        descriptor.initial_state = engine::rendering::ResourceState::CopyDestination;
+        descriptor.final_state = engine::rendering::ResourceState::CopySource;
+        descriptor.size_bytes = 4096;
         return descriptor;
     }
 }
@@ -349,6 +377,93 @@ TEST(FrameGraph, PassHonorsQueuePreference)
     EXPECT_EQ(scheduler.submissions.front().queue, engine::rendering::QueueType::Compute);
 }
 
+TEST(FrameGraph, RejectsIncompatibleQueueWriteUsage)
+{
+    engine::rendering::FrameGraph graph;
+    engine::rendering::FrameGraphResourceDescriptor descriptor{};
+    descriptor.name = "ColorOnly";
+    descriptor.format = engine::rendering::ResourceFormat::Rgba8Unorm;
+    descriptor.dimension = engine::rendering::ResourceDimension::Texture2D;
+    descriptor.usage = engine::rendering::ResourceUsage::ColorAttachment;
+    descriptor.initial_state = engine::rendering::ResourceState::ColorAttachment;
+    descriptor.final_state = engine::rendering::ResourceState::ColorAttachment;
+    descriptor.width = 1920;
+    descriptor.height = 1080;
+    descriptor.depth = 1;
+    descriptor.array_layers = 1;
+    descriptor.mip_levels = 1;
+    descriptor.sample_count = engine::rendering::ResourceSampleCount::Count1;
+    const auto color = graph.create_resource(descriptor);
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "ComputeWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Compute));
+
+    EXPECT_THROW(graph.compile(), std::logic_error);
+}
+
+TEST(FrameGraph, RejectsIncompatibleQueueReadUsage)
+{
+    engine::rendering::FrameGraph graph;
+    const auto color = graph.create_resource(make_color_resource("ColorOnly"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "TransferRead",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Transfer));
+
+    EXPECT_THROW(graph.compile(), std::logic_error);
+}
+
+TEST(FrameGraph, AllowsCompatibleComputeQueueUsage)
+{
+    engine::rendering::FrameGraph graph;
+    const auto storage = graph.create_resource(make_storage_buffer("Storage"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "ComputeWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(storage); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Compute));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "ComputeRead",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(storage); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Compute));
+
+    EXPECT_NO_THROW(graph.compile());
+}
+
+TEST(FrameGraph, AllowsTransferQueueUsageWithCopyFlags)
+{
+    engine::rendering::FrameGraph graph;
+    const auto staging = graph.create_resource(make_transfer_buffer("Staging"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "TransferWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(staging); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Transfer));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "GraphicsRead",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(staging); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Graphics));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "TransferRead",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(staging); },
+        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        engine::rendering::QueueType::Transfer));
+
+    EXPECT_NO_THROW(graph.compile());
+}
+
 TEST(FrameGraph, BuilderRejectsInvalidHandles)
 {
     engine::rendering::FrameGraph graph;
@@ -481,7 +596,7 @@ TEST(FrameGraph, SerializesDeterministically)
       "mip_levels": 1,
       "sample_count": 1,
       "size_bytes": 0,
-      "usage": "DepthStencil",
+      "usage": "ShaderRead|DepthStencil",
       "initial_state": "DepthStencilAttachment",
       "final_state": "DepthStencilAttachment"
     },
@@ -497,7 +612,7 @@ TEST(FrameGraph, SerializesDeterministically)
       "mip_levels": 1,
       "sample_count": 1,
       "size_bytes": 0,
-      "usage": "ShaderRead|ColorAttachment",
+      "usage": "ShaderRead|ShaderWrite|ColorAttachment",
       "initial_state": "ColorAttachment",
       "final_state": "ShaderRead"
     }
