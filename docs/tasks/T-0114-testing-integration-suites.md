@@ -68,6 +68,9 @@ providing a reusable harness under `engine/tests/integration/` with documentatio
 - `ctest --preset linux-gcc-debug --tests-regex engine_integration_tests --output-on-failure`
   completes in `0.22 s` (Debug), comfortably under the 90 s budget enforced by the
   harness timeout and CI pipeline configuration.【c7c8fc†L1-L11】
+- `EngineIntegration.RuntimeSubmissionRemainsDeterministicAcrossInvocations`
+  captures snapshots of Vulkan submissions, frame-graph serialisation, resource
+  lifetimes, and draw payloads to enforce `RT-003.3` determinism guarantees.
 
 ## Blockers
 - _None._ Prior blocker [`T-0118`](T-0118-testing-framework-upgrade.md) is

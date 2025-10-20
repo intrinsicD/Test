@@ -70,7 +70,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `RT-003.1` | Align runtime submission API. | Runtime + Vulkan backend share a unified submission struct with documentation. | 🔄 In Progress |
 | `RT-003.2` | Author backend checklist. | Public checklist covering prerequisites, platform dependencies, and validation steps (see [`backend_checklist.md`](modules/rendering/backend_checklist.md)). | ✅ Done |
-| `RT-003.3` | Integration regression. | Cross-module test ensures runtime submits deterministic workloads to Vulkan path. | 🟢 Todo |
+| `RT-003.3` | Integration regression. | Cross-module test ensures runtime submits deterministic workloads to Vulkan path. | ✅ Done |
 
 #### `RT-005` — Scene Hierarchy Validation
 
@@ -132,8 +132,8 @@ Once staffed, execute module-specific queues below.
 - **Platform** — `PL-215` SDL parity checklist (`DC-003`), then `PL-222`
   watcher abstraction (`CC-002`).
 - **Rendering** — `RE-520` backend documentation updates building on the
-  completed metadata schema (`AI-003`), followed by backend validation tooling
-  and parity tracking work.
+  completed metadata schema (`AI-003`), followed by `RE-530` backend validation
+  tooling and parity tracking work.
 - **Runtime** — `RU-307` submission parity (`RT-003`), `RU-315` telemetry bridge
   for streaming metrics (`AI-002`).
 - **Scene** — `SC-208` cycle detection (`RT-005`), then `SC-215` validation

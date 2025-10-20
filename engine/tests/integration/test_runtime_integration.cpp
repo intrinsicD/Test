@@ -11,6 +11,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <type_traits>
 
 #include "engine/animation/api.hpp"
 #include "engine/animation/rigging/rig_binding.hpp"
@@ -114,6 +115,302 @@ namespace
             vertex.normalize_weights();
         }
         return binding;
+    }
+
+    struct VulkanSubmissionSnapshot
+    {
+        std::string pass_name{};
+        engine::rendering::resources::QueueNativeHandle queue{};
+        engine::rendering::resources::CommandBufferNativeHandle command_buffer{};
+        std::vector<engine::rendering::resources::Barrier> begin_barriers{};
+        std::vector<engine::rendering::resources::Barrier> end_barriers{};
+    };
+
+    struct DrawSnapshot
+    {
+        std::string geometry_id{};
+        std::string material_id{};
+        engine::math::Transform<float> transform{};
+    };
+
+    struct ResourceInfoSnapshot
+    {
+        std::size_t handle_index{0};
+        std::string name{};
+        engine::rendering::ResourceFormat format{engine::rendering::ResourceFormat::Unknown};
+        engine::rendering::ResourceDimension dimension{engine::rendering::ResourceDimension::Unknown};
+        engine::rendering::ResourceUsage usage{engine::rendering::ResourceUsage::None};
+        engine::rendering::ResourceState initial_state{engine::rendering::ResourceState::Undefined};
+        engine::rendering::ResourceState final_state{engine::rendering::ResourceState::Undefined};
+        std::uint32_t width{0};
+        std::uint32_t height{0};
+        std::uint32_t depth{0};
+        std::uint32_t array_layers{0};
+        std::uint32_t mip_levels{0};
+        engine::rendering::ResourceSampleCount sample_count{engine::rendering::ResourceSampleCount::Count1};
+        std::uint64_t size_bytes{0};
+    };
+
+    struct SubmissionSnapshot
+    {
+        std::vector<VulkanSubmissionSnapshot> submissions{};
+        std::vector<DrawSnapshot> draws{};
+        std::vector<std::string> required_meshes{};
+        std::vector<std::string> required_materials{};
+        std::vector<ResourceInfoSnapshot> acquired_resources{};
+        std::vector<ResourceInfoSnapshot> released_resources{};
+        std::vector<engine::rendering::tests::RecordingCommandEncoderProvider::DescriptorRecord> begin_records{};
+        std::vector<engine::rendering::tests::RecordingCommandEncoderProvider::DescriptorRecord> end_records{};
+        std::string frame_graph_serialization{};
+        std::size_t frames_begun{0};
+        std::size_t frames_completed{0};
+    };
+
+    SubmissionSnapshot capture_submission_snapshot(engine::runtime::RuntimeHost& host,
+                                                   engine::rendering::MaterialSystem& materials)
+    {
+        RecordingRenderResourceProvider resources;
+        engine::rendering::resources::RecordingGpuResourceProvider device(
+            engine::rendering::resources::GraphicsApi::Vulkan);
+        engine::rendering::backend::vulkan::VulkanGpuScheduler scheduler(device);
+        engine::rendering::tests::RecordingCommandEncoderProvider encoders;
+        engine::rendering::FrameGraph graph;
+
+        engine::runtime::RuntimeHost::RenderSubmissionContext context{
+            resources,
+            materials,
+            device,
+            scheduler,
+            encoders,
+            graph,
+            nullptr,
+        };
+
+        host.submit_render_graph(context);
+
+        SubmissionSnapshot snapshot{};
+        snapshot.frame_graph_serialization = graph.serialize();
+        snapshot.frames_begun = device.frames_begun();
+        snapshot.frames_completed = device.frames_completed();
+        snapshot.begin_records = encoders.begin_records;
+        snapshot.end_records = encoders.end_records;
+
+        const auto& submissions = scheduler.submissions();
+        snapshot.submissions.reserve(submissions.size());
+        for (const auto& submission : submissions)
+        {
+            VulkanSubmissionSnapshot record{};
+            record.pass_name = submission.pass_name;
+            record.queue = submission.command_buffer.queue;
+            record.command_buffer = submission.command_buffer.command_buffer;
+            record.begin_barriers = submission.begin_barriers;
+            record.end_barriers = submission.end_barriers;
+            snapshot.submissions.push_back(std::move(record));
+        }
+
+        for (const auto& encoder_ptr : encoders.completed_encoders)
+        {
+            const auto& encoder = *encoder_ptr;
+            snapshot.draws.reserve(snapshot.draws.size() + encoder.draws.size());
+            for (const auto& draw : encoder.draws)
+            {
+                DrawSnapshot draw_snapshot{};
+                draw_snapshot.geometry_id = std::visit(
+                    [](const auto& value) -> std::string {
+                        using ValueType = std::decay_t<decltype(value)>;
+                        if constexpr (std::is_same_v<ValueType, std::monostate>)
+                        {
+                            return std::string{"<empty>"};
+                        }
+                        else if constexpr (std::is_same_v<ValueType, engine::assets::MeshHandle> ||
+                                           std::is_same_v<ValueType, engine::assets::GraphHandle> ||
+                                           std::is_same_v<ValueType, engine::assets::PointCloudHandle>)
+                        {
+                            return value.id();
+                        }
+                        else
+                        {
+                            return std::string{"<unknown>"};
+                        }
+                    },
+                    draw.geometry);
+                draw_snapshot.material_id = draw.material.id();
+                draw_snapshot.transform = draw.transform;
+                snapshot.draws.push_back(std::move(draw_snapshot));
+            }
+        }
+
+        snapshot.required_meshes.reserve(resources.meshes.size());
+        for (const auto& handle : resources.meshes)
+        {
+            snapshot.required_meshes.push_back(handle.id());
+        }
+        snapshot.required_materials.reserve(resources.materials.size());
+        for (const auto& handle : resources.materials)
+        {
+            snapshot.required_materials.push_back(handle.id());
+        }
+
+        const auto capture_resource_records = [](const auto& records) {
+            std::vector<ResourceInfoSnapshot> snapshot_records{};
+            snapshot_records.reserve(records.size());
+            for (const auto& record : records)
+            {
+                ResourceInfoSnapshot info{};
+                info.handle_index = record.handle.index;
+                info.name = std::string{record.info.name};
+                info.format = record.info.format;
+                info.dimension = record.info.dimension;
+                info.usage = record.info.usage;
+                info.initial_state = record.info.initial_state;
+                info.final_state = record.info.final_state;
+                info.width = record.info.width;
+                info.height = record.info.height;
+                info.depth = record.info.depth;
+                info.array_layers = record.info.array_layers;
+                info.mip_levels = record.info.mip_levels;
+                info.sample_count = record.info.sample_count;
+                info.size_bytes = record.info.size_bytes;
+                snapshot_records.push_back(std::move(info));
+            }
+            return snapshot_records;
+        };
+
+        snapshot.acquired_resources = capture_resource_records(device.acquired());
+        snapshot.released_resources = capture_resource_records(device.released());
+
+        return snapshot;
+    }
+
+    void expect_equal_barrier(const engine::rendering::resources::Barrier& expected,
+                              const engine::rendering::resources::Barrier& actual)
+    {
+        EXPECT_EQ(actual.resource, expected.resource);
+        EXPECT_EQ(actual.source_stage, expected.source_stage);
+        EXPECT_EQ(actual.destination_stage, expected.destination_stage);
+        EXPECT_EQ(actual.source_access, expected.source_access);
+        EXPECT_EQ(actual.destination_access, expected.destination_access);
+    }
+
+    void expect_equal_transform(const engine::math::Transform<float>& expected,
+                                const engine::math::Transform<float>& actual)
+    {
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            EXPECT_FLOAT_EQ(actual.scale[axis], expected.scale[axis]);
+            EXPECT_FLOAT_EQ(actual.translation[axis], expected.translation[axis]);
+        }
+        EXPECT_FLOAT_EQ(actual.rotation.w, expected.rotation.w);
+        EXPECT_FLOAT_EQ(actual.rotation.x, expected.rotation.x);
+        EXPECT_FLOAT_EQ(actual.rotation.y, expected.rotation.y);
+        EXPECT_FLOAT_EQ(actual.rotation.z, expected.rotation.z);
+    }
+
+    void expect_equal_resource_info(const ResourceInfoSnapshot& expected,
+                                    const ResourceInfoSnapshot& actual)
+    {
+        EXPECT_EQ(actual.handle_index, expected.handle_index);
+        EXPECT_EQ(actual.name, expected.name);
+        EXPECT_EQ(actual.format, expected.format);
+        EXPECT_EQ(actual.dimension, expected.dimension);
+        EXPECT_EQ(actual.usage, expected.usage);
+        EXPECT_EQ(actual.initial_state, expected.initial_state);
+        EXPECT_EQ(actual.final_state, expected.final_state);
+        EXPECT_EQ(actual.width, expected.width);
+        EXPECT_EQ(actual.height, expected.height);
+        EXPECT_EQ(actual.depth, expected.depth);
+        EXPECT_EQ(actual.array_layers, expected.array_layers);
+        EXPECT_EQ(actual.mip_levels, expected.mip_levels);
+        EXPECT_EQ(actual.sample_count, expected.sample_count);
+        EXPECT_EQ(actual.size_bytes, expected.size_bytes);
+    }
+
+    void expect_equal_submission_snapshot(const SubmissionSnapshot& expected,
+                                          const SubmissionSnapshot& actual)
+    {
+        EXPECT_EQ(actual.frame_graph_serialization, expected.frame_graph_serialization);
+        EXPECT_EQ(actual.frames_begun, expected.frames_begun);
+        EXPECT_EQ(actual.frames_completed, expected.frames_completed);
+
+        ASSERT_EQ(actual.begin_records.size(), expected.begin_records.size());
+        for (std::size_t index = 0; index < expected.begin_records.size(); ++index)
+        {
+            EXPECT_EQ(actual.begin_records[index].pass_name, expected.begin_records[index].pass_name);
+            EXPECT_EQ(actual.begin_records[index].queue, expected.begin_records[index].queue);
+            EXPECT_EQ(actual.begin_records[index].command_buffer, expected.begin_records[index].command_buffer);
+        }
+
+        ASSERT_EQ(actual.end_records.size(), expected.end_records.size());
+        for (std::size_t index = 0; index < expected.end_records.size(); ++index)
+        {
+            EXPECT_EQ(actual.end_records[index].pass_name, expected.end_records[index].pass_name);
+            EXPECT_EQ(actual.end_records[index].queue, expected.end_records[index].queue);
+            EXPECT_EQ(actual.end_records[index].command_buffer, expected.end_records[index].command_buffer);
+        }
+
+        ASSERT_EQ(actual.submissions.size(), expected.submissions.size());
+        for (std::size_t submission_index = 0; submission_index < expected.submissions.size(); ++submission_index)
+        {
+            const auto& actual_submission = actual.submissions[submission_index];
+            const auto& expected_submission = expected.submissions[submission_index];
+            EXPECT_EQ(actual_submission.pass_name, expected_submission.pass_name);
+            EXPECT_EQ(actual_submission.queue.api, expected_submission.queue.api);
+            EXPECT_EQ(actual_submission.queue.value, expected_submission.queue.value);
+            EXPECT_EQ(actual_submission.queue.queue, expected_submission.queue.queue);
+            EXPECT_EQ(actual_submission.command_buffer.api, expected_submission.command_buffer.api);
+            EXPECT_EQ(actual_submission.command_buffer.value, expected_submission.command_buffer.value);
+            EXPECT_EQ(actual_submission.command_buffer.queue, expected_submission.command_buffer.queue);
+            EXPECT_EQ(actual_submission.command_buffer.label, expected_submission.command_buffer.label);
+            EXPECT_EQ(actual_submission.command_buffer.index, expected_submission.command_buffer.index);
+
+            ASSERT_EQ(actual_submission.begin_barriers.size(), expected_submission.begin_barriers.size());
+            for (std::size_t barrier_index = 0; barrier_index < expected_submission.begin_barriers.size(); ++barrier_index)
+            {
+                expect_equal_barrier(expected_submission.begin_barriers[barrier_index],
+                                     actual_submission.begin_barriers[barrier_index]);
+            }
+
+            ASSERT_EQ(actual_submission.end_barriers.size(), expected_submission.end_barriers.size());
+            for (std::size_t barrier_index = 0; barrier_index < expected_submission.end_barriers.size(); ++barrier_index)
+            {
+                expect_equal_barrier(expected_submission.end_barriers[barrier_index],
+                                     actual_submission.end_barriers[barrier_index]);
+            }
+        }
+
+        ASSERT_EQ(actual.draws.size(), expected.draws.size());
+        for (std::size_t draw_index = 0; draw_index < expected.draws.size(); ++draw_index)
+        {
+            const auto& actual_draw = actual.draws[draw_index];
+            const auto& expected_draw = expected.draws[draw_index];
+            EXPECT_EQ(actual_draw.geometry_id, expected_draw.geometry_id);
+            EXPECT_EQ(actual_draw.material_id, expected_draw.material_id);
+            expect_equal_transform(expected_draw.transform, actual_draw.transform);
+        }
+
+        ASSERT_EQ(actual.required_meshes.size(), expected.required_meshes.size());
+        for (std::size_t index = 0; index < expected.required_meshes.size(); ++index)
+        {
+            EXPECT_EQ(actual.required_meshes[index], expected.required_meshes[index]);
+        }
+
+        ASSERT_EQ(actual.required_materials.size(), expected.required_materials.size());
+        for (std::size_t index = 0; index < expected.required_materials.size(); ++index)
+        {
+            EXPECT_EQ(actual.required_materials[index], expected.required_materials[index]);
+        }
+
+        ASSERT_EQ(actual.acquired_resources.size(), expected.acquired_resources.size());
+        for (std::size_t index = 0; index < expected.acquired_resources.size(); ++index)
+        {
+            expect_equal_resource_info(expected.acquired_resources[index], actual.acquired_resources[index]);
+        }
+
+        ASSERT_EQ(actual.released_resources.size(), expected.released_resources.size());
+        for (std::size_t index = 0; index < expected.released_resources.size(); ++index)
+        {
+            expect_equal_resource_info(expected.released_resources[index], actual.released_resources[index]);
+        }
     }
 }
 
@@ -276,6 +573,44 @@ TEST(EngineIntegration, RuntimeSubmitsFrameGraphThroughVulkanScheduler)
     EXPECT_EQ(resources.meshes.front().id(), std::string{"integration.runtime.mesh"});
     ASSERT_EQ(resources.materials.size(), 1U);
     EXPECT_EQ(resources.materials.front().id(), std::string{"integration.runtime.material"});
+
+    host.shutdown();
+}
+
+TEST(EngineIntegration, RuntimeSubmissionRemainsDeterministicAcrossInvocations)
+{
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.binding = make_uniform_binding(deps.mesh.rest_positions.size());
+    deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(
+        engine::assets::MeshHandle{std::string{"integration.runtime.deterministic.mesh"}},
+        engine::assets::MaterialHandle{std::string{"integration.runtime.deterministic.material"}});
+    deps.renderable_name = "integration.runtime.deterministic";
+
+    engine::runtime::RuntimeHost host{std::move(deps)};
+    host.initialize();
+    host.tick(0.016);
+
+    engine::rendering::MaterialSystem materials;
+    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
+        engine::assets::MaterialHandle{std::string{"integration.runtime.deterministic.material"}},
+        engine::assets::ShaderHandle{std::string{"integration.runtime.deterministic.shader"}},
+    });
+
+    constexpr int iteration_count = 3;
+    std::vector<SubmissionSnapshot> snapshots{};
+    snapshots.reserve(iteration_count);
+    for (int iteration = 0; iteration < iteration_count; ++iteration)
+    {
+        snapshots.push_back(capture_submission_snapshot(host, materials));
+    }
+
+    ASSERT_FALSE(snapshots.empty());
+    const auto& baseline = snapshots.front();
+    for (std::size_t index = 1; index < snapshots.size(); ++index)
+    {
+        SCOPED_TRACE(::testing::Message() << "Snapshot index=" << index);
+        expect_equal_submission_snapshot(baseline, snapshots[index]);
+    }
 
     host.shutdown();
 }
