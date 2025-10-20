@@ -71,6 +71,9 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
 - `ctest --preset linux-gcc-debug --tests-regex AssetStreamingTelemetry`
   exercises success, failure, cancellation, and queue rejection transitions to
   validate that `AssetStreamingTelemetry` counters remain deterministic.
+- `AssetAsyncQueue.CancelPendingRequestResolvesFuture` guards the regression
+  where cancellation occurs before worker dispatch, ensuring futures resolve
+  with `Cancelled` results instead of placeholder validation errors.
 
 ## Open Questions
 - Do we expose per-asset-type worker pools or a shared pool with weighted priorities?

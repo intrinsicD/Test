@@ -799,13 +799,23 @@ namespace engine::assets {
             });
 
             promise_ptr->set_cancellation_callback([weak_runner = std::weak_ptr<std::function<void()>>(runner),
+                                                    weak_promise = std::weak_ptr<detail::AssetLoadPromise<Handle>>(promise_ptr),
                                                     identifier,
                                                     this]() {
+                if (auto locked_promise = weak_promise.lock())
+                {
+                    std::string message{"request cancelled before dispatch: "};
+                    message += identifier;
+                    locked_promise->set_cancelled(
+                        make_asset_load_error(AssetLoadErrorCategory::Cancelled, std::move(message)));
+                }
+
                 if (auto locked = weak_runner.lock())
                 {
                     (void)locked;
-                    transition(identifier, AssetLoadState::Cancelled);
                 }
+
+                transition(identifier, AssetLoadState::Cancelled);
             });
 
             const auto io_priority = to_io_task_priority(priority);

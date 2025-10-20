@@ -6,6 +6,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 
 namespace engine::assets {
 
@@ -150,17 +151,65 @@ AssetLoadFuture<MeshHandle> MeshCache::load_async(const AssetLoadRequest& reques
         request.identifier,
         request.priority,
         request.allow_blocking_fallback,
-        [this, descriptor](detail::AssetLoadPromise<MeshHandle>& promise) -> AssetLoadResult<MeshHandle> {
-            (void)promise;
+        [this, descriptor](detail::AssetLoadPromise<MeshHandle>&) -> AssetLoadResult<MeshHandle> {
+            const auto make_error = [&descriptor](AssetLoadErrorCategory category, const char* reason) {
+                std::string message;
+                if (!descriptor.source.empty())
+                {
+                    message = descriptor.source.generic_string();
+                }
+                else
+                {
+                    message = descriptor.handle.id();
+                }
+
+                if (reason != nullptr && reason[0] != '\0')
+                {
+                    if (!message.empty())
+                    {
+                        message.append(": ");
+                    }
+
+                    message.append(reason);
+                }
+
+                return make_asset_load_error(category, std::move(message));
+            };
+
             try
             {
                 const auto& asset = this->load(descriptor);
                 return AssetLoadResult<MeshHandle>{asset.descriptor.handle};
             }
+            catch (const std::invalid_argument& ex)
+            {
+                return AssetLoadResult<MeshHandle>{
+                    make_error(AssetLoadErrorCategory::ValidationError, ex.what())};
+            }
+            catch (const std::out_of_range& ex)
+            {
+                return AssetLoadResult<MeshHandle>{
+                    make_error(AssetLoadErrorCategory::ValidationError, ex.what())};
+            }
+            catch (const std::filesystem::filesystem_error& ex)
+            {
+                return AssetLoadResult<MeshHandle>{
+                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+            }
+            catch (const std::system_error& ex)
+            {
+                return AssetLoadResult<MeshHandle>{
+                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+            }
+            catch (const std::runtime_error& ex)
+            {
+                return AssetLoadResult<MeshHandle>{
+                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+            }
             catch (const std::exception& ex)
             {
                 return AssetLoadResult<MeshHandle>{
-                    make_asset_load_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+                    make_error(AssetLoadErrorCategory::DecodeError, ex.what())};
             }
         },
         pool);

@@ -5,10 +5,11 @@
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/core/threading/io_thread_pool.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <filesystem>
-#include <filesystem>
 #include <fstream>
+#include <future>
 #include <thread>
 
 namespace
@@ -329,5 +330,58 @@ TEST(AssetStreamingTelemetry, RecordsRejectedEnqueue)
     EXPECT_EQ(snapshot.total_rejected, 1U);
     EXPECT_EQ(snapshot.pending, 0U);
     EXPECT_EQ(snapshot.loading, 0U);
+}
+
+TEST(AssetAsyncQueue, CancelPendingRequestResolvesFuture)
+{
+    auto& telemetry = engine::assets::AssetStreamingTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    IoThreadPoolScope scope{1, 4};
+    engine::assets::AssetAsyncQueue<engine::assets::MeshHandle> queue;
+
+    std::promise<void> release_blocker;
+    std::promise<void> blocker_started;
+
+    auto blocking_future = queue.schedule(
+        "blocking",
+        engine::assets::AssetLoadPriority::High,
+        false,
+        [&release_blocker, &blocker_started](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>&)
+            -> engine::assets::AssetLoadResult<engine::assets::MeshHandle> {
+            blocker_started.set_value();
+            release_blocker.get_future().wait();
+            engine::assets::MeshHandle handle{std::string{"blocking"}};
+            return engine::assets::AssetLoadResult<engine::assets::MeshHandle>{handle};
+        },
+        engine::core::threading::IoThreadPool::instance());
+
+    blocker_started.get_future().wait();
+
+    std::atomic<bool> cancelled_task_executed{false};
+
+    auto cancellable_future = queue.schedule(
+        "cancel-pending",
+        engine::assets::AssetLoadPriority::Low,
+        false,
+        [&cancelled_task_executed](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>&)
+            -> engine::assets::AssetLoadResult<engine::assets::MeshHandle> {
+            cancelled_task_executed.store(true, std::memory_order_relaxed);
+            engine::assets::MeshHandle handle{std::string{"cancelled"}};
+            return engine::assets::AssetLoadResult<engine::assets::MeshHandle>{handle};
+        },
+        engine::core::threading::IoThreadPool::instance());
+
+    cancellable_future.cancel();
+    const auto result = cancellable_future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::Cancelled);
+    EXPECT_FALSE(cancelled_task_executed.load(std::memory_order_relaxed));
+
+    release_blocker.set_value();
+    blocking_future.wait();
+    const auto completed = blocking_future.get();
+    ASSERT_TRUE(completed.has_value());
+    EXPECT_EQ(completed.value().id(), "blocking");
 }
 
