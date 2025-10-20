@@ -122,8 +122,9 @@ Once staffed, execute module-specific queues below.
   `CR-125` plugin lifecycle audit to keep `DC-001` fresh.
 - **Geometry** — `GE-205` accelerated normals benchmark for `TI-002`, then
   `GE-212` remeshing RFP draft.
-- **IO** — `IO-221` signature + fuzz integration (`RT-006`), followed by
-  `IO-230` structured error catalog update.
+- **IO** — `IO-221` signature + fuzz integration (`RT-006`) in progress;
+  structured error catalog (`IO-230`) published; next focus `IO-240`
+  telemetry alignment once diagnostics schema lands.
 - **Math** — `MA-110` SIMD validation harness (`TI-003`), then `MA-118`
   documentation of solver stability ranges.
 - **Physics** — `PH-401` manifold cache (`RT-002`), followed by `PH-410`
