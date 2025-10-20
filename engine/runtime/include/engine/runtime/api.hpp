@@ -144,6 +144,7 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     std::vector<RuntimeStageTiming> stage_timings{};
     std::vector<RuntimeSubsystemTiming> subsystem_timings{};
     scene::validation::HierarchyValidationReport scene_validation{};
+    physics::CollisionTelemetry physics_collision{};
     core::telemetry::MetricSet metrics{};
 #if ENGINE_ENABLE_RENDERING
     std::string frame_graph_serialization{};

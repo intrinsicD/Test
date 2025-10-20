@@ -8,7 +8,7 @@ _Last Updated: 2025-02-19_
 | --- | --- | --- |
 | Persistent manifolds (`PH-401`) | Maintain contact data across frames to improve stability. | 🔄 In Progress |
 | Benchmarking (`PH-410`) | Establish throughput benchmarks for collisions. | 🟢 Planned |
-| Telemetry (`PH-420`) | Expose manifold churn and solver metrics. | 🟢 Planned |
+| Telemetry (`PH-420`) | Expose manifold churn and solver metrics. | ✅ Done |
 
 ## Active Task
 
@@ -27,5 +27,5 @@ _Last Updated: 2025-02-19_
 
 - Coordinate with runtime to surface manifold telemetry.
 - Capture benchmark results in task record `T-0117-physics-contact-manifolds.md`.
-- Telemetry schema (`CC-001.1`) is available; unblock `PH-420` instrumentation
-  work.
+- Telemetry schema (`CC-001.1`) is available; runtime now publishes manifold
+  metrics under the shared schema, completing `PH-420`.

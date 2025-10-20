@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "engine/core/telemetry/schema.hpp"
+#include "engine/physics/api.hpp"
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/resource_translation.hpp"
@@ -758,6 +759,64 @@ TEST(RuntimeHost, DiagnosticsExposeMetricSchema)
         std::make_pair(std::string_view{"type"}, std::string_view{"cycle"}));
     ASSERT_TRUE(issue_metric.has_value());
     EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*issue_metric].value), 0.0);
+
+    host.shutdown();
+}
+
+TEST(RuntimeHost, DiagnosticsIncludePhysicsTelemetry)
+{
+    engine::runtime::RuntimeHostDependencies deps{};
+
+    engine::physics::RigidBody ground{};
+    ground.mass = 0.0F;
+    ground.collider = engine::physics::Collider::make_aabb(
+        engine::geometry::Aabb{engine::math::vec3{-2.0F, -0.25F, -2.0F},
+                               engine::math::vec3{2.0F, 0.0F, 2.0F}});
+    MAYBE_UNUSED_CONST_AUTO ground_id = engine::physics::add_body(deps.world, ground);
+    (void)ground_id;
+
+    engine::physics::RigidBody sphere{};
+    sphere.mass = 1.0F;
+    sphere.position = engine::math::vec3{0.0F, 0.0F, 0.0F};
+    sphere.collider = engine::physics::Collider::make_sphere(0.5F);
+    MAYBE_UNUSED_CONST_AUTO sphere_id = engine::physics::add_body(deps.world, sphere);
+    (void)sphere_id;
+
+    deps.world.gravity = engine::math::vec3{0.0F, 0.0F, 0.0F};
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+
+    host.tick(0.016);
+
+    const auto& diagnostics = host.diagnostics();
+    const auto& telemetry = diagnostics.physics_collision;
+
+    EXPECT_GE(telemetry.manifold_count, 1U);
+    EXPECT_GE(telemetry.contact_count, 1U);
+    EXPECT_GE(telemetry.solver_iterations, 1U);
+    EXPECT_GE(telemetry.max_penetration, 0.0F);
+
+    const auto& metrics = diagnostics.metrics;
+    const auto manifold_metric = find_metric_index(metrics, "runtime.physics.manifold_count");
+    ASSERT_TRUE(manifold_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*manifold_metric].value),
+                     static_cast<double>(telemetry.manifold_count));
+
+    const auto contact_metric = find_metric_index(metrics, "runtime.physics.contact_count");
+    ASSERT_TRUE(contact_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*contact_metric].value),
+                     static_cast<double>(telemetry.contact_count));
+
+    const auto penetration_metric = find_metric_index(metrics, "runtime.physics.max_penetration");
+    ASSERT_TRUE(penetration_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*penetration_metric].value),
+                     static_cast<double>(telemetry.max_penetration));
+
+    const auto iteration_metric = find_metric_index(metrics, "runtime.physics.solver_iterations");
+    ASSERT_TRUE(iteration_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*iteration_metric].value),
+                     static_cast<double>(telemetry.solver_iterations));
 
     host.shutdown();
 }
