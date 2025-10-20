@@ -135,8 +135,8 @@ Once staffed, execute module-specific queues below.
 - **Rendering** — `RE-520` backend documentation updates building on the
   completed metadata schema (`AI-003`), followed by `RE-530` backend validation
   tooling and parity tracking work.
-- **Runtime** — `RU-320` runtime diagnostics guide refresh following streaming
-  telemetry bridge completion.
+- **Runtime** — `RT-005.2` runtime diagnostics bridge surfacing hierarchy
+  validation telemetry.
 - **Scene** — `SC-208` cycle detection (`RT-005`), then `SC-215` validation
   reporting.
 - **Tools** — `TL-101` diagnostics shell MVP (`CC-001`), followed by `TL-115`

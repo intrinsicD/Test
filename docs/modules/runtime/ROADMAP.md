@@ -1,6 +1,6 @@
 # Runtime Module Roadmap
 
-_Last Updated: 2025-02-19_
+_Last Updated: 2025-02-21_
 
 ## Goals
 
@@ -8,18 +8,18 @@ _Last Updated: 2025-02-19_
 | --- | --- | --- |
 | Submission parity (`RU-307`) | Align runtime submission with Vulkan backend (`RT-003`). | ✅ Done |
 | Streaming telemetry (`RU-315`) | Surface async queue metrics in runtime diagnostics. | ✅ Done |
-| Diagnostics docs (`RU-320`) | Refresh troubleshooting guide with latest instrumentation. | 🟢 Planned |
+| Diagnostics docs (`RU-320`) | Refresh troubleshooting guide with latest instrumentation. | ✅ Done |
 
 ## Active Task
 
 | Task ID | Owner | Due | Status |
 | --- | --- | --- | --- |
-| `RU-307` | Runtime + Rendering | 2025-03-07 | ✅ Done |
+| `RT-005.2` | Runtime + Scene | 2025-03-14 | 🟢 Todo |
 
 ## Upcoming
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `RU-320` | Update diagnostics documentation and samples. | After `RU-315` |
+| `RT-005.2` | Wire hierarchy validation telemetry into diagnostics bridge. | After `RU-320` |
 
 Ensure updates are mirrored in task records (`T-0104`) and the central roadmap.
