@@ -38,7 +38,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `AI-001.1` | Document ownership patterns. | `docs/design/resource_management.md` extended with cache + rendering examples. | ✅ Done |
 | `AI-001.2` | Enable debug validation hooks. | Debug builds assert on stale handles across assets/rendering; telemetry logs emitted. | 🔄 In Progress |
-| `AI-001.3` | Update module READMEs. | Assets and rendering READMEs include handle lifecycle guidance. | 🟢 Todo |
+| `AI-001.3` | Update module READMEs. | Assets and rendering READMEs include handle lifecycle guidance. | ✅ Done |
 
 #### `AI-002` — Async Asset Streaming
 
@@ -46,7 +46,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `AI-002.1` | Instrument async queue telemetry. | Runtime exposes queue metrics, `scripts/diagnostics/streaming_report.py` documents usage. | 🔄 In Progress |
 | `AI-002.2` | Harden cancellation + failure flows. | Futures support cancellation with integration tests covering failure propagation. | 🟢 Todo |
-| `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | 🟡 Blocked on `AI-001.3` |
+| `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | 🟢 Todo |
 
 #### `AI-003` — Frame-Graph Metadata
 

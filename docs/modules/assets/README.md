@@ -25,6 +25,31 @@
 - Use `<engine/assets/async.hpp>` to create `AssetLoadRequest` descriptors and
   `AssetLoadFuture` channels when scheduling asynchronous work.
 
+## Handle Lifecycle Guidance (`AI-001`)
+- Asset handles are lightweight identifiers backed by
+  `engine::assets::ResourceHandle<Tag>`; creation only stages the identifier and
+  defers binding until a cache loads the descriptor. See the
+  [resource management overview](../../design/resource_management.md) for the
+  generational handle model adopted across modules.
+- Cache entry points such as `MeshCache::load` acquire a
+  `core::memory::ResourcePool` slot, bind the handle via `handle.bind(raw)`, and
+  immediately merge pending hot-reload callbacks so all outstanding references
+  share the new generation.
+- Callers must treat handles as opaque tokens and always verify residency with
+  `handle.is_valid(pool)` (mirroring the internal `contains` checks) before
+  dereferencing cache state. When a resource is unloaded the cache invokes
+  `handle.reset_binding()`; stale handles therefore fail validation instead of
+  aliasing recycled storage.
+- Hot-reload and asynchronous queues reuse the same lifecycle: callbacks staged
+  against identifiers migrate to the live generational slot when a load
+  completes, and async completions deliver rebound handles inside
+  `AssetLoadResult` structures. Runtime integrations should rely on these
+  hand-offs instead of copying raw pool indices.
+- Debug builds assert on invalid access, while release builds surface structured
+  errors (`AssetLoadError`) so higher layers can attribute failure without
+  crashing. Documentation and telemetry updates must preserve these semantics
+  when expanding the async queue (`AI-002`).
+
 ## TODO / Next Steps
 
 - Track `AS-302`, `AS-315`, `AS-320` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `AI-002` and `CC-002`.

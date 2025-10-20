@@ -16,6 +16,28 @@
 - Include `<engine/rendering/frame_graph.hpp>` and related headers.
 - Run `ctest --preset <preset> --tests-regex engine_rendering`.
 
+## Handle Lifecycle Expectations (`AI-001`)
+- Render-facing components never dereference asset storage directly; passes
+  receive `engine::assets::ResourceHandle` instances through
+  `RenderGeometry`, `MaterialSystem`, and scene components. The runtime and
+  platform layers satisfy residency by routing these handles through
+  `RenderResourceProvider` implementations that consult the asset caches.
+- `RenderResourceProvider::require_*` contracts assume handles follow the
+  generational semantics documented in the
+  [resource management overview](../../design/resource_management.md). Provider
+  implementations must validate handles (`handle.is_valid(pool)`) before copying
+  data to the GPU; stale handles are rejected by the caches so rendering never
+  consumes recycled slots.
+- Systems keyed by handles (e.g., `MaterialSystem`) rely on identifier equality
+  and expect caches to rebind handles after hot reloads. When runtime code
+  registers materials or draw calls it should pass the most recent handle
+  reference instead of caching raw pool indices.
+- When an asset unloads, caches invoke `reset_binding()` to invalidate all live
+  handles. Render passes must tolerate this by querying `RenderResourceProvider`
+  every frame rather than storing raw pointers to GPU resources. Debug builds
+  assert on invalid access, guiding developers back to the owning cache when
+  validation trips.
+
 ## TODO / Next Steps
 
 - Track `RE-530` backend validation tooling follow-up in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — critical for sustaining `RT-003` coverage.
