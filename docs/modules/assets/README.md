@@ -24,6 +24,10 @@
   behaviour.
 - Use `<engine/assets/async.hpp>` to create `AssetLoadRequest` descriptors and
   `AssetLoadFuture` channels when scheduling asynchronous work.
+- Inspect async streaming telemetry with
+  ``python scripts/diagnostics/streaming_report.py --library-dir <build>`` to
+  review queue occupancy, completion totals, failures, cancellations, and
+  rejection counters emitted by `AssetStreamingTelemetry`.
 
 ## Handle Lifecycle Guidance (`AI-001`)
 - Asset handles are lightweight identifiers backed by
@@ -60,7 +64,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `AS-302` | Instrument async queue telemetry (`AI-002`). | Queue metrics emitted through runtime telemetry, documented in module README and streaming task file. | 🔄 In Progress |
+| `AS-302` | Instrument async queue telemetry (`AI-002`). | Queue metrics emitted through runtime telemetry, documented in module README and streaming task file. | ✅ Done |
 | `AS-315` | Integrate hot reload callbacks (`CC-002`). | Filesystem watcher hooks update caches, failures logged via diagnostics shell. | 🟢 Todo |
 | `AS-320` | Define material persistence strategy. | Draft design note covering serialization format and runtime reload semantics. | 🟢 Todo |
 

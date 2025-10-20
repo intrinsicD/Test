@@ -14,7 +14,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Module | Health | Current Capability | Next Task |
 | --- | --- | --- | --- |
 | Animation | ✅ Stable | Deterministic clip sampling, validation, JSON import/export, blend-tree controllers, and structured error reporting consumed by the runtime pose system. | `AN-230`: prototype GPU/parallel sampling benchmarks once compute queue extensions land. |
-| Assets | 🔄 In Progress | Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload polling and async queue scaffolding. | `AS-302`: wire telemetry around the async queue as part of `AI-002`. |
+| Assets | 🔄 In Progress | Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload polling and async queue instrumentation publishing runtime telemetry for streaming diagnostics. | `AS-315`: integrate hot reload callbacks (`CC-002`). |
 | Compute | ✅ Stable | Kernel dispatcher with per-kernel telemetry, backend capability probing, dispatcher extension guidance, and math helpers for identity transforms. | `CO-150`: implement kernel dependency cycle detection tooling. |
 | Core | ✅ Stable | EnTT-backed registry façade, subsystem discovery helpers, and module bootstrap plumbing consumed by higher-level systems. | `CR-118`: author diagnostics bridge spec supporting `CC-001`. |
 | Geometry | ✅ Stable | `SurfaceMesh` utilities, halfedge conversions, procedural primitives, ASCII IO, and kd-tree/octree accelerators. | `GE-205`: benchmark accelerated normal recomputation for `TI-002`. |
