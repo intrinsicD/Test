@@ -1,6 +1,6 @@
 # Rendering Module Roadmap
 
-_Last Updated: 2025-02-19_
+_Last Updated: 2025-02-20_
 
 ## Workstreams
 
@@ -21,7 +21,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `RT-003.3` | Integration regression to validate Vulkan submissions. | After `RT-003.1` |
+| `RE-530` | Backend validation tooling and parity tracking instrumentation. | After `RT-003.3` |
 
 Coordinate efforts with runtime (`RU-307`) and asset lifetime initiative
 (`AI-001`).

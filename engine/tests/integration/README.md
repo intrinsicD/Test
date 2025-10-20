@@ -19,6 +19,10 @@ validation across animation, physics, geometry/IO, assets, and rendering.
    resource requirements, and verifies the Vulkan scheduler submission emitted by
    `RuntimeHost::submit_render_graph` matches the expected pass, queue, and draw
    payload.
+4. **Submission Determinism Regression:** Replays
+   `RuntimeHost::submit_render_graph` multiple times with fresh recording
+   providers and asserts that frame-graph serialisation, resource lifetimes,
+   command buffer assignments, and draw payloads remain identical.
 
 ## Determinism & Environment
 

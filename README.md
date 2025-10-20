@@ -22,7 +22,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, and transform utilities feeding animation, geometry, and physics. | `MA-110`: add SIMD validation targets aligned with `TI-003`. |
 | Physics | 🔄 In Progress | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase. | `PH-401`: ship persistent manifold storage for `RT-002`. |
 | Platform | ✅ Stable | Virtual filesystem providers, backend selection plumbing, and mocked window/input services pending OS integrations. | `PL-215`: publish SDL backend parity checklist for `DC-003`. |
-| Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RT-003.3`: integration regression ensuring runtime submissions stay deterministic. |
+| Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-530`: backend validation tooling and parity tracking follow-up. |
 | Runtime | 🔄 In Progress | `RuntimeHost` orchestration advancing animation, compute-driven physics, geometry deformation, and submission into the rendering pipeline. | `RU-315`: reconcile streaming telemetry bridge with async queue metrics for `AI-002`. |
 | Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | `SC-208`: implement cycle detection checks supporting `RT-005`. |
 | Tools | 🚧 Planned | Editor/profiling/pipeline automation staging area with scaffolding in place. | `TL-101`: stand up diagnostics shell tasks from `CC-001`. |
@@ -65,7 +65,7 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | Horizon | Rank | Initiative | Primary Deliverable |
 | --- | --- | --- | --- |
 | Sprint 1 | 1 | `AI-003` | ✅ Completed – runtime diagnostics capture frame-graph metadata for Vulkan parity validation. |
-|         | 2 | `RT-003` | `RU-307` runtime submission parity test passing. |
+|         | 2 | `RT-003` | ✅ Completed – integration regression locks Vulkan submission determinism (`RT-003.3`). |
 |         | 3 | `TI-001` | Integration harness smoke suite stabilised post `T-0118`. |
 | Sprint 2–3 | 1 | `DC-004` | IO migration merged with documentation updates. |
 |             | 2 | `AI-001` | Handle validation hooks turned on in debug builds. |

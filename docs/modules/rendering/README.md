@@ -18,7 +18,7 @@
 
 ## TODO / Next Steps
 
-- Track `RE-503`, `RE-510`, and the remaining `RT-003` follow-up (`RT-003.3`) in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — critical for `AI-003` and `RT-003`.
+- Track `RE-530` backend validation tooling follow-up in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — critical for sustaining `RT-003` coverage.
 
 This module tracks actionable work through the execution checklist below.
 
