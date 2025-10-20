@@ -4,6 +4,8 @@
 - Provides frame-graph compilation/execution, command encoder hooks, resource
   lifetime tracking, and a Vulkan-backed GPU scheduler prototype.
 - Integrates with runtime submission paths and asset handles.
+- Frame-graph compilation validates queue affinity and resource metadata to
+  reject incompatible submissions early.
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_rendering`.
@@ -21,7 +23,7 @@ This module tracks actionable work through the execution checklist below.
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `RE-503` | Finalise resource metadata schema (`AI-003`). | Schema adopted by runtime + rendering with documentation. | 🔄 In Progress |
-| `RE-510` | Implement queue affinity validation. | Frame-graph rejects invalid transitions with regression coverage. | 🟢 Todo |
+| `RE-510` | Implement queue affinity validation. | Frame-graph rejects invalid transitions with regression coverage. | ✅ Done |
 | `RE-520` | Update backend documentation. | Publish checklist + backend guides covering Vulkan parity. | 🟢 Todo |
 
 See [ROADMAP.md](ROADMAP.md) for broader plan.
