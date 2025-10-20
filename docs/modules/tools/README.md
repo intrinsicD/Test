@@ -1,17 +1,27 @@
 # Tools Module
 
 ## Current State
-- Contains staging directories for editor shells, pipeline automation, and profiling utilities. Implementations are placeholders awaiting roadmap execution.
-- No dedicated build targets yet; the directory seeds structure for future tools and scripts.
+- Staging area for editor, profiling, and pipeline automation features with
+  roadmap-driven scaffolding.
+- Houses initial diagnostics scripting hooks.
 
 ## Usage
-- Pending implementation. Coordinate with the module roadmap before adding new tooling projects so documentation and build orchestration remain aligned.
+- Build with `cmake --build --preset <preset> --target engine_tools`.
+- Run Python tooling under `python/tools/` and scripts in `scripts/` as
+  documented by specific utilities.
 
 ## TODO / Next Steps
 
-- **CC-001:** Stand up profiling/telemetry tooling, including the viewer
-  described in the [telemetry framework initiative](../../ROADMAP.md#cc-001-telemetry-framework),
-  and document workflows in [ROADMAP.md](ROADMAP.md).
-- **CC-002:** Coordinate editor and hot-reload tooling with the [hot reload
-  infrastructure](../../ROADMAP.md#cc-002-hot-reload-infrastructure) so asset
-  callbacks and diagnostics remain observable.
+- Track `TL-101`, `TL-110`, `TL-115` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — required for `CC-001` viewer work.
+
+This module tracks actionable work through the execution checklist below.
+
+## Execution Checklist
+
+| Task ID | Scope | Exit Criteria | Status |
+| --- | --- | --- | --- |
+| `TL-101` | Stand up diagnostics shell MVP (`CC-001`). | CLI/UI viewer renders telemetry, smoke tests documented. | 🟢 Todo |
+| `TL-110` | Document tooling invocation. | Update README with commands, environment requirements, and troubleshooting. | 🟢 Todo |
+| `TL-115` | Profiling capture export. | Implement export path with regression coverage. | 🟢 Todo |
+
+See [ROADMAP.md](ROADMAP.md) for sequencing.

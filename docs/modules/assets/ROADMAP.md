@@ -1,14 +1,39 @@
 # Assets Module Roadmap
 
-## Near Term
-- Implement asynchronous streaming primitives per [`docs/design/async_streaming.md`](../../design/async_streaming.md) so caches can service `AssetLoadRequest` futures without blocking the main thread (aligns with `AI-002`).
-- Add material asset persistence and hot-reload by introducing descriptor serialization plus file-backed change detection that mirrors the existing mesh/point-cloud/shader caches.
-- Consolidate duplicated cache lifecycle logic (load, poll, reload) into shared helpers to reduce maintenance overhead across asset types.
-- Surface import diagnostics by attaching loader provenance, error codes, and detected formats to `MeshAsset` and friends so tooling can report actionable failures.
+_Last Updated: 2025-02-19_
 
-## Mid Term
-- Integrate dependency graphs between assets (for example textures referenced by materials) and invalidate caches transitively when upstream content changes.
-- Implement background refresh polling that amortises filesystem scans and exposes profiling hooks for asset IO costs.
+## Milestone Overview
 
-## Long Term
-- Persist cooked artefacts (e.g., compressed meshes, shader bytecode) alongside source descriptors to accelerate runtime startup and support deterministic streaming.
+| Milestone | Focus | Status |
+| --- | --- | --- |
+| M1 – Handle foundation | Generational handles, cache lifecycle, tests. | ✅ Complete |
+| M2 – Async infrastructure | Async queue scaffolding, runtime integration hooks. | 🔄 In Progress |
+| M3 – Authoring & hot reload | Material persistence, filesystem watching, diagnostics. | 🟢 Planned |
+
+## Active Tasks (M2)
+
+| Task ID | Description | Owner | Due | Status |
+| --- | --- | --- | --- | --- |
+| `AS-302` | Emit async queue telemetry and update diagnostics tooling. | Assets + Runtime | 2025-03-14 | 🔄 In Progress |
+| `AS-305` | Harden async cancellation paths with regression coverage. | Assets | 2025-03-21 | 🟢 Todo |
+
+## Upcoming (M3)
+
+| Task ID | Description | Dependency |
+| --- | --- | --- |
+| `AS-315` | Integrate filesystem watcher callbacks for hot reload (`CC-002`). | `PL-222` watcher abstraction. |
+| `AS-320` | Draft material persistence strategy and serialization format. | None |
+| `AS-330` | Extend diagnostics shell to surface cache reload failures. | `TL-101` diagnostics MVP |
+
+## Dependencies
+
+- **IO module** — provides format handlers and signature validation (`RT-006`).
+- **Platform module** — supplies filesystem watcher abstraction (`CC-002`).
+- **Runtime module** — consumes telemetry emitted from async queue metrics.
+
+## Notes
+
+- Track detailed acceptance criteria in
+  [`docs/tasks/T-0115-assets-async-streaming-mvp.md`](../../tasks/T-0115-assets-async-streaming-mvp.md).
+- Coordinate hot reload work with the broader initiative documented in
+  [`../../ROADMAP.md`](../../ROADMAP.md#cc-002-hot-reload-infrastructure).

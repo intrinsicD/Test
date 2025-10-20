@@ -1,64 +1,38 @@
 # Animation Module Roadmap
 
-_Last Updated: 2025-02-19 (Clip validation hardening progress)_
+_Last Updated: 2025-02-19_
 
-## Status Overview
-- ✅ Phase 1: Foundation (Completed M1–M2)
-- 🔄 Phase 2: Integration (In Progress M3)
-- ☐ Phase 3: Advanced Features (Planned M4–M6)
+## Milestone Phases
 
-## Completed (M1–M2)
-- ✅ Clip validation and JSON serialization
-- ✅ Linear blend tree nodes
-- ✅ Parameter binding (float, bool, event)
-- ✅ Deterministic sampling
-- ✅ Controller advancement and evaluation
+| Phase | Scope | Status |
+| --- | --- | --- |
+| Phase 1 – Foundation | Clip validation, JSON serialization, controller evaluation. | ✅ Complete |
+| Phase 2 – Integration | Validation hardening, deformation alignment, telemetry hooks. | 🔄 In Progress |
+| Phase 3 – Advanced Features | GPU/parallel sampling, state-machine authoring, advanced deformation. | 🟢 Planned |
 
-## Phase 2: Integration (M3 – Due 2025-11-15)
+## Active Work (Phase 2)
 
-### Additive Blend Nodes
-- **Owner:** @animation-team
-- **Issue:** #234
-- **Tasks:**
-  - [x] Design additive pose composition API
-  - [x] Implement `BlendTreeAdditiveNode`
-  - [x] Add unit tests for additive blending
-  - [x] Document usage in API reference
+| Task ID | Description | Owner | Due | Status |
+| --- | --- | --- | --- | --- |
+| `AN-201` | Extend regression coverage for `validate_clip` failure cases and controller validation. | Animation team | 2025-03-07 | 🔄 In Progress |
+| `AN-220` | Finalise deformation binding docs linked to `RT-001` outcomes. | Animation team | 2025-03-14 | ✅ Done |
+| `AN-225` | Mirror animation diagnostics into runtime telemetry dashboards. | Animation + Runtime | 2025-03-21 | 🟢 Todo |
 
-### Deformation Binding (`RT-001` alignment)
-- **Owner:** @bob
-- **Issue:** #236
-- **Tasks:**
-  - [x] Define `RigBinding` data structure (tracks `RT-001` progress)
-  - [x] Link rig poses to mesh vertices
-  - [x] Implement linear blend skinning
-  - [x] Add integration test with geometry module
+## Upcoming (Phase 3)
 
-### Clip Validation Hardening
-- **Owner:** @animation-team
-- **Issue:** #238
-- **Tasks:**
-  - [x] Emit structured error codes from `validate_clip`
-  - [x] Cover empty-track and unordered-key edge cases in tests
-  - [ ] Extend controller regression tests for validation failures
-
-## Phase 3: Advanced Features (M4–M6)
-
-### GPU and Parallel Sampling
-- Batch `sample_clip` requests via `compute::KernelDispatcher` and benchmark controller evaluation throughput across representative scenes.
-
-### State Machine Authoring APIs
-- Introduce transition-driven orchestration for `AnimationBlendTree` nodes, including condition evaluation, event propagation, and preview tooling hooks.
-
-### Advanced Deformation Pipelines
-- Extend pose data structures for dual quaternion skinning, curve-driven rigs, and compatibility layers that integrate geometry/physics representations.
+| Task ID | Description | Trigger |
+| --- | --- | --- |
+| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher`. | After `CO-141` lands. |
+| `AN-240` | Draft state-machine authoring specification with transition orchestration and event propagation requirements. | After `AN-201` complete. |
+| `AN-250` | Investigate advanced deformation pipelines (dual quaternion, curve-driven rigs) and dependencies on geometry module upgrades. | Pending geometry remeshing roadmap. |
 
 ## Dependencies
-- **Geometry module:** Required for deformation (skinning needs mesh access)
-- **Rendering module:** Required for GPU pose buffers
-- **IO module:** Already integrated for clip serialization
 
-## Design Rationale
-- Serialization remains JSON-first for readability; binary formats are deferred until asset tooling demands faster ingest.
-- Runtime controllers interact with the scheduler via immutable parameter binding to keep evaluation thread-safe while enabling future job-graph integration.
-- Debugging interfaces (event timelines, pose inspection) are planned alongside editor tooling so instrumentation lands with authoring workflows.
+- **Geometry module** — provides mesh access for deformation pipelines.
+- **Runtime module** — consumes animation poses and telemetry.
+- **Compute module** — supplies dispatcher for GPU/parallel sampling experiments.
+
+## Notes
+
+- Record benchmark data in [`docs/tasks/T-0113-animation-runtime-skinning.md`](../../tasks/T-0113-animation-runtime-skinning.md).
+- Align telemetry hooks with the broader diagnostics initiative (`CC-001`).

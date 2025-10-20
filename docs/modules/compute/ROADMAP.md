@@ -1,14 +1,33 @@
 # Compute Module Roadmap
 
-_Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
+_Last Updated: 2025-02-19_
 
-## Near Term (`AI-004`)
-- [x] Add dependency cycle detection and diagnostic reporting to `KernelDispatcher` to guard against invalid job graphs during development. The dispatcher now surfaces DOT graphs through `DependencyGraph::to_dot()` so developers can inspect scheduling issues without running kernels.
-- [x] Integrate a configurable clock abstraction so execution reports can capture CPU vs GPU timing domains consistently.
+## Objectives
 
-## Mid Term
-- Implement a thread pool backed executor that parallelises independent kernels while respecting dependency edges; expose controls for worker counts and scheduling policies.
-- Flesh out the CUDA companion to manage device selection, stream lifetimes, and host/device synchronisation primitives shared with rendering.
+| Goal | Description | Status |
+| --- | --- | --- |
+| Dispatcher maturity | Document extension points, add dependency validation, ensure telemetry coverage. | 🔄 In Progress |
+| CUDA optionality | Maintain feature flag parity across presets and CI. | 🟢 Planned |
+| Runtime alignment | Coordinate with runtime job graph for future async execution. | 🟢 Planned |
 
-## Long Term
-- Unify the compute dispatcher with the runtime job graph so animation, physics, and rendering passes can schedule heterogeneous workloads through a common interface.
+## Active Tasks
+
+| Task ID | Description | Owner | Due | Status |
+| --- | --- | --- | --- | --- |
+| `CO-141` | Author dispatcher extension note covering registration and telemetry. | Compute team | 2025-03-07 | 🔄 In Progress |
+| `CO-150` | Implement kernel dependency cycle detection tooling. | Compute team | 2025-03-21 | 🟢 Todo |
+
+## Upcoming Tasks
+
+| Task ID | Description | Dependency |
+| --- | --- | --- |
+| `CO-160` | Synchronise CUDA presets, docs, and CI coverage (`DC-002`). | None |
+| `CO-170` | Prototype runtime integration sample showing dispatcher orchestration. | After `RU-307` complete |
+
+## Dependencies
+
+- **Runtime module** — consumes dispatcher results, requires consistent API.
+- **Build presets** — defined under `scripts/build/` to expose CUDA optionality.
+
+Log progress in relevant task records (`T-0114`, `T-0104`) to keep sprint boards
+accurate.

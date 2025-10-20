@@ -1,39 +1,27 @@
 # Rendering Module Roadmap
 
-## Context Review
+_Last Updated: 2025-02-19_
 
-The rendering module currently provides a CPU-side frame graph and a forward pipeline prototype (`engine/rendering/frame_graph.hpp`, `engine/rendering/forward_pipeline.hpp`) that orchestrate render passes without binding to a concrete GPU backend. Resource abstractions (`engine/rendering/resources`) and the GPU scheduler interface (`engine/rendering/gpu_scheduler.hpp`) expose contracts, but no backend-specific implementations ship yet. Materials, lighting, and visibility subsystems are scaffolded through headers and documentation-only stubs.
+## Workstreams
 
-## Observations
+| Workstream | Description | Status |
+| --- | --- | --- |
+| Metadata schema (`RE-503`) | Align frame-graph descriptors with runtime needs. | 🔄 In Progress |
+| Queue validation (`RE-510`) | Enforce queue affinity constraints at compile time. | 🟢 Planned |
+| Documentation refresh (`RE-520`) | Publish backend parity guidance and prerequisites. | 🟢 Planned |
 
-- The frame graph builds read/write dependencies, produces an execution order, and now streams geometry draw calls through a command encoder provider. The new Vulkan translation layer converts frame-graph metadata into `VkImage*`/`VkBuffer*` create info, providing a concrete bridge to backend allocators.
-- `IGpuScheduler` and `resources::IGpuResourceProvider` expose abstract hooks with recording stubs; production-grade implementations for DirectX 12, Metal, or OpenGL remain absent, and the Vulkan path still requires integration with a real device allocator.
-- Resource descriptions now capture format, usage, extent, array-layer, mip-count, sample-count, and buffer-size metadata, enabling lossless translation into backend descriptors. Additional validation and tooling are required to keep these values in sync with runtime expectations.
-- Render pass definitions do not advertise the queue/command-buffer semantics that backend schedulers will require to batch work.
-- Module-level tests cover frame-graph compilation, pass scheduling, and backend adapter scaffolding, but stress cases around resource lifetimes and queue metadata are still absent.
+## Active Tasks
 
-## Proposed Next Steps
+| Task ID | Owner | Due | Status |
+| --- | --- | --- | --- |
+| `RE-503` | Rendering + Runtime | 2025-03-07 | 🔄 In Progress |
 
-### 1. Short-Term (Unblock backend integration)
+## Upcoming
 
-1. **Resource Description Extensions** – Extend `FrameGraphResourceInfo` and creation APIs to describe formats, dimensions, and usage flags so providers can materialize buffers, textures, and samplers. Expand existing hazard-tracking tests to assert the new metadata propagates correctly. ✅ *Completed:* descriptors now include format/dimension/usage/state metadata and tests assert propagation through the recording provider.
-2. **Command Context Plumbing** – Ensure each `RenderPass` can describe queue affinity, command-buffer requirements, and synchronization hints; mirror this in `FrameGraphPassExecutionContext` and cover it with regression tests. ✅ *Completed:* render passes expose queue preferences that schedulers consume, and tests verify compute-queue routing.
-3. **GPU Scheduler Prototype** – Implement a reference scheduler that converts compiled passes into a linear submission stream calling into an abstract command encoder. ✅ *Completed:* the Vulkan scheduler exercises the submission path via runtime integration tests, validating barrier translation and command-buffer recycling.
+| Task ID | Description | Dependency |
+| --- | --- | --- |
+| `RE-510` | Implement queue validation checks with regression coverage. | After `RE-503` schema merged |
+| `RE-520` | Update documentation and samples for backend parity. | After `RE-503`, `RT-003.1` |
 
-### 2. Mid-Term (Backend hookups)
-
-1. **Resource Provider Implementations** – Provide Vulkan and DirectX 12 resource providers that translate the enriched descriptions into API-native allocations and bind them to frame graph handles.
-2. **Backend-Specific Schedulers** – Implement scheduler specializations per backend that translate the reference submission stream into actual API command buffers and queues.
-3. **Render Pass Library** – Author foundational passes (geometry, lighting, post-processing) that exercise the backend implementations and define data dependencies explicitly.
-
-### 3. Long-Term (Robustness and tooling)
-
-1. **Validation & Testing** – Add unit/integration tests under `engine/rendering/tests` that stress the frame graph with branching dependencies, transient lifetimes, and backend mock objects.
-2. **Profiling & Instrumentation** – Integrate GPU timing queries and CPU profiling scopes to expose pass-level performance metrics.
-3. **Documentation & Samples** – Publish backend-specific setup guides, shader samples, and walkthroughs demonstrating how to register new passes and materials.
-
-## Dependencies and Coordination
-
-- Coordinate resource description changes with the assets module to align on material/shader metadata.
-- Collaborate with the platform module to ensure windowing and swap-chain abstractions expose the surfaces required by the backend implementations.
-- Update the aggregated workspace backlog and [central roadmap](../../ROADMAP.md#subsystem-alignment) once the short-term milestones are complete to reflect progress toward backend enablement.
+Coordinate efforts with runtime (`RU-307`) and asset lifetime initiative
+(`AI-001`).

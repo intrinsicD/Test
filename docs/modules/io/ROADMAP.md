@@ -1,15 +1,29 @@
 # IO Module Roadmap
 
-_Last Updated: 2025-02-17 (Sprint 06 architecture/task audit)_
+_Last Updated: 2025-02-19_
 
-## Near Term (`RT-006`)
-- ✅ Expand format detection heuristics with signature-based inspection to reduce reliance on filename extensions, and add regression tests per codec.
-- ✅ Surface structured error reporting from import/export functions (error enums, context strings) so assets and tooling can diagnose failures via `GeometryIoResult` and `GeometryIoErrorCode`.
-- ✅ Provide a fuzzing harness (`engine_io_geometry_fuzz`) that exercises detection and loaders when `ENGINE_ENABLE_FUZZING=ON`.
+## Goals
 
-## Mid Term
-- Add asynchronous streaming hooks that load geometry on worker threads and integrate with the asset cache hot-reload pipeline.
-- Support incremental import/export for large datasets (chunked point clouds, mesh tiling) to bound memory usage.
+| Goal | Description | Status |
+| --- | --- | --- |
+| Signature hardening (`IO-221`) | Build signature DB and fuzz harness coverage. | 🔄 In Progress |
+| Error catalog (`IO-230`) | Document structured errors for tooling. | 🟢 Planned |
+| Telemetry alignment (`IO-240`) | Surface import/export failures via diagnostics. | 🟢 Planned |
 
-## Long Term
-- Provide authoring-time validation utilities that scan asset directories, repair metadata, and generate statistics for pipeline dashboards.
+## Active Tasks
+
+| Task ID | Owner | Due | Status |
+| --- | --- | --- | --- |
+| `IO-221` | IO team | 2025-03-14 | 🔄 In Progress |
+
+## Upcoming
+
+| Task ID | Description | Dependency |
+| --- | --- | --- |
+| `IO-230` | Publish structured error catalog referencing `DC-004`. | After `DC-004.2` completion |
+| `IO-240` | Emit telemetry for import/export outcomes. | After `CC-001.1` schema defined |
+
+## Notes
+
+- Coordinate fuzz harness resource usage with CI owners before enabling.
+- Update task records (`T-0112`) and central roadmap when milestones move.

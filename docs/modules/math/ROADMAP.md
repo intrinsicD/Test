@@ -1,12 +1,27 @@
 # Math Module Roadmap
 
-## Near Term
-- Document invariants and numerical expectations for vector, matrix, quaternion, and transform helpers; augment unit tests with corner cases (degenerate transforms, precision thresholds).
-- Add decomposition utilities (polar, QR) required by animation and physics subsystems, along with benchmarks.
+_Last Updated: 2025-02-19_
 
-## Mid Term
-- Provide SIMD-specialised paths for hot operations (dot, cross, matrix multiply) with graceful fallbacks on scalar builds.
-- Introduce fixed-size linear algebra solvers and factorizations to support simulation and rendering workloads.
+## Focus Areas
 
-## Long Term
-- Build conversion utilities that translate math primitives to/from external formats (GLM, Eigen) and surface them through Python bindings for tooling integration.
+| Area | Description | Status |
+| --- | --- | --- |
+| SIMD validation (`MA-110`) | Ensure SIMD paths validated in CI. | 🔄 In Progress |
+| Numerical guidance (`MA-118`) | Document solver stability and precision trade-offs. | 🟢 Planned |
+| Format conversions (`MA-125`) | Improve ergonomics for external format interoperability. | 🟢 Planned |
+
+## Active Task
+
+| Task ID | Owner | Due | Status |
+| --- | --- | --- | --- |
+| `MA-110` | Math team | 2025-03-14 | 🔄 In Progress |
+
+## Upcoming
+
+| Task ID | Description | Dependency |
+| --- | --- | --- |
+| `MA-118` | Document solver stability, include benchmarks where applicable. | After `MA-110` |
+| `MA-125` | Extend conversion helpers and doc coverage. | After `MA-118` draft |
+
+Coordinate updates with consuming modules (animation, physics) to keep guidance
+consistent.
