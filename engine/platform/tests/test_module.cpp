@@ -185,7 +185,11 @@ TEST(PlatformWindowing, AutoBackendIgnoresWhitespaceOnlyOverride) {
     ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "   \t  "};
     auto window = create_window(WindowConfig{}, WindowBackend::Auto);
     ASSERT_TRUE(window != nullptr);
+#if ENGINE_PLATFORM_HAS_GLFW
     EXPECT_EQ(window->backend_name(), "glfw");
+#else
+    EXPECT_EQ(window->backend_name(), "sdl");
+#endif
 }
 
 TEST(PlatformWindowing, EventDispatchFlow) {

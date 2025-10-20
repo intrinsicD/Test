@@ -20,7 +20,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `RT-005` | Validate scene hierarchies and expose diagnostics. | – | 🔄 In Progress | Scene, Runtime |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | 🟠 Blocked on fuzz harness infra | IO |
 | `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | 🟢 Ready to Start | Core, Tools |
-| `CC-002` | Build hot reload infrastructure across caches/backends. | `AI-001` | 🟢 Ready to Start | Assets, Platform |
+| `CC-002` | Build hot reload infrastructure across caches/backends. | `AI-001` | 🔄 In Progress | Assets, Platform |
 
 ### Task Breakdowns
 
@@ -100,7 +100,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `CC-002.1` | Filesystem watcher abstraction. | Platform module exposes cross-platform watcher with tests and documentation. | 🟢 Todo |
+| `CC-002.1` | Filesystem watcher abstraction. | Platform module exposes cross-platform watcher with tests and documentation. | ✅ Done |
 | `CC-002.2` | Cache callback integration. | Assets caches react to change notifications with error telemetry. | 🟢 Todo |
 | `CC-002.3` | Failure diagnostics. | Diagnostics shell surfaces reload failures with actionable hints. | 🟢 Todo |
 
@@ -129,8 +129,9 @@ Once staffed, execute module-specific queues below.
   documentation of solver stability ranges.
 - **Physics** — `PH-401` manifold cache (`RT-002`), followed by `PH-410`
   benchmarking harness.
-- **Platform** — `PL-215` SDL parity checklist (`DC-003`), then `PL-222`
-  watcher abstraction (`CC-002`).
+- **Platform** — `PL-215` SDL parity checklist (`DC-003`); filesystem watcher
+  abstraction (`PL-222`) is complete, so focus shifts to `PL-230` backend
+  selection documentation.
 - **Rendering** — `RE-520` backend documentation updates building on the
   completed metadata schema (`AI-003`), followed by `RE-530` backend validation
   tooling and parity tracking work.

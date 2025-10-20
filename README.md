@@ -21,7 +21,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | IO | 🔄 In Progress | Geometry/animation import-export wrappers, plugin-ready handlers, and cache policy scaffolding. | `IO-221`: integrate signature database + fuzz harness towards `RT-006`. |
 | Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, and transform utilities feeding animation, geometry, and physics. | `MA-110`: add SIMD validation targets aligned with `TI-003`. |
 | Physics | 🔄 In Progress | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase. | `PH-401`: ship persistent manifold storage for `RT-002`. |
-| Platform | ✅ Stable | Virtual filesystem providers, backend selection plumbing, and mocked window/input services pending OS integrations. | `PL-215`: publish SDL backend parity checklist for `DC-003`. |
+| Platform | ✅ Stable | Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. | `PL-215`: publish SDL backend parity checklist for `DC-003`. |
 | Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-530`: backend validation tooling and parity tracking follow-up. |
 | Runtime | 🔄 In Progress | `RuntimeHost` orchestration advancing animation, compute-driven physics, geometry deformation, and submission into the rendering pipeline. | `RU-320`: refresh diagnostics guide with streaming telemetry coverage. |
 | Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | `SC-215`: runtime diagnostics bridge for hierarchy validation. |
@@ -58,7 +58,7 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | `RT-005` | Scene hierarchy validation + diagnostics. | Integrate cycle detection and reporting hooks. | Scene, Runtime | 🟢 Ready to Start |
 | `RT-006` | IO signature hardening + fuzzing. | Wire signature database and libFuzzer corpus seeding. | IO | 🟠 Blocked on fuzz harness infra |
 | `CC-001` | Telemetry instrumentation and viewer. | Define metrics schema, sinks, and tooling shell. | Core, Tools | 🟢 Ready to Start |
-| `CC-002` | Hot reload infrastructure. | Connect filesystem watchers to cache callbacks with failure telemetry. | Assets, Platform | 🟢 Ready to Start |
+| `CC-002` | Hot reload infrastructure. | Filesystem watcher landed; integrate cache callbacks and diagnostics telemetry next. | Assets, Platform | 🔄 In Progress |
 
 ### Sprint Horizon
 

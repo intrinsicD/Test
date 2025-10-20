@@ -4,6 +4,7 @@ add_executable(engine_platform_tests
     window_system_tests.cpp
     input_state_tests.cpp
     filesystem_tests.cpp
+    filesystem_watcher_tests.cpp
 )
 
 target_link_libraries(engine_platform_tests
