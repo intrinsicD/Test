@@ -14,7 +14,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `DC-004` | Standardise error handling on `engine::Result<T, Error>` across modules. | – | 🔄 In Progress | Core, IO |
 | `AI-001` | Propagate handle-based lifetime management and validation hooks. | `DC-004` | 🔄 In Progress | Assets, Rendering |
 | `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | 🟡 Blocked on documentation refresh | Assets, Runtime |
-| `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | 🔄 In Progress | Rendering, Runtime |
+| `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | ✅ Done | Rendering, Runtime |
 | `RT-002` | Harden physics with persistent manifolds and benchmarking. | – | 🔄 In Progress | Physics |
 | `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | 🔄 In Progress | Rendering, Runtime |
 | `RT-005` | Validate scene hierarchies and expose diagnostics. | – | 🟢 Ready to Start | Scene, Runtime |
@@ -54,7 +54,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `AI-003.1` | Finalise resource descriptor schema. | Schema reviewed with runtime team; encoded in rendering headers with migration guide. | ✅ Done |
 | `AI-003.2` | Implement queue affinity validation. | Frame-graph compilation rejects invalid queue transitions with regression coverage. | ✅ Done |
-| `AI-003.3` | Sync runtime submission hooks. | Runtime submission path aligned with new metadata, integration tests green. | 🟢 Todo |
+| `AI-003.3` | Sync runtime submission hooks. | Runtime submission path aligned with new metadata, integration tests green. | ✅ Done |
 
 #### `RT-002` — Persistent Physics Manifolds
 

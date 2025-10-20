@@ -6,7 +6,7 @@ _Last Updated: 2025-02-19_
 
 | Goal | Description | Status |
 | --- | --- | --- |
-| Submission parity (`RU-307`) | Align runtime submission with Vulkan backend (`RT-003`). | 🔄 In Progress |
+| Submission parity (`RU-307`) | Align runtime submission with Vulkan backend (`RT-003`). | ✅ Done |
 | Streaming telemetry (`RU-315`) | Surface async queue metrics in runtime diagnostics. | 🟢 Planned |
 | Diagnostics docs (`RU-320`) | Refresh troubleshooting guide with latest instrumentation. | 🟢 Planned |
 
@@ -14,7 +14,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Owner | Due | Status |
 | --- | --- | --- | --- |
-| `RU-307` | Runtime + Rendering | 2025-03-07 | 🔄 In Progress |
+| `RU-307` | Runtime + Rendering | 2025-03-07 | ✅ Done |
 
 ## Upcoming
 
