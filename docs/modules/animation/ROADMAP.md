@@ -1,6 +1,6 @@
 # Animation Module Roadmap
 
-_Last Updated: 2025-02-19_
+ _Last Updated: 2025-02-21_
 
 ## Milestone Phases
 
@@ -14,7 +14,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Description | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| `AN-201` | Extend regression coverage for `validate_clip` failure cases and controller validation. | Animation team | 2025-03-07 | 🔄 In Progress |
+| `AN-201` | Extend regression coverage for `validate_clip` failure cases and controller validation. | Animation team | 2025-03-07 | ✅ Done |
 | `AN-220` | Finalise deformation binding docs linked to `RT-001` outcomes. | Animation team | 2025-03-14 | ✅ Done |
 | `AN-225` | Mirror animation diagnostics into runtime telemetry dashboards. | Animation + Runtime | 2025-03-21 | 🟢 Todo |
 
@@ -36,3 +36,6 @@ _Last Updated: 2025-02-19_
 
 - Record benchmark data in [`docs/tasks/T-0113-animation-runtime-skinning.md`](../../tasks/T-0113-animation-runtime-skinning.md).
 - Align telemetry hooks with the broader diagnostics initiative (`CC-001`).
+- 2025-02-21: Added regression coverage for clip validation failure codes and
+  controller playback invariants (`engine/animation/tests/test_clip_serialization.cpp`,
+  `engine/animation/tests/test_module.cpp`).
