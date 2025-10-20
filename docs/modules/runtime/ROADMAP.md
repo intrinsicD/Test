@@ -1,14 +1,26 @@
 # Runtime Module Roadmap
 
-_Last Updated: 2025-02-19 (Sprint 06 architecture/task audit)_
+_Last Updated: 2025-02-19_
 
-## Near Term (`RT-004`)
-- [x] Ship lifecycle diagnostics via `RuntimeHost::diagnostics()` with subsystem timing and dispatcher stage telemetry mirrored through the C ABI and diagnostics scripts.
-- [x] Add validation around dependency resets (e.g., reloading meshes/controllers at runtime) to ensure state can be rebuilt without leaks. The runtime now rejects mismatched meshes, invalid rig bindings, and clips that fail `validate_clip`, with coverage in `engine/runtime/tests/test_module.cpp`.
+## Goals
 
-## Mid Term
-- Integrate asynchronous asset streaming so runtime can request geometry/animation data on demand while keeping simulation responsive (`AI-002`).
-- ✅ Expose rendering submission hooks to feed frame graph passes once the GPU scheduler matures. `RuntimeHost::submit_render_graph` now drives the forward pipeline and Vulkan scheduler in tests; future work will focus on telemetry and multi-backend coverage (`RT-003`).
+| Goal | Description | Status |
+| --- | --- | --- |
+| Submission parity (`RU-307`) | Align runtime submission with Vulkan backend (`RT-003`). | 🔄 In Progress |
+| Streaming telemetry (`RU-315`) | Surface async queue metrics in runtime diagnostics. | 🟢 Planned |
+| Diagnostics docs (`RU-320`) | Refresh troubleshooting guide with latest instrumentation. | 🟢 Planned |
 
-## Long Term
-- Provide deterministic replay tooling (input capture, random seed control) and scripting hooks for automation/integration testing.
+## Active Task
+
+| Task ID | Owner | Due | Status |
+| --- | --- | --- | --- |
+| `RU-307` | Runtime + Rendering | 2025-03-07 | 🔄 In Progress |
+
+## Upcoming
+
+| Task ID | Description | Dependency |
+| --- | --- | --- |
+| `RU-315` | Publish telemetry bridge for async streaming. | After `AI-002.1` metrics available |
+| `RU-320` | Update diagnostics documentation and samples. | After `RU-315` |
+
+Ensure updates are mirrored in task records (`T-0104`) and the central roadmap.

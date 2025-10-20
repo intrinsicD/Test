@@ -1,13 +1,20 @@
 # Scene Module Roadmap
 
-## Near Term
-- Formalise component schemas for lights, cameras, and visibility volumes; update systems/serialization to support the new types.
-- Validation utilities now detect hierarchy cycles, missing parents, and transform inconsistencies; expand tooling surfaces that
-  consume the reports and feed telemetry dashboards.
+_Last Updated: 2025-02-19_
 
-## Mid Term
-- Extend serialization with versioning and migration paths to support backward/forward compatibility across saved scenes.
-- Integrate scene queries (spatial partitioning, tagging) to accelerate runtime lookups.
+## Focus
 
-## Long Term
-- Author editor-facing tooling for scene graph inspection and manipulation, including undo/redo stacks and profiling instrumentation.
+| Task ID | Description | Status |
+| --- | --- | --- |
+| `SC-208` | Implement cycle detection and validation errors. | 🟢 Ready |
+| `SC-215` | Integrate runtime diagnostics bridge. | 🟢 Planned |
+| `SC-220` | Update documentation for validation workflows. | 🟢 Planned |
+
+## Plan
+
+| Sprint | Tasks | Notes |
+| --- | --- | --- |
+| Sprint 1 | `SC-208` | Pair with runtime team to align error codes. |
+| Sprint 2 | `SC-215`, `SC-220` | Ensure telemetry + docs launched together. |
+
+Coordinate updates with runtime (`RU-307`) and diagnostics initiative (`CC-001`).

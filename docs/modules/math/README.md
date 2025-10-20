@@ -1,21 +1,27 @@
 # Math Module
 
 ## Current State
-- Provides fundamental vector, matrix, quaternion, and transform types with common operations exposed through `<engine/math/math.hpp>`.
-- Includes utilities for random sampling, sparse matrices, and helper functions consumed by geometry, animation, and physics.
-- Header-only interface library (`engine_math`) ensures consumers inherit compile definitions without additional linking cost.
-- Unit coverage in `engine/math/tests/` validates foundational operations and regressions.
+- Provides vector, matrix, quaternion, and transform primitives plus
+  orthonormal basis helpers used across animation, geometry, and physics.
+- Supplies numerical utilities and conversions consumed by runtime systems.
 
 ## Usage
-- No dedicated build step is required beyond configuring the project; `engine_math` is an interface target pulled automatically by dependants.
-- Include `<engine/math/math.hpp>` or specific headers (e.g., `<engine/math/vector.hpp>`) to access functionality.
-- Run `ctest --preset <preset> --tests-regex engine_math` with testing enabled to verify core operations when modifying the library.
+- Build with `cmake --build --preset <preset> --target engine_math`.
+- Include `<engine/math/*>` headers as needed by dependent modules.
+- Run `ctest --preset <preset> --tests-regex engine_math`.
 
 ## TODO / Next Steps
 
-- **PY-001:** Export math primitives and conversion helpers through the Python
-  façade for the [core bindings milestone](../../ROADMAP.md#py-001-core-bindings)
-  while documenting usage in [ROADMAP.md](ROADMAP.md).
-- **TI-002:** Build deterministic benchmarks for decomposition and vector/matrix
-  operations in support of the [performance benchmarking
-  initiative](../../ROADMAP.md#ti-002-performance-benchmarks).
+- Track `MA-110`, `MA-118`, `MA-125` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — underpins `TI-003` validation.
+
+This module tracks actionable work through the execution checklist below.
+
+## Execution Checklist
+
+| Task ID | Scope | Exit Criteria | Status |
+| --- | --- | --- | --- |
+| `MA-110` | Introduce SIMD validation harness (`TI-003`). | Add SIMD regression suite and hook into CI. | 🔄 In Progress |
+| `MA-118` | Document solver stability ranges. | Publish guidance for numerical limits; link from module README. | 🟢 Todo |
+| `MA-125` | Provide external-format conversion cheatsheet. | Document conversion helpers and add sample tests. | 🟢 Todo |
+
+Refer to [ROADMAP.md](ROADMAP.md) for scheduling.

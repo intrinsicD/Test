@@ -1,31 +1,42 @@
 # Assets Module
 
 ## Current State
-- Exposes generational `ResourceHandle<Tag>` wrappers for meshes, graphs, point clouds, textures, shaders, and materials. Handles retain their identifier but bind lazily to a `ResourcePool`, preventing stale references after unloads.
-- Backs every cache with `engine::core::memory::ResourcePool`, a free-list allocator that increments generation counters when slots are recycled. The caches maintain identifier ↔ handle maps and stage hot-reload callbacks until the first load occurs.
-- Provides caches for meshes, point clouds, graphs, textures, and shaders that track descriptors, last-write timestamps, and hot-reload callbacks while delegating format-aware loading to `engine::io` utilities. Mesh and point cloud caches expose `load_async()` entry points backed by `AssetAsyncQueue`, scheduling non-blocking imports on the shared IO thread pool.
-- Defines asset descriptors that capture provenance, format hints, and binding metadata shared between caches and runtime consumers.
-- Stores material assets as descriptor bindings (shader + texture handles); material authoring, serialization, and hot-reload remain TODO.
-- Unit tests under `engine/assets/tests/` validate module registration, cache
-  reload behaviour, descriptor plumbing, generational handle semantics, and
-  unload invalidation. Runtime-level verification of mesh cache loading feeds
-  into the integration suite at [`engine/tests/integration`](../../../engine/tests/integration/README.md)
-  (`TI-001`), now backed by the fixture-capable Googletest upgrade delivered in
-  `T-0118`.
+- Exposes generational `ResourceHandle<Tag>` wrappers for meshes, graphs, point
+  clouds, textures, shaders, and materials. Handles bind lazily to
+  `ResourcePool` instances, preventing stale references after unloads.
+- Caches track descriptors, last-write timestamps, and hot-reload callbacks while
+  delegating format-aware loading to `engine::io` utilities. Mesh and point cloud
+  caches offer `load_async()` entry points backed by `AssetAsyncQueue`.
+- Asset descriptors capture provenance, format hints, and binding metadata shared
+  between caches and runtime consumers.
+- Material assets currently store descriptor bindings (shader + texture handles);
+  material authoring and serialization remain open.
+- Unit tests validate registration, reload behaviour, descriptor plumbing,
+  generational semantics, and unload invalidation. Integration coverage flows
+  through [`engine/tests/integration`](../../../engine/tests/integration/README.md).
 
 ## Usage
-- Build the target with `cmake --build --preset <preset> --target engine_assets`; this links against `engine_io` and transitively pulls in geometry readers.
-- Include `<engine/assets/handles.hpp>` plus the relevant cache headers (`mesh_asset.hpp`, `point_cloud_asset.hpp`, `graph_asset.hpp`, `texture_asset.hpp`, `shader_asset.hpp`) to request loads; configure `engine_io` importers for the formats you rely on. For asynchronous scenarios include `<engine/assets/async.hpp>` and call `load_async()` to obtain an `AssetLoadFuture`.
-- Populate `MaterialCache` entries by constructing descriptors that bind preloaded shader/texture handles until material serialization lands.
-- Execute `ctest --preset <preset> --tests-regex engine_assets` with testing enabled to validate cache behaviour after modifications.
-- Use `<engine/assets/async.hpp>` to construct `AssetLoadRequest` descriptors and pair them with `AssetLoadFuture`/`AssetLoadPromise` channels when scheduling asynchronous work. Futures expose progress, cancellation, and structured error propagation while preserving the generational handle guarantees from `AI-001`. `scripts/diagnostics/streaming_report.py` queries `engine::runtime::streaming_metrics()` to monitor queue depth and request outcomes.
+- Build via `cmake --build --preset <preset> --target engine_assets`; link against
+  `engine_io`.
+- Include `<engine/assets/handles.hpp>` plus relevant cache headers to request
+  loads; include `<engine/assets/async.hpp>` for asynchronous scenarios.
+- Run `ctest --preset <preset> --tests-regex engine_assets` to validate cache
+  behaviour.
+- Use `<engine/assets/async.hpp>` to create `AssetLoadRequest` descriptors and
+  `AssetLoadFuture` channels when scheduling asynchronous work.
 
 ## TODO / Next Steps
 
-- **AI-002:** Finalise the asynchronous streaming scheduler and telemetry per
-  the [async asset streaming plan](../../ROADMAP.md#ai-002-async-asset-streaming-architecture);
-  implementation details live in [ROADMAP.md](ROADMAP.md) and
-  [`docs/design/async_streaming.md`](../../design/async_streaming.md).
-- **CC-002:** Integrate filesystem watching and cache callbacks for hot reload
-  as outlined in the [hot reload initiative](../../ROADMAP.md#cc-002-hot-reload-infrastructure),
-  coordinating diagnostics and failure handling across caches.
+- Track `AS-302`, `AS-315`, `AS-320` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `AI-002` and `CC-002`.
+
+This module tracks actionable work through the execution checklist below.
+
+## Execution Checklist
+
+| Task ID | Scope | Exit Criteria | Status |
+| --- | --- | --- | --- |
+| `AS-302` | Instrument async queue telemetry (`AI-002`). | Queue metrics emitted through runtime telemetry, documented in module README and streaming task file. | 🔄 In Progress |
+| `AS-315` | Integrate hot reload callbacks (`CC-002`). | Filesystem watcher hooks update caches, failures logged via diagnostics shell. | 🟢 Todo |
+| `AS-320` | Define material persistence strategy. | Draft design note covering serialization format and runtime reload semantics. | 🟢 Todo |
+
+See [ROADMAP.md](ROADMAP.md) for sequencing and dependencies.

@@ -1,40 +1,70 @@
 # Documentation Entry Point
 
-If you are ChatGPT or another AI assistant, start here every time you work on this repository. Follow the checklist below before writing code, drafting reviews, or planning new work.
+> Always start here before touching code, assets, or automation scripts.
 
-0. **Review [`../README.md`](../README.md) for the current subsystem snapshot and build/test workflow.**
-1. **Read [`docs/agents.md`](agents.md).** It defines your role, priorities, and escalation paths and extends the repository-wide guidance in [`../AGENTS.md`](../AGENTS.md).
-2. **Read [`docs/architecture.md`](architecture.md).** Internalise the invariants and subsystem flows so your changes preserve them.
-3. **For each task, open the matching record under [`docs/tasks/`](tasks/).** If there is no record, ask for the precise path you need.
-4. **Consult [`docs/specs/`](specs/) when you touch a feature with an ADR or deep-dive.** They are the canonical source of technical decisions.
-5. **Adhere to [`docs/conventions.md`](conventions.md) and cross-check definitions in [`docs/glossary.md`](glossary.md).**
+## Session Checklist
 
-## Quick Navigation
+1. **Workspace Snapshot** — skim [`../README.md`](../README.md) for the live
+   module status table and sprint horizon.
+2. **Role Guidance** — confirm expectations in [`agents.md`](agents.md) and the
+   repository-wide [`../AGENTS.md`](../AGENTS.md).
+3. **Architecture Context** — review [`architecture.md`](architecture.md) for
+   invariants and data-flow constraints relevant to the subsystem you are
+   modifying.
+4. **Initiative Alignment** — locate the workstream in
+   [`ROADMAP.md`](ROADMAP.md) and collect the matching module README/ROADMAP
+   entries under [`modules/`](modules/).
+5. **Actionable Task Record** — open the specific ticket under
+   [`tasks/`](tasks/) (e.g., `T-0115-*.md`). Clarify acceptance criteria before
+   implementing.
+6. **Specification / ADR** — check [`specs/`](specs/) and
+   [`design/`](design/) for historical decisions or pending proposals that
+   constrain your change.
+7. **Update Everything Together** — when landing work, update the code, module
+   docs, roadmap status, and task checklists within the same change.
+
+## Navigation Aids
 
 | Purpose | Document |
 | --- | --- |
-| Working agreement & guardrails | [docs/agents.md](agents.md) |
-| System invariants & data flow | [docs/architecture.md](architecture.md) |
-| Coding, testing, and docs rules | [docs/conventions.md](conventions.md) |
-| Implementation & self-review workflow | [docs/prompts/implementation-playbook.md](prompts/implementation-playbook.md) |
-| Task backlog & acceptance criteria | [docs/tasks/README.md](tasks/README.md) |
-| Decision records & specifications | [docs/specs/README.md](specs/README.md) |
+| Agent-specific workflow and escalation paths | [agents.md](agents.md) |
+| Invariants, lifecycles, and data flow diagrams | [architecture.md](architecture.md) |
+| Coding, testing, documentation conventions | [conventions.md](conventions.md) |
+| Implementation playbook prompts | [prompts/implementation-playbook.md](prompts/implementation-playbook.md) |
+| Active task inventory & acceptance criteria | [tasks/README.md](tasks/README.md) |
+| Decision records, ADRs, and specifications | [specs/README.md](specs/README.md) |
 
-Source of truth precedence: **`../AGENTS.md` → this file → `architecture.md` → `specs/*` → module READMEs (`docs/modules/**`) → code comments.** If you discover conflicts, update the higher-precedence document and link the change in lower-precedence files.
+Source-of-truth precedence: `../AGENTS.md` → this file → `agents.md` →
+`architecture.md` → entries under `design/` or `specs/` → module READMEs → code
+comments. Resolve conflicts by updating the higher-precedence document first and
+linking the change downstream.
 
-## How to Work with This Repository
+## Keeping Documentation Healthy
 
-- **Stay aligned with the architecture improvement plan.** Every change touching system design must reference [`docs/ROADMAP.md`](ROADMAP.md) and the relevant `DC-`, `AI-`, or `RT-` identifier. Use [`docs/design/architecture_improvement_plan.md`](design/architecture_improvement_plan.md) for extended rationale when priorities shift.
-- **Keep module documentation in sync.** Each subsystem has a README and roadmap under [`docs/modules/`](modules/). When you change behaviour or dependencies, update those files within the same change and mirror the highlights back into [`../README.md`](../README.md).
-- **Validate documentation cross-references.** Run `python scripts/validate_docs.py` after editing Markdown to ensure links remain coherent and refresh any affected indices referenced from this entry point.
+- **Synchronise artefacts.** Whenever a behaviour, API, dependency, or workflow
+  changes, update the module README, module roadmap, relevant tasks, and the
+  summary tables in [`../README.md`](../README.md) and [`ROADMAP.md`](ROADMAP.md).
+- **Validate cross-references.** Run `python scripts/validate_docs.py` after
+  editing Markdown to catch broken links and stale anchors.
+- **Track decisions explicitly.** Complex changes require an ADR or design note
+  under [`design/`](design/). Reference those records in PR descriptions and
+  module READMEs.
+- **Use the template.** Apply [`README_TEMPLATE.md`](README_TEMPLATE.md) when
+  creating new documentation to keep structure consistent for AI agents and
+  humans.
+- **Log uncertainties.** If a task lacks context, record open questions in the
+  relevant `docs/tasks/*.md` file before requesting clarification.
 
 ## Additional Resources
 
-- [`docs/README_TEMPLATE.md`](README_TEMPLATE.md) standardises module documentation.
-- [`docs/design/architecture_improvement_plan.md`](design/architecture_improvement_plan.md) expands on the roadmap and decision history.
-- [`docs/design/resource_management.md`](design/resource_management.md) documents the generational handle and resource pool infrastructure backing asset caches.
-- [`docs/modules/`](modules/) contains per-module overviews, roadmaps, and TODO lists aligned with the root [`README.md`](../README.md).
-- [`docs/design/error_handling_migration.md`](design/error_handling_migration.md) documents the `engine::Result`/`ErrorCode`
-  pattern rolled out by `DC-004`.
+- [`design/architecture_improvement_plan.md`](design/architecture_improvement_plan.md)
+  – expanded rationale and dependency graph for the improvement plan.
+- [`design/error_handling_migration.md`](design/error_handling_migration.md)
+  – canonical reference for the `engine::Result<T>` policy.
+- [`design/resource_management.md`](design/resource_management.md) – handle and
+  resource pool design used by `AI-001`.
+- [`modules/`](modules/) – subsystem overviews, execution checklists, and local
+  TODO boards aligned with the roadmap.
 
-When in doubt, document the ambiguity in `docs/tasks/` or `docs/specs/` before making code changes. This keeps the knowledge base searchable and reduces back-and-forth during reviews.
+When in doubt, document the ambiguity before coding. This keeps the agentic
+workflow deterministic and reviewable.

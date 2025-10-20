@@ -1,12 +1,32 @@
 # Geometry Module Roadmap
 
-## Near Term
-- Finalise property registry ergonomics by adding typed accessors, iteration helpers, and validation coverage for mismatched attribute layouts.
-- Optimise mesh normal recomputation and bounding volume updates for large meshes; benchmark against representative datasets.
+_Last Updated: 2025-02-19_
 
-## Mid Term
-- Implement remeshing and parameterisation routines (isotropic, UV atlas) that feed animation skinning and physics collider generation.
-- Extend kd-tree/octree utilities with dynamic updates to support streaming scenes and interactive editing.
+## Workstreams
 
-## Long Term
-- Deliver robust reconstruction pipelines (point cloud → watertight mesh) and integrate with IO detection to support scan ingestion workflows.
+| Stream | Description | Status |
+| --- | --- | --- |
+| Benchmarking (`GE-205`) | Quantify performance of normals/bounds recomputation. | 🔄 In Progress |
+| Remeshing proposal (`GE-212`) | Define scope for remeshing & parameterisation upgrades. | 🟢 Planned |
+| Telemetry alignment (`GE-220`) | Emit diagnostics compatible with telemetry viewer. | 🟢 Planned |
+
+## Active Tasks
+
+| Task ID | Owner | Due | Status |
+| --- | --- | --- | --- |
+| `GE-205` | Geometry team | 2025-03-14 | 🔄 In Progress |
+
+## Upcoming Tasks
+
+| Task ID | Description | Dependency |
+| --- | --- | --- |
+| `GE-212` | Draft remeshing/parameterisation RFP referencing design constraints. | None |
+| `GE-220` | Instrument spatial query telemetry and update README. | After `CC-001.1` schema defined |
+
+## Dependencies
+
+- **Testing infrastructure (`TI-002`)** — hosts benchmark harness.
+- **Diagnostics initiative (`CC-001`)** — provides telemetry schema.
+
+Document findings in the relevant task files (`T-0112`) and update the central
+roadmap after each milestone.
