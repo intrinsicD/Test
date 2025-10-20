@@ -36,6 +36,8 @@ callback plumbing, and collision telemetry for the physics module.
   updated physics suite, including the new manifold persistence and callback tests.
 - `engine_physics_tests --gtest_filter=PhysicsWorldContacts.SequentialImpulseSolverAppliesResolutionAndTelemetry`
   reports stable solver iterations (4 in the regression scenario) confirming the telemetry signal.
+- 2025-03-10: Runtime diagnostics expose `runtime.physics.*` metrics sourced from
+  the collision telemetry, enabling cross-module monitoring for `RT-002.2`.
 
 ## Follow-Up Tasks
 - [x] Implemented sequential impulse constraint resolution using the registered

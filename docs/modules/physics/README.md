@@ -23,6 +23,6 @@ This module tracks actionable work through the execution checklist below.
 | --- | --- | --- | --- |
 | `PH-401` | Implement persistent manifold storage (`RT-002`). | Cache retains contacts across frames with regression coverage. | 🔄 In Progress |
 | `PH-410` | Add benchmarking harness. | Automated benchmark for collision throughput tracked in CI. | 🟢 Todo |
-| `PH-420` | Wire telemetry for manifold churn. | Emit metrics and document consumption in diagnostics shell. | 🟢 Todo |
+| `PH-420` | Wire telemetry for manifold churn. | Emit metrics and document consumption in diagnostics shell. | ✅ Done |
 
 See [ROADMAP.md](ROADMAP.md) for full schedule.

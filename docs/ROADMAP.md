@@ -69,8 +69,12 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `RT-002.1` | Implement manifold cache. | Collider pairs persist contacts across frames with debug visualisation. | 🔄 In Progress |
-| `RT-002.2` | Integrate telemetry hooks. | Physics telemetry exposes manifold churn metrics consumed by diagnostics shell. | 🟢 Todo |
+| `RT-002.2` | Integrate telemetry hooks. | Physics telemetry exposes manifold churn metrics consumed by diagnostics shell. | ✅ Done |
 | `RT-002.3` | Benchmark harness. | Automated benchmark records collision throughput and is tracked in CI. | 🟢 Todo |
+
+- 2025-03-10: Runtime diagnostics now expose physics manifold telemetry via
+  `runtime.physics.*` metrics, completing `RT-002.2` and aligning with the
+  shared telemetry schema.
 
 #### `RT-003` — Vulkan Runtime Parity
 

@@ -625,6 +625,24 @@ namespace engine::runtime
                             make_single_label("subsystem", subsystem.name));
             }
 
+            const auto& physics_metrics = diagnostics.physics_collision;
+            add_gauge("runtime.physics.manifold_count",
+                      "Active contact manifolds detected during the most recent physics step",
+                      static_cast<double>(physics_metrics.manifold_count),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.physics.contact_count",
+                      "Active contact points detected during the most recent physics step",
+                      static_cast<double>(physics_metrics.contact_count),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.physics.max_penetration",
+                      "Maximum penetration depth observed during the most recent physics step",
+                      static_cast<double>(physics_metrics.max_penetration),
+                      core::telemetry::MetricUnit::None);
+            add_gauge("runtime.physics.solver_iterations",
+                      "Constraint solver iterations executed during the most recent physics step",
+                      static_cast<double>(physics_metrics.solver_iterations),
+                      core::telemetry::MetricUnit::Count);
+
             const auto& validation = diagnostics.scene_validation.metrics;
             add_gauge("runtime.scene_validation.issue_count",
                       "Total hierarchy validation issues detected in the most recent frame",
@@ -802,6 +820,7 @@ namespace engine::runtime
                 renderable_name = dependencies.renderable_name;
             }
 #endif
+            refresh_physics_metrics();
             rebuild_subsystem_cache();
         }
 
@@ -862,6 +881,11 @@ namespace engine::runtime
             {
                 joint_names.push_back(entry.first);
             }
+        }
+
+        void refresh_physics_metrics() noexcept
+        {
+            diagnostics.physics_collision = engine::physics::collision_telemetry(world);
         }
 
         void rebuild_scene_entities()
@@ -1175,6 +1199,8 @@ namespace engine::runtime
 
             last_report = dispatcher_ref.dispatch();
             record_stage_timings(last_report);
+            engine::physics::update_contact_manifolds(world);
+            refresh_physics_metrics();
             simulation_time += dt;
             const engine::core::plugin::SubsystemUpdateContext update_context{dt};
             for (const auto& plugin : dependencies.subsystem_plugins)
