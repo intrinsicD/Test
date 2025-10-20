@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <deque>
 #include <limits>
 #include <optional>
 #include <stdexcept>
@@ -193,7 +194,7 @@ private:
         return index;
     }
 
-    std::vector<Slot> slots_{};
+    std::deque<Slot> slots_{};
     std::vector<std::uint32_t> free_list_{};
     std::size_t active_count_{0U};
 };
