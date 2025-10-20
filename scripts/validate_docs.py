@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS_DIR = ROOT / "docs"
 MODULES_DIR = DOCS_DIR / "modules"
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+CODE_BLOCK_RE = re.compile(r"```[\s\S]*?```", re.M)
 ROADMAP_ID_RE = re.compile(r"\b(?:AI|DC|RT|DI|BS|TI|PY|CC|MC)-\d+\b")
 ROADMAP_LINK_TOKEN = "../../ROADMAP.md"
 TODO_SECTION_RE = re.compile(r"## TODO / Next Steps(?P<body>.*?)(?:\n## |\Z)", re.S)
@@ -24,8 +25,9 @@ def _should_skip(target: str) -> bool:
 
 def _validate_markdown(path: Path) -> list[str]:
     text = path.read_text(encoding="utf-8")
+    sanitized = CODE_BLOCK_RE.sub("", text)
     issues: list[str] = []
-    for match in LINK_RE.finditer(text):
+    for match in LINK_RE.finditer(sanitized):
         target = match.group(1).strip()
         if not target or _should_skip(target):
             continue
