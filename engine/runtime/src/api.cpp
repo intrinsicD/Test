@@ -424,6 +424,12 @@ namespace engine::runtime
             {
                 diagnostics.average_tick_ms += (ms - diagnostics.average_tick_ms) / count;
             }
+            refresh_streaming_metrics();
+        }
+
+        void refresh_streaming_metrics() noexcept
+        {
+            diagnostics.streaming = streaming_metrics();
         }
 
         void record_stage_timings(const compute::ExecutionReport& report)
@@ -766,6 +772,7 @@ namespace engine::runtime
             }
             initialized = true;
             record_initialize_duration(Clock::now() - initialize_start);
+            refresh_streaming_metrics();
         }
 
         void shutdown() noexcept
@@ -803,6 +810,7 @@ namespace engine::runtime
             joint_names.clear();
             reset_state();
             record_shutdown_duration(Clock::now() - shutdown_start);
+            refresh_streaming_metrics();
         }
 
         runtime_frame_state tick(double dt)
@@ -1544,6 +1552,30 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
     }
 
     const auto metrics = engine::runtime::streaming_metrics();
+    out_metrics->worker_count = metrics.worker_count;
+    out_metrics->queue_capacity = metrics.queue_capacity;
+    out_metrics->pending_tasks = metrics.pending_tasks;
+    out_metrics->active_workers = metrics.active_workers;
+    out_metrics->total_enqueued = metrics.total_enqueued;
+    out_metrics->total_executed = metrics.total_executed;
+    out_metrics->streaming_pending = metrics.streaming_pending;
+    out_metrics->streaming_loading = metrics.streaming_loading;
+    out_metrics->streaming_total_requests = metrics.streaming_total_requests;
+    out_metrics->streaming_total_completed = metrics.streaming_total_completed;
+    out_metrics->streaming_total_failed = metrics.streaming_total_failed;
+    out_metrics->streaming_total_cancelled = metrics.streaming_total_cancelled;
+    out_metrics->streaming_total_rejected = metrics.streaming_total_rejected;
+}
+
+extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_streaming_metrics(
+    struct ::engine_runtime_streaming_metrics* out_metrics) noexcept
+{
+    if (out_metrics == nullptr)
+    {
+        return;
+    }
+
+    const auto& metrics = engine::runtime::diagnostics().streaming;
     out_metrics->worker_count = metrics.worker_count;
     out_metrics->queue_capacity = metrics.queue_capacity;
     out_metrics->pending_tasks = metrics.pending_tasks;

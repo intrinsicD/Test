@@ -139,6 +139,7 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     double max_shutdown_ms{0.0};
     double max_tick_ms{0.0};
     double average_tick_ms{0.0};
+    StreamingMetrics streaming{};
     std::vector<RuntimeStageTiming> stage_timings{};
     std::vector<RuntimeSubsystemTiming> subsystem_timings{};
     scene::validation::HierarchyValidationReport scene_validation{};
@@ -260,7 +261,9 @@ struct engine_runtime_streaming_metrics
     std::uint64_t streaming_total_rejected;
 };
 extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
-    engine_runtime_streaming_metrics* out_metrics) noexcept;
+    struct engine_runtime_streaming_metrics* out_metrics) noexcept;
+extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_streaming_metrics(
+    struct engine_runtime_streaming_metrics* out_metrics) noexcept;
 
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_count() noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_shutdown_count() noexcept;

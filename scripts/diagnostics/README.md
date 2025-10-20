@@ -21,10 +21,11 @@ acceptance criteria (`AI-003`, `RT-003`, `RT-004`).
    ```
 3. **Inspect the output**. The script prints aggregate timings by subsystem and
    runtime lifecycle statistics (initialise/tick/shutdown durations plus
-   per-stage samples), and stores detailed per-dispatch metrics in JSON when
-   `--output` is specified. Use these artefacts to track regressions in the
-   animation/physics ↔ rendering hand-off and to monitor subsystem health over
-   time.
+   per-stage samples), reports asynchronous streaming queue metrics harvested
+   from `RuntimeDiagnostics`, and stores detailed per-dispatch metrics in JSON
+   when `--output` is specified. Use these artefacts to track regressions in the
+   animation/physics ↔ rendering hand-off, monitor streaming health, and assess
+   subsystem behaviour over time.
 
 Use `--verbose` to emit per-frame tables on stdout when investigating specific
 regressions. The JSON payload can be checked into performance dashboards or

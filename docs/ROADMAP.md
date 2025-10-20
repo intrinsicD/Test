@@ -44,7 +44,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `AI-002.1` | Instrument async queue telemetry. | Runtime exposes queue metrics, `scripts/diagnostics/streaming_report.py` documents usage. | 🔄 In Progress |
+| `AI-002.1` | Instrument async queue telemetry. | Runtime exposes queue metrics, `scripts/diagnostics/streaming_report.py` documents usage. | ✅ Done |
 | `AI-002.2` | Harden cancellation + failure flows. | Futures support cancellation with integration tests covering failure propagation. | 🟢 Todo |
 | `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | 🟢 Todo |
 
@@ -134,8 +134,8 @@ Once staffed, execute module-specific queues below.
 - **Rendering** — `RE-520` backend documentation updates building on the
   completed metadata schema (`AI-003`), followed by `RE-530` backend validation
   tooling and parity tracking work.
-- **Runtime** — `RU-307` submission parity (`RT-003`), `RU-315` telemetry bridge
-  for streaming metrics (`AI-002`).
+- **Runtime** — `RU-320` runtime diagnostics guide refresh following streaming
+  telemetry bridge completion.
 - **Scene** — `SC-208` cycle detection (`RT-005`), then `SC-215` validation
   reporting.
 - **Tools** — `TL-101` diagnostics shell MVP (`CC-001`), followed by `TL-115`

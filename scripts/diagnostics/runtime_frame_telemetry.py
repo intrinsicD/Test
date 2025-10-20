@@ -110,6 +110,25 @@ class RuntimeSubsystemMetric:
 
 
 @dataclass
+class RuntimeStreamingMetrics:
+    """Snapshot of runtime streaming telemetry exposed via the C ABI."""
+
+    worker_count: int
+    queue_capacity: int
+    pending_tasks: int
+    active_workers: int
+    total_enqueued: int
+    total_executed: int
+    streaming_pending: int
+    streaming_loading: int
+    streaming_total_requests: int
+    streaming_total_completed: int
+    streaming_total_failed: int
+    streaming_total_cancelled: int
+    streaming_total_rejected: int
+
+
+@dataclass
 class RuntimeDiagnosticsSnapshot:
     """Aggregated runtime lifecycle diagnostics exposed through the C ABI."""
 
@@ -123,6 +142,25 @@ class RuntimeDiagnosticsSnapshot:
     max_tick_ms: float
     stages: List[RuntimeStageMetric]
     subsystems: List[RuntimeSubsystemMetric]
+    streaming: Optional[RuntimeStreamingMetrics] = None
+
+
+class _CStreamingMetrics(ctypes.Structure):
+    _fields_ = [
+        ("worker_count", ctypes.c_size_t),
+        ("queue_capacity", ctypes.c_size_t),
+        ("pending_tasks", ctypes.c_size_t),
+        ("active_workers", ctypes.c_size_t),
+        ("total_enqueued", ctypes.c_uint64),
+        ("total_executed", ctypes.c_uint64),
+        ("streaming_pending", ctypes.c_uint64),
+        ("streaming_loading", ctypes.c_uint64),
+        ("streaming_total_requests", ctypes.c_uint64),
+        ("streaming_total_completed", ctypes.c_uint64),
+        ("streaming_total_failed", ctypes.c_uint64),
+        ("streaming_total_cancelled", ctypes.c_uint64),
+        ("streaming_total_rejected", ctypes.c_uint64),
+    ]
 
 
 class RuntimeBindings:
@@ -132,6 +170,8 @@ class RuntimeBindings:
         self._lib = library
         self._has_simulation_time = False
         self._has_diagnostics = False
+        self._has_streaming_metrics = False
+        self._streaming_metrics_func = None
         self._configure_signatures()
 
     @staticmethod
@@ -253,6 +293,23 @@ class RuntimeBindings:
         else:
             self._has_diagnostics = True
 
+        try:
+            lib.engine_runtime_diagnostic_streaming_metrics.restype = None
+            lib.engine_runtime_diagnostic_streaming_metrics.argtypes = [ctypes.POINTER(_CStreamingMetrics)]
+        except AttributeError:
+            try:
+                lib.engine_runtime_streaming_metrics.restype = None
+                lib.engine_runtime_streaming_metrics.argtypes = [ctypes.POINTER(_CStreamingMetrics)]
+            except AttributeError:
+                self._has_streaming_metrics = False
+                self._streaming_metrics_func = None
+            else:
+                self._streaming_metrics_func = lib.engine_runtime_streaming_metrics
+                self._has_streaming_metrics = True
+        else:
+            self._streaming_metrics_func = lib.engine_runtime_diagnostic_streaming_metrics
+            self._has_streaming_metrics = True
+
     def configure_default_modules(self) -> None:
         self._lib.engine_runtime_configure_with_default_modules()
 
@@ -288,6 +345,31 @@ class RuntimeBindings:
     def has_diagnostics(self) -> bool:
         return self._has_diagnostics
 
+    @property
+    def has_streaming_metrics(self) -> bool:
+        return self._has_streaming_metrics
+
+    def streaming_metrics(self) -> Optional[RuntimeStreamingMetrics]:
+        if not self._has_streaming_metrics or self._streaming_metrics_func is None:
+            return None
+        data = _CStreamingMetrics()
+        self._streaming_metrics_func(ctypes.byref(data))
+        return RuntimeStreamingMetrics(
+            worker_count=int(data.worker_count),
+            queue_capacity=int(data.queue_capacity),
+            pending_tasks=int(data.pending_tasks),
+            active_workers=int(data.active_workers),
+            total_enqueued=int(data.total_enqueued),
+            total_executed=int(data.total_executed),
+            streaming_pending=int(data.streaming_pending),
+            streaming_loading=int(data.streaming_loading),
+            streaming_total_requests=int(data.streaming_total_requests),
+            streaming_total_completed=int(data.streaming_total_completed),
+            streaming_total_failed=int(data.streaming_total_failed),
+            streaming_total_cancelled=int(data.streaming_total_cancelled),
+            streaming_total_rejected=int(data.streaming_total_rejected),
+        )
+
     def diagnostics_snapshot(self) -> Optional[RuntimeDiagnosticsSnapshot]:
         if not self._has_diagnostics:
             return None
@@ -302,6 +384,7 @@ class RuntimeBindings:
             max_tick_ms=float(self._lib.engine_runtime_diagnostic_max_tick_ms()),
             stages=self._collect_stage_metrics(),
             subsystems=self._collect_subsystem_metrics(),
+            streaming=self.streaming_metrics(),
         )
 
     def _collect_stage_metrics(self) -> List[RuntimeStageMetric]:
@@ -531,6 +614,7 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
         "last_tick_ms": snapshot.last_tick_ms,
         "average_tick_ms": snapshot.average_tick_ms,
         "max_tick_ms": snapshot.max_tick_ms,
+        "streaming": _streaming_to_dict(snapshot.streaming),
         "stages": [
             {
                 "name": stage.name,
@@ -556,6 +640,28 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
             }
             for subsystem in snapshot.subsystems
         ],
+    }
+
+
+def _streaming_to_dict(
+    metrics: Optional[RuntimeStreamingMetrics],
+) -> Optional[Dict[str, int]]:
+    if metrics is None:
+        return None
+    return {
+        "worker_count": metrics.worker_count,
+        "queue_capacity": metrics.queue_capacity,
+        "pending_tasks": metrics.pending_tasks,
+        "active_workers": metrics.active_workers,
+        "total_enqueued": metrics.total_enqueued,
+        "total_executed": metrics.total_executed,
+        "streaming_pending": metrics.streaming_pending,
+        "streaming_loading": metrics.streaming_loading,
+        "streaming_total_requests": metrics.streaming_total_requests,
+        "streaming_total_completed": metrics.streaming_total_completed,
+        "streaming_total_failed": metrics.streaming_total_failed,
+        "streaming_total_cancelled": metrics.streaming_total_cancelled,
+        "streaming_total_rejected": metrics.streaming_total_rejected,
     }
 
 
@@ -632,6 +738,29 @@ def _print_summary(
                     f"avg={stage.average_ms:8.4f} ms "
                     f"last={stage.last_ms:8.4f} ms"
                 )
+        if diagnostics.streaming is not None:
+            streaming = diagnostics.streaming
+            print("  streaming metrics:")
+            print(
+                "    "
+                f"workers={streaming.worker_count} "
+                f"active={streaming.active_workers} "
+                f"pending_tasks={streaming.pending_tasks}"
+            )
+            print(
+                "    scheduler totals: "
+                f"enqueued={streaming.total_enqueued} "
+                f"executed={streaming.total_executed}"
+            )
+            print(
+                "    queue states: "
+                f"pending={streaming.streaming_pending} "
+                f"loading={streaming.streaming_loading} "
+                f"completed={streaming.streaming_total_completed} "
+                f"failed={streaming.streaming_total_failed} "
+                f"cancelled={streaming.streaming_total_cancelled} "
+                f"rejected={streaming.streaming_total_rejected}"
+            )
     if not verbose:
         return
     print("\nPer-frame dispatch timings:")
