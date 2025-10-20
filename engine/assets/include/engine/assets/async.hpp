@@ -652,6 +652,18 @@ namespace engine::assets {
             return snapshot;
         }
 
+        /// Reset all counters for deterministic test expectations.
+        void reset_for_testing()
+        {
+            pending_.store(0, std::memory_order_relaxed);
+            loading_.store(0, std::memory_order_relaxed);
+            total_requests_.store(0, std::memory_order_relaxed);
+            total_completed_.store(0, std::memory_order_relaxed);
+            total_failed_.store(0, std::memory_order_relaxed);
+            total_cancelled_.store(0, std::memory_order_relaxed);
+            total_rejected_.store(0, std::memory_order_relaxed);
+        }
+
     private:
         AssetStreamingTelemetry() = default;
 

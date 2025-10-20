@@ -68,6 +68,9 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
 - `python scripts/diagnostics/streaming_report.py --library-dir out/build/linux-gcc-debug` on the
   configured debug build emits `worker_count=2`, `queue_capacity=64`, and zero in-flight requests
   immediately after startup, establishing the baseline for regression tracking.
+- `ctest --preset linux-gcc-debug --tests-regex AssetStreamingTelemetry`
+  exercises success, failure, cancellation, and queue rejection transitions to
+  validate that `AssetStreamingTelemetry` counters remain deterministic.
 
 ## Open Questions
 - Do we expose per-asset-type worker pools or a shared pool with weighted priorities?

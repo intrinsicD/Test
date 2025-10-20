@@ -14,6 +14,24 @@
 namespace
 {
     using namespace std::chrono_literals;
+
+    class IoThreadPoolScope
+    {
+    public:
+        IoThreadPoolScope(std::size_t worker_count, std::size_t queue_capacity, bool enable = true)
+        {
+            engine::core::threading::IoThreadPool::instance().configure(
+                {.worker_count = worker_count, .queue_capacity = queue_capacity, .enable = enable});
+        }
+
+        IoThreadPoolScope(const IoThreadPoolScope&) = delete;
+        IoThreadPoolScope& operator=(const IoThreadPoolScope&) = delete;
+
+        ~IoThreadPoolScope()
+        {
+            engine::core::threading::IoThreadPool::instance().shutdown();
+        }
+    };
 }
 
 TEST(AssetLoadRequest, FromPathAssignsDefaults)
@@ -177,5 +195,139 @@ TEST_F(MeshCacheAsyncTest, LoadAsyncHonoursCancellation)
     EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Cancelled);
 
     std::filesystem::remove(path);
+}
+
+TEST(AssetStreamingTelemetry, RecordsSuccessfulTransition)
+{
+    auto& telemetry = engine::assets::AssetStreamingTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    IoThreadPoolScope scope{0, 4};
+    engine::assets::MeshCache cache;
+
+    const auto path = write_temporary_obj();
+    auto request = engine::assets::AssetLoadRequest::from_path(
+        engine::assets::AssetType::mesh, path, {});
+    request.allow_blocking_fallback = true;
+
+    auto future = cache.load_async(request, engine::core::threading::IoThreadPool::instance());
+    future.wait();
+    const auto result = future.get();
+    ASSERT_TRUE(result.has_value());
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.total_requests, 1U);
+    EXPECT_EQ(snapshot.total_completed, 1U);
+    EXPECT_EQ(snapshot.total_failed, 0U);
+    EXPECT_EQ(snapshot.total_cancelled, 0U);
+    EXPECT_EQ(snapshot.total_rejected, 0U);
+    EXPECT_EQ(snapshot.pending, 0U);
+    EXPECT_EQ(snapshot.loading, 0U);
+
+    std::filesystem::remove(path);
+}
+
+TEST(AssetStreamingTelemetry, RecordsFailureTransition)
+{
+    auto& telemetry = engine::assets::AssetStreamingTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    IoThreadPoolScope scope{0, 4};
+    engine::assets::MeshCache cache;
+
+    auto request = engine::assets::AssetLoadRequest::from_identifier(
+        engine::assets::AssetType::mesh, "/tmp/does-not-exist.obj");
+    request.allow_blocking_fallback = true;
+
+    auto future = cache.load_async(request, engine::core::threading::IoThreadPool::instance());
+    future.wait();
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::IoFailure);
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.total_requests, 1U);
+    EXPECT_EQ(snapshot.total_completed, 0U);
+    EXPECT_EQ(snapshot.total_failed, 1U);
+    EXPECT_EQ(snapshot.total_cancelled, 0U);
+    EXPECT_EQ(snapshot.total_rejected, 0U);
+    EXPECT_EQ(snapshot.pending, 0U);
+    EXPECT_EQ(snapshot.loading, 0U);
+}
+
+TEST(AssetStreamingTelemetry, RecordsCancellationTransition)
+{
+    auto& telemetry = engine::assets::AssetStreamingTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    IoThreadPoolScope scope{1, 4};
+    engine::assets::AssetAsyncQueue<engine::assets::MeshHandle> queue;
+
+    auto future = queue.schedule(
+        "cancel",
+        engine::assets::AssetLoadPriority::Normal,
+        false,
+        [](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>& promise) {
+            engine::assets::MeshHandle handle{std::string{"cancel"}};
+            for (int i = 0; i < 50; ++i)
+            {
+                if (promise.cancellation_requested())
+                {
+                    break;
+                }
+                std::this_thread::sleep_for(2ms);
+            }
+            return engine::assets::AssetLoadResult<engine::assets::MeshHandle>{handle};
+        },
+        engine::core::threading::IoThreadPool::instance());
+
+    std::this_thread::sleep_for(5ms);
+    future.cancel();
+    future.wait();
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::Cancelled);
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.total_requests, 1U);
+    EXPECT_EQ(snapshot.total_completed, 0U);
+    EXPECT_EQ(snapshot.total_failed, 0U);
+    EXPECT_EQ(snapshot.total_cancelled, 1U);
+    EXPECT_EQ(snapshot.total_rejected, 0U);
+    EXPECT_EQ(snapshot.pending, 0U);
+    EXPECT_EQ(snapshot.loading, 0U);
+}
+
+TEST(AssetStreamingTelemetry, RecordsRejectedEnqueue)
+{
+    auto& telemetry = engine::assets::AssetStreamingTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    IoThreadPoolScope scope{0, 1};
+    engine::assets::AssetAsyncQueue<engine::assets::MeshHandle> queue;
+
+    auto future = queue.schedule(
+        "reject",
+        engine::assets::AssetLoadPriority::Normal,
+        false,
+        [](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>&) {
+            engine::assets::MeshHandle handle{std::string{"reject"}};
+            return engine::assets::AssetLoadResult<engine::assets::MeshHandle>{handle};
+        },
+        engine::core::threading::IoThreadPool::instance());
+
+    future.wait();
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::Timeout);
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.total_requests, 1U);
+    EXPECT_EQ(snapshot.total_completed, 0U);
+    EXPECT_EQ(snapshot.total_failed, 1U);
+    EXPECT_EQ(snapshot.total_cancelled, 0U);
+    EXPECT_EQ(snapshot.total_rejected, 1U);
+    EXPECT_EQ(snapshot.pending, 0U);
+    EXPECT_EQ(snapshot.loading, 0U);
 }
 

@@ -113,8 +113,8 @@ Once staffed, execute module-specific queues below.
 
 - **Animation** — `AN-230` GPU/parallel sampling benchmarks once compute queue
   extensions land, followed by `AN-240` state-machine authoring spec work.
-- **Assets** — `AS-302` telemetry wiring for async queue (`AI-002`), then
-  `AS-315` hot reload callback hardening (`CC-002`).
+- **Assets** — `AS-315` hot reload callback integration (`CC-002`), then
+  `AS-320` material persistence planning.
 - **Compute** — `CO-150` cycle detection tooling is next after landing the
   dispatcher extension documentation (`CO-141`), followed by `CO-160` CUDA
   preset alignment.

@@ -14,7 +14,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Description | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| `AS-302` | Emit async queue telemetry and update diagnostics tooling. | Assets + Runtime | 2025-03-14 | 🔄 In Progress |
+| `AS-302` | Emit async queue telemetry and update diagnostics tooling. | Assets + Runtime | 2025-03-14 | ✅ Done |
 | `AS-305` | Harden async cancellation paths with regression coverage. | Assets | 2025-03-21 | 🟢 Todo |
 
 ## Upcoming (M3)
