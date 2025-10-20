@@ -3,6 +3,7 @@ add_executable(engine_scene_tests
     test_module.cpp
     test_systems.cpp
     test_serialization.cpp
+    test_scene_graph_validator.cpp
     scene_destruction_tests.cpp
     test_validation.cpp
 )

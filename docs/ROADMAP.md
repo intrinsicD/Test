@@ -17,7 +17,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | ✅ Done | Rendering, Runtime |
 | `RT-002` | Harden physics with persistent manifolds and benchmarking. | – | 🔄 In Progress | Physics |
 | `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | 🔄 In Progress | Rendering, Runtime |
-| `RT-005` | Validate scene hierarchies and expose diagnostics. | – | 🟢 Ready to Start | Scene, Runtime |
+| `RT-005` | Validate scene hierarchies and expose diagnostics. | – | 🔄 In Progress | Scene, Runtime |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | 🟠 Blocked on fuzz harness infra | IO |
 | `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | 🟢 Ready to Start | Core, Tools |
 | `CC-002` | Build hot reload infrastructure across caches/backends. | `AI-001` | 🟢 Ready to Start | Assets, Platform |
@@ -76,7 +76,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `RT-005.1` | Cycle detection implementation. | `SceneGraphValidator` rejects cycles with structured error codes and docs. | 🟢 Todo |
+| `RT-005.1` | Cycle detection implementation. | `SceneGraphValidator` rejects cycles with structured error codes and docs. | ✅ Done |
 | `RT-005.2` | Runtime diagnostics bridge. | Runtime reports invalid hierarchies through telemetry and logs. | 🟢 Todo |
 | `RT-005.3` | Documentation update. | Scene README and troubleshooting guide outline validation workflows. | 🟢 Todo |
 
