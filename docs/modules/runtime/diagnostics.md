@@ -4,8 +4,8 @@
 `RuntimeDiagnostics` exposes lifecycle, scheduling, and streaming telemetry for
 `RuntimeHost`. This guide fulfils roadmap item `RU-320` by consolidating
 instrumentation expectations and troubleshooting flows for teams consuming the
-runtime loop. It complements the async streaming design note and prepares the
-runtime module for upcoming hierarchy validation work (`RT-005`).
+runtime loop. It complements the async streaming design note and captures the
+scene hierarchy validation workflows delivered in `RT-005.2`/`RT-005.3`.
 
 ## Access Patterns
 
@@ -81,7 +81,68 @@ associated task record [`T-0115`](../../tasks/T-0115-assets-async-streaming-mvp.
 `scene_validation` embeds the latest
 `scene::validation::HierarchyValidationReport`, including `metrics` (issue
 counts) and detailed `issues`. Use `report.ok()` to detect whether hierarchy
-invariants hold before submitting to rendering (`RT-005`).
+invariants hold before submitting to rendering (`RT-005`). When issues are
+present the diagnostics bridge emits structured log entries, forwards the
+payload to registered callbacks, and updates the runtime telemetry so scripting
+environments receive identical context. The runtime C ABI exposes
+`engine_runtime_diagnostic_scene_*` helpers; `runtime_frame_telemetry.py`
+serialises the hierarchy report in its JSON output and console summary,
+surfacing entity IDs, relationship context, and error messages for up to five
+issues per invocation.
+
+## Hierarchy Diagnostics Playbook
+
+Follow this playbook whenever `scene_validation.ok()` returns `false`.
+
+1. **Capture the latest report** — obtain the reference from
+   `RuntimeHost::diagnostics().scene_validation` (C++) or
+   `engine_runtime_diagnostic_scene_*` (C ABI) immediately after
+   `RuntimeHost::tick()`.
+2. **Persist structured evidence** — run
+   `python scripts/diagnostics/runtime_frame_telemetry.py --library-dir <build>`
+   to emit JSON + console snapshots. These include the hierarchy report,
+   streaming counters, and stage timings so downstream tooling correlates
+   failures with frame workload.
+3. **Triaging with callbacks** — register a listener with
+   `RuntimeDiagnosticsBridge::register_listener` to mirror reports into custom
+   tooling (e.g., GUI overlays or editor integrations). Callbacks execute on the
+   runtime thread immediately after validation and must avoid blocking.
+4. **Escalate persistent failures** — if identical issues span multiple ticks,
+   capture two consecutive frames and compare `issues[i].context` to detect
+   whether authoring data or runtime mutation triggered the regression.
+
+### Issue Reference
+
+| Issue Type | Symptom | Recommended Mitigation |
+| --- | --- | --- |
+| `DuplicateRoot` | More than one entity lacks a parent. | Restrict importers to produce a single root and re-parent detached entities explicitly. |
+| `MissingParent` | Child references a non-existent parent entity. | Stabilise parent IDs in asset pipelines and refresh handles before mutating transforms. |
+| `CycleDetected` | Hierarchy contains a cycle preventing topological traversal. | Audit recent re-parenting logic and rely on `scene::HierarchyEditor::set_parent` safeguards. |
+| `InvalidTransform` | Transform propagation failed (e.g., NaNs, zero scale). | Clamp authoring data, reset affected nodes, and inspect physics/animation systems injecting invalid transforms. |
+
+Augment the table with module-specific issue codes as validation expands. The
+bridge forwards the enum value and human-readable `message` so tooling can map
+issues to remediation guides.
+
+### CLI Workflow
+
+1. Build the runtime with diagnostics enabled (default).
+2. Launch `runtime_frame_telemetry.py` against the shared library build.
+3. Observe the console for a `Scene validation failed` banner followed by the
+   top issues. The script also writes JSON to the working directory when
+   `--output` is specified.
+4. Feed the JSON into dashboards to detect recurring issue types across scenes
+   or commits.
+
+### Logging and Alerting
+
+- The diagnostics bridge emits `engine.runtime.diagnostics.scene` logs with the
+  issue summary. Integrate the logging sink with existing monitoring to raise
+  alerts when the failure rate exceeds acceptable thresholds.
+- Tooling consuming the bridge should debounce notifications to avoid flooding
+  UI surfaces when the same issue persists across ticks.
+- When running in headless CI environments, persist the JSON output as part of
+  the artefact bundle to streamline triage.
 
 ### Rendering Metadata
 When rendering backends are available, `frame_graph_serialization` stores the
@@ -96,9 +157,9 @@ validate queue affinity and resource hazards (`AI-003`, `RT-003`).
 - **Async backlog growth** – compare `pending_tasks` against `queue_capacity` and
   `streaming_total_rejected`. Increase worker count or investigate cache
   bottlenecks when the queue saturates.
-- **Invalid scene hierarchies** – review `scene_validation.issues` for
-  `HierarchyIssueType` entries and feed them into the upcoming diagnostics bridge
-  (`RT-005.2`).
+- **Invalid scene hierarchies** – follow the [Hierarchy Diagnostics
+  Playbook](#hierarchy-diagnostics-playbook) to capture telemetry, run the
+  Python tooling, and reconcile issue categories across frames.
 - **Rendering divergence** – diff `frame_graph_serialization` outputs between
   builds to ensure deterministic compilation and match backend expectations.
 - **CI regression tracking** – persist JSON output from the diagnostics scripts
@@ -107,7 +168,8 @@ validate queue affinity and resource hazards (`AI-003`, `RT-003`).
 ## Related Roadmap Items
 
 - `AI-002` – async streaming telemetry depends on the metrics documented here.
-- `RT-005.2` – runtime diagnostics bridge will forward the hierarchy report to
-  tooling consumers.
+- `RT-005.2` – runtime diagnostics bridge forwards hierarchy reports to tooling.
+- `RT-005.3` – hierarchy diagnostics troubleshooting guidance published here and
+  referenced by runtime + tooling documentation.
 - `CC-001` – diagnostics viewer work consumes the metrics schema captured in this
   guide.

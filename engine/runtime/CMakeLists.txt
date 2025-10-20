@@ -2,6 +2,7 @@ set(target_name engine_runtime)
 
 add_library(${target_name}
     src/api.cpp
+    src/diagnostics_bridge.cpp
     src/subsystem_registry.cpp
 )
 

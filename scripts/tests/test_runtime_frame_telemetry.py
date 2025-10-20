@@ -142,10 +142,28 @@ def test_diagnostics_to_dict_roundtrip() -> None:
                 shutdown_count=1,
             )
         ],
+        scene_validation=telemetry.SceneValidationSnapshot(
+            issue_count=2,
+            cycle_count=1,
+            dangling_parent_count=1,
+            missing_parent_hierarchy_count=1,
+            non_finite_transform_count=0,
+            transform_mismatch_count=1,
+            issues=[
+                telemetry.SceneHierarchyIssue(
+                    entity=42,
+                    related=24,
+                    type="cycle",
+                    message="entity references itself",
+                )
+            ],
+        ),
     )
     payload = telemetry._diagnostics_to_dict(snapshot)
     assert payload["initialize_count"] == 1
     assert payload["tick_count"] == 3
     assert payload["stages"][0]["name"] == "animation.evaluate"
     assert payload["subsystems"][0]["last_tick_ms"] == pytest.approx(0.6)
+    assert payload["scene_validation"]["issue_count"] == 2
+    assert payload["scene_validation"]["issues"][0]["type"] == "cycle"
 

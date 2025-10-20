@@ -1,6 +1,6 @@
 # Runtime Module Roadmap
 
-_Last Updated: 2025-02-21_
+_Last Updated: 2025-10-20_
 
 ## Goals
 
@@ -12,14 +12,14 @@ _Last Updated: 2025-02-21_
 
 ## Active Task
 
-| Task ID | Owner | Due | Status |
-| --- | --- | --- | --- |
-| `RT-005.2` | Runtime + Scene | 2025-03-14 | 🟢 Todo |
+Runtime-specific milestones from `RT-005` are complete. Track cross-cutting
+efforts under `AI-002` and `CC-001` for the next iteration of diagnostics
+instrumentation.
 
 ## Upcoming
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `RT-005.2` | Wire hierarchy validation telemetry into diagnostics bridge. | After `RU-320` |
+| `AI-002` | Expand async streaming diagnostics with per-asset attribution. | Assets module hot reload callbacks (`CC-002.2`). |
 
 Ensure updates are mirrored in task records (`T-0104`) and the central roadmap.
