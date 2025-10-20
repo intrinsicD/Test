@@ -71,6 +71,9 @@ content authors.
   produced `geometry.deform` mean `15.63 ms`, standard deviation `0.22 ms`, and
   coefficient of variation `1.42%` after trimming the lowest/highest 10% of samples
   (96/120 frames retained).【de369e†L1-L8】
+- Regression coverage extended via `AnimationClipValidation.*` and
+  `AnimationModule.*` tests to lock down validation and controller failure
+  scenarios (AN-201).
 
 ## Open Questions
 - Do we require GPU skinning fallbacks now or defer to future roadmap items?

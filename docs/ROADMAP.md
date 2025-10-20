@@ -111,9 +111,8 @@ Once staffed, execute module-specific queues below.
 
 ### Module Execution Queues
 
-- **Animation** — `AN-201` regression coverage for clip validation (ties to
-  `RT-001`), followed by `AN-230` GPU sampling benchmarks once compute queue
-  extensions land.
+- **Animation** — `AN-230` GPU/parallel sampling benchmarks once compute queue
+  extensions land, followed by `AN-240` state-machine authoring spec work.
 - **Assets** — `AS-302` telemetry wiring for async queue (`AI-002`), then
   `AS-315` hot reload callback hardening (`CC-002`).
 - **Compute** — `CO-150` cycle detection tooling is next after landing the

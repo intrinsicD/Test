@@ -4,6 +4,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "engine/animation/api.hpp"
 
@@ -35,6 +36,140 @@ namespace
     }
 } // namespace
 
+namespace
+{
+    using engine::animation::ClipValidationError;
+    using engine::animation::ClipValidationErrorCode;
+
+    [[nodiscard]] bool contains_error(const std::vector<ClipValidationError>& errors,
+                                      ClipValidationErrorCode code,
+                                      const std::string& joint,
+                                      std::size_t track,
+                                      std::size_t keyframe)
+    {
+        const auto it = std::find_if(errors.begin(), errors.end(), [&](const ClipValidationError& error) {
+            return error.code == code && error.joint_name == joint && error.track_index == track
+                   && error.keyframe_index == keyframe;
+        });
+        return it != errors.end();
+    }
+} // namespace
+
+TEST(AnimationClipValidation, DetectsMissingClipMetadata)
+{
+    using namespace engine::animation;
+
+    AnimationClip clip;
+    clip.duration = -1.0;
+
+    const auto errors = validate_clip(clip);
+    ASSERT_FALSE(errors.empty());
+
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kClipNameEmpty,
+                               std::string{},
+                               std::numeric_limits<std::size_t>::max(),
+                               std::numeric_limits<std::size_t>::max()));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kClipDurationInvalid,
+                               std::string{},
+                               std::numeric_limits<std::size_t>::max(),
+                               std::numeric_limits<std::size_t>::max()));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kClipMissingTracks,
+                               std::string{},
+                               std::numeric_limits<std::size_t>::max(),
+                               std::numeric_limits<std::size_t>::max()));
+}
+
+TEST(AnimationClipValidation, DetectsTrackAndKeyframeIssues)
+{
+    using namespace engine::animation;
+    using engine::math::quat;
+    using engine::math::vec3;
+
+    AnimationClip clip;
+    clip.name = "malformed";
+    clip.duration = 1.0;
+
+    JointTrack missing_name;
+    missing_name.keyframes.push_back({0.0, JointPose{}});
+    clip.tracks.push_back(missing_name);
+
+    JointTrack malformed;
+    malformed.joint_name = "root";
+    malformed.keyframes.push_back({-0.5, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{0.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
+    malformed.keyframes.push_back({0.0,
+                                   JointPose{vec3{std::numeric_limits<float>::infinity(), 0.0F, 0.0F},
+                                             quat{std::numeric_limits<float>::quiet_NaN(), 0.0F, 0.0F, 1.0F},
+                                             vec3{1.0F, std::numeric_limits<float>::quiet_NaN(), 1.0F}}});
+    malformed.keyframes.push_back({0.0, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
+    clip.tracks.push_back(malformed);
+
+    const auto errors = validate_clip(clip);
+    ASSERT_FALSE(errors.empty());
+
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kTrackMissingJointName,
+                               std::string{},
+                               0U,
+                               std::numeric_limits<std::size_t>::max()));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kKeyframeTimeInvalid,
+                               "root",
+                               1U,
+                               0U));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kKeyframeTimeNonIncreasing,
+                               "root",
+                               1U,
+                               2U));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kKeyframeTranslationNonFinite,
+                               "root",
+                               1U,
+                               1U));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kKeyframeScaleNonFinite,
+                               "root",
+                               1U,
+                               1U));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kKeyframeRotationNonFinite,
+                               "root",
+                               1U,
+                               1U));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kKeyframeRotationZeroLength,
+                               "root",
+                               1U,
+                               0U));
+}
+
+TEST(AnimationClipValidation, DetectsClipDurationShorterThanKeyframes)
+{
+    using namespace engine::animation;
+
+    AnimationClip clip;
+    clip.name = "duration_mismatch";
+    clip.duration = 0.25;
+
+    JointTrack track;
+    track.joint_name = "root";
+    track.keyframes.push_back({0.0, JointPose{}});
+    track.keyframes.push_back({0.5, JointPose{}});
+    clip.tracks.push_back(track);
+
+    const auto errors = validate_clip(clip);
+    ASSERT_FALSE(errors.empty());
+
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kClipDurationShorterThanLastKeyframe,
+                               std::string{},
+                               std::numeric_limits<std::size_t>::max(),
+                               std::numeric_limits<std::size_t>::max()));
+}
+
 TEST(AnimationClipValidation, DetectsInvalidTracks)
 {
     using namespace engine::animation;
@@ -53,22 +188,16 @@ TEST(AnimationClipValidation, DetectsInvalidTracks)
     const auto errors = validate_clip(clip);
     ASSERT_FALSE(errors.empty());
 
-    bool duplicate_track_detected = false;
-    bool non_increasing_detected = false;
-    for (const auto& error : errors)
-    {
-        if (error.code == ClipValidationErrorCode::kTrackDuplicateJoint)
-        {
-            duplicate_track_detected = true;
-        }
-        if (error.code == ClipValidationErrorCode::kKeyframeTimeNonIncreasing)
-        {
-            non_increasing_detected = true;
-        }
-    }
-
-    EXPECT_TRUE(duplicate_track_detected);
-    EXPECT_TRUE(non_increasing_detected);
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kTrackDuplicateJoint,
+                               "root",
+                               1U,
+                               std::numeric_limits<std::size_t>::max()));
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kKeyframeTimeNonIncreasing,
+                               "root",
+                               0U,
+                               1U));
 }
 
 TEST(AnimationClipValidation, DetectsEmptyTrackKeyframes)
@@ -86,15 +215,11 @@ TEST(AnimationClipValidation, DetectsEmptyTrackKeyframes)
     const auto errors = validate_clip(clip);
     ASSERT_FALSE(errors.empty());
 
-    const auto empty_track = std::find_if(errors.begin(),
-                                          errors.end(),
-                                          [](const ClipValidationError& error) {
-                                              return error.code == ClipValidationErrorCode::kTrackEmptyKeyframes;
-                                          });
-    ASSERT_NE(empty_track, errors.end());
-    EXPECT_EQ(empty_track->joint_name, "root");
-    EXPECT_EQ(empty_track->track_index, 0U);
-    EXPECT_EQ(empty_track->keyframe_index, std::numeric_limits<std::size_t>::max());
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kTrackEmptyKeyframes,
+                               "root",
+                               0U,
+                               std::numeric_limits<std::size_t>::max()));
 }
 
 TEST(AnimationClipValidation, DetectsUnorderedKeyframes)
@@ -114,15 +239,11 @@ TEST(AnimationClipValidation, DetectsUnorderedKeyframes)
     const auto errors = validate_clip(clip);
     ASSERT_FALSE(errors.empty());
 
-    const auto unordered_key = std::find_if(errors.begin(),
-                                            errors.end(),
-                                            [](const ClipValidationError& error) {
-                                                return error.code == ClipValidationErrorCode::kKeyframeTimeNonIncreasing;
-                                            });
-    ASSERT_NE(unordered_key, errors.end());
-    EXPECT_EQ(unordered_key->joint_name, "root");
-    EXPECT_EQ(unordered_key->track_index, 0U);
-    EXPECT_EQ(unordered_key->keyframe_index, 1U);
+    EXPECT_TRUE(contains_error(errors,
+                               ClipValidationErrorCode::kKeyframeTimeNonIncreasing,
+                               "root",
+                               0U,
+                               1U));
 }
 
 TEST(AnimationClipSerialization, RoundTripJson)

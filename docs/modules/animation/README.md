@@ -20,6 +20,9 @@
 - Module unit tests cover loading, serialization, blend tree behaviour, and feed
   into the integration harness at
   [`engine/tests/integration`](../../../engine/tests/integration/README.md).
+- Regression suites exercise clip validation failure codes and controller
+  playback invariants, guarding against regressions in authoring and runtime
+  pipelines.
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_animation` to
@@ -35,7 +38,7 @@
 
 ## TODO / Next Steps
 
-- Track `AN-201`, `AN-230`, `AN-240` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `RT-001` milestones.
+- Track `AN-230` and `AN-240` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `RT-001` milestones.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -43,7 +46,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `AN-201` | Extend validation regression coverage (`RT-001`). | Add negative-path fixtures for `validate_clip`, extend controller regression tests, document results in module roadmap. | 🔄 In Progress |
+| `AN-201` | Extend validation regression coverage (`RT-001`). | Add negative-path fixtures for `validate_clip`, extend controller regression tests, document results in module roadmap. | ✅ Done |
 | `AN-230` | Prototype GPU/parallel sampling plan. | Bench sampling throughput via `compute::KernelDispatcher` and publish findings in module roadmap. | 🟢 Todo |
 | `AN-240` | Draft state-machine authoring spec. | Author proposal covering transition orchestration and event propagation; link in `docs/design/`. | 🟢 Todo |
 
