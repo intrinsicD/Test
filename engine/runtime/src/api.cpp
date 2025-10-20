@@ -402,6 +402,250 @@ namespace engine::runtime
                 }
                 ++index;
             }
+            rebuild_metric_snapshot();
+        }
+
+        static std::vector<core::telemetry::Label> make_single_label(std::string_view key,
+                                                                     std::string_view value)
+        {
+            std::vector<core::telemetry::Label> labels{};
+            labels.reserve(1);
+            core::telemetry::Label label{};
+            label.key.assign(key);
+            label.value.assign(value);
+            labels.push_back(std::move(label));
+            return labels;
+        }
+
+        void rebuild_metric_snapshot()
+        {
+            core::telemetry::MetricSet snapshot{};
+            snapshot.descriptors.reserve(64);
+            snapshot.samples.reserve(64);
+
+            const auto clamp_to_int = [](auto value) -> std::int64_t {
+                const auto as_u64 = static_cast<std::uint64_t>(value);
+                const auto max_value = static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
+                return static_cast<std::int64_t>(std::min(as_u64, max_value));
+            };
+
+            const auto add_counter = [&](std::string_view name,
+                                         std::string_view description,
+                                         std::int64_t value,
+                                         std::vector<core::telemetry::Label> labels = {}) {
+                const std::size_t index = snapshot.descriptors.size();
+                core::telemetry::MetricDescriptor descriptor{};
+                descriptor.name.assign(name);
+                descriptor.kind = core::telemetry::MetricKind::Counter;
+                descriptor.unit = core::telemetry::MetricUnit::Count;
+                descriptor.description.assign(description);
+                descriptor.labels = std::move(labels);
+                snapshot.descriptors.push_back(std::move(descriptor));
+
+                core::telemetry::MetricSample sample{};
+                sample.descriptor_index = index;
+                sample.value = value;
+                snapshot.samples.push_back(std::move(sample));
+            };
+
+            const auto add_gauge = [&](std::string_view name,
+                                       std::string_view description,
+                                       double value,
+                                       core::telemetry::MetricUnit unit,
+                                       std::vector<core::telemetry::Label> labels = {}) {
+                const std::size_t index = snapshot.descriptors.size();
+                core::telemetry::MetricDescriptor descriptor{};
+                descriptor.name.assign(name);
+                descriptor.kind = core::telemetry::MetricKind::Gauge;
+                descriptor.unit = unit;
+                descriptor.description.assign(description);
+                descriptor.labels = std::move(labels);
+                snapshot.descriptors.push_back(std::move(descriptor));
+
+                core::telemetry::MetricSample sample{};
+                sample.descriptor_index = index;
+                sample.value = value;
+                snapshot.samples.push_back(std::move(sample));
+            };
+
+            add_counter("runtime.lifecycle.initialize.count",
+                        "Total RuntimeHost::initialize invocations",
+                        clamp_to_int(diagnostics.initialize_count));
+            add_counter("runtime.lifecycle.shutdown.count",
+                        "Total RuntimeHost::shutdown invocations",
+                        clamp_to_int(diagnostics.shutdown_count));
+            add_counter("runtime.lifecycle.tick.count",
+                        "Total RuntimeHost::tick invocations",
+                        clamp_to_int(diagnostics.tick_count));
+
+            add_gauge("runtime.lifecycle.last_initialize_ms",
+                      "Duration of the most recent initialize() call",
+                      diagnostics.last_initialize_ms,
+                      core::telemetry::MetricUnit::Milliseconds);
+            add_gauge("runtime.lifecycle.max_initialize_ms",
+                      "Longest initialize() duration recorded",
+                      diagnostics.max_initialize_ms,
+                      core::telemetry::MetricUnit::Milliseconds);
+            add_gauge("runtime.lifecycle.last_shutdown_ms",
+                      "Duration of the most recent shutdown() call",
+                      diagnostics.last_shutdown_ms,
+                      core::telemetry::MetricUnit::Milliseconds);
+            add_gauge("runtime.lifecycle.max_shutdown_ms",
+                      "Longest shutdown() duration recorded",
+                      diagnostics.max_shutdown_ms,
+                      core::telemetry::MetricUnit::Milliseconds);
+            add_gauge("runtime.lifecycle.last_tick_ms",
+                      "Duration of the most recent tick() call",
+                      diagnostics.last_tick_ms,
+                      core::telemetry::MetricUnit::Milliseconds);
+            add_gauge("runtime.lifecycle.max_tick_ms",
+                      "Longest tick() duration recorded",
+                      diagnostics.max_tick_ms,
+                      core::telemetry::MetricUnit::Milliseconds);
+            add_gauge("runtime.lifecycle.average_tick_ms",
+                      "Average tick() duration",
+                      diagnostics.average_tick_ms,
+                      core::telemetry::MetricUnit::Milliseconds);
+
+            const auto& streaming = diagnostics.streaming;
+            add_gauge("runtime.streaming.worker_count",
+                      "Configured asynchronous streaming worker threads",
+                      static_cast<double>(streaming.worker_count),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.streaming.queue_capacity",
+                      "Maximum number of pending streaming tasks",
+                      static_cast<double>(streaming.queue_capacity),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.streaming.pending_tasks",
+                      "Current number of enqueued streaming tasks",
+                      static_cast<double>(streaming.pending_tasks),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.streaming.active_workers",
+                      "Number of workers executing streaming tasks",
+                      static_cast<double>(streaming.active_workers),
+                      core::telemetry::MetricUnit::Count);
+            add_counter("runtime.streaming.total_enqueued",
+                        "Total streaming requests enqueued",
+                        clamp_to_int(streaming.total_enqueued));
+            add_counter("runtime.streaming.total_executed",
+                        "Total streaming requests executed",
+                        clamp_to_int(streaming.total_executed));
+            add_gauge("runtime.streaming.pending_handles",
+                      "Assets awaiting completion in streaming caches",
+                      static_cast<double>(streaming.streaming_pending),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.streaming.loading_handles",
+                      "Assets currently decoding in streaming caches",
+                      static_cast<double>(streaming.streaming_loading),
+                      core::telemetry::MetricUnit::Count);
+            add_counter("runtime.streaming.total_requests",
+                        "Total asset streaming requests observed",
+                        clamp_to_int(streaming.streaming_total_requests));
+            add_counter("runtime.streaming.total_completed",
+                        "Completed asset streaming requests",
+                        clamp_to_int(streaming.streaming_total_completed));
+            add_counter("runtime.streaming.total_failed",
+                        "Failed asset streaming requests",
+                        clamp_to_int(streaming.streaming_total_failed));
+            add_counter("runtime.streaming.total_cancelled",
+                        "Cancelled asset streaming requests",
+                        clamp_to_int(streaming.streaming_total_cancelled));
+            add_counter("runtime.streaming.total_rejected",
+                        "Rejected asset streaming requests due to capacity",
+                        clamp_to_int(streaming.streaming_total_rejected));
+
+            for (const auto& timing : diagnostics.stage_timings)
+            {
+                const auto labels = make_single_label("stage", timing.name);
+                add_gauge("runtime.stage.last_ms",
+                          "Duration of the most recent stage execution",
+                          timing.last_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          labels);
+                add_gauge("runtime.stage.average_ms",
+                          "Average execution time for the stage",
+                          timing.average_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("stage", timing.name));
+                add_gauge("runtime.stage.max_ms",
+                          "Maximum execution time for the stage",
+                          timing.max_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("stage", timing.name));
+                add_counter("runtime.stage.sample_count",
+                            "Samples recorded for the stage",
+                            clamp_to_int(timing.sample_count),
+                            make_single_label("stage", timing.name));
+            }
+
+            for (const auto& subsystem : diagnostics.subsystem_timings)
+            {
+                const auto labels = make_single_label("subsystem", subsystem.name);
+                add_gauge("runtime.subsystem.last_initialize_ms",
+                          "Duration of the most recent subsystem initialize()",
+                          subsystem.last_initialize_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          labels);
+                add_gauge("runtime.subsystem.last_tick_ms",
+                          "Duration of the most recent subsystem tick()",
+                          subsystem.last_tick_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("subsystem", subsystem.name));
+                add_gauge("runtime.subsystem.last_shutdown_ms",
+                          "Duration of the most recent subsystem shutdown()",
+                          subsystem.last_shutdown_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("subsystem", subsystem.name));
+                add_gauge("runtime.subsystem.max_initialize_ms",
+                          "Maximum subsystem initialize() duration",
+                          subsystem.max_initialize_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("subsystem", subsystem.name));
+                add_gauge("runtime.subsystem.max_tick_ms",
+                          "Maximum subsystem tick() duration",
+                          subsystem.max_tick_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("subsystem", subsystem.name));
+                add_gauge("runtime.subsystem.max_shutdown_ms",
+                          "Maximum subsystem shutdown() duration",
+                          subsystem.max_shutdown_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("subsystem", subsystem.name));
+                add_counter("runtime.subsystem.initialize_count",
+                            "Subsystem initialize() invocations",
+                            clamp_to_int(subsystem.initialize_count),
+                            make_single_label("subsystem", subsystem.name));
+                add_counter("runtime.subsystem.tick_count",
+                            "Subsystem tick() invocations",
+                            clamp_to_int(subsystem.tick_count),
+                            make_single_label("subsystem", subsystem.name));
+                add_counter("runtime.subsystem.shutdown_count",
+                            "Subsystem shutdown() invocations",
+                            clamp_to_int(subsystem.shutdown_count),
+                            make_single_label("subsystem", subsystem.name));
+            }
+
+            const auto& validation = diagnostics.scene_validation.metrics;
+            add_gauge("runtime.scene_validation.issue_count",
+                      "Total hierarchy validation issues detected in the most recent frame",
+                      static_cast<double>(validation.issue_count),
+                      core::telemetry::MetricUnit::Count);
+
+            const auto add_issue_metric = [&](std::string_view type, std::size_t value) {
+                add_gauge("runtime.scene_validation.issues",
+                          "Hierarchy validation issues by type",
+                          static_cast<double>(value),
+                          core::telemetry::MetricUnit::Count,
+                          make_single_label("type", type));
+            };
+
+            add_issue_metric("cycle", validation.cycle_count);
+            add_issue_metric("dangling_parent", validation.dangling_parent_count);
+            add_issue_metric("missing_parent_hierarchy", validation.missing_parent_hierarchy_count);
+            add_issue_metric("non_finite_transform", validation.non_finite_transform_count);
+            add_issue_metric("transform_mismatch", validation.transform_mismatch_count);
+
+            diagnostics.metrics = std::move(snapshot);
         }
 
         void record_initialize_duration(Clock::duration duration)
@@ -410,6 +654,7 @@ namespace engine::runtime
             diagnostics.last_initialize_ms = ms;
             diagnostics.max_initialize_ms = std::max(diagnostics.max_initialize_ms, ms);
             diagnostics.initialize_count += 1U;
+            rebuild_metric_snapshot();
         }
 
         void record_shutdown_duration(Clock::duration duration)
@@ -418,6 +663,7 @@ namespace engine::runtime
             diagnostics.last_shutdown_ms = ms;
             diagnostics.max_shutdown_ms = std::max(diagnostics.max_shutdown_ms, ms);
             diagnostics.shutdown_count += 1U;
+            rebuild_metric_snapshot();
         }
 
         void record_tick_duration(Clock::duration duration)
@@ -432,6 +678,7 @@ namespace engine::runtime
                 diagnostics.average_tick_ms += (ms - diagnostics.average_tick_ms) / count;
             }
             refresh_streaming_metrics();
+            rebuild_metric_snapshot();
         }
 
         void refresh_streaming_metrics() noexcept
@@ -783,6 +1030,7 @@ namespace engine::runtime
             initialized = true;
             record_initialize_duration(Clock::now() - initialize_start);
             refresh_streaming_metrics();
+            rebuild_metric_snapshot();
         }
 
         void shutdown() noexcept
@@ -821,6 +1069,7 @@ namespace engine::runtime
             reset_state();
             record_shutdown_duration(Clock::now() - shutdown_start);
             refresh_streaming_metrics();
+            rebuild_metric_snapshot();
         }
 
         runtime_frame_state tick(double dt)
@@ -1886,4 +2135,121 @@ extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_scene_issue_
     }
 
     return issues[index].message.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_metric_count() noexcept
+{
+    return engine::runtime::diagnostics().metrics.descriptors.size();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_name(std::size_t index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (index >= metrics.descriptors.size())
+    {
+        return "";
+    }
+    return metrics.descriptors[index].name.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API int engine_runtime_diagnostic_metric_kind(std::size_t index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (index >= metrics.descriptors.size())
+    {
+        return 0;
+    }
+    return static_cast<int>(metrics.descriptors[index].kind);
+}
+
+extern "C" ENGINE_RUNTIME_API int engine_runtime_diagnostic_metric_unit(std::size_t index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (index >= metrics.descriptors.size())
+    {
+        return 0;
+    }
+    return static_cast<int>(metrics.descriptors[index].unit);
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_description(std::size_t index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (index >= metrics.descriptors.size())
+    {
+        return "";
+    }
+    return metrics.descriptors[index].description.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_metric_label_count(std::size_t index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (index >= metrics.descriptors.size())
+    {
+        return 0;
+    }
+    return metrics.descriptors[index].labels.size();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_label_key(std::size_t metric_index,
+                                                                                      std::size_t label_index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (metric_index >= metrics.descriptors.size())
+    {
+        return "";
+    }
+    const auto& labels = metrics.descriptors[metric_index].labels;
+    if (label_index >= labels.size())
+    {
+        return "";
+    }
+    return labels[label_index].key.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_label_value(std::size_t metric_index,
+                                                                                        std::size_t label_index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (metric_index >= metrics.descriptors.size())
+    {
+        return "";
+    }
+    const auto& labels = metrics.descriptors[metric_index].labels;
+    if (label_index >= labels.size())
+    {
+        return "";
+    }
+    return labels[label_index].value.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API bool engine_runtime_diagnostic_metric_is_integral(std::size_t index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (index >= metrics.samples.size())
+    {
+        return false;
+    }
+    return engine::core::telemetry::is_integral(metrics.samples[index].value);
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_metric_value(std::size_t index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (index >= metrics.samples.size())
+    {
+        return 0.0;
+    }
+    return engine::core::telemetry::as_double(metrics.samples[index].value);
+}
+
+extern "C" ENGINE_RUNTIME_API std::int64_t engine_runtime_diagnostic_metric_value_int(std::size_t index) noexcept
+{
+    const auto& metrics = engine::runtime::diagnostics().metrics;
+    if (index >= metrics.samples.size())
+    {
+        return 0;
+    }
+    return engine::core::telemetry::as_int(metrics.samples[index].value);
 }

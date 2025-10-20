@@ -10,6 +10,7 @@
 
 #include "engine/animation/api.hpp"
 #include "engine/core/plugin/isubsystem_interface.hpp"
+#include "engine/core/telemetry/schema.hpp"
 #include "engine/core/threading/io_thread_pool.hpp"
 #include "engine/compute/api.hpp"
 #include "engine/geometry/api.hpp"
@@ -143,6 +144,7 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     std::vector<RuntimeStageTiming> stage_timings{};
     std::vector<RuntimeSubsystemTiming> subsystem_timings{};
     scene::validation::HierarchyValidationReport scene_validation{};
+    core::telemetry::MetricSet metrics{};
 #if ENGINE_ENABLE_RENDERING
     std::string frame_graph_serialization{};
     std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
@@ -301,3 +303,16 @@ extern "C" ENGINE_RUNTIME_API std::uint32_t engine_runtime_diagnostic_scene_issu
 extern "C" ENGINE_RUNTIME_API std::uint32_t engine_runtime_diagnostic_scene_issue_related(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_scene_issue_type_name(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_scene_issue_message(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_metric_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_name(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API int engine_runtime_diagnostic_metric_kind(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API int engine_runtime_diagnostic_metric_unit(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_description(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_metric_label_count(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_label_key(std::size_t metric_index,
+                                                                                      std::size_t label_index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_label_value(std::size_t metric_index,
+                                                                                        std::size_t label_index) noexcept;
+extern "C" ENGINE_RUNTIME_API bool engine_runtime_diagnostic_metric_is_integral(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_metric_value(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::int64_t engine_runtime_diagnostic_metric_value_int(std::size_t index) noexcept;

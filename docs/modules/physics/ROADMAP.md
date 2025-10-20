@@ -27,3 +27,5 @@ _Last Updated: 2025-02-19_
 
 - Coordinate with runtime to surface manifold telemetry.
 - Capture benchmark results in task record `T-0117-physics-contact-manifolds.md`.
+- Telemetry schema (`CC-001.1`) is available; unblock `PH-420` instrumentation
+  work.

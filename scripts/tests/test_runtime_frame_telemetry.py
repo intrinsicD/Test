@@ -36,6 +36,66 @@ def _make_frame(index: int, dispatches: dict[str, float]) -> telemetry.FrameSamp
     )
 
 
+def _make_metrics_snapshot() -> telemetry.RuntimeMetricsSnapshot:
+    descriptors = [
+        telemetry.RuntimeMetricDescriptor(
+            name="runtime.streaming.total_completed",
+            kind="counter",
+            unit="count",
+            description="",
+            labels={},
+        ),
+        telemetry.RuntimeMetricDescriptor(
+            name="runtime.lifecycle.last_tick_ms",
+            kind="gauge",
+            unit="milliseconds",
+            description="",
+            labels={},
+        ),
+        telemetry.RuntimeMetricDescriptor(
+            name="runtime.stage.last_ms",
+            kind="gauge",
+            unit="milliseconds",
+            description="",
+            labels={"stage": "geometry.deform"},
+        ),
+        telemetry.RuntimeMetricDescriptor(
+            name="runtime.stage.last_ms",
+            kind="gauge",
+            unit="milliseconds",
+            description="",
+            labels={"stage": "animation.evaluate"},
+        ),
+    ]
+    samples = [
+        telemetry.RuntimeMetricSample(
+            descriptor_index=0,
+            is_integral=True,
+            value=10.0,
+            int_value=10,
+        ),
+        telemetry.RuntimeMetricSample(
+            descriptor_index=1,
+            is_integral=False,
+            value=0.5,
+            int_value=0,
+        ),
+        telemetry.RuntimeMetricSample(
+            descriptor_index=2,
+            is_integral=False,
+            value=1.23,
+            int_value=0,
+        ),
+        telemetry.RuntimeMetricSample(
+            descriptor_index=3,
+            is_integral=False,
+            value=2.34,
+            int_value=0,
+        ),
+    ]
+    return telemetry.RuntimeMetricsSnapshot(descriptors=descriptors, samples=samples)
+
+
 def test_parse_variance_checks_valid() -> None:
     checks = telemetry._parse_variance_checks(
         ["geometry.deform:5", "physics.integrate:3.5"], 0.0
@@ -166,4 +226,41 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["subsystems"][0]["last_tick_ms"] == pytest.approx(0.6)
     assert payload["scene_validation"]["issue_count"] == 2
     assert payload["scene_validation"]["issues"][0]["type"] == "cycle"
+
+
+def test_select_metrics_filters_by_prefix() -> None:
+    snapshot = _make_metrics_snapshot()
+    filtered = telemetry._select_metrics(snapshot, ("runtime.stage.",))
+    assert [descriptor.labels["stage"] for descriptor, _ in filtered] == [
+        "animation.evaluate",
+        "geometry.deform",
+    ]
+
+
+def test_select_metrics_returns_all_without_prefix() -> None:
+    snapshot = _make_metrics_snapshot()
+    filtered = telemetry._select_metrics(snapshot, None)
+    assert [descriptor.name for descriptor, _ in filtered] == [
+        "runtime.lifecycle.last_tick_ms",
+        "runtime.stage.last_ms",
+        "runtime.stage.last_ms",
+        "runtime.streaming.total_completed",
+    ]
+
+
+def test_print_metric_summary_reports_missing_prefix(capsys: pytest.CaptureFixture[str]) -> None:
+    snapshot = _make_metrics_snapshot()
+    telemetry._print_metric_summary(snapshot, ("physics.",))
+    captured = capsys.readouterr().out
+    assert "metrics (filter: physics.)" in captured
+    assert "no metrics matched" in captured
+
+
+def test_print_metric_summary_emits_values(capsys: pytest.CaptureFixture[str]) -> None:
+    snapshot = _make_metrics_snapshot()
+    telemetry._print_metric_summary(snapshot, ("runtime.lifecycle.",))
+    captured = capsys.readouterr().out
+    assert "metrics (filter: runtime.lifecycle.)" in captured
+    assert "[runtime.lifecycle]" in captured
+    assert "last_tick_ms" in captured
 

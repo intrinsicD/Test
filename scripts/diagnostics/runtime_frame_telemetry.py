@@ -33,7 +33,7 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, MutableMapping, Optional, Sequence
+from typing import Dict, Iterable, List, MutableMapping, Optional, Sequence, Tuple
 
 
 @dataclass
@@ -151,6 +151,60 @@ class SceneValidationSnapshot:
     issues: List[SceneHierarchyIssue]
 
 
+_METRIC_KIND = {
+    0: "counter",
+    1: "gauge",
+    2: "histogram",
+}
+
+_METRIC_UNIT = {
+    0: "none",
+    1: "count",
+    2: "milliseconds",
+    3: "seconds",
+    4: "bytes",
+    5: "percentage",
+}
+
+_METRIC_UNIT_SUFFIX = {
+    "none": "",
+    "count": "",
+    "milliseconds": " ms",
+    "seconds": " s",
+    "bytes": " bytes",
+    "percentage": " %",
+}
+
+
+@dataclass
+class RuntimeMetricDescriptor:
+    """Schema metadata describing a single runtime metric."""
+
+    name: str
+    kind: str
+    unit: str
+    description: str
+    labels: Dict[str, str]
+
+
+@dataclass
+class RuntimeMetricSample:
+    """Metric value paired with its descriptor index."""
+
+    descriptor_index: int
+    is_integral: bool
+    value: float
+    int_value: int
+
+
+@dataclass
+class RuntimeMetricsSnapshot:
+    """Complete metrics payload exposed through the runtime diagnostics API."""
+
+    descriptors: List[RuntimeMetricDescriptor]
+    samples: List[RuntimeMetricSample]
+
+
 @dataclass
 class RuntimeDiagnosticsSnapshot:
     """Aggregated runtime lifecycle diagnostics exposed through the C ABI."""
@@ -167,6 +221,7 @@ class RuntimeDiagnosticsSnapshot:
     subsystems: List[RuntimeSubsystemMetric]
     streaming: Optional[RuntimeStreamingMetrics] = None
     scene_validation: Optional[SceneValidationSnapshot] = None
+    metrics: Optional[RuntimeMetricsSnapshot] = None
 
 
 class _CStreamingMetrics(ctypes.Structure):
@@ -196,6 +251,7 @@ class RuntimeBindings:
         self._has_diagnostics = False
         self._has_streaming_metrics = False
         self._has_scene_validation = False
+        self._has_metrics = False
         self._streaming_metrics_func = None
         self._configure_signatures()
 
@@ -313,11 +369,35 @@ class RuntimeBindings:
             lib.engine_runtime_diagnostic_subsystem_max_tick_ms.argtypes = [ctypes.c_size_t]
             lib.engine_runtime_diagnostic_subsystem_max_shutdown_ms.restype = ctypes.c_double
             lib.engine_runtime_diagnostic_subsystem_max_shutdown_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_count.restype = ctypes.c_size_t
+            lib.engine_runtime_diagnostic_metric_count.argtypes = []
+            lib.engine_runtime_diagnostic_metric_name.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_metric_name.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_kind.restype = ctypes.c_int
+            lib.engine_runtime_diagnostic_metric_kind.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_unit.restype = ctypes.c_int
+            lib.engine_runtime_diagnostic_metric_unit.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_description.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_metric_description.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_label_count.restype = ctypes.c_size_t
+            lib.engine_runtime_diagnostic_metric_label_count.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_label_key.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_metric_label_key.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_label_value.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_metric_label_value.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_is_integral.restype = ctypes.c_bool
+            lib.engine_runtime_diagnostic_metric_is_integral.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_value.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_metric_value.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_metric_value_int.restype = ctypes.c_int64
+            lib.engine_runtime_diagnostic_metric_value_int.argtypes = [ctypes.c_size_t]
         except AttributeError:
             self._has_diagnostics = False
             self._has_scene_validation = False
+            self._has_metrics = False
         else:
             self._has_diagnostics = True
+            self._has_metrics = True
 
         try:
             lib.engine_runtime_diagnostic_streaming_metrics.restype = None
@@ -441,6 +521,7 @@ class RuntimeBindings:
             subsystems=self._collect_subsystem_metrics(),
             streaming=self.streaming_metrics(),
             scene_validation=self._collect_scene_validation(),
+            metrics=self._collect_metrics(),
         )
 
     def _collect_stage_metrics(self) -> List[RuntimeStageMetric]:
@@ -537,6 +618,55 @@ class RuntimeBindings:
             transform_mismatch_count=mismatch_count,
             issues=issues,
         )
+
+    def _collect_metrics(self) -> Optional[RuntimeMetricsSnapshot]:
+        if not self._has_diagnostics or not self._has_metrics:
+            return None
+
+        count = int(self._lib.engine_runtime_diagnostic_metric_count())
+        descriptors: List[RuntimeMetricDescriptor] = []
+        samples: List[RuntimeMetricSample] = []
+
+        for index in range(count):
+            raw_name = self._lib.engine_runtime_diagnostic_metric_name(index)
+            name = raw_name.decode("utf-8") if raw_name else ""
+            kind_value = int(self._lib.engine_runtime_diagnostic_metric_kind(index))
+            unit_value = int(self._lib.engine_runtime_diagnostic_metric_unit(index))
+            raw_description = self._lib.engine_runtime_diagnostic_metric_description(index)
+            description = raw_description.decode("utf-8") if raw_description else ""
+            label_count = int(self._lib.engine_runtime_diagnostic_metric_label_count(index))
+            labels: Dict[str, str] = {}
+            for label_index in range(label_count):
+                raw_key = self._lib.engine_runtime_diagnostic_metric_label_key(index, label_index)
+                raw_value = self._lib.engine_runtime_diagnostic_metric_label_value(index, label_index)
+                key = raw_key.decode("utf-8") if raw_key else ""
+                value = raw_value.decode("utf-8") if raw_value else ""
+                if key:
+                    labels[key] = value
+
+            descriptors.append(
+                RuntimeMetricDescriptor(
+                    name=name,
+                    kind=_METRIC_KIND.get(kind_value, f"unknown({kind_value})"),
+                    unit=_METRIC_UNIT.get(unit_value, f"unknown({unit_value})"),
+                    description=description,
+                    labels=labels,
+                )
+            )
+
+            is_integral = bool(self._lib.engine_runtime_diagnostic_metric_is_integral(index))
+            value = float(self._lib.engine_runtime_diagnostic_metric_value(index))
+            int_value = int(self._lib.engine_runtime_diagnostic_metric_value_int(index))
+            samples.append(
+                RuntimeMetricSample(
+                    descriptor_index=index,
+                    is_integral=is_integral,
+                    value=value,
+                    int_value=int_value,
+                )
+            )
+
+        return RuntimeMetricsSnapshot(descriptors=descriptors, samples=samples)
 
 
 def _candidate_names(base: str) -> Iterable[str]:
@@ -735,6 +865,7 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
             for subsystem in snapshot.subsystems
         ],
         "scene_validation": _scene_validation_to_dict(snapshot.scene_validation),
+        "metrics": _metrics_to_dict(snapshot.metrics),
     }
 
 
@@ -757,6 +888,35 @@ def _streaming_to_dict(
         "streaming_total_failed": metrics.streaming_total_failed,
         "streaming_total_cancelled": metrics.streaming_total_cancelled,
         "streaming_total_rejected": metrics.streaming_total_rejected,
+    }
+
+
+def _metrics_to_dict(
+    snapshot: Optional[RuntimeMetricsSnapshot],
+) -> Optional[Dict[str, object]]:
+    if snapshot is None:
+        return None
+
+    return {
+        "descriptors": [
+            {
+                "name": descriptor.name,
+                "kind": descriptor.kind,
+                "unit": descriptor.unit,
+                "description": descriptor.description,
+                "labels": descriptor.labels,
+            }
+            for descriptor in snapshot.descriptors
+        ],
+        "samples": [
+            {
+                "descriptor_index": sample.descriptor_index,
+                "is_integral": sample.is_integral,
+                "value": sample.value,
+                "int_value": sample.int_value,
+            }
+            for sample in snapshot.samples
+        ],
     }
 
 
@@ -814,10 +974,90 @@ def _samples_to_dict(
     }
 
 
+def _metric_matches_prefix(name: str, prefixes: Optional[Sequence[str]]) -> bool:
+    if prefixes is None:
+        return True
+    return any(name.startswith(prefix) for prefix in prefixes)
+
+
+def _select_metrics(
+    snapshot: RuntimeMetricsSnapshot,
+    prefixes: Optional[Sequence[str]],
+) -> List[Tuple[RuntimeMetricDescriptor, RuntimeMetricSample]]:
+    entries: List[Tuple[RuntimeMetricDescriptor, RuntimeMetricSample, Tuple[Tuple[str, str], ...]]] = []
+    descriptor_count = len(snapshot.descriptors)
+    for sample in snapshot.samples:
+        index = sample.descriptor_index
+        if index >= descriptor_count:
+            continue
+        descriptor = snapshot.descriptors[index]
+        if not _metric_matches_prefix(descriptor.name, prefixes):
+            continue
+        label_key = tuple(sorted(descriptor.labels.items()))
+        entries.append((descriptor, sample, label_key))
+
+    entries.sort(key=lambda entry: (entry[0].name, entry[2]))
+    return [(descriptor, sample) for descriptor, sample, _ in entries]
+
+
+def _format_metric_value(sample: RuntimeMetricSample) -> str:
+    if sample.is_integral:
+        return f"{sample.int_value}"
+    return f"{sample.value:.4f}"
+
+
+def _format_metric_unit(unit: str) -> str:
+    return _METRIC_UNIT_SUFFIX.get(unit, f" {unit}" if unit else "")
+
+
+def _format_metric_labels(labels: Dict[str, str]) -> str:
+    if not labels:
+        return ""
+    parts = ", ".join(f"{key}={value}" for key, value in sorted(labels.items()))
+    return f" [{parts}]"
+
+
+def _print_metric_summary(
+    snapshot: RuntimeMetricsSnapshot,
+    prefixes: Optional[Sequence[str]],
+) -> None:
+    filtered = _select_metrics(snapshot, prefixes)
+    if prefixes is None:
+        prefix_info = ""
+    else:
+        joined = ", ".join(prefixes)
+        prefix_info = f" (filter: {joined})" if joined else ""
+
+    print(f"  metrics{prefix_info}:")
+    if not filtered:
+        if prefixes is None:
+            print("    (no metrics available)")
+        else:
+            print("    (no metrics matched the provided prefix filters)")
+        return
+
+    current_group: Optional[str] = None
+    for descriptor, sample in filtered:
+        if "." in descriptor.name:
+            group, leaf = descriptor.name.rsplit(".", maxsplit=1)
+        else:
+            group, leaf = "metrics", descriptor.name
+
+        if group != current_group:
+            print(f"    [{group}]")
+            current_group = group
+
+        value = _format_metric_value(sample)
+        unit = _format_metric_unit(descriptor.unit)
+        labels = _format_metric_labels(descriptor.labels)
+        print(f"      {leaf:<32} {value}{unit}{labels}")
+
+
 def _print_summary(
     samples: Sequence[FrameSample],
     verbose: bool,
     diagnostics: Optional[RuntimeDiagnosticsSnapshot],
+    metric_prefixes: Optional[Sequence[str]],
 ) -> None:
     data = summarise(samples)
     print("Aggregate category totals (ms):")
@@ -858,6 +1098,8 @@ def _print_summary(
                     f"avg={stage.average_ms:8.4f} ms "
                     f"last={stage.last_ms:8.4f} ms"
                 )
+        if diagnostics.metrics is not None:
+            _print_metric_summary(diagnostics.metrics, metric_prefixes)
         if diagnostics.scene_validation is not None:
             scene = diagnostics.scene_validation
             print(
@@ -983,6 +1225,23 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
             "(e.g., 0.1 trims 10% from the minimum and maximum tails)."
         ),
     )
+    parser.add_argument(
+        "--metric-prefix",
+        action="append",
+        default=None,
+        metavar="PREFIX",
+        help=(
+            "Print metrics whose fully-qualified names start with PREFIX. May be provided multiple times. "
+            "Defaults to 'runtime.streaming.' when no prefixes are specified."
+        ),
+    )
+    parser.add_argument(
+        "--metrics-all",
+        action="store_true",
+        help=(
+            "Ignore prefix filtering and display every metric in the runtime telemetry snapshot."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -1002,7 +1261,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     finally:
         bindings.shutdown()
 
-    _print_summary(samples, args.verbose, diagnostics)
+    if args.metrics_all:
+        metric_prefixes: Optional[Sequence[str]] = None
+    else:
+        prefixes = tuple(args.metric_prefix or ())
+        metric_prefixes = prefixes if prefixes else ("runtime.streaming.",)
+
+    _print_summary(samples, args.verbose, diagnostics, metric_prefixes)
 
     if variance_checks:
         for result in map(lambda check: evaluate_variance(samples, check), variance_checks):

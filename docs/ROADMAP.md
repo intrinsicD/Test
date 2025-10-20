@@ -100,9 +100,12 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `CC-001.1` | Define metrics schema. | Schema documented, implemented in core telemetry module, adopted by runtime. | 🟢 Todo |
+| `CC-001.1` | Define metrics schema. | Schema documented, implemented in core telemetry module, adopted by runtime. | ✅ Done |
 | `CC-001.2` | Implement viewer shell. | Tools module exposes CLI/UI to inspect metrics with scripted smoke tests. | 🟢 Todo |
 | `CC-001.3` | Publish instrumentation guide. | Cross-module doc outlining how to emit and consume metrics. | 🟢 Todo |
+
+- 2025-02-28: Published [`design/telemetry_schema.md`](design/telemetry_schema.md)
+  and integrated runtime diagnostics with the shared schema.
 
 #### `CC-002` — Hot Reload Infrastructure
 

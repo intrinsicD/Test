@@ -5,6 +5,7 @@ add_library(${target_name}
     src/ecs/registry.cpp
     src/ecs/system.cpp
     src/threading/io_thread_pool.cpp
+    src/telemetry/schema.cpp
 )
 
 engine_apply_module_defaults(${target_name}

@@ -22,12 +22,20 @@ acceptance criteria (`AI-003`, `RT-003`, `RT-004`).
 3. **Inspect the output**. The script prints aggregate timings by subsystem and
    runtime lifecycle statistics (initialise/tick/shutdown durations plus
    per-stage samples), reports asynchronous streaming queue metrics harvested
-   from `RuntimeDiagnostics`, surfaces hierarchy validation issues forwarded by
-   the diagnostics bridge (entity identifiers, relationship context, and
-   messages), and stores detailed per-dispatch metrics in JSON when `--output`
-   is specified. Use these artefacts to track regressions in the
-   animation/physics ↔ rendering hand-off, monitor streaming health, triage
-   hierarchy validation failures, and assess subsystem behaviour over time.
+   from `RuntimeDiagnostics`, enumerates structured metrics from the shared
+   telemetry schema (lifecycle counters, streaming gauges, stage/subsystem
+   samples, etc.), surfaces
+   hierarchy validation issues forwarded by the diagnostics bridge (entity
+   identifiers, relationship context, and messages), and stores detailed
+   per-dispatch metrics in JSON when `--output` is specified. Use these
+   artefacts to track regressions in the animation/physics ↔ rendering hand-off,
+   monitor streaming health, triage hierarchy validation failures, and assess
+   subsystem behaviour over time.
+
+Use `--metric-prefix PREFIX` (repeatable) to restrict the printed metrics to
+specific namespaces (for example `--metric-prefix runtime.lifecycle.`). Pass
+`--metrics-all` to display the full metric set exposed by the runtime snapshot
+instead of the default `runtime.streaming.*` subset.
 
 Use `--verbose` to emit per-frame tables on stdout when investigating specific
 regressions. The JSON payload can be checked into performance dashboards or

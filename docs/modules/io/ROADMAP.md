@@ -20,7 +20,7 @@ _Last Updated: 2025-02-24_
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `IO-240` | Emit telemetry for import/export outcomes. | After `CC-001.1` schema defined |
+| `IO-240` | Emit telemetry for import/export outcomes. | Schema ready (`CC-001.1`); integrate with diagnostics bridge |
 
 ## Completed
 
@@ -32,3 +32,4 @@ _Last Updated: 2025-02-24_
 
 - Coordinate fuzz harness resource usage with CI owners before enabling.
 - Update task records (`T-0112`) and central roadmap when milestones move.
+- Consume the shared telemetry schema when wiring `IO-240` metrics.
