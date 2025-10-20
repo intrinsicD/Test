@@ -21,6 +21,8 @@
 - Build with `cmake --build --preset <preset> --target engine_runtime`.
 - Include `<engine/runtime/runtime_host.hpp>` for orchestration APIs.
 - Run `ctest --preset <preset> --tests-regex engine_runtime`.
+- Follow the [async streaming integration guide](async_streaming_integration.md)
+  when wiring asset loading through the runtime and telemetry tooling (`AI-002.3`).
 
 ## TODO / Next Steps
 

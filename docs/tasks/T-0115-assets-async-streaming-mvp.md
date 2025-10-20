@@ -74,6 +74,10 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
 - `AssetAsyncQueue.CancelPendingRequestResolvesFuture` guards the regression
   where cancellation occurs before worker dispatch, ensuring futures resolve
   with `Cancelled` results instead of placeholder validation errors.
+- Runtime integration guidance lives in
+  [`docs/modules/runtime/async_streaming_integration.md`](../modules/runtime/async_streaming_integration.md),
+  documenting configuration, scheduling flows, and telemetry consumption for
+  runtime consumers (`AI-002.3`).
 
 ## Open Questions
 - Do we expose per-asset-type worker pools or a shared pool with weighted priorities?
