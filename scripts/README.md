@@ -7,6 +7,8 @@
 - Telemetry and diagnostics helpers live in [`diagnostics/`](diagnostics/); see
   [`diagnostics/README.md`](diagnostics/README.md) for the runtime frame timing
   capture script that fulfils the sprint 06 telemetry requirement.
+- Error-handling lint (`lint/error_handling.py`) guards against reintroducing
+  legacy exception patterns covered by `DC-004`.
 
 ## Usage
 

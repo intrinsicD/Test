@@ -1,0 +1,293 @@
+{
+  "engine/animation/src/deformation/linear_blend_skinning.cpp": {
+    "throw std::invalid_argument(\"global_transforms span is too small for joint count\");": 1,
+    "throw std::invalid_argument(\"out_global span is too small for joint count\");": 1,
+    "throw std::invalid_argument(\"out_skinning span is too small for joint count\");": 1
+  },
+  "engine/animation/src/serialization.cpp": {
+    "throw std::runtime_error(\"Cannot serialise invalid animation clip\");": 1,
+    "throw std::runtime_error(\"Failed while writing animation clip JSON\");": 1,
+    "throw std::runtime_error(\"Invalid Unicode escape in animation clip JSON\");": 2,
+    "throw std::runtime_error(\"Invalid escape sequence in animation clip JSON\");": 1,
+    "throw std::runtime_error(\"Invalid numeric literal in animation clip JSON\");": 2,
+    "throw std::runtime_error(\"Non-ASCII Unicode escapes are not supported in animation clip JSON\");": 1,
+    "throw std::runtime_error(\"Unexpected token in animation clip JSON\");": 2,
+    "throw std::runtime_error(\"Unexpected trailing data in animation clip JSON\");": 1,
+    "throw std::runtime_error(\"Unsupported escape sequence in animation clip JSON\");": 1,
+    "throw std::runtime_error(\"Unterminated string in animation clip JSON\");": 1,
+    "throw std::runtime_error(message.str());": 1,
+    "throw std::system_error(std::error_code(errno, std::generic_category()),": 2
+  },
+  "engine/assets/include/engine/assets/detail/filesystem_utils.hpp": {
+    "throw std::runtime_error(": 1
+  },
+  "engine/assets/src/graph_asset.cpp": {
+    "throw std::invalid_argument(\"Graph handle identifier cannot be empty\");": 2,
+    "throw std::out_of_range(\"Graph asset handle not found\");": 1,
+    "throw std::runtime_error(\"Failed to read graph: \" + std::string(result.error().message()));": 1,
+    "throw std::runtime_error(\"Geometry file detection failed: \" +": 1,
+    "throw std::runtime_error(\"Geometry file does not describe a graph\");": 1,
+    "throw std::runtime_error(\"Unable to determine graph file format for asset\");": 1
+  },
+  "engine/assets/src/material_asset.cpp": {
+    "throw std::invalid_argument(\"Material handle identifier cannot be empty\");": 1,
+    "throw std::out_of_range(\"Material asset handle not found\");": 1
+  },
+  "engine/assets/src/mesh_asset.cpp": {
+    "throw std::invalid_argument(\"Asset load request identifier cannot be empty\");": 1,
+    "throw std::invalid_argument(\"Mesh handle identifier cannot be empty\");": 2,
+    "throw std::out_of_range(\"Mesh asset handle not found\");": 1,
+    "throw std::runtime_error(\"Failed to read mesh: \" + std::string(result.error().message()));": 1,
+    "throw std::runtime_error(\"Geometry file detection failed: \" +": 1,
+    "throw std::runtime_error(\"Geometry file does not describe a mesh\");": 1,
+    "throw std::runtime_error(\"Unable to determine mesh file format for asset\");": 1
+  },
+  "engine/assets/src/point_cloud_asset.cpp": {
+    "throw std::invalid_argument(\"Asset load request identifier cannot be empty\");": 1,
+    "throw std::invalid_argument(\"Point cloud handle identifier cannot be empty\");": 2,
+    "throw std::out_of_range(\"Point cloud asset handle not found\");": 1,
+    "throw std::runtime_error(\"Failed to read point cloud: \" +": 1,
+    "throw std::runtime_error(\"Geometry file detection failed: \" +": 1,
+    "throw std::runtime_error(\"Geometry file does not describe a point cloud\");": 1,
+    "throw std::runtime_error(\"Unable to determine point cloud file format for asset\");": 1
+  },
+  "engine/assets/src/shader_asset.cpp": {
+    "throw std::invalid_argument(\"Shader handle identifier cannot be empty\");": 2,
+    "throw std::out_of_range(\"Shader asset handle not found\");": 1,
+    "throw std::runtime_error(\"Failed to open shader file: \" + path.generic_string());": 1
+  },
+  "engine/assets/src/texture_asset.cpp": {
+    "throw std::invalid_argument(\"Texture handle identifier cannot be empty\");": 2,
+    "throw std::out_of_range(\"Texture asset handle not found\");": 1,
+    "throw std::runtime_error(\"Failed to open texture file: \" + path.generic_string());": 1,
+    "throw std::runtime_error(\"Failed to read texture file: \" + path.generic_string());": 1
+  },
+  "engine/compute/src/api.cpp": {
+    "throw std::invalid_argument{\"ClockConfiguration.measure must be callable\"};": 1,
+    "throw std::out_of_range{make_dependency_error(graph, unresolved)};": 1,
+    "throw std::runtime_error{make_cycle_error(graph, \"during dispatch\")};": 1,
+    "throw std::runtime_error{make_cycle_error(graph, \"during registration\")};": 1,
+    "throw;": 1
+  },
+  "engine/core/include/engine/core/diagnostics/result.hpp": {
+    "constexpr Result(E&& error) noexcept(std::is_nothrow_move_constructible_v<E>)": 2,
+    "constexpr Result(T&& value) noexcept(std::is_nothrow_move_constructible_v<T>)": 1
+  },
+  "engine/core/include/engine/core/memory/resource_pool.hpp": {
+    "throw std::out_of_range(\"ResourcePool handle is not valid\");": 2
+  },
+  "engine/geometry/include/engine/geometry/utils/bounded_heap.hpp": {
+    "if (data_.empty()) throw std::out_of_range(\"BoundedHeap::top on empty heap\");": 1
+  },
+  "engine/geometry/src/deform/linear_blend_skinning.cpp": {
+    "throw std::invalid_argument(\"skinning_transforms span is too small for joint count\");": 1
+  },
+  "engine/geometry/src/graph/graph_io.cpp": {
+    "throw std::runtime_error(\"Edge in graph file \\\"\" + path.string() + \"\\\" references vertex outside range\");": 1,
+    "throw std::runtime_error(\"Failed to add edge while importing graph file \\\"\" + path.string() + \"\\\"\");": 1,
+    "throw std::runtime_error(\"Failed while writing graph file \\\"\" + path.string() + \"\\\"\");": 1,
+    "throw std::runtime_error(\"Graph file \\\"\" + path.string() + \"\\\" declares \" +": 2,
+    "throw std::runtime_error(\"Invalid edge specification on line \" + std::to_string(line_number) +": 1,
+    "throw std::runtime_error(\"Invalid vertex specification on line \" + std::to_string(line_number) +": 1,
+    "throw std::runtime_error(\"Malformed graph header on line \" + std::to_string(line_number) +": 1,
+    "throw std::runtime_error(\"Self-edge encountered while importing graph file \\\"\" + path.string() + \"\\\"\");": 1,
+    "throw std::runtime_error(\"Unknown directive \\\"\" + token + \"\\\" on line \" + std::to_string(line_number) +": 1,
+    "throw std::runtime_error(\"Unsupported graph format for file \\\"\" + path.string() + \"\\\"\");": 3,
+    "throw std::system_error(std::error_code(errno, std::generic_category()),": 2
+  },
+  "engine/geometry/src/mesh/halfedge_mesh_io.cpp": {
+    "throw std::runtime_error(\"Cannot export OBJ because a face references a deleted vertex in \\\"\" +": 1,
+    "throw std::runtime_error(\"Encountered face before any vertices in OBJ file \\\"\" + path.string() +": 1,
+    "throw std::runtime_error(\"Failed to construct face while importing OBJ file \\\"\" + path.string() +": 1,
+    "throw std::runtime_error(\"Failed while writing OBJ file \\\"\" + path.string() + \"\\\"\");": 1,
+    "throw std::runtime_error(\"Invalid vertex index \\\"\" + std::string(index_token) + \"\\\" in OBJ face on line \" +": 1,
+    "throw std::runtime_error(\"Invalid vertex specification on line \" + std::to_string(line_number) +": 1,
+    "throw std::runtime_error(\"Missing vertex index in OBJ face on line \" + std::to_string(line_number) +": 1,
+    "throw std::runtime_error(\"OBJ face on line \" + std::to_string(line_number) + \" of \\\"\" + path.string() +": 2,
+    "throw std::runtime_error(\"OBJ indices are 1-based; encountered zero on line \" + std::to_string(line_number) +": 1,
+    "throw std::runtime_error(\"Unsupported mesh format for file \\\"\" + path.string() + \"\\\"\");": 3,
+    "throw std::system_error(std::error_code(errno, std::generic_category()),": 2
+  },
+  "engine/geometry/src/mesh/surface_mesh_conversion.cpp": {
+    "throw std::runtime_error(": 2,
+    "throw std::runtime_error(\"Halfedge mesh references a deleted vertex while exporting SurfaceMesh\");": 1,
+    "throw std::runtime_error(\"SurfaceMesh contains degenerate triangles which cannot form a halfedge face\");": 1,
+    "throw std::runtime_error(\"SurfaceMesh indices are not a multiple of three; only triangles are supported\");": 1,
+    "throw std::runtime_error(\"SurfaceMesh indices reference vertices outside the available range\");": 1
+  },
+  "engine/geometry/src/point_cloud/point_cloud_io.cpp": {
+    "throw std::runtime_error(\"Expected PLY signature at beginning of file\");": 1,
+    "throw std::runtime_error(\"Failed to open PLY file for reading\");": 1,
+    "throw std::runtime_error(\"Failed to open PLY file for writing\");": 1,
+    "throw std::runtime_error(\"Failed to write PLY vertex data\");": 1,
+    "throw std::runtime_error(\"PLY stream is empty\");": 1,
+    "throw std::runtime_error(\"PLY vertex element does not describe positions\");": 1,
+    "throw std::runtime_error(\"Unable to infer output format from file extension\");": 1,
+    "throw std::runtime_error(\"Unexpected end of PLY vertex data\");": 2,
+    "throw std::runtime_error(\"Unsupported PLY format: \" + format);": 1,
+    "throw std::runtime_error(\"Unsupported PLY property type: \" + std::string{token});": 1
+  },
+  "engine/io/src/animation_importer.cpp": {
+    "throw std::runtime_error(\"Animation clip path does not exist: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open animation file for detection: \" + path.string());": 1,
+    "throw std::runtime_error(\"Unsupported animation clip format for path: \" + path.string());": 2
+  },
+  "engine/io/src/geometry_io.cpp": {
+    "throw std::runtime_error(\"Binary PCD files are not supported: \" + path.string());": 1,
+    "throw std::runtime_error(\"Binary PLY graphs are not supported: \" + path.string());": 1,
+    "throw std::runtime_error(\"Binary PLY meshes are not supported: \" + path.string());": 1,
+    "throw std::runtime_error(\"Binary PLY point clouds are not supported: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to add face while parsing OBJ file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to add face while parsing OFF file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to add face while parsing PLY file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open OBJ file for writing: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open OBJ file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open OFF file for writing: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open OFF file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open PCD file for writing: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open PCD file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open PLY file for inspection: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open PLY file for writing: \" + path.string());": 3,
+    "throw std::runtime_error(\"Failed to open PLY file: \" + path.string());": 3,
+    "throw std::runtime_error(\"Failed to open XYZ file for writing: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open XYZ file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open edge list file for writing: \" + path.string());": 1,
+    "throw std::runtime_error(\"Failed to open edge list file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Graph contains edge with unregistered vertex while writing PLY\");": 1,
+    "throw std::runtime_error(\"Graph contains edge with unregistered vertex while writing edge list\");": 1,
+    "throw std::runtime_error(\"Invalid OFF header in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Invalid PLY header in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Mesh contains face with unregistered vertex while writing OBJ\");": 1,
+    "throw std::runtime_error(\"Mesh contains face with unregistered vertex while writing OFF\");": 1,
+    "throw std::runtime_error(\"Mesh contains face with unregistered vertex while writing PLY\");": 1,
+    "throw std::runtime_error(\"OBJ face references invalid vertex index in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"OBJ face with fewer than 3 vertices in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"OBJ vertex without 3 coordinates in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"OFF face has fewer than 3 vertices in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"OFF face references invalid vertex index in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"PCD file missing XYZ fields: \" + path.string());": 1,
+    "throw std::runtime_error(\"PLY face has insufficient vertices in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"PLY face references invalid vertex index in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"PLY graph edge references invalid vertex index: \" + path.string());": 1,
+    "throw std::runtime_error(\"PLY point cloud vertex without 3 coordinates in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"PLY vertex without 3 coordinates in file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Unexpected end of file while reading PLY faces: \" + path.string());": 1,
+    "throw std::runtime_error(\"Unexpected end of file while reading PLY graph edges: \" + path.string());": 1,
+    "throw std::runtime_error(\"Unexpected end of file while reading PLY graph vertices: \" + path.string());": 1,
+    "throw std::runtime_error(\"Unexpected end of file while reading PLY point cloud vertices: \" + path.string());": 1,
+    "throw std::runtime_error(\"Unexpected end of file while reading PLY vertices: \" + path.string());": 1
+  },
+  "engine/io/src/geometry_io_registry.cpp": {
+    "throw std::invalid_argument(\"Graph exporter cannot target unknown format\");": 1,
+    "throw std::invalid_argument(\"Graph exporter must not be null\");": 1,
+    "throw std::invalid_argument(\"Graph importer cannot target unknown format\");": 1,
+    "throw std::invalid_argument(\"Graph importer must not be null\");": 1,
+    "throw std::invalid_argument(\"Mesh exporter cannot target unknown format\");": 1,
+    "throw std::invalid_argument(\"Mesh exporter must not be null\");": 1,
+    "throw std::invalid_argument(\"Mesh importer cannot target unknown format\");": 1,
+    "throw std::invalid_argument(\"Mesh importer must not be null\");": 1,
+    "throw std::invalid_argument(\"Point cloud exporter cannot target unknown format\");": 1,
+    "throw std::invalid_argument(\"Point cloud exporter must not be null\");": 1,
+    "throw std::invalid_argument(\"Point cloud importer cannot target unknown format\");": 1,
+    "throw std::invalid_argument(\"Point cloud importer must not be null\");": 1
+  },
+  "engine/physics/src/api.cpp": {
+    "throw std::out_of_range{\"physics::body_at index out of range\"};": 2
+  },
+  "engine/platform/src/windowing/glfw_window.cpp": {
+    "throw std::runtime_error{": 1,
+    "throw std::runtime_error{\"Failed to initialise GLFW\"};": 1,
+    "throw std::runtime_error{\"Failed to initialise GLFW: \" + message};": 1,
+    "throw;": 1
+  },
+  "engine/platform/src/windowing/glfw_window_stub.cpp": {
+    "throw std::runtime_error(": 1
+  },
+  "engine/platform/src/windowing/window_base.cpp": {
+    "throw std::invalid_argument{\"Event queue must not be null\"};": 1
+  },
+  "engine/platform/src/windowing/window_system.cpp": {
+    "throw std::runtime_error{\"Automatic backend selection is handled by create_window\"};": 1,
+    "throw std::runtime_error{\"Unsupported window backend\"};": 1,
+    "throw std::runtime_error{*violation};": 1,
+    "throw std::runtime_error{message.str()};": 1
+  },
+  "engine/rendering/include/engine/rendering/backend/native_scheduler_base.hpp": {
+    "throw std::runtime_error{\"NativeSchedulerBase received unknown command buffer\"};": 1
+  },
+  "engine/rendering/src/backend/vulkan/resource_translation.cpp": {
+    "throw std::invalid_argument{\"translate_access_mask received unknown access\"};": 1,
+    "throw std::invalid_argument{\"translate_buffer_usage requires at least one usage flag\"};": 1,
+    "throw std::invalid_argument{\"translate_format received unknown format\"};": 1,
+    "throw std::invalid_argument{\"translate_image_type received non-texture resource\"};": 1,
+    "throw std::invalid_argument{\"translate_image_usage requires at least one usage flag\"};": 1,
+    "throw std::invalid_argument{\"translate_layout received unknown state\"};": 1,
+    "throw std::invalid_argument{\"translate_pipeline_stage received unknown stage\"};": 1,
+    "throw std::invalid_argument{\"translate_resource requires buffer size metadata\"};": 1,
+    "throw std::invalid_argument{\"translate_resource requires explicit resource dimension\"};": 1,
+    "throw std::invalid_argument{\"translate_sample_count received unsupported sample count\"};": 1,
+    "throw std::invalid_argument{\"translate_view_type received non-texture resource\"};": 1
+  },
+  "engine/rendering/src/frame_graph.cpp": {
+    "throw std::invalid_argument{\"FrameGraph::add_pass expects a valid RenderPass\"};": 1,
+    "throw std::logic_error(\"FrameGraph buffer resource '\" + resource.name + \"' missing size metadata\");": 1,
+    "throw std::logic_error(\"FrameGraph resource '\" + resource.name + \"' missing dimension metadata\");": 1,
+    "throw std::logic_error(\"FrameGraph resource '\" + resource.name + \"' missing final state metadata\");": 1,
+    "throw std::logic_error(\"FrameGraph resource '\" + resource.name + \"' missing format metadata\");": 1,
+    "throw std::logic_error(\"FrameGraph resource '\" + resource.name + \"' missing initial state metadata\");": 1,
+    "throw std::logic_error(\"FrameGraph resource '\" + resource.name + \"' missing usage metadata\");": 1,
+    "throw std::logic_error(\"FrameGraph texture resource '\" + resource.name +": 3,
+    "throw std::logic_error(message.str());": 1,
+    "throw std::logic_error{": 1,
+    "throw std::logic_error{\"FrameGraph contains cyclic dependencies\"};": 1,
+    "throw std::logic_error{\"FrameGraph pass references invalid resource handle\"};": 1,
+    "throw std::logic_error{\"FrameGraph resource already has a writer\"};": 1,
+    "throw std::logic_error{\"FrameGraph resource missing debug name\"};": 1,
+    "throw std::logic_error{\"FrameGraph::serialize requires a compiled graph\"};": 1,
+    "throw std::out_of_range{\"FrameGraph::pass_name invalid pass index\"};": 1,
+    "throw std::out_of_range{\"FrameGraph::pass_reads invalid pass index\"};": 1,
+    "throw std::out_of_range{\"FrameGraph::pass_writes invalid pass index\"};": 1,
+    "throw std::out_of_range{\"FrameGraph::resource_info received invalid handle\"};": 1,
+    "throw std::out_of_range{\"FrameGraphPassBuilder::read received invalid resource handle\"};": 1,
+    "throw std::out_of_range{\"FrameGraphPassBuilder::write received invalid resource handle\"};": 1,
+    "throw std::runtime_error{\"CommandEncoderProvider returned null encoder\"};": 1
+  },
+  "engine/runtime/src/api.cpp": {
+    "static void throw_if_invalid_dependencies(const RuntimeHostDependencies& deps)": 1,
+    "throw std::runtime_error(\"RuntimeHost cannot be configured while initialized\");": 1,
+    "throw std::runtime_error(\"RuntimeHost has no implementation\");": 1,
+    "throw std::runtime_error(\"RuntimeHost must be initialized before accessing body positions\");": 1,
+    "throw std::runtime_error(\"RuntimeHost must be initialized before accessing dispatch reports\");": 1,
+    "throw std::runtime_error(\"RuntimeHost must be initialized before accessing joint names\");": 1,
+    "throw std::runtime_error(\"RuntimeHost must be initialized before accessing scene nodes\");": 1,
+    "throw std::runtime_error(\"RuntimeHost must be initialized before accessing the mesh\");": 1,
+    "throw std::runtime_error(\"RuntimeHost must be initialized before accessing the pose\");": 1,
+    "throw std::runtime_error(\"RuntimeHost must be initialized before submitting a render graph\");": 1,
+    "throw std::runtime_error(\"RuntimeHost must be initialized before tick()\");": 1,
+    "throw std::runtime_error(format_dependency_errors(errors));": 1,
+    "throw_if_invalid_dependencies(deps);": 2
+  },
+  "engine/runtime/src/subsystem_registry.cpp": {
+    "throw std::invalid_argument{\"Subsystem factory must not be null\"};": 1,
+    "throw std::invalid_argument{\"Subsystem name must not be empty\"};": 1
+  },
+  "engine/scene/include/engine/scene/scene.hpp": {
+    "throw std::logic_error{\"Entity is not associated with a scene\"};": 1
+  },
+  "engine/scene/src/scene.cpp": {
+    "throw std::logic_error{\"Child entity does not belong to this scene\"};": 2,
+    "throw std::logic_error{\"Child entity is not valid\"};": 1,
+    "throw std::logic_error{\"Parent entity does not belong to this scene\"};": 1,
+    "throw std::logic_error{\"Parent entity is not valid\"};": 1
+  },
+  "engine/scene/src/serialization/serializer.cpp": {
+    "throw std::runtime_error{\"Scene serialization: expected 'scene' token\"};": 1,
+    "throw std::runtime_error{\"Scene serialization: expected token '\" + expected + \"'\"};": 1,
+    "throw std::runtime_error{\"Scene serialization: failed to read component type\"};": 1,
+    "throw std::runtime_error{\"Scene serialization: failed to read entity count\"};": 1,
+    "throw std::runtime_error{\"Scene serialization: failed to read entity header\"};": 1,
+    "throw std::runtime_error{\"Scene serialization: failed to read scene name\"};": 1,
+    "throw std::runtime_error{\"Scene serialization: unknown component type '\" + component_type + \"'\"};": 1,
+    "throw std::runtime_error{\"Scene serialization: unresolved hierarchy reference\"};": 1
+  }
+}
