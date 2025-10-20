@@ -3,6 +3,7 @@ set(target_name engine_scene)
 add_library(${target_name}
         src/api.cpp
         src/scene.cpp
+        src/scene_graph_validator.cpp
         src/serialization/serializer.cpp
         src/systems/hierarchy_system.cpp
         src/systems/registry.cpp
