@@ -22,7 +22,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Description | Trigger |
 | --- | --- | --- |
-| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher`. | After `CO-141` lands. |
+| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher`. | After `CO-141` lands (dependency satisfied). |
 | `AN-240` | Draft state-machine authoring specification with transition orchestration and event propagation requirements. | After `AN-201` complete. |
 | `AN-250` | Investigate advanced deformation pipelines (dual quaternion, curve-driven rigs) and dependencies on geometry module upgrades. | Pending geometry remeshing roadmap. |
 

@@ -3,6 +3,9 @@
 ## Current State
 - Provides `KernelDispatcher` capable of measuring per-kernel execution time and
   reporting backend availability.
+- Documents dispatcher extension points in
+  [`dispatcher-extension-guide.md`](dispatcher-extension-guide.md) so new
+  kernels, dependency graphs, and telemetry sinks can be wired safely.
 - Exposes backend capability probes to determine CUDA/CPU availability and a
   lightweight math helper for identity transforms.
 - Dispatcher integrates with runtime job orchestration and publishes telemetry
@@ -17,7 +20,7 @@
 
 ## TODO / Next Steps
 
-- Track `CO-141`, `CO-150`, `CO-160` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `AI-004` and `DC-002`.
+- Track `CO-150`, `CO-160` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `AI-004` and `DC-002`.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -25,7 +28,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `CO-141` | Document dispatcher extension points (`AI-004`). | Publish guide describing kernel registration, dependency tracking, and telemetry hooks. | 🔄 In Progress |
+| `CO-141` | Document dispatcher extension points (`AI-004`). | Publish guide describing kernel registration, dependency tracking, and telemetry hooks. | ✅ Complete |
 | `CO-150` | Introduce dependency cycle detection. | Implement static analysis detecting kernel dependency loops with unit tests. | 🟢 Todo |
 | `CO-160` | Align CUDA feature flags with presets. | Update presets/scripts ensuring CUDA optionality documented and tested. | 🟢 Todo |
 
