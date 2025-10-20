@@ -2,8 +2,8 @@
 
 #include <cassert>
 #include <cstdint>
-#include <deque>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <utility>
@@ -62,7 +62,7 @@ public:
     [[nodiscard]] std::pair<handle_type, T&> acquire(Args&&... args)
     {
         const std::uint32_t index = allocate_slot();
-        Slot& slot = slots_[index];
+        Slot& slot = *slots_[index];
         if (slot.generation == 0U) {
             slot.generation = 1U;
         }
@@ -80,8 +80,8 @@ public:
     [[nodiscard]] bool is_valid(handle_type handle) const noexcept
     {
         return handle.index < slots_.size() &&
-               slots_[handle.index].value.has_value() &&
-               slots_[handle.index].generation == handle.generation;
+               slots_[handle.index]->value.has_value() &&
+               slots_[handle.index]->generation == handle.generation;
     }
 
     /// Obtain a mutable reference to the resource identified by the handle.
@@ -93,7 +93,7 @@ public:
         if (!is_valid(handle)) {
             throw std::out_of_range("ResourcePool handle is not valid");
         }
-        return *slots_[handle.index].value;
+        return *slots_[handle.index]->value;
     }
 
     /// Obtain an immutable reference to the resource identified by the handle.
@@ -103,7 +103,7 @@ public:
         if (!is_valid(handle)) {
             throw std::out_of_range("ResourcePool handle is not valid");
         }
-        return *slots_[handle.index].value;
+        return *slots_[handle.index]->value;
     }
 
     /// Release the resource referenced by the handle. Stale handles are
@@ -114,7 +114,7 @@ public:
             return;
         }
 
-        Slot& slot = slots_[handle.index];
+        Slot& slot = *slots_[handle.index];
         slot.value.reset();
         ++slot.generation;
         free_list_.push_back(handle.index);
@@ -128,9 +128,9 @@ public:
     void clear() noexcept
     {
         for (auto& slot : slots_) {
-            slot.value.reset();
-            if (slot.generation != 0U) {
-                ++slot.generation;
+            slot->value.reset();
+            if (slot->generation != 0U) {
+                ++slot->generation;
             }
         }
         free_list_.clear();
@@ -142,7 +142,7 @@ public:
     void for_each(Visitor&& visitor)
     {
         for (std::uint32_t index = 0U; index < slots_.size(); ++index) {
-            Slot& slot = slots_[index];
+            Slot& slot = *slots_[index];
             if (!slot.value.has_value()) {
                 continue;
             }
@@ -159,7 +159,7 @@ public:
     void for_each(Visitor&& visitor) const
     {
         for (std::uint32_t index = 0U; index < slots_.size(); ++index) {
-            const Slot& slot = slots_[index];
+            const Slot& slot = *slots_[index];
             if (!slot.value.has_value()) {
                 continue;
             }
@@ -190,11 +190,11 @@ private:
         }
 
         const std::uint32_t index = static_cast<std::uint32_t>(slots_.size());
-        slots_.emplace_back();
+        slots_.emplace_back(std::make_unique<Slot>());
         return index;
     }
 
-    std::deque<Slot> slots_{};
+    std::vector<std::unique_ptr<Slot>> slots_{};
     std::vector<std::uint32_t> free_list_{};
     std::size_t active_count_{0U};
 };
