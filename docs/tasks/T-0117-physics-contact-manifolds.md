@@ -38,8 +38,13 @@ callback plumbing, and collision telemetry for the physics module.
   reports stable solver iterations (4 in the regression scenario) confirming the telemetry signal.
 - 2025-03-10: Runtime diagnostics expose `runtime.physics.*` metrics sourced from
   the collision telemetry, enabling cross-module monitoring for `RT-002.2`.
+- `ctest --preset linux-gcc-debug --tests-regex physics_collision_benchmark --output-on-failure`
+  emits `physics_collision_benchmark.json` with `duration_seconds=0.254672`,
+  `steps_per_second≈2010.43`, and average/peak manifold counts (`44.76`/`61`)
+  for the 128-body scenario, establishing the baseline required by `RT-002.3`.
 
 ## Follow-Up Tasks
 - [x] Implemented sequential impulse constraint resolution using the registered
       callbacks and extended telemetry with solver iteration counts (`RT-002-FU1`).
 - [x] Expose manifold sampling utilities for editor visualisation workflows.
+- [ ] Surface collision benchmark telemetry in diagnostics tooling (`PH-430`).

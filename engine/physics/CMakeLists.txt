@@ -23,4 +23,5 @@ target_compile_definitions(${target_name}
 
 if(BUILD_TESTING)
     add_subdirectory(tests)
+    add_subdirectory(benchmarks)
 endif()

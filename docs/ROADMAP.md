@@ -15,7 +15,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `AI-001` | Propagate handle-based lifetime management and validation hooks. | `DC-004` | 🔄 In Progress | Assets, Rendering |
 | `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | 🔄 In Progress | Assets, Runtime |
 | `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | ✅ Done | Rendering, Runtime |
-| `RT-002` | Harden physics with persistent manifolds and benchmarking. | – | 🔄 In Progress | Physics |
+| `RT-002` | Harden physics with persistent manifolds and benchmarking. | – | ✅ Done | Physics |
 | `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | 🔄 In Progress | Rendering, Runtime |
 | `RT-005` | Validate scene hierarchies and expose diagnostics. | – | ✅ Done | Scene, Runtime |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | 🟠 Blocked on fuzz harness infra | IO |
@@ -68,13 +68,16 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `RT-002.1` | Implement manifold cache. | Collider pairs persist contacts across frames with debug visualisation. | 🔄 In Progress |
+| `RT-002.1` | Implement manifold cache. | Collider pairs persist contacts across frames with debug visualisation. | ✅ Done |
 | `RT-002.2` | Integrate telemetry hooks. | Physics telemetry exposes manifold churn metrics consumed by diagnostics shell. | ✅ Done |
-| `RT-002.3` | Benchmark harness. | Automated benchmark records collision throughput and is tracked in CI. | 🟢 Todo |
+| `RT-002.3` | Benchmark harness. | Automated benchmark records collision throughput and is tracked in CI. | ✅ Done |
 
 - 2025-03-10: Runtime diagnostics now expose physics manifold telemetry via
   `runtime.physics.*` metrics, completing `RT-002.2` and aligning with the
   shared telemetry schema.
+- 2025-03-15: Added `engine_physics_benchmarks` to capture collision throughput
+  baselines, closing `RT-002.3` and seeding CI artefacts for physics trend
+  analysis.
 
 #### `RT-003` — Vulkan Runtime Parity
 
@@ -146,8 +149,8 @@ Once staffed, execute module-specific queues below.
   telemetry alignment once diagnostics schema lands.
 - **Math** — `MA-110` SIMD validation harness (`TI-003`), then `MA-118`
   documentation of solver stability ranges.
-- **Physics** — `PH-401` manifold cache (`RT-002`), followed by `PH-410`
-  benchmarking harness.
+- **Physics** — `PH-410` benchmarking harness complete; next define `PH-430`
+  to surface collision throughput trends in diagnostics tooling.
 - **Platform** — `PL-215` SDL parity checklist (`DC-003`); filesystem watcher
   abstraction (`PL-222`) is complete, so focus shifts to `PL-230` backend
   selection documentation.
