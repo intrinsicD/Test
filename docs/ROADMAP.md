@@ -49,7 +49,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `AI-002.1` | Instrument async queue telemetry. | Runtime exposes queue metrics, `scripts/diagnostics/streaming_report.py` documents usage. | ✅ Done |
-| `AI-002.2` | Harden cancellation + failure flows. | Futures support cancellation with integration tests covering failure propagation. | 🟢 Todo |
+| `AI-002.2` | Harden cancellation + failure flows. | Futures support cancellation with integration tests covering failure propagation. | ✅ Done |
 | `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | 🟢 Todo |
 
 #### `AI-003` — Frame-Graph Metadata
