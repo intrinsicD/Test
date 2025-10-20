@@ -52,7 +52,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `AI-003.1` | Finalise resource descriptor schema. | Schema reviewed with runtime team; encoded in rendering headers with migration guide. | 🔄 In Progress |
+| `AI-003.1` | Finalise resource descriptor schema. | Schema reviewed with runtime team; encoded in rendering headers with migration guide. | ✅ Done |
 | `AI-003.2` | Implement queue affinity validation. | Frame-graph compilation rejects invalid queue transitions with regression coverage. | ✅ Done |
 | `AI-003.3` | Sync runtime submission hooks. | Runtime submission path aligned with new metadata, integration tests green. | 🟢 Todo |
 
@@ -131,8 +131,9 @@ Once staffed, execute module-specific queues below.
   benchmarking harness.
 - **Platform** — `PL-215` SDL parity checklist (`DC-003`), then `PL-222`
   watcher abstraction (`CC-002`).
-- **Rendering** — `RE-503` metadata schema (`AI-003`) and `RE-520` backend
-  documentation updates.
+- **Rendering** — `RE-520` backend documentation updates building on the
+  completed metadata schema (`AI-003`), followed by backend validation tooling
+  and parity tracking work.
 - **Runtime** — `RU-307` submission parity (`RT-003`), `RU-315` telemetry bridge
   for streaming metrics (`AI-002`).
 - **Scene** — `SC-208` cycle detection (`RT-005`), then `SC-215` validation

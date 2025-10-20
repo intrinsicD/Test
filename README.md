@@ -22,7 +22,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, and transform utilities feeding animation, geometry, and physics. | `MA-110`: add SIMD validation targets aligned with `TI-003`. |
 | Physics | 🔄 In Progress | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase. | `PH-401`: ship persistent manifold storage for `RT-002`. |
 | Platform | ✅ Stable | Virtual filesystem providers, backend selection plumbing, and mocked window/input services pending OS integrations. | `PL-215`: publish SDL backend parity checklist for `DC-003`. |
-| Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-503`: finalise resource metadata schema for `AI-003`. |
+| Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-520`: backend documentation refresh following metadata schema completion. |
 | Runtime | 🔄 In Progress | `RuntimeHost` orchestration advancing animation, compute-driven physics, geometry deformation, and submission into the rendering pipeline. | `RU-307`: reconcile submission hooks with the Vulkan backend for `RT-003`. |
 | Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | `SC-208`: implement cycle detection checks supporting `RT-005`. |
 | Tools | 🚧 Planned | Editor/profiling/pipeline automation staging area with scaffolding in place. | `TL-101`: stand up diagnostics shell tasks from `CC-001`. |
@@ -52,7 +52,7 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | `DC-004` | Standardise error handling across modules. | Migrate IO to `Result<T>` and publish migration guide. | Core, IO | 🔄 In Progress |
 | `AI-001` | Handle-based lifetime management across assets + rendering. | Extend debug validation hooks and document ownership patterns. | Assets, Rendering | 🔄 In Progress |
 | `AI-002` | Async asset streaming with telemetry and runtime integration. | Land async queue instrumentation and runtime metrics bridge. | Assets, Runtime | 🟡 Blocked on `AI-001` docs refresh |
-| `AI-003` | Frame-graph metadata + queue affinity for backend parity. | Finalise resource descriptor schema and submission invariants. | Rendering, Runtime | 🔄 In Progress |
+| `AI-003` | Frame-graph metadata + queue affinity for backend parity. | Publish metadata schema and align runtime submission invariants. | Rendering, Runtime | 🔄 In Progress |
 | `RT-002` | Persistent physics manifolds with benchmarking. | Implement manifold cache and expose profiler hooks. | Physics | 🔄 In Progress |
 | `RT-003` | Vulkan backend parity and documentation. | Align runtime submission surfaces and publish backend checklist. | Rendering, Runtime | 🔄 In Progress |
 | `RT-005` | Scene hierarchy validation + diagnostics. | Integrate cycle detection and reporting hooks. | Scene, Runtime | 🟢 Ready to Start |

@@ -6,6 +6,8 @@
 - Integrates with runtime submission paths and asset handles.
 - Frame-graph compilation validates queue affinity and resource metadata to
   reject incompatible submissions early.
+- The [`Frame-Graph Metadata Schema`](metadata_schema.md) documents resource and
+  pass descriptors adopted by runtime and backend integrations (`RE-503`).
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_rendering`.
@@ -22,7 +24,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `RE-503` | Finalise resource metadata schema (`AI-003`). | Schema adopted by runtime + rendering with documentation. | 🔄 In Progress |
+| `RE-503` | Finalise resource metadata schema (`AI-003`). | Schema adopted by runtime + rendering with documentation. | ✅ Done |
 | `RE-510` | Implement queue affinity validation. | Frame-graph rejects invalid transitions with regression coverage. | ✅ Done |
 | `RE-520` | Update backend documentation. | Publish checklist + backend guides covering Vulkan parity. | 🟢 Todo |
 
