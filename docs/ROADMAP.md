@@ -69,7 +69,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `RT-003.1` | Align runtime submission API. | Runtime + Vulkan backend share a unified submission struct with documentation. | 🔄 In Progress |
-| `RT-003.2` | Author backend checklist. | Public checklist covering prerequisites, platform dependencies, and validation steps. | 🟢 Todo |
+| `RT-003.2` | Author backend checklist. | Public checklist covering prerequisites, platform dependencies, and validation steps (see [`backend_checklist.md`](modules/rendering/backend_checklist.md)). | ✅ Done |
 | `RT-003.3` | Integration regression. | Cross-module test ensures runtime submits deterministic workloads to Vulkan path. | 🟢 Todo |
 
 #### `RT-005` — Scene Hierarchy Validation

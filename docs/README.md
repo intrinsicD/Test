@@ -33,6 +33,7 @@
 | Implementation playbook prompts | [prompts/implementation-playbook.md](prompts/implementation-playbook.md) |
 | Active task inventory & acceptance criteria | [tasks/README.md](tasks/README.md) |
 | Decision records, ADRs, and specifications | [specs/README.md](specs/README.md) |
+| Vulkan backend readiness checklist | [modules/rendering/backend_checklist.md](modules/rendering/backend_checklist.md) |
 
 Source-of-truth precedence: `../AGENTS.md` → this file → `agents.md` →
 `architecture.md` → entries under `design/` or `specs/` → module READMEs → code
