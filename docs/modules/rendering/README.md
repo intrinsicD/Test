@@ -8,6 +8,10 @@
   reject incompatible submissions early.
 - The [`Frame-Graph Metadata Schema`](metadata_schema.md) documents resource and
   pass descriptors adopted by runtime and backend integrations (`RE-503`).
+- The shared `RuntimeSubmissionContext` struct (see
+  `engine/rendering/runtime_submission.hpp`) is consumed by the runtime via
+  `RuntimeHost::RenderSubmissionContext`, keeping backend integrations aligned
+  with the frame-graph contract (`RT-003.1`).
 - The [`Vulkan Backend Checklist`](backend_checklist.md) captures prerequisites
   and validation steps for exercising the `RT-003` prototype end-to-end.
 

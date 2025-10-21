@@ -16,7 +16,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | 🔄 In Progress | Assets, Runtime |
 | `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | ✅ Done | Rendering, Runtime |
 | `RT-002` | Harden physics with persistent manifolds and benchmarking. | – | ✅ Done | Physics |
-| `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | 🔄 In Progress | Rendering, Runtime |
+| `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | ✅ Done | Rendering, Runtime |
 | `RT-005` | Validate scene hierarchies and expose diagnostics. | – | ✅ Done | Scene, Runtime |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | 🟠 Blocked on fuzz harness infra | IO |
 | `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | ✅ Done | Core, Tools |
@@ -89,7 +89,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `RT-003.1` | Align runtime submission API. | Runtime + Vulkan backend share a unified submission struct with documentation. | 🔄 In Progress |
+| `RT-003.1` | Align runtime submission API. | Runtime + Vulkan backend share a unified submission struct with documentation. | ✅ Done |
 | `RT-003.2` | Author backend checklist. | Public checklist covering prerequisites, platform dependencies, and validation steps (see [`backend_checklist.md`](modules/rendering/backend_checklist.md)). | ✅ Done |
 | `RT-003.3` | Integration regression. | Cross-module test ensures runtime submits deterministic workloads to Vulkan path. | ✅ Done |
 
