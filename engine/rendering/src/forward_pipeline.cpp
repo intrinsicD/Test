@@ -104,10 +104,9 @@ namespace engine::rendering
         };
     } // namespace
 
-    void ForwardPipeline::render(scene::Scene& scene, RenderResourceProvider& resources,
-                                 MaterialSystem& materials, resources::IGpuResourceProvider& device_resources,
-                                 IGpuScheduler& scheduler, CommandEncoderProvider& encoders, FrameGraph& graph)
+    void ForwardPipeline::render(scene::Scene& scene, RuntimeSubmissionContext& submission)
     {
+        auto& graph = submission.frame_graph;
         graph.reset();
 
         FrameGraphResourceDescriptor color_desc{};
@@ -143,8 +142,7 @@ namespace engine::rendering
         graph.add_pass(std::make_unique<ForwardGeometryPass>(color, depth));
         graph.compile();
 
-        RenderExecutionContext context{resources, materials, RenderView{scene}, scheduler, device_resources,
-                                       encoders};
-        graph.execute(context);
+        auto execution_context = submission.make_execution_context(scene);
+        graph.execute(execution_context);
     }
 }

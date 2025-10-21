@@ -146,8 +146,17 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
     engine::rendering::tests::RecordingCommandEncoderProvider command_encoders;
+    engine::rendering::RuntimeSubmissionContext submission{
+        provider,
+        materials,
+        device_provider,
+        scheduler,
+        command_encoders,
+        graph,
+        nullptr,
+    };
 
-    pipeline.render(scene, provider, materials, device_provider, scheduler, command_encoders, graph);
+    pipeline.render(scene, submission);
 
     ASSERT_EQ(scheduler.submissions.size(), 1);  // NOLINT
     EXPECT_EQ(scheduler.submissions.front().pass_name, "ForwardGeometry");

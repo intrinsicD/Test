@@ -43,9 +43,11 @@ verify parity between the runtime submission path and the backend scheduler.
 
 - Instantiate `engine::runtime::RuntimeHost` and advance it with `tick()` to
   populate animation, physics, and geometry state.
-- Create a `RuntimeHost::RenderSubmissionContext` that wires the material
-  system, resource providers, Vulkan GPU scheduler, command encoder provider,
-  and frame graph. The runtime test
+- Create a submission context via
+  `engine::rendering::RuntimeSubmissionContext` (aliased as
+  `RuntimeHost::RenderSubmissionContext`) that wires the material system,
+  resource providers, Vulkan GPU scheduler, command encoder provider, and
+  frame graph. The runtime test
   [`RuntimeHost.SubmitsRenderGraphThroughVulkanScheduler`](../../../engine/runtime/tests/test_module.cpp)
   demonstrates the expected wiring and validates resource acquisitions.
 - Ensure materials and meshes are registered with the render resource provider

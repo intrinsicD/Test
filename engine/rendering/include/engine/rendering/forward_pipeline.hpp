@@ -1,9 +1,6 @@
 #pragma once
 
-#include "engine/rendering/command_encoder.hpp"
-#include "engine/rendering/frame_graph.hpp"
-#include "engine/rendering/material_system.hpp"
-#include "engine/rendering/resources/resource_provider.hpp"
+#include "engine/rendering/runtime_submission.hpp"
 
 namespace engine::rendering
 {
@@ -13,8 +10,6 @@ namespace engine::rendering
     class ForwardPipeline
     {
     public:
-        void render(scene::Scene& scene, RenderResourceProvider& resources, MaterialSystem& materials,
-                    resources::IGpuResourceProvider& device_resources, IGpuScheduler& scheduler,
-                    CommandEncoderProvider& encoders, FrameGraph& graph);
+        void render(scene::Scene& scene, RuntimeSubmissionContext& submission);
     };
 }

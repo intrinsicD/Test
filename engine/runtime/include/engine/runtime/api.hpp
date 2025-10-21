@@ -28,23 +28,8 @@
 #    include "engine/rendering/components.hpp"
 #    include "engine/rendering/frame_graph.hpp"
 #    include "engine/rendering/gpu_scheduler.hpp"
+#    include "engine/rendering/runtime_submission.hpp"
 #    include "engine/rendering/resources/resource_provider.hpp"
-#endif
-
-#if ENGINE_ENABLE_RENDERING
-namespace engine::rendering
-{
-    class FrameGraph;
-    class ForwardPipeline;
-    class MaterialSystem;
-    class RenderResourceProvider;
-    class CommandEncoderProvider;
-} // namespace engine::rendering
-
-namespace engine::rendering::resources
-{
-    class IGpuResourceProvider;
-} // namespace engine::rendering::resources
 #endif
 
 #if defined(_WIN32)
@@ -202,15 +187,7 @@ public:
     void configure(RuntimeHostDependencies dependencies);
 
 #if ENGINE_ENABLE_RENDERING
-    struct RenderSubmissionContext {
-        rendering::RenderResourceProvider& resources;
-        rendering::MaterialSystem& materials;
-        rendering::resources::IGpuResourceProvider& device_resources;
-        rendering::IGpuScheduler& scheduler;
-        rendering::CommandEncoderProvider& encoders;
-        rendering::FrameGraph& frame_graph;
-        rendering::ForwardPipeline* pipeline{nullptr};
-    };
+    using RenderSubmissionContext = rendering::RuntimeSubmissionContext;
 
     void submit_render_graph(RenderSubmissionContext& context);
 #endif
