@@ -891,6 +891,30 @@ TEST(RuntimeHost, ShutsDownInitializedSubsystemsWhenLaterPluginFails)
     EXPECT_EQ(timing_it->shutdown_count, 1U);
     EXPECT_EQ(timing_it->tick_count, 0U);
 
+    EXPECT_EQ(diagnostics.initialize_failure_count, 1U);
+    EXPECT_TRUE(diagnostics.has_initialize_failure);
+    EXPECT_EQ(diagnostics.last_initialize_failure.subsystem, "beta");
+    EXPECT_EQ(diagnostics.last_initialize_failure.runtime, deps.scene_name);
+    EXPECT_FALSE(diagnostics.last_initialize_failure.category.empty());
+    EXPECT_EQ(diagnostics.last_initialize_failure.message, "RecordingLifecycleSubsystem forced failure");
+    EXPECT_GT(diagnostics.last_initialize_failure.duration_ms, 0.0);
+
+    const auto failing_it = std::find_if(
+        diagnostics.subsystem_timings.begin(),
+        diagnostics.subsystem_timings.end(),
+        [](const engine::runtime::RuntimeSubsystemTiming& timing) { return timing.name == "beta"; });
+    ASSERT_NE(failing_it, diagnostics.subsystem_timings.end());
+    EXPECT_EQ(failing_it->initialize_failure_count, 1U);
+    EXPECT_FALSE(failing_it->last_initialize_failure_category.empty());
+    EXPECT_EQ(failing_it->last_initialize_failure_message, "RecordingLifecycleSubsystem forced failure");
+    EXPECT_GT(failing_it->last_initialize_failure_ms, 0.0);
+
+    const auto failure_metric = find_metric_index(diagnostics.metrics, "runtime.lifecycle.initialize.failures");
+    ASSERT_TRUE(failure_metric.has_value());
+    EXPECT_EQ(
+        engine::core::telemetry::as_int(diagnostics.metrics.samples[*failure_metric].value),
+        1);
+
     host.shutdown();
 }
 
@@ -1262,11 +1286,13 @@ TEST(RuntimeHost, ExposesLifecycleDiagnostics)
     engine::runtime::RuntimeHost host{};
     const auto& initial = host.diagnostics();
     EXPECT_EQ(initial.initialize_count, 0U);
+    EXPECT_EQ(initial.initialize_failure_count, 0U);
     EXPECT_EQ(initial.tick_count, 0U);
 
     host.initialize();
     const auto& after_initialize = host.diagnostics();
     EXPECT_EQ(after_initialize.initialize_count, 1U);
+    EXPECT_EQ(after_initialize.initialize_failure_count, 0U);
     EXPECT_GE(after_initialize.last_initialize_ms, 0.0);
     EXPECT_FALSE(after_initialize.subsystem_timings.empty());
 

@@ -20,7 +20,10 @@
 
 ## TODO / Next Steps
 
-- Track `CR-136` structured logging for subsystem initialization and dependency failures in [docs/ROADMAP.md](../../ROADMAP.md#outstanding-backlog-focus) so telemetry surfaces failure causes alongside lifecycle metrics.
+- Track `CR-137` with the Tools module to surface the new initialization
+  failure logs and metrics inside diagnostics output and the runtime runbook
+  (see [docs/ROADMAP.md](../../ROADMAP.md#outstanding-backlog-focus) and
+  `docs/modules/core/ROADMAP.md`).
 
 This module tracks actionable work through the execution checklist below.
 
@@ -50,6 +53,12 @@ This module tracks actionable work through the execution checklist below.
   filter these metrics via `--metric-prefix runtime.lifecycle.` to monitor
   subsystem startup ordering and durations when investigating dependency
   failures.
+- Initialization failures now emit structured logs tagged
+  `runtime.lifecycle.initialize_failure` and increment the
+  `runtime.lifecycle.initialize.failures` counter. `RuntimeDiagnostics`
+  captures the most recent failure (`last_initialize_failure`) alongside
+  per-subsystem fields so operators can trace failing plugins without losing
+  lifecycle timing context.
 
 Consult [ROADMAP.md](ROADMAP.md) for broader sequencing.
 

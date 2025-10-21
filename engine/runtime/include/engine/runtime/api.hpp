@@ -96,7 +96,7 @@ struct ENGINE_RUNTIME_API StreamingMetrics
 };
 
 struct ENGINE_RUNTIME_API RuntimeStageTiming
-{
+{ 
     std::string name{};
     double last_ms{0.0};
     double average_ms{0.0};
@@ -117,6 +117,15 @@ struct ENGINE_RUNTIME_API HotReloadDiagnostics
     std::string error_hint{};
 };
 
+struct ENGINE_RUNTIME_API RuntimeInitializationFailure
+{
+    std::string runtime{};
+    std::string subsystem{};
+    std::string category{};
+    std::string message{};
+    double duration_ms{0.0};
+};
+
 struct ENGINE_RUNTIME_API RuntimeSubsystemTiming
 {
     std::string name{};
@@ -129,11 +138,16 @@ struct ENGINE_RUNTIME_API RuntimeSubsystemTiming
     std::uint64_t initialize_count{0};
     std::uint64_t tick_count{0};
     std::uint64_t shutdown_count{0};
+    std::uint64_t initialize_failure_count{0};
+    double last_initialize_failure_ms{0.0};
+    std::string last_initialize_failure_category{};
+    std::string last_initialize_failure_message{};
 };
 
 struct ENGINE_RUNTIME_API RuntimeDiagnostics
 {
     std::uint64_t initialize_count{0};
+    std::uint64_t initialize_failure_count{0};
     std::uint64_t shutdown_count{0};
     std::uint64_t tick_count{0};
     double last_initialize_ms{0.0};
@@ -158,6 +172,8 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
 #if ENGINE_ENABLE_ASSETS
     std::vector<assets::HandleValidationSnapshotEntry> handle_validation{};
 #endif
+    RuntimeInitializationFailure last_initialize_failure{};
+    bool has_initialize_failure{false};
 };
 
 class ENGINE_RUNTIME_API RuntimeHost {

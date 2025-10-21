@@ -12,12 +12,17 @@
 #include <sstream>
 #include <span>
 #include <stdexcept>
+#include <system_error>
 #include <string>
 #include <string_view>
+#include <typeinfo>
 #include <utility>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include <new>
+#include <spdlog/spdlog.h>
 
 #include "engine/animation/deformation/linear_blend_skinning.hpp"
 #include "engine/geometry/deform/linear_blend_skinning.hpp"
@@ -498,6 +503,78 @@ namespace engine::runtime
             return diagnostics.subsystem_timings[index];
         }
 
+        static std::string_view classify_exception(const std::exception& exception) noexcept
+        {
+            const std::type_info& info = typeid(exception);
+            if (info == typeid(std::invalid_argument))
+            {
+                return "std::invalid_argument";
+            }
+            if (info == typeid(std::out_of_range))
+            {
+                return "std::out_of_range";
+            }
+            if (info == typeid(std::logic_error))
+            {
+                return "std::logic_error";
+            }
+            if (info == typeid(std::runtime_error))
+            {
+                return "std::runtime_error";
+            }
+            if (info == typeid(std::system_error))
+            {
+                return "std::system_error";
+            }
+            if (info == typeid(std::bad_alloc))
+            {
+                return "std::bad_alloc";
+            }
+            return "std::exception";
+        }
+
+        void record_subsystem_failure(const std::string& name,
+                                      std::string_view category,
+                                      std::string_view message,
+                                      double duration_ms)
+        {
+            RuntimeSubsystemTiming& timing = ensure_subsystem_timing(name);
+            timing.initialize_failure_count += 1U;
+            timing.last_initialize_failure_category.assign(category);
+            timing.last_initialize_failure_message.assign(message);
+            timing.last_initialize_failure_ms = duration_ms;
+        }
+
+        void record_initialize_failure(const std::string& name,
+                                       std::string_view category,
+                                       std::string_view message,
+                                       double duration_ms)
+        {
+            record_subsystem_failure(name, category, message, duration_ms);
+
+            diagnostics.initialize_failure_count += 1U;
+            diagnostics.has_initialize_failure = true;
+
+            RuntimeInitializationFailure failure{};
+            failure.runtime = scene_name();
+            failure.subsystem = name;
+            failure.category.assign(category);
+            failure.message.assign(message);
+            failure.duration_ms = duration_ms;
+            diagnostics.last_initialize_failure = std::move(failure);
+
+            rebuild_metric_snapshot();
+
+            spdlog::error(
+                "runtime.lifecycle.initialize_failure runtime={} subsystem={} category={} message={} duration_ms={:.3f} failures={}",
+                diagnostics.last_initialize_failure.runtime,
+                diagnostics.last_initialize_failure.subsystem,
+                diagnostics.last_initialize_failure.category,
+                diagnostics.last_initialize_failure.message,
+                diagnostics.last_initialize_failure.duration_ms,
+                diagnostics.initialize_failure_count);
+        }
+
         void sync_subsystem_metrics()
         {
             std::unordered_set<std::string> active{};
@@ -615,6 +692,9 @@ namespace engine::runtime
             add_counter("runtime.lifecycle.initialize.count",
                         "Total RuntimeHost::initialize invocations",
                         clamp_to_int(diagnostics.initialize_count));
+            add_counter("runtime.lifecycle.initialize.failures",
+                        "Total RuntimeHost::initialize failures",
+                        clamp_to_int(diagnostics.initialize_failure_count));
             add_counter("runtime.lifecycle.shutdown.count",
                         "Total RuntimeHost::shutdown invocations",
                         clamp_to_int(diagnostics.shutdown_count));
@@ -1290,22 +1370,44 @@ namespace engine::runtime
             {
                 for (const auto& plugin : dependencies.subsystem_plugins)
                 {
-                    if (plugin == nullptr)
-                    {
-                        continue;
-                    }
+                if (plugin == nullptr)
+                {
+                    continue;
+                }
 
-                    const std::string name{plugin->name()};
-                    const auto start = Clock::now();
+                const std::string name{plugin->name()};
+                const auto start = Clock::now();
+                try
+                {
                     plugin->initialize(lifecycle);
                     started_plugins.push_back(plugin);
                     const auto duration = Clock::now() - start;
                     record_subsystem_event(name, duration, SubsystemPhase::Initialize);
                 }
-                initialized = true;
+                catch (const std::exception& exception)
+                {
+                    const auto duration = Clock::now() - start;
+                    record_initialize_failure(name,
+                                              classify_exception(exception),
+                                              exception.what(),
+                                              duration_to_ms(duration));
+                    throw;
+                }
+                catch (...)
+                {
+                    const auto duration = Clock::now() - start;
+                    record_initialize_failure(
+                        name,
+                        "non_std_exception",
+                        "Subsystem initialize threw a non-standard exception",
+                        duration_to_ms(duration));
+                    throw;
+                }
             }
-            catch (...)
-            {
+            initialized = true;
+        }
+        catch (...)
+        {
                 for (auto it = started_plugins.rbegin(); it != started_plugins.rend(); ++it)
                 {
                     if (*it == nullptr)

@@ -407,7 +407,7 @@ diff --git a/docs/ROADMAP.md b/docs/ROADMAP.md
 ## REVIEW_FINDINGS
 - Correctness: ✅ RuntimeHost now unwinds partially initialized plugins; new tests cover success, failure, and recovery paths.
 - Documentation: ✅ Core README/roadmap, design note, and central roadmap updated alongside implementation.
-- Observability: ⚠️ Suggest structured logging for initialization failures as a follow-up (`CR-135`).
+- Observability: ✅ Structured logging for initialization failures landed via `CR-136`, enabling downstream diagnostics to correlate lifecycle telemetry with failure context.
 - Tests: ✅ Runtime suite extended; build + targeted ctest executed.
 
 ## REVIEW_PATCHES
@@ -418,6 +418,6 @@ Final patch equals the implementation diffs above; no post-review adjustments re
 
 ## FOLLOW_UP_TODOS
 - [ ] Catalogue plugin dependency cycle detection (`CR-135` placeholder) (owner: Core, priority: medium) — ensure registry rejects cycles and document diagnostics.
-- [ ] Expand observability around subsystem initialization failures via structured logging (owner: Runtime, priority: low) — forward metrics to diagnostics bridge.
+- [x] Expand observability around subsystem initialization failures via structured logging (owner: Runtime, priority: low) — forward metrics to diagnostics bridge.
 - [ ] Audit long-term: refactor subsystem registry to cache dependency resolutions (owner: Runtime, priority: low) — reduce repeated traversals.
 - [ ] Publish runbook for subsystem configuration overrides in `docs/modules/runtime/` (owner: Docs, priority: medium).

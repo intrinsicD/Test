@@ -156,9 +156,10 @@ Once staffed, execute module-specific queues below.
   alignment completed; focus shifts to `CO-170` runtime integration sample
   work.
 - **Core** — Completed `CR-125` lifecycle audit, `CR-130` configuration
-  refresh, and `CR-135` dependency diagnostics; next focus is `CR-136`
-  structured logging for subsystem initialization failures building on the
-  telemetry guidance published here.
+  refresh, `CR-135` dependency diagnostics, and `CR-136` structured logging.
+  Partner with Tools on `CR-137` to surface initialization failure logs/metrics
+  inside the diagnostics viewer and runtime runbook so observability guidance
+  stays aligned across modules.
 - **Geometry** — `GE-205` normal recompute benchmark landed with reporting;
   advance `GE-212` remeshing RFP planning alongside `GE-220` telemetry
   alignment instrumentation.
