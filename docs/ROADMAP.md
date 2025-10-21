@@ -151,7 +151,8 @@ Once staffed, execute module-specific queues below.
 - **Core** — `CR-118` diagnostics bridge specification (`CC-001`), followed by
   `CR-125` plugin lifecycle audit to keep `DC-001` fresh.
 - **Geometry** — `GE-205` accelerated normals benchmark for `TI-002`, then
-  `GE-212` remeshing RFP draft.
+  split `GE-212` remeshing RFP planning and `GE-220` telemetry alignment
+  instrumentation across separate agents so both advance in parallel.
 - **IO** — `IO-221` signature + fuzz integration (`RT-006`) in progress;
   structured error catalog (`IO-230`) published; next focus `IO-240`
   telemetry alignment once diagnostics schema lands.
