@@ -54,8 +54,17 @@ shared library build to capture structured telemetry:
 
 ### Lifecycle Counters
 `initialize_count`, `tick_count`, and `shutdown_count` track lifecycle
-invocations. `last_*_ms`, `max_*_ms`, and `average_tick_ms` capture rolling
-wall-clock durations measured with the runtime's steady clock.
+invocations. `initialize_failure_count` records how many initialization attempts
+failed across the process lifetime. `last_*_ms`, `max_*_ms`, and
+`average_tick_ms` capture rolling wall-clock durations measured with the
+runtime's steady clock.
+
+The runtime now logs initialization failures with structured key/value output
+(`runtime.lifecycle.initialize_failure ...`) and surfaces the most recent event
+via `RuntimeDiagnostics::last_initialize_failure`. Tooling can read the stored
+`runtime`, `subsystem`, `category`, `message`, and `duration_ms` fields or query
+the `runtime.lifecycle.initialize.failures` counter exposed in
+`RuntimeDiagnostics::metrics` to correlate failures with lifecycle activity.
 
 ### Dependency Cycle Diagnostics
 `RuntimeHostDependencies` validation emits
@@ -76,7 +85,10 @@ across frames and updates `last_ms`, `average_ms`, `max_ms`, and
 ### Subsystem Timings
 `subsystem_timings` aggregates initialise/tick/shutdown durations for every
 registered subsystem plugin. Entries persist while the subsystem stays loaded so
-long-running plugins can be analysed over time.
+long-running plugins can be analysed over time. Each entry also tracks
+`initialize_failure_count`, `last_initialize_failure_category`,
+`last_initialize_failure_message`, and `last_initialize_failure_ms` so operators
+can reconcile structured logs with per-subsystem telemetry.
 
 ### Streaming Metrics
 `StreamingMetrics` mirrors `engine::core::threading::IoThreadPool` state and the

@@ -17,7 +17,7 @@ None.
 None.
 
 ### Suggestions 💡
-- Consider structured logging for subsystem initialization failures in a follow-up (`CR-135` or dedicated observability task) to aid diagnostics beyond metrics.
+- Structured logging for subsystem initialization failures delivered in `CR-136`, unlocking richer diagnostics that pair lifecycle telemetry with explicit failure context.
 
 ## Documentation Status
 - [x] `docs/modules/core/README.md`
@@ -33,7 +33,7 @@ None.
 
 ## Follow-Up Work
 - [x] Subsystem dependency cycle diagnostics landed via `CR-135`; structured logging remains a separate follow-up.
-- [ ] Extend observability around initialization failures (structured logs/metrics).
+- [x] Extend observability around initialization failures (structured logs/metrics).
 
 ## Verdict
 - [x] ✅ Approve
