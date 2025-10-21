@@ -165,8 +165,8 @@ Once staffed, execute module-specific queues below.
 - **Rendering** — `RE-520` backend documentation updates building on the
   completed metadata schema (`AI-003`), followed by `RE-530` backend validation
   tooling and parity tracking work.
-- **Runtime** — `RT-005` tranche complete; coordinate with `SC-220` for scene module documentation refresh.
-- **Scene** — `SC-220` documentation refresh capturing diagnostics workflows.
+- **Runtime** — `RT-005` tranche complete; support `SC-225` samples and `SC-230` alerting guidance as scene docs expand.
+- **Scene** — `SC-225` diagnostics samples and `SC-230` alerting thresholds extend the hierarchy playbook delivered in `SC-220`.
 - **Tools** — `TL-110` tooling documentation refresh (`CC-001`) and `TL-115`
   profiling capture export now that the telemetry viewer CLI (`TL-101`) is
   available.

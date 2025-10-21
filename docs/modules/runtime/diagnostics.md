@@ -99,6 +99,10 @@ serialises the hierarchy report in its JSON output and console summary,
 surfacing entity IDs, relationship context, and error messages for up to five
 issues per invocation.
 
+Scene authors should review the
+[scene diagnostics guide](../scene/diagnostics.md) for module-specific
+remediation steps and planned follow-up samples introduced by `SC-220`.
+
 ## Hierarchy Diagnostics Playbook
 
 Follow this playbook whenever `scene_validation.ok()` returns `false`.
