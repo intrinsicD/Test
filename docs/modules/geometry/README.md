@@ -7,6 +7,11 @@
 - Provides kd-tree and octree spatial acceleration structures for geometry and
   point-cloud queries.
 - Exposes helpers for mesh/point-cloud interchange with other subsystems.
+- Ships `geometry_normals_benchmark` +
+  `geometry_normals_benchmark_report.py` to capture
+  `geometry::recompute_vertex_normals` throughput for roadmap item
+  `GE-205`/`TI-002`, enabling deterministic CI tracking of future optimisation
+  work.【F:engine/geometry/benchmarks/normal_recompute_benchmark.cpp†L18-L205】【F:scripts/diagnostics/geometry_normals_benchmark_report.py†L1-L137】
 
 ### Deformation Helpers
 
@@ -30,7 +35,7 @@
 
 ## TODO / Next Steps
 
-- Track `GE-205`, `GE-212`, `GE-220` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — supports `TI-002` benchmarking.
+- Track `GE-212`, `GE-220` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — supports `TI-002` benchmarking.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -38,7 +43,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `GE-205` | Benchmark accelerated normal recomputation (`TI-002`). | Publish benchmark results and integrate into CI perf harness. | 🔄 In Progress |
+| `GE-205` | Benchmark accelerated normal recomputation (`TI-002`). | Publish benchmark results and integrate into CI perf harness. | ✅ Done |
 | `GE-212` | Draft remeshing/parameterisation RFP. | Produce design note outlining requirements and dependencies. | 🟢 Todo |
 | `GE-220` | Align geometry telemetry with diagnostics (`CC-001`). | Add instrumentation for spatial queries and document metrics. | 🟢 Todo |
 
@@ -49,3 +54,10 @@ See [ROADMAP.md](ROADMAP.md) for full context.
 - `GE-212` is a planning/RFP effort focused on defining scope and dependencies.
 - `GE-220` instruments telemetry pathways on top of the established diagnostics schema.
 - Assign separate agents to each task and coordinate asynchronously on schema updates to keep workstreams decoupled.
+
+### Benchmarks
+
+- Default debug preset (`resolution=256`, `iterations=128`) records
+  `duration_seconds=7.673`, `iterations_per_second=16.68`,
+  `vertices_per_second≈1.10e6`, and `triangles_per_second≈2.19e6`, with a
+  checksum of `-66049` to guard determinism for regression tracking.【F:engine/geometry/benchmarks/normal_recompute_benchmark.cpp†L133-L205】

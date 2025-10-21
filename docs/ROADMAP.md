@@ -158,9 +158,9 @@ Once staffed, execute module-specific queues below.
 - **Core** — Completed `CR-125` lifecycle audit and `CR-130` configuration
   refresh; next deliverable is `CR-135` subsystem dependency diagnostics to
   extend `DC-001`.
-- **Geometry** — `GE-205` accelerated normals benchmark for `TI-002`, then
-  split `GE-212` remeshing RFP planning and `GE-220` telemetry alignment
-  instrumentation.
+- **Geometry** — `GE-205` normal recompute benchmark landed with reporting;
+  advance `GE-212` remeshing RFP planning alongside `GE-220` telemetry
+  alignment instrumentation.
 - **IO** — `IO-221` signature + fuzz integration (`RT-006`) in progress; detection
   & fuzzing playbook published (`RT-006.3`).
   structured error catalog (`IO-230`) published; next focus `IO-240`

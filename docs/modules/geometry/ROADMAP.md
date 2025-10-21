@@ -1,12 +1,12 @@
 # Geometry Module Roadmap
 
-_Last Updated: 2025-02-19_
+_Last Updated: 2025-03-25_
 
 ## Workstreams
 
 | Stream | Description | Status |
 | --- | --- | --- |
-| Benchmarking (`GE-205`) | Quantify performance of normals/bounds recomputation. | 🔄 In Progress |
+| Benchmarking (`GE-205`) | Quantify performance of normals/bounds recomputation. | ✅ Done |
 | Remeshing proposal (`GE-212`) | Define scope for remeshing & parameterisation upgrades. | 🟢 Planned |
 | Telemetry alignment (`GE-220`) | Emit diagnostics compatible with telemetry viewer. | 🟢 Planned |
 
@@ -14,7 +14,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Owner | Due | Status |
 | --- | --- | --- | --- |
-| `GE-205` | Geometry team | 2025-03-14 | 🔄 In Progress |
+| `GE-205` | Geometry team | 2025-03-14 | ✅ Done |
 
 ## Upcoming Tasks
 
