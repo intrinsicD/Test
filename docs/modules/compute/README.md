@@ -20,7 +20,7 @@
 
 ## TODO / Next Steps
 
-- Track `CO-150`, `CO-160` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `AI-004` and `DC-002`.
+- Track `CO-170` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `AI-004` and `DC-002`.
 - Include `<engine/compute/dependency_analysis.hpp>` to perform static dependency cycle analysis outside dispatcher execution.
 
 This module tracks actionable work through the execution checklist below.
