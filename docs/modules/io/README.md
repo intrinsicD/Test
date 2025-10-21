@@ -10,6 +10,9 @@
   filesystem or parsing failures to `GeometryIoErrorCode` identifiers, allowing
   callers to branch on `file_not_found`, `io_failure`, or `invalid_argument`
   outcomes without exceptions.
+- Geometry import/export operations emit telemetry counters consumed by the
+  runtime diagnostics snapshot, covering attempts, successes, and failure
+  breakdowns per error code for mesh, point-cloud, and graph handlers.
 
 ## Usage
 - Build via `cmake --build --preset <preset> --target engine_io`.
@@ -19,6 +22,21 @@
   they come online. Follow the
   [IO Signature Detection & Fuzzing Playbook](detection_fuzzing_playbook.md)
   for setup, corpus management, and triage procedures.
+
+## Telemetry
+
+- `io.geometry.requests` — counter tagged with `operation` (`detect_geometry_file`,
+  `read_mesh`, `write_mesh`, etc.) recording total attempts.
+- `io.geometry.successes` — counter tagged with `operation` tracking successful
+  executions.
+- `io.geometry.failures` — counter tagged with `operation` and `error`
+  (`file_not_found`, `io_failure`, ...) enumerating failure counts by cause.
+- Failures also generate structured warnings via `spdlog`, capturing the file
+  path and detected format to aid provenance analysis.
+- Metrics surface through `engine::runtime::diagnostics().metrics` and the
+  `python scripts/diagnostics/runtime_frame_telemetry.py` viewer; see the
+  [Telemetry Instrumentation Guide](../../design/telemetry_instrumentation_guide.md)
+  for operational details.
 
 ## Error Catalog
 
@@ -99,6 +117,6 @@ This module tracks actionable work through the execution checklist below.
 | --- | --- | --- | --- |
 | `IO-221` | Integrate signature database + fuzz harness (`RT-006`). | Signature set committed, fuzz target wired into CI, README updated. | 🔄 In Progress |
 | `IO-230` | Publish structured error catalog. | Document error codes and remediation steps in README + design note. | ✅ Done |
-| `IO-240` | Align telemetry for import/export failures. | Emit metrics consumed by diagnostics viewer and log failure provenance. | 🟢 Todo |
+| `IO-240` | Align telemetry for import/export failures. | Emit metrics consumed by diagnostics viewer and log failure provenance. | ✅ Done |
 
 See [ROADMAP.md](ROADMAP.md) for timeline and dependencies.

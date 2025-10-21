@@ -5,6 +5,7 @@ add_library(${target_name}
     src/animation_importer.cpp
     src/geometry_io_registry.cpp
     src/geometry_io.cpp
+    src/telemetry.cpp
 )
 
 engine_apply_module_defaults(${target_name}

@@ -1,7 +1,10 @@
 #include "engine/io/geometry_io.hpp"
 #include "engine/io/geometry_io_registry.hpp"
+#include "engine/io/telemetry.hpp"
 
 #include "engine/math/vector.hpp"
+
+#include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <array>
@@ -26,6 +29,31 @@ namespace engine::io
     namespace
     {
         using engine::math::vec3;
+
+        void log_geometry_io_failure(GeometryIoOperation operation,
+                                     const std::filesystem::path& path,
+                                     std::string_view format,
+                                     const GeometryIoErrorCode& error)
+        {
+            const auto message = error.message();
+            if (format.empty())
+            {
+                spdlog::warn("Geometry IO {} failed for '{}' (error={}, message={})",
+                              to_string(operation),
+                              path.string(),
+                              error.identifier(),
+                              message);
+            }
+            else
+            {
+                spdlog::warn("Geometry IO {} failed for '{}' (format={}, error={}, message={})",
+                              to_string(operation),
+                              path.string(),
+                              format,
+                              error.identifier(),
+                              message);
+            }
+        }
 
         class GeometryIoException final : public std::runtime_error
         {
@@ -1820,98 +1848,26 @@ namespace engine::io
         register_default_geometry_io_plugins_impl(registry);
     }
 
+
     GeometryIoResult<GeometryDetectionResult> detect_geometry_file(const std::filesystem::path& path)
     {
-        if (!std::filesystem::exists(path))
-        {
-            return make_geometry_io_error(
-                GeometryIoError::file_not_found,
-                "Cannot detect geometry content of non-existent file: " + path.string());
-        }
+        auto& telemetry = GeometryIoTelemetry::instance();
+        telemetry.record_attempt(GeometryIoOperation::detect);
 
-        const auto ext = extension_of(path);
-        auto result = classify_extension_only(ext);
-        result.format_hint = ext;
-
-        if (ext == ".ply")
-        {
-            const auto header_result = inspect_ply_header(path);
-            if (!header_result)
+        auto outcome = [&]() -> GeometryIoResult<GeometryDetectionResult> {
+            if (!std::filesystem::exists(path))
             {
-                return header_result.error();
+                return make_geometry_io_error(
+                    GeometryIoError::file_not_found,
+                    "Cannot detect geometry content of non-existent file: " + path.string());
             }
-            const auto header = header_result.value();
-            if (header.face_count > 0)
+
+            const auto ext = extension_of(path);
+            auto result = classify_extension_only(ext);
+            result.format_hint = ext;
+
+            if (ext == ".ply")
             {
-                result.kind = GeometryKind::mesh;
-                result.mesh_format = MeshFileFormat::ply;
-            }
-            else if (header.edge_count > 0)
-            {
-                result.kind = GeometryKind::graph;
-                result.graph_format = GraphFileFormat::ply;
-            }
-            else if (header.vertex_count > 0)
-            {
-                result.kind = GeometryKind::point_cloud;
-                result.point_cloud_format = PointCloudFileFormat::ply;
-            }
-            return result;
-        }
-
-        if (ext == ".stl" || result.kind == GeometryKind::unknown)
-        {
-            if (auto stl_result = detect_stl_from_signature(path); stl_result.kind != GeometryKind::unknown)
-            {
-                if (result.kind == GeometryKind::unknown)
-                {
-                    result = stl_result;
-                }
-                else
-                {
-                    result.mesh_format = MeshFileFormat::stl;
-                }
-
-                if (result.format_hint.empty())
-                {
-                    result.format_hint = ".stl";
-                }
-
-                return result;
-            }
-        }
-
-        if (result.kind == GeometryKind::unknown)
-        {
-            if (auto signature_result = detect_geometry_from_signatures(path); signature_result.kind != GeometryKind::unknown)
-            {
-                if (!result.format_hint.empty())
-                {
-                    signature_result.format_hint = result.format_hint;
-                }
-                return signature_result;
-            }
-        }
-
-        if (result.kind != GeometryKind::unknown)
-        {
-            return result;
-        }
-
-        std::ifstream stream{path};
-        if (!stream)
-        {
-            return make_geometry_io_error(GeometryIoError::io_failure,
-                                          "Failed to open file for detection: " + path.string());
-        }
-
-        std::string line;
-        if (std::getline(stream, line))
-        {
-            const auto lower = to_lower(line);
-            if (starts_with(lower, "ply"))
-            {
-                stream.close();
                 const auto header_result = inspect_ply_header(path);
                 if (!header_result)
                 {
@@ -1933,15 +1889,129 @@ namespace engine::io
                     result.kind = GeometryKind::point_cloud;
                     result.point_cloud_format = PointCloudFileFormat::ply;
                 }
+                return result;
             }
-            else if (starts_with(lower, "off"))
+
+            if (ext == ".stl" || result.kind == GeometryKind::unknown)
             {
-                result.kind = GeometryKind::mesh;
-                result.mesh_format = MeshFileFormat::off;
+                if (auto stl_result = detect_stl_from_signature(path); stl_result.kind != GeometryKind::unknown)
+                {
+                    if (result.kind == GeometryKind::unknown)
+                    {
+                        result = stl_result;
+                    }
+                    else
+                    {
+                        result.mesh_format = MeshFileFormat::stl;
+                    }
+
+                    if (result.format_hint.empty())
+                    {
+                        result.format_hint = ".stl";
+                    }
+
+                    return result;
+                }
             }
+
+            if (result.kind == GeometryKind::unknown)
+            {
+                if (auto signature_result = detect_geometry_from_signatures(path); signature_result.kind != GeometryKind::unknown)
+                {
+                    if (!result.format_hint.empty())
+                    {
+                        signature_result.format_hint = result.format_hint;
+                    }
+                    return signature_result;
+                }
+            }
+
+            if (result.kind != GeometryKind::unknown)
+            {
+                return result;
+            }
+
+            std::ifstream stream{path};
+            if (!stream)
+            {
+                return make_geometry_io_error(GeometryIoError::io_failure,
+                                              "Failed to open file for detection: " + path.string());
+            }
+
+            std::string line;
+            if (std::getline(stream, line))
+            {
+                const auto lower = to_lower(line);
+                if (starts_with(lower, "ply"))
+                {
+                    stream.close();
+                    const auto header_result = inspect_ply_header(path);
+                    if (!header_result)
+                    {
+                        return header_result.error();
+                    }
+                    const auto header = header_result.value();
+                    if (header.face_count > 0)
+                    {
+                        result.kind = GeometryKind::mesh;
+                        result.mesh_format = MeshFileFormat::ply;
+                    }
+                    else if (header.edge_count > 0)
+                    {
+                        result.kind = GeometryKind::graph;
+                        result.graph_format = GraphFileFormat::ply;
+                    }
+                    else if (header.vertex_count > 0)
+                    {
+                        result.kind = GeometryKind::point_cloud;
+                        result.point_cloud_format = PointCloudFileFormat::ply;
+                    }
+                    return result;
+                }
+
+                if (starts_with(lower, "OFF"))
+                {
+                    result.kind = GeometryKind::mesh;
+                    result.mesh_format = MeshFileFormat::off;
+                    return result;
+                }
+
+                if (starts_with(lower, "ply"))
+                {
+                    result.kind = GeometryKind::point_cloud;
+                    result.point_cloud_format = PointCloudFileFormat::ply;
+                    return result;
+                }
+            }
+
+            stream.clear();
+            stream.seekg(0);
+
+            std::string buffer = read_file_prefix(path, 4096);
+            if (auto signature_result = detect_geometry_from_signatures(buffer); signature_result.kind != GeometryKind::unknown)
+            {
+                return signature_result;
+            }
+
+            if (result.kind == GeometryKind::unknown)
+            {
+                result.kind = GeometryKind::unknown;
+            }
+
+            return result;
+        }();
+
+        if (outcome)
+        {
+            telemetry.record_success(GeometryIoOperation::detect);
+        }
+        else
+        {
+            telemetry.record_failure(GeometryIoOperation::detect, outcome.error().code());
+            log_geometry_io_failure(GeometryIoOperation::detect, path, {}, outcome.error());
         }
 
-        return result;
+        return outcome;
     }
 
     GeometryIoResult<GeometryDetectionResult> load_geometry(const std::filesystem::path& path,
@@ -2099,229 +2169,355 @@ namespace engine::io
         return detection;
     }
 
+
     GeometryIoResult<void> read_mesh(const std::filesystem::path& path,
                                      geometry::MeshInterface& mesh,
                                      MeshFileFormat format)
     {
-        MeshFileFormat resolved = format;
-        if (resolved == MeshFileFormat::unknown)
-        {
-            auto detection = detect_geometry_file(path);
-            if (!detection)
+        auto& telemetry = GeometryIoTelemetry::instance();
+        telemetry.record_attempt(GeometryIoOperation::read_mesh);
+        std::string_view format_label = to_string(format);
+
+        auto outcome = [&]() -> GeometryIoResult<void> {
+            MeshFileFormat resolved = format;
+            if (resolved == MeshFileFormat::unknown)
             {
-                return detection.error();
+                auto detection = detect_geometry_file(path);
+                if (!detection)
+                {
+                    return detection.error();
+                }
+                resolved = detection.value().mesh_format;
             }
-            resolved = detection.value().mesh_format;
-        }
 
-        if (resolved == MeshFileFormat::unknown)
+            format_label = to_string(resolved);
+
+            if (resolved == MeshFileFormat::unknown)
+            {
+                return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                              "Unable to determine mesh format for file: " + path.string());
+            }
+
+            const auto& registry = global_geometry_io_registry();
+            const auto* importer = registry.mesh_importer(resolved);
+            if (importer == nullptr)
+            {
+                return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                              "No mesh importer registered for format '" +
+                                                  std::string(to_string(resolved)) + "' while reading " + path.string());
+            }
+
+            if (auto import_result = importer->import(path, mesh); !import_result)
+            {
+                return import_result.error();
+            }
+
+            return {};
+        }();
+
+        if (outcome)
         {
-            return make_geometry_io_error(GeometryIoError::unsupported_format,
-                                          "Unable to determine mesh format for file: " + path.string());
+            telemetry.record_success(GeometryIoOperation::read_mesh);
         }
-
-        const auto& registry = global_geometry_io_registry();
-        const auto* importer = registry.mesh_importer(resolved);
-        if (importer == nullptr)
+        else
         {
-            return make_geometry_io_error(GeometryIoError::plugin_missing,
-                                          "No mesh importer registered for format '" +
-                                              std::string(to_string(resolved)) + "' while reading " + path.string());
+            telemetry.record_failure(GeometryIoOperation::read_mesh, outcome.error().code());
+            log_geometry_io_failure(GeometryIoOperation::read_mesh, path, format_label, outcome.error());
         }
 
-        if (auto import_result = importer->import(path, mesh); !import_result)
-        {
-            return import_result.error();
-        }
-
-        return {};
+        return outcome;
     }
+
 
     GeometryIoResult<void> write_mesh(const std::filesystem::path& path,
                                       const geometry::MeshInterface& mesh,
                                       MeshFileFormat format)
     {
-        MeshFileFormat resolved = format;
-        if (resolved == MeshFileFormat::unknown)
-        {
-            resolved = mesh_format_from_extension(extension_of(path));
+        auto& telemetry = GeometryIoTelemetry::instance();
+        telemetry.record_attempt(GeometryIoOperation::write_mesh);
+        std::string_view format_label = to_string(format);
+
+        auto outcome = [&]() -> GeometryIoResult<void> {
+            MeshFileFormat resolved = format;
             if (resolved == MeshFileFormat::unknown)
             {
-                resolved = MeshFileFormat::obj;
+                resolved = mesh_format_from_extension(extension_of(path));
+                if (resolved == MeshFileFormat::unknown)
+                {
+                    resolved = MeshFileFormat::obj;
+                }
             }
-        }
 
-        if (resolved == MeshFileFormat::unknown)
+            format_label = to_string(resolved);
+
+            if (resolved == MeshFileFormat::unknown)
+            {
+                return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                              "Unable to determine mesh export format for file: " + path.string());
+            }
+
+            const auto& registry = global_geometry_io_registry();
+            const auto* exporter = registry.mesh_exporter(resolved);
+            if (exporter == nullptr)
+            {
+                return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                              "No mesh exporter registered for format '" +
+                                                  std::string(to_string(resolved)) + "' while writing " + path.string());
+            }
+
+            if (auto export_result = exporter->export_mesh(path, mesh); !export_result)
+            {
+                return export_result.error();
+            }
+
+            return {};
+        }();
+
+        if (outcome)
         {
-            return make_geometry_io_error(GeometryIoError::unsupported_format,
-                                          "Unable to determine mesh export format for file: " + path.string());
+            telemetry.record_success(GeometryIoOperation::write_mesh);
         }
-
-        const auto& registry = global_geometry_io_registry();
-        const auto* exporter = registry.mesh_exporter(resolved);
-        if (exporter == nullptr)
+        else
         {
-            return make_geometry_io_error(GeometryIoError::plugin_missing,
-                                          "No mesh exporter registered for format '" +
-                                              std::string(to_string(resolved)) + "' while writing " + path.string());
+            telemetry.record_failure(GeometryIoOperation::write_mesh, outcome.error().code());
+            log_geometry_io_failure(GeometryIoOperation::write_mesh, path, format_label, outcome.error());
         }
 
-        if (auto export_result = exporter->export_mesh(path, mesh); !export_result)
-        {
-            return export_result.error();
-        }
-
-        return {};
+        return outcome;
     }
+
 
     GeometryIoResult<void> read_point_cloud(const std::filesystem::path& path,
                                             geometry::PointCloudInterface& point_cloud,
                                             PointCloudFileFormat format)
     {
-        PointCloudFileFormat resolved = format;
-        if (resolved == PointCloudFileFormat::unknown)
-        {
-            auto detection = detect_geometry_file(path);
-            if (!detection)
+        auto& telemetry = GeometryIoTelemetry::instance();
+        telemetry.record_attempt(GeometryIoOperation::read_point_cloud);
+        std::string_view format_label = to_string(format);
+
+        auto outcome = [&]() -> GeometryIoResult<void> {
+            PointCloudFileFormat resolved = format;
+            if (resolved == PointCloudFileFormat::unknown)
             {
-                return detection.error();
+                auto detection = detect_geometry_file(path);
+                if (!detection)
+                {
+                    return detection.error();
+                }
+                resolved = detection.value().point_cloud_format;
             }
-            resolved = detection.value().point_cloud_format;
-        }
 
-        if (resolved == PointCloudFileFormat::unknown)
+            format_label = to_string(resolved);
+
+            if (resolved == PointCloudFileFormat::unknown)
+            {
+                return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                              "Unable to determine point cloud format for file: " + path.string());
+            }
+
+            const auto& registry = global_geometry_io_registry();
+            const auto* importer = registry.point_cloud_importer(resolved);
+            if (importer == nullptr)
+            {
+                return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                              "No point cloud importer registered for format '" +
+                                                  std::string(to_string(resolved)) + "' while reading " + path.string());
+            }
+
+            if (auto import_result = importer->import(path, point_cloud); !import_result)
+            {
+                return import_result.error();
+            }
+
+            return {};
+        }();
+
+        if (outcome)
         {
-            return make_geometry_io_error(GeometryIoError::unsupported_format,
-                                          "Unable to determine point cloud format for file: " + path.string());
+            telemetry.record_success(GeometryIoOperation::read_point_cloud);
         }
-
-        const auto& registry = global_geometry_io_registry();
-        const auto* importer = registry.point_cloud_importer(resolved);
-        if (importer == nullptr)
+        else
         {
-            return make_geometry_io_error(GeometryIoError::plugin_missing,
-                                          "No point cloud importer registered for format '" +
-                                              std::string(to_string(resolved)) + "' while reading " + path.string());
+            telemetry.record_failure(GeometryIoOperation::read_point_cloud, outcome.error().code());
+            log_geometry_io_failure(GeometryIoOperation::read_point_cloud, path, format_label, outcome.error());
         }
 
-        if (auto import_result = importer->import(path, point_cloud); !import_result)
-        {
-            return import_result.error();
-        }
-
-        return {};
+        return outcome;
     }
+
 
     GeometryIoResult<void> write_point_cloud(const std::filesystem::path& path,
                                              const geometry::PointCloudInterface& point_cloud,
                                              PointCloudFileFormat format)
     {
-        PointCloudFileFormat resolved = format;
-        if (resolved == PointCloudFileFormat::unknown)
-        {
-            resolved = point_cloud_format_from_extension(extension_of(path));
+        auto& telemetry = GeometryIoTelemetry::instance();
+        telemetry.record_attempt(GeometryIoOperation::write_point_cloud);
+        std::string_view format_label = to_string(format);
+
+        auto outcome = [&]() -> GeometryIoResult<void> {
+            PointCloudFileFormat resolved = format;
             if (resolved == PointCloudFileFormat::unknown)
             {
-                resolved = PointCloudFileFormat::xyz;
+                resolved = point_cloud_format_from_extension(extension_of(path));
+                if (resolved == PointCloudFileFormat::unknown)
+                {
+                    resolved = PointCloudFileFormat::ply;
+                }
             }
-        }
 
-        if (resolved == PointCloudFileFormat::unknown)
+            format_label = to_string(resolved);
+
+            if (resolved == PointCloudFileFormat::unknown)
+            {
+                return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                              "Unable to determine point cloud export format for file: " + path.string());
+            }
+
+            const auto& registry = global_geometry_io_registry();
+            const auto* exporter = registry.point_cloud_exporter(resolved);
+            if (exporter == nullptr)
+            {
+                return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                              "No point cloud exporter registered for format '" +
+                                                  std::string(to_string(resolved)) + "' while writing " + path.string());
+            }
+
+            if (auto export_result = exporter->export_point_cloud(path, point_cloud); !export_result)
+            {
+                return export_result.error();
+            }
+
+            return {};
+        }();
+
+        if (outcome)
         {
-            return make_geometry_io_error(GeometryIoError::unsupported_format,
-                                          "Unable to determine point cloud export format for file: " + path.string());
+            telemetry.record_success(GeometryIoOperation::write_point_cloud);
         }
-
-        const auto& registry = global_geometry_io_registry();
-        const auto* exporter = registry.point_cloud_exporter(resolved);
-        if (exporter == nullptr)
+        else
         {
-            return make_geometry_io_error(GeometryIoError::plugin_missing,
-                                          "No point cloud exporter registered for format '" +
-                                              std::string(to_string(resolved)) + "' while writing " + path.string());
+            telemetry.record_failure(GeometryIoOperation::write_point_cloud, outcome.error().code());
+            log_geometry_io_failure(GeometryIoOperation::write_point_cloud, path, format_label, outcome.error());
         }
 
-        if (auto export_result = exporter->export_point_cloud(path, point_cloud); !export_result)
-        {
-            return export_result.error();
-        }
-
-        return {};
+        return outcome;
     }
+
 
     GeometryIoResult<void> read_graph(const std::filesystem::path& path,
                                       geometry::GraphInterface& graph,
                                       GraphFileFormat format)
     {
-        GraphFileFormat resolved = format;
-        if (resolved == GraphFileFormat::unknown)
-        {
-            auto detection = detect_geometry_file(path);
-            if (!detection)
+        auto& telemetry = GeometryIoTelemetry::instance();
+        telemetry.record_attempt(GeometryIoOperation::read_graph);
+        std::string_view format_label = to_string(format);
+
+        auto outcome = [&]() -> GeometryIoResult<void> {
+            GraphFileFormat resolved = format;
+            if (resolved == GraphFileFormat::unknown)
             {
-                return detection.error();
+                auto detection = detect_geometry_file(path);
+                if (!detection)
+                {
+                    return detection.error();
+                }
+                resolved = detection.value().graph_format;
             }
-            resolved = detection.value().graph_format;
-        }
 
-        if (resolved == GraphFileFormat::unknown)
+            format_label = to_string(resolved);
+
+            if (resolved == GraphFileFormat::unknown)
+            {
+                return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                              "Unable to determine graph format for file: " + path.string());
+            }
+
+            const auto& registry = global_geometry_io_registry();
+            const auto* importer = registry.graph_importer(resolved);
+            if (importer == nullptr)
+            {
+                return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                              "No graph importer registered for format '" +
+                                                  std::string(to_string(resolved)) + "' while reading " + path.string());
+            }
+
+            if (auto import_result = importer->import(path, graph); !import_result)
+            {
+                return import_result.error();
+            }
+
+            return {};
+        }();
+
+        if (outcome)
         {
-            return make_geometry_io_error(GeometryIoError::unsupported_format,
-                                          "Unable to determine graph format for file: " + path.string());
+            telemetry.record_success(GeometryIoOperation::read_graph);
         }
-
-        const auto& registry = global_geometry_io_registry();
-        const auto* importer = registry.graph_importer(resolved);
-        if (importer == nullptr)
+        else
         {
-            return make_geometry_io_error(GeometryIoError::plugin_missing,
-                                          "No graph importer registered for format '" + std::string(to_string(resolved)) +
-                                              "' while reading " + path.string());
+            telemetry.record_failure(GeometryIoOperation::read_graph, outcome.error().code());
+            log_geometry_io_failure(GeometryIoOperation::read_graph, path, format_label, outcome.error());
         }
 
-        if (auto import_result = importer->import(path, graph); !import_result)
-        {
-            return import_result.error();
-        }
-
-        return {};
+        return outcome;
     }
+
 
     GeometryIoResult<void> write_graph(const std::filesystem::path& path,
                                        const geometry::GraphInterface& graph,
                                        GraphFileFormat format)
     {
-        GraphFileFormat resolved = format;
-        if (resolved == GraphFileFormat::unknown)
-        {
-            resolved = graph_format_from_extension(extension_of(path));
+        auto& telemetry = GeometryIoTelemetry::instance();
+        telemetry.record_attempt(GeometryIoOperation::write_graph);
+        std::string_view format_label = to_string(format);
+
+        auto outcome = [&]() -> GeometryIoResult<void> {
+            GraphFileFormat resolved = format;
             if (resolved == GraphFileFormat::unknown)
             {
-                resolved = GraphFileFormat::edgelist;
+                resolved = graph_format_from_extension(extension_of(path));
+                if (resolved == GraphFileFormat::unknown)
+                {
+                    resolved = GraphFileFormat::edgelist;
+                }
             }
-        }
 
-        if (resolved == GraphFileFormat::unknown)
+            format_label = to_string(resolved);
+
+            if (resolved == GraphFileFormat::unknown)
+            {
+                return make_geometry_io_error(GeometryIoError::unsupported_format,
+                                              "Unable to determine graph export format for file: " + path.string());
+            }
+
+            const auto& registry = global_geometry_io_registry();
+            const auto* exporter = registry.graph_exporter(resolved);
+            if (exporter == nullptr)
+            {
+                return make_geometry_io_error(GeometryIoError::plugin_missing,
+                                              "No graph exporter registered for format '" +
+                                                  std::string(to_string(resolved)) + "' while writing " + path.string());
+            }
+
+            if (auto export_result = exporter->export_graph(path, graph); !export_result)
+            {
+                return export_result.error();
+            }
+
+            return {};
+        }();
+
+        if (outcome)
         {
-            return make_geometry_io_error(GeometryIoError::unsupported_format,
-                                          "Unable to determine graph export format for file: " + path.string());
+            telemetry.record_success(GeometryIoOperation::write_graph);
         }
-
-        const auto& registry = global_geometry_io_registry();
-        const auto* exporter = registry.graph_exporter(resolved);
-        if (exporter == nullptr)
+        else
         {
-            return make_geometry_io_error(GeometryIoError::plugin_missing,
-                                          "No graph exporter registered for format '" + std::string(to_string(resolved)) +
-                                              "' while writing " + path.string());
+            telemetry.record_failure(GeometryIoOperation::write_graph, outcome.error().code());
+            log_geometry_io_failure(GeometryIoOperation::write_graph, path, format_label, outcome.error());
         }
 
-        if (auto export_result = exporter->export_graph(path, graph); !export_result)
-        {
-            return export_result.error();
-        }
-
-        return {};
+        return outcome;
     }
 
     std::ostream& operator<<(std::ostream& stream, GeometryKind kind)
