@@ -145,9 +145,9 @@ Once staffed, execute module-specific queues below.
   extensions land, followed by `AN-240` state-machine authoring spec work.
 - **Assets** — `AS-315` hot reload callback integration (`CC-002`), then
   `AS-320` material persistence planning.
-- **Compute** — `CO-150` cycle detection tooling is next after landing the
-  dispatcher extension documentation (`CO-141`), followed by `CO-160` CUDA
-  preset alignment.
+- **Compute** — `CO-150` cycle detection tooling and `CO-160` CUDA preset
+  alignment completed; focus shifts to `CO-170` runtime integration sample
+  work.
 - **Core** — `CR-118` diagnostics bridge specification (`CC-001`), followed by
   `CR-125` plugin lifecycle audit to keep `DC-001` fresh.
 - **Geometry** — `GE-205` accelerated normals benchmark for `TI-002`, then

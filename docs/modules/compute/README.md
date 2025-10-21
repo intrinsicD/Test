@@ -21,6 +21,7 @@
 ## TODO / Next Steps
 
 - Track `CO-150`, `CO-160` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `AI-004` and `DC-002`.
+- Include `<engine/compute/dependency_analysis.hpp>` to perform static dependency cycle analysis outside dispatcher execution.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -29,7 +30,7 @@ This module tracks actionable work through the execution checklist below.
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `CO-141` | Document dispatcher extension points (`AI-004`). | Publish guide describing kernel registration, dependency tracking, and telemetry hooks. | ✅ Complete |
-| `CO-150` | Introduce dependency cycle detection. | Implement static analysis detecting kernel dependency loops with unit tests. | 🟢 Todo |
-| `CO-160` | Align CUDA feature flags with presets. | Update presets/scripts ensuring CUDA optionality documented and tested. | 🟢 Todo |
+| `CO-150` | Introduce dependency cycle detection. | Implement static analysis detecting kernel dependency loops with unit tests. | ✅ Complete |
+| `CO-160` | Align CUDA feature flags with presets. | Update presets/scripts ensuring CUDA optionality documented and tested. | ✅ Complete |
 
 See [ROADMAP.md](ROADMAP.md) for scheduling details.
