@@ -111,3 +111,26 @@ highlight regressions or gains.
 3. Review the printed configuration, throughput, manifold/contact counts, and
    solver iteration deltas. Integrate the script into CI dashboards to track
    `PH-430` collision telemetry.
+
+## `geometry_normals_benchmark_report.py`
+
+Summarise the output of `geometry_normals_benchmark`, which records throughput
+metrics for `geometry::recompute_vertex_normals` to advance `GE-205`/`TI-002`.
+
+1. Execute the benchmark via CTest or by running the executable directly:
+   ```bash
+   ctest --preset linux-gcc-debug --tests-regex geometry_normals_benchmark --output-on-failure
+   ```
+   The run emits `geometry_normals_benchmark.json` inside the preset build
+   directory.
+2. Render the report, optionally providing a baseline for comparison:
+   ```bash
+   python scripts/diagnostics/geometry_normals_benchmark_report.py \
+       --current out/build/linux-gcc-debug/geometry_normals_benchmark.json \
+       --baseline results/previous_geometry_run.json
+   ```
+3. Inspect the configuration (grid resolution, iteration count, geometry size)
+   and throughput metrics (iterations/vertices/triangles per second plus a
+   checksum safeguarding determinism). Use the tool to track perf deltas across
+   optimisation passes and surface regressions in CI dashboards once accelerated
+   implementations land.
