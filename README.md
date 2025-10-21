@@ -37,9 +37,50 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 
 ### Platform Backend Selection
 
-- Configure the default window backend with `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK>` during CMake configuration. Presets default to `GLFW`; headless CI jobs force `MOCK`.
-- Override backends at runtime via `ENGINE_PLATFORM_WINDOW_BACKEND` (`auto`, `mock`, `glfw`, `sdl`). Automatic selection honours `WindowConfig::capability_requirements`, falling back when a backend cannot satisfy surface/headless constraints.
-- Toggle GLFW fetching/building using `-DENGINE_ENABLE_GLFW=<ON|OFF>`. Missing X11 development headers automatically demote presets to the mock backend until dependencies are restored.
+Backend selection combines a compile-time default with a runtime override while
+respecting capability requirements declared in `WindowConfig`.
+
+**Build-time default**
+
+- Provide `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK|AUTO>` during configuration.
+- The cache value is normalised and embedded as `ENGINE_PLATFORM_DEFAULT_BACKEND`;
+  `AUTO` disables the build-time preference.
+- Presets under `scripts/build/presets/` pin sensible defaults (desktop = GLFW,
+  CI/headless = MOCK).
+
+**Runtime override**
+
+- `ENGINE_PLATFORM_WINDOW_BACKEND` accepts `auto`, `glfw`, `sdl`, or `mock`
+  (case-insensitive). Invalid values degrade to `mock` to keep automation
+  deterministic.
+- When the override targets a concrete backend, the selector still appends the
+  mock backend as a fallback so tests continue operating if capability checks
+  fail.
+
+**Capability matrix**
+
+| Backend | Headless Safe | Native Surface |
+| --- | --- | --- |
+| GLFW | ❌ | ✅ |
+| SDL | ✅ | ✅ |
+| Mock | ✅ | ❌ |
+
+`WindowConfig::CapabilityRequirements` filters out ineligible backends before a
+selection is attempted. Direct requests for an incompatible backend return
+clear error messages to surface missing capabilities. See
+[`docs/modules/platform/README.md`](docs/modules/platform/README.md) for the full
+backend selection reference.
+
+**Automatic fallback order**
+
+1. Runtime override (`ENGINE_PLATFORM_WINDOW_BACKEND`), then mock if required.
+2. Build-time default when it maps to an available backend.
+3. Remaining compiled backends in deterministic order (GLFW → SDL → Mock),
+   guarded by `ENGINE_PLATFORM_HAS_*` macros.
+
+Toggle GLFW fetching/building using `-DENGINE_ENABLE_GLFW=<ON|OFF>`. Missing X11
+development headers automatically demote presets to the mock backend until
+dependencies are restored.
 
 ## Execution Backlog Overview
 
