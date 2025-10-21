@@ -14,7 +14,8 @@ namespace engine::io
     public:
         virtual ~MeshImporter() = default;
         [[nodiscard]] virtual MeshFileFormat format() const noexcept = 0;
-        virtual void import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const = 0;
+        [[nodiscard]] virtual GeometryIoResult<void>
+        import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const = 0;
     };
 
     class MeshExporter
@@ -22,7 +23,8 @@ namespace engine::io
     public:
         virtual ~MeshExporter() = default;
         [[nodiscard]] virtual MeshFileFormat format() const noexcept = 0;
-        virtual void export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const = 0;
+        [[nodiscard]] virtual GeometryIoResult<void>
+        export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const = 0;
     };
 
     class PointCloudImporter
@@ -30,7 +32,8 @@ namespace engine::io
     public:
         virtual ~PointCloudImporter() = default;
         [[nodiscard]] virtual PointCloudFileFormat format() const noexcept = 0;
-        virtual void import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const = 0;
+        [[nodiscard]] virtual GeometryIoResult<void>
+        import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const = 0;
     };
 
     class PointCloudExporter
@@ -38,8 +41,9 @@ namespace engine::io
     public:
         virtual ~PointCloudExporter() = default;
         [[nodiscard]] virtual PointCloudFileFormat format() const noexcept = 0;
-        virtual void export_point_cloud(const std::filesystem::path& path,
-                                        const geometry::PointCloudInterface& point_cloud) const = 0;
+        [[nodiscard]] virtual GeometryIoResult<void>
+        export_point_cloud(const std::filesystem::path& path,
+                           const geometry::PointCloudInterface& point_cloud) const = 0;
     };
 
     class GraphImporter
@@ -47,7 +51,8 @@ namespace engine::io
     public:
         virtual ~GraphImporter() = default;
         [[nodiscard]] virtual GraphFileFormat format() const noexcept = 0;
-        virtual void import(const std::filesystem::path& path, geometry::GraphInterface& graph) const = 0;
+        [[nodiscard]] virtual GeometryIoResult<void>
+        import(const std::filesystem::path& path, geometry::GraphInterface& graph) const = 0;
     };
 
     class GraphExporter
@@ -55,7 +60,8 @@ namespace engine::io
     public:
         virtual ~GraphExporter() = default;
         [[nodiscard]] virtual GraphFileFormat format() const noexcept = 0;
-        virtual void export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const = 0;
+        [[nodiscard]] virtual GeometryIoResult<void>
+        export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const = 0;
     };
 
     class GeometryIORegistry

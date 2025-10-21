@@ -2,6 +2,7 @@
 
 #include "engine/io/errors.hpp"
 #include "engine/io/geometry_io.hpp"
+#include "engine/math/vector.hpp"
 
 #include <algorithm>
 #include <array>
@@ -349,6 +350,45 @@ TEST(GeometryIO, ReadAndWriteGraph)
     const auto& info = detection.value();
     EXPECT_EQ(info.kind, engine::io::GeometryKind::graph);
     EXPECT_EQ(info.graph_format, engine::io::GraphFileFormat::ply);
+}
+
+TEST(GeometryIO, ReadMeshMissingFileReturnsFileNotFound)
+{
+    engine::geometry::Mesh mesh;
+    const auto result = engine::io::read_mesh("/nonexistent/path.obj", mesh.interface);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error().code(), engine::io::GeometryIoError::file_not_found);
+}
+
+TEST(GeometryIO, ReadMeshInvalidDataReturnsInvalidArgument)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "invalid.obj";
+    write_file(path, "f 1 2\n");
+
+    engine::geometry::Mesh mesh;
+    const auto result = engine::io::read_mesh(path, mesh.interface, engine::io::MeshFileFormat::obj);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error().code(), engine::io::GeometryIoError::invalid_argument);
+}
+
+TEST(GeometryIO, WriteMeshWithInvalidParentReturnsIoFailure)
+{
+    TempDirectory temp;
+    const auto blocker = temp.path / "blocked";
+    write_file(blocker, "content");
+
+    engine::geometry::Mesh mesh;
+    const auto v0 = mesh.interface.add_vertex(engine::math::vec3{0.0F, 0.0F, 0.0F});
+    const auto v1 = mesh.interface.add_vertex(engine::math::vec3{1.0F, 0.0F, 0.0F});
+    const auto v2 = mesh.interface.add_vertex(engine::math::vec3{0.0F, 1.0F, 0.0F});
+    const std::array<engine::geometry::VertexHandle, 3> face{v0, v1, v2};
+    ASSERT_TRUE(mesh.interface.add_face(face));
+
+    const auto result = engine::io::write_mesh(blocker / "triangle.obj", mesh.interface,
+                                              engine::io::MeshFileFormat::obj);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error().code(), engine::io::GeometryIoError::io_failure);
 }
 
 TEST(GeometryIO, LoadMeshRejectsMissingPointer)

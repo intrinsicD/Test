@@ -11,7 +11,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | ID | Intent | Dependencies | Status | Owning Groups |
 | --- | --- | --- | --- | --- |
-| `DC-004` | Standardise error handling on `engine::Result<T, Error>` across modules. | – | 🔄 In Progress | Core, IO |
+| `DC-004` | Standardise error handling on `engine::Result<T, Error>` across modules. | – | ✅ Done | Core, IO |
 | `AI-001` | Propagate handle-based lifetime management and validation hooks. | `DC-004` | 🔄 In Progress | Assets, Rendering |
 | `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | 🔄 In Progress | Assets, Runtime |
 | `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | ✅ Done | Rendering, Runtime |
@@ -29,12 +29,15 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `DC-004.1` | Publish canonical error-handling guide. | `docs/design/error_handling_migration.md` updated with examples and linked from module READMEs. | ✅ Done |
-| `DC-004.2` | Migrate IO module APIs to `Result<T>`. | All IO entry points return `Result<T>`, tests cover error paths, and module README updated. | 🔄 In Progress |
+| `DC-004.2` | Migrate IO module APIs to `Result<T>`. | All IO entry points return `Result<T>`, tests cover error paths, and module README updated. | ✅ Done |
 | `DC-004.3` | Add lint/check tooling. | Static check preventing legacy error patterns integrated into CI. | ✅ Done |
 
 - 2025-02-25: Animation clip importer/exporter now return
   `AnimationIoResult<T>` values, extending the `DC-004.2` migration beyond the
   geometry pipelines.
+- 2025-03-17: Geometry import/export registry wraps plugin operations in
+  `GeometryIoResult` conversions, eliminating legacy exception paths and
+  surfacing structured `GeometryIoErrorCode` values across IO tests.
 
 #### `AI-001` — Resource Lifetime Management
 
