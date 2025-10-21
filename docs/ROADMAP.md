@@ -160,9 +160,9 @@ Once staffed, execute module-specific queues below.
   documentation of solver stability ranges.
 - **Physics** — `PH-430` collision throughput telemetry surfaced in diagnostics;
   next sprint should scope automation for publishing long-term trends.
-- **Platform** — `PL-215` SDL parity checklist (`DC-003`); filesystem watcher
-  abstraction (`PL-222`) is complete, so focus shifts to `PL-230` backend
-  selection documentation.
+- **Platform** — `PL-215` SDL parity checklist (`DC-003`) remains active; backend
+  selection documentation (`PL-230`) landed, so keep presets/README guidance
+  aligned with future backend bring-up.
 - **Rendering** — `RE-520` backend documentation updates building on the
   completed metadata schema (`AI-003`), followed by `RE-530` backend validation
   tooling and parity tracking work.
