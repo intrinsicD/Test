@@ -14,9 +14,9 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Module | Health | Current Capability | Next Task |
 | --- | --- | --- | --- |
 | Animation | ✅ Stable | Deterministic clip sampling, validation, JSON import/export, blend-tree controllers, structured error reporting, and linear blend skinning transform generation consumed by the runtime pose system. | `AN-230`: prototype GPU/parallel sampling benchmarks once compute queue extensions land. |
-| Assets | 🔄 In Progress | Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload callbacks driven by the filesystem watcher and async queue instrumentation publishing runtime telemetry for streaming diagnostics. | `AS-320`: material persistence planning. |
-| Compute | ✅ Stable | Kernel dispatcher with per-kernel telemetry, backend capability probing, dependency cycle analysis tooling, dispatcher extension guidance, and math helpers for identity transforms. | `CO-170`: prototype runtime integration sample showing dispatcher orchestration. |
-| Core | ✅ Stable | EnTT-backed registry façade, subsystem discovery helpers, and module bootstrap plumbing consumed by higher-level systems. | `CR-125`: plugin lifecycle audit to keep `DC-001` fresh. |
+| Assets | 🔄 In Progress | Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload callbacks driven by the filesystem watcher and async queue instrumentation publishing runtime telemetry for streaming diagnostics. | `AS-320`: material persistence planning. | `AS-330`: diagnostics shell reload surfacing. |
+| Compute | ✅ Stable | Kernel dispatcher with per-kernel telemetry, backend capability probing, dependency cycle analysis tooling, dispatcher extension guidance, and math helpers for identity transforms. | `CO-150`: implement kernel dependency cycle detection tooling. | `CO-170`: prototype runtime integration sample showing dispatcher orchestration. |
+| Core | ✅ Stable | EnTT-backed registry façade, subsystem discovery helpers, and module bootstrap plumbing consumed by higher-level systems. | `CR-125`: plugin lifecycle audit to keep `DC-001` fresh. | `CR-135`: subsystem dependency diagnostics to harden `DC-001`. |
 | Geometry | ✅ Stable | `SurfaceMesh` utilities, halfedge conversions, procedural primitives, ASCII IO, kd-tree/octree accelerators, and CPU linear blend skinning deformers. | `GE-205`: benchmark accelerated normal recomputation for `TI-002`. |
 | IO | 🔄 In Progress | Geometry/animation import-export wrappers, plugin-ready handlers, and cache policy scaffolding. | `IO-221`: integrate signature database + fuzz harness towards `RT-006`. |
 | Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, and transform utilities feeding animation, geometry, and physics. | `MA-110`: add SIMD validation targets aligned with `TI-003`. |
@@ -37,9 +37,50 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 
 ### Platform Backend Selection
 
-- Configure the default window backend with `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK>` during CMake configuration. Presets default to `GLFW`; headless CI jobs force `MOCK`.
-- Override backends at runtime via `ENGINE_PLATFORM_WINDOW_BACKEND` (`auto`, `mock`, `glfw`, `sdl`). Automatic selection honours `WindowConfig::capability_requirements`, falling back when a backend cannot satisfy surface/headless constraints.
-- Toggle GLFW fetching/building using `-DENGINE_ENABLE_GLFW=<ON|OFF>`. Missing X11 development headers automatically demote presets to the mock backend until dependencies are restored.
+Backend selection combines a compile-time default with a runtime override while
+respecting capability requirements declared in `WindowConfig`.
+
+**Build-time default**
+
+- Provide `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK|AUTO>` during configuration.
+- The cache value is normalised and embedded as `ENGINE_PLATFORM_DEFAULT_BACKEND`;
+  `AUTO` disables the build-time preference.
+- Presets under `scripts/build/presets/` pin sensible defaults (desktop = GLFW,
+  CI/headless = MOCK).
+
+**Runtime override**
+
+- `ENGINE_PLATFORM_WINDOW_BACKEND` accepts `auto`, `glfw`, `sdl`, or `mock`
+  (case-insensitive). Invalid values degrade to `mock` to keep automation
+  deterministic.
+- When the override targets a concrete backend, the selector still appends the
+  mock backend as a fallback so tests continue operating if capability checks
+  fail.
+
+**Capability matrix**
+
+| Backend | Headless Safe | Native Surface |
+| --- | --- | --- |
+| GLFW | ❌ | ✅ |
+| SDL | ✅ | ✅ |
+| Mock | ✅ | ❌ |
+
+`WindowConfig::CapabilityRequirements` filters out ineligible backends before a
+selection is attempted. Direct requests for an incompatible backend return
+clear error messages to surface missing capabilities. See
+[`docs/modules/platform/README.md`](docs/modules/platform/README.md) for the full
+backend selection reference.
+
+**Automatic fallback order**
+
+1. Runtime override (`ENGINE_PLATFORM_WINDOW_BACKEND`), then mock if required.
+2. Build-time default when it maps to an available backend.
+3. Remaining compiled backends in deterministic order (GLFW → SDL → Mock),
+   guarded by `ENGINE_PLATFORM_HAS_*` macros.
+
+Toggle GLFW fetching/building using `-DENGINE_ENABLE_GLFW=<ON|OFF>`. Missing X11
+development headers automatically demote presets to the mock backend until
+dependencies are restored.
 
 ## Execution Backlog Overview
 

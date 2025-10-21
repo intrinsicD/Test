@@ -72,8 +72,8 @@ This module tracks actionable work through the execution checklist below.
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `AN-201` | Extend validation regression coverage (`RT-001`). | Add negative-path fixtures for `validate_clip`, extend controller regression tests, document results in module roadmap. | ✅ Done |
-| `AN-230` | Prototype GPU/parallel sampling plan. | Bench sampling throughput via `compute::KernelDispatcher` and publish findings in module roadmap. | 🟢 Todo |
-| `AN-240` | Draft state-machine authoring spec. | Author proposal covering transition orchestration and event propagation; link in `docs/design/`. | 🟢 Todo |
+| `AN-230` | Prototype GPU/parallel sampling plan. | Document benchmarking methodology and publish roadmap references before executing harness work. | 🟡 In Progress |
+| `AN-240` | Draft state-machine authoring spec. | Deliver authoring specification and update roadmap links before runtime implementation tasks begin. | 🟡 In Progress |
 
 See [ROADMAP.md](ROADMAP.md) for phased delivery details and dependency
 tracking.

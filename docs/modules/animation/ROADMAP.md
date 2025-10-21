@@ -22,8 +22,8 @@
 
 | Task ID | Description | Trigger |
 | --- | --- | --- |
-| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher`. | After `CO-141` lands (dependency satisfied). |
-| `AN-240` | Draft state-machine authoring specification with transition orchestration and event propagation requirements. | After `AN-201` complete. |
+| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher` ([plan](../../design/animation_gpu_parallel_sampling_benchmark.md)). | After `CO-141` lands (dependency satisfied). |
+| `AN-240` | Draft state-machine authoring specification with transition orchestration and event propagation requirements ([spec](../../specs/AN-240-state-machine-authoring.md)). | After `AN-201` complete. |
 | `AN-250` | Investigate advanced deformation pipelines (dual quaternion, curve-driven rigs) and dependencies on geometry module upgrades. | Pending geometry remeshing roadmap. |
 
 ## Dependencies
@@ -36,6 +36,8 @@
 
 - Record benchmark data in [`docs/tasks/T-0113-animation-runtime-skinning.md`](../../tasks/T-0113-animation-runtime-skinning.md).
 - Align telemetry hooks with the broader diagnostics initiative (`CC-001`).
+- 2025-03-24: Logged GPU sampling benchmark plan (`AN-230`) and state-machine
+  authoring specification (`AN-240`) under `docs/design/` and `docs/specs/`.
 - 2025-02-21: Added regression coverage for clip validation failure codes and
   controller playback invariants (`engine/animation/tests/test_clip_serialization.cpp`,
   `engine/animation/tests/test_module.cpp`).

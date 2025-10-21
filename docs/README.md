@@ -33,9 +33,12 @@
 | Implementation playbook prompts | [prompts/implementation-playbook.md](prompts/implementation-playbook.md) |
 | Active task inventory & acceptance criteria | [tasks/README.md](tasks/README.md) |
 | Decision records, ADRs, and specifications | [specs/README.md](specs/README.md) |
+| Animation GPU sampling benchmark plan | [design/animation_gpu_parallel_sampling_benchmark.md](design/animation_gpu_parallel_sampling_benchmark.md) |
+| Animation state-machine authoring spec | [specs/AN-240-state-machine-authoring.md](specs/AN-240-state-machine-authoring.md) |
 | Vulkan backend readiness checklist | [modules/rendering/backend_checklist.md](modules/rendering/backend_checklist.md) |
 | Telemetry schema reference | [design/telemetry_schema.md](design/telemetry_schema.md) |
 | Telemetry instrumentation workflow | [design/telemetry_instrumentation_guide.md](design/telemetry_instrumentation_guide.md) |
+| IO detection & fuzzing playbook | [modules/io/detection_fuzzing_playbook.md](modules/io/detection_fuzzing_playbook.md) |
 
 Source-of-truth precedence: `../AGENTS.md` → this file → `agents.md` →
 `architecture.md` → entries under `design/` or `specs/` → module READMEs → code

@@ -37,3 +37,5 @@ _Last Updated: 2025-02-19_
   [`docs/tasks/T-0115-assets-async-streaming-mvp.md`](../../tasks/T-0115-assets-async-streaming-mvp.md).
 - Coordinate hot reload work with the broader initiative documented in
   [`../../ROADMAP.md`](../../ROADMAP.md#cc-002-hot-reload-infrastructure).
+- 2025-03-24: Published [`design/material_persistence_strategy.md`](../../design/material_persistence_strategy.md)
+  completing `AS-320` and unblocking material cache implementation work.
