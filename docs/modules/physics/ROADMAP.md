@@ -1,6 +1,6 @@
 # Physics Module Roadmap
 
-_Last Updated: 2025-03-15_
+_Last Updated: 2025-03-25_
 
 ## Key Initiatives
 
@@ -20,7 +20,7 @@ _Last Updated: 2025-03-15_
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `PH-430` | Surface collision throughput trends in diagnostics tooling and roadmap updates. | After `PH-410` |
+| – | Define next diagnostics automation milestone following `PH-430`. | Pending planning |
 
 ## Notes
 
@@ -29,4 +29,5 @@ _Last Updated: 2025-03-15_
 - Telemetry schema (`CC-001.1`) is available; runtime now publishes manifold
   metrics under the shared schema, completing `PH-420`.
 - Collision throughput harness (`engine_physics_benchmarks`) emits JSON metrics
-  for CI ingestion; extend `PH-430` to expose those artefacts in tooling.
+  for CI ingestion; `PH-430` now exposes those artefacts via
+  `scripts/diagnostics/collision_benchmark_report.py`.

@@ -78,3 +78,26 @@ samples filtered by prefix.
 3. Inspect the console output for per-stage timings, streaming gauges, and
    filtered metrics. Adjust `--metric-prefix` (repeatable) or `--max-issues`
    when triaging specific subsystems or scene hierarchy reports.
+
+## `collision_benchmark_report.py`
+
+Use this reporter to surface collision throughput trends captured by
+`physics_collision_benchmark`. It formats the benchmark JSON payload into a
+human-readable summary and compares the latest run against a baseline to
+highlight regressions or gains.
+
+1. Run the benchmark (for example via CTest):
+   ```bash
+   ctest --preset linux-gcc-debug --tests-regex physics_collision_benchmark --output-on-failure
+   ```
+   The test emits `physics_collision_benchmark.json` inside the preset build
+   directory.
+2. Render the summary, optionally supplying a baseline for comparison:
+   ```bash
+   python scripts/diagnostics/collision_benchmark_report.py \
+       --current out/build/linux-gcc-debug/physics_collision_benchmark.json \
+       --baseline results/previous_run.json
+   ```
+3. Review the printed configuration, throughput, manifold/contact counts, and
+   solver iteration deltas. Integrate the script into CI dashboards to track
+   `PH-430` collision telemetry.

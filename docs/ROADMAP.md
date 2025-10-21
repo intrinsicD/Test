@@ -157,8 +157,8 @@ Once staffed, execute module-specific queues below.
   telemetry alignment once diagnostics schema lands.
 - **Math** — `MA-110` SIMD validation harness (`TI-003`), then `MA-118`
   documentation of solver stability ranges.
-- **Physics** — `PH-410` benchmarking harness complete; next define `PH-430`
-  to surface collision throughput trends in diagnostics tooling.
+- **Physics** — `PH-430` collision throughput telemetry surfaced in diagnostics;
+  next sprint should scope automation for publishing long-term trends.
 - **Platform** — `PL-215` SDL parity checklist (`DC-003`); filesystem watcher
   abstraction (`PL-222`) is complete, so focus shifts to `PL-230` backend
   selection documentation.

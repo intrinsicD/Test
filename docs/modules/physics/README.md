@@ -24,7 +24,7 @@ This module tracks actionable work through the execution checklist below.
 | `PH-401` | Implement persistent manifold storage (`RT-002`). | Cache retains contacts across frames with regression coverage. | ✅ Done |
 | `PH-410` | Add benchmarking harness. | Automated benchmark for collision throughput tracked in CI. | ✅ Done |
 | `PH-420` | Wire telemetry for manifold churn. | Emit metrics and document consumption in diagnostics shell. | ✅ Done |
-| `PH-430` | Publish collision throughput trends. | Surface benchmark artefacts in diagnostics viewer and roadmap updates. | 🟢 Planned |
+| `PH-430` | Publish collision throughput trends. | Surface benchmark artefacts in diagnostics viewer and roadmap updates. | ✅ Done |
 
 ### Benchmarks
 
@@ -32,6 +32,7 @@ This module tracks actionable work through the execution checklist below.
 - Run: `ctest --preset <preset> --tests-regex physics_collision_benchmark --output-on-failure` or execute
   `engine_physics_benchmarks --bodies 128 --steps 512 --dt 0.0166667 --seed 1337` to emit JSON metrics.
 - Output: JSON payload captures average/peak manifold counts, solver iterations, and wall-clock throughput for CI trend
-  ingestion.
+  ingestion. Use `python scripts/diagnostics/collision_benchmark_report.py --current <path>` to render human-readable
+  telemetry summaries or compare against a baseline run when monitoring regressions.
 
 See [ROADMAP.md](ROADMAP.md) for full schedule.
