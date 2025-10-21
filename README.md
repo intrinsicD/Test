@@ -25,7 +25,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-530`: backend validation tooling and parity tracking follow-up. |
 | Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, and submission into the rendering pipeline. | `AI-002`: extend async streaming diagnostics once assets hot-reload callbacks land. |
 | Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | `SC-220`: documentation refresh for hierarchy diagnostics. |
-| Tools | 🚧 Planned | Editor/profiling/pipeline automation staging area with scaffolding in place. | `TL-101`: stand up diagnostics shell tasks from `CC-001`. |
+| Tools | 🔄 In Progress | Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots. | `TL-110`: document tooling invocation and troubleshooting. |
 
 ### Directory Map
 
@@ -57,7 +57,7 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | `RT-003` | Vulkan backend parity and documentation. | Align runtime submission surfaces and publish backend checklist. | Rendering, Runtime | 🔄 In Progress |
 | `RT-005` | Scene hierarchy validation + diagnostics. | Integrate cycle detection and reporting hooks. | Scene, Runtime | ✅ Done |
 | `RT-006` | IO signature hardening + fuzzing. | Wire signature database and libFuzzer corpus seeding. | IO | 🟠 Blocked on fuzz harness infra |
-| `CC-001` | Telemetry instrumentation and viewer. | Define metrics schema, sinks, and tooling shell. | Core, Tools | 🟢 Ready to Start |
+| `CC-001` | Telemetry instrumentation and viewer. | Finalise instrumentation guide after landing telemetry viewer CLI. | Core, Tools | 🔄 In Progress |
 | `CC-002` | Hot reload infrastructure. | Filesystem watcher landed; integrate cache callbacks and diagnostics telemetry next. | Assets, Platform | 🔄 In Progress |
 
 ### Sprint Horizon

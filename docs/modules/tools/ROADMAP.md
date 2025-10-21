@@ -6,7 +6,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Description | Status |
 | --- | --- | --- |
-| `TL-101` | Implement diagnostics shell to visualise telemetry (`CC-001`). | 🟢 Planned |
+| `TL-101` | Implement diagnostics shell to visualise telemetry (`CC-001`). | ✅ Done |
 | `TL-110` | Document tooling usage + troubleshooting. | 🟢 Planned |
 | `TL-115` | Add profiling capture/export workflow. | 🟢 Planned |
 

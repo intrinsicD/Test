@@ -58,3 +58,23 @@ metrics gathered from the runtime thread pool and `AssetStreamingTelemetry`.
 
 Integrate the script into CI to monitor queue health once large streaming
 workloads are exercised.
+
+## `telemetry_viewer.py`
+
+The telemetry viewer provides the `CC-001` diagnostics shell MVP (`TL-101`). It
+renders a textual dashboard from the JSON snapshots exported by
+`runtime_frame_telemetry.py`, highlighting frame totals, streaming health,
+dispatcher stages, subsystem timings, scene validation issues, and metric
+samples filtered by prefix.
+
+1. Export telemetry using `runtime_frame_telemetry.py` with the `--output`
+   option.
+2. Run the viewer from the repository root:
+   ```bash
+   python scripts/diagnostics/telemetry_viewer.py \
+       --input telemetry/frame_timings.json \
+       --metric-prefix runtime.streaming.
+   ```
+3. Inspect the console output for per-stage timings, streaming gauges, and
+   filtered metrics. Adjust `--metric-prefix` (repeatable) or `--max-issues`
+   when triaging specific subsystems or scene hierarchy reports.
