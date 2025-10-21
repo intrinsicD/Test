@@ -6,6 +6,8 @@
 - Houses initial diagnostics scripting hooks, including the telemetry viewer
   CLI that renders runtime snapshots exported by
   `scripts/diagnostics/runtime_frame_telemetry.py`.
+- Shares the cross-module telemetry instrumentation guidance captured in
+  [`docs/design/telemetry_instrumentation_guide.md`](../../design/telemetry_instrumentation_guide.md).
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_tools`.
