@@ -99,7 +99,7 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | `RT-005` | Scene hierarchy validation + diagnostics. | Integrate cycle detection and reporting hooks. | Scene, Runtime | ✅ Done |
 | `RT-006` | IO signature hardening + fuzzing. | Wire signature database and libFuzzer corpus seeding. | IO | 🟠 Blocked on fuzz harness infra |
 | `CC-001` | Telemetry instrumentation and viewer. | Telemetry schema, viewer CLI, and instrumentation guide published. | Core, Tools | ✅ Done |
-| `CC-002` | Hot reload infrastructure. | Filesystem watcher landed; integrate cache callbacks and diagnostics telemetry next. | Assets, Platform | 🔄 In Progress |
+| `CC-002` | Hot reload infrastructure. | Hot reload callbacks publish telemetry and diagnostics viewer surfaces reload failures. | Assets, Platform | ✅ Done |
 
 ### Sprint Horizon
 

@@ -20,7 +20,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `RT-005` | Validate scene hierarchies and expose diagnostics. | – | ✅ Done | Scene, Runtime |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | 🟠 Blocked on fuzz harness infra | IO |
 | `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | ✅ Done | Core, Tools |
-| `CC-002` | Build hot reload infrastructure across caches/backends. | `AI-001` | 🔄 In Progress | Assets, Platform |
+| `CC-002` | Build hot reload infrastructure across caches/backends. | `AI-001` | ✅ Done | Assets, Platform |
 
 ### Task Breakdowns
 
@@ -128,11 +128,14 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `CC-002.1` | Filesystem watcher abstraction. | Platform module exposes cross-platform watcher with tests and documentation. | ✅ Done |
 | `CC-002.2` | Cache callback integration. | Assets caches react to change notifications with error telemetry. | ✅ Done |
-| `CC-002.3` | Failure diagnostics. | Diagnostics shell surfaces reload failures with actionable hints. | 🟢 Todo |
+| `CC-002.3` | Failure diagnostics. | Diagnostics shell surfaces reload failures with actionable hints. | ✅ Done |
 
 - 2025-03-04: Assets mesh/graph/point cloud/shader/texture caches subscribe to
   the platform filesystem watcher and unregister on unload, completing
   `CC-002.2` while preserving pending callback hand-offs.
+- 2025-03-24: Runtime diagnostics bridge exports hot reload telemetry snapshots
+  and the diagnostics viewer surfaces failure guidance, completing
+  `CC-002.3` and closing the hot reload infrastructure initiative.
 
 ## Outstanding Backlog Focus
 

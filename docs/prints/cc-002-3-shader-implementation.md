@@ -202,7 +202,7 @@ N/A
 Matches the patch set recorded above.
 
 ## FOLLOW_UP_TODOS
-- [ ] Wire runtime diagnostics snapshot once shader telemetry is available (owner: TBD, priority high, prerequisite for CC-002.3 completion)
-- [ ] Ensure telemetry viewer integrations serialize shader hot reload counters (owner: TBD, priority medium, maintain observability parity)
+- [x] Wire runtime diagnostics snapshot once shader telemetry is available (owner: TBD, priority high, prerequisite for CC-002.3 completion)
+- [x] Ensure telemetry viewer integrations serialize shader hot reload counters (owner: TBD, priority medium, maintain observability parity)
 - [ ] Consider refactoring shared cache reload logic to reduce duplication (owner: TBD, priority low, tech debt)
 - [ ] Update module READMEs with consolidated telemetry guidance post end-to-end integration (owner: TBD, priority medium)

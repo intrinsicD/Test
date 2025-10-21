@@ -48,6 +48,17 @@ def telemetry_payload() -> dict[str, object]:
                 "streaming_total_cancelled": 1,
                 "streaming_total_rejected": 0,
             },
+            "hot_reload": {
+                "attempt_count": 4,
+                "failure_count": 1,
+                "cancelled_count": 1,
+                "rejected_count": 0,
+                "pending_count": 1,
+                "loading_count": 0,
+                "total_requests": 4,
+                "last_error": "compile error",
+                "error_hint": "Verify shader includes",
+            },
             "stages": [
                 {
                     "name": "animation.evaluate",
@@ -163,6 +174,12 @@ def test_viewer_suppresses_hot_reload_guidance_without_failures(
     streaming["streaming_total_failed"] = 0
     streaming["streaming_total_cancelled"] = 0
     streaming["streaming_total_rejected"] = 0
+    hot_reload = payload["runtime_diagnostics"]["hot_reload"]
+    hot_reload["failure_count"] = 0
+    hot_reload["cancelled_count"] = 0
+    hot_reload["rejected_count"] = 0
+    hot_reload["last_error"] = ""
+    hot_reload["error_hint"] = ""
     payload_path = tmp_path / "telemetry.json"
     payload_path.write_text(json.dumps(payload), encoding="utf-8")
 

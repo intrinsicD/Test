@@ -115,6 +115,19 @@ struct ENGINE_RUNTIME_API RuntimeStageTiming
     std::uint64_t sample_count{0};
 };
 
+struct ENGINE_RUNTIME_API HotReloadDiagnostics
+{
+    std::uint64_t attempt_count{0};
+    std::uint64_t failure_count{0};
+    std::uint64_t cancelled_count{0};
+    std::uint64_t rejected_count{0};
+    std::uint64_t pending_count{0};
+    std::uint64_t loading_count{0};
+    std::uint64_t total_requests{0};
+    std::string last_error{};
+    std::string error_hint{};
+};
+
 struct ENGINE_RUNTIME_API RuntimeSubsystemTiming
 {
     std::string name{};
@@ -142,6 +155,7 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     double max_tick_ms{0.0};
     double average_tick_ms{0.0};
     StreamingMetrics streaming{};
+    HotReloadDiagnostics hot_reload{};
     std::vector<RuntimeStageTiming> stage_timings{};
     std::vector<RuntimeSubsystemTiming> subsystem_timings{};
     scene::validation::HierarchyValidationReport scene_validation{};
@@ -269,6 +283,21 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
     struct engine_runtime_streaming_metrics* out_metrics) noexcept;
 extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_streaming_metrics(
     struct engine_runtime_streaming_metrics* out_metrics) noexcept;
+
+struct engine_runtime_hot_reload_metrics
+{
+    std::uint64_t attempt_count;
+    std::uint64_t failure_count;
+    std::uint64_t cancelled_count;
+    std::uint64_t rejected_count;
+    std::uint64_t pending_count;
+    std::uint64_t loading_count;
+    std::uint64_t total_requests;
+    const char* last_error;
+    const char* error_hint;
+};
+extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_hot_reload_metrics(
+    struct engine_runtime_hot_reload_metrics* out_metrics) noexcept;
 
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_count() noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_shutdown_count() noexcept;
