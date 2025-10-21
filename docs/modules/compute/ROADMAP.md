@@ -1,13 +1,13 @@
 # Compute Module Roadmap
 
-_Last Updated: 2025-10-20_
+_Last Updated: 2025-10-21_
 
 ## Objectives
 
 | Goal | Description | Status |
 | --- | --- | --- |
-| Dispatcher maturity | Document extension points, add dependency validation, ensure telemetry coverage. | 🔄 In Progress |
-| CUDA optionality | Maintain feature flag parity across presets and CI. | 🟢 Planned |
+| Dispatcher maturity | Document extension points, add dependency validation, ensure telemetry coverage. | ✅ Complete |
+| CUDA optionality | Maintain feature flag parity across presets and CI. | ✅ Complete |
 | Runtime alignment | Coordinate with runtime job graph for future async execution. | 🟢 Planned |
 
 ## Active Tasks
