@@ -1,4 +1,5 @@
 #include "engine/compute/api.hpp"
+#include "engine/compute/dependency_analysis.hpp"
 
 #include <chrono>
 #include <memory>
@@ -12,13 +13,32 @@ namespace engine::compute {
 
 namespace {
 
-[[nodiscard]] std::string make_cycle_error(const DependencyGraph& graph, std::string_view context)
+[[nodiscard]] std::string make_cycle_error(const DependencyGraph& graph,
+                                           std::string_view context,
+                                           const CycleDetectionResult& cycle)
 {
     std::ostringstream stream;
     stream << "KernelDispatcher detected a cycle";
     if (!context.empty())
     {
         stream << ' ' << context;
+    }
+    if (cycle.has_cycle && !cycle.cycle.empty())
+    {
+        stream << '\n' << "Cycle path: ";
+        for (std::size_t index = 0; index < cycle.cycle.size(); ++index)
+        {
+            const auto identifier = cycle.cycle[index];
+            stream << identifier;
+            if (identifier < graph.nodes.size())
+            {
+                stream << " (" << graph.nodes[identifier].name << ')';
+            }
+            if (index + 1U < cycle.cycle.size())
+            {
+                stream << " -> ";
+            }
+        }
     }
     stream << '\n' << graph.to_dot();
     return stream.str();
@@ -149,7 +169,8 @@ public:
 
         if (report.execution_order.size() != count)
         {
-            throw std::runtime_error{make_cycle_error(graph, "during dispatch")};
+            const auto cycle = detect_cycles(graph);
+            throw std::runtime_error{make_cycle_error(graph, "during dispatch", cycle)};
         }
 
         return report;
@@ -210,48 +231,10 @@ private:
     void validate_registration() const
     {
         const auto graph = build_dependency_graph();
-
-        const auto count = graph.nodes.size();
-        std::vector<std::vector<kernel_id>> adjacency(count);
-        std::vector<std::size_t> indegree(count, 0U);
-
-        for (kernel_id node = 0; node < count; ++node)
+        const auto cycle = detect_cycles(graph);
+        if (cycle.has_cycle)
         {
-            for (const auto dependency : graph.nodes[node].dependencies)
-            {
-                adjacency[dependency].push_back(node);
-                ++indegree[node];
-            }
-        }
-
-        std::queue<kernel_id> ready;
-        for (kernel_id node = 0; node < count; ++node)
-        {
-            if (indegree[node] == 0U)
-            {
-                ready.push(node);
-            }
-        }
-
-        std::size_t processed = 0;
-        while (!ready.empty())
-        {
-            const auto node = ready.front();
-            ready.pop();
-            ++processed;
-
-            for (const auto successor : adjacency[node])
-            {
-                if (--indegree[successor] == 0U)
-                {
-                    ready.push(successor);
-                }
-            }
-        }
-
-        if (processed != count)
-        {
-            throw std::runtime_error{make_cycle_error(graph, "during registration")};
+            throw std::runtime_error{make_cycle_error(graph, "during registration", cycle)};
         }
     }
 
@@ -278,8 +261,8 @@ private:
 namespace {
 
 [[nodiscard]] constexpr bool compute_cuda_enabled() noexcept {
-#if defined(ENGINE_ENABLE_COMPUTE_CUDA)
-    return ENGINE_ENABLE_COMPUTE_CUDA != 0;
+#if defined(ENGINE_ENABLE_CUDA) && defined(ENGINE_ENABLE_COMPUTE_CUDA)
+    return (ENGINE_ENABLE_CUDA != 0) && (ENGINE_ENABLE_COMPUTE_CUDA != 0);
 #else
     return false;
 #endif
