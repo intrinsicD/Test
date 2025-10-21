@@ -974,6 +974,107 @@ def _samples_to_dict(
     }
 
 
+def build_profile_trace(
+    samples: Sequence[FrameSample], title: str = "Runtime Dispatch Profiling"
+) -> Dict[str, object]:
+    """Transform captured frame samples into a Chrome trace payload.
+
+    The trace groups dispatch kernels by frame using individual threads so
+    external profilers can reconstruct the frame sequence while preserving the
+    per-dispatch ordering captured by the runtime dispatcher.
+    """
+
+    events: List[Dict[str, object]] = []
+    process_id = 1
+    events.append(
+        {
+            "name": "process_name",
+            "ph": "M",
+            "pid": process_id,
+            "args": {"name": title},
+        }
+    )
+
+    for sample in samples:
+        thread_id = sample.index
+        events.append(
+            {
+                "name": "thread_name",
+                "ph": "M",
+                "pid": process_id,
+                "tid": thread_id,
+                "args": {"name": f"frame_{sample.index}"},
+            }
+        )
+
+        frame_start = sample.simulation_time - sample.timestep
+        if frame_start < 0.0:
+            frame_start = 0.0
+        frame_start_us = frame_start * 1_000_000.0
+        cursor_us = frame_start_us
+
+        for dispatch in sample.dispatches:
+            duration_us = max(dispatch.duration_ms, 0.0) * 1000.0
+            events.append(
+                {
+                    "name": dispatch.name,
+                    "cat": dispatch.category,
+                    "ph": "X",
+                    "ts": cursor_us,
+                    "dur": duration_us,
+                    "pid": process_id,
+                    "tid": thread_id,
+                    "args": {
+                        "frame_index": sample.index,
+                        "simulation_time": sample.simulation_time,
+                        "dt": sample.timestep,
+                    },
+                }
+            )
+            cursor_us += duration_us
+
+        frame_duration_us = max(sample.frame_total_ms, 0.0) * 1000.0
+        events.append(
+            {
+                "name": "frame.total",
+                "cat": "frame",
+                "ph": "X",
+                "ts": frame_start_us,
+                "dur": frame_duration_us,
+                "pid": process_id,
+                "tid": thread_id,
+                "args": {
+                    "frame_index": sample.index,
+                    "simulation_time": sample.simulation_time,
+                    "dt": sample.timestep,
+                },
+            }
+        )
+
+    metadata: Dict[str, object] = {
+        "title": title,
+        "frameCount": len(samples),
+    }
+
+    return {
+        "traceEvents": events,
+        "displayTimeUnit": "ms",
+        "metadata": metadata,
+    }
+
+
+def write_profile_trace(
+    samples: Sequence[FrameSample],
+    path: Path,
+    title: str = "Runtime Dispatch Profiling",
+) -> None:
+    """Persist a Chrome trace payload for captured frame samples."""
+
+    payload = build_profile_trace(samples, title)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def _metric_matches_prefix(name: str, prefixes: Optional[Sequence[str]]) -> bool:
     if prefixes is None:
         return True
@@ -1242,6 +1343,21 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
             "Ignore prefix filtering and display every metric in the runtime telemetry snapshot."
         ),
     )
+    parser.add_argument(
+        "--profile-trace",
+        type=Path,
+        default=None,
+        help=(
+            "Optional Chrome trace JSON file capturing per-dispatch profiling data for external tooling."
+        ),
+    )
+    parser.add_argument(
+        "--profile-trace-title",
+        default="Runtime Dispatch Profiling",
+        help=(
+            "Label to embed in the exported Chrome trace metadata (default: 'Runtime Dispatch Profiling')."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -1296,6 +1412,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         payload = _samples_to_dict(samples, diagnostics)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if args.profile_trace is not None:
+        write_profile_trace(samples, args.profile_trace, args.profile_trace_title)
     return 0
 
 

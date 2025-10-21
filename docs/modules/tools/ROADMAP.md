@@ -1,6 +1,6 @@
 # Tools Module Roadmap
 
-_Last Updated: 2025-03-26_
+_Last Updated: 2025-04-05_
 
 ## Roadmap
 
@@ -8,7 +8,7 @@ _Last Updated: 2025-03-26_
 | --- | --- | --- |
 | `TL-101` | Implement diagnostics shell to visualise telemetry (`CC-001`). | ✅ Done |
 | `TL-110` | Document tooling usage + troubleshooting. | 🟡 In Progress |
-| `TL-115` | Add profiling capture/export workflow. | 🟢 Planned |
+| `TL-115` | Add profiling capture/export workflow. | ✅ Done |
 
 ## Plan
 
@@ -19,6 +19,9 @@ _Last Updated: 2025-03-26_
 
 ## Notes
 
+- 2025-04-05: Profiling capture export emits Chrome trace payloads via
+  `--profile-trace`, satisfying TL-115 with regression coverage in
+  `test_runtime_frame_telemetry.py`.
 - 2025-03-26: README now documents `runtime_frame_telemetry.py` prefix filters
   and `--metrics-all`, partially satisfying `TL-110` while additional
   troubleshooting guidance remains pending.
