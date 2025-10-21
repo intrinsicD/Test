@@ -24,7 +24,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Platform | ✅ Stable | Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. | `PL-215`: publish SDL backend parity checklist for `DC-003`. |
 | Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-530`: backend validation tooling and parity tracking follow-up. |
 | Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, and submission into the rendering pipeline. | `AI-002`: extend async streaming diagnostics once assets hot-reload callbacks land. |
-| Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | `SC-220`: documentation refresh for hierarchy diagnostics. |
+| Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | `SC-225`: publish hierarchy diagnostics samples and alerting guidance follow-up. |
 | Tools | 🔄 In Progress | Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots. | `TL-110`: document tooling invocation and troubleshooting. |
 
 ### Directory Map

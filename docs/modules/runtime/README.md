@@ -48,10 +48,11 @@
 
 ## TODO / Next Steps
 
-- Coordinate with the scene module documentation refresh (`SC-220`, see the
-  [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation)) so
-  import pipelines reference the runtime troubleshooting guide when explaining
-  hierarchy validation flows and keep `RT-005` artefacts aligned.
+- Support the scene module follow-ups (`SC-225` diagnostics samples,
+  `SC-230` alert thresholds) by providing telemetry examples and
+  cross-linking new fixtures once they land in the shared tooling docs;
+  these items extend `RT-005` and remain tracked in the
+  [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
 
 This module tracks actionable work through the execution checklist below.
 
