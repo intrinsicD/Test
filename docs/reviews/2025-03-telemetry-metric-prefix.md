@@ -25,8 +25,8 @@ None.
 
 ## Documentation Status
 - [x] `scripts/diagnostics/README.md`
-- [ ] `docs/modules/tools/README.md`
-- [ ] `docs/modules/tools/ROADMAP.md`
+- [x] `docs/modules/tools/README.md`
+- [x] `docs/modules/tools/ROADMAP.md`
 
 ## Test Coverage
 - `pytest scripts/tests/test_runtime_frame_telemetry.py`
