@@ -177,9 +177,9 @@ Once staffed, execute module-specific queues below.
   tooling and parity tracking work.
 - **Runtime** — `RT-005` tranche complete; support `SC-225` samples and `SC-230` alerting guidance as scene docs expand.
 - **Scene** — `SC-225` diagnostics samples and `SC-230` alerting thresholds extend the hierarchy playbook delivered in `SC-220`.
-- **Tools** — `TL-110` tooling documentation refresh (`CC-001`) continues while
-  the new `TL-115` Chrome trace export unblocks deeper profiling workflows for
-  the telemetry viewer (`TL-101`).
+- **Tools** — TL-110 documentation refresh completed; next focus is surfacing
+  metric descriptions in the diagnostics viewer while monitoring the Chrome
+  trace export from `TL-115`.
 
 ### Process & Audit Items
 
