@@ -20,10 +20,12 @@ namespace
             return format_;
         }
 
-        void import(const std::filesystem::path& path, engine::geometry::MeshInterface& mesh) const override
+        [[nodiscard]] engine::io::GeometryIoResult<void>
+        import(const std::filesystem::path& path, engine::geometry::MeshInterface& mesh) const override
         {
             static_cast<void>(path);
             static_cast<void>(mesh);
+            return {};
         }
 
     private:
@@ -43,10 +45,12 @@ namespace
             return format_;
         }
 
-        void export_mesh(const std::filesystem::path& path, const engine::geometry::MeshInterface& mesh) const override
+        [[nodiscard]] engine::io::GeometryIoResult<void>
+        export_mesh(const std::filesystem::path& path, const engine::geometry::MeshInterface& mesh) const override
         {
             static_cast<void>(path);
             static_cast<void>(mesh);
+            return {};
         }
 
     private:
@@ -66,10 +70,12 @@ namespace
             return format_;
         }
 
-        void import(const std::filesystem::path& path, engine::geometry::PointCloudInterface& point_cloud) const override
+        [[nodiscard]] engine::io::GeometryIoResult<void>
+        import(const std::filesystem::path& path, engine::geometry::PointCloudInterface& point_cloud) const override
         {
             static_cast<void>(path);
             static_cast<void>(point_cloud);
+            return {};
         }
 
     private:
@@ -89,11 +95,13 @@ namespace
             return format_;
         }
 
-        void export_point_cloud(const std::filesystem::path& path,
-                                 const engine::geometry::PointCloudInterface& point_cloud) const override
+        [[nodiscard]] engine::io::GeometryIoResult<void>
+        export_point_cloud(const std::filesystem::path& path,
+                           const engine::geometry::PointCloudInterface& point_cloud) const override
         {
             static_cast<void>(path);
             static_cast<void>(point_cloud);
+            return {};
         }
 
     private:
@@ -113,10 +121,12 @@ namespace
             return format_;
         }
 
-        void import(const std::filesystem::path& path, engine::geometry::GraphInterface& graph) const override
+        [[nodiscard]] engine::io::GeometryIoResult<void>
+        import(const std::filesystem::path& path, engine::geometry::GraphInterface& graph) const override
         {
             static_cast<void>(path);
             static_cast<void>(graph);
+            return {};
         }
 
     private:
@@ -136,10 +146,12 @@ namespace
             return format_;
         }
 
-        void export_graph(const std::filesystem::path& path, const engine::geometry::GraphInterface& graph) const override
+        [[nodiscard]] engine::io::GeometryIoResult<void>
+        export_graph(const std::filesystem::path& path, const engine::geometry::GraphInterface& graph) const override
         {
             static_cast<void>(path);
             static_cast<void>(graph);
+            return {};
         }
 
     private:

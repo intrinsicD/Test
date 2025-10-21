@@ -6,6 +6,10 @@
 - Implements scaffolding for cache policies and integrates with asset caches.
 - Supplies structured error handling as part of `DC-004` migration across
   geometry and animation importers.
+- Geometry import/export plugins now return `GeometryIoResult` values and map
+  filesystem or parsing failures to `GeometryIoErrorCode` identifiers, allowing
+  callers to branch on `file_not_found`, `io_failure`, or `invalid_argument`
+  outcomes without exceptions.
 
 ## Usage
 - Build via `cmake --build --preset <preset> --target engine_io`.

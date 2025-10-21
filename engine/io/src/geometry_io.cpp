@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <unordered_map>
 #include <vector>
 
@@ -25,6 +26,66 @@ namespace engine::io
     namespace
     {
         using engine::math::vec3;
+
+        class GeometryIoException final : public std::runtime_error
+        {
+        public:
+            GeometryIoException(GeometryIoError code, std::string_view message)
+                : std::runtime_error(std::string{message})
+                , code_{code}
+            {
+            }
+
+            [[nodiscard]] GeometryIoError code() const noexcept
+            {
+                return code_;
+            }
+
+        private:
+            GeometryIoError code_;
+        };
+
+        [[nodiscard]] GeometryIoError map_open_error(const std::filesystem::path& path) noexcept
+        {
+            std::error_code ec;
+            const bool exists = std::filesystem::exists(path, ec);
+            if (ec)
+            {
+                return GeometryIoError::io_failure;
+            }
+
+            return exists ? GeometryIoError::io_failure : GeometryIoError::file_not_found;
+        }
+
+        template <typename Callable>
+        [[nodiscard]] GeometryIoResult<void> translate_io_exceptions(const std::filesystem::path& path,
+                                                                     Callable&& callable)
+        {
+            try
+            {
+                std::forward<Callable>(callable)();
+                return {};
+            }
+            catch (const GeometryIoException& e)
+            {
+                return make_geometry_io_error(e.code(), std::string{e.what()});
+            }
+            catch (const std::filesystem::filesystem_error& e)
+            {
+                return make_geometry_io_error(GeometryIoError::io_failure,
+                                              std::string{"Filesystem error while processing '"} + path.string()
+                                                  + "': " + e.what());
+            }
+            catch (const std::bad_alloc&)
+            {
+                throw;
+            }
+            catch (const std::exception& e)
+            {
+                return make_geometry_io_error(GeometryIoError::invalid_argument,
+                                              std::string{"Failed to process '"} + path.string() + "': " + e.what());
+            }
+        }
 
         [[nodiscard]] std::string to_lower(std::string value)
         {
@@ -377,19 +438,30 @@ namespace engine::io
             return value.substr(offset);
         }
 
-        [[nodiscard]] PlyHeaderInfo inspect_ply_header(const std::filesystem::path& path)
+        [[nodiscard]] GeometryIoResult<PlyHeaderInfo> inspect_ply_header(const std::filesystem::path& path)
         {
             PlyHeaderInfo info{};
+            if (!std::filesystem::exists(path))
+            {
+                return make_geometry_io_error(
+                    GeometryIoError::file_not_found,
+                    "Cannot inspect PLY header of missing file: " + path.string());
+            }
+
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PLY file for inspection: " + path.string());
+                return make_geometry_io_error(
+                    GeometryIoError::io_failure,
+                    "Failed to open PLY file for inspection: " + path.string());
             }
 
             std::string line;
             if (!std::getline(stream, line) || to_lower(line) != "ply")
             {
-                throw std::runtime_error("Invalid PLY header in file: " + path.string());
+                return make_geometry_io_error(
+                    GeometryIoError::invalid_argument,
+                    "Invalid PLY header in file: " + path.string());
             }
 
             enum class Section
@@ -664,7 +736,7 @@ namespace engine::io
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open OBJ file: " + path.string());
+                throw GeometryIoException(map_open_error(path), "Failed to open OBJ file: " + path.string());
             }
 
             mesh.clear();
@@ -688,7 +760,8 @@ namespace engine::io
                 {
                     if (tokens.size() < 4)
                     {
-                        throw std::runtime_error("OBJ vertex without 3 coordinates in file: " + path.string());
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "OBJ vertex without 3 coordinates in file: " + path.string());
                     }
                     const float x = std::stof(tokens[1]);
                     const float y = std::stof(tokens[2]);
@@ -699,7 +772,8 @@ namespace engine::io
                 {
                     if (tokens.size() < 4)
                     {
-                        throw std::runtime_error("OBJ face with fewer than 3 vertices in file: " + path.string());
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "OBJ face with fewer than 3 vertices in file: " + path.string());
                     }
                     std::vector<geometry::VertexHandle> face_vertices;
                     face_vertices.reserve(tokens.size() - 1U);
@@ -712,14 +786,16 @@ namespace engine::io
                         const int positive_index = index > 0 ? index : static_cast<int>(vertex_handles.size()) + index + 1;
                         if (positive_index <= 0 || static_cast<std::size_t>(positive_index) > vertex_handles.size())
                         {
-                            throw std::runtime_error("OBJ face references invalid vertex index in file: " + path.string());
+                            throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                      "OBJ face references invalid vertex index in file: " + path.string());
                         }
                         face_vertices.push_back(vertex_handles[static_cast<std::size_t>(positive_index - 1)]);
                     }
 
                     if (!mesh.add_face(face_vertices))
                     {
-                        throw std::runtime_error("Failed to add face while parsing OBJ file: " + path.string());
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "Failed to add face while parsing OBJ file: " + path.string());
                     }
                 }
             }
@@ -731,7 +807,8 @@ namespace engine::io
             std::ofstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open OBJ file for writing: " + path.string());
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open OBJ file for writing: " + path.string());
             }
 
             const std::size_t invalid = std::numeric_limits<std::size_t>::max();
@@ -760,7 +837,9 @@ namespace engine::io
                     const auto idx = vertex_indices[v.index()];
                     if (idx == invalid)
                     {
-                        throw std::runtime_error("Mesh contains face with unregistered vertex while writing OBJ");
+                        throw GeometryIoException(
+                            GeometryIoError::invalid_argument,
+                            "Mesh contains face with unregistered vertex while writing OBJ");
                     }
                     stream << ' ' << idx;
                     h = mesh.next_halfedge(h);
@@ -774,14 +853,15 @@ namespace engine::io
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open OFF file: " + path.string());
+                throw GeometryIoException(map_open_error(path), "Failed to open OFF file: " + path.string());
             }
 
             std::string header;
             stream >> header;
             if (to_lower(header) != "off")
             {
-                throw std::runtime_error("Invalid OFF header in file: " + path.string());
+                throw GeometryIoException(GeometryIoError::invalid_argument,
+                                          "Invalid OFF header in file: " + path.string());
             }
 
             std::size_t vertex_count{0};
@@ -808,7 +888,8 @@ namespace engine::io
                 stream >> n;
                 if (n < 3)
                 {
-                    throw std::runtime_error("OFF face has fewer than 3 vertices in file: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "OFF face has fewer than 3 vertices in file: " + path.string());
                 }
                 std::vector<geometry::VertexHandle> face_vertices;
                 face_vertices.reserve(n);
@@ -818,13 +899,15 @@ namespace engine::io
                     stream >> idx;
                     if (idx >= vertices.size())
                     {
-                        throw std::runtime_error("OFF face references invalid vertex index in file: " + path.string());
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "OFF face references invalid vertex index in file: " + path.string());
                     }
                     face_vertices.push_back(vertices[idx]);
                 }
                 if (!mesh.add_face(face_vertices))
                 {
-                    throw std::runtime_error("Failed to add face while parsing OFF file: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "Failed to add face while parsing OFF file: " + path.string());
                 }
             }
         }
@@ -835,7 +918,8 @@ namespace engine::io
             std::ofstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open OFF file for writing: " + path.string());
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open OFF file for writing: " + path.string());
             }
 
             const std::size_t vertex_count = mesh.vertex_count();
@@ -869,7 +953,9 @@ namespace engine::io
                     const auto idx = vertex_indices[v.index()];
                     if (idx == invalid)
                     {
-                        throw std::runtime_error("Mesh contains face with unregistered vertex while writing OFF");
+                        throw GeometryIoException(
+                            GeometryIoError::invalid_argument,
+                            "Mesh contains face with unregistered vertex while writing OFF");
                     }
                     indices.push_back(idx);
                     h = mesh.next_halfedge(h);
@@ -886,16 +972,22 @@ namespace engine::io
 
         void read_mesh_ply(const std::filesystem::path& path, geometry::MeshInterface& mesh)
         {
-            const auto header = inspect_ply_header(path);
+            const auto header_result = inspect_ply_header(path);
+            if (!header_result)
+            {
+                throw GeometryIoException(header_result.error().code(), header_result.error().message());
+            }
+            const auto header = header_result.value();
             if (!header.ascii)
             {
-                throw std::runtime_error("Binary PLY meshes are not supported: " + path.string());
+                throw GeometryIoException(GeometryIoError::unsupported_format,
+                                          "Binary PLY meshes are not supported: " + path.string());
             }
 
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PLY file: " + path.string());
+                throw GeometryIoException(map_open_error(path), "Failed to open PLY file: " + path.string());
             }
 
             std::string line;
@@ -913,12 +1005,14 @@ namespace engine::io
             {
                 if (!std::getline(stream, line))
                 {
-                    throw std::runtime_error("Unexpected end of file while reading PLY vertices: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "Unexpected end of file while reading PLY vertices: " + path.string());
                 }
                 auto tokens = tokenize(line);
                 if (tokens.size() < 3)
                 {
-                    throw std::runtime_error("PLY vertex without 3 coordinates in file: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "PLY vertex without 3 coordinates in file: " + path.string());
                 }
                 const float x = std::stof(tokens[0]);
                 const float y = std::stof(tokens[1]);
@@ -930,7 +1024,8 @@ namespace engine::io
             {
                 if (!std::getline(stream, line))
                 {
-                    throw std::runtime_error("Unexpected end of file while reading PLY faces: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "Unexpected end of file while reading PLY faces: " + path.string());
                 }
                 auto tokens = tokenize(line);
                 if (tokens.empty())
@@ -940,7 +1035,8 @@ namespace engine::io
                 const std::size_t n = static_cast<std::size_t>(std::stoul(tokens[0]));
                 if (n < 3 || tokens.size() < n + 1)
                 {
-                    throw std::runtime_error("PLY face has insufficient vertices in file: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "PLY face has insufficient vertices in file: " + path.string());
                 }
                 std::vector<geometry::VertexHandle> face_vertices;
                 face_vertices.reserve(n);
@@ -949,15 +1045,17 @@ namespace engine::io
                     const std::size_t idx = static_cast<std::size_t>(std::stoul(tokens[j + 1]));
                     if (idx >= vertices.size())
                     {
-                        throw std::runtime_error("PLY face references invalid vertex index in file: " + path.string());
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "PLY face references invalid vertex index in file: " + path.string());
                     }
                     face_vertices.push_back(vertices[idx]);
                 }
                 if (!mesh.add_face(face_vertices))
                 {
-                    throw std::runtime_error("Failed to add face while parsing PLY file: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "Failed to add face while parsing PLY file: " + path.string());
                 }
-            }
+        }
         }
 
         void write_mesh_ply(const std::filesystem::path& path, const geometry::MeshInterface& mesh)
@@ -966,7 +1064,8 @@ namespace engine::io
             std::ofstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PLY file for writing: " + path.string());
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open PLY file for writing: " + path.string());
             }
 
             const std::size_t vertex_count = mesh.vertex_count();
@@ -1007,7 +1106,9 @@ namespace engine::io
                     const auto idx = vertex_indices[v.index()];
                     if (idx == invalid)
                     {
-                        throw std::runtime_error("Mesh contains face with unregistered vertex while writing PLY");
+                        throw GeometryIoException(
+                            GeometryIoError::invalid_argument,
+                            "Mesh contains face with unregistered vertex while writing PLY");
                     }
                     indices.push_back(idx);
                     h = mesh.next_halfedge(h);
@@ -1024,16 +1125,22 @@ namespace engine::io
 
         void read_point_cloud_ply(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud)
         {
-            const auto header = inspect_ply_header(path);
+            const auto header_result = inspect_ply_header(path);
+            if (!header_result)
+            {
+                throw GeometryIoException(header_result.error().code(), header_result.error().message());
+            }
+            const auto header = header_result.value();
             if (!header.ascii)
             {
-                throw std::runtime_error("Binary PLY point clouds are not supported: " + path.string());
+                throw GeometryIoException(GeometryIoError::unsupported_format,
+                                          "Binary PLY point clouds are not supported: " + path.string());
             }
 
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PLY file: " + path.string());
+                throw GeometryIoException(map_open_error(path), "Failed to open PLY file: " + path.string());
             }
 
             std::string line;
@@ -1049,12 +1156,15 @@ namespace engine::io
             {
                 if (!std::getline(stream, line))
                 {
-                    throw std::runtime_error("Unexpected end of file while reading PLY point cloud vertices: " + path.string());
+                    throw GeometryIoException(
+                        GeometryIoError::invalid_argument,
+                        "Unexpected end of file while reading PLY point cloud vertices: " + path.string());
                 }
                 auto tokens = tokenize(line);
                 if (tokens.size() < 3)
                 {
-                    throw std::runtime_error("PLY point cloud vertex without 3 coordinates in file: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "PLY point cloud vertex without 3 coordinates in file: " + path.string());
                 }
                 const float x = std::stof(tokens[0]);
                 const float y = std::stof(tokens[1]);
@@ -1070,7 +1180,8 @@ namespace engine::io
             std::ofstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PLY file for writing: " + path.string());
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open PLY file for writing: " + path.string());
             }
 
             const std::size_t vertex_count = point_cloud.vertex_count();
@@ -1095,7 +1206,7 @@ namespace engine::io
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open XYZ file: " + path.string());
+                throw GeometryIoException(map_open_error(path), "Failed to open XYZ file: " + path.string());
             }
 
             point_cloud.clear();
@@ -1126,7 +1237,8 @@ namespace engine::io
             std::ofstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open XYZ file for writing: " + path.string());
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open XYZ file for writing: " + path.string());
             }
 
             for (const auto v : point_cloud.vertices())
@@ -1141,7 +1253,7 @@ namespace engine::io
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PCD file: " + path.string());
+                throw GeometryIoException(map_open_error(path), "Failed to open PCD file: " + path.string());
             }
 
             std::string line;
@@ -1160,9 +1272,11 @@ namespace engine::io
                 }
                 if (starts_with(lower, "fields"))
                 {
-                    if (lower.find("x") == std::string::npos || lower.find("y") == std::string::npos || lower.find("z") == std::string::npos)
+                    if (lower.find("x") == std::string::npos || lower.find("y") == std::string::npos
+                        || lower.find("z") == std::string::npos)
                     {
-                        throw std::runtime_error("PCD file missing XYZ fields: " + path.string());
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "PCD file missing XYZ fields: " + path.string());
                     }
                 }
                 else if (starts_with(lower, "points"))
@@ -1178,7 +1292,8 @@ namespace engine::io
 
             if (!ascii)
             {
-                throw std::runtime_error("Binary PCD files are not supported: " + path.string());
+                throw GeometryIoException(GeometryIoError::unsupported_format,
+                                          "Binary PCD files are not supported: " + path.string());
             }
 
             point_cloud.clear();
@@ -1209,7 +1324,8 @@ namespace engine::io
             std::ofstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PCD file for writing: " + path.string());
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open PCD file for writing: " + path.string());
             }
 
             const std::size_t vertex_count = point_cloud.vertex_count();
@@ -1238,7 +1354,7 @@ namespace engine::io
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open edge list file: " + path.string());
+                throw GeometryIoException(map_open_error(path), "Failed to open edge list file: " + path.string());
             }
 
             graph.clear();
@@ -1282,7 +1398,8 @@ namespace engine::io
             std::ofstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open edge list file for writing: " + path.string());
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open edge list file for writing: " + path.string());
             }
 
             const std::size_t invalid = std::numeric_limits<std::size_t>::max();
@@ -1299,26 +1416,34 @@ namespace engine::io
                 const auto v1 = graph.vertex(e, 1);
                 const auto idx0 = vertex_indices[v0.index()];
                 const auto idx1 = vertex_indices[v1.index()];
-                if (idx0 == invalid || idx1 == invalid)
-                {
-                    throw std::runtime_error("Graph contains edge with unregistered vertex while writing edge list");
-                }
+                    if (idx0 == invalid || idx1 == invalid)
+                    {
+                        throw GeometryIoException(
+                            GeometryIoError::invalid_argument,
+                            "Graph contains edge with unregistered vertex while writing edge list");
+                    }
                 stream << idx0 << ' ' << idx1 << '\n';
             }
         }
 
         void read_graph_ply(const std::filesystem::path& path, geometry::GraphInterface& graph)
         {
-            const auto header = inspect_ply_header(path);
+            const auto header_result = inspect_ply_header(path);
+            if (!header_result)
+            {
+                throw GeometryIoException(header_result.error().code(), header_result.error().message());
+            }
+            const auto header = header_result.value();
             if (!header.ascii)
             {
-                throw std::runtime_error("Binary PLY graphs are not supported: " + path.string());
+                throw GeometryIoException(GeometryIoError::unsupported_format,
+                                          "Binary PLY graphs are not supported: " + path.string());
             }
 
             std::ifstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PLY file: " + path.string());
+                throw GeometryIoException(map_open_error(path), "Failed to open PLY file: " + path.string());
             }
 
             std::string line;
@@ -1336,7 +1461,8 @@ namespace engine::io
             {
                 if (!std::getline(stream, line))
                 {
-                    throw std::runtime_error("Unexpected end of file while reading PLY graph vertices: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "Unexpected end of file while reading PLY graph vertices: " + path.string());
                 }
                 auto tokens = tokenize(line);
                 vec3 position{0.0F, 0.0F, 0.0F};
@@ -1353,7 +1479,8 @@ namespace engine::io
             {
                 if (!std::getline(stream, line))
                 {
-                    throw std::runtime_error("Unexpected end of file while reading PLY graph edges: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "Unexpected end of file while reading PLY graph edges: " + path.string());
                 }
                 auto tokens = tokenize(line);
                 if (tokens.size() < 2)
@@ -1364,7 +1491,8 @@ namespace engine::io
                 const std::size_t b = static_cast<std::size_t>(std::stoul(tokens[1]));
                 if (a >= vertices.size() || b >= vertices.size())
                 {
-                    throw std::runtime_error("PLY graph edge references invalid vertex index: " + path.string());
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "PLY graph edge references invalid vertex index: " + path.string());
                 }
                 const auto he = graph.add_edge(vertices[a], vertices[b]);
                 (void)he;
@@ -1377,7 +1505,8 @@ namespace engine::io
             std::ofstream stream{path};
             if (!stream)
             {
-                throw std::runtime_error("Failed to open PLY file for writing: " + path.string());
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open PLY file for writing: " + path.string());
             }
 
             const std::size_t vertex_count = graph.vertex_count();
@@ -1410,10 +1539,12 @@ namespace engine::io
                 const auto v1 = graph.vertex(e, 1);
                 const auto idx0 = vertex_indices[v0.index()];
                 const auto idx1 = vertex_indices[v1.index()];
-                if (idx0 == invalid || idx1 == invalid)
-                {
-                    throw std::runtime_error("Graph contains edge with unregistered vertex while writing PLY");
-                }
+                    if (idx0 == invalid || idx1 == invalid)
+                    {
+                        throw GeometryIoException(
+                            GeometryIoError::invalid_argument,
+                            "Graph contains edge with unregistered vertex while writing PLY");
+                    }
                 stream << idx0 << ' ' << idx1 << '\n';
             }
         }
@@ -1426,9 +1557,10 @@ namespace engine::io
                 return MeshFileFormat::obj;
             }
 
-            void import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
+            [[nodiscard]] GeometryIoResult<void>
+            import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
             {
-                read_mesh_obj(path, mesh);
+                return translate_io_exceptions(path, [&] { read_mesh_obj(path, mesh); });
             }
         };
 
@@ -1440,9 +1572,10 @@ namespace engine::io
                 return MeshFileFormat::obj;
             }
 
-            void export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
+            [[nodiscard]] GeometryIoResult<void>
+            export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
             {
-                write_mesh_obj(path, mesh);
+                return translate_io_exceptions(path, [&] { write_mesh_obj(path, mesh); });
             }
         };
 
@@ -1454,9 +1587,10 @@ namespace engine::io
                 return MeshFileFormat::off;
             }
 
-            void import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
+            [[nodiscard]] GeometryIoResult<void>
+            import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
             {
-                read_mesh_off(path, mesh);
+                return translate_io_exceptions(path, [&] { read_mesh_off(path, mesh); });
             }
         };
 
@@ -1468,9 +1602,10 @@ namespace engine::io
                 return MeshFileFormat::off;
             }
 
-            void export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
+            [[nodiscard]] GeometryIoResult<void>
+            export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
             {
-                write_mesh_off(path, mesh);
+                return translate_io_exceptions(path, [&] { write_mesh_off(path, mesh); });
             }
         };
 
@@ -1482,9 +1617,10 @@ namespace engine::io
                 return MeshFileFormat::ply;
             }
 
-            void import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
+            [[nodiscard]] GeometryIoResult<void>
+            import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
             {
-                read_mesh_ply(path, mesh);
+                return translate_io_exceptions(path, [&] { read_mesh_ply(path, mesh); });
             }
         };
 
@@ -1496,9 +1632,10 @@ namespace engine::io
                 return MeshFileFormat::ply;
             }
 
-            void export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
+            [[nodiscard]] GeometryIoResult<void>
+            export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
             {
-                write_mesh_ply(path, mesh);
+                return translate_io_exceptions(path, [&] { write_mesh_ply(path, mesh); });
             }
         };
 
@@ -1510,9 +1647,10 @@ namespace engine::io
                 return PointCloudFileFormat::ply;
             }
 
-            void import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
+            [[nodiscard]] GeometryIoResult<void>
+            import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
             {
-                read_point_cloud_ply(path, point_cloud);
+                return translate_io_exceptions(path, [&] { read_point_cloud_ply(path, point_cloud); });
             }
         };
 
@@ -1524,10 +1662,11 @@ namespace engine::io
                 return PointCloudFileFormat::ply;
             }
 
-            void export_point_cloud(const std::filesystem::path& path,
-                                     const geometry::PointCloudInterface& point_cloud) const override
+            [[nodiscard]] GeometryIoResult<void>
+            export_point_cloud(const std::filesystem::path& path,
+                               const geometry::PointCloudInterface& point_cloud) const override
             {
-                write_point_cloud_ply(path, point_cloud);
+                return translate_io_exceptions(path, [&] { write_point_cloud_ply(path, point_cloud); });
             }
         };
 
@@ -1539,9 +1678,10 @@ namespace engine::io
                 return PointCloudFileFormat::xyz;
             }
 
-            void import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
+            [[nodiscard]] GeometryIoResult<void>
+            import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
             {
-                read_point_cloud_xyz(path, point_cloud);
+                return translate_io_exceptions(path, [&] { read_point_cloud_xyz(path, point_cloud); });
             }
         };
 
@@ -1553,10 +1693,11 @@ namespace engine::io
                 return PointCloudFileFormat::xyz;
             }
 
-            void export_point_cloud(const std::filesystem::path& path,
-                                     const geometry::PointCloudInterface& point_cloud) const override
+            [[nodiscard]] GeometryIoResult<void>
+            export_point_cloud(const std::filesystem::path& path,
+                               const geometry::PointCloudInterface& point_cloud) const override
             {
-                write_point_cloud_xyz(path, point_cloud);
+                return translate_io_exceptions(path, [&] { write_point_cloud_xyz(path, point_cloud); });
             }
         };
 
@@ -1568,9 +1709,10 @@ namespace engine::io
                 return PointCloudFileFormat::pcd;
             }
 
-            void import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
+            [[nodiscard]] GeometryIoResult<void>
+            import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
             {
-                read_point_cloud_pcd(path, point_cloud);
+                return translate_io_exceptions(path, [&] { read_point_cloud_pcd(path, point_cloud); });
             }
         };
 
@@ -1582,10 +1724,11 @@ namespace engine::io
                 return PointCloudFileFormat::pcd;
             }
 
-            void export_point_cloud(const std::filesystem::path& path,
-                                     const geometry::PointCloudInterface& point_cloud) const override
+            [[nodiscard]] GeometryIoResult<void>
+            export_point_cloud(const std::filesystem::path& path,
+                               const geometry::PointCloudInterface& point_cloud) const override
             {
-                write_point_cloud_pcd(path, point_cloud);
+                return translate_io_exceptions(path, [&] { write_point_cloud_pcd(path, point_cloud); });
             }
         };
 
@@ -1597,9 +1740,10 @@ namespace engine::io
                 return GraphFileFormat::edgelist;
             }
 
-            void import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override
+            [[nodiscard]] GeometryIoResult<void>
+            import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override
             {
-                read_graph_edgelist(path, graph);
+                return translate_io_exceptions(path, [&] { read_graph_edgelist(path, graph); });
             }
         };
 
@@ -1611,9 +1755,10 @@ namespace engine::io
                 return GraphFileFormat::edgelist;
             }
 
-            void export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override
+            [[nodiscard]] GeometryIoResult<void>
+            export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override
             {
-                write_graph_edgelist(path, graph);
+                return translate_io_exceptions(path, [&] { write_graph_edgelist(path, graph); });
             }
         };
 
@@ -1625,9 +1770,10 @@ namespace engine::io
                 return GraphFileFormat::ply;
             }
 
-            void import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override
+            [[nodiscard]] GeometryIoResult<void>
+            import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override
             {
-                read_graph_ply(path, graph);
+                return translate_io_exceptions(path, [&] { read_graph_ply(path, graph); });
             }
         };
 
@@ -1639,9 +1785,10 @@ namespace engine::io
                 return GraphFileFormat::ply;
             }
 
-            void export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override
+            [[nodiscard]] GeometryIoResult<void>
+            export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override
             {
-                write_graph_ply(path, graph);
+                return translate_io_exceptions(path, [&] { write_graph_ply(path, graph); });
             }
         };
 
@@ -1688,7 +1835,12 @@ namespace engine::io
 
         if (ext == ".ply")
         {
-            const auto header = inspect_ply_header(path);
+            const auto header_result = inspect_ply_header(path);
+            if (!header_result)
+            {
+                return header_result.error();
+            }
+            const auto header = header_result.value();
             if (header.face_count > 0)
             {
                 result.kind = GeometryKind::mesh;
@@ -1760,7 +1912,12 @@ namespace engine::io
             if (starts_with(lower, "ply"))
             {
                 stream.close();
-                const auto header = inspect_ply_header(path);
+                const auto header_result = inspect_ply_header(path);
+                if (!header_result)
+                {
+                    return header_result.error();
+                }
+                const auto header = header_result.value();
                 if (header.face_count > 0)
                 {
                     result.kind = GeometryKind::mesh;
@@ -1972,7 +2129,11 @@ namespace engine::io
                                               std::string(to_string(resolved)) + "' while reading " + path.string());
         }
 
-        importer->import(path, mesh);
+        if (auto import_result = importer->import(path, mesh); !import_result)
+        {
+            return import_result.error();
+        }
+
         return {};
     }
 
@@ -2005,7 +2166,11 @@ namespace engine::io
                                               std::string(to_string(resolved)) + "' while writing " + path.string());
         }
 
-        exporter->export_mesh(path, mesh);
+        if (auto export_result = exporter->export_mesh(path, mesh); !export_result)
+        {
+            return export_result.error();
+        }
+
         return {};
     }
 
@@ -2039,7 +2204,11 @@ namespace engine::io
                                               std::string(to_string(resolved)) + "' while reading " + path.string());
         }
 
-        importer->import(path, point_cloud);
+        if (auto import_result = importer->import(path, point_cloud); !import_result)
+        {
+            return import_result.error();
+        }
+
         return {};
     }
 
@@ -2072,7 +2241,11 @@ namespace engine::io
                                               std::string(to_string(resolved)) + "' while writing " + path.string());
         }
 
-        exporter->export_point_cloud(path, point_cloud);
+        if (auto export_result = exporter->export_point_cloud(path, point_cloud); !export_result)
+        {
+            return export_result.error();
+        }
+
         return {};
     }
 
@@ -2106,7 +2279,11 @@ namespace engine::io
                                               "' while reading " + path.string());
         }
 
-        importer->import(path, graph);
+        if (auto import_result = importer->import(path, graph); !import_result)
+        {
+            return import_result.error();
+        }
+
         return {};
     }
 
@@ -2139,7 +2316,11 @@ namespace engine::io
                                               "' while writing " + path.string());
         }
 
-        exporter->export_graph(path, graph);
+        if (auto export_result = exporter->export_graph(path, graph); !export_result)
+        {
+            return export_result.error();
+        }
+
         return {};
     }
 
