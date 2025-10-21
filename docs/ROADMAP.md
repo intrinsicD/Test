@@ -19,7 +19,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | 🔄 In Progress | Rendering, Runtime |
 | `RT-005` | Validate scene hierarchies and expose diagnostics. | – | ✅ Done | Scene, Runtime |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | 🟠 Blocked on fuzz harness infra | IO |
-| `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | 🟢 Ready to Start | Core, Tools |
+| `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | 🔄 In Progress | Core, Tools |
 | `CC-002` | Build hot reload infrastructure across caches/backends. | `AI-001` | 🔄 In Progress | Assets, Platform |
 
 ### Task Breakdowns
@@ -111,11 +111,14 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `CC-001.1` | Define metrics schema. | Schema documented, implemented in core telemetry module, adopted by runtime. | ✅ Done |
-| `CC-001.2` | Implement viewer shell. | Tools module exposes CLI/UI to inspect metrics with scripted smoke tests. | 🟢 Todo |
+| `CC-001.2` | Implement viewer shell. | Tools module exposes CLI/UI to inspect metrics with scripted smoke tests. | ✅ Done |
 | `CC-001.3` | Publish instrumentation guide. | Cross-module doc outlining how to emit and consume metrics. | 🟢 Todo |
 
 - 2025-02-28: Published [`design/telemetry_schema.md`](design/telemetry_schema.md)
   and integrated runtime diagnostics with the shared schema.
+- 2025-03-20: Added `scripts/diagnostics/telemetry_viewer.py` with smoke tests to
+  deliver `CC-001.2`/`TL-101`, enabling operators to inspect runtime telemetry
+  snapshots without rebuilding the C++ tooling.
 
 #### `CC-002` — Hot Reload Infrastructure
 
@@ -162,8 +165,9 @@ Once staffed, execute module-specific queues below.
   tooling and parity tracking work.
 - **Runtime** — `RT-005` tranche complete; coordinate with `SC-220` for scene module documentation refresh.
 - **Scene** — `SC-220` documentation refresh capturing diagnostics workflows.
-- **Tools** — `TL-101` diagnostics shell MVP (`CC-001`), followed by `TL-115`
-  profiling capture export.
+- **Tools** — `TL-110` tooling documentation refresh (`CC-001`) and `TL-115`
+  profiling capture export now that the telemetry viewer CLI (`TL-101`) is
+  available.
 
 ### Process & Audit Items
 
