@@ -30,6 +30,9 @@
   (for example, `--metric-prefix runtime.lifecycle.`). Pass `--metrics-all` to
   dump every metric from the runtime snapshot when investigating broader
   anomalies.
+- Supply `--profile-trace trace.json` to export the per-dispatch timings as a
+  Chrome trace, enabling analysis with Perfetto/`about://tracing` alongside the
+  console summary.
 
 ### Monitor streaming diagnostics
 - Summarise the asynchronous asset queue via:
@@ -62,6 +65,6 @@ This module tracks actionable work through the execution checklist below.
 | --- | --- | --- | --- |
 | `TL-101` | Stand up diagnostics shell MVP (`CC-001`). | CLI/UI viewer renders telemetry, smoke tests documented. | ✅ Done |
 | `TL-110` | Document tooling invocation. | Update README with commands, environment requirements, and troubleshooting. | 🟡 In Progress |
-| `TL-115` | Profiling capture export. | Implement export path with regression coverage. | 🟢 Todo |
+| `TL-115` | Profiling capture export. | Implement export path with regression coverage. | ✅ Done |
 
 See [ROADMAP.md](ROADMAP.md) for sequencing.

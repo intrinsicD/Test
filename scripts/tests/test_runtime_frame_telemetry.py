@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -263,4 +264,39 @@ def test_print_metric_summary_emits_values(capsys: pytest.CaptureFixture[str]) -
     assert "metrics (filter: runtime.lifecycle.)" in captured
     assert "[runtime.lifecycle]" in captured
     assert "last_tick_ms" in captured
+
+
+def test_build_profile_trace_generates_chrome_events() -> None:
+    samples = [
+        _make_frame(0, {"animation.evaluate": 1.0, "physics.integrate": 2.0}),
+        _make_frame(1, {"geometry.deform": 3.0}),
+    ]
+    trace = telemetry.build_profile_trace(samples, title="Test Trace")
+    assert trace["displayTimeUnit"] == "ms"
+    assert trace["metadata"] == {"title": "Test Trace", "frameCount": 2}
+
+    events = trace["traceEvents"]
+    process_events = [event for event in events if event["ph"] == "M" and event["name"] == "process_name"]
+    assert process_events and process_events[0]["args"]["name"] == "Test Trace"
+
+    dispatch_events = [event for event in events if event.get("cat") not in (None, "frame") and event["ph"] == "X"]
+    assert [event["name"] for event in dispatch_events] == [
+        "animation.evaluate",
+        "physics.integrate",
+        "geometry.deform",
+    ]
+    for event in dispatch_events:
+        assert event["dur"] > 0.0
+
+
+def test_write_profile_trace(tmp_path: Path) -> None:
+    samples = [_make_frame(0, {"animation.evaluate": 1.25})]
+    output = tmp_path / "trace.json"
+    telemetry.write_profile_trace(samples, output, title="Trace Title")
+
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["metadata"]["title"] == "Trace Title"
+    assert payload["metadata"]["frameCount"] == 1
+    events = payload["traceEvents"]
+    assert any(event["name"] == "frame.total" for event in events)
 

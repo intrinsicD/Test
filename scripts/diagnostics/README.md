@@ -41,6 +41,12 @@ Use `--verbose` to emit per-frame tables on stdout when investigating specific
 regressions. The JSON payload can be checked into performance dashboards or
 post-processed by CI jobs for automated alerts.
 
+Set `--profile-trace trace.json` to export a Chrome trace containing per-dispatch
+timings grouped by frame. The generated trace works with Perfetto, Chrome's
+`about://tracing` viewer, and other tools that understand the trace event
+schema, enabling deeper profiling workflows outside the default console
+summary.
+
 ## `streaming_report.py`
 
 The streaming report surfaces queue depth and asynchronous asset loading
