@@ -7,6 +7,7 @@ This directory houses ADRs, RFPs, and deep dives. They are the binding source of
 - [`ADR-0003-runtime-frame-graph.md`](ADR-0003-runtime-frame-graph.md) – scheduler requirements, metadata model, and backend integration strategy.
 - [`ADR-0005-geometry-io-roundtrip.md`](ADR-0005-geometry-io-roundtrip.md) – geometry/IO ownership, file formats, and validation pipeline.
 - [`ADR-0006-animation-deformation.md`](ADR-0006-animation-deformation.md) – runtime linear blend skinning pipeline and rig binding requirements.
+- [`AN-240-state-machine-authoring.md`](AN-240-state-machine-authoring.md) – specification for animation state-machine authoring, serialization, and tooling integration.
 
 When creating a new record:
 
