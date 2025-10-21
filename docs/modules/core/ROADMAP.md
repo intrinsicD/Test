@@ -9,7 +9,8 @@ _Last Updated: 2025-03-28_
 | Diagnostics bridge (`CR-118`) | Define telemetry routing to support `CC-001`. | ✅ Done |
 | Plugin lifecycle audit (`CR-125`) | Validate `DC-001` invariants remain intact. | ✅ Done |
 | Configuration docs refresh (`CR-130`) | Keep configuration APIs discoverable. | ✅ Done |
-| Subsystem dependency diagnostics (`CR-135`) | Detect plugin dependency cycles and document recovery steps. | 🟡 Planned |
+| Subsystem dependency diagnostics (`CR-135`) | Detect plugin dependency cycles and document recovery steps. | ✅ Done |
+| Structured logging follow-up (`CR-136`) | Capture subsystem initialization failure context in telemetry/logs. | 🟡 Planned |
 
 ## Active Work
 
@@ -21,7 +22,8 @@ _Last Updated: 2025-03-28_
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `CR-135` | Add dependency cycle detection and lifecycle telemetry guidance. | After `CR-125` |
+| `CR-135` | Add dependency cycle detection and lifecycle telemetry guidance. | ✅ Delivered 2025-03-30 |
+| `CR-136` | Document structured logging for subsystem initialization failures. | After `CR-135` |
 
 ## Notes
 

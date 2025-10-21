@@ -4,6 +4,8 @@
 - Wraps EnTT registry usage with a façade providing entity helpers and module
   discovery utilities consumed by higher-level systems.
 - Hosts subsystem plugin interfaces and bootstrap plumbing used by `RuntimeHost`.
+- Subsystem registry enforces acyclic dependency graphs and emits actionable
+  errors when cycles are detected during registration or runtime validation.
 - Provides diagnostics utilities, configuration helpers, and foundational types
   shared across modules.
 - Hosts the shared telemetry schema and references the
@@ -18,8 +20,7 @@
 
 ## TODO / Next Steps
 
-- Track `CR-125`, `CR-130` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — maintains `DC-001` and supports `CC-001`.
-- Next roadmap slice: `CR-135` dependency cycle diagnostics for subsystem plugins.
+- Track `CR-136` structured logging for subsystem initialization and dependency failures in [docs/ROADMAP.md](../../ROADMAP.md#outstanding-backlog-focus) so telemetry surfaces failure causes alongside lifecycle metrics.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -30,7 +31,25 @@ This module tracks actionable work through the execution checklist below.
 | `CR-118` | Draft diagnostics bridge specification (`CC-001`). | Publish design note for telemetry routing; link from module README. | ✅ Done |
 | `CR-125` | Audit plugin lifecycle contracts (`DC-001`). | Document init/shutdown sequencing, add regression coverage. | ✅ Done |
 | `CR-130` | Update configuration docs. | Refresh config API README section with latest presets and defaults. | ✅ Done |
-| `CR-135` | Subsystem dependency diagnostics. | Detect cycles during registration and document remediation guidance. | 🟡 Planned |
+| `CR-135` | Subsystem dependency diagnostics. | Detect cycles during registration, validate plugin selections, and document telemetry guidance. | ✅ Done |
+
+### Subsystem Dependency Diagnostics & Telemetry
+
+- `engine::runtime::SubsystemRegistry::register_subsystem` now rejects cyclic
+  dependency graphs and reports the offending path (for example,
+  `alpha -> beta -> alpha`). Re-registering a descriptor restores the previous
+  state when validation fails, preserving registry determinism.
+- `RuntimeHostDependencies` validation raises
+  `RuntimeError::dependency_cycle` when explicit `subsystem_plugins` contain
+  cycles. The aggregated exception message includes the cycle path and the
+  `engine.runtime.dependency_cycle` identifier, aligning with the shared error
+  schema from `DC-004`.
+- Runtime lifecycle telemetry already exposes
+  `runtime.lifecycle.{initialize_ms,last_tick_ms,max_tick_ms}` counters. The
+  diagnostics viewer (`scripts/diagnostics/runtime_frame_telemetry.py`) can
+  filter these metrics via `--metric-prefix runtime.lifecycle.` to monitor
+  subsystem startup ordering and durations when investigating dependency
+  failures.
 
 Consult [ROADMAP.md](ROADMAP.md) for broader sequencing.
 
