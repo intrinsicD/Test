@@ -158,6 +158,6 @@ Unchanged from ## PATCH (documentation-only updates).
 
 ## FOLLOW_UP_TODOS
 - [ ] Evaluate integration smoke test once shared runtime libraries are packaged in CI (owner: Tools, priority: medium; tracks review follow-up).
-- [ ] Document troubleshooting flows (log capture, missing shared library hints) to complete the remaining `TL-110` acceptance criteria (owner: Tools docs, priority: medium).
+- [x] Document troubleshooting flows (log capture, missing shared library hints) to complete the remaining `TL-110` acceptance criteria (owner: Tools docs, priority: medium).
 - [ ] Surface metric description annotations in verbose output for operator ergonomics (owner: Tools, priority: low, ties into TL-101 backlog).
 - [ ] Revisit roadmap once TL-115 profiling export work begins to maintain sequencing accuracy (owner: Tools leads, priority: medium).
