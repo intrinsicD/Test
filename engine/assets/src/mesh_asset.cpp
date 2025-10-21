@@ -1,6 +1,7 @@
 #include "engine/assets/mesh_asset.hpp"
 
 #include "engine/assets/detail/filesystem_utils.hpp"
+#include "engine/assets/detail/reload_utils.hpp"
 
 #include <filesystem>
 #include <iterator>
@@ -57,7 +58,12 @@ const MeshAsset& MeshCache::load(const MeshAssetDescriptor& descriptor)
     const bool needs_reload = inserted || asset->last_write != current_write;
     if (needs_reload)
     {
-        reload_asset(handle, *asset, !inserted);
+        if (auto reload = reload_asset(handle, *asset, !inserted); !reload.has_value())
+        {
+            const auto message = reload.error().message();
+            throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}
+                                                     : std::string{message});
+        }
     }
 
     register_watch_locked(handle, *asset);
@@ -147,7 +153,10 @@ void MeshCache::poll()
             detail::checked_last_write_time(asset.descriptor.source, "mesh");
         if (current_write != asset.last_write)
         {
-            reload_asset(handle, asset, true);
+            if (auto reload = reload_asset(handle, asset, true); !reload.has_value())
+            {
+                return;
+            }
             register_watch_locked(handle, asset);
         }
     });
@@ -201,33 +210,39 @@ AssetLoadFuture<MeshHandle> MeshCache::load_async(const AssetLoadRequest& reques
             }
             catch (const std::invalid_argument& ex)
             {
-                return AssetLoadResult<MeshHandle>{
-                    make_error(AssetLoadErrorCategory::ValidationError, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::ValidationError, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::out_of_range& ex)
             {
-                return AssetLoadResult<MeshHandle>{
-                    make_error(AssetLoadErrorCategory::ValidationError, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::ValidationError, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::filesystem::filesystem_error& ex)
             {
-                return AssetLoadResult<MeshHandle>{
-                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::system_error& ex)
             {
-                return AssetLoadResult<MeshHandle>{
-                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::runtime_error& ex)
             {
-                return AssetLoadResult<MeshHandle>{
-                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::exception& ex)
             {
-                return AssetLoadResult<MeshHandle>{
-                    make_error(AssetLoadErrorCategory::DecodeError, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::DecodeError, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<MeshHandle>{error};
             }
         },
         pool);
@@ -238,43 +253,92 @@ AssetLoadState MeshCache::async_state(std::string_view identifier) const
     return async_queue_.state(identifier);
 }
 
-void MeshCache::reload_asset(const RawHandle& handle, MeshAsset& asset, bool notify)
+engine::Result<void, AssetLoadError> MeshCache::reload_asset(const RawHandle& handle,
+                                                            MeshAsset& asset,
+                                                            bool notify)
 {
     // mutex_ is expected to be held by the caller.
+    const std::string identifier = asset.descriptor.handle.id();
+    detail::record_hot_reload_attempt(notify, identifier);
+
     const auto detection_result = io::detect_geometry_file(asset.descriptor.source);
-    if (!detection_result) {
-        throw std::runtime_error("Geometry file detection failed: " +
-                                 std::string(detection_result.error().message()));
+    if (!detection_result)
+    {
+        auto error = detail::make_geometry_asset_error(
+            asset.descriptor.source, "detect_geometry_file", detection_result.error());
+        detail::record_hot_reload_failure(notify, identifier, error,
+                                          detail::geometry_error_hint(detection_result.error()));
+        return error;
     }
 
     const auto& detection = detection_result.value();
-    if (detection.kind != io::GeometryKind::mesh) {
-        throw std::runtime_error("Geometry file does not describe a mesh");
+    if (detection.kind != io::GeometryKind::mesh)
+    {
+        auto error = make_asset_load_error(
+            AssetLoadErrorCategory::ValidationError,
+            "Geometry file does not describe a mesh");
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Ensure the watched file is exported as a mesh asset (e.g., .obj, .ply).");
+        return error;
     }
 
     const io::MeshFileFormat format = asset.descriptor.format_hint != io::MeshFileFormat::unknown
                                           ? asset.descriptor.format_hint
                                           : detection.mesh_format;
 
-    if (format == io::MeshFileFormat::unknown) {
-        throw std::runtime_error("Unable to determine mesh file format for asset");
+    if (format == io::MeshFileFormat::unknown)
+    {
+        auto error = make_asset_load_error(
+            AssetLoadErrorCategory::ValidationError,
+            "Unable to determine mesh file format for asset");
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Provide a format hint in the descriptor or use a supported mesh file extension.");
+        return error;
     }
 
-    asset.mesh.interface.clear();
-    if (auto result = io::read_mesh(asset.descriptor.source, asset.mesh.interface, format); !result) {
-        throw std::runtime_error("Failed to read mesh: " + std::string(result.error().message()));
+    geometry::Mesh loaded_mesh{};
+    if (auto result = io::read_mesh(asset.descriptor.source, loaded_mesh.interface, format); !result)
+    {
+        auto error = detail::make_geometry_asset_error(
+            asset.descriptor.source, "read_mesh", result.error());
+        detail::record_hot_reload_failure(notify, identifier, error,
+                                          detail::geometry_error_hint(result.error()));
+        return error;
     }
+
+    std::filesystem::file_time_type last_write{};
+    try
+    {
+        last_write = detail::checked_last_write_time(asset.descriptor.source, "mesh");
+    }
+    catch (const std::runtime_error& ex)
+    {
+        auto error = make_asset_load_error(AssetLoadErrorCategory::IoFailure, ex.what());
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Verify filesystem permissions and ensure the mesh is not removed during reload.");
+        return error;
+    }
+
+    asset.mesh = std::move(loaded_mesh);
     asset.detection = detection;
-    asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "mesh");
+    asset.last_write = last_write;
 
-    if (notify) {
+    if (notify)
+    {
         const auto cb_it = callbacks_.find(handle);
-        if (cb_it != callbacks_.end()) {
-            for (const auto& callback : cb_it->second) {
+        if (cb_it != callbacks_.end())
+        {
+            for (const auto& callback : cb_it->second)
+            {
                 callback(asset);
             }
         }
     }
+
+    return {};
 }
 
 void MeshCache::register_watch_locked(const RawHandle& handle, MeshAsset& asset)
@@ -312,7 +376,10 @@ void MeshCache::register_watch_locked(const RawHandle& handle, MeshAsset& asset)
         }
 
         auto& tracked = assets_.get(handle);
-        reload_asset(handle, tracked, true);
+        if (auto reload = reload_asset(handle, tracked, true); !reload.has_value())
+        {
+            return;
+        }
     };
 
     const auto watch_handle = watcher_.watch_file(asset.descriptor.source, std::move(callback));

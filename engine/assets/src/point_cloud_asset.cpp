@@ -1,6 +1,7 @@
 #include "engine/assets/point_cloud_asset.hpp"
 
 #include "engine/assets/detail/filesystem_utils.hpp"
+#include "engine/assets/detail/reload_utils.hpp"
 
 #include <filesystem>
 #include <iterator>
@@ -50,7 +51,11 @@ const PointCloudAsset& PointCloudCache::load(const PointCloudAssetDescriptor& de
         detail::checked_last_write_time(descriptor.source, "point cloud");
     const bool needs_reload = inserted || asset->last_write != current_write;
     if (needs_reload) {
-        reload_asset(handle, *asset, !inserted);
+        if (auto reload = reload_asset(handle, *asset, !inserted); !reload.has_value()) {
+            const auto message = reload.error().message();
+            throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}
+                                                     : std::string{message});
+        }
     }
 
     register_watch_locked(handle, *asset);
@@ -141,7 +146,10 @@ void PointCloudCache::poll()
             detail::checked_last_write_time(asset.descriptor.source, "point cloud");
         if (current_write != asset.last_write)
         {
-            reload_asset(handle, asset, true);
+            if (auto reload = reload_asset(handle, asset, true); !reload.has_value())
+            {
+                return;
+            }
             register_watch_locked(handle, asset);
         }
     });
@@ -195,33 +203,39 @@ AssetLoadFuture<PointCloudHandle> PointCloudCache::load_async(const AssetLoadReq
             }
             catch (const std::invalid_argument& ex)
             {
-                return AssetLoadResult<PointCloudHandle>{
-                    make_error(AssetLoadErrorCategory::ValidationError, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::ValidationError, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<PointCloudHandle>{error};
             }
             catch (const std::out_of_range& ex)
             {
-                return AssetLoadResult<PointCloudHandle>{
-                    make_error(AssetLoadErrorCategory::ValidationError, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::ValidationError, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<PointCloudHandle>{error};
             }
             catch (const std::filesystem::filesystem_error& ex)
             {
-                return AssetLoadResult<PointCloudHandle>{
-                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<PointCloudHandle>{error};
             }
             catch (const std::system_error& ex)
             {
-                return AssetLoadResult<PointCloudHandle>{
-                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<PointCloudHandle>{error};
             }
             catch (const std::runtime_error& ex)
             {
-                return AssetLoadResult<PointCloudHandle>{
-                    make_error(AssetLoadErrorCategory::IoFailure, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<PointCloudHandle>{error};
             }
             catch (const std::exception& ex)
             {
-                return AssetLoadResult<PointCloudHandle>{
-                    make_error(AssetLoadErrorCategory::DecodeError, ex.what())};
+                auto error = make_error(AssetLoadErrorCategory::DecodeError, ex.what());
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<PointCloudHandle>{error};
             }
         },
         pool);
@@ -232,46 +246,93 @@ AssetLoadState PointCloudCache::async_state(std::string_view identifier) const
     return async_queue_.state(identifier);
 }
 
-void PointCloudCache::reload_asset(const RawHandle& handle, PointCloudAsset& asset, bool notify)
+engine::Result<void, AssetLoadError> PointCloudCache::reload_asset(const RawHandle& handle,
+                                                                  PointCloudAsset& asset,
+                                                                  bool notify)
 {
-    // mutex_ is expected to be held by the caller.
+    const std::string identifier = asset.descriptor.handle.id();
+    detail::record_hot_reload_attempt(notify, identifier);
+
     const auto detection_result = io::detect_geometry_file(asset.descriptor.source);
-    if (!detection_result) {
-        throw std::runtime_error("Geometry file detection failed: " +
-                                 std::string(detection_result.error().message()));
+    if (!detection_result)
+    {
+        auto error = detail::make_geometry_asset_error(
+            asset.descriptor.source, "detect_geometry_file", detection_result.error());
+        detail::record_hot_reload_failure(notify, identifier, error,
+                                          detail::geometry_error_hint(detection_result.error()));
+        return error;
     }
 
     const auto& detection = detection_result.value();
-    if (detection.kind != io::GeometryKind::point_cloud) {
-        throw std::runtime_error("Geometry file does not describe a point cloud");
+    if (detection.kind != io::GeometryKind::point_cloud)
+    {
+        auto error = make_asset_load_error(
+            AssetLoadErrorCategory::ValidationError,
+            "Geometry file does not describe a point cloud");
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Ensure the watched file contains point cloud data (e.g., .ply, .pcd).");
+        return error;
     }
 
     const io::PointCloudFileFormat format = asset.descriptor.format_hint != io::PointCloudFileFormat::unknown
                                                 ? asset.descriptor.format_hint
                                                 : detection.point_cloud_format;
 
-    if (format == io::PointCloudFileFormat::unknown) {
-        throw std::runtime_error("Unable to determine point cloud file format for asset");
+    if (format == io::PointCloudFileFormat::unknown)
+    {
+        auto error = make_asset_load_error(
+            AssetLoadErrorCategory::ValidationError,
+            "Unable to determine point cloud file format for asset");
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Provide a format hint or use a supported point cloud extension.");
+        return error;
     }
 
-    asset.point_cloud.interface.clear();
+    geometry::PointCloud loaded_cloud{};
     if (auto result =
-            io::read_point_cloud(asset.descriptor.source, asset.point_cloud.interface, format);
-        !result) {
-        throw std::runtime_error("Failed to read point cloud: " +
-                                 std::string(result.error().message()));
+            io::read_point_cloud(asset.descriptor.source, loaded_cloud.interface, format);
+        !result)
+    {
+        auto error = detail::make_geometry_asset_error(
+            asset.descriptor.source, "read_point_cloud", result.error());
+        detail::record_hot_reload_failure(notify, identifier, error,
+                                          detail::geometry_error_hint(result.error()));
+        return error;
     }
-    asset.detection = detection;
-    asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "point cloud");
 
-    if (notify) {
+    std::filesystem::file_time_type last_write{};
+    try
+    {
+        last_write = detail::checked_last_write_time(asset.descriptor.source, "point cloud");
+    }
+    catch (const std::runtime_error& ex)
+    {
+        auto error = make_asset_load_error(AssetLoadErrorCategory::IoFailure, ex.what());
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Verify filesystem permissions and ensure the point cloud file remains accessible.");
+        return error;
+    }
+
+    asset.point_cloud = std::move(loaded_cloud);
+    asset.detection = detection;
+    asset.last_write = last_write;
+
+    if (notify)
+    {
         const auto cb_it = callbacks_.find(handle);
-        if (cb_it != callbacks_.end()) {
-            for (const auto& callback : cb_it->second) {
+        if (cb_it != callbacks_.end())
+        {
+            for (const auto& callback : cb_it->second)
+            {
                 callback(asset);
             }
         }
     }
+
+    return {};
 }
 
 void PointCloudCache::register_watch_locked(const RawHandle& handle, PointCloudAsset& asset)
@@ -308,7 +369,10 @@ void PointCloudCache::register_watch_locked(const RawHandle& handle, PointCloudA
         }
 
         auto& tracked = assets_.get(handle);
-        reload_asset(handle, tracked, true);
+        if (auto reload = reload_asset(handle, tracked, true); !reload.has_value())
+        {
+            return;
+        }
     };
 
     const auto watch_handle = watcher_.watch_file(asset.descriptor.source, std::move(callback));
