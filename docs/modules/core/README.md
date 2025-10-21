@@ -6,6 +6,9 @@
 - Hosts subsystem plugin interfaces and bootstrap plumbing used by `RuntimeHost`.
 - Provides diagnostics utilities, configuration helpers, and foundational types
   shared across modules.
+- Hosts the shared telemetry schema and references the
+  [`Telemetry Instrumentation Guide`](../../design/telemetry_instrumentation_guide.md)
+  used by downstream modules.
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_core`.

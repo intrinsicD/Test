@@ -19,7 +19,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | 🔄 In Progress | Rendering, Runtime |
 | `RT-005` | Validate scene hierarchies and expose diagnostics. | – | ✅ Done | Scene, Runtime |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | 🟠 Blocked on fuzz harness infra | IO |
-| `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | 🔄 In Progress | Core, Tools |
+| `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | ✅ Done | Core, Tools |
 | `CC-002` | Build hot reload infrastructure across caches/backends. | `AI-001` | 🔄 In Progress | Assets, Platform |
 
 ### Task Breakdowns
@@ -112,13 +112,15 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `CC-001.1` | Define metrics schema. | Schema documented, implemented in core telemetry module, adopted by runtime. | ✅ Done |
 | `CC-001.2` | Implement viewer shell. | Tools module exposes CLI/UI to inspect metrics with scripted smoke tests. | ✅ Done |
-| `CC-001.3` | Publish instrumentation guide. | Cross-module doc outlining how to emit and consume metrics. | 🟢 Todo |
+| `CC-001.3` | Publish instrumentation guide. | Cross-module doc outlining how to emit and consume metrics. | ✅ Done |
 
 - 2025-02-28: Published [`design/telemetry_schema.md`](design/telemetry_schema.md)
   and integrated runtime diagnostics with the shared schema.
 - 2025-03-20: Added `scripts/diagnostics/telemetry_viewer.py` with smoke tests to
   deliver `CC-001.2`/`TL-101`, enabling operators to inspect runtime telemetry
   snapshots without rebuilding the C++ tooling.
+- 2025-03-22: Published [`design/telemetry_instrumentation_guide.md`](design/telemetry_instrumentation_guide.md)
+  detailing module authoring patterns and closing `CC-001.3`.
 
 #### `CC-002` — Hot Reload Infrastructure
 

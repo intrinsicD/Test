@@ -35,6 +35,7 @@
 | Decision records, ADRs, and specifications | [specs/README.md](specs/README.md) |
 | Vulkan backend readiness checklist | [modules/rendering/backend_checklist.md](modules/rendering/backend_checklist.md) |
 | Telemetry schema reference | [design/telemetry_schema.md](design/telemetry_schema.md) |
+| Telemetry instrumentation workflow | [design/telemetry_instrumentation_guide.md](design/telemetry_instrumentation_guide.md) |
 
 Source-of-truth precedence: `../AGENTS.md` → this file → `agents.md` →
 `architecture.md` → entries under `design/` or `specs/` → module READMEs → code
