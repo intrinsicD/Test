@@ -2,6 +2,7 @@
 
 #include <array>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -9,6 +10,7 @@
 #include <vector>
 
 #include "engine/compute/api.hpp"
+#include "engine/compute/dependency_analysis.hpp"
 
 TEST(ComputeModule, ModuleNameMatchesNamespace)
 {
@@ -176,6 +178,7 @@ TEST(ComputeModule, CpuDispatcherDetectsCyclesDuringRegistration)
     {
         const std::string_view message{error.what()};
         ExpectSubstring(message, "KernelDispatcher detected a cycle during registration");
+        ExpectSubstring(message, "Cycle path:");
         ExpectSubstring(message, "digraph");
     }
 
@@ -200,6 +203,7 @@ TEST(ComputeModule, CudaDispatcherDetectsCyclesDuringRegistration)
     {
         const std::string_view message{error.what()};
         ExpectSubstring(message, "KernelDispatcher detected a cycle during registration");
+        ExpectSubstring(message, "Cycle path:");
         ExpectSubstring(message, "digraph");
     }
 
@@ -275,4 +279,54 @@ TEST(ComputeModule, ReportsDispatcherAvailability)
     const auto capabilities = engine::compute::dispatcher_capabilities();
     EXPECT_EQ(capabilities.cpu_available, engine::compute::is_cpu_dispatcher_available());
     EXPECT_EQ(capabilities.cuda_available, engine::compute::is_cuda_dispatcher_available());
+}
+
+TEST(ComputeModule, DetectCyclesReturnsEmptyResultWhenGraphIsAcyclic)
+{
+    engine::compute::DependencyGraph graph;
+    graph.nodes.resize(3U);
+    graph.nodes[0].name = "root";
+    graph.nodes[1].name = "middle";
+    graph.nodes[1].dependencies = {0U};
+    graph.nodes[2].name = "leaf";
+    graph.nodes[2].dependencies = {1U};
+
+    const auto result = engine::compute::detect_cycles(graph);
+    EXPECT_FALSE(result.has_cycle);
+    EXPECT_TRUE(result.cycle.empty());
+}
+
+TEST(ComputeModule, DetectCyclesReportsCyclePath)
+{
+    engine::compute::DependencyGraph graph;
+    graph.nodes.resize(3U);
+    graph.nodes[0].name = "a";
+    graph.nodes[0].dependencies = {1U};
+    graph.nodes[1].name = "b";
+    graph.nodes[1].dependencies = {2U};
+    graph.nodes[2].name = "c";
+    graph.nodes[2].dependencies = {0U};
+
+    const auto result = engine::compute::detect_cycles(graph);
+    ASSERT_TRUE(result.has_cycle);
+    ASSERT_FALSE(result.cycle.empty());
+    EXPECT_EQ(result.cycle.front(), result.cycle.back());
+    std::set<engine::compute::kernel_id> unique_nodes(result.cycle.begin(), result.cycle.end());
+    EXPECT_TRUE(unique_nodes.contains(0U));
+    EXPECT_TRUE(unique_nodes.contains(1U));
+    EXPECT_TRUE(unique_nodes.contains(2U));
+}
+
+TEST(ComputeModule, DetectCyclesIgnoresUnresolvedDependencies)
+{
+    engine::compute::DependencyGraph graph;
+    graph.nodes.resize(2U);
+    graph.nodes[0].name = "a";
+    graph.nodes[0].unresolved_dependencies = {4U};
+    graph.nodes[1].name = "b";
+    graph.nodes[1].dependencies = {0U};
+
+    const auto result = engine::compute::detect_cycles(graph);
+    EXPECT_FALSE(result.has_cycle);
+    EXPECT_TRUE(result.cycle.empty());
 }

@@ -19,7 +19,9 @@
 - Include `<engine/io/api.hpp>` for import/export utilities and handler
   registration.
 - Run `ctest --preset <preset> --tests-regex engine_io` and fuzz harnesses as
-  they come online.
+  they come online. Follow the
+  [IO Signature Detection & Fuzzing Playbook](detection_fuzzing_playbook.md)
+  for setup, corpus management, and triage procedures.
 
 ## Telemetry
 
@@ -103,7 +105,9 @@ load_animation_clip(const std::filesystem::path& path)
 
 ## TODO / Next Steps
 
-- Track `IO-221` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — advances `RT-006` and `DC-004`. `IO-230` is now covered by the error catalog above.
+- Track `IO-221` and `IO-240` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — advances `RT-006` and `DC-004`. `IO-230` is now covered by the error catalog above.
+- Refer to the [detection & fuzzing playbook](detection_fuzzing_playbook.md) when onboarding
+  new formats or refreshing the fuzzing harness.
 
 This module tracks actionable work through the execution checklist below.
 

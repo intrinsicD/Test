@@ -1081,18 +1081,46 @@ namespace engine::runtime
                                                : body_positions.front();
             synchronize_scene_graph(translation);
             const engine::core::plugin::SubsystemLifecycleContext lifecycle{runtime_name_view()};
-            for (const auto& plugin : dependencies.subsystem_plugins)
+            std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> started_plugins{};
+            started_plugins.reserve(dependencies.subsystem_plugins.size());
+            try
             {
-                if (plugin != nullptr)
+                for (const auto& plugin : dependencies.subsystem_plugins)
                 {
+                    if (plugin == nullptr)
+                    {
+                        continue;
+                    }
+
                     const std::string name{plugin->name()};
                     const auto start = Clock::now();
                     plugin->initialize(lifecycle);
+                    started_plugins.push_back(plugin);
                     const auto duration = Clock::now() - start;
                     record_subsystem_event(name, duration, SubsystemPhase::Initialize);
                 }
+                initialized = true;
             }
-            initialized = true;
+            catch (...)
+            {
+                for (auto it = started_plugins.rbegin(); it != started_plugins.rend(); ++it)
+                {
+                    if (*it == nullptr)
+                    {
+                        continue;
+                    }
+
+                    const std::string name{(*it)->name()};
+                    const auto start = Clock::now();
+                    (*it)->shutdown(lifecycle);
+                    const auto duration = Clock::now() - start;
+                    record_subsystem_event(name, duration, SubsystemPhase::Shutdown);
+                }
+
+                core::threading::IoThreadPool::instance().shutdown();
+                throw;
+            }
+
             record_initialize_duration(Clock::now() - initialize_start);
             refresh_streaming_metrics();
             rebuild_metric_snapshot();

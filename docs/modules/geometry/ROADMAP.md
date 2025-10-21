@@ -23,6 +23,8 @@ _Last Updated: 2025-02-19_
 | `GE-212` | Draft remeshing/parameterisation RFP referencing design constraints. | None |
 | `GE-220` | Instrument spatial query telemetry and update README. | Schema ready (`CC-001.1`); wire metrics via diagnostics bridge |
 
+> **Staffing Guidance:** `GE-212` focuses on planning and RFP authorship, while `GE-220` delivers telemetry instrumentation. Apart from consuming the diagnostics schema from `CC-001`, the efforts are independent, so assign separate agents and sync via documentation check-ins.
+
 ## Dependencies
 
 - **Testing infrastructure (`TI-002`)** — hosts benchmark harness.

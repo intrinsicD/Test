@@ -43,3 +43,9 @@ This module tracks actionable work through the execution checklist below.
 | `GE-220` | Align geometry telemetry with diagnostics (`CC-001`). | Add instrumentation for spatial queries and document metrics. | 🟢 Todo |
 
 See [ROADMAP.md](ROADMAP.md) for full context.
+
+### Staffing Notes
+
+- `GE-212` is a planning/RFP effort focused on defining scope and dependencies.
+- `GE-220` instruments telemetry pathways on top of the established diagnostics schema.
+- Assign separate agents to each task and coordinate asynchronously on schema updates to keep workstreams decoupled.

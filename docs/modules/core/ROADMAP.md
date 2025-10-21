@@ -1,14 +1,15 @@
 # Core Module Roadmap
 
-_Last Updated: 2025-02-19_
+_Last Updated: 2025-03-28_
 
 ## Priorities
 
 | Priority | Description | Status |
 | --- | --- | --- |
 | Diagnostics bridge (`CR-118`) | Define telemetry routing to support `CC-001`. | ✅ Done |
-| Plugin lifecycle audit (`CR-125`) | Validate `DC-001` invariants remain intact. | 🟢 Planned |
-| Configuration docs refresh (`CR-130`) | Keep configuration APIs discoverable. | 🟢 Planned |
+| Plugin lifecycle audit (`CR-125`) | Validate `DC-001` invariants remain intact. | ✅ Done |
+| Configuration docs refresh (`CR-130`) | Keep configuration APIs discoverable. | ✅ Done |
+| Subsystem dependency diagnostics (`CR-135`) | Detect plugin dependency cycles and document recovery steps. | 🟡 Planned |
 
 ## Active Work
 
@@ -20,8 +21,7 @@ _Last Updated: 2025-02-19_
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `CR-125` | Review plugin registration, teardown, and error handling. | None |
-| `CR-130` | Update configuration README and examples. | After `CR-125` |
+| `CR-135` | Add dependency cycle detection and lifecycle telemetry guidance. | After `CR-125` |
 
 ## Notes
 

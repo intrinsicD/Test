@@ -139,6 +139,75 @@ std::shared_ptr<engine::core::plugin::ISubsystemInterface> make_test_subsystem(
     return std::make_shared<TestSubsystem>(std::move(name), std::move(dependencies));
 }
 
+class RecordingLifecycleSubsystem final : public engine::core::plugin::ISubsystemInterface
+{
+public:
+    explicit RecordingLifecycleSubsystem(std::string name, std::vector<std::string> dependencies = {})
+        : name_(std::move(name)), dependencies_storage_(std::move(dependencies))
+    {
+        dependency_views_.reserve(dependencies_storage_.size());
+        for (const auto& dependency : dependencies_storage_)
+        {
+            dependency_views_.push_back(dependency);
+        }
+    }
+
+    [[nodiscard]] std::string_view name() const noexcept override
+    {
+        return name_;
+    }
+
+    [[nodiscard]] std::span<const std::string_view> dependencies() const noexcept override
+    {
+        return dependency_views_;
+    }
+
+    void initialize(const engine::core::plugin::SubsystemLifecycleContext& context) override
+    {
+        initialize_calls += 1U;
+        initialize_contexts.emplace_back(context.runtime_name);
+        if (remaining_failures > 0U)
+        {
+            --remaining_failures;
+            throw std::runtime_error("RecordingLifecycleSubsystem forced failure");
+        }
+    }
+
+    void shutdown(const engine::core::plugin::SubsystemLifecycleContext& context) noexcept override
+    {
+        shutdown_calls += 1U;
+        shutdown_contexts.emplace_back(context.runtime_name);
+    }
+
+    void tick(const engine::core::plugin::SubsystemUpdateContext&) override {}
+
+    void fail_initialization(std::size_t count = 1U) noexcept
+    {
+        remaining_failures = count;
+    }
+
+    void clear_failures() noexcept
+    {
+        remaining_failures = 0U;
+    }
+
+    std::string name_{};
+    std::vector<std::string> dependencies_storage_{};
+    std::vector<std::string_view> dependency_views_{};
+    std::size_t initialize_calls{0U};
+    std::size_t shutdown_calls{0U};
+    std::vector<std::string> initialize_contexts{};
+    std::vector<std::string> shutdown_contexts{};
+    std::size_t remaining_failures{0U};
+};
+
+std::shared_ptr<RecordingLifecycleSubsystem> make_recording_subsystem(
+    std::string name,
+    std::vector<std::string> dependencies = {})
+{
+    return std::make_shared<RecordingLifecycleSubsystem>(std::move(name), std::move(dependencies));
+}
+
 class RecordingRenderResourceProvider final : public engine::rendering::RenderResourceProvider
 {
 public:
@@ -681,6 +750,94 @@ TEST(RuntimeHost, LoadsSubsystemsFromRegistrySelection) {
     EXPECT_EQ(names[0], "alpha");
     EXPECT_EQ(names[1], "beta");
     host.shutdown();
+}
+
+TEST(RuntimeHost, ProvidesLifecycleContextForSubsystems)
+{
+    auto plugin = make_recording_subsystem("alpha");
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.scene_name = "runtime.alpha";
+    deps.subsystem_plugins = {plugin};
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+
+    ASSERT_EQ(plugin->initialize_calls, 1U);
+    ASSERT_EQ(plugin->initialize_contexts.size(), 1U);
+    EXPECT_EQ(plugin->initialize_contexts.front(), deps.scene_name);
+
+    host.shutdown();
+
+    ASSERT_EQ(plugin->shutdown_calls, 1U);
+    ASSERT_EQ(plugin->shutdown_contexts.size(), 1U);
+    EXPECT_EQ(plugin->shutdown_contexts.front(), deps.scene_name);
+}
+
+TEST(RuntimeHost, ShutsDownInitializedSubsystemsWhenLaterPluginFails)
+{
+    auto first = make_recording_subsystem("alpha");
+    auto second = make_recording_subsystem("beta");
+    second->fail_initialization();
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.scene_name = "runtime.failure";
+    deps.subsystem_plugins = {first, second};
+
+    engine::runtime::RuntimeHost host{deps};
+
+    EXPECT_THROW(host.initialize(), std::runtime_error);
+    EXPECT_FALSE(host.is_initialized());
+
+    EXPECT_EQ(first->initialize_calls, 1U);
+    EXPECT_EQ(first->shutdown_calls, 1U);
+    EXPECT_EQ(second->initialize_calls, 1U);
+    EXPECT_EQ(second->shutdown_calls, 0U);
+    ASSERT_FALSE(first->initialize_contexts.empty());
+    ASSERT_FALSE(first->shutdown_contexts.empty());
+    EXPECT_EQ(first->initialize_contexts.front(), deps.scene_name);
+    EXPECT_EQ(first->shutdown_contexts.front(), deps.scene_name);
+
+    const auto& diagnostics = host.diagnostics();
+    const auto timing_it = std::find_if(
+        diagnostics.subsystem_timings.begin(),
+        diagnostics.subsystem_timings.end(),
+        [](const engine::runtime::RuntimeSubsystemTiming& timing) { return timing.name == "alpha"; });
+    ASSERT_NE(timing_it, diagnostics.subsystem_timings.end());
+    EXPECT_EQ(timing_it->initialize_count, 1U);
+    EXPECT_EQ(timing_it->shutdown_count, 1U);
+    EXPECT_EQ(timing_it->tick_count, 0U);
+
+    host.shutdown();
+}
+
+TEST(RuntimeHost, RecoversAfterSubsystemInitializationFailure)
+{
+    auto first = make_recording_subsystem("alpha");
+    auto second = make_recording_subsystem("beta");
+    second->fail_initialization();
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.subsystem_plugins = {first, second};
+
+    engine::runtime::RuntimeHost host{deps};
+
+    EXPECT_THROW(host.initialize(), std::runtime_error);
+    EXPECT_FALSE(host.is_initialized());
+    EXPECT_EQ(first->initialize_calls, 1U);
+    EXPECT_EQ(first->shutdown_calls, 1U);
+
+    second->clear_failures();
+
+    EXPECT_NO_THROW(host.initialize());
+    EXPECT_TRUE(host.is_initialized());
+    EXPECT_EQ(first->initialize_calls, 2U);
+    EXPECT_EQ(second->initialize_calls, 2U);
+
+    host.shutdown();
+
+    EXPECT_EQ(first->shutdown_calls, 2U);
+    EXPECT_EQ(second->shutdown_calls, 1U);
 }
 
 TEST(RuntimeHost, StreamingMetricsReflectConfiguration)

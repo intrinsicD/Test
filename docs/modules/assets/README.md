@@ -11,8 +11,9 @@
   trigger callbacks without manual polling loops.
 - Asset descriptors capture provenance, format hints, and binding metadata shared
   between caches and runtime consumers.
-- Material assets currently store descriptor bindings (shader + texture handles);
-  material authoring and serialization remain open.
+- Material assets currently store descriptor bindings (shader + texture handles),
+  and `AS-320` now codifies their authoring + serialization workflow in
+  [`design/material_persistence_strategy.md`](../../design/material_persistence_strategy.md).
 - Unit tests validate registration, reload behaviour, descriptor plumbing,
   generational semantics, and unload invalidation. Integration coverage flows
   through [`engine/tests/integration`](../../../engine/tests/integration/README.md).
@@ -68,6 +69,6 @@ This module tracks actionable work through the execution checklist below.
 | --- | --- | --- | --- |
 | `AS-302` | Instrument async queue telemetry (`AI-002`). | Queue metrics emitted through runtime telemetry, documented in module README and streaming task file. | ✅ Done |
 | `AS-315` | Integrate hot reload callbacks (`CC-002`). | Filesystem watcher hooks update caches, failures logged via diagnostics shell. | ✅ Done |
-| `AS-320` | Define material persistence strategy. | Draft design note covering serialization format and runtime reload semantics. | 🟢 Todo |
+| `AS-320` | Define material persistence strategy. | Draft design note covering serialization format and runtime reload semantics. | ✅ Done |
 
 See [ROADMAP.md](ROADMAP.md) for sequencing and dependencies.

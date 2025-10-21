@@ -32,5 +32,7 @@ _Last Updated: 2025-03-24_
 ## Notes
 
 - Coordinate fuzz harness resource usage with CI owners before enabling.
+- Detection & fuzzing playbook published (`RT-006.3`); keep it synced when
+  catalogue or harness steps change.
 - Update task records (`T-0112`) and central roadmap when milestones move.
 - Consume the shared telemetry schema when extending telemetry coverage beyond geometry import/export pipelines.
