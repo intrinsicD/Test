@@ -148,8 +148,8 @@ Once staffed, execute module-specific queues below.
 - **Compute** — `CO-150` cycle detection tooling is next after landing the
   dispatcher extension documentation (`CO-141`), followed by `CO-160` CUDA
   preset alignment.
-- **Core** — `CR-118` diagnostics bridge specification (`CC-001`), followed by
-  `CR-125` plugin lifecycle audit to keep `DC-001` fresh.
+- **Core** — Completed `CR-125` lifecycle audit and `CR-130` configuration refresh;
+  next deliverable is `CR-135` subsystem dependency diagnostics to extend `DC-001`.
 - **Geometry** — `GE-205` accelerated normals benchmark for `TI-002`, then
   `GE-212` remeshing RFP draft.
 - **IO** — `IO-221` signature + fuzz integration (`RT-006`) in progress; detection
