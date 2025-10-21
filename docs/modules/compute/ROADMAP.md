@@ -15,13 +15,12 @@ _Last Updated: 2025-10-20_
 | Task ID | Description | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
 | `CO-141` | Author dispatcher extension note covering registration and telemetry. | Compute team | 2025-03-07 | ✅ Complete |
-| `CO-150` | Implement kernel dependency cycle detection tooling. | Compute team | 2025-03-21 | 🟢 Todo |
+| `CO-150` | Implement kernel dependency cycle detection tooling. | Compute team | 2025-03-21 | ✅ Complete |
 
 ## Upcoming Tasks
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `CO-160` | Synchronise CUDA presets, docs, and CI coverage (`DC-002`). | None |
 | `CO-170` | Prototype runtime integration sample showing dispatcher orchestration. | After `RU-307` complete |
 
 ## Dependencies

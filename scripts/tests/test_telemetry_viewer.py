@@ -136,6 +136,9 @@ def test_viewer_filters_metrics_by_prefix(tmp_path: Path, capsys: pytest.Capture
     assert "Completed streaming requests" in captured
     assert "runtime.lifecycle.last_tick_ms" not in captured
     assert "Sample issues:" in captured
+    assert "Hot Reload Guidance" in captured
+    assert "Failed reload attempts: 1" in captured
+    assert "Verify the source asset path" in captured
 
 
 def test_viewer_handles_missing_runtime_diagnostics(tmp_path: Path, capsys: pytest.CaptureFixture[str], telemetry_payload: dict[str, object]) -> None:
@@ -148,3 +151,22 @@ def test_viewer_handles_missing_runtime_diagnostics(tmp_path: Path, capsys: pyte
     assert exit_code == 0
     captured = capsys.readouterr().out
     assert "No runtime diagnostics available" in captured
+
+
+def test_viewer_suppresses_hot_reload_guidance_without_failures(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    telemetry_payload: dict[str, object],
+) -> None:
+    payload = json.loads(json.dumps(telemetry_payload))
+    streaming = payload["runtime_diagnostics"]["streaming"]
+    streaming["streaming_total_failed"] = 0
+    streaming["streaming_total_cancelled"] = 0
+    streaming["streaming_total_rejected"] = 0
+    payload_path = tmp_path / "telemetry.json"
+    payload_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    exit_code = viewer.main(["--input", str(payload_path)])
+    assert exit_code == 0
+    captured = capsys.readouterr().out
+    assert "Hot Reload Guidance" not in captured

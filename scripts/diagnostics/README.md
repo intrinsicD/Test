@@ -41,6 +41,12 @@ Use `--verbose` to emit per-frame tables on stdout when investigating specific
 regressions. The JSON payload can be checked into performance dashboards or
 post-processed by CI jobs for automated alerts.
 
+Set `--profile-trace trace.json` to export a Chrome trace containing per-dispatch
+timings grouped by frame. The generated trace works with Perfetto, Chrome's
+`about://tracing` viewer, and other tools that understand the trace event
+schema, enabling deeper profiling workflows outside the default console
+summary.
+
 ## `streaming_report.py`
 
 The streaming report surfaces queue depth and asynchronous asset loading
@@ -77,7 +83,11 @@ samples filtered by prefix.
    ```
 3. Inspect the console output for per-stage timings, streaming gauges, and
    filtered metrics. Adjust `--metric-prefix` (repeatable) or `--max-issues`
-   when triaging specific subsystems or scene hierarchy reports.
+   when triaging specific subsystems or scene hierarchy reports. When hot reload
+   failures accumulate, the viewer adds a **Hot Reload Guidance** section that
+   summarises failure counters, echoes the latest exported error (when
+   available), and lists remediation steps (verify watcher permissions,
+   re-export corrupt assets, increase queue capacity, etc.).
 
 ## `collision_benchmark_report.py`
 

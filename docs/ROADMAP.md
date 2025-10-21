@@ -104,7 +104,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `RT-006.1` | Build signature database. | Curated signature set committed with provenance notes; fuzz harness consumes it. | 🔄 In Progress |
 | `RT-006.2` | Integrate libFuzzer harness. | Harness runs in CI with seed corpus, failures captured in telemetry. | 🟠 Blocked on CI runner capacity |
-| `RT-006.3` | Author detection docs. | IO README explains detection workflow, failure handling, and fuzzing steps. | 🟢 Todo |
+| `RT-006.3` | Author detection docs. | IO README explains detection workflow, failure handling, and fuzzing steps. | ✅ Done |
 
 #### `CC-001` — Telemetry & Diagnostics Viewer
 
@@ -145,32 +145,39 @@ Once staffed, execute module-specific queues below.
   extensions land, followed by `AN-240` state-machine authoring spec work.
 - **Assets** — `AS-315` hot reload callback integration (`CC-002`), then
   `AS-320` material persistence planning.
+- **Compute** — `CO-150` cycle detection tooling and `CO-160` CUDA preset
+  alignment completed; focus shifts to `CO-170` runtime integration sample
+  work.
+- **Core** — `CR-118` diagnostics bridge specification (`CC-001`), followed by
+  `CR-125` plugin lifecycle audit to keep `DC-001` fresh.
+  `AS-330` diagnostics shell reload surfacing (material persistence spec published).
 - **Compute** — `CO-150` cycle detection tooling is next after landing the
   dispatcher extension documentation (`CO-141`), followed by `CO-160` CUDA
   preset alignment.
-- **Core** — `CR-118` diagnostics bridge specification (`CC-001`), followed by
-  `CR-125` plugin lifecycle audit to keep `DC-001` fresh.
+- **Core** — Completed `CR-125` lifecycle audit and `CR-130` configuration refresh;
+  next deliverable is `CR-135` subsystem dependency diagnostics to extend `DC-001`.
 - **Geometry** — `GE-205` accelerated normals benchmark for `TI-002`, then
   split `GE-212` remeshing RFP planning and `GE-220` telemetry alignment
-  instrumentation across separate agents so both advance in parallel.
-- **IO** — `IO-221` signature + fuzz integration (`RT-006`) in progress;
+  instrumentation.
+- **IO** — `IO-221` signature + fuzz integration (`RT-006`) in progress; detection
+  & fuzzing playbook published (`RT-006.3`).
   structured error catalog (`IO-230`) published; next focus `IO-240`
   telemetry alignment once diagnostics schema lands.
 - **Math** — `MA-110` SIMD validation harness (`TI-003`), then `MA-118`
   documentation of solver stability ranges.
 - **Physics** — `PH-430` collision throughput telemetry surfaced in diagnostics;
   next sprint should scope automation for publishing long-term trends.
-- **Platform** — `PL-215` SDL parity checklist (`DC-003`); filesystem watcher
-  abstraction (`PL-222`) is complete, so focus shifts to `PL-230` backend
-  selection documentation.
+- **Platform** — `PL-215` SDL parity checklist (`DC-003`) remains active; backend
+  selection documentation (`PL-230`) landed, so keep presets/README guidance
+  aligned with future backend bring-up.
 - **Rendering** — `RE-520` backend documentation updates building on the
   completed metadata schema (`AI-003`), followed by `RE-530` backend validation
   tooling and parity tracking work.
 - **Runtime** — `RT-005` tranche complete; support `SC-225` samples and `SC-230` alerting guidance as scene docs expand.
 - **Scene** — `SC-225` diagnostics samples and `SC-230` alerting thresholds extend the hierarchy playbook delivered in `SC-220`.
-- **Tools** — `TL-110` tooling documentation refresh (`CC-001`) and `TL-115`
-  profiling capture export now that the telemetry viewer CLI (`TL-101`) is
-  available.
+- **Tools** — `TL-110` tooling documentation refresh (`CC-001`) continues while
+  the new `TL-115` Chrome trace export unblocks deeper profiling workflows for
+  the telemetry viewer (`TL-101`).
 
 ### Process & Audit Items
 

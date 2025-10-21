@@ -2,6 +2,7 @@ set(target_name engine_compute)
 
 add_library(${target_name}
     src/api.cpp
+    src/dependency_analysis.cpp
 )
 
 engine_apply_module_defaults(${target_name}
@@ -19,7 +20,7 @@ target_link_libraries(${target_name}
         engine_math
 )
 
-if(ENGINE_ENABLE_CUDA)
+if(ENGINE_ENABLE_CUDA AND ENGINE_ENABLE_COMPUTE_CUDA)
     add_subdirectory(cuda)
 endif()
 

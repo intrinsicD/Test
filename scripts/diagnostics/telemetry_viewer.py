@@ -194,6 +194,84 @@ def _format_streaming(diagnostics: Mapping[str, object]) -> str:
     return _format_section("Streaming", lines)
 
 
+def _format_hot_reload_guidance(diagnostics: Mapping[str, object]) -> str:
+    if not isinstance(diagnostics, Mapping):
+        return ""
+
+    hot_reload = diagnostics.get("hot_reload")
+    lines: List[str] = []
+
+    def _coerce_int(mapping: Mapping[str, object], key: str) -> int:
+        value = mapping.get(key)
+        if isinstance(value, bool):
+            return int(value)
+        if isinstance(value, (int, float)):
+            return int(value)
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError:
+                return 0
+        return 0
+
+    if isinstance(hot_reload, Mapping):
+        failure_count = _coerce_int(hot_reload, "failure_count")
+        cancelled_count = _coerce_int(hot_reload, "cancelled_count")
+        rejected_count = _coerce_int(hot_reload, "rejected_count")
+        pending_count = _coerce_int(hot_reload, "pending_count")
+        loading_count = _coerce_int(hot_reload, "loading_count")
+        total_requests = _coerce_int(hot_reload, "total_requests")
+        last_error = hot_reload.get("last_error")
+        error_hint = hot_reload.get("error_hint")
+    else:
+        streaming = diagnostics.get("streaming")
+        if not isinstance(streaming, Mapping):
+            return ""
+        failure_count = _coerce_int(streaming, "streaming_total_failed")
+        cancelled_count = _coerce_int(streaming, "streaming_total_cancelled")
+        rejected_count = _coerce_int(streaming, "streaming_total_rejected")
+        pending_count = _coerce_int(streaming, "streaming_pending")
+        loading_count = _coerce_int(streaming, "streaming_loading")
+        total_requests = _coerce_int(streaming, "streaming_total_requests")
+        last_error = None
+        error_hint = None
+
+    if all(count <= 0 for count in (failure_count, cancelled_count, rejected_count)):
+        return ""
+
+    lines.append(
+        "Failed reload attempts: "
+        f"{failure_count}" +
+        (f" (of {total_requests} observed requests)" if total_requests > 0 else "")
+    )
+
+    if failure_count > 0:
+        if isinstance(last_error, str) and last_error.strip():
+            lines.append(f"  • Last error: {last_error.strip()}")
+        if isinstance(error_hint, str) and error_hint.strip():
+            lines.append(f"  • Hint: {error_hint.strip()}")
+        lines.append("  • Verify the source asset path exists and the watcher has read permissions.")
+        lines.append("  • Re-export or regenerate the asset if decoders report stale or corrupt data.")
+        if pending_count > 0 or loading_count > 0:
+            lines.append(
+                "  • Monitor pending/loading handles; excessive backlog can mask repeated reload failures."
+            )
+
+    if cancelled_count > 0:
+        lines.append(
+            "Cancelled reload requests: "
+            f"{cancelled_count}. Review cache callbacks to ensure they do not abort reloads prematurely."
+        )
+
+    if rejected_count > 0:
+        lines.append(
+            "Rejected reload requests: "
+            f"{rejected_count}. Consider increasing queue capacity or staggering asset edits."
+        )
+
+    return _format_section("Hot Reload Guidance", lines)
+
+
 def _format_stage_timings(diagnostics: Mapping[str, object]) -> str:
     stages = diagnostics.get("stages") if isinstance(diagnostics, Mapping) else None
     if not isinstance(stages, Sequence):
@@ -310,6 +388,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     sections = [
         _format_frame_summary(payload),
         _format_streaming(diagnostics),
+        _format_hot_reload_guidance(diagnostics),
         _format_stage_timings(diagnostics),
         _format_subsystems(diagnostics),
         _format_scene_validation(diagnostics, args.max_issues),
