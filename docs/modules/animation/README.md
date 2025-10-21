@@ -24,6 +24,31 @@
   playback invariants, guarding against regressions in authoring and runtime
   pipelines.
 
+### Linear Blend Skinning Pipeline
+
+- Rig bindings must populate `RigJoint::inverse_bind_pose` for every joint and
+  keep vertex weights normalised (use `RigBinding::normalized` or
+  `skinning::validate_binding` to confirm authoring tools exported consistent
+  data). Runtime validation rejects bindings with missing joints or
+  unnormalised weights before deformation begins.【F:engine/animation/include/engine/animation/rigging/rig_binding.hpp†L17-L116】【F:engine/runtime/src/api.cpp†L66-L118】
+- Runtime evaluation follows [ADR-0006](../../specs/ADR-0006-animation-deformation.md):
+  1. `skinning::build_global_joint_transforms` composes local joint poses with
+     optional root translations from physics so the skeleton follows dynamic
+     bodies deterministically.【F:engine/animation/src/deformation/linear_blend_skinning.cpp†L9-L65】
+  2. `skinning::build_skinning_transforms` multiplies the global poses by the
+     stored inverse bind matrices to yield per-joint deformation transforms.【F:engine/animation/src/deformation/linear_blend_skinning.cpp†L67-L96】
+  3. Geometry consumes these transforms via
+     `geometry::deform::apply_linear_blend_skinning` to update mesh positions
+     and normals in-place every tick.【F:engine/geometry/src/deform/linear_blend_skinning.cpp†L11-L73】
+- Author rig bindings with deterministic joint ordering and consistent naming;
+  `RuntimeHostDependencies` expects the binding vertex count to match mesh rest
+  positions and will emit `RuntimeError::dependency_invalid_binding` when the
+  contract is violated.【F:engine/runtime/src/api.cpp†L85-L134】
+- Use `python scripts/diagnostics/runtime_frame_telemetry.py` with the
+  `geometry.deform` variance check to track per-frame skinning costs; baseline
+  timings for the default cloth mesh average ~22 ms on the Linux GCC debug preset
+  (32-frame sample, trimmed 10 % tails).【ba1696†L1-L38】
+
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_animation` to
   expose headers under `engine/animation`.

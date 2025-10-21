@@ -1,8 +1,9 @@
 # Runtime Module
 
 ## Current State
-- `RuntimeHost` orchestrates animation, compute-driven physics, geometry
-  deformation, and submission into the rendering pipeline.
+- `RuntimeHost` orchestrates animation, compute-driven physics, CPU linear blend
+  skinning, geometry deformation, and submission into the rendering pipeline in
+  line with [ADR-0006](../../specs/ADR-0006-animation-deformation.md).
 - Integrates with subsystem plugins discovered via core module facilities.
 - Emits diagnostics and telemetry for lifecycle monitoring, including
   serialized frame-graph metadata and transient resource lifecycle events
@@ -23,6 +24,27 @@
 - Run `ctest --preset <preset> --tests-regex engine_runtime`.
 - Follow the [async streaming integration guide](async_streaming_integration.md)
   when wiring asset loading through the runtime and telemetry tooling (`AI-002.3`).
+
+### Skinned Mesh Workflow
+
+- Populate `RuntimeHostDependencies::mesh.rest_positions` and
+  `RuntimeHostDependencies::binding` with matching vertex counts; the runtime
+  rejects mismatched bindings via `RuntimeError::dependency_invalid_binding` to
+  prevent undefined deformation results.【F:engine/runtime/src/api.cpp†L85-L134】
+- Provide inverse bind matrices and normalised weights for every joint in the
+  binding; `skinning::validate_binding` enforces these invariants on startup and
+  every tick before dispatching deformation work.【F:engine/animation/include/engine/animation/rigging/rig_binding.hpp†L17-L116】【F:engine/runtime/src/api.cpp†L1102-L1170】
+- During `RuntimeHost::tick` the dispatcher evaluates the animation pose,
+  applies physics-driven root motion, builds global joint transforms, and runs
+  `geometry::deform::apply_linear_blend_skinning` to update mesh positions and
+  normals deterministically.【F:engine/runtime/src/api.cpp†L1075-L1182】【F:engine/geometry/src/deform/linear_blend_skinning.cpp†L16-L73】
+- The resulting scene graph entries mirror joint transforms, allowing rendering
+  and diagnostics tooling to inspect joint hierarchies alongside the skinned
+  mesh.【F:engine/runtime/src/api.cpp†L949-L1101】
+- Capture performance baselines with
+  `python scripts/diagnostics/runtime_frame_telemetry.py --library-dir <build>/engine/runtime --frames 32 --variance-check geometry.deform:10 --variance-trim 0.1`.
+  The default debug build records ~22 ms per `geometry.deform` dispatch using the
+  cloth stress test mesh (trimmed mean over 32 frames).【ba1696†L1-L38】
 
 ## TODO / Next Steps
 

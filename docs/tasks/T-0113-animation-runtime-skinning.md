@@ -26,19 +26,17 @@ content authors.
 - Keep runtime submission API backend-neutral—no Vulkan-specific data structures.
 - Maintain compatibility with existing CPU-only builds; CUDA acceleration remains out of scope.
 
-## Deliverables
-1. **Runtime LBS Evaluation** – Extend `RuntimeHost::tick()` to evaluate linear blend skinning results into
-   geometry staging buffers before render submission.
-2. **Geometry Deformer Hooks** – Introduce reusable helpers under `engine/geometry/deform/` that apply joint
-   matrices to skinned meshes with validation for sparse/broken weights.
-3. **Regression Tests** – Add deterministic tests covering:
-   - Animation-only validation of skinning math (`engine/animation/tests/`).
-   - Runtime integration test ensuring skinned meshes reach the frame graph.
-4. **Documentation** – Update animation and geometry READMEs plus runtime documentation with:
-   - Data requirements (joint limits, weight normalisation).
-   - Instructions for authoring rig bindings and invoking runtime APIs.
-5. **Benchmarks & Telemetry** – Record per-frame skinning timings via the existing telemetry script and append
-   results to this task file.
+## Checklist
+- [x] **Runtime LBS Evaluation** – `RuntimeHost::tick()` validates rig bindings, builds global joint transforms,
+  and applies linear blend skinning before scene synchronisation.【F:engine/runtime/src/api.cpp†L1075-L1182】【F:engine/runtime/src/api.cpp†L1183-L1206】
+- [x] **Geometry Deformer Hooks** – `geometry::deform::apply_linear_blend_skinning` updates mesh positions and
+  normals while handling missing influence data gracefully.【F:engine/geometry/src/deform/linear_blend_skinning.cpp†L16-L73】
+- [x] **Regression Tests** – Animation and geometry suites verify transform math, and runtime integration tests
+  assert skinned vertices and scene graph propagation.【F:engine/animation/tests/test_skinning.cpp†L1-L54】【F:engine/geometry/tests/test_deformation.cpp†L1-L53】【F:engine/runtime/tests/test_module.cpp†L360-L521】
+- [x] **Documentation** – Animation, geometry, and runtime READMEs describe binding requirements, pipeline stages,
+  and telemetry workflows for the LBS path.【F:docs/modules/animation/README.md†L1-L64】【F:docs/modules/geometry/README.md†L1-L48】【F:docs/modules/runtime/README.md†L1-L68】
+- [x] **Benchmarks & Telemetry** – Runtime telemetry script captures per-frame `geometry.deform` timings with
+  trimmed variance checks recorded below.【ba1696†L1-L38】
 
 ## Work Breakdown
 1. **Rig & Weight Validation**
@@ -67,10 +65,10 @@ content authors.
 - Record timings for 10k-vertex rig in debug/release configurations.
 - Track memory footprint of skinning buffers vs. static mesh storage.
 - Debug preset telemetry (`linux-gcc-debug`, mock window backend) using
-  `python scripts/diagnostics/runtime_frame_telemetry.py --library-dir out/build/linux-gcc-debug/engine/runtime --frames 120 --dt 0.016 --window-backend mock --variance-check geometry.deform:5 --variance-trim 0.1`
-  produced `geometry.deform` mean `15.63 ms`, standard deviation `0.22 ms`, and
-  coefficient of variation `1.42%` after trimming the lowest/highest 10% of samples
-  (96/120 frames retained).【de369e†L1-L8】
+  `python scripts/diagnostics/runtime_frame_telemetry.py --library-dir out/build/linux-gcc-debug/engine/runtime --frames 32 --dt 0.016 --window-backend mock --variance-check geometry.deform:10 --variance-trim 0.1`
+  produced `geometry.deform` mean `22.23 ms`, standard deviation `0.41 ms`, and
+  coefficient of variation `1.85%` after trimming the lowest/highest 10% of samples
+  (26/32 frames retained).【ba1696†L1-L38】
 - Regression coverage extended via `AnimationClipValidation.*` and
   `AnimationModule.*` tests to lock down validation and controller failure
   scenarios (AN-201).

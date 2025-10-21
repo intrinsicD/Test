@@ -13,17 +13,17 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 
 | Module | Health | Current Capability | Next Task |
 | --- | --- | --- | --- |
-| Animation | ✅ Stable | Deterministic clip sampling, validation, JSON import/export, blend-tree controllers, and structured error reporting consumed by the runtime pose system. | `AN-230`: prototype GPU/parallel sampling benchmarks once compute queue extensions land. |
+| Animation | ✅ Stable | Deterministic clip sampling, validation, JSON import/export, blend-tree controllers, structured error reporting, and linear blend skinning transform generation consumed by the runtime pose system. | `AN-230`: prototype GPU/parallel sampling benchmarks once compute queue extensions land. |
 | Assets | 🔄 In Progress | Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload callbacks driven by the filesystem watcher and async queue instrumentation publishing runtime telemetry for streaming diagnostics. | `AS-320`: material persistence planning. |
 | Compute | ✅ Stable | Kernel dispatcher with per-kernel telemetry, backend capability probing, dispatcher extension guidance, and math helpers for identity transforms. | `CO-150`: implement kernel dependency cycle detection tooling. |
 | Core | ✅ Stable | EnTT-backed registry façade, subsystem discovery helpers, and module bootstrap plumbing consumed by higher-level systems. | `CR-125`: plugin lifecycle audit to keep `DC-001` fresh. |
-| Geometry | ✅ Stable | `SurfaceMesh` utilities, halfedge conversions, procedural primitives, ASCII IO, and kd-tree/octree accelerators. | `GE-205`: benchmark accelerated normal recomputation for `TI-002`. |
+| Geometry | ✅ Stable | `SurfaceMesh` utilities, halfedge conversions, procedural primitives, ASCII IO, kd-tree/octree accelerators, and CPU linear blend skinning deformers. | `GE-205`: benchmark accelerated normal recomputation for `TI-002`. |
 | IO | 🔄 In Progress | Geometry/animation import-export wrappers, plugin-ready handlers, and cache policy scaffolding. | `IO-221`: integrate signature database + fuzz harness towards `RT-006`. |
 | Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, and transform utilities feeding animation, geometry, and physics. | `MA-110`: add SIMD validation targets aligned with `TI-003`. |
 | Physics | ✅ Stable | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase plus collision telemetry. | `PH-430`: publish collision benchmark telemetry in diagnostics tooling. |
 | Platform | ✅ Stable | Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. | `PL-215`: publish SDL backend parity checklist for `DC-003`. |
 | Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-530`: backend validation tooling and parity tracking follow-up. |
-| Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, geometry deformation, and submission into the rendering pipeline. | `AI-002`: extend async streaming diagnostics once assets hot-reload callbacks land. |
+| Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, and submission into the rendering pipeline. | `AI-002`: extend async streaming diagnostics once assets hot-reload callbacks land. |
 | Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | `SC-220`: documentation refresh for hierarchy diagnostics. |
 | Tools | 🚧 Planned | Editor/profiling/pipeline automation staging area with scaffolding in place. | `TL-101`: stand up diagnostics shell tasks from `CC-001`. |
 

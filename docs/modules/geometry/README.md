@@ -2,10 +2,25 @@
 
 ## Current State
 - Offers `SurfaceMesh` utilities (normals, bounds, centroid), halfedge
-  conversions, procedural primitives, and ASCII import/export.
+  conversions, procedural primitives, ASCII import/export, and CPU linear blend
+  skinning deformers that consume animation rig bindings.
 - Provides kd-tree and octree spatial acceleration structures for geometry and
   point-cloud queries.
 - Exposes helpers for mesh/point-cloud interchange with other subsystems.
+
+### Deformation Helpers
+
+- `geometry::deform::apply_linear_blend_skinning` updates mesh positions and
+  normals in-place using precomputed skinning transforms, falling back to rest
+  positions when no valid binding data is available.【F:engine/geometry/src/deform/linear_blend_skinning.cpp†L16-L73】
+- The helper expects the supplied `RigBinding` vertex count to match
+  `SurfaceMesh::rest_positions`; runtime validation will reject inconsistent
+  inputs before deformation to protect downstream systems.【F:engine/runtime/src/api.cpp†L85-L134】【F:engine/runtime/src/api.cpp†L1149-L1206】
+- Recompute bounds and normals are handled internally, keeping geometry in sync
+  for rendering and physics sampling without additional callers.
+- Pair the helper with animation skinning utilities described in the animation
+  module README to guarantee that inverse bind matrices and weight normalisation
+  constraints are satisfied before deformation.【F:engine/animation/src/deformation/linear_blend_skinning.cpp†L9-L96】
 
 ## Usage
 - Build via `cmake --build --preset <preset> --target engine_geometry`.
