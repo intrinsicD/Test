@@ -69,6 +69,8 @@ linking the change downstream.
   – canonical reference for the `engine::Result<T>` policy.
 - [`design/resource_management.md`](design/resource_management.md) – handle and
   resource pool design used by `AI-001`.
+- [`design/ge-212-remeshing_parameterization_rfp.md`](design/ge-212-remeshing_parameterization_rfp.md)
+  – geometry remeshing/parameterisation requirements (`GE-212`).
 - [`modules/`](modules/) – subsystem overviews, execution checklists, and local
   TODO boards aligned with the roadmap.
 - [`modules/runtime/async_streaming_integration.md`](modules/runtime/async_streaming_integration.md)
