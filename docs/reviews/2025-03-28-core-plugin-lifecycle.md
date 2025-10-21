@@ -32,7 +32,7 @@ None.
 - No integration or Python tests required beyond runtime suite.
 
 ## Follow-Up Work
-- [ ] Track subsystem dependency cycle detection and failure logging under `CR-135`.
+- [x] Subsystem dependency cycle diagnostics landed via `CR-135`; structured logging remains a separate follow-up.
 - [ ] Extend observability around initialization failures (structured logs/metrics).
 
 ## Verdict

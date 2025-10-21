@@ -155,9 +155,10 @@ Once staffed, execute module-specific queues below.
 - **Compute** — `CO-150` cycle detection tooling and `CO-160` CUDA preset
   alignment completed; focus shifts to `CO-170` runtime integration sample
   work.
-- **Core** — Completed `CR-125` lifecycle audit and `CR-130` configuration
-  refresh; next deliverable is `CR-135` subsystem dependency diagnostics to
-  extend `DC-001`.
+- **Core** — Completed `CR-125` lifecycle audit, `CR-130` configuration
+  refresh, and `CR-135` dependency diagnostics; next focus is `CR-136`
+  structured logging for subsystem initialization failures building on the
+  telemetry guidance published here.
 - **Geometry** — `GE-205` normal recompute benchmark landed with reporting;
   advance `GE-212` remeshing RFP planning alongside `GE-220` telemetry
   alignment instrumentation.

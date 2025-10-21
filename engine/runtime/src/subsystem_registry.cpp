@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <optional>
+#include <sstream>
 #include <stdexcept>
 
 #if ENGINE_ENABLE_ANIMATION
@@ -41,6 +43,96 @@
 namespace engine::runtime {
 
 namespace {
+
+enum class VisitState
+{
+    none,
+    visiting,
+    visited,
+};
+
+[[nodiscard]] bool detect_cycle_dfs(
+    std::size_t index,
+    const std::vector<SubsystemDescriptor>& descriptors,
+    const std::unordered_map<std::string, std::size_t, StringHash, std::equal_to<>>& index_map,
+    std::vector<VisitState>& states,
+    std::vector<std::string>& stack,
+    std::vector<std::string>& cycle)
+{
+    states[index] = VisitState::visiting;
+    stack.push_back(descriptors[index].name);
+
+    for (const auto& dependency_name : descriptors[index].dependencies)
+    {
+        const auto dependency = index_map.find(dependency_name);
+        if (dependency == index_map.end())
+        {
+            continue;
+        }
+
+        const auto dependency_index = dependency->second;
+        if (states[dependency_index] == VisitState::visiting)
+        {
+            const auto& dependency_descriptor = descriptors[dependency_index];
+            const auto cycle_begin = std::find(stack.begin(), stack.end(), dependency_descriptor.name);
+            cycle.assign(cycle_begin, stack.end());
+            cycle.push_back(std::string{dependency_descriptor.name});
+            return true;
+        }
+
+        if (states[dependency_index] == VisitState::none)
+        {
+            if (detect_cycle_dfs(dependency_index, descriptors, index_map, states, stack, cycle))
+            {
+                return true;
+            }
+        }
+    }
+
+    stack.pop_back();
+    states[index] = VisitState::visited;
+    return false;
+}
+
+[[nodiscard]] std::optional<std::vector<std::string>> detect_cycle(
+    const std::vector<SubsystemDescriptor>& descriptors,
+    const std::unordered_map<std::string, std::size_t, StringHash, std::equal_to<>>& index_map)
+{
+    std::vector<VisitState> states(descriptors.size(), VisitState::none);
+    std::vector<std::string> stack{};
+    std::vector<std::string> cycle{};
+    stack.reserve(descriptors.size());
+
+    for (std::size_t index = 0; index < descriptors.size(); ++index)
+    {
+        if (states[index] != VisitState::none)
+        {
+            continue;
+        }
+
+        if (detect_cycle_dfs(index, descriptors, index_map, states, stack, cycle))
+        {
+            return cycle;
+        }
+    }
+
+    return std::nullopt;
+}
+
+[[nodiscard]] std::string format_cycle_message(const std::vector<std::string>& cycle)
+{
+    std::ostringstream builder;
+    builder << "Subsystem dependency cycle detected: ";
+    for (std::size_t index = 0; index < cycle.size(); ++index)
+    {
+        builder << cycle[index];
+        if (index + 1 < cycle.size())
+        {
+            builder << " -> ";
+        }
+    }
+    return builder.str();
+}
 
 class StaticSubsystem final : public core::plugin::ISubsystemInterface {
 public:
@@ -93,13 +185,27 @@ void SubsystemRegistry::register_subsystem(SubsystemDescriptor descriptor)
     const auto it = index_map_.find(descriptor.name);
     if (it != index_map_.end())
     {
+        auto previous = descriptors_[it->second];
         descriptors_[it->second] = std::move(descriptor);
+
+        if (const auto cycle = detect_cycle(descriptors_, index_map_))
+        {
+            descriptors_[it->second] = std::move(previous);
+            throw std::invalid_argument{format_cycle_message(*cycle)};
+        }
         return;
     }
 
     const auto index = descriptors_.size();
-    index_map_.emplace(descriptor.name, index);
     descriptors_.push_back(std::move(descriptor));
+    index_map_.emplace(descriptors_[index].name, index);
+
+    if (const auto cycle = detect_cycle(descriptors_, index_map_))
+    {
+        index_map_.erase(descriptors_[index].name);
+        descriptors_.pop_back();
+        throw std::invalid_argument{format_cycle_message(*cycle)};
+    }
 }
 
 bool SubsystemRegistry::contains(std::string_view name) const noexcept

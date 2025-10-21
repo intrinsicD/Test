@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <span>
 #include <stdexcept>
@@ -16,6 +17,7 @@
 #include <utility>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "engine/animation/deformation/linear_blend_skinning.hpp"
 #include "engine/geometry/deform/linear_blend_skinning.hpp"
@@ -56,6 +58,121 @@ namespace
 {
     using engine::runtime::RuntimeError;
     using engine::runtime::RuntimeErrorCode;
+
+    enum class PluginVisitState
+    {
+        none,
+        visiting,
+        visited,
+    };
+
+    [[nodiscard]] std::string format_cycle_message(const std::vector<std::string>& cycle)
+    {
+        std::ostringstream builder;
+        builder << "Subsystem dependency cycle detected: ";
+        for (std::size_t index = 0; index < cycle.size(); ++index)
+        {
+            builder << cycle[index];
+            if (index + 1 < cycle.size())
+            {
+                builder << " -> ";
+            }
+        }
+        return builder.str();
+    }
+
+    [[nodiscard]] std::optional<std::vector<std::string>> detect_plugin_cycle(
+        std::span<const std::shared_ptr<engine::core::plugin::ISubsystemInterface>> plugins)
+    {
+        std::unordered_map<std::string_view, std::size_t, std::hash<std::string_view>, std::equal_to<>> index_map{};
+        index_map.reserve(plugins.size());
+
+        for (std::size_t index = 0; index < plugins.size(); ++index)
+        {
+            const auto& plugin = plugins[index];
+            if (plugin == nullptr)
+            {
+                continue;
+            }
+
+            index_map.emplace(plugin->name(), index);
+        }
+
+        std::vector<PluginVisitState> states(plugins.size(), PluginVisitState::none);
+        std::vector<std::string_view> stack{};
+        std::vector<std::string> cycle{};
+        stack.reserve(plugins.size());
+
+        const auto record_cycle = [&](std::string_view dependency_name) {
+            cycle.clear();
+            const auto begin = std::find(stack.begin(), stack.end(), dependency_name);
+            for (auto it = begin; it != stack.end(); ++it)
+            {
+                cycle.emplace_back(*it);
+            }
+            cycle.emplace_back(dependency_name);
+        };
+
+        const auto dfs = [&](auto&& self, std::size_t index) -> bool {
+            if (states[index] == PluginVisitState::visited)
+            {
+                return false;
+            }
+
+            const auto& plugin = plugins[index];
+            if (plugin == nullptr)
+            {
+                states[index] = PluginVisitState::visited;
+                return false;
+            }
+
+            states[index] = PluginVisitState::visiting;
+            stack.push_back(plugin->name());
+
+            for (const auto dependency_name : plugin->dependencies())
+            {
+                const auto dependency = index_map.find(dependency_name);
+                if (dependency == index_map.end())
+                {
+                    continue;
+                }
+
+                const auto dependency_index = dependency->second;
+                if (states[dependency_index] == PluginVisitState::visiting)
+                {
+                    record_cycle(dependency_name);
+                    return true;
+                }
+
+                if (states[dependency_index] == PluginVisitState::none)
+                {
+                    if (self(self, dependency_index))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            stack.pop_back();
+            states[index] = PluginVisitState::visited;
+            return false;
+        };
+
+        for (std::size_t index = 0; index < plugins.size(); ++index)
+        {
+            if (states[index] != PluginVisitState::none)
+            {
+                continue;
+            }
+
+            if (dfs(dfs, index))
+            {
+                return cycle;
+            }
+        }
+
+        return std::nullopt;
+    }
 
     [[nodiscard]] std::string format_dependency_errors(std::span<const RuntimeErrorCode> errors)
     {
@@ -156,6 +273,15 @@ namespace
 
             errors.push_back(
                 make_runtime_error(RuntimeError::dependency_invalid_clip, builder.str()));
+        }
+
+        if (!dependencies.subsystem_plugins.empty())
+        {
+            if (const auto cycle = detect_plugin_cycle(dependencies.subsystem_plugins))
+            {
+                errors.push_back(
+                    make_runtime_error(RuntimeError::dependency_cycle, format_cycle_message(*cycle)));
+            }
         }
 
         return errors;

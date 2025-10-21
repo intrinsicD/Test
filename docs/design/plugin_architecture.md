@@ -29,6 +29,21 @@ the authoritative lifecycle expectations aligned with `DC-001`.
   plugin initialization begins. Failures during initialization unwind the configuration via
   `IoThreadPool::shutdown()`.
 
+## Dependency Diagnostics
+
+- `SubsystemRegistry::register_subsystem` validates new descriptors against the
+  existing dependency graph and rejects cycles with an error message that lists
+  the offending path (for example, `animation -> assets -> animation`).
+- `RuntimeHostDependencies` validation reports
+  `RuntimeError::dependency_cycle` when explicit plugin selections create a
+  cycle. The aggregated exception uses the `engine.runtime` error domain from
+  `DC-004`, ensuring telemetry and logging surfaces include the identifier and
+  cycle path for operators.
+- When telemetry is enabled, lifecycle metrics under the
+  `runtime.lifecycle.*` namespace expose per-subsystem initialization timings;
+  combine these with cycle diagnostics to investigate slow or failing plugin
+  start-up sequences.
+
 For examples and test coverage consult
 `engine/runtime/tests/test_module.cpp` (lifecycle regression tests) and the
 Core module README which documents configuration defaults.

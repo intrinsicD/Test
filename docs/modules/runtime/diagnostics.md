@@ -57,6 +57,16 @@ shared library build to capture structured telemetry:
 invocations. `last_*_ms`, `max_*_ms`, and `average_tick_ms` capture rolling
 wall-clock durations measured with the runtime's steady clock.
 
+### Dependency Cycle Diagnostics
+`RuntimeHostDependencies` validation emits
+`RuntimeError::dependency_cycle` when explicit subsystem selections produce a
+cycle. The exception message includes the offending path (for example,
+`assets -> runtime -> assets`) so operators can trace the configuration loop.
+When telemetry is available, filter metrics with
+`--metric-prefix runtime.lifecycle.` in
+`scripts/diagnostics/runtime_frame_telemetry.py` to correlate the failure with
+recent subsystem startup durations.
+
 ### Stage Timings
 Each entry in `stage_timings` represents a named phase inside the runtime
 (controllers, deformation, physics, submission). The runtime reuses entries

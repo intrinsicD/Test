@@ -788,6 +788,53 @@ TEST(RuntimeHost, LoadsSubsystemsFromRegistrySelection) {
     host.shutdown();
 }
 
+TEST(SubsystemRegistry, RejectsDependencyCycles)
+{
+    engine::runtime::SubsystemRegistry registry{};
+    registry.register_subsystem(engine::runtime::SubsystemDescriptor{
+        "alpha",
+        {"beta"},
+        []() { return make_test_subsystem("alpha", {"beta"}); },
+        false});
+
+    try
+    {
+        registry.register_subsystem(engine::runtime::SubsystemDescriptor{
+            "beta",
+            {"alpha"},
+            []() { return make_test_subsystem("beta", {"alpha"}); },
+            false});
+        FAIL() << "Expected cycle detection to throw";
+    }
+    catch (const std::invalid_argument& error)
+    {
+        const std::string_view message{error.what()};
+        EXPECT_NE(message.find("alpha -> beta -> alpha"), std::string_view::npos);
+    }
+}
+
+TEST(RuntimeHostDependencies, RejectsSubsystemDependencyCycles)
+{
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.subsystem_plugins = {
+        make_test_subsystem("alpha", {"beta"}),
+        make_test_subsystem("beta", {"alpha"}),
+    };
+
+    try
+    {
+        const engine::runtime::RuntimeHost host{deps};
+        (void)host;
+        FAIL() << "Expected dependency validation failure";
+    }
+    catch (const std::runtime_error& error)
+    {
+        const std::string message{error.what()};
+        EXPECT_NE(message.find("dependency_cycle"), std::string::npos);
+        EXPECT_NE(message.find("alpha -> beta -> alpha"), std::string::npos);
+    }
+}
+
 TEST(RuntimeHost, ProvidesLifecycleContextForSubsystems)
 {
     auto plugin = make_recording_subsystem("alpha");
