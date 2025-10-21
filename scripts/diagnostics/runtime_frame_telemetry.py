@@ -129,6 +129,21 @@ class RuntimeStreamingMetrics:
 
 
 @dataclass
+class HotReloadMetrics:
+    """Hot reload telemetry snapshot exported through the runtime diagnostics."""
+
+    attempt_count: int
+    failure_count: int
+    cancelled_count: int
+    rejected_count: int
+    pending_count: int
+    loading_count: int
+    total_requests: int
+    last_error: str
+    error_hint: str
+
+
+@dataclass
 class SceneHierarchyIssue:
     """Single hierarchy validation issue emitted by the runtime."""
 
@@ -220,6 +235,7 @@ class RuntimeDiagnosticsSnapshot:
     stages: List[RuntimeStageMetric]
     subsystems: List[RuntimeSubsystemMetric]
     streaming: Optional[RuntimeStreamingMetrics] = None
+    hot_reload: Optional[HotReloadMetrics] = None
     scene_validation: Optional[SceneValidationSnapshot] = None
     metrics: Optional[RuntimeMetricsSnapshot] = None
 
@@ -242,6 +258,20 @@ class _CStreamingMetrics(ctypes.Structure):
     ]
 
 
+class _CHotReloadMetrics(ctypes.Structure):
+    _fields_ = [
+        ("attempt_count", ctypes.c_uint64),
+        ("failure_count", ctypes.c_uint64),
+        ("cancelled_count", ctypes.c_uint64),
+        ("rejected_count", ctypes.c_uint64),
+        ("pending_count", ctypes.c_uint64),
+        ("loading_count", ctypes.c_uint64),
+        ("total_requests", ctypes.c_uint64),
+        ("last_error", ctypes.c_char_p),
+        ("error_hint", ctypes.c_char_p),
+    ]
+
+
 class RuntimeBindings:
     """Thin ctypes wrapper around the runtime C API."""
 
@@ -250,9 +280,11 @@ class RuntimeBindings:
         self._has_simulation_time = False
         self._has_diagnostics = False
         self._has_streaming_metrics = False
+        self._has_hot_reload_metrics = False
         self._has_scene_validation = False
         self._has_metrics = False
         self._streaming_metrics_func = None
+        self._hot_reload_metrics_func = None
         self._configure_signatures()
 
     @staticmethod
@@ -416,6 +448,18 @@ class RuntimeBindings:
             self._streaming_metrics_func = lib.engine_runtime_diagnostic_streaming_metrics
             self._has_streaming_metrics = True
 
+        try:
+            lib.engine_runtime_diagnostic_hot_reload_metrics.restype = None
+            lib.engine_runtime_diagnostic_hot_reload_metrics.argtypes = [
+                ctypes.POINTER(_CHotReloadMetrics)
+            ]
+        except AttributeError:
+            self._has_hot_reload_metrics = False
+            self._hot_reload_metrics_func = None
+        else:
+            self._has_hot_reload_metrics = True
+            self._hot_reload_metrics_func = lib.engine_runtime_diagnostic_hot_reload_metrics
+
         if self._has_diagnostics:
             try:
                 lib.engine_runtime_diagnostic_scene_issue_count.restype = ctypes.c_uint64
@@ -505,6 +549,25 @@ class RuntimeBindings:
             streaming_total_rejected=int(data.streaming_total_rejected),
         )
 
+    def _collect_hot_reload_metrics(self) -> Optional[HotReloadMetrics]:
+        if not self._has_hot_reload_metrics or self._hot_reload_metrics_func is None:
+            return None
+        data = _CHotReloadMetrics()
+        self._hot_reload_metrics_func(ctypes.byref(data))
+        last_error = data.last_error.decode("utf-8") if data.last_error else ""
+        error_hint = data.error_hint.decode("utf-8") if data.error_hint else ""
+        return HotReloadMetrics(
+            attempt_count=int(data.attempt_count),
+            failure_count=int(data.failure_count),
+            cancelled_count=int(data.cancelled_count),
+            rejected_count=int(data.rejected_count),
+            pending_count=int(data.pending_count),
+            loading_count=int(data.loading_count),
+            total_requests=int(data.total_requests),
+            last_error=last_error,
+            error_hint=error_hint,
+        )
+
     def diagnostics_snapshot(self) -> Optional[RuntimeDiagnosticsSnapshot]:
         if not self._has_diagnostics:
             return None
@@ -520,6 +583,7 @@ class RuntimeBindings:
             stages=self._collect_stage_metrics(),
             subsystems=self._collect_subsystem_metrics(),
             streaming=self.streaming_metrics(),
+            hot_reload=self._collect_hot_reload_metrics(),
             scene_validation=self._collect_scene_validation(),
             metrics=self._collect_metrics(),
         )
@@ -839,6 +903,7 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
         "average_tick_ms": snapshot.average_tick_ms,
         "max_tick_ms": snapshot.max_tick_ms,
         "streaming": _streaming_to_dict(snapshot.streaming),
+        "hot_reload": _hot_reload_to_dict(snapshot.hot_reload),
         "stages": [
             {
                 "name": stage.name,
@@ -888,6 +953,22 @@ def _streaming_to_dict(
         "streaming_total_failed": metrics.streaming_total_failed,
         "streaming_total_cancelled": metrics.streaming_total_cancelled,
         "streaming_total_rejected": metrics.streaming_total_rejected,
+    }
+
+
+def _hot_reload_to_dict(metrics: Optional[HotReloadMetrics]) -> Optional[Dict[str, object]]:
+    if metrics is None:
+        return None
+    return {
+        "attempt_count": metrics.attempt_count,
+        "failure_count": metrics.failure_count,
+        "cancelled_count": metrics.cancelled_count,
+        "rejected_count": metrics.rejected_count,
+        "pending_count": metrics.pending_count,
+        "loading_count": metrics.loading_count,
+        "total_requests": metrics.total_requests,
+        "last_error": metrics.last_error,
+        "error_hint": metrics.error_hint,
     }
 
 

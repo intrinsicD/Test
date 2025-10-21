@@ -571,6 +571,28 @@ namespace engine::runtime
                         "Rejected asset streaming requests due to capacity",
                         clamp_to_int(streaming.streaming_total_rejected));
 
+            const auto& hot_reload = diagnostics.hot_reload;
+            add_counter("runtime.hot_reload.attempt_count",
+                        "Hot reload attempts observed across all caches",
+                        clamp_to_int(hot_reload.attempt_count));
+            add_counter("runtime.hot_reload.failure_count",
+                        "Hot reload attempts that resulted in failure",
+                        clamp_to_int(hot_reload.failure_count));
+            add_counter("runtime.hot_reload.cancelled_count",
+                        "Hot reload attempts cancelled before completion",
+                        clamp_to_int(hot_reload.cancelled_count));
+            add_counter("runtime.hot_reload.rejected_count",
+                        "Hot reload attempts rejected due to capacity limits",
+                        clamp_to_int(hot_reload.rejected_count));
+            add_gauge("runtime.hot_reload.pending_count",
+                      "Hot reload requests waiting for completion",
+                      static_cast<double>(hot_reload.pending_count),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.hot_reload.loading_count",
+                      "Hot reload requests currently decoding",
+                      static_cast<double>(hot_reload.loading_count),
+                      core::telemetry::MetricUnit::Count);
+
             const auto error_codes = io::geometry_io_error_codes();
             for (std::size_t op_index = 0; op_index < io::geometry_io_operation_count(); ++op_index)
             {
@@ -743,6 +765,20 @@ namespace engine::runtime
         {
             diagnostics.streaming = streaming_metrics();
             diagnostics.geometry_io = io::GeometryIoTelemetry::instance().snapshot();
+#if ENGINE_ENABLE_ASSETS
+            const auto hot_reload_snapshot = assets::AssetHotReloadTelemetry::instance().snapshot();
+            diagnostics.hot_reload.attempt_count = hot_reload_snapshot.hot_reload_attempts;
+            diagnostics.hot_reload.failure_count = hot_reload_snapshot.failure_count;
+            diagnostics.hot_reload.cancelled_count = hot_reload_snapshot.cancelled_count;
+            diagnostics.hot_reload.rejected_count = hot_reload_snapshot.rejected_count;
+            diagnostics.hot_reload.pending_count = diagnostics.streaming.streaming_pending;
+            diagnostics.hot_reload.loading_count = diagnostics.streaming.streaming_loading;
+            diagnostics.hot_reload.total_requests = hot_reload_snapshot.hot_reload_attempts;
+            diagnostics.hot_reload.last_error = hot_reload_snapshot.last_error;
+            diagnostics.hot_reload.error_hint = hot_reload_snapshot.error_hint;
+#else
+            diagnostics.hot_reload = {};
+#endif
         }
 
         void record_stage_timings(const compute::ExecutionReport& report)
@@ -1943,6 +1979,26 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_streaming_metrics(
     out_metrics->streaming_total_failed = metrics.streaming_total_failed;
     out_metrics->streaming_total_cancelled = metrics.streaming_total_cancelled;
     out_metrics->streaming_total_rejected = metrics.streaming_total_rejected;
+}
+
+extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_hot_reload_metrics(
+    struct ::engine_runtime_hot_reload_metrics* out_metrics) noexcept
+{
+    if (out_metrics == nullptr)
+    {
+        return;
+    }
+
+    const auto& hot_reload = engine::runtime::diagnostics().hot_reload;
+    out_metrics->attempt_count = hot_reload.attempt_count;
+    out_metrics->failure_count = hot_reload.failure_count;
+    out_metrics->cancelled_count = hot_reload.cancelled_count;
+    out_metrics->rejected_count = hot_reload.rejected_count;
+    out_metrics->pending_count = hot_reload.pending_count;
+    out_metrics->loading_count = hot_reload.loading_count;
+    out_metrics->total_requests = hot_reload.total_requests;
+    out_metrics->last_error = hot_reload.last_error.c_str();
+    out_metrics->error_hint = hot_reload.error_hint.c_str();
 }
 
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_count() noexcept

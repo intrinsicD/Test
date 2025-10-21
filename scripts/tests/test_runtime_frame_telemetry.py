@@ -203,6 +203,32 @@ def test_diagnostics_to_dict_roundtrip() -> None:
                 shutdown_count=1,
             )
         ],
+        streaming=telemetry.RuntimeStreamingMetrics(
+            worker_count=2,
+            queue_capacity=16,
+            pending_tasks=1,
+            active_workers=1,
+            total_enqueued=4,
+            total_executed=3,
+            streaming_pending=1,
+            streaming_loading=0,
+            streaming_total_requests=3,
+            streaming_total_completed=2,
+            streaming_total_failed=1,
+            streaming_total_cancelled=0,
+            streaming_total_rejected=0,
+        ),
+        hot_reload=telemetry.HotReloadMetrics(
+            attempt_count=3,
+            failure_count=1,
+            cancelled_count=1,
+            rejected_count=0,
+            pending_count=1,
+            loading_count=0,
+            total_requests=3,
+            last_error="compile error",
+            error_hint="Rebuild shader",
+        ),
         scene_validation=telemetry.SceneValidationSnapshot(
             issue_count=2,
             cycle_count=1,
@@ -227,6 +253,9 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["subsystems"][0]["last_tick_ms"] == pytest.approx(0.6)
     assert payload["scene_validation"]["issue_count"] == 2
     assert payload["scene_validation"]["issues"][0]["type"] == "cycle"
+    assert payload["hot_reload"]["failure_count"] == 1
+    assert payload["hot_reload"]["error_hint"] == "Rebuild shader"
+    assert payload["hot_reload"]["total_requests"] == 3
 
 
 def test_select_metrics_filters_by_prefix() -> None:
