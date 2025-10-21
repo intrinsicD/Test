@@ -122,7 +122,7 @@ index df175b3..55f6c09 100644
 ```
 
 ## FOLLOW_UP_TODOS
-- [ ] Confirm agent assignment for `GE-212` RFP drafting during next sprint planning (owner: TBD, priority: Medium, rationale: ensure planning begins on schedule).
+- [x] Confirm agent assignment for `GE-212` RFP drafting during next sprint planning (owner: Geometry, priority: Medium, rationale: RFP published on 2025-03-26).
 - [ ] Align telemetry dashboard expectations with `GE-220` instrumentation outputs (owner: TBD, priority: Low, rationale: observability consumers stay informed).
 - [ ] Revisit combined geometry roadmap once `GE-205` completes to sequence downstream remeshing execution (owner: TBD, priority: Low, rationale: long-term coordination).
 - [ ] Update diagnostics/telemetry runbook with geometry-specific metrics once instrumentation lands (owner: TBD, priority: Medium, rationale: documentation completeness).

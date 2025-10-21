@@ -44,8 +44,12 @@ This module tracks actionable work through the execution checklist below.
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `GE-205` | Benchmark accelerated normal recomputation (`TI-002`). | Publish benchmark results and integrate into CI perf harness. | ✅ Done |
-| `GE-212` | Draft remeshing/parameterisation RFP. | Produce design note outlining requirements and dependencies. | 🟢 Todo |
+| `GE-212` | Draft remeshing/parameterisation RFP. | Produce design note outlining requirements and dependencies. | ✅ Done |
 | `GE-220` | Align geometry telemetry with diagnostics (`CC-001`). | Add instrumentation for spatial queries and document metrics. | 🟢 Todo |
+
+The remeshing/parameterisation RFP produced for `GE-212` is available under
+[`docs/design/ge-212-remeshing_parameterization_rfp.md`](../../design/ge-212-remeshing_parameterization_rfp.md)
+for stakeholders planning follow-on implementation work.
 
 See [ROADMAP.md](ROADMAP.md) for full context.
 

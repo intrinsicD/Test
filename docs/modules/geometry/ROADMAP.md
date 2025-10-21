@@ -7,7 +7,7 @@ _Last Updated: 2025-03-25_
 | Stream | Description | Status |
 | --- | --- | --- |
 | Benchmarking (`GE-205`) | Quantify performance of normals/bounds recomputation. | ✅ Done |
-| Remeshing proposal (`GE-212`) | Define scope for remeshing & parameterisation upgrades. | 🟢 Planned |
+| Remeshing proposal (`GE-212`) | Define scope for remeshing & parameterisation upgrades. | ✅ Done |
 | Telemetry alignment (`GE-220`) | Emit diagnostics compatible with telemetry viewer. | 🟢 Planned |
 
 ## Active Tasks
@@ -24,6 +24,10 @@ _Last Updated: 2025-03-25_
 | `GE-220` | Instrument spatial query telemetry and update README. | Schema ready (`CC-001.1`); wire metrics via diagnostics bridge |
 
 > **Staffing Guidance:** `GE-212` focuses on planning and RFP authorship, while `GE-220` delivers telemetry instrumentation. Apart from consuming the diagnostics schema from `CC-001`, the efforts are independent, so assign separate agents and sync via documentation check-ins.
+
+The published RFP for `GE-212` lives in
+[`docs/design/ge-212-remeshing_parameterization_rfp.md`](../../design/ge-212-remeshing_parameterization_rfp.md)
+and should be treated as the contract for subsequent implementation milestones.
 
 ## Dependencies
 

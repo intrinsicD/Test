@@ -161,8 +161,9 @@ Once staffed, execute module-specific queues below.
   inside the diagnostics viewer and runtime runbook so observability guidance
   stays aligned across modules.
 - **Geometry** — `GE-205` normal recompute benchmark landed with reporting;
-  advance `GE-212` remeshing RFP planning alongside `GE-220` telemetry
-  alignment instrumentation.
+  `GE-212` remeshing/parameterisation RFP is published (see
+  `docs/design/ge-212-remeshing_parameterization_rfp.md`), and focus shifts to
+  `GE-220` telemetry alignment instrumentation.
 - **IO** — `IO-221` signature + fuzz integration (`RT-006`) in progress; detection
   & fuzzing playbook published (`RT-006.3`).
   structured error catalog (`IO-230`) published; next focus `IO-240`
