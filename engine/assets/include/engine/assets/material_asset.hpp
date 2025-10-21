@@ -6,6 +6,7 @@
 
 #include "engine/core/memory/resource_pool.hpp"
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -39,6 +40,8 @@ struct MaterialAsset {
 
 class MaterialCache {
 public:
+    MaterialCache();
+
     [[nodiscard]] const MaterialAsset& load(const MaterialAssetDescriptor& descriptor);
     [[nodiscard]] bool contains(const MaterialHandle& handle) const;
     [[nodiscard]] const MaterialAsset& get(const MaterialHandle& handle) const;
@@ -51,6 +54,7 @@ private:
 
     Pool assets_{};
     std::unordered_map<std::string, RawHandle> bindings_{};
+    std::shared_ptr<void> handle_validator_registration_{};
 };
 
 }  // namespace engine::assets

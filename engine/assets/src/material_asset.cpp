@@ -1,8 +1,18 @@
 #include "engine/assets/material_asset.hpp"
+#include "engine/assets/validation.hpp"
 
+#include <cassert>
 #include <stdexcept>
 
 namespace engine::assets {
+
+MaterialCache::MaterialCache()
+    : handle_validator_registration_(HandleValidatorRegistry::instance().register_material_validator(
+          [this](const MaterialHandle& handle) {
+              return handle.is_valid(assets_);
+          }))
+{
+}
 
 const MaterialAsset& MaterialCache::load(const MaterialAssetDescriptor& descriptor)
 {
@@ -42,9 +52,16 @@ bool MaterialCache::contains(const MaterialHandle& handle) const
 
 const MaterialAsset& MaterialCache::get(const MaterialHandle& handle) const
 {
-    if (!handle.is_valid(assets_)) {
+    if (!handle.is_valid(assets_))
+    {
+        HandleValidationTelemetry::instance().record_failure(
+            HandleValidationFailure{std::string{"MaterialHandle"}, handle.id(), "MaterialCache::get", "Cache lookup rejected handle"});
+#ifndef NDEBUG
+        assert(false && "Material asset handle not found");
+#endif
         throw std::out_of_range("Material asset handle not found");
     }
+    HandleValidationTelemetry::instance().record_success("MaterialHandle", handle.id());
     return assets_.get(handle.raw_handle());
 }
 

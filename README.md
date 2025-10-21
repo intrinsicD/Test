@@ -91,8 +91,8 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | ID | Intent | Current Focus | Owner(s) | Status |
 | --- | --- | --- | --- | --- |
 | `DC-004` | Standardise error handling across modules. | Migrate IO to `Result<T>` and publish migration guide. | Core, IO | ✅ Done |
-| `AI-001` | Handle-based lifetime management across assets + rendering. | Extend debug validation hooks and document ownership patterns. | Assets, Rendering | 🔄 In Progress |
-| `AI-002` | Async asset streaming with telemetry and runtime integration. | Land async queue instrumentation and runtime metrics bridge. | Assets, Runtime | 🟡 Blocked on `AI-001` docs refresh |
+| `AI-001` | Handle-based lifetime management across assets + rendering. | Debug validation hooks and telemetry wired across caches and rendering entry points. | Assets, Rendering | ✅ Done |
+| `AI-002` | Async asset streaming with telemetry and runtime integration. | Land async queue instrumentation and runtime metrics bridge. | Assets, Runtime | 🔄 In Progress |
 | `AI-003` | Frame-graph metadata + queue affinity for backend parity. | Publish metadata schema and align runtime submission invariants. | Rendering, Runtime | ✅ Done |
 | `RT-002` | Persistent physics manifolds with benchmarking. | ✅ Completed – manifold cache, telemetry, and collision benchmark harness captured in CI. | Physics | ✅ Done |
 | `RT-003` | Vulkan backend parity and documentation. | Align runtime submission surfaces and publish backend checklist. | Rendering, Runtime | 🔄 In Progress |
@@ -109,7 +109,7 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 |         | 2 | `RT-003` | ✅ Completed – integration regression locks Vulkan submission determinism (`RT-003.3`). |
 |         | 3 | `TI-001` | Integration harness smoke suite stabilised post `T-0118`. |
 | Sprint 2–3 | 1 | `DC-004` | IO migration merged with documentation updates. |
-|             | 2 | `AI-001` | Handle validation hooks turned on in debug builds. |
+|             | 2 | `AI-001` | ✅ Completed – handle validation hooks emit telemetry in debug builds. |
 |             | 3 | `RT-002` | ✅ Completed – collision benchmark harness records throughput metrics for CI. |
 |             | 4 | `DI-001` | Module README refresh complete (follow template below). |
 | Mid-Term (M4–M5) | 1 | `AI-002` | Async streaming MVP validated end-to-end. |

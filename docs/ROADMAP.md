@@ -12,7 +12,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | ID | Intent | Dependencies | Status | Owning Groups |
 | --- | --- | --- | --- | --- |
 | `DC-004` | Standardise error handling on `engine::Result<T, Error>` across modules. | – | ✅ Done | Core, IO |
-| `AI-001` | Propagate handle-based lifetime management and validation hooks. | `DC-004` | 🔄 In Progress | Assets, Rendering |
+| `AI-001` | Propagate handle-based lifetime management and validation hooks. | `DC-004` | ✅ Done | Assets, Rendering |
 | `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | 🔄 In Progress | Assets, Runtime |
 | `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | ✅ Done | Rendering, Runtime |
 | `RT-002` | Harden physics with persistent manifolds and benchmarking. | – | ✅ Done | Physics |
@@ -44,8 +44,11 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `AI-001.1` | Document ownership patterns. | `docs/design/resource_management.md` extended with cache + rendering examples. | ✅ Done |
-| `AI-001.2` | Enable debug validation hooks. | Debug builds assert on stale handles across assets/rendering; telemetry logs emitted. | 🔄 In Progress |
+| `AI-001.2` | Enable debug validation hooks. | Debug builds assert on stale handles across assets/rendering; telemetry logs emitted. | ✅ Done |
 | `AI-001.3` | Update module READMEs. | Assets and rendering READMEs include handle lifecycle guidance. | ✅ Done |
+
+- 2025-04-30: Handle validation registry now guards asset and rendering usage, logging telemetry and exposing
+  `runtime.handles.*` counters in diagnostics to complete `AI-001.2`.
 
 #### `AI-002` — Async Asset Streaming
 

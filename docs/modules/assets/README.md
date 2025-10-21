@@ -56,6 +56,10 @@
   errors (`AssetLoadError`) so higher layers can attribute failure without
   crashing. Documentation and telemetry updates must preserve these semantics
   when expanding the async queue (`AI-002`).
+- Caches register validators with the handle validation registry, enabling
+  runtime and tooling code to call `engine::assets::validate_handle` for debug
+  assertions and telemetry counters (`runtime.handles.*`) when stale handles are
+  detected.
 
 ## TODO / Next Steps
 

@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -43,6 +44,8 @@ struct TextureAsset {
 
 class TextureCache {
 public:
+    TextureCache();
+
     using HotReloadCallback = std::function<void(const TextureAsset&)>;
 
     [[nodiscard]] const TextureAsset& load(const TextureAssetDescriptor& descriptor);
@@ -69,6 +72,7 @@ private:
     std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_{};
     platform::filesystem::FilesystemWatcher watcher_{};
     mutable std::mutex mutex_{};
+    std::shared_ptr<void> handle_validator_registration_{};
 };
 
 }  // namespace engine::assets

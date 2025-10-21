@@ -2,7 +2,9 @@
 
 #include "engine/assets/detail/filesystem_utils.hpp"
 #include "engine/assets/detail/reload_utils.hpp"
+#include "engine/assets/validation.hpp"
 
+#include <cassert>
 #include <filesystem>
 #include <iterator>
 #include <stdexcept>
@@ -10,6 +12,15 @@
 #include <system_error>
 
 namespace engine::assets {
+
+PointCloudCache::PointCloudCache()
+    : handle_validator_registration_(HandleValidatorRegistry::instance().register_point_cloud_validator(
+          [this](const PointCloudHandle& handle) {
+              std::scoped_lock lock{mutex_};
+              return handle.is_valid(assets_);
+          }))
+{
+}
 
 const PointCloudAsset& PointCloudCache::load(const PointCloudAssetDescriptor& descriptor)
 {
@@ -72,9 +83,16 @@ bool PointCloudCache::contains(const PointCloudHandle& handle) const
 const PointCloudAsset& PointCloudCache::get(const PointCloudHandle& handle) const
 {
     std::scoped_lock lock{mutex_};
-    if (!handle.is_valid(assets_)) {
+    if (!handle.is_valid(assets_))
+    {
+        HandleValidationTelemetry::instance().record_failure(
+            HandleValidationFailure{std::string{"PointCloudHandle"}, handle.id(), "PointCloudCache::get", "Cache lookup rejected handle"});
+#ifndef NDEBUG
+        assert(false && "Point cloud asset handle not found");
+#endif
         throw std::out_of_range("Point cloud asset handle not found");
     }
+    HandleValidationTelemetry::instance().record_success("PointCloudHandle", handle.id());
     return assets_.get(handle.raw_handle());
 }
 

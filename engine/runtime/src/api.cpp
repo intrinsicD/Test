@@ -23,6 +23,7 @@
 #if ENGINE_ENABLE_ASSETS
 #    include "engine/assets/api.hpp"
 #    include "engine/assets/async.hpp"
+#    include "engine/assets/validation.hpp"
 #endif
 #if ENGINE_ENABLE_COMPUTE_CUDA
 #    include "engine/compute/cuda/api.hpp"
@@ -726,7 +727,47 @@ namespace engine::runtime
             add_issue_metric("transform_mismatch", validation.transform_mismatch_count);
 
             diagnostics.metrics = std::move(snapshot);
+#if ENGINE_ENABLE_ASSETS
+            refresh_handle_validation();
+#endif
         }
+
+#if ENGINE_ENABLE_ASSETS
+        void refresh_handle_validation()
+        {
+            diagnostics.handle_validation = assets::HandleValidationTelemetry::instance().snapshot();
+
+            auto& snapshot = diagnostics.metrics;
+            const auto emit_counter = [&](std::string_view name, std::string_view description, std::int64_t value) {
+                core::telemetry::MetricDescriptor descriptor{};
+                descriptor.name.assign(name);
+                descriptor.kind = core::telemetry::MetricKind::Counter;
+                descriptor.unit = core::telemetry::MetricUnit::Count;
+                descriptor.description.assign(description);
+                descriptor.labels = {};
+                const std::size_t index = snapshot.descriptors.size();
+                snapshot.descriptors.push_back(std::move(descriptor));
+
+                core::telemetry::MetricSample sample{};
+                sample.descriptor_index = index;
+                sample.value = value;
+                snapshot.samples.push_back(std::move(sample));
+            };
+
+            for (const auto& entry : diagnostics.handle_validation)
+            {
+                const auto success_name = std::string{"runtime.handles."} + entry.type + ".success";
+                emit_counter(success_name,
+                             "Total successful handle validations for " + entry.type,
+                             static_cast<std::int64_t>(entry.success_count));
+
+                const auto failure_name = std::string{"runtime.handles."} + entry.type + ".failure";
+                emit_counter(failure_name,
+                             "Total failed handle validations for " + entry.type,
+                             static_cast<std::int64_t>(entry.failure_count));
+            }
+        }
+#endif
 
         void record_initialize_duration(Clock::duration duration)
         {

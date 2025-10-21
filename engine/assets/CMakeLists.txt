@@ -8,6 +8,7 @@ add_library(${target_name}
     src/point_cloud_asset.cpp
     src/shader_asset.cpp
     src/texture_asset.cpp
+    src/validation.cpp
 )
 
 engine_apply_module_defaults(${target_name}

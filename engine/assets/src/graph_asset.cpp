@@ -2,13 +2,24 @@
 
 #include "engine/assets/detail/filesystem_utils.hpp"
 #include "engine/assets/detail/reload_utils.hpp"
+#include "engine/assets/validation.hpp"
 
+#include <cassert>
 #include <filesystem>
 #include <iterator>
 #include <stdexcept>
 #include <string>
 
 namespace engine::assets {
+
+GraphCache::GraphCache()
+    : handle_validator_registration_(HandleValidatorRegistry::instance().register_graph_validator(
+          [this](const GraphHandle& handle) {
+              std::scoped_lock lock{mutex_};
+              return handle.is_valid(assets_);
+          }))
+{
+}
 
 const GraphAsset& GraphCache::load(const GraphAssetDescriptor& descriptor)
 {
@@ -71,9 +82,16 @@ bool GraphCache::contains(const GraphHandle& handle) const
 const GraphAsset& GraphCache::get(const GraphHandle& handle) const
 {
     std::scoped_lock lock{mutex_};
-    if (!handle.is_valid(assets_)) {
+    if (!handle.is_valid(assets_))
+    {
+        HandleValidationTelemetry::instance().record_failure(
+            HandleValidationFailure{std::string{"GraphHandle"}, handle.id(), "GraphCache::get", "Cache lookup rejected handle"});
+#ifndef NDEBUG
+        assert(false && "Graph asset handle not found");
+#endif
         throw std::out_of_range("Graph asset handle not found");
     }
+    HandleValidationTelemetry::instance().record_success("GraphHandle", handle.id());
     return assets_.get(handle.raw_handle());
 }
 

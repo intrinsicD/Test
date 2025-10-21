@@ -2,7 +2,9 @@
 
 #include "engine/assets/detail/filesystem_utils.hpp"
 #include "engine/assets/detail/reload_utils.hpp"
+#include "engine/assets/validation.hpp"
 
+#include <cassert>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -70,6 +72,15 @@ ShaderBinary ShaderCompiler::compile_glsl_to_spirv(std::string_view source,
     return compile_internal(source, options);
 }
 
+ShaderCache::ShaderCache()
+    : handle_validator_registration_(HandleValidatorRegistry::instance().register_shader_validator(
+          [this](const ShaderHandle& handle) {
+              std::scoped_lock lock{mutex_};
+              return handle.is_valid(assets_);
+          }))
+{
+}
+
 const ShaderAsset& ShaderCache::load(const ShaderAssetDescriptor& descriptor)
 {
     std::scoped_lock lock{mutex_};
@@ -132,9 +143,16 @@ bool ShaderCache::contains(const ShaderHandle& handle) const
 const ShaderAsset& ShaderCache::get(const ShaderHandle& handle) const
 {
     std::scoped_lock lock{mutex_};
-    if (!handle.is_valid(assets_)) {
+    if (!handle.is_valid(assets_))
+    {
+        HandleValidationTelemetry::instance().record_failure(
+            HandleValidationFailure{std::string{"ShaderHandle"}, handle.id(), "ShaderCache::get", "Cache lookup rejected handle"});
+#ifndef NDEBUG
+        assert(false && "Shader asset handle not found");
+#endif
         throw std::out_of_range("Shader asset handle not found");
     }
+    HandleValidationTelemetry::instance().record_success("ShaderHandle", handle.id());
     return assets_.get(handle.raw_handle());
 }
 

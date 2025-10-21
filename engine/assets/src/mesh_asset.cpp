@@ -2,7 +2,9 @@
 
 #include "engine/assets/detail/filesystem_utils.hpp"
 #include "engine/assets/detail/reload_utils.hpp"
+#include "engine/assets/validation.hpp"
 
+#include <cassert>
 #include <filesystem>
 #include <iterator>
 #include <stdexcept>
@@ -12,6 +14,15 @@
 namespace engine::assets {
 
 // TODO(engine-assets): Consolidate duplicated cache lifecycle logic across asset caches.
+
+MeshCache::MeshCache()
+    : handle_validator_registration_(HandleValidatorRegistry::instance().register_mesh_validator(
+          [this](const MeshHandle& handle) {
+              std::scoped_lock lock{mutex_};
+              return handle.is_valid(assets_);
+          }))
+{
+}
 
 const MeshAsset& MeshCache::load(const MeshAssetDescriptor& descriptor)
 {
@@ -80,9 +91,16 @@ bool MeshCache::contains(const MeshHandle& handle) const
 const MeshAsset& MeshCache::get(const MeshHandle& handle) const
 {
     std::scoped_lock lock{mutex_};
-    if (!handle.is_valid(assets_)) {
+    if (!handle.is_valid(assets_))
+    {
+        HandleValidationTelemetry::instance().record_failure(
+            HandleValidationFailure{std::string{"MeshHandle"}, handle.id(), "MeshCache::get", "Cache lookup rejected handle"});
+#ifndef NDEBUG
+        assert(false && "Mesh asset handle not found");
+#endif
         throw std::out_of_range("Mesh asset handle not found");
     }
+    HandleValidationTelemetry::instance().record_success("MeshHandle", handle.id());
     return assets_.get(handle.raw_handle());
 }
 

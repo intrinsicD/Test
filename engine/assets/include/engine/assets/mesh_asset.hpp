@@ -40,6 +40,8 @@ struct MeshAsset {
 
 class MeshCache {
 public:
+    MeshCache();
+
     using HotReloadCallback = std::function<void(const MeshAsset&)>;
 
     [[nodiscard]] const MeshAsset& load(const MeshAssetDescriptor& descriptor);
@@ -72,6 +74,7 @@ private:
     platform::filesystem::FilesystemWatcher watcher_{};
     mutable std::mutex mutex_{};
     AssetAsyncQueue<MeshHandle> async_queue_{};
+    std::shared_ptr<void> handle_validator_registration_{};
 };
 
 }  // namespace engine::assets
