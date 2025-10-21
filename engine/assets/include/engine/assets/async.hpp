@@ -845,8 +845,6 @@ namespace engine::assets {
     public:
         using Task = std::function<AssetLoadResult<Handle>(detail::AssetLoadPromise<Handle>&)>;
 
-        AssetAsyncQueue() = default;
-
         [[nodiscard]] AssetLoadFuture<Handle> schedule(
             std::string identifier,
             AssetLoadPriority priority,
@@ -855,12 +853,17 @@ namespace engine::assets {
             core::threading::IoThreadPool& pool)
         {
             {
-                std::lock_guard lock{mutex_};
-                if (auto it = states_.find(identifier); it != states_.end())
+                auto state_ptr = ensure_state();
+                const std::string key = identifier;
+                std::lock_guard lock{state_ptr->mutex};
+                if (auto it = state_ptr->states.find(key); it != state_ptr->states.end())
                 {
                     if (it->second == AssetLoadState::Pending || it->second == AssetLoadState::Loading)
                     {
-                        return futures_[identifier];
+                        if (auto future_it = state_ptr->futures.find(key); future_it != state_ptr->futures.end())
+                        {
+                            return future_it->second;
+                        }
                     }
                 }
             }
@@ -872,23 +875,24 @@ namespace engine::assets {
 
             auto task_ptr = std::make_shared<Task>(std::move(task));
 
-            auto runner = std::make_shared<std::function<void()>>([this, identifier, promise_ptr, task_ptr]() mutable {
+            auto state_ptr = ensure_state();
+            auto runner = std::make_shared<std::function<void()>>([state_ptr, identifier, promise_ptr, task_ptr]() mutable {
                 auto& promise_ref = *promise_ptr;
 
                 if (promise_ref.cancellation_requested())
                 {
-                    transition(identifier, AssetLoadState::Cancelled);
+                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
                     promise_ref.set_cancelled();
                     AssetHotReloadTelemetry::instance().record_cancelled();
                     return;
                 }
 
                 promise_ref.set_loading();
-                transition(identifier, AssetLoadState::Loading);
+                transition(state_ptr, identifier, AssetLoadState::Loading);
 
                 if (promise_ref.cancellation_requested())
                 {
-                    transition(identifier, AssetLoadState::Cancelled);
+                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
                     promise_ref.set_cancelled();
                     AssetHotReloadTelemetry::instance().record_cancelled();
                     return;
@@ -898,7 +902,7 @@ namespace engine::assets {
                 if (!result.has_value())
                 {
                     promise_ref.set_failed(result.error());
-                    transition(identifier, AssetLoadState::Failed);
+                    transition(state_ptr, identifier, AssetLoadState::Failed);
                     AssetHotReloadTelemetry::instance().record_failure(result.error(), identifier);
                     return;
                 }
@@ -906,19 +910,19 @@ namespace engine::assets {
                 if (promise_ref.cancellation_requested())
                 {
                     promise_ref.set_cancelled();
-                    transition(identifier, AssetLoadState::Cancelled);
+                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
                     AssetHotReloadTelemetry::instance().record_cancelled();
                     return;
                 }
 
                 promise_ref.set_ready(result.value());
-                transition(identifier, AssetLoadState::Ready);
+                transition(state_ptr, identifier, AssetLoadState::Ready);
             });
 
             promise_ptr->set_cancellation_callback([weak_runner = std::weak_ptr<std::function<void()>>(runner),
                                                     weak_promise = std::weak_ptr<detail::AssetLoadPromise<Handle>>(promise_ptr),
                                                     identifier,
-                                                    this]() {
+                                                    state_ptr]() {
                 if (auto locked_promise = weak_promise.lock())
                 {
                     std::string message{"request cancelled before dispatch: "};
@@ -933,7 +937,7 @@ namespace engine::assets {
                     (void)locked;
                 }
 
-                transition(identifier, AssetLoadState::Cancelled);
+                transition(state_ptr, identifier, AssetLoadState::Cancelled);
             });
 
             const auto io_priority = to_io_task_priority(priority);
@@ -948,7 +952,7 @@ namespace engine::assets {
                     auto error =
                         make_asset_load_error(AssetLoadErrorCategory::Timeout, "IO queue saturated");
                     promise_ptr->set_failed(error);
-                    transition(identifier, AssetLoadState::Failed);
+                    transition(state_ptr, identifier, AssetLoadState::Failed);
                     AssetStreamingTelemetry::instance().on_rejected();
                     AssetHotReloadTelemetry::instance().record_rejected();
                     AssetHotReloadTelemetry::instance().record_failure(error, identifier);
@@ -960,8 +964,15 @@ namespace engine::assets {
 
         [[nodiscard]] AssetLoadState state(std::string_view identifier) const
         {
-            std::lock_guard lock{mutex_};
-            if (auto it = states_.find(std::string{identifier}); it != states_.end())
+            auto state_ptr = state_;
+            if (!state_ptr)
+            {
+                return AssetLoadState::Ready;
+            }
+
+            const std::string key{identifier};
+            std::lock_guard lock{state_ptr->mutex};
+            if (auto it = state_ptr->states.find(key); it != state_ptr->states.end())
             {
                 return it->second;
             }
@@ -969,46 +980,70 @@ namespace engine::assets {
         }
 
     private:
+        struct SharedState
+        {
+            mutable std::mutex mutex;
+            std::unordered_map<std::string, AssetLoadFuture<Handle>> futures;
+            std::unordered_map<std::string, AssetLoadState> states;
+        };
+
         void register_pending(const std::string& identifier, const AssetLoadFuture<Handle>& future)
         {
+            auto state_ptr = ensure_state();
             {
-                std::lock_guard lock{mutex_};
-                futures_[identifier] = future;
-                states_[identifier] = AssetLoadState::Pending;
+                std::lock_guard lock{state_ptr->mutex};
+                state_ptr->futures[identifier] = future;
+                state_ptr->states[identifier] = AssetLoadState::Pending;
             }
 
             AssetStreamingTelemetry::instance().on_enqueued();
         }
 
-        void transition(const std::string& identifier, AssetLoadState next)
+        static void transition(const std::shared_ptr<SharedState>& state_ptr,
+                               const std::string& identifier,
+                               AssetLoadState next)
         {
+            if (!state_ptr)
+            {
+                return;
+            }
+
             AssetLoadState previous = AssetLoadState::Pending;
             {
-                std::lock_guard lock{mutex_};
-                auto it = states_.find(identifier);
-                if (it != states_.end())
+                std::lock_guard lock{state_ptr->mutex};
+                auto it = state_ptr->states.find(identifier);
+                if (it != state_ptr->states.end())
                 {
                     previous = it->second;
                     it->second = next;
                 }
                 else
                 {
-                    states_[identifier] = next;
+                    state_ptr->states[identifier] = next;
                     previous = next;
                 }
 
                 if (is_terminal_state(next))
                 {
-                    futures_.erase(identifier);
+                    state_ptr->futures.erase(identifier);
                 }
             }
 
             AssetStreamingTelemetry::instance().on_transition(previous, next);
         }
 
-        mutable std::mutex mutex_{};
-        std::unordered_map<std::string, AssetLoadFuture<Handle>> futures_{};
-        std::unordered_map<std::string, AssetLoadState> states_{};
+        std::shared_ptr<SharedState> ensure_state()
+        {
+            auto state_ptr = state_;
+            if (!state_ptr)
+            {
+                state_ptr = std::make_shared<SharedState>();
+                state_ = state_ptr;
+            }
+            return state_ptr;
+        }
+
+        std::shared_ptr<SharedState> state_{std::make_shared<SharedState>()};
     };
 
 } // namespace engine::assets
