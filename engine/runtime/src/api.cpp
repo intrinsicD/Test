@@ -1,6 +1,7 @@
 #include "engine/runtime/api.hpp"
 #include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/errors.hpp"
+#include "engine/io/telemetry.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -417,6 +418,22 @@ namespace engine::runtime
             return labels;
         }
 
+        static std::vector<core::telemetry::Label> make_operation_labels(io::GeometryIoOperation operation)
+        {
+            return make_single_label("operation", io::to_string(operation));
+        }
+
+        static std::vector<core::telemetry::Label> make_operation_error_labels(io::GeometryIoOperation operation,
+                                                                               io::GeometryIoError error)
+        {
+            auto labels = make_operation_labels(operation);
+            core::telemetry::Label error_label{};
+            error_label.key = "error";
+            error_label.value.assign(io::to_string(error));
+            labels.push_back(std::move(error_label));
+            return labels;
+        }
+
         void rebuild_metric_snapshot()
         {
             core::telemetry::MetricSet snapshot{};
@@ -553,6 +570,29 @@ namespace engine::runtime
             add_counter("runtime.streaming.total_rejected",
                         "Rejected asset streaming requests due to capacity",
                         clamp_to_int(streaming.streaming_total_rejected));
+
+            const auto error_codes = io::geometry_io_error_codes();
+            for (std::size_t op_index = 0; op_index < io::geometry_io_operation_count(); ++op_index)
+            {
+                const auto operation = static_cast<io::GeometryIoOperation>(op_index);
+                const auto& entry = diagnostics.geometry_io.operations[op_index];
+                add_counter("io.geometry.requests",
+                            "Geometry IO operation attempts",
+                            clamp_to_int(entry.attempts),
+                            make_operation_labels(operation));
+                add_counter("io.geometry.successes",
+                            "Successful Geometry IO operations",
+                            clamp_to_int(entry.successes),
+                            make_operation_labels(operation));
+
+                for (std::size_t error_index = 0; error_index < error_codes.size(); ++error_index)
+                {
+                    add_counter("io.geometry.failures",
+                                "Geometry IO operation failures by error",
+                                clamp_to_int(entry.failures_by_error[error_index]),
+                                make_operation_error_labels(operation, error_codes[error_index]));
+                }
+            }
 
             for (const auto& timing : diagnostics.stage_timings)
             {
@@ -702,6 +742,7 @@ namespace engine::runtime
         void refresh_streaming_metrics() noexcept
         {
             diagnostics.streaming = streaming_metrics();
+            diagnostics.geometry_io = io::GeometryIoTelemetry::instance().snapshot();
         }
 
         void record_stage_timings(const compute::ExecutionReport& report)

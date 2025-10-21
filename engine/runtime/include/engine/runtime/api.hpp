@@ -14,6 +14,7 @@
 #include "engine/core/threading/io_thread_pool.hpp"
 #include "engine/compute/api.hpp"
 #include "engine/geometry/api.hpp"
+#include "engine/io/telemetry.hpp"
 #include "engine/math/math.hpp"
 #include "engine/physics/api.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
@@ -146,6 +147,7 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     scene::validation::HierarchyValidationReport scene_validation{};
     physics::CollisionTelemetry physics_collision{};
     core::telemetry::MetricSet metrics{};
+    io::GeometryIoTelemetrySnapshot geometry_io{};
 #if ENGINE_ENABLE_RENDERING
     std::string frame_graph_serialization{};
     std::vector<engine::rendering::ResourceEvent> frame_graph_events{};

@@ -3,6 +3,7 @@ add_executable(engine_io_tests
     test_module.cpp
     test_geometry_io.cpp
     test_animation_importer.cpp
+    geometry_io_telemetry_tests.cpp
 )
 
 target_link_libraries(engine_io_tests

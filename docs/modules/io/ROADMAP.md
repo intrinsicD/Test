@@ -1,6 +1,6 @@
 # IO Module Roadmap
 
-_Last Updated: 2025-02-24_
+_Last Updated: 2025-03-24_
 
 ## Goals
 
@@ -8,7 +8,7 @@ _Last Updated: 2025-02-24_
 | --- | --- | --- |
 | Signature hardening (`IO-221`) | Build signature DB and fuzz harness coverage. | 🔄 In Progress |
 | Error catalog (`IO-230`) | Document structured errors for tooling. | ✅ Done |
-| Telemetry alignment (`IO-240`) | Surface import/export failures via diagnostics. | 🟢 Planned |
+| Telemetry alignment (`IO-240`) | Surface import/export failures via diagnostics. | ✅ Done |
 
 ## Active Tasks
 
@@ -20,16 +20,17 @@ _Last Updated: 2025-02-24_
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `IO-240` | Emit telemetry for import/export outcomes. | Schema ready (`CC-001.1`); integrate with diagnostics bridge |
+| — | — | — |
 
 ## Completed
 
 | Task ID | Description | Completion Notes |
 | --- | --- | --- |
 | `IO-230` | Publish structured error catalog referencing `DC-004`. | Catalog lives in `docs/modules/io/README.md#error-catalog` and feeds diagnostics tooling. |
+| `IO-240` | Align geometry import/export telemetry with runtime diagnostics bridge. | Metrics available under `io.geometry.*` counters; failure logs include file provenance for operators. |
 
 ## Notes
 
 - Coordinate fuzz harness resource usage with CI owners before enabling.
 - Update task records (`T-0112`) and central roadmap when milestones move.
-- Consume the shared telemetry schema when wiring `IO-240` metrics.
+- Consume the shared telemetry schema when extending telemetry coverage beyond geometry import/export pipelines.
