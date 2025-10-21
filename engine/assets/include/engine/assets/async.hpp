@@ -706,6 +706,119 @@ namespace engine::assets {
         std::atomic<std::uint64_t> total_rejected_{0};
     };
 
+    struct AssetHotReloadTelemetrySnapshot
+    {
+        std::uint64_t hot_reload_attempts{0};
+        std::uint64_t failure_count{0};
+        std::uint64_t cancelled_count{0};
+        std::uint64_t rejected_count{0};
+        std::string last_error{};
+        std::string error_hint{};
+    };
+
+    class AssetHotReloadTelemetry
+    {
+    public:
+        static AssetHotReloadTelemetry& instance()
+        {
+            static AssetHotReloadTelemetry telemetry;
+            return telemetry;
+        }
+
+        void record_attempt(std::string_view /*identifier*/)
+        {
+            hot_reload_attempts_.fetch_add(1, std::memory_order_relaxed);
+        }
+
+        void record_failure(const AssetLoadError& error,
+                             std::string_view /*identifier*/ = {},
+                             std::string_view hint_override = {})
+        {
+            failure_count_.fetch_add(1, std::memory_order_relaxed);
+            std::lock_guard lock{mutex_};
+            const auto message = error.message();
+            if (!message.empty())
+            {
+                last_error_.assign(message);
+            }
+            else
+            {
+                last_error_.assign(to_string(error.code()));
+            }
+
+            if (!hint_override.empty())
+            {
+                last_hint_.assign(hint_override);
+            }
+            else
+            {
+                last_hint_.assign(default_hint(error.code()));
+            }
+        }
+
+        void record_cancelled()
+        {
+            cancelled_count_.fetch_add(1, std::memory_order_relaxed);
+        }
+
+        void record_rejected()
+        {
+            rejected_count_.fetch_add(1, std::memory_order_relaxed);
+        }
+
+        [[nodiscard]] AssetHotReloadTelemetrySnapshot snapshot() const noexcept
+        {
+            std::lock_guard lock{mutex_};
+            AssetHotReloadTelemetrySnapshot snapshot{};
+            snapshot.hot_reload_attempts = hot_reload_attempts_.load(std::memory_order_relaxed);
+            snapshot.failure_count = failure_count_.load(std::memory_order_relaxed);
+            snapshot.cancelled_count = cancelled_count_.load(std::memory_order_relaxed);
+            snapshot.rejected_count = rejected_count_.load(std::memory_order_relaxed);
+            snapshot.last_error = last_error_;
+            snapshot.error_hint = last_hint_;
+            return snapshot;
+        }
+
+        void reset_for_testing()
+        {
+            hot_reload_attempts_.store(0, std::memory_order_relaxed);
+            failure_count_.store(0, std::memory_order_relaxed);
+            cancelled_count_.store(0, std::memory_order_relaxed);
+            rejected_count_.store(0, std::memory_order_relaxed);
+            std::lock_guard lock{mutex_};
+            last_error_.clear();
+            last_hint_.clear();
+        }
+
+    private:
+        static std::string default_hint(AssetLoadErrorCategory category)
+        {
+            switch (category)
+            {
+            case AssetLoadErrorCategory::IoFailure:
+                return "Verify the asset path exists and is readable.";
+            case AssetLoadErrorCategory::DecodeError:
+                return "Confirm the asset format is supported and the file is not corrupted.";
+            case AssetLoadErrorCategory::ValidationError:
+                return "Check asset metadata, dependencies, and descriptor configuration.";
+            case AssetLoadErrorCategory::Cancelled:
+                return "Ensure hot reload callbacks do not cancel reload requests unexpectedly.";
+            case AssetLoadErrorCategory::Timeout:
+                return "Increase IO queue capacity or allow blocking fallback for reloads.";
+            }
+
+            return "Inspect recent reload logs for additional diagnostics.";
+        }
+
+        std::atomic<std::uint64_t> hot_reload_attempts_{0};
+        std::atomic<std::uint64_t> failure_count_{0};
+        std::atomic<std::uint64_t> cancelled_count_{0};
+        std::atomic<std::uint64_t> rejected_count_{0};
+        mutable std::mutex mutex_{};
+        std::string last_error_{};
+        std::string last_hint_{};
+    };
+
     inline bool is_terminal_state(AssetLoadState state) noexcept
     {
         return state == AssetLoadState::Ready || state == AssetLoadState::Failed ||
@@ -770,6 +883,7 @@ namespace engine::assets {
                 {
                     transition(state_ptr, identifier, AssetLoadState::Cancelled);
                     promise_ref.set_cancelled();
+                    AssetHotReloadTelemetry::instance().record_cancelled();
                     return;
                 }
 
@@ -780,6 +894,7 @@ namespace engine::assets {
                 {
                     transition(state_ptr, identifier, AssetLoadState::Cancelled);
                     promise_ref.set_cancelled();
+                    AssetHotReloadTelemetry::instance().record_cancelled();
                     return;
                 }
 
@@ -788,6 +903,7 @@ namespace engine::assets {
                 {
                     promise_ref.set_failed(result.error());
                     transition(state_ptr, identifier, AssetLoadState::Failed);
+                    AssetHotReloadTelemetry::instance().record_failure(result.error(), identifier);
                     return;
                 }
 
@@ -795,6 +911,7 @@ namespace engine::assets {
                 {
                     promise_ref.set_cancelled();
                     transition(state_ptr, identifier, AssetLoadState::Cancelled);
+                    AssetHotReloadTelemetry::instance().record_cancelled();
                     return;
                 }
 
@@ -812,6 +929,7 @@ namespace engine::assets {
                     message += identifier;
                     locked_promise->set_cancelled(
                         make_asset_load_error(AssetLoadErrorCategory::Cancelled, std::move(message)));
+                    AssetHotReloadTelemetry::instance().record_cancelled();
                 }
 
                 if (auto locked = weak_runner.lock())
@@ -831,10 +949,13 @@ namespace engine::assets {
                 }
                 else
                 {
-                    promise_ptr->set_failed(
-                        make_asset_load_error(AssetLoadErrorCategory::Timeout, "IO queue saturated"));
+                    auto error =
+                        make_asset_load_error(AssetLoadErrorCategory::Timeout, "IO queue saturated");
+                    promise_ptr->set_failed(error);
                     transition(state_ptr, identifier, AssetLoadState::Failed);
                     AssetStreamingTelemetry::instance().on_rejected();
+                    AssetHotReloadTelemetry::instance().record_rejected();
+                    AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                 }
             }
 

@@ -1,6 +1,7 @@
 #include "engine/assets/graph_asset.hpp"
 
 #include "engine/assets/detail/filesystem_utils.hpp"
+#include "engine/assets/detail/reload_utils.hpp"
 
 #include <filesystem>
 #include <iterator>
@@ -49,7 +50,11 @@ const GraphAsset& GraphCache::load(const GraphAssetDescriptor& descriptor)
     const auto current_write = detail::checked_last_write_time(descriptor.source, "graph");
     const bool needs_reload = inserted || asset->last_write != current_write;
     if (needs_reload) {
-        reload_asset(handle, *asset, !inserted);
+        if (auto reload = reload_asset(handle, *asset, !inserted); !reload.has_value()) {
+            const auto message = reload.error().message();
+            throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}
+                                                     : std::string{message});
+        }
     }
 
     register_watch_locked(handle, *asset);
@@ -139,48 +144,100 @@ void GraphCache::poll()
             detail::checked_last_write_time(asset.descriptor.source, "graph");
         if (current_write != asset.last_write)
         {
-            reload_asset(handle, asset, true);
+            if (auto reload = reload_asset(handle, asset, true); !reload.has_value())
+            {
+                return;
+            }
             register_watch_locked(handle, asset);
         }
     });
 }
 
-void GraphCache::reload_asset(const RawHandle& handle, GraphAsset& asset, bool notify)
+engine::Result<void, AssetLoadError> GraphCache::reload_asset(const RawHandle& handle,
+                                                             GraphAsset& asset,
+                                                             bool notify)
 {
+    const std::string identifier = asset.descriptor.handle.id();
+    detail::record_hot_reload_attempt(notify, identifier);
+
     const auto detection_result = io::detect_geometry_file(asset.descriptor.source);
-    if (!detection_result) {
-        throw std::runtime_error("Geometry file detection failed: " +
-                                 std::string(detection_result.error().message()));
+    if (!detection_result)
+    {
+        auto error = detail::make_geometry_asset_error(
+            asset.descriptor.source, "detect_geometry_file", detection_result.error());
+        detail::record_hot_reload_failure(notify, identifier, error,
+                                          detail::geometry_error_hint(detection_result.error()));
+        return error;
     }
 
     const auto& detection = detection_result.value();
-    if (detection.kind != io::GeometryKind::graph) {
-        throw std::runtime_error("Geometry file does not describe a graph");
+    if (detection.kind != io::GeometryKind::graph)
+    {
+        auto error = make_asset_load_error(
+            AssetLoadErrorCategory::ValidationError,
+            "Geometry file does not describe a graph");
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Ensure the watched file encodes a graph (e.g., .ply edge list).");
+        return error;
     }
 
     const io::GraphFileFormat format = asset.descriptor.format_hint != io::GraphFileFormat::unknown
                                            ? asset.descriptor.format_hint
                                            : detection.graph_format;
 
-    if (format == io::GraphFileFormat::unknown) {
-        throw std::runtime_error("Unable to determine graph file format for asset");
+    if (format == io::GraphFileFormat::unknown)
+    {
+        auto error = make_asset_load_error(
+            AssetLoadErrorCategory::ValidationError,
+            "Unable to determine graph file format for asset");
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Provide a graph format hint or use a supported graph extension.");
+        return error;
     }
 
-    asset.graph.interface.clear();
-    if (auto result = io::read_graph(asset.descriptor.source, asset.graph.interface, format); !result) {
-        throw std::runtime_error("Failed to read graph: " + std::string(result.error().message()));
+    geometry::Graph loaded_graph{};
+    if (auto result = io::read_graph(asset.descriptor.source, loaded_graph.interface, format); !result)
+    {
+        auto error = detail::make_geometry_asset_error(
+            asset.descriptor.source, "read_graph", result.error());
+        detail::record_hot_reload_failure(notify, identifier, error,
+                                          detail::geometry_error_hint(result.error()));
+        return error;
     }
+
+    std::filesystem::file_time_type last_write{};
+    try
+    {
+        last_write = detail::checked_last_write_time(asset.descriptor.source, "graph");
+    }
+    catch (const std::runtime_error& ex)
+    {
+        auto error = make_asset_load_error(AssetLoadErrorCategory::IoFailure, ex.what());
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Verify filesystem permissions and ensure the graph file remains accessible.");
+        return error;
+    }
+
+    asset.graph = std::move(loaded_graph);
     asset.detection = detection;
-    asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "graph");
+    asset.last_write = last_write;
 
-    if (notify) {
+    if (notify)
+    {
         const auto cb_it = callbacks_.find(handle);
-        if (cb_it != callbacks_.end()) {
-            for (const auto& callback : cb_it->second) {
+        if (cb_it != callbacks_.end())
+        {
+            for (const auto& callback : cb_it->second)
+            {
                 callback(asset);
             }
         }
     }
+
+    return {};
 }
 
 void GraphCache::register_watch_locked(const RawHandle& handle, GraphAsset& asset)
@@ -217,7 +274,10 @@ void GraphCache::register_watch_locked(const RawHandle& handle, GraphAsset& asse
         }
 
         auto& tracked = assets_.get(handle);
-        reload_asset(handle, tracked, true);
+        if (auto reload = reload_asset(handle, tracked, true); !reload.has_value())
+        {
+            return;
+        }
     };
 
     const auto watch_handle = watcher_.watch_file(asset.descriptor.source, std::move(callback));

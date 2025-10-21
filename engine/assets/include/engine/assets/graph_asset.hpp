@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/assets/async.hpp"
 #include "engine/assets/handles.hpp"
 
 #include "engine/io/geometry_io.hpp"
@@ -54,7 +55,7 @@ private:
     using RawHandle = typename Pool::handle_type;
     using HandleHasher = typename Pool::handle_hasher;
 
-    void reload_asset(const RawHandle& handle, GraphAsset& asset, bool notify);
+    engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, GraphAsset& asset, bool notify);
     void register_watch_locked(const RawHandle& handle, GraphAsset& asset);
     void unregister_watch_locked(const RawHandle& handle);
 

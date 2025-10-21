@@ -1,6 +1,7 @@
 #include "engine/assets/texture_asset.hpp"
 
 #include "engine/assets/detail/filesystem_utils.hpp"
+#include "engine/assets/detail/reload_utils.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -69,7 +70,11 @@ const TextureAsset& TextureCache::load(const TextureAssetDescriptor& descriptor)
     const auto current_write = detail::checked_last_write_time(descriptor.source, "texture");
     const bool needs_reload = inserted || asset->last_write != current_write;
     if (needs_reload) {
-        reload_asset(handle, *asset, !inserted);
+        if (auto reload = reload_asset(handle, *asset, !inserted); !reload.has_value()) {
+            const auto message = reload.error().message();
+            throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}
+                                                     : std::string{message});
+        }
     }
 
     register_watch_locked(handle, *asset);
@@ -158,25 +163,66 @@ void TextureCache::poll()
         const auto current_write = detail::checked_last_write_time(asset.descriptor.source, "texture");
         if (current_write != asset.last_write)
         {
-            reload_asset(handle, asset, true);
+            if (auto reload = reload_asset(handle, asset, true); !reload.has_value())
+            {
+                return;
+            }
             register_watch_locked(handle, asset);
         }
     });
 }
 
-void TextureCache::reload_asset(const RawHandle& handle, TextureAsset& asset, bool notify)
+engine::Result<void, AssetLoadError> TextureCache::reload_asset(const RawHandle& handle,
+                                                               TextureAsset& asset,
+                                                               bool notify)
 {
-    read_binary(asset.descriptor.source, asset.data);
-    asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "texture");
+    const std::string identifier = asset.descriptor.handle.id();
+    detail::record_hot_reload_attempt(notify, identifier);
 
-    if (notify) {
+    std::vector<std::byte> loaded_data{};
+    try
+    {
+        read_binary(asset.descriptor.source, loaded_data);
+    }
+    catch (const std::exception& ex)
+    {
+        auto error = make_asset_load_error(AssetLoadErrorCategory::IoFailure, ex.what());
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Verify the texture path exists and is readable by the runtime.");
+        return error;
+    }
+
+    std::filesystem::file_time_type last_write{};
+    try
+    {
+        last_write = detail::checked_last_write_time(asset.descriptor.source, "texture");
+    }
+    catch (const std::runtime_error& ex)
+    {
+        auto error = make_asset_load_error(AssetLoadErrorCategory::IoFailure, ex.what());
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Ensure the texture file remains on disk and the watcher has permission to read it.");
+        return error;
+    }
+
+    asset.data = std::move(loaded_data);
+    asset.last_write = last_write;
+
+    if (notify)
+    {
         const auto cb_it = callbacks_.find(handle);
-        if (cb_it != callbacks_.end()) {
-            for (const auto& callback : cb_it->second) {
+        if (cb_it != callbacks_.end())
+        {
+            for (const auto& callback : cb_it->second)
+            {
                 callback(asset);
             }
         }
     }
+
+    return {};
 }
 
 void TextureCache::register_watch_locked(const RawHandle& handle, TextureAsset& asset)
@@ -213,7 +259,10 @@ void TextureCache::register_watch_locked(const RawHandle& handle, TextureAsset& 
         }
 
         auto& tracked = assets_.get(handle);
-        reload_asset(handle, tracked, true);
+        if (auto reload = reload_asset(handle, tracked, true); !reload.has_value())
+        {
+            return;
+        }
     };
 
     const auto watch_handle = watcher_.watch_file(asset.descriptor.source, std::move(callback));

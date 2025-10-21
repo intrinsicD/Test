@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/assets/async.hpp"
 #include "engine/assets/handles.hpp"
 
 #include "engine/core/memory/resource_pool.hpp"
@@ -57,7 +58,7 @@ private:
     using RawHandle = typename Pool::handle_type;
     using HandleHasher = typename Pool::handle_hasher;
 
-    void reload_asset(const RawHandle& handle, TextureAsset& asset, bool notify);
+    engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, TextureAsset& asset, bool notify);
     void register_watch_locked(const RawHandle& handle, TextureAsset& asset);
     void unregister_watch_locked(const RawHandle& handle);
 

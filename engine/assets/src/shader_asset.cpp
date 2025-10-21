@@ -1,6 +1,7 @@
 #include "engine/assets/shader_asset.hpp"
 
 #include "engine/assets/detail/filesystem_utils.hpp"
+#include "engine/assets/detail/reload_utils.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -11,14 +12,23 @@ namespace engine::assets {
 
 namespace {
 
-[[nodiscard]] std::string read_text(const std::filesystem::path& path)
+[[nodiscard]] engine::Result<std::string, AssetLoadError> read_text(const std::filesystem::path& path)
 {
     std::ifstream stream{path};
-    if (!stream) {
-        throw std::runtime_error("Failed to open shader file: " + path.generic_string());
+    if (!stream)
+    {
+        return make_asset_load_error(AssetLoadErrorCategory::IoFailure,
+                                     "Failed to open shader file: " + path.generic_string());
     }
 
-    return std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+    std::string contents{std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}};
+    if (stream.bad())
+    {
+        return make_asset_load_error(AssetLoadErrorCategory::IoFailure,
+                                     "Failed to read shader file: " + path.generic_string());
+    }
+
+    return contents;
 }
 
 [[nodiscard]] ShaderBinary compile_internal(std::string_view source,
@@ -100,7 +110,12 @@ const ShaderAsset& ShaderCache::load(const ShaderAssetDescriptor& descriptor)
     const auto current_write = detail::checked_last_write_time(descriptor.source, "shader");
     const bool needs_reload = inserted || asset->last_write != current_write;
     if (needs_reload) {
-        reload_asset(handle, *asset, !inserted);
+        if (auto reload = reload_asset(handle, *asset, !inserted); !reload.has_value())
+        {
+            const auto message = reload.error().message();
+            throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}
+                                                     : std::string{message});
+        }
     }
 
     register_watch_locked(handle, *asset);
@@ -189,17 +204,50 @@ void ShaderCache::poll()
         const auto current_write = detail::checked_last_write_time(asset.descriptor.source, "shader");
         if (current_write != asset.last_write)
         {
-            reload_asset(handle, asset, true);
+            if (auto reload = reload_asset(handle, asset, true); !reload.has_value())
+            {
+                return;
+            }
             register_watch_locked(handle, asset);
         }
     });
 }
 
-void ShaderCache::reload_asset(const RawHandle& handle, ShaderAsset& asset, bool notify)
+engine::Result<void, AssetLoadError> ShaderCache::reload_asset(const RawHandle& handle,
+                                                             ShaderAsset& asset,
+                                                             bool notify)
 {
-    asset.source = read_text(asset.descriptor.source);
-    asset.binary = ShaderCompiler::compile_glsl_to_spirv(asset.source, asset.descriptor.options);
-    asset.last_write = detail::checked_last_write_time(asset.descriptor.source, "shader");
+    const std::string identifier = asset.descriptor.handle.id();
+    detail::record_hot_reload_attempt(notify, identifier);
+
+    auto source = read_text(asset.descriptor.source);
+    if (!source)
+    {
+        auto error = source.error();
+        detail::record_hot_reload_failure(notify, identifier, error,
+                                          "Verify the shader file exists and is readable by the runtime process.");
+        return error;
+    }
+
+    ShaderBinary compiled = ShaderCompiler::compile_glsl_to_spirv(source.value(), asset.descriptor.options);
+
+    std::filesystem::file_time_type last_write{};
+    try
+    {
+        last_write = detail::checked_last_write_time(asset.descriptor.source, "shader");
+    }
+    catch (const std::runtime_error& ex)
+    {
+        auto error = make_asset_load_error(AssetLoadErrorCategory::IoFailure, ex.what());
+        detail::record_hot_reload_failure(
+            notify, identifier, error,
+            "Ensure the shader file remains on disk and accessible during reload attempts.");
+        return error;
+    }
+
+    asset.source = std::move(source.value());
+    asset.binary = std::move(compiled);
+    asset.last_write = last_write;
 
     if (notify) {
         const auto cb_it = callbacks_.find(handle);
@@ -209,6 +257,8 @@ void ShaderCache::reload_asset(const RawHandle& handle, ShaderAsset& asset, bool
             }
         }
     }
+
+    return {};
 }
 
 void ShaderCache::register_watch_locked(const RawHandle& handle, ShaderAsset& asset)
@@ -245,7 +295,10 @@ void ShaderCache::register_watch_locked(const RawHandle& handle, ShaderAsset& as
         }
 
         auto& tracked = assets_.get(handle);
-        reload_asset(handle, tracked, true);
+        if (auto reload = reload_asset(handle, tracked, true); !reload.has_value())
+        {
+            return;
+        }
     };
 
     const auto watch_handle = watcher_.watch_file(asset.descriptor.source, std::move(callback));
