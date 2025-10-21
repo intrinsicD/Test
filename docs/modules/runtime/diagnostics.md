@@ -86,6 +86,14 @@ These values feed the async streaming diagnostics described in
 schema reference, and the associated task record
 [`T-0115`](../../tasks/T-0115-assets-async-streaming-mvp.md).
 
+### Handle Validation
+`handle_validation` captures a snapshot from the asset handle validator
+registry. Each entry reports the handle type, total successes/failures, and the
+most recent failure context/reason. Metrics are also emitted into
+`RuntimeDiagnostics::metrics` as `runtime.handles.<type>.{success,failure}`
+counters. Call `engine::assets::validate_handle` before dereferencing handles to
+populate these diagnostics and surface stale-handle bugs quickly.
+
 ### Scene Validation
 `scene_validation` embeds the latest
 `scene::validation::HierarchyValidationReport`, including `metrics` (issue

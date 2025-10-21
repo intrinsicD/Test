@@ -17,6 +17,9 @@
   tooling consumers share a common remediation playbook (`RT-005.3`).
 - Detailed instrumentation and troubleshooting workflows live in
   [diagnostics.md](diagnostics.md).
+- Handle validation telemetry exposes `runtime.handles.*` counters populated by
+  `engine::assets::validate_handle`, allowing diagnostics tooling to detect
+  stale assets referenced by rendering submissions (`AI-001.2`).
 
 ## Usage
 - Build with `cmake --build --preset <preset> --target engine_runtime`.

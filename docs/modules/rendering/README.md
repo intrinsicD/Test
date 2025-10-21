@@ -37,6 +37,10 @@
   every frame rather than storing raw pointers to GPU resources. Debug builds
   assert on invalid access, guiding developers back to the owning cache when
   validation trips.
+- Rendering entry points call `engine::assets::validate_handle` before
+  dereferencing handles. The helper asserts in debug builds and emits
+  `runtime.handles.*` telemetry counters so diagnostics capture stale handle
+  usage across assets and rendering layers.
 
 ## TODO / Next Steps
 

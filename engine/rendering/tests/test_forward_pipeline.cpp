@@ -10,6 +10,7 @@
 #include "engine/scene/components.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
+#include "engine/assets/validation.hpp"
 #include "command_encoder_test_utils.hpp"
 #include "scheduler_test_utils.hpp"
 
@@ -53,6 +54,24 @@ namespace
 
 TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
 {
+    auto& validators = engine::assets::HandleValidatorRegistry::instance();
+    [[maybe_unused]] auto mesh_validator = validators.register_mesh_validator([](const engine::assets::MeshHandle&) { return true; });
+    [[maybe_unused]] auto graph_validator = validators.register_graph_validator([](const engine::assets::GraphHandle&) { return true; });
+    [[maybe_unused]] auto cloud_validator = validators.register_point_cloud_validator([](const engine::assets::PointCloudHandle&) { return true; });
+    [[maybe_unused]] auto material_validator = validators.register_material_validator([](const engine::assets::MaterialHandle&) { return true; });
+    [[maybe_unused]] auto shader_validator = validators.register_shader_validator([](const engine::assets::ShaderHandle&) { return true; });
+
+    engine::assets::MeshHandle mesh_handle{std::string{"mesh"}};
+    engine::assets::MeshHandle::pool_handle_type mesh_raw{};
+    mesh_raw.index = 0U;
+    mesh_raw.generation = 1U;
+    mesh_handle.bind(mesh_raw);
+    engine::assets::MaterialHandle mesh_material{std::string{"mesh_material"}};
+    engine::assets::MaterialHandle::pool_handle_type mesh_material_raw{};
+    mesh_material_raw.index = 0U;
+    mesh_material_raw.generation = 1U;
+    mesh_material.bind(mesh_material_raw);
+
     engine::scene::Scene scene;
     const auto mesh_entity = scene.create_entity();
     auto& mesh_world =
@@ -60,9 +79,18 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     mesh_world.value.translation = engine::math::Vector<float, 3>{1.0F, 2.0F, 3.0F};
     scene.registry().emplace<engine::rendering::components::RenderGeometry>(
         mesh_entity.id(),
-        engine::rendering::components::RenderGeometry::from_mesh(
-            engine::assets::MeshHandle{std::string{"mesh"}},
-            engine::assets::MaterialHandle{std::string{"mesh_material"}}));
+        engine::rendering::components::RenderGeometry::from_mesh(mesh_handle, mesh_material));
+
+    engine::assets::GraphHandle graph_handle{std::string{"graph"}};
+    engine::assets::GraphHandle::pool_handle_type graph_raw{};
+    graph_raw.index = 1U;
+    graph_raw.generation = 1U;
+    graph_handle.bind(graph_raw);
+    engine::assets::MaterialHandle graph_material{std::string{"graph_material"}};
+    engine::assets::MaterialHandle::pool_handle_type graph_material_raw{};
+    graph_material_raw.index = 1U;
+    graph_material_raw.generation = 1U;
+    graph_material.bind(graph_material_raw);
 
     const auto graph_entity = scene.create_entity();
     auto& graph_world =
@@ -70,9 +98,18 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     graph_world.value.translation = engine::math::Vector<float, 3>{-1.0F, 0.5F, 4.0F};
     scene.registry().emplace<engine::rendering::components::RenderGeometry>(
         graph_entity.id(),
-        engine::rendering::components::RenderGeometry::from_graph(
-            engine::assets::GraphHandle{std::string{"graph"}},
-            engine::assets::MaterialHandle{std::string{"graph_material"}}));
+        engine::rendering::components::RenderGeometry::from_graph(graph_handle, graph_material));
+
+    engine::assets::PointCloudHandle cloud_handle{std::string{"cloud"}};
+    engine::assets::PointCloudHandle::pool_handle_type cloud_raw{};
+    cloud_raw.index = 2U;
+    cloud_raw.generation = 1U;
+    cloud_handle.bind(cloud_raw);
+    engine::assets::MaterialHandle cloud_material{std::string{"cloud_material"}};
+    engine::assets::MaterialHandle::pool_handle_type cloud_material_raw{};
+    cloud_material_raw.index = 2U;
+    cloud_material_raw.generation = 1U;
+    cloud_material.bind(cloud_material_raw);
 
     const auto cloud_entity = scene.create_entity();
     auto& cloud_world =
@@ -80,23 +117,28 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     cloud_world.value.translation = engine::math::Vector<float, 3>{0.0F, -3.0F, -1.0F};
     scene.registry().emplace<engine::rendering::components::RenderGeometry>(
         cloud_entity.id(),
-        engine::rendering::components::RenderGeometry::from_point_cloud(
-            engine::assets::PointCloudHandle{std::string{"cloud"}},
-            engine::assets::MaterialHandle{std::string{"cloud_material"}}));
+        engine::rendering::components::RenderGeometry::from_point_cloud(cloud_handle, cloud_material));
 
     engine::rendering::MaterialSystem materials;
-    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
-        engine::assets::MaterialHandle{std::string{"mesh_material"}},
-        engine::assets::ShaderHandle{std::string{"mesh_shader"}}
-    });
-    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
-        engine::assets::MaterialHandle{std::string{"graph_material"}},
-        engine::assets::ShaderHandle{std::string{"graph_shader"}}
-    });
-    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
-        engine::assets::MaterialHandle{std::string{"cloud_material"}},
-        engine::assets::ShaderHandle{std::string{"cloud_shader"}}
-    });
+    engine::assets::ShaderHandle mesh_shader{std::string{"mesh_shader"}};
+    engine::assets::ShaderHandle::pool_handle_type mesh_shader_raw{};
+    mesh_shader_raw.index = 0U;
+    mesh_shader_raw.generation = 1U;
+    mesh_shader.bind(mesh_shader_raw);
+    engine::assets::ShaderHandle graph_shader{std::string{"graph_shader"}};
+    engine::assets::ShaderHandle::pool_handle_type graph_shader_raw{};
+    graph_shader_raw.index = 1U;
+    graph_shader_raw.generation = 1U;
+    graph_shader.bind(graph_shader_raw);
+    engine::assets::ShaderHandle cloud_shader{std::string{"cloud_shader"}};
+    engine::assets::ShaderHandle::pool_handle_type cloud_shader_raw{};
+    cloud_shader_raw.index = 2U;
+    cloud_shader_raw.generation = 1U;
+    cloud_shader.bind(cloud_shader_raw);
+
+    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{mesh_material, mesh_shader});
+    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{graph_material, graph_shader});
+    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{cloud_material, cloud_shader});
 
     engine::rendering::FrameGraph graph;
     engine::rendering::ForwardPipeline pipeline;

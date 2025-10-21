@@ -20,6 +20,10 @@
 #include "engine/runtime/subsystem_registry.hpp"
 #include "engine/scene/validation.hpp"
 
+#if ENGINE_ENABLE_ASSETS
+#    include "engine/assets/validation.hpp"
+#endif
+
 #if ENGINE_ENABLE_RENDERING
 #    include "engine/rendering/components.hpp"
 #    include "engine/rendering/frame_graph.hpp"
@@ -165,6 +169,9 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
 #if ENGINE_ENABLE_RENDERING
     std::string frame_graph_serialization{};
     std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
+#endif
+#if ENGINE_ENABLE_ASSETS
+    std::vector<assets::HandleValidationSnapshotEntry> handle_validation{};
 #endif
 };
 

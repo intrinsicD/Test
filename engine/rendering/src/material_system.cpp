@@ -2,6 +2,8 @@
 
 #include <utility>
 
+#include "engine/assets/validation.hpp"
+
 namespace engine::rendering
 {
     void MaterialSystem::register_material(MaterialRecord record)
@@ -31,12 +33,20 @@ namespace engine::rendering
             return;
         }
 
+        if (!engine::assets::validate_handle(handle, "MaterialSystem::ensure_material_loaded(material)"))
+        {
+            return;
+        }
         provider.require_material(handle);
 
         if (auto record = find(handle))
         {
             if (!record->shader.empty())
             {
+                if (!engine::assets::validate_handle(record->shader, "MaterialSystem::ensure_material_loaded(shader)"))
+                {
+                    return;
+                }
                 provider.require_shader(record->shader);
             }
         }

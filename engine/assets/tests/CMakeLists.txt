@@ -2,6 +2,7 @@ add_executable(engine_assets_tests
     test_assets.cpp
     test_async.cpp
     test_module.cpp
+    test_handle_validation.cpp
 )
 
 target_link_libraries(engine_assets_tests

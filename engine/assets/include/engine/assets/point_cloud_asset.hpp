@@ -12,6 +12,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -41,6 +42,8 @@ struct PointCloudAsset {
 
 class PointCloudCache {
 public:
+    PointCloudCache();
+
     using HotReloadCallback = std::function<void(const PointCloudAsset&)>;
 
     [[nodiscard]] const PointCloudAsset& load(const PointCloudAssetDescriptor& descriptor);
@@ -73,6 +76,7 @@ private:
     platform::filesystem::FilesystemWatcher watcher_{};
     mutable std::mutex mutex_{};
     AssetAsyncQueue<PointCloudHandle> async_queue_{};
+    std::shared_ptr<void> handle_validator_registration_{};
 };
 
 }  // namespace engine::assets

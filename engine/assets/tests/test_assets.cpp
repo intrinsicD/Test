@@ -189,7 +189,11 @@ TEST(MeshCache, UnloadInvalidatesHandle)
 
     cache.unload(descriptor.handle);
     EXPECT_FALSE(cache.contains(descriptor.handle));
+#ifndef NDEBUG
+    EXPECT_DEATH((void)cache.get(descriptor.handle), "Mesh asset handle not found");
+#else
     EXPECT_THROW(cache.get(descriptor.handle), std::out_of_range);
+#endif
 }
 
 TEST(PointCloudCache, LoadsPointCloudData)

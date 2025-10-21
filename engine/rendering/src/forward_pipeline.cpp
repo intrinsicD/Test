@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 
+#include "engine/assets/validation.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/command_encoder.hpp"
 #include "engine/scene/components/transform.hpp"
@@ -47,20 +48,36 @@ namespace engine::rendering
                 {
                     if (const auto* mesh = geometry.mesh(); mesh != nullptr && !mesh->empty())
                     {
+                        if (!engine::assets::validate_handle(*mesh, "ForwardGeometryPass::require_mesh"))
+                        {
+                            continue;
+                        }
                         context.render.resources.require_mesh(*mesh);
                     }
                     else if (const auto* graph = geometry.graph(); graph != nullptr && !graph->empty())
                     {
+                        if (!engine::assets::validate_handle(*graph, "ForwardGeometryPass::require_graph"))
+                        {
+                            continue;
+                        }
                         context.render.resources.require_graph(*graph);
                     }
                     else if (const auto* point_cloud = geometry.point_cloud();
                              point_cloud != nullptr && !point_cloud->empty())
                     {
+                        if (!engine::assets::validate_handle(*point_cloud, "ForwardGeometryPass::require_point_cloud"))
+                        {
+                            continue;
+                        }
                         context.render.resources.require_point_cloud(*point_cloud);
                     }
 
                     if (!geometry.material.empty())
                     {
+                        if (!engine::assets::validate_handle(geometry.material, "ForwardGeometryPass::material"))
+                        {
+                            continue;
+                        }
                         context.render.materials.ensure_material_loaded(geometry.material, context.render.resources);
                     }
 

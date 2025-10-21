@@ -2,7 +2,9 @@
 
 #include "engine/assets/detail/filesystem_utils.hpp"
 #include "engine/assets/detail/reload_utils.hpp"
+#include "engine/assets/validation.hpp"
 
+#include <cassert>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -29,6 +31,15 @@ void read_binary(const std::filesystem::path& path, std::vector<std::byte>& outp
 }
 
 }  // namespace
+
+TextureCache::TextureCache()
+    : handle_validator_registration_(HandleValidatorRegistry::instance().register_texture_validator(
+          [this](const TextureHandle& handle) {
+              std::scoped_lock lock{mutex_};
+              return handle.is_valid(assets_);
+          }))
+{
+}
 
 const TextureAsset& TextureCache::load(const TextureAssetDescriptor& descriptor)
 {
@@ -91,9 +102,16 @@ bool TextureCache::contains(const TextureHandle& handle) const
 const TextureAsset& TextureCache::get(const TextureHandle& handle) const
 {
     std::scoped_lock lock{mutex_};
-    if (!handle.is_valid(assets_)) {
+    if (!handle.is_valid(assets_))
+    {
+        HandleValidationTelemetry::instance().record_failure(
+            HandleValidationFailure{std::string{"TextureHandle"}, handle.id(), "TextureCache::get", "Cache lookup rejected handle"});
+#ifndef NDEBUG
+        assert(false && "Texture asset handle not found");
+#endif
         throw std::out_of_range("Texture asset handle not found");
     }
+    HandleValidationTelemetry::instance().record_success("TextureHandle", handle.id());
     return assets_.get(handle.raw_handle());
 }
 

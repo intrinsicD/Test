@@ -21,6 +21,7 @@
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/resource_translation.hpp"
 #include "engine/runtime/api.hpp"
+#include "engine/assets/validation.hpp"
 #include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
 #include "engine/scene/validation.hpp"
@@ -207,6 +208,25 @@ std::shared_ptr<RecordingLifecycleSubsystem> make_recording_subsystem(
 {
     return std::make_shared<RecordingLifecycleSubsystem>(std::move(name), std::move(dependencies));
 }
+
+struct ScopedHandleValidators
+{
+    ScopedHandleValidators()
+    {
+        auto& registry = engine::assets::HandleValidatorRegistry::instance();
+        mesh = registry.register_mesh_validator([](const engine::assets::MeshHandle&) { return true; });
+        graph = registry.register_graph_validator([](const engine::assets::GraphHandle&) { return true; });
+        cloud = registry.register_point_cloud_validator([](const engine::assets::PointCloudHandle&) { return true; });
+        material = registry.register_material_validator([](const engine::assets::MaterialHandle&) { return true; });
+        shader = registry.register_shader_validator([](const engine::assets::ShaderHandle&) { return true; });
+    }
+
+    [[maybe_unused]] std::shared_ptr<void> mesh{};
+    [[maybe_unused]] std::shared_ptr<void> graph{};
+    [[maybe_unused]] std::shared_ptr<void> cloud{};
+    [[maybe_unused]] std::shared_ptr<void> material{};
+    [[maybe_unused]] std::shared_ptr<void> shader{};
+};
 
 class RecordingRenderResourceProvider final : public engine::rendering::RenderResourceProvider
 {
@@ -533,10 +553,21 @@ TEST(RuntimeHost, AppliesLinearBlendSkinning) {
 }
 
 TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
+    ScopedHandleValidators handle_validators;
     engine::runtime::RuntimeHostDependencies deps{};
+    engine::assets::MeshHandle mesh_handle{std::string{"runtime.mesh"}};
+    engine::assets::MeshHandle::pool_handle_type mesh_raw{};
+    mesh_raw.index = 0U;
+    mesh_raw.generation = 1U;
+    mesh_handle.bind(mesh_raw);
+    engine::assets::MaterialHandle material_handle{std::string{"runtime.material"}};
+    engine::assets::MaterialHandle::pool_handle_type material_raw{};
+    material_raw.index = 0U;
+    material_raw.generation = 1U;
+    material_handle.bind(material_raw);
     deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(
-        engine::assets::MeshHandle{std::string{"runtime.mesh"}},
-        engine::assets::MaterialHandle{std::string{"runtime.material"}});
+        mesh_handle,
+        material_handle);
     deps.renderable_name = "runtime.renderable";
 
     engine::runtime::RuntimeHost host{deps};
@@ -545,9 +576,14 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     ASSERT_FALSE(frame.scene_nodes.empty());  // NOLINT
 
     engine::rendering::MaterialSystem materials;
+    engine::assets::ShaderHandle shader_handle{std::string{"runtime.shader"}};
+    engine::assets::ShaderHandle::pool_handle_type shader_raw{};
+    shader_raw.index = 0U;
+    shader_raw.generation = 1U;
+    shader_handle.bind(shader_raw);
     materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
-        engine::assets::MaterialHandle{std::string{"runtime.material"}},
-        engine::assets::ShaderHandle{std::string{"runtime.shader"}},
+        material_handle,
+        shader_handle,
     });
 
     RecordingRenderResourceProvider render_resources;
