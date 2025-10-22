@@ -188,8 +188,109 @@ else()
     FetchContent_MakeAvailable(entt_external)
 endif()
 
-add_subdirectory(third_party/spdlog)
-add_subdirectory(third_party/imgui)
+# spdlog: submodule first, fallback to FetchContent
+set(SPDLOG_DIR "${THIRD_PARTY_DIR}/spdlog")
+if(EXISTS "${SPDLOG_DIR}/CMakeLists.txt")
+    # Disable extras when consuming as submodule
+    set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
+    set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(SPDLOG_INSTALL OFF CACHE BOOL "" FORCE)
+    add_subdirectory(${SPDLOG_DIR})
+else()
+    # Fetch pinned spdlog if submodule not present
+    set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
+    set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(SPDLOG_INSTALL OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(spdlog_external
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.13.0
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(spdlog_external)
+endif()
+# Provide a compatibility header-only alias if only spdlog::spdlog exists
+if(TARGET spdlog::spdlog AND NOT TARGET spdlog::spdlog_header_only)
+    add_library(spdlog_header_only INTERFACE)
+    target_link_libraries(spdlog_header_only INTERFACE spdlog::spdlog)
+    add_library(spdlog::spdlog_header_only ALIAS spdlog_header_only)
+endif()
+
+# imgui: submodule first, fallback to FetchContent with wrapper if needed
+set(IMGUI_DIR "${THIRD_PARTY_DIR}/imgui")
+if(EXISTS "${IMGUI_DIR}")
+    if(EXISTS "${IMGUI_DIR}/CMakeLists.txt")
+        add_subdirectory(${IMGUI_DIR})
+    else()
+        # Local imgui present without CMake; build a minimal wrapper from local sources
+        set(_IMGUI_CORE_SOURCES
+            ${IMGUI_DIR}/imgui.cpp
+            ${IMGUI_DIR}/imgui_draw.cpp
+            ${IMGUI_DIR}/imgui_tables.cpp
+            ${IMGUI_DIR}/imgui_widgets.cpp
+        )
+        add_library(imgui STATIC ${_IMGUI_CORE_SOURCES})
+        set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
+        target_include_directories(imgui PUBLIC ${IMGUI_DIR})
+        target_link_libraries(imgui PUBLIC engine::project_options)
+        if(ENGINE_ENABLE_GLFW)
+            target_sources(imgui PRIVATE
+                ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+                ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+            )
+            target_include_directories(imgui PUBLIC
+                ${IMGUI_DIR}/backends
+                $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
+            )
+            target_link_libraries(imgui PUBLIC glfw)
+        endif()
+    endif()
+else()
+    FetchContent_Declare(imgui_external
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.90.5-docking
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(imgui_external)
+    if(EXISTS "${imgui_external_SOURCE_DIR}/CMakeLists.txt")
+        add_subdirectory(${imgui_external_SOURCE_DIR} ${imgui_external_BINARY_DIR})
+    else()
+        set(_IMGUI_CORE_SOURCES
+            ${imgui_external_SOURCE_DIR}/imgui.cpp
+            ${imgui_external_SOURCE_DIR}/imgui_draw.cpp
+            ${imgui_external_SOURCE_DIR}/imgui_tables.cpp
+            ${imgui_external_SOURCE_DIR}/imgui_widgets.cpp
+        )
+        add_library(imgui STATIC ${_IMGUI_CORE_SOURCES})
+        set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
+        target_include_directories(imgui PUBLIC ${imgui_external_SOURCE_DIR})
+        target_link_libraries(imgui PUBLIC engine::project_options)
+        if(ENGINE_ENABLE_GLFW)
+            target_sources(imgui PRIVATE
+                ${imgui_external_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+                ${imgui_external_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+            )
+            target_include_directories(imgui PUBLIC
+                ${imgui_external_SOURCE_DIR}/backends
+                $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
+            )
+            target_link_libraries(imgui PUBLIC glfw)
+        endif()
+    endif()
+endif()
+
+# Ensure a consistent namespace alias for ImGui
+if(TARGET imgui AND NOT TARGET imgui::imgui)
+    add_library(imgui::imgui ALIAS imgui)
+endif()
+# Ensure imgui is built with PIC even if provided by submodule CMake
+if(TARGET imgui)
+    set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+# Ensure ImGui has GLFW include dirs and linkage when using the GLFW backend
+if(ENGINE_ENABLE_GLFW AND TARGET imgui AND TARGET glfw)
+    target_include_directories(imgui PUBLIC $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries(imgui PUBLIC glfw)
+endif()
 
 if(ENGINE_ENABLE_GLFW)
     if(UNIX AND NOT APPLE)

@@ -1,5 +1,8 @@
 # Central Roadmap
 
+<!-- Anchor to support references from prompts and docs -->
+<a id="architecture-improvement-plan"></a>
+
 This roadmap aggregates cross-cutting initiatives and module-specific execution
 queues. It is the single source of truth for prioritisation; keep it in sync
 with [`../README.md`](../README.md), module READMEs, and task files under
@@ -27,6 +30,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 **Recent Updates:**
 - 2025-02-20: Published `runtime/ASYNC_STREAMING_INTEGRATION.md` detailing configuration and telemetry consumption (`AI-002.3`).
 
+<!-- Anchor for RT-002 task references -->
+<a id="rt-002-physics-contact-manifolds"></a>
 #### `RT-006` — IO Signature Hardening (🟠 Blocked)
 
 | Task ID | Description | Exit Criteria | Status |
@@ -39,7 +44,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 ---
 
-## 📋 Backlog (Prioritized)
+## 📎 Backlog (Prioritized)
 
 ### Immediate Next (Ready for Sprint Planning)
 
@@ -78,7 +83,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 <details>
 <summary><b>Completed Initiative Details (Click to expand)</b></summary>
 
-### `DC-004` — Error Handling Standardisation
+#### `DC-004` — Error Handling Standardisation
 
 ### Task Breakdowns
 
@@ -208,80 +213,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 ---
 
-## 📦 Module-Specific Work Queues
-
-Each module maintains a detailed BACKLOG.md file. This section provides a high-level summary.
-
-### Animation
-- **Next:** `AN-230` GPU/parallel sampling benchmarks (blocked on `CO-170`)
-- **Following:** `AN-240` state-machine authoring spec work
-- See [`modules/animation/BACKLOG.md`](modules/animation/BACKLOG.md)
-
-### Assets
-- **In Progress:** `AS-305` cancellation hardening for async telemetry stability
-- **Next:** `AS-320` material persistence planning, `AS-330` diagnostics shell reload surfacing
-- See [`modules/assets/BACKLOG.md`](modules/assets/BACKLOG.md)
-
-### Compute
-- **Completed:** `CO-150` cycle detection, `CO-160` CUDA preset alignment
-- **Next:** `CO-170` runtime integration sample showing dispatcher orchestration
-- See [`modules/compute/BACKLOG.md`](modules/compute/BACKLOG.md)
-
-### Core
-- **Completed:** `CR-125`–`CR-137` lifecycle/config/diagnostics work
-- **Next:** Maintain runtime packaging in CI for telemetry tooling validation
-- See [`modules/core/BACKLOG.md`](modules/core/BACKLOG.md)
-
-### Geometry
-- **Completed:** `GE-205` normal recompute benchmark, `GE-220` telemetry alignment
-- **Published:** `GE-212` remeshing/parameterization RFP
-- **Next:** Sequence remeshing execution milestones (`GE-221+`)
-- See [`modules/geometry/BACKLOG.md`](modules/geometry/BACKLOG.md)
-
-### IO
-- **Completed:** `IO-221`/`RT-006.2` signature catalogue and fuzz harness, `IO-230` error catalog
-- **Blocked:** CI fuzzing automation (infra provisioning)
-- **Available:** `IO-240` telemetry alignment instrumentation
-- See [`modules/io/BACKLOG.md`](modules/io/BACKLOG.md)
-
-### Math
-- **Completed:** External format conversions documented
-- **Next:** `MA-130` telemetry metrics for conversion drift monitoring
-- See [`modules/math/BACKLOG.md`](modules/math/BACKLOG.md)
-
-### Physics
-- **Completed:** `PH-430` collision throughput telemetry in diagnostics
-- **Next:** Automation for long-term collision telemetry trends
-- See [`modules/physics/BACKLOG.md`](modules/physics/BACKLOG.md)
-
-### Platform
-- **Completed:** `PL-215` SDL parity checklist published
-- **Next:** SDL backend implementation tasks (`DC-003`)
-- See [`modules/platform/BACKLOG.md`](modules/platform/BACKLOG.md)
-
-### Rendering
-- **Completed:** `RE-530` backend validation tooling with parity metrics
-- **Next:** Monitor dashboards, scope future backend feature coverage
-- See [`modules/rendering/BACKLOG.md`](modules/rendering/BACKLOG.md)
-
-### Runtime
-- **Completed:** `RT-005` hierarchy validation tranche
-- **Next:** Maintain hierarchy alert metrics in observability, surface `SC-225` samples
-- See [`modules/runtime/BACKLOG.md`](modules/runtime/BACKLOG.md)
-
-### Scene
-- **Completed:** `SC-225` hierarchy diagnostics samples, `SC-230` alert policy
-- **Next:** Maintain fixtures and dashboards aligned with alert thresholds
-- See [`modules/scene/BACKLOG.md`](modules/scene/BACKLOG.md)
-
-### Tools
-- **Completed:** `TL-110` documentation refresh, runtime packaging script
-- **Next:** Monitor Chrome trace export, gather diagnostics viewer feedback
-- See [`modules/tools/BACKLOG.md`](modules/tools/BACKLOG.md)
-
----
-
-## 🔄 Process & Maintenance
+## 🔁 Process & Maintenance
 
 ### Weekly Triage
 - Update active work table with progress notes
@@ -305,4 +237,6 @@ Each module maintains a detailed BACKLOG.md file. This section provides a high-l
 
 ---
 
+<!-- Anchor for TI-001 integration suites references -->
+<a id="ti-001-integration-suites"></a>
 **Last updated:** 2025-10-22 (Restructured for improved active work visibility)

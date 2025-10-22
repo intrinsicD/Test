@@ -67,7 +67,9 @@ namespace engine::core::threading {
         }
 
         const auto total_pending = queues_[0].size() + queues_[1].size() + queues_[2].size();
-        if (total_pending >= config_.queue_capacity)
+        // Count both pending tasks and currently executing tasks against capacity to bound total in-flight work.
+        const auto in_flight = total_pending + active_workers_.load(std::memory_order_relaxed);
+        if (in_flight >= config_.queue_capacity)
         {
             return false;
         }
@@ -190,4 +192,3 @@ namespace engine::core::threading {
     }
 
 }  // namespace engine::core::threading
-
