@@ -33,7 +33,7 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, MutableMapping, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, MutableMapping, Optional, Sequence, Tuple, Type
 
 
 @dataclass
@@ -141,6 +141,7 @@ class RuntimeStreamingMetrics:
     streaming_total_failed: int
     streaming_total_cancelled: int
     streaming_total_rejected: int
+    geometry_failures_by_error: Dict[str, int]
 
 
 @dataclass
@@ -258,22 +259,39 @@ class RuntimeDiagnosticsSnapshot:
     metrics: Optional[RuntimeMetricsSnapshot] = None
 
 
-class _CStreamingMetrics(ctypes.Structure):
-    _fields_ = [
-        ("worker_count", ctypes.c_size_t),
-        ("queue_capacity", ctypes.c_size_t),
-        ("pending_tasks", ctypes.c_size_t),
-        ("active_workers", ctypes.c_size_t),
-        ("total_enqueued", ctypes.c_uint64),
-        ("total_executed", ctypes.c_uint64),
-        ("streaming_pending", ctypes.c_uint64),
-        ("streaming_loading", ctypes.c_uint64),
-        ("streaming_total_requests", ctypes.c_uint64),
-        ("streaming_total_completed", ctypes.c_uint64),
-        ("streaming_total_failed", ctypes.c_uint64),
-        ("streaming_total_cancelled", ctypes.c_uint64),
-        ("streaming_total_rejected", ctypes.c_uint64),
-    ]
+_STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK = 5
+
+
+def _create_streaming_metrics_type(capacity: int) -> Type[ctypes.Structure]:
+    """Build a ctypes struct matching the runtime streaming metrics layout."""
+
+    if capacity <= 0:
+        capacity = _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK
+
+    return type(
+        "_CStreamingMetrics",
+        (ctypes.Structure,),
+        {
+            "_fields_": [
+                ("worker_count", ctypes.c_size_t),
+                ("queue_capacity", ctypes.c_size_t),
+                ("pending_tasks", ctypes.c_size_t),
+                ("active_workers", ctypes.c_size_t),
+                ("total_enqueued", ctypes.c_uint64),
+                ("total_executed", ctypes.c_uint64),
+                ("streaming_pending", ctypes.c_uint64),
+                ("streaming_loading", ctypes.c_uint64),
+                ("streaming_total_requests", ctypes.c_uint64),
+                ("streaming_total_completed", ctypes.c_uint64),
+                ("streaming_total_failed", ctypes.c_uint64),
+                ("streaming_total_cancelled", ctypes.c_uint64),
+                ("streaming_total_rejected", ctypes.c_uint64),
+                ("geometry_failure_count", ctypes.c_uint32),
+                ("geometry_failures", ctypes.c_uint64 * capacity),
+                ("geometry_failure_labels", ctypes.c_char_p * capacity),
+            ]
+        },
+    )
 
 
 class _CHotReloadMetrics(ctypes.Structure):
@@ -301,6 +319,11 @@ class RuntimeBindings:
         self._has_hot_reload_metrics = False
         self._has_scene_validation = False
         self._has_metrics = False
+        self._streaming_metrics_capacity = _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK
+        self._streaming_metrics_type: Type[ctypes.Structure]
+        self._streaming_metrics_type = _create_streaming_metrics_type(
+            self._streaming_metrics_capacity
+        )
         self._streaming_metrics_func = None
         self._hot_reload_metrics_func = None
         self._configure_signatures()
@@ -368,6 +391,25 @@ class RuntimeBindings:
             self._has_simulation_time = False
         else:
             self._has_simulation_time = True
+
+        capacity = self._streaming_metrics_capacity
+        try:
+            lib.engine_runtime_streaming_geometry_failure_capacity_value.restype = ctypes.c_size_t
+            lib.engine_runtime_streaming_geometry_failure_capacity_value.argtypes = []
+        except AttributeError:
+            pass
+        else:
+            try:
+                capacity = int(lib.engine_runtime_streaming_geometry_failure_capacity_value())
+            except Exception:  # pragma: no cover - depends on runtime ABI availability
+                capacity = self._streaming_metrics_capacity
+        if capacity <= 0:
+            capacity = _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK
+        if capacity != self._streaming_metrics_capacity:
+            self._streaming_metrics_capacity = capacity
+            self._streaming_metrics_type = _create_streaming_metrics_type(capacity)
+
+        streaming_metrics_pointer = ctypes.POINTER(self._streaming_metrics_type)
         try:
             lib.engine_runtime_diagnostic_initialize_count.restype = ctypes.c_uint64
             lib.engine_runtime_diagnostic_initialize_count.argtypes = []
@@ -473,11 +515,13 @@ class RuntimeBindings:
 
         try:
             lib.engine_runtime_diagnostic_streaming_metrics.restype = None
-            lib.engine_runtime_diagnostic_streaming_metrics.argtypes = [ctypes.POINTER(_CStreamingMetrics)]
+            lib.engine_runtime_diagnostic_streaming_metrics.argtypes = [
+                streaming_metrics_pointer
+            ]
         except AttributeError:
             try:
                 lib.engine_runtime_streaming_metrics.restype = None
-                lib.engine_runtime_streaming_metrics.argtypes = [ctypes.POINTER(_CStreamingMetrics)]
+                lib.engine_runtime_streaming_metrics.argtypes = [streaming_metrics_pointer]
             except AttributeError:
                 self._has_streaming_metrics = False
                 self._streaming_metrics_func = None
@@ -568,11 +612,21 @@ class RuntimeBindings:
     def has_streaming_metrics(self) -> bool:
         return self._has_streaming_metrics
 
+    @property
+    def streaming_metrics_capacity(self) -> int:
+        return self._streaming_metrics_capacity
+
     def streaming_metrics(self) -> Optional[RuntimeStreamingMetrics]:
         if not self._has_streaming_metrics or self._streaming_metrics_func is None:
             return None
-        data = _CStreamingMetrics()
+        data = self._streaming_metrics_type()
         self._streaming_metrics_func(ctypes.byref(data))
+        failures: Dict[str, int] = {}
+        limit = min(int(data.geometry_failure_count), self._streaming_metrics_capacity)
+        for index in range(limit):
+            label_bytes = data.geometry_failure_labels[index]
+            label = label_bytes.decode("utf-8") if label_bytes else f"error_{index}"
+            failures[label] = int(data.geometry_failures[index])
         return RuntimeStreamingMetrics(
             worker_count=int(data.worker_count),
             queue_capacity=int(data.queue_capacity),
@@ -587,6 +641,7 @@ class RuntimeBindings:
             streaming_total_failed=int(data.streaming_total_failed),
             streaming_total_cancelled=int(data.streaming_total_cancelled),
             streaming_total_rejected=int(data.streaming_total_rejected),
+            geometry_failures_by_error=failures,
         )
 
     def _collect_hot_reload_metrics(self) -> Optional[HotReloadMetrics]:
@@ -1035,7 +1090,7 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
 
 def _streaming_to_dict(
     metrics: Optional[RuntimeStreamingMetrics],
-) -> Optional[Dict[str, int]]:
+) -> Optional[Dict[str, object]]:
     if metrics is None:
         return None
     return {
@@ -1052,6 +1107,7 @@ def _streaming_to_dict(
         "streaming_total_failed": metrics.streaming_total_failed,
         "streaming_total_cancelled": metrics.streaming_total_cancelled,
         "streaming_total_rejected": metrics.streaming_total_rejected,
+        "geometry_failures_by_error": dict(metrics.geometry_failures_by_error),
     }
 
 

@@ -20,8 +20,9 @@
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/resource_translation.hpp"
-#include "engine/runtime/api.hpp"
 #include "engine/assets/validation.hpp"
+#include "engine/io/telemetry.hpp"
+#include "engine/runtime/api.hpp"
 #include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
 #include "engine/scene/validation.hpp"
@@ -970,6 +971,12 @@ TEST(RuntimeHost, StreamingMetricsReflectConfiguration)
     host.shutdown();
 }
 
+TEST(RuntimeHost, StreamingGeometryFailureCapacityMatchesCatalog)
+{
+    EXPECT_EQ(engine_runtime_streaming_geometry_failure_capacity_value(),
+              engine::io::geometry_io_error_count());
+}
+
 TEST(RuntimeHost, DiagnosticsExposeStreamingMetrics)
 {
     engine::runtime::RuntimeHost host{};
@@ -991,6 +998,16 @@ TEST(RuntimeHost, DiagnosticsExposeStreamingMetrics)
     EXPECT_EQ(diagnostics.streaming.streaming_total_failed, direct_metrics.streaming_total_failed);
     EXPECT_EQ(diagnostics.streaming.streaming_total_cancelled, direct_metrics.streaming_total_cancelled);
     EXPECT_EQ(diagnostics.streaming.streaming_total_rejected, direct_metrics.streaming_total_rejected);
+
+    EXPECT_EQ(diagnostics.streaming.streaming_geometry_failures.size(),
+              direct_metrics.streaming_geometry_failures.size());
+    for (std::size_t index = 0; index < direct_metrics.streaming_geometry_failures.size(); ++index)
+    {
+        EXPECT_EQ(diagnostics.streaming.streaming_geometry_failures[index],
+                  direct_metrics.streaming_geometry_failures[index]);
+        EXPECT_EQ(diagnostics.streaming.streaming_geometry_failure_labels[index],
+                  direct_metrics.streaming_geometry_failure_labels[index]);
+    }
 
     host.shutdown();
 }

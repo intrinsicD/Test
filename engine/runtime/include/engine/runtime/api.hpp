@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <array>
 
 #include "engine/animation/api.hpp"
 #include "engine/core/plugin/isubsystem_interface.hpp"
@@ -93,6 +94,8 @@ struct ENGINE_RUNTIME_API StreamingMetrics
     std::uint64_t streaming_total_failed{0};
     std::uint64_t streaming_total_cancelled{0};
     std::uint64_t streaming_total_rejected{0};
+    std::array<std::uint64_t, io::geometry_io_error_count()> streaming_geometry_failures{};
+    std::array<std::string_view, io::geometry_io_error_count()> streaming_geometry_failure_labels{};
 };
 
 struct ENGINE_RUNTIME_API RuntimeStageTiming
@@ -285,6 +288,12 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
     float* out_scale,
     float* out_rotation,
     float* out_translation) noexcept;
+constexpr std::size_t engine_runtime_streaming_geometry_failure_capacity =
+    engine::io::geometry_io_error_count();
+
+extern "C" ENGINE_RUNTIME_API std::size_t
+engine_runtime_streaming_geometry_failure_capacity_value() noexcept;
+
 struct engine_runtime_streaming_metrics
 {
     std::size_t worker_count;
@@ -300,6 +309,9 @@ struct engine_runtime_streaming_metrics
     std::uint64_t streaming_total_failed;
     std::uint64_t streaming_total_cancelled;
     std::uint64_t streaming_total_rejected;
+    std::uint32_t streaming_geometry_failure_count;
+    std::uint64_t streaming_geometry_failures[engine_runtime_streaming_geometry_failure_capacity];
+    const char* streaming_geometry_failure_labels[engine_runtime_streaming_geometry_failure_capacity];
 };
 extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
     struct engine_runtime_streaming_metrics* out_metrics) noexcept;
