@@ -99,9 +99,16 @@ namespace engine::scene::validation
 
         [[nodiscard]] bool has_dirty_ancestor(const entt::registry& registry, entity_type entity)
         {
+            std::unordered_set<entity_type> visited{};
             auto current = entity;
+
             while (current != entt::null)
             {
+                if (!visited.insert(current).second)
+                {
+                    return true;
+                }
+
                 if (!registry.valid(current))
                 {
                     return true;
@@ -113,8 +120,14 @@ namespace engine::scene::validation
                 }
 
                 const auto* hierarchy = registry.try_get<components::Hierarchy>(current);
-                current = (hierarchy != nullptr) ? hierarchy->parent : entt::null;
+                if (hierarchy == nullptr)
+                {
+                    break;
+                }
+
+                current = hierarchy->parent;
             }
+
             return false;
         }
 
@@ -310,14 +323,14 @@ namespace engine::scene::validation
         }
     } // namespace
 
-    HierarchyValidationReport validate_hierarchy(const entt::registry& registry,
-                                                 const HierarchyValidationOptions& options)
-    {
-        HierarchyValidationReport report{};
-        validate_hierarchy_links(registry, report);
-        validate_transforms(registry, options, report);
-        return report;
-    }
+        HierarchyValidationReport validate_hierarchy(const entt::registry& registry,
+                                                     const HierarchyValidationOptions& options)
+        {
+            HierarchyValidationReport report{};
+            validate_hierarchy_links(registry, report);
+            validate_transforms(registry, options, report);
+            return report;
+        }
 
     HierarchyValidationReport validate_hierarchy(const Scene& scene,
                                                  const HierarchyValidationOptions& options)

@@ -222,7 +222,7 @@ namespace engine::scene::serialization
                 const auto it = id_map.find(value);
                 if (it == id_map.end())
                 {
-                    throw std::runtime_error{"Scene serialization: unresolved hierarchy reference"};
+                    return static_cast<entity_type>(value);
                 }
 
                 return it->second;
