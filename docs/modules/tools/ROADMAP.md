@@ -22,6 +22,9 @@ _Last Updated: 2025-04-05_
 - 2025-04-05: Profiling capture export emits Chrome trace payloads via
   `--profile-trace`, satisfying TL-115 with regression coverage in
   `test_runtime_frame_telemetry.py`.
+- 2025-04-30: Added verbose metric descriptions to `telemetry_viewer.py`,
+  closing the outstanding TL-101 follow-up raised during the telemetry metric
+  prefix review.
 - 2025-03-26: README now documents `runtime_frame_telemetry.py` prefix filters
   and `--metrics-all`, partially satisfying `TL-110` while additional
   troubleshooting guidance remains pending.

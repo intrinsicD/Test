@@ -90,6 +90,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=5,
         help="Maximum number of scene validation issues to display (default: 5).",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print extended annotations, including metric descriptions.",
+    )
     return parser.parse_args(argv)
 
 
@@ -343,7 +348,12 @@ def _format_scene_validation(diagnostics: Mapping[str, object], max_issues: int)
     return _format_section("Scene Validation", lines)
 
 
-def _format_metrics(diagnostics: Mapping[str, object], prefixes: Optional[Sequence[str]]) -> str:
+def _format_metrics(
+    diagnostics: Mapping[str, object],
+    prefixes: Optional[Sequence[str]],
+    *,
+    verbose: bool,
+) -> str:
     metrics = diagnostics.get("metrics") if isinstance(diagnostics, Mapping) else None
     if not isinstance(metrics, Mapping):
         return ""
@@ -361,10 +371,15 @@ def _format_metrics(diagnostics: Mapping[str, object], prefixes: Optional[Sequen
         return ""
     lines = []
     for entry in entries:
-        lines.append(
-            f"{entry.name}{entry.formatted_labels()}: {entry.formatted_value()}{entry.formatted_unit()}"
-            f"{entry.formatted_description()}"
+        line = (
+            f"{entry.name}{entry.formatted_labels()}: {entry.formatted_value()}"
+            f"{entry.formatted_unit()}"
         )
+        if verbose:
+            description = entry.formatted_description()
+            if description:
+                line += description
+        lines.append(line)
     return _format_section("Metrics", lines)
 
 
@@ -392,7 +407,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         _format_stage_timings(diagnostics),
         _format_subsystems(diagnostics),
         _format_scene_validation(diagnostics, args.max_issues),
-        _format_metrics(diagnostics, prefixes),
+        _format_metrics(diagnostics, prefixes, verbose=args.verbose),
     ]
     header = "Runtime Telemetry Viewer\n========================"
     print(header)

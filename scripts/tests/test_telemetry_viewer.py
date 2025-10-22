@@ -126,7 +126,11 @@ def telemetry_payload() -> dict[str, object]:
     }
 
 
-def test_viewer_filters_metrics_by_prefix(tmp_path: Path, capsys: pytest.CaptureFixture[str], telemetry_payload: dict[str, object]) -> None:
+def test_viewer_filters_metrics_without_verbose(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    telemetry_payload: dict[str, object],
+) -> None:
     payload_path = tmp_path / "telemetry.json"
     payload_path.write_text(json.dumps(telemetry_payload), encoding="utf-8")
 
@@ -144,12 +148,37 @@ def test_viewer_filters_metrics_by_prefix(tmp_path: Path, capsys: pytest.Capture
     captured = capsys.readouterr().out
     assert "Runtime Telemetry Viewer" in captured
     assert "runtime.streaming.total_completed" in captured
-    assert "Completed streaming requests" in captured
+    assert "Completed streaming requests" not in captured
     assert "runtime.lifecycle.last_tick_ms" not in captured
     assert "Sample issues:" in captured
     assert "Hot Reload Guidance" in captured
     assert "Failed reload attempts: 1" in captured
     assert "Verify the source asset path" in captured
+
+
+def test_viewer_verbose_includes_metric_descriptions(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    telemetry_payload: dict[str, object],
+) -> None:
+    payload_path = tmp_path / "telemetry.json"
+    payload_path.write_text(json.dumps(telemetry_payload), encoding="utf-8")
+
+    exit_code = viewer.main(
+        [
+            "--input",
+            str(payload_path),
+            "--metric-prefix",
+            "runtime.streaming.",
+            "--max-issues",
+            "1",
+            "--verbose",
+        ]
+    )
+    assert exit_code == 0
+    captured = capsys.readouterr().out
+    assert "runtime.streaming.total_completed" in captured
+    assert "Completed streaming requests" in captured
 
 
 def test_viewer_handles_missing_runtime_diagnostics(tmp_path: Path, capsys: pytest.CaptureFixture[str], telemetry_payload: dict[str, object]) -> None:
