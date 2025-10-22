@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/math/common.hpp"
+#include "engine/math/conversions.hpp"
 #include "engine/math/utils/utils_rotation.hpp"
 #include "engine/math/utils/utils_matrix.hpp"
 #include "engine/math/math.hpp"
@@ -238,6 +239,88 @@ TEST(Matrix, VariadicConstructorFillsRows)
     const Matrix<float, 2, 2> value(1.0F, 2.0F, 3.0F, 4.0F);
     ExpectVectorEqual(value[0], {1.0F, 2.0F});
     ExpectVectorEqual(value[1], {3.0F, 4.0F});
+}
+
+TEST(VectorConversions, ArrayRoundTrip)
+{
+    const vec4 original{1.0F, -2.0F, 3.5F, 4.0F};
+    const auto packed = conversions::to_array(original);
+    static_assert(std::is_same_v<decltype(packed), const std::array<float, 4>>);
+
+    const auto unpacked = conversions::vector_from_array<float, 4>(packed);
+    ExpectVectorEqual(unpacked, {1.0F, -2.0F, 3.5F, 4.0F});
+
+    const float legacy_data[4] = {5.0F, 6.0F, 7.0F, 8.0F};
+    const auto span_round_trip = conversions::vector_from_span<float, 4>(std::span<const float>{legacy_data, 4});
+    ExpectVectorEqual(span_round_trip, {5.0F, 6.0F, 7.0F, 8.0F});
+}
+
+TEST(MatrixConversions, ColumnMajorRoundTrip)
+{
+    Matrix<float, 4, 4> value{};
+    float counter = 0.0F;
+    for (std::size_t column = 0; column < 4; ++column)
+    {
+        for (std::size_t row = 0; row < 4; ++row)
+        {
+            value[row][column] = counter;
+            counter += 1.0F;
+        }
+    }
+
+    const auto packed = conversions::to_column_major_array(value);
+    for (std::size_t i = 0; i < packed.size(); ++i)
+    {
+        EXPECT_FLOAT_EQ(packed[i], static_cast<float>(i));
+    }
+
+    const auto unpacked = conversions::matrix_from_column_major_array<float, 4, 4>(packed);
+    for (std::size_t column = 0; column < 4; ++column)
+    {
+        for (std::size_t row = 0; row < 4; ++row)
+        {
+            EXPECT_FLOAT_EQ(unpacked[row][column], value[row][column]);
+        }
+    }
+}
+
+TEST(MatrixConversions, RowMajorRoundTrip)
+{
+    Matrix<double, 3, 3> value{};
+    double counter = 1.0;
+    for (std::size_t row = 0; row < 3; ++row)
+    {
+        for (std::size_t column = 0; column < 3; ++column)
+        {
+            value[row][column] = counter;
+            counter += 1.0;
+        }
+    }
+
+    const auto packed = conversions::to_row_major_array(value);
+    for (std::size_t i = 0; i < packed.size(); ++i)
+    {
+        EXPECT_DOUBLE_EQ(packed[i], static_cast<double>(i + 1));
+    }
+
+    const double legacy_row_major[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
+    const auto from_span = conversions::matrix_from_row_major_span<double, 3, 3>(std::span<const double>{legacy_row_major, 9});
+    for (std::size_t row = 0; row < 3; ++row)
+    {
+        for (std::size_t column = 0; column < 3; ++column)
+        {
+            EXPECT_DOUBLE_EQ(from_span[row][column], value[row][column]);
+        }
+    }
+
+    const auto unpacked = conversions::matrix_from_row_major_array<double, 3, 3>(packed);
+    for (std::size_t row = 0; row < 3; ++row)
+    {
+        for (std::size_t column = 0; column < 3; ++column)
+        {
+            EXPECT_DOUBLE_EQ(unpacked[row][column], value[row][column]);
+        }
+    }
 }
 
 TEST(Matrix, RowAccessSupportsConstAndNonConst)

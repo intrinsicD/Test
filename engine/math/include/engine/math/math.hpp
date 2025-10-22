@@ -6,4 +6,5 @@
 #include "sparse_matrix.hpp"
 #include "quaternion.hpp"
 #include "transform.hpp"
+#include "conversions.hpp"
 

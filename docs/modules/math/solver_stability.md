@@ -98,5 +98,7 @@ When in doubt, pre-normalise using double precision and cast back to float.
 - **Testing.** Extend `engine_math_tests` with adversarial matrices whenever new
   solver modes are introduced to keep this guidance accurate.
 
-Future work (`MA-125`) will build on this guidance by documenting external
-format conversions and any additional precision constraints they impose.
+Pair these recommendations with the published
+[`format_conversions.md`](format_conversions.md) cheatsheet when shuttling data
+between external formats and engine types; revisit both documents if new
+formats introduce tighter precision constraints.
