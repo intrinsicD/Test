@@ -191,7 +191,7 @@ index d954c5d..024ff64 100644
 +++ b/docs/prints/rt-005-3-hierarchy-diagnostics-docs.md
 @@ -358,7 +358,7 @@ N/A
  ## FOLLOW_UP_TODOS
--- [ ] Align scene module documentation with the hierarchy troubleshooting guide (owner: TBD, priority: High) to close `SC-220`.
+-- [x] Align scene module documentation with the hierarchy troubleshooting guide (owner: Scene, priority: High) to close `SC-220` (completed 2025-04-09; see `docs/modules/scene/README.md` and `docs/modules/scene/diagnostics.md`).
 +- [x] Align scene module documentation with the hierarchy troubleshooting guide (owner: Scene, priority: High) to close `SC-220` (completed 2025-03-22; see `docs/prints/sc-220-documentation-refresh.md`).
 
 diff --git a/docs/reviews/2025-03-22-scene-docs.md b/docs/reviews/2025-03-22-scene-docs.md

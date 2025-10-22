@@ -12,7 +12,9 @@ DOCS_DIR = ROOT / "docs"
 MODULES_DIR = DOCS_DIR / "modules"
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 CODE_BLOCK_RE = re.compile(r"```[\s\S]*?```", re.M)
-ROADMAP_ID_RE = re.compile(r"\b(?:AI|CC|CR|DC|DI|MC|PY|RT|TI|BS)-\d+\b")
+ROADMAP_ID_RE = re.compile(
+    r"\b(?:AI|AN|AS|BS|CC|CO|CR|DC|DI|GE|IO|MA|MC|PH|PL|PY|RE|RT|SC|TI|TL)-\d+\b"
+)
 ROADMAP_LINK_TOKEN = "../../ROADMAP.md"
 TODO_SECTION_RE = re.compile(r"## TODO / Next Steps(?P<body>.*?)(?:\n## |\Z)", re.S)
 REQUIRED_SECTIONS = ("## Current State", "## Usage", "## TODO / Next Steps")
