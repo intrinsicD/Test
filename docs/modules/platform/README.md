@@ -77,9 +77,20 @@ Each attempt records failure messages; an exception summarising all failed
 backends is raised when no candidate succeeds. Integrations should surface the
 message to ease troubleshooting.
 
+## SDL Backend Parity Checklist (`PL-215`)
+
+- Follow the [SDL backend parity checklist](sdl_backend_checklist.md) to stage
+  work on a native SDL window implementation. The document summarises
+  prerequisites, validation steps, and remaining gaps relative to the GLFW
+  backend so `DC-003` adopters can plan implementation tasks without losing
+  determinism or observability guarantees.
+
 ## TODO / Next Steps
 
-- Track `PL-215` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — tied to `DC-003` and `CC-002`.
+- Track `PL-215` follow-ups using the SDL parity checklist (backend feature
+  parity, CI coverage, troubleshooting docs) and keep status synced with the
+  [central roadmap](../../ROADMAP.md) while `DC-003` implementation tasks are
+  staffed.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -87,7 +98,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `PL-215` | Publish SDL backend parity checklist (`DC-003`). | Document feature parity, dependencies, and validation steps. | 🔄 In Progress |
+| `PL-215` | Publish SDL backend parity checklist (`DC-003`). | Document feature parity, dependencies, and validation steps. | ✅ Done |
 | `PL-222` | Implement filesystem watcher abstraction (`CC-002`). | Provide cross-platform watcher with tests and README updates. | ✅ Done |
 | `PL-230` | Update backend selection docs. | Refresh README + root docs with backend selection flow. | ✅ Done |
 
