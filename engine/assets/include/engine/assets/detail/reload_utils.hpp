@@ -74,7 +74,7 @@ namespace engine::assets::detail
             message.append(std::string{error.message()});
         }
 
-        return make_asset_load_error(map_geometry_error(error), std::move(message));
+        return make_asset_load_error(map_geometry_error(error), std::move(message)).with_geometry_error(error);
     }
 
     inline void record_hot_reload_attempt(bool notify, std::string_view identifier)

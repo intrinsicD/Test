@@ -3,7 +3,10 @@
 #include "engine/assets/handles.hpp"
 #include "engine/core/diagnostics/error.hpp"
 #include "engine/core/diagnostics/result.hpp"
+#include "engine/io/errors.hpp"
+#include "engine/io/telemetry.hpp"
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -15,6 +18,7 @@
 #include <mutex>
 #include <optional>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -254,6 +258,46 @@ namespace engine::assets {
             copy.assign_message(std::move(message));
             return copy;
         }
+
+        [[nodiscard]] AssetLoadError with_geometry_error(io::GeometryIoErrorCode error) const
+        {
+            AssetLoadError copy{*this};
+            copy.geometry_error_ = std::move(error);
+            return copy;
+        }
+
+        [[nodiscard]] const std::optional<io::GeometryIoErrorCode>& geometry_error() const noexcept
+        {
+            return geometry_error_;
+        }
+
+    private:
+        std::optional<io::GeometryIoErrorCode> geometry_error_{};
+    };
+
+    class AssetLoadException final : public std::runtime_error
+    {
+    public:
+        explicit AssetLoadException(AssetLoadError error)
+            : std::runtime_error([&error]() {
+                  const auto message = error.message();
+                  if (!message.empty())
+                  {
+                      return std::string{message};
+                  }
+                  return std::string{to_string(error.code())};
+              }()),
+              error_{std::move(error)}
+        {
+        }
+
+        [[nodiscard]] const AssetLoadError& error() const noexcept
+        {
+            return error_;
+        }
+
+    private:
+        AssetLoadError error_;
     };
 
     [[nodiscard]] inline AssetLoadError make_asset_load_error(AssetLoadErrorCategory category,
@@ -591,6 +635,7 @@ namespace engine::assets {
         std::uint64_t total_failed{0};
         std::uint64_t total_cancelled{0};
         std::uint64_t total_rejected{0};
+        std::array<std::uint64_t, io::geometry_io_error_count()> geometry_failures{};
     };
 
     class AssetStreamingTelemetry
@@ -619,19 +664,31 @@ namespace engine::assets {
             increment_state(to);
 
             switch (to)
-            {
-            case AssetLoadState::Ready:
-                total_completed_.fetch_add(1, std::memory_order_relaxed);
-                break;
-            case AssetLoadState::Failed:
-                total_failed_.fetch_add(1, std::memory_order_relaxed);
-                break;
-            case AssetLoadState::Cancelled:
-                total_cancelled_.fetch_add(1, std::memory_order_relaxed);
-                break;
+                {
+                case AssetLoadState::Ready:
+                    total_completed_.fetch_add(1, std::memory_order_relaxed);
+                    break;
+                case AssetLoadState::Failed:
+                    total_failed_.fetch_add(1, std::memory_order_relaxed);
+                    break;
+                case AssetLoadState::Cancelled:
+                    total_cancelled_.fetch_add(1, std::memory_order_relaxed);
+                    break;
             default:
                 break;
             }
+        }
+
+        void on_failure(const AssetLoadError& error)
+        {
+            const auto& geometry_error = error.geometry_error();
+            if (!geometry_error)
+            {
+                return;
+            }
+
+            const auto index = io::geometry_io_error_index(geometry_error->code());
+            geometry_failures_[index].fetch_add(1, std::memory_order_relaxed);
         }
 
         void on_rejected()
@@ -649,6 +706,10 @@ namespace engine::assets {
             snapshot.total_failed = total_failed_.load(std::memory_order_relaxed);
             snapshot.total_cancelled = total_cancelled_.load(std::memory_order_relaxed);
             snapshot.total_rejected = total_rejected_.load(std::memory_order_relaxed);
+            for (std::size_t index = 0; index < geometry_failures_.size(); ++index)
+            {
+                snapshot.geometry_failures[index] = geometry_failures_[index].load(std::memory_order_relaxed);
+            }
             return snapshot;
         }
 
@@ -662,6 +723,10 @@ namespace engine::assets {
             total_failed_.store(0, std::memory_order_relaxed);
             total_cancelled_.store(0, std::memory_order_relaxed);
             total_rejected_.store(0, std::memory_order_relaxed);
+            for (auto& failure_count : geometry_failures_)
+            {
+                failure_count.store(0, std::memory_order_relaxed);
+            }
         }
 
     private:
@@ -704,6 +769,7 @@ namespace engine::assets {
         std::atomic<std::uint64_t> total_failed_{0};
         std::atomic<std::uint64_t> total_cancelled_{0};
         std::atomic<std::uint64_t> total_rejected_{0};
+        std::array<std::atomic<std::uint64_t>, io::geometry_io_error_count()> geometry_failures_{};
     };
 
     struct AssetHotReloadTelemetrySnapshot
@@ -902,6 +968,7 @@ namespace engine::assets {
                 if (!result.has_value())
                 {
                     promise_ref.set_failed(result.error());
+                    AssetStreamingTelemetry::instance().on_failure(result.error());
                     transition(state_ptr, identifier, AssetLoadState::Failed);
                     AssetHotReloadTelemetry::instance().record_failure(result.error(), identifier);
                     return;
@@ -952,6 +1019,7 @@ namespace engine::assets {
                     auto error =
                         make_asset_load_error(AssetLoadErrorCategory::Timeout, "IO queue saturated");
                     promise_ptr->set_failed(error);
+                    AssetStreamingTelemetry::instance().on_failure(error);
                     transition(state_ptr, identifier, AssetLoadState::Failed);
                     AssetStreamingTelemetry::instance().on_rejected();
                     AssetHotReloadTelemetry::instance().record_rejected();

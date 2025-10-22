@@ -71,9 +71,7 @@ const MeshAsset& MeshCache::load(const MeshAssetDescriptor& descriptor)
     {
         if (auto reload = reload_asset(handle, *asset, !inserted); !reload.has_value())
         {
-            const auto message = reload.error().message();
-            throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}
-                                                     : std::string{message});
+            throw AssetLoadException(reload.error());
         }
     }
 
@@ -197,6 +195,16 @@ AssetLoadFuture<MeshHandle> MeshCache::load_async(const AssetLoadRequest& reques
         request.priority,
         request.allow_blocking_fallback,
         [this, descriptor](detail::AssetLoadPromise<MeshHandle>&) -> AssetLoadResult<MeshHandle> {
+            if (!descriptor.source.empty())
+            {
+                if (const auto detection = io::detect_geometry_file(descriptor.source); !detection)
+                {
+                    auto error = detail::make_geometry_asset_error(
+                        descriptor.source, "load_async.detect_geometry_file", detection.error());
+                    AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                    return AssetLoadResult<MeshHandle>{error};
+                }
+            }
             const auto make_error = [&descriptor](AssetLoadErrorCategory category, const char* reason) {
                 std::string message;
                 if (!descriptor.source.empty())
@@ -225,6 +233,12 @@ AssetLoadFuture<MeshHandle> MeshCache::load_async(const AssetLoadRequest& reques
             {
                 const auto& asset = this->load(descriptor);
                 return AssetLoadResult<MeshHandle>{asset.descriptor.handle};
+            }
+            catch (const AssetLoadException& ex)
+            {
+                auto error = ex.error();
+                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::invalid_argument& ex)
             {
