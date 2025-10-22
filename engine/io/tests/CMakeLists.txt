@@ -13,6 +13,11 @@ target_link_libraries(engine_io_tests
         GTest::gtest_main
 )
 
+target_compile_definitions(engine_io_tests
+    PRIVATE
+        ENGINE_IO_ENABLE_SIGNATURE_TEST_HOOKS
+)
+
 add_test(NAME engine_io_tests COMMAND engine_io_tests)
 
 if(ENGINE_ENABLE_FUZZING)

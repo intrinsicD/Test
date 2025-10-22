@@ -105,7 +105,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `RT-006.1` | Build signature database. | Curated signature set committed with provenance notes; fuzz harness consumes it. | 🔄 In Progress |
+| `RT-006.1` | Build signature database. | Curated signature set committed with provenance notes; fuzz harness consumes it. | ✅ Done |
 | `RT-006.2` | Integrate libFuzzer harness. | Harness runs in CI with seed corpus, failures captured in telemetry. | 🟠 Blocked on CI runner capacity |
 | `RT-006.3` | Author detection docs. | IO README explains detection workflow, failure handling, and fuzzing steps. | ✅ Done |
 
@@ -122,6 +122,11 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-03-20: Added `scripts/diagnostics/telemetry_viewer.py` with smoke tests to
   deliver `CC-001.2`/`TL-101`, enabling operators to inspect runtime telemetry
   snapshots without rebuilding the C++ tooling.
+- 2025-03-25: Geometry signature catalogue landed at
+  `engine/io/signatures/geometry_signatures.json`; runtime loader honours the
+  `ENGINE_IO_GEOMETRY_SIGNATURE_PATH` override for experimentation and fuzzing
+  workflows, unblocking the remaining `RT-006` harness work once CI capacity is
+  restored.
 - 2025-03-22: Published [`design/telemetry_instrumentation_guide.md`](design/telemetry_instrumentation_guide.md)
   detailing module authoring patterns and closing `CC-001.3`.
 
@@ -164,10 +169,10 @@ Once staffed, execute module-specific queues below.
   `GE-212` remeshing/parameterisation RFP is published (see
   `docs/design/ge-212-remeshing_parameterization_rfp.md`), and focus shifts to
   `GE-220` telemetry alignment instrumentation.
-- **IO** — `IO-221` signature + fuzz integration (`RT-006`) in progress; detection
-  & fuzzing playbook published (`RT-006.3`).
-  structured error catalog (`IO-230`) published; next focus `IO-240`
-  telemetry alignment once diagnostics schema lands.
+- **IO** — `IO-221` signature catalogue landed; fuzz harness wiring tracks
+  `RT-006.2` once CI capacity returns. Detection & fuzzing playbook published
+  (`RT-006.3`). Structured error catalog (`IO-230`) published; telemetry
+  alignment (`IO-240`) remains available for follow-up instrumentation work.
 - **Math** — `MA-110` SIMD validation harness (`TI-003`), then `MA-118`
   documentation of solver stability ranges.
 - **Physics** — `PH-430` collision throughput telemetry surfaced in diagnostics;

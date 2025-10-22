@@ -1,0 +1,51 @@
+{
+  "rules": [
+    {
+      "id": "mesh.off.header",
+      "kind": "mesh",
+      "mesh_format": "off",
+      "match": {
+        "type": "line_prefix",
+        "patterns": ["OFF", "COFF", "NOFF", "CNOFF"],
+        "case_sensitive": false,
+        "comment_prefixes": ["#"]
+      },
+      "format_hint": ".off"
+    },
+    {
+      "id": "mesh.ascii_stl",
+      "kind": "mesh",
+      "mesh_format": "stl",
+      "match": {
+        "type": "line_prefix",
+        "patterns": ["solid"],
+        "case_sensitive": false
+      },
+      "format_hint": ".stl"
+    },
+    {
+      "id": "point_cloud.pcd.header",
+      "kind": "point_cloud",
+      "point_cloud_format": "pcd",
+      "match": {
+        "type": "contains_all",
+        "patterns": ["FIELDS", "POINTS", "DATA"],
+        "case_sensitive": false,
+        "max_scan_bytes": 2048
+      },
+      "format_hint": ".pcd"
+    },
+    {
+      "id": "mesh.obj.heuristic",
+      "kind": "mesh",
+      "mesh_format": "obj",
+      "match": {
+        "type": "contains_all",
+        "patterns": ["v ", "f "],
+        "case_sensitive": false,
+        "max_scan_bytes": 4096
+      },
+      "format_hint": ".obj"
+    }
+  ]
+}

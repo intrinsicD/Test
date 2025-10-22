@@ -6,6 +6,9 @@
 - Implements scaffolding for cache policies and integrates with asset caches.
 - Supplies structured error handling as part of `DC-004` migration across
   geometry and animation importers.
+- Ships a data-driven geometry signature database at
+  `engine/io/signatures/geometry_signatures.json` with an override via the
+  `ENGINE_IO_GEOMETRY_SIGNATURE_PATH` environment variable for local testing.
 - Geometry import/export plugins now return `GeometryIoResult` values and map
   filesystem or parsing failures to `GeometryIoErrorCode` identifiers, allowing
   callers to branch on `file_not_found`, `io_failure`, or `invalid_argument`
@@ -37,6 +40,21 @@
   `python scripts/diagnostics/runtime_frame_telemetry.py` viewer; see the
   [Telemetry Instrumentation Guide](../../design/telemetry_instrumentation_guide.md)
   for operational details.
+
+## Signature Database
+
+- The canonical geometry signature catalogue lives at
+  `engine/io/signatures/geometry_signatures.json`. Each rule specifies the
+  geometry kind, resolved format, matching strategy (`byte_prefix`,
+  `line_prefix`, or `contains_all`), and optional format hint propagated during
+  detection.
+- Override the catalogue path via the
+  `ENGINE_IO_GEOMETRY_SIGNATURE_PATH` environment variable to experiment with
+  custom entries or trimmed datasets in local fuzzing sessions. The override is
+  picked up lazily and cached until the next reset.
+- Keep the catalogue in sync with fixtures under
+  `engine/io/tests/corpus/geometry_detection/` so regression and fuzzing suites
+  cover every recorded signature.
 
 ## Error Catalog
 
@@ -115,7 +133,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `IO-221` | Integrate signature database + fuzz harness (`RT-006`). | Signature set committed, fuzz target wired into CI, README updated. | 🔄 In Progress |
+| `IO-221` | Integrate signature database + fuzz harness (`RT-006`). | Signature set committed, fuzz target wired into CI, README updated. | ✅ Done |
 | `IO-230` | Publish structured error catalog. | Document error codes and remediation steps in README + design note. | ✅ Done |
 | `IO-240` | Align telemetry for import/export failures. | Emit metrics consumed by diagnostics viewer and log failure provenance. | ✅ Done |
 
