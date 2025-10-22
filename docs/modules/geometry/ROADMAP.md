@@ -8,7 +8,7 @@ _Last Updated: 2025-03-25_
 | --- | --- | --- |
 | Benchmarking (`GE-205`) | Quantify performance of normals/bounds recomputation. | ✅ Done |
 | Remeshing proposal (`GE-212`) | Define scope for remeshing & parameterisation upgrades. | ✅ Done |
-| Telemetry alignment (`GE-220`) | Emit diagnostics compatible with telemetry viewer. | 🟢 Planned |
+| Telemetry alignment (`GE-220`) | Emit diagnostics compatible with telemetry viewer. | ✅ Done |
 
 ## Active Tasks
 
@@ -21,9 +21,9 @@ _Last Updated: 2025-03-25_
 | Task ID | Description | Dependency |
 | --- | --- | --- |
 | `GE-212` | Draft remeshing/parameterisation RFP referencing design constraints. | None |
-| `GE-220` | Instrument spatial query telemetry and update README. | Schema ready (`CC-001.1`); wire metrics via diagnostics bridge |
+| `CC-001` (viewer docs) | Document geometry telemetry metrics in the diagnostics viewer. | Requires `GE-220` instrumentation snapshot |
 
-> **Staffing Guidance:** `GE-212` focuses on planning and RFP authorship, while `GE-220` delivers telemetry instrumentation. Apart from consuming the diagnostics schema from `CC-001`, the efforts are independent, so assign separate agents and sync via documentation check-ins.
+> **Staffing Guidance:** `GE-212` focuses on planning and RFP authorship, while `GE-220` delivered telemetry instrumentation. With metrics now flowing into diagnostics, partner with CC-001 owners on the viewer documentation follow-up noted above.
 
 The published RFP for `GE-212` lives in
 [`docs/design/ge-212-remeshing_parameterization_rfp.md`](../../design/ge-212-remeshing_parameterization_rfp.md)
