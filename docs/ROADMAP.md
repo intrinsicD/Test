@@ -176,9 +176,9 @@ Once staffed, execute module-specific queues below.
   once runner capacity is provisioned. Detection & fuzzing playbook published
   (`RT-006.3`). Structured error catalog (`IO-230`) published; telemetry
   alignment (`IO-240`) remains available for follow-up instrumentation work.
-- **Math** — `MA-118` documentation of solver stability ranges followed by
-  `MA-125` external-format conversion guidance once the documentation draft
-  lands.
+- **Math** — Solver stability guidance published in
+  `docs/modules/math/solver_stability.md`; next up is `MA-125` external-format
+  conversion guidance.
 - **Physics** — `PH-430` collision throughput telemetry surfaced in diagnostics;
   next sprint should scope automation for publishing long-term trends.
 - **Platform** — SDL parity checklist published (`PL-215`); keep presets and the

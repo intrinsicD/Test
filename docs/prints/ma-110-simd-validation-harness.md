@@ -108,4 +108,4 @@ See diff excerpts above; no additional adjustments after review.
 - [ ] Extend SIMD harness to cover quaternion operations once vector coverage stabilises (owner: Math team, medium priority, aligns with MA-125 planning).
 - [ ] Wire SIMD test target into CI performance dashboards to monitor execution time drift.
 - [ ] Investigate opportunities to share structure-of-arrays helpers with future SIMD runtime paths (tech debt backlog).
-- [ ] Capture harness usage notes in docs/specs when MA-118 documentation expands solver guidance.
+- [x] Capture harness usage notes in docs/specs when MA-118 documentation expands solver guidance (covered by `docs/modules/math/solver_stability.md`).
