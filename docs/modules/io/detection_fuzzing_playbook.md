@@ -83,7 +83,9 @@ detector. Use this checklist whenever curating or updating the catalogue:
    dispatch without new code. Select a `match.type` (`byte_prefix`,
    `line_prefix`, or `contains_all`) that minimises false positives.
 3. **Validate locally** — run `ctest --preset <preset> --tests-regex
-   engine_io` to exercise unit coverage. Add targeted unit tests when extending
+   engine_io` to exercise unit coverage. The
+   `GeometryDetectionCorpus` test suite validates that every seed maps to the
+   expected geometry kind and format. Add targeted unit tests when extending
    detection heuristics so regressions fail deterministically.
 4. **Refresh documentation** — update this playbook and the IO README with the
    new format, listing required extensions and signature tokens.

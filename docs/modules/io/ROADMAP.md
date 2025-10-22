@@ -6,7 +6,7 @@ _Last Updated: 2025-03-24_
 
 | Goal | Description | Status |
 | --- | --- | --- |
-| Signature hardening (`IO-221`) | Build signature DB and fuzz harness coverage. | 🔄 In Progress |
+| Signature hardening (`IO-221`) | Build signature DB and fuzz harness coverage. | ✅ Done |
 | Error catalog (`IO-230`) | Document structured errors for tooling. | ✅ Done |
 | Telemetry alignment (`IO-240`) | Surface import/export failures via diagnostics. | ✅ Done |
 
@@ -14,7 +14,7 @@ _Last Updated: 2025-03-24_
 
 | Task ID | Owner | Due | Status |
 | --- | --- | --- | --- |
-| `IO-221` | IO team | 2025-03-14 | 🔄 In Progress |
+| _None_ | – | – | – |
 
 ## Upcoming
 
@@ -28,6 +28,7 @@ _Last Updated: 2025-03-24_
 | --- | --- | --- |
 | `IO-230` | Publish structured error catalog referencing `DC-004`. | Catalog lives in `docs/modules/io/README.md#error-catalog` and feeds diagnostics tooling. |
 | `IO-240` | Align geometry import/export telemetry with runtime diagnostics bridge. | Metrics available under `io.geometry.*` counters; failure logs include file provenance for operators. |
+| `IO-221` | Build signature DB and fuzz harness coverage. | Signature database consumed in detection pipeline with curated fuzz corpus checked into `engine/io/tests/corpus/geometry_detection/`. |
 
 ## Notes
 

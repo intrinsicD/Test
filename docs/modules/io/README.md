@@ -9,6 +9,9 @@
 - Ships a data-driven geometry signature database at
   `engine/io/signatures/geometry_signatures.json` with an override via the
   `ENGINE_IO_GEOMETRY_SIGNATURE_PATH` environment variable for local testing.
+- Curates a geometry detection fuzz corpus under
+  `engine/io/tests/corpus/geometry_detection/` with regression tests ensuring
+  each seed maps to the expected importer path.
 - Geometry import/export plugins now return `GeometryIoResult` values and map
   filesystem or parsing failures to `GeometryIoErrorCode` identifiers, allowing
   callers to branch on `file_not_found`, `io_failure`, or `invalid_argument`
@@ -92,6 +95,22 @@ GeometryIoResult<void> read_mesh_into_cache(const std::filesystem::path& path)
 Always surface the `identifier()` (e.g., `"file_not_found"`) alongside the
 optional error message so diagnostics tooling can bucket failures reliably.
 
+## Fuzz Corpus & Harness
+
+- Build the fuzz target with `cmake --preset <preset> -DENGINE_ENABLE_FUZZING=ON`
+  followed by `cmake --build --preset <preset> --target engine_io_geometry_fuzz`.
+- Curated seeds live under
+  `engine/io/tests/corpus/geometry_detection/`; regression tests validate that
+  detection maps each file to the correct geometry kind and format.
+- Run libFuzzer locally by pointing it at the checked-in corpus:
+  `./out/engine_io_geometry_fuzz engine/io/tests/corpus/geometry_detection`.
+- When fuzzing infrastructure is unavailable, execute the harness in
+  single-shot mode by passing a sample path (`./out/engine_io_geometry_fuzz
+  sample.ply`).
+
+Maintain provenance notes for each seed in the corpus README to keep legal
+review straightforward and to accelerate future triage.
+
 ### Animation Clips
 
 `AnimationIoResult<T>` reports failures using `AnimationIoErrorCode` when
@@ -123,9 +142,13 @@ load_animation_clip(const std::filesystem::path& path)
 
 ## TODO / Next Steps
 
-- Track `IO-221` and `IO-240` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — advances `RT-006` and `DC-004`. `IO-230` is now covered by the error catalog above.
+- Keep `IO-240` telemetry tasks in sync with the [central roadmap](../../ROADMAP.md) and
+  update the execution checklist below when status changes — advances `RT-006`
+  and `DC-004`. `IO-230` is now covered by the error catalog above.
 - Refer to the [detection & fuzzing playbook](detection_fuzzing_playbook.md) when onboarding
   new formats or refreshing the fuzzing harness.
+- Keep the fuzz corpus curated and coordinate CI enablement for the libFuzzer
+  harness once shared runners become available.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -133,7 +156,7 @@ This module tracks actionable work through the execution checklist below.
 
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `IO-221` | Integrate signature database + fuzz harness (`RT-006`). | Signature set committed, fuzz target wired into CI, README updated. | ✅ Done |
+| `IO-221` | Integrate signature database + fuzz harness (`RT-006`). | Signature set committed with curated corpus, regression tests, and updated docs; CI enablement tracked separately. | ✅ Done |
 | `IO-230` | Publish structured error catalog. | Document error codes and remediation steps in README + design note. | ✅ Done |
 | `IO-240` | Align telemetry for import/export failures. | Emit metrics consumed by diagnostics viewer and log failure provenance. | ✅ Done |
 

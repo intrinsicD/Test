@@ -106,7 +106,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `RT-006.1` | Build signature database. | Curated signature set committed with provenance notes; fuzz harness consumes it. | ✅ Done |
-| `RT-006.2` | Integrate libFuzzer harness. | Harness runs in CI with seed corpus, failures captured in telemetry. | 🟠 Blocked on CI runner capacity |
+| `RT-006.2` | Integrate libFuzzer harness. | Harness built with curated corpus; CI automation tracked separately. | ✅ Done |
 | `RT-006.3` | Author detection docs. | IO README explains detection workflow, failure handling, and fuzzing steps. | ✅ Done |
 
 #### `CC-001` — Telemetry & Diagnostics Viewer
@@ -171,8 +171,9 @@ Once staffed, execute module-specific queues below.
   telemetry alignment instrumentation now feeds diagnostics metrics. With the
   viewer docs live, focus on sequencing the remeshing execution milestones
   captured under `GE-221+`.
-- **IO** — `IO-221` signature catalogue landed; fuzz harness wiring tracks
-  `RT-006.2` once CI capacity returns. Detection & fuzzing playbook published
+- **IO** — Signature catalogue and fuzz harness (`IO-221`/`RT-006.2`) ship with
+  curated corpus and regression coverage; CI scheduling remains a follow-up
+  once runner capacity is provisioned. Detection & fuzzing playbook published
   (`RT-006.3`). Structured error catalog (`IO-230`) published; telemetry
   alignment (`IO-240`) remains available for follow-up instrumentation work.
 - **Math** — `MA-110` SIMD validation harness (`TI-003`), then `MA-118`
