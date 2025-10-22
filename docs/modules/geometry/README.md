@@ -34,9 +34,43 @@
   operations.
 - Execute `ctest --preset <preset> --tests-regex engine_geometry`.
 
+## Telemetry
+
+- `GeometrySpatialTelemetry` records spatial query activity for the octree
+  accelerator, exposing invocation counters and result statistics consumed by
+  runtime diagnostics.【F:engine/geometry/include/engine/geometry/telemetry.hpp†L11-L72】
+- The runtime publishes the snapshot as metrics named
+  `runtime.geometry.spatial.*` with an `operation` label covering
+  `octree_build`, `octree_query_aabb`, `octree_query_sphere`,
+  `octree_query_ray`, `octree_query_segment`, `octree_query_knn`, and
+  `octree_query_nearest`. Inspect the metrics through the telemetry viewer:
+
+  ```bash
+  python scripts/diagnostics/runtime_frame_telemetry.py \
+      --library-dir <build>/engine/runtime \
+      --frames 16 --dt 0.016 --output telemetry/frame_timings.json
+
+  python scripts/diagnostics/telemetry_viewer.py \
+      --input telemetry/frame_timings.json \
+      --metric-prefix runtime.geometry.spatial.
+  ```
+
+- Metric details:
+
+  | Metric | Kind | Description |
+  | --- | --- | --- |
+  | `runtime.geometry.spatial.invocations` | Counter (`Count`) | Spatial query invocations per operation. |
+  | `runtime.geometry.spatial.result_total` | Counter (`Count`) | Aggregate results returned across all invocations. |
+  | `runtime.geometry.spatial.last_results` | Gauge (`Count`) | Results produced by the most recent invocation. |
+  | `runtime.geometry.spatial.max_results` | Gauge (`Count`) | Maximum results observed for the operation. |
+
 ## TODO / Next Steps
 
-- Track telemetry viewer documentation follow-up in the [central roadmap](../../ROADMAP.md) so diagnostics consumers understand the new metrics — supports `CC-001` alignment.
+- Monitor telemetry viewer adoption alongside the diagnostics initiative
+  (`CC-001`) and record follow-up issues in the [central roadmap](../../ROADMAP.md).
+- Coordinate with the [central roadmap](../../ROADMAP.md) to schedule the
+  remeshing execution milestone (`GE-221`) once staffing is assigned, building
+  on the published RFP (`GE-212`).
 
 This module tracks actionable work through the execution checklist below.
 
@@ -57,7 +91,9 @@ See [ROADMAP.md](ROADMAP.md) for full context.
 ### Staffing Notes
 
 - `GE-212` is a planning/RFP effort focused on defining scope and dependencies.
-- `GE-220` instrumentation is complete; coordinate with CC-001 stakeholders on viewer documentation for the new metrics.
+- `GE-220` instrumentation is complete and viewer documentation now covers the
+  spatial query metrics. Coordinate with tooling stakeholders on adoption and
+  regression tracking.
 - Assign separate agents to each task and coordinate asynchronously on schema updates to keep workstreams decoupled.
 
 ### Benchmarks

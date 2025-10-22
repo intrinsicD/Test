@@ -28,9 +28,9 @@
   ```
 - By default the script prints metrics whose fully-qualified names start with
   `runtime.streaming.`. Repeat `--metric-prefix` to inspect other namespaces
-  (for example, `--metric-prefix runtime.lifecycle.`). Pass `--metrics-all` to
-  dump every metric from the runtime snapshot when investigating broader
-  anomalies.
+  (for example, `--metric-prefix runtime.lifecycle.` or
+  `--metric-prefix runtime.geometry.spatial.`). Pass `--metrics-all` to dump
+  every metric from the runtime snapshot when investigating broader anomalies.
 - Supply `--profile-trace trace.json` to export the per-dispatch timings as a
   Chrome trace, enabling analysis with Perfetto/`about://tracing` alongside the
   console summary.
@@ -50,9 +50,10 @@
       --input telemetry/frame_timings.json \
       --metric-prefix runtime.streaming.
   ```
-- Adjust `--metric-prefix` (repeatable) to focus on specific subsystems and use
-  `--max-issues` to expand hierarchy validation summaries when triaging scene
-  diagnostics.
+- Adjust `--metric-prefix` (repeatable) to focus on specific subsystems—e.g.,
+  `--metric-prefix runtime.geometry.spatial.` renders the geometry spatial
+  query counters—and use `--max-issues` to expand hierarchy validation
+  summaries when triaging scene diagnostics.
 - Pass `--verbose` to include metric description annotations alongside sampled
   values when operators need additional context for unfamiliar counters.
 

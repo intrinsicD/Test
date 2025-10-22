@@ -29,6 +29,7 @@
 #include "engine/rendering/command_encoder.hpp"
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/material_system.hpp"
+#include "engine/geometry/telemetry.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 
 namespace {
@@ -1081,6 +1082,44 @@ TEST(RuntimeHost, DiagnosticsIncludePhysicsTelemetry)
     ASSERT_TRUE(iteration_metric.has_value());
     EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*iteration_metric].value),
                      static_cast<double>(telemetry.solver_iterations));
+
+    host.shutdown();
+}
+
+TEST(RuntimeHost, DiagnosticsExposeGeometrySpatialTelemetry)
+{
+    auto& telemetry = engine::geometry::GeometrySpatialTelemetry::instance();
+    telemetry.reset_for_testing();
+    telemetry.record_invocation(engine::geometry::GeometrySpatialQueryOperation::octree_query_aabb, 3U);
+    telemetry.record_invocation(engine::geometry::GeometrySpatialQueryOperation::octree_query_aabb, 5U);
+    telemetry.record_invocation(engine::geometry::GeometrySpatialQueryOperation::octree_query_knn, 2U);
+
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+    host.tick(0.016);
+
+    const auto& metrics = host.diagnostics().metrics;
+    const auto label = std::make_pair(std::string_view{"operation"}, std::string_view{"octree_query_aabb"});
+
+    const auto invocation_metric =
+        find_metric_index(metrics, "runtime.geometry.spatial.invocations", label);
+    ASSERT_TRUE(invocation_metric.has_value());
+    EXPECT_EQ(engine::core::telemetry::as_int(metrics.samples[*invocation_metric].value), 2);
+
+    const auto result_total_metric =
+        find_metric_index(metrics, "runtime.geometry.spatial.result_total", label);
+    ASSERT_TRUE(result_total_metric.has_value());
+    EXPECT_EQ(engine::core::telemetry::as_int(metrics.samples[*result_total_metric].value), 8);
+
+    const auto last_metric =
+        find_metric_index(metrics, "runtime.geometry.spatial.last_results", label);
+    ASSERT_TRUE(last_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*last_metric].value), 5.0);
+
+    const auto max_metric =
+        find_metric_index(metrics, "runtime.geometry.spatial.max_results", label);
+    ASSERT_TRUE(max_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*max_metric].value), 5.0);
 
     host.shutdown();
 }
