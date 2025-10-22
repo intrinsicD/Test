@@ -173,11 +173,20 @@ def test_evaluate_variance_raises_for_missing_dispatch() -> None:
 def test_diagnostics_to_dict_roundtrip() -> None:
     snapshot = telemetry.RuntimeDiagnosticsSnapshot(
         initialize_count=1,
+        initialize_failure_count=2,
         shutdown_count=2,
         tick_count=3,
         last_initialize_ms=0.1,
         last_shutdown_ms=0.2,
         last_tick_ms=0.3,
+        has_initialize_failure=True,
+        last_initialize_failure=telemetry.RuntimeInitializationFailure(
+            runtime="test_runtime",
+            subsystem="animation",
+            category="test.category",
+            message="Subsystem failed",
+            duration_ms=1.25,
+        ),
         average_tick_ms=0.25,
         max_tick_ms=0.4,
         stages=[
@@ -201,6 +210,10 @@ def test_diagnostics_to_dict_roundtrip() -> None:
                 initialize_count=1,
                 tick_count=3,
                 shutdown_count=1,
+                initialize_failure_count=1,
+                last_initialize_failure_ms=0.33,
+                last_initialize_failure_category="physics.startup",
+                last_initialize_failure_message="configuration missing",
             )
         ],
         streaming=telemetry.RuntimeStreamingMetrics(
@@ -256,6 +269,13 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["hot_reload"]["failure_count"] == 1
     assert payload["hot_reload"]["error_hint"] == "Rebuild shader"
     assert payload["hot_reload"]["total_requests"] == 3
+    assert payload["initialize_failure_count"] == 2
+    assert payload["has_initialize_failure"] is True
+    assert payload["last_initialize_failure"]["runtime"] == "test_runtime"
+    assert payload["last_initialize_failure"]["duration_ms"] == pytest.approx(1.25)
+    assert payload["subsystems"][0]["initialize_failure_count"] == 1
+    assert payload["subsystems"][0]["last_initialize_failure_category"] == "physics.startup"
+    assert payload["subsystems"][0]["last_initialize_failure_message"] == "configuration missing"
 
 
 def test_select_metrics_filters_by_prefix() -> None:

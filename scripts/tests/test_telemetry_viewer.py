@@ -35,6 +35,16 @@ def telemetry_payload() -> dict[str, object]:
             "category:geometry": 1.5,
         },
         "runtime_diagnostics": {
+            "initialize_count": 4,
+            "initialize_failure_count": 1,
+            "has_initialize_failure": True,
+            "last_initialize_failure": {
+                "runtime": "example_scene",
+                "subsystem": "physics",
+                "category": "physics.startup",
+                "message": "World failed to initialize",
+                "duration_ms": 2.75,
+            },
             "streaming": {
                 "worker_count": 2,
                 "queue_capacity": 64,
@@ -74,6 +84,11 @@ def telemetry_payload() -> dict[str, object]:
                     "last_tick_ms": 0.5,
                     "max_tick_ms": 0.7,
                     "tick_count": 4,
+                    "initialize_count": 1,
+                    "initialize_failure_count": 0,
+                    "last_initialize_failure_ms": 0.0,
+                    "last_initialize_failure_category": "",
+                    "last_initialize_failure_message": "",
                 }
             ],
             "scene_validation": {
@@ -154,6 +169,9 @@ def test_viewer_filters_metrics_without_verbose(
     assert "Hot Reload Guidance" in captured
     assert "Failed reload attempts: 1" in captured
     assert "Verify the source asset path" in captured
+    assert "Initialization Failures" in captured
+    assert "Total initialization failures: 1" in captured
+    assert "physics.startup" in captured
 
 
 def test_viewer_verbose_includes_metric_descriptions(
@@ -199,6 +217,10 @@ def test_viewer_suppresses_hot_reload_guidance_without_failures(
     telemetry_payload: dict[str, object],
 ) -> None:
     payload = json.loads(json.dumps(telemetry_payload))
+    diagnostics = payload["runtime_diagnostics"]
+    diagnostics["initialize_failure_count"] = 0
+    diagnostics["has_initialize_failure"] = False
+    diagnostics["last_initialize_failure"] = None
     streaming = payload["runtime_diagnostics"]["streaming"]
     streaming["streaming_total_failed"] = 0
     streaming["streaming_total_cancelled"] = 0
@@ -216,3 +238,4 @@ def test_viewer_suppresses_hot_reload_guidance_without_failures(
     assert exit_code == 0
     captured = capsys.readouterr().out
     assert "Hot Reload Guidance" not in captured
+    assert "Initialization Failures" not in captured

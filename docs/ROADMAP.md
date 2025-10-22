@@ -157,9 +157,9 @@ Once staffed, execute module-specific queues below.
   work.
 - **Core** — Completed `CR-125` lifecycle audit, `CR-130` configuration
   refresh, `CR-135` dependency diagnostics, and `CR-136` structured logging.
-  Partner with Tools on `CR-137` to surface initialization failure logs/metrics
-  inside the diagnostics viewer and runtime runbook so observability guidance
-  stays aligned across modules.
+  With `CR-137` delivered, coordinate with Tools on telemetry viewer smoke-test
+  coverage once runtime shared libraries are packaged in CI so initialization
+  failure guidance stays validated.
 - **Geometry** — `GE-205` normal recompute benchmark landed with reporting;
   `GE-212` remeshing/parameterisation RFP is published (see
   `docs/design/ge-212-remeshing_parameterization_rfp.md`), and focus shifts to

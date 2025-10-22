@@ -11,7 +11,7 @@ _Last Updated: 2025-03-30_
 | Configuration docs refresh (`CR-130`) | Keep configuration APIs discoverable. | ✅ Done |
 | Subsystem dependency diagnostics (`CR-135`) | Detect plugin dependency cycles and document recovery steps. | ✅ Done |
 | Structured logging follow-up (`CR-136`) | Capture subsystem initialization failure context in telemetry/logs. | ✅ Done |
-| Diagnostics viewer integration (`CR-137`) | Surface initialization failure logs/metrics across tooling. | 🟡 Planned |
+| Diagnostics viewer integration (`CR-137`) | Surface initialization failure logs/metrics across tooling. | ✅ Done |
 
 ## Active Work
 
@@ -25,7 +25,7 @@ _Last Updated: 2025-03-30_
 | --- | --- | --- |
 | `CR-135` | Add dependency cycle detection and lifecycle telemetry guidance. | ✅ Delivered 2025-03-30 |
 | `CR-136` | Document structured logging for subsystem initialization failures. | ✅ Delivered 2025-03-30 |
-| `CR-137` | Integrate initialization failure telemetry into diagnostics viewer/runbook. | Depends on Tools `TL-101` |
+| `CR-137` | Integrate initialization failure telemetry into diagnostics viewer/runbook. | ✅ Delivered 2025-04-30 |
 
 ## Notes
 
@@ -35,7 +35,7 @@ _Last Updated: 2025-03-30_
   complete.
 - Telemetry schema lives in [design/telemetry_schema.md](../../design/telemetry_schema.md);
   keep the document updated as additional modules emit metrics.
-- Upcoming observability focus (`CR-137`): surface initialization failure logs
-  inside the diagnostics viewer and runtime runbook so operators can correlate
-  structured log output with lifecycle metrics (see
+- Observability milestone (`CR-137`) now surfaces initialization failure logs
+  inside the diagnostics viewer and runtime runbook, keeping structured logging
+  guidance aligned with operator tooling (see
   `docs/prints/cr-135-implementation.md`).
