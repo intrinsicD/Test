@@ -1,6 +1,6 @@
 # Geometry Module Roadmap
 
-_Last Updated: 2025-03-25_
+_Last Updated: 2025-05-06_
 
 ## Workstreams
 
@@ -20,10 +20,9 @@ _Last Updated: 2025-03-25_
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `GE-212` | Draft remeshing/parameterisation RFP referencing design constraints. | None |
-| `CC-001` (viewer docs) | Document geometry telemetry metrics in the diagnostics viewer. | Requires `GE-220` instrumentation snapshot |
+| `GE-221+` | Scope execution milestones derived from the remeshing/parameterisation RFP. | `GE-212` |
 
-> **Staffing Guidance:** `GE-212` focuses on planning and RFP authorship, while `GE-220` delivered telemetry instrumentation. With metrics now flowing into diagnostics, partner with CC-001 owners on the viewer documentation follow-up noted above.
+> **Staffing Guidance:** `GE-212` focused on planning and RFP authorship, while `GE-220` delivered telemetry instrumentation. With viewer documentation published, direct capacity toward sequencing the remeshing execution milestones captured under `GE-221+`.
 
 The published RFP for `GE-212` lives in
 [`docs/design/ge-212-remeshing_parameterization_rfp.md`](../../design/ge-212-remeshing_parameterization_rfp.md)

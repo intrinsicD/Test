@@ -125,7 +125,7 @@ these endpoints to mirror the schema into JSON and console summaries.
 
 - Extend `MetricKind::Histogram` with bucket definitions for frame-time
   distributions.
-- Wire additional modules (assets, IO, geometry, physics) to emit metrics using
-  the shared schema once their diagnostics pipelines adopt the telemetry bridge.
+- Wire additional modules (assets, IO, physics) to emit metrics using the
+  shared schema once their diagnostics pipelines adopt the telemetry bridge.
 - Persist telemetry snapshots to structured logs for offline analysis.
 

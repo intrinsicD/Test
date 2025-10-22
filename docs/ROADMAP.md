@@ -168,9 +168,9 @@ Once staffed, execute module-specific queues below.
 - **Geometry** — `GE-205` normal recompute benchmark landed with reporting;
   `GE-212` remeshing/parameterisation RFP is published (see
   `docs/design/ge-212-remeshing_parameterization_rfp.md`), and `GE-220`
-  telemetry alignment instrumentation now feeds diagnostics metrics. Coordinate
-  viewer documentation updates so CC-001 consumers can discover the new spatial
-  query counters.
+  telemetry alignment instrumentation now feeds diagnostics metrics. With the
+  viewer docs live, focus on sequencing the remeshing execution milestones
+  captured under `GE-221+`.
 - **IO** — `IO-221` signature catalogue landed; fuzz harness wiring tracks
   `RT-006.2` once CI capacity returns. Detection & fuzzing playbook published
   (`RT-006.3`). Structured error catalog (`IO-230`) published; telemetry

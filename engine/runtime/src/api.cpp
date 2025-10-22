@@ -4,6 +4,7 @@
 #include "engine/io/telemetry.hpp"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <limits>
@@ -26,6 +27,7 @@
 
 #include "engine/animation/deformation/linear_blend_skinning.hpp"
 #include "engine/geometry/deform/linear_blend_skinning.hpp"
+#include "engine/geometry/telemetry.hpp"
 
 #if ENGINE_ENABLE_ASSETS
 #    include "engine/assets/api.hpp"
@@ -799,6 +801,68 @@ namespace engine::runtime
                       "Hot reload requests currently decoding",
                       static_cast<double>(hot_reload.loading_count),
                       core::telemetry::MetricUnit::Count);
+
+            const auto geometry_snapshot = geometry::GeometrySpatialTelemetry::instance().snapshot();
+            constexpr std::array<std::string_view, geometry::geometry_spatial_query_operation_count()>
+                geometry_operation_names{
+                    "octree_build",
+                    "octree_query_aabb",
+                    "octree_query_sphere",
+                    "octree_query_ray",
+                    "octree_query_segment",
+                    "octree_query_knn",
+                    "octree_query_nearest",
+                };
+            static_assert(geometry_operation_names.size() == geometry::geometry_spatial_query_operation_count());
+
+            const auto operation_labels = [&](std::size_t operation_index) {
+                return make_single_label("operation", geometry_operation_names[operation_index]);
+            };
+
+            const auto add_geometry_counter = [&](
+                                                  std::string_view name,
+                                                  std::string_view description,
+                                                  std::uint64_t value,
+                                                  std::size_t operation_index) {
+                add_counter(name,
+                            description,
+                            clamp_to_int(value),
+                            operation_labels(operation_index));
+            };
+
+            const auto add_geometry_gauge = [&](
+                                                std::string_view name,
+                                                std::string_view description,
+                                                std::uint64_t value,
+                                                std::size_t operation_index) {
+                add_gauge(name,
+                          description,
+                          static_cast<double>(value),
+                          core::telemetry::MetricUnit::Count,
+                          operation_labels(operation_index));
+            };
+
+            for (std::size_t op_index = 0; op_index < geometry_operation_names.size(); ++op_index)
+            {
+                const auto& operation_metrics = geometry_snapshot.operations[op_index];
+
+                add_geometry_counter("runtime.geometry.spatial.invocations",
+                                     "Spatial query invocations grouped by operation",
+                                     operation_metrics.invocations,
+                                     op_index);
+                add_geometry_counter("runtime.geometry.spatial.result_total",
+                                     "Spatial query results accumulated across all invocations",
+                                     operation_metrics.total_results,
+                                     op_index);
+                add_geometry_gauge("runtime.geometry.spatial.last_results",
+                                   "Result count returned by the most recent spatial query invocation",
+                                   operation_metrics.last_results,
+                                   op_index);
+                add_geometry_gauge("runtime.geometry.spatial.max_results",
+                                   "Maximum result count observed for the spatial query operation",
+                                   operation_metrics.max_results,
+                                   op_index);
+            }
 
             const auto error_codes = io::geometry_io_error_codes();
             for (std::size_t op_index = 0; op_index < io::geometry_io_operation_count(); ++op_index)
