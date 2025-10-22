@@ -254,7 +254,7 @@ See ## PATCH.
 - `python scripts/validate_docs.py` — ✅ pass
 
 ## REVIEW_FINDINGS
-- Independent review recorded in [`docs/reviews/2025-03-22-scene-docs.md`](../reviews/2025-03-22-scene-docs.md) approved the change with no blocking issues and one follow-up suggestion for `SC-225` samples.
+- Independent review recorded in [`docs/reviews/2025-03-22-scene-docs.md`](../../reviews/2025-03-22-scene-docs.md) approved the change with no blocking issues and one follow-up suggestion for `SC-225` samples.
 
 ## REVIEW_PATCHES
 N/A

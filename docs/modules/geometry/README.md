@@ -317,4 +317,19 @@ ctest --preset clang-debug -R geometry
 - [`../../specs/ADR-0006-animation-deformation.md`](../../specs/ADR-0006-animation-deformation.md): Deformation pipeline design
 - [`../../tasks/T-0112-geometry-io-roundtrip-hardening.md`](../../tasks/T-0112-geometry-io-roundtrip-hardening.md): IO hardening milestone
 
+## Current State
 
+- `SurfaceMesh` and conversions, procedural primitives, ASCII IO, kd-tree and octree accelerators, and CPU linear blend skinning deformers with telemetry.
+- Topology utilities (halfedge conversion, circulators, connectivity) implemented and covered by tests.
+
+## Usage
+
+- Run geometry tests and benchmarks:
+  - `ctest --preset linux-gcc-debug -R geometry`
+  - `ctest --preset linux-gcc-debug -R geometry_bench`
+- See `engine/geometry/tests/` and `engine/geometry/benchmarks/` for examples.
+
+## TODO / Next Steps
+
+- Sequence remeshing execution milestones derived from the published RFP (`GE-221+`); see ../../ROADMAP.md
+- Track parameterization and decimation follow-ups aligned to `GE-212` RFP; see ../../ROADMAP.md

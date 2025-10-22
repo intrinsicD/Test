@@ -364,4 +364,17 @@ ctest --preset clang-debug -R rendering
 - [`../../tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md): Integration milestone
 - [`../../tasks/T-0116-rendering-vulkan-resource-translation.md`](../../tasks/T-0116-rendering-vulkan-resource-translation.md): Vulkan implementation
 
+## Current State
 
+- Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, Vulkan scheduler prototype, and backend validation metrics covering all providers. Metadata schema aligned with runtime submission invariants.
+
+## Usage
+
+- Run rendering tests (when enabled):
+  - `ctest --preset linux-gcc-debug -R rendering`
+- See `engine/rendering/tests/` for frame-graph and resource lifetime examples.
+
+## TODO / Next Steps
+
+- Monitor backend parity telemetry and scope future backend feature coverage; see ../../ROADMAP.md
+- Maintain and extend the backend checklist and metadata schema alignment (`AI-003` follow-ups); see ../../ROADMAP.md

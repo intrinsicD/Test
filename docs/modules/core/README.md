@@ -380,4 +380,18 @@ Python bindings in `python/engine3g/` wrap the C API.
 - [`../../design/ERROR_HANDLING_MIGRATION.md`](../../design/ERROR_HANDLING_MIGRATION.md): Result<T> usage patterns
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): System-level invariants and data flow
 
+## Current State
 
+- EnTT-backed registry façade, subsystem discovery helpers, module bootstrap plumbing, and dependency cycle diagnostics.
+- Telemetry schema implemented with counters, gauges, and histograms; IO thread pool available for async tasks.
+
+## Usage
+
+- Run core tests:
+  - `ctest --preset linux-gcc-debug -R core`
+- See `engine/core/tests/` for ECS, telemetry, and threading examples.
+
+## TODO / Next Steps
+
+- Maintain runtime packaging automation in CI to validate telemetry tooling (`CR-135`); see ../../ROADMAP.md
+- Extend static checks for legacy error patterns to guard `DC-004` compliance; see ../../ROADMAP.md

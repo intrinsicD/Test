@@ -277,4 +277,17 @@ cmake --build --preset clang-debug-fuzz
 - [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md): IO architecture decisions
 - [`../../tasks/T-0112-geometry-io-roundtrip-hardening.md`](../../tasks/T-0112-geometry-io-roundtrip-hardening.md): Hardening milestone
 
+## Current State
 
+- Geometry/animation import-export wrappers, plugin-ready handlers, signature-based detection, error catalog with `Result<T, GeometryIoError>` patterns, and curated fuzz corpus with regression coverage.
+
+## Usage
+
+- Run IO tests:
+  - `ctest --preset linux-gcc-debug -R io`
+- See `engine/io/tests/` for roundtrip and detection coverage; fuzz harness lives under `engine/io/fuzz/` when enabled.
+
+## TODO / Next Steps
+
+- Coordinate CI enablement for the libFuzzer harness (blocked on infra) and extend detection telemetry (`RT-006`); see ../../ROADMAP.md
+- Adopt `IO-240` telemetry instrumentation to surface per-format error codes consistently in diagnostics; see ../../ROADMAP.md

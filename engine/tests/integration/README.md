@@ -2,8 +2,8 @@
 
 The `engine_integration_tests` target exercises cross-module flows that are
 critical to the runtime → rendering vertical slice tracked under
-[`TI-001`](../../docs/ROADMAP.md#ti-001-integration-suites) and
-[`T-0114`](../../docs/tasks/T-0114-testing-integration-suites.md). The harness
+[`TI-001`](../../../docs/ROADMAP.md#ti-001-integration-suites) and
+[`T-0114`](../../../docs/tasks/T-0114-testing-integration-suites.md). The harness
 runs headless using the mock platform backend and focuses on deterministic
 validation across animation, physics, geometry/IO, assets, and rendering.
 

@@ -265,4 +265,18 @@ ctest --preset clang-debug -R compute_cuda
 - [`../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md`](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md): Planned GPU animation sampling
 - Used by: Physics module (body integration), Geometry module (deformation), Animation module (planned)
 
+## Current State
 
+- Kernel dispatcher with per-kernel telemetry, backend capability probing, and dependency cycle analysis tooling.
+- CUDA optional path aligned with presets; math helpers available for identity transforms and reductions.
+
+## Usage
+
+- Run compute module tests:
+  - `ctest --preset linux-gcc-debug -R compute`
+- See examples above and `engine/compute/tests/` for dispatcher usage and dependency validation.
+
+## TODO / Next Steps
+
+- Prototype runtime integration sample showing dispatcher orchestration (`CO-170`); see ../../ROADMAP.md
+- Evaluate compute-shader backend alignment with frame-graph scheduling (`AI-003` follow-up); see ../../ROADMAP.md

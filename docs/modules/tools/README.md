@@ -197,7 +197,7 @@ ctest --preset clang-debug -R tools  # When enabled
 
 ## Related Documentation
 
-- [`../../README.md`](../../README.md): Tools module status in workspace snapshot
+- [`../../ROADMAP.md`](../../ROADMAP.md): Tools module status in roadmap
 - [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Telemetry metric definitions
 - [`../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md): How to add telemetry
 - [`../runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md): Runtime diagnostics reference
@@ -213,3 +213,18 @@ The tools module is undergoing modularization and is currently **disabled in the
 
 Once modularization is complete, the module will be re-enabled and integrated into the regular build process. Track progress in the main README's module status table.
 
+## Current State
+
+- Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots, Dear ImGui integration for diagnostics UI, and profiler utilities; runtime packaging script available for CI.
+
+## Usage
+
+- Python CLI tools live under `scripts/diagnostics/` and `scripts/tools/`.
+- Run tools tests:
+  - `pytest scripts/tests/`
+  - `ctest --preset linux-gcc-debug -R tools` (when C++ tools are enabled)
+
+## TODO / Next Steps
+
+- Adopt the runtime packaging script in CI pipelines, monitor artefact manifests, and gather feedback for the next diagnostics viewer iteration (`TL-110`); see ../../ROADMAP.md
+- Add Chrome trace export and document workflows for performance investigations (`TL-120`); see ../../ROADMAP.md

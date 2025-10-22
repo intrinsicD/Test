@@ -326,8 +326,21 @@ ctest --preset clang-debug -R platform
 
 - [`BACKLOG.md`](BACKLOG.md): Module milestones including SDL backend work
 - [`SDL_BACKEND_CHECKLIST.md`](SDL_BACKEND_CHECKLIST.md): SDL implementation progress
-- [`../../README.md`](../../README.md): Backend selection reference in workspace snapshot
+- [`../../ROADMAP.md`](../../ROADMAP.md): Platform module status in roadmap
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): Platform role in data flow
 - Used by: Runtime (window management), Assets (filesystem watcher), Rendering (surface creation)
 
+## Current State
 
+- Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. Backend runtime override and build-time defaults documented.
+
+## Usage
+
+- Select backend at runtime with `ENGINE_PLATFORM_WINDOW_BACKEND` or at configure-time with `-DENGINE_WINDOW_BACKEND=` as shown above.
+- Run platform tests (when enabled):
+  - `ctest --preset linux-gcc-debug -R platform`
+
+## TODO / Next Steps
+
+- Scope SDL backend implementation using the parity checklist (`PL-215`) to advance `DC-003`; see ../../ROADMAP.md
+- Extend filesystem watcher docs with OS-specific caveats and integration examples in assets hot-reload; see ../../ROADMAP.md

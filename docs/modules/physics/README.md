@@ -282,4 +282,17 @@ ctest --preset clang-release -R physics_benchmark
 - [`../../tasks/T-0117-physics-contact-manifolds.md`](../../tasks/T-0117-physics-contact-manifolds.md): Manifold implementation milestone
 - Benchmark results: `engine/physics/benchmarks/`
 
+## Current State
 
+- Rigid-body world with mass clamping, damping, configurable substepping, collider support, and sweep-and-prune broad phase plus collision telemetry. Persistent contact manifolds implemented and tracked.
+
+## Usage
+
+- Run physics tests:
+  - `ctest --preset linux-gcc-debug -R physics`
+- See `engine/physics/tests/` for world stepping, collision detection, and telemetry coverage.
+
+## TODO / Next Steps
+
+- Scope automation for long-term collision telemetry trends (post-`PH-430`); see ../../ROADMAP.md
+- Evaluate joint constraints roadmap and author initial ADRs for hinge/spherical joints; see ../../ROADMAP.md

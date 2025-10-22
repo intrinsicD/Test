@@ -355,4 +355,18 @@ ctest --preset clang-debug -R math
 - [`SOLVER_STABILITY.md`](SOLVER_STABILITY.md): Numerical stability considerations for physics/animation
 - Used by: Animation, Physics, Geometry, Rendering, Scene modules
 
+## Current State
 
+- Vector/matrix/quaternion primitives, transform utilities, and projection helpers used across modules.
+- Header-only design with SIMD-friendly operations; format conversion cheatsheet published.
+
+## Usage
+
+- Include math headers directly from `engine/math/`.
+- Run math tests:
+  - `ctest --preset linux-gcc-debug -R math`
+
+## TODO / Next Steps
+
+- Track external-format conversion metrics and drift monitoring (`MA-130`); see ../../ROADMAP.md
+- Extend numeric stability guidance in solver docs and wire unit drift telemetry; see ../../ROADMAP.md

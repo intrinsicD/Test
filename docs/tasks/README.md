@@ -1,6 +1,6 @@
 # Task Records
 
-Each file in this directory documents a sprint backlog or a focused piece of work. Tasks drive discussions with ChatGPT and pair programmers—link to them from PRs and commit messages whenever possible. Treat them as the actionable layer beneath the architecture improvement plan summarised in [`../ROADMAP.md`](../ROADMAP.md) and [`../README.md`](../README.md).
+Each file in this directory documents a sprint backlog or a focused piece of work. Tasks drive discussions with ChatGPT and pair programmers—link to them from PRs and commit messages whenever possible. Treat them as the actionable layer beneath the architecture improvement plan summarised in [`../ROADMAP.md`](../ROADMAP.md).
 
 ## How to Use Task Records
 

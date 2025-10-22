@@ -1,0 +1,28 @@
+name: Docs Validation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'docs/**'
+      - 'scripts/validate_docs.py'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'scripts/validate_docs.py'
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate documentation links and structure
+        run: python3 scripts/validate_docs.py
+

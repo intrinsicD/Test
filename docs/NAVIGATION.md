@@ -76,6 +76,8 @@ All 13 engine modules are documented under [`modules/`](modules/):
 **Validation:**
 Run `python scripts/validate_docs.py` after editing to catch broken links.
 
+CI also runs this check automatically on pushes and PRs; see `.github/workflows/docs-validate.yml`.
+
 **Maintenance:**
 - Update this file when adding new directories or major documents
 - Keep module tables in sync with actual module state
@@ -89,4 +91,3 @@ When a lower-precedence document conflicts with a higher one, update the higher-
 ---
 
 **Last updated:** 2025-10-22 (Restructured from docs/README.md)
-rin

@@ -161,12 +161,26 @@ Run tests via:
 ctest --preset clang-debug -R runtime
 ```
 
+## Current State
+
+- `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, and submission into the rendering pipeline. Diagnostics expose stage timings, streaming metrics, scene validation, and frame-graph metadata.
+
+## Usage
+
+- Run runtime integration tests:
+  - `ctest --preset linux-gcc-debug -R runtime`
+- See `engine/tests/integration/test_runtime_integration.cpp` and `scripts/diagnostics/` for telemetry scripts.
+
+## TODO / Next Steps
+
+- Extend async streaming diagnostics and ensure asset hot-reload callbacks are surfaced in tooling (`AI-002`); see ../../ROADMAP.md
+- Keep hierarchy alert metrics and samples aligned with scene module follow-ups (`SC-225`, `SC-230`); see ../../ROADMAP.md
+
 ## Related Documentation
 
 - [`BACKLOG.md`](BACKLOG.md): Module-specific task tracking
 - [`DIAGNOSTICS.md`](DIAGNOSTICS.md): Comprehensive telemetry reference and troubleshooting
-- [`async_streaming_integration.md`](async_streaming_integration.md): Asset loading workflows
+- [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md): Asset loading workflows
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): System-level data flow and invariants
 - [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Shared metric definitions
 - [`../../tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md): Frame-graph integration milestone
-

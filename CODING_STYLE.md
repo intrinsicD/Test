@@ -92,7 +92,7 @@ This document captures the complete set of conventions for contributing to the m
 ### General Principles
 - Use **relative links** to keep navigation working across contexts:
   ```markdown
-  [Example](specs/ADR-0003-runtime-frame-graph.md)
+  [Example](docs/specs/ADR-0003-runtime-frame-graph.md)
   ```
 - Keep Markdown sections under ~120 lines per heading to improve retrieval quality for AI agents.
 - When creating a new document, state **purpose, scope, and authoritative references** in the first paragraph.

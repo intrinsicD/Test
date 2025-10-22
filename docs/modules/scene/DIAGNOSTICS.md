@@ -8,8 +8,12 @@ validation workflow, where telemetry lives, and how to respond when
 issues surface.
 
 Use this document alongside the runtime diagnostics guide
-([`docs/modules/runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md)) to
+([`../runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md)) to
 keep troubleshooting material synchronised across modules.
+
+## Historical Context
+
+This document consolidates guidance from previous implementation sessions archived in [`../../archive/prints/`](../../archive/prints/).
 
 ## Entry Points
 
@@ -172,7 +176,7 @@ compare runtime telemetry against expected diagnostics output.
 ## Related References
 
 - [`docs/modules/runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md)
-- [`docs/prints/sc-220-documentation-refresh.md`](../../prints/sc-220-documentation-refresh.md)
-- [`docs/prints/rt-005-3-hierarchy-diagnostics-docs.md`](../../prints/rt-005-3-hierarchy-diagnostics-docs.md)
+- [`docs/archive/prints/SC-220-DOCUMENTATION-REFRESH.md`](../../archive/prints/SC-220-DOCUMENTATION-REFRESH.md)
+- [`docs/archive/prints/RT-005-3-HIERARCHY-DIAGNOSTICS-DOCS.md`](../../archive/prints/RT-005-3-HIERARCHY-DIAGNOSTICS-DOCS.md)
 - [`docs/design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md)
 - [`docs/tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md)

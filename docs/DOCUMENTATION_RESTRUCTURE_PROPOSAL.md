@@ -185,10 +185,10 @@ docs/modules/<name>/
 1. Check [`ROADMAP.md`](ROADMAP.md) - is your work active, backlog, or blocked?
 2. Find your module in [`modules/<name>/README.md`](modules/) - understand the subsystem
 3. Read related specs in [`specs/`](specs/) - understand constraints
-4. Follow [`prompts/implementation-playbook.md`](prompts/implementation-playbook.md)
+4. Follow [`prompts/IMPLEMENTATION-PLAYBOOK.md`](prompts/IMPLEMENTATION-PLAYBOOK.md)
 
 **Need architectural context?**
-1. [`architecture.md`](architecture.md) - module boundaries, data flow, invariants
+1. [`ARCHITECTURE.md`](ARCHITECTURE.md) - module boundaries, data flow, invariants
 2. [`specs/ADR-*.md`](specs/) - binding decisions
 
 ## 📁 Directory Guide
@@ -205,23 +205,23 @@ docs/modules/<name>/
 ## 🔧 Common Tasks
 
 ### Implementing a Feature
-→ [`prompts/implementation-playbook.md`](prompts/implementation-playbook.md)
+→ [`prompts/IMPLEMENTATION-PLAYBOOK.md`](prompts/IMPLEMENTATION-PLAYBOOK.md)
 
 ### Reviewing Code
-→ [`prompts/review-checklist.md`](prompts/review-checklist.md)
+→ [`prompts/REVIEW-CHECKLIST.md`](prompts/REVIEW-CHECKLIST.md)
 
 ### Refactoring
-→ [`prompts/refactor-playbook.md`](prompts/refactor-playbook.md)
+→ [`prompts/REFACTOR-PLAYBOOK.md`](prompts/REFACTOR-PLAYBOOK.md)
 
 ### Architecture Audit
-→ [`prompts/architecture-audit.md`](prompts/architecture-audit.md)
+→ [`prompts/ARCHITECTURE-AUDIT.md`](prompts/ARCHITECTURE-AUDIT.md)
 
 ## 📊 Key References
 
 - **Coding Standards:** [`../CODING_STYLE.md`](../CODING_STYLE.md)
-- **Telemetry:** [`design/telemetry_schema.md`](design/telemetry_schema.md), [`design/telemetry_instrumentation_guide.md`](design/telemetry_instrumentation_guide.md)
-- **Error Handling:** [`design/error_handling_migration.md`](design/error_handling_migration.md)
-- **Resource Management:** [`design/resource_management.md`](design/resource_management.md)
+- **Telemetry:** [`design/TELEMETRY_SCHEMA.md`](design/TELEMETRY_SCHEMA.md), [`design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](design/TELEMETRY_INSTRUMENTATION_GUIDE.md)
+- **Error Handling:** [`design/ERROR_HANDLING_MIGRATION.md`](design/ERROR_HANDLING_MIGRATION.md)
+- **Resource Management:** [`design/RESOURCE_MANAGEMENT.md`](design/RESOURCE_MANAGEMENT.md)
 
 ---
 

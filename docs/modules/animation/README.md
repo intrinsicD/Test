@@ -219,3 +219,18 @@ ctest --preset clang-debug -R animation
 - [`../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md`](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md): GPU sampling proposal
 - [`../../tasks/T-0113-animation-runtime-skinning.md`](../../tasks/T-0113-animation-runtime-skinning.md): Runtime integration milestone
 
+## Current State
+
+- Deterministic clip sampling, controllers, blend trees, rig binding, and CPU linear blend skinning are implemented with tests.
+- JSON import/export and validation flows are available; error handling follows `DC-004` using `Result<T, Error>`.
+
+## Usage
+
+- Build and run animation tests:
+  - `ctest --preset linux-gcc-debug -R animation`
+- Sample code for clip sampling, blend trees, and deformation is included above; see C++ tests under `engine/animation/tests/` for end-to-end patterns.
+
+## TODO / Next Steps
+
+- Track GPU/parallel sampling benchmarks (`AN-230`) once compute queue extensions land; see ../../ROADMAP.md
+- Coordinate with runtime for sampling telemetry and potential compute offload interfaces.

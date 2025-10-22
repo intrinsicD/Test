@@ -324,4 +324,17 @@ ctest --preset clang-debug -R scene_samples
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): Scene role in data flow
 - [`../../tasks/2025-02-17-sprint-06.md`](../../tasks/2025-02-17-sprint-06.md): Scene validation sprint milestone
 
+## Current State
 
+- Entity façade, hierarchy and transform propagation, deterministic serialization, and validation with cycle detection; runtime diagnostics integration exposes hierarchy health and alert levels.
+
+## Usage
+
+- Run scene tests:
+  - `ctest --preset linux-gcc-debug -R scene`
+- See `engine/scene/tests/` for hierarchy, serialization, and validation coverage.
+
+## TODO / Next Steps
+
+- Keep the hierarchy diagnostics samples and dashboards aligned (`SC-225`), and maintain alert thresholds policy (`SC-230`); see ../../ROADMAP.md
+- Expand remediation guides with concrete fixtures once samples land; see ../../ROADMAP.md

@@ -239,6 +239,20 @@ ctest --preset clang-debug -R assets
 - [`../../design/RESOURCE_MANAGEMENT.md`](../../design/RESOURCE_MANAGEMENT.md): Handle lifecycle patterns
 - [`../../design/MATERIAL_PERSISTENCE_STRATEGY.md`](../../design/MATERIAL_PERSISTENCE_STRATEGY.md): Material serialization planning
 - [`../../tasks/T-0115-assets-async-streaming-mvp.md`](../../tasks/T-0115-assets-async-streaming-mvp.md): Async streaming milestone
-- [`../runtime/ASYNC_STREAMING_INTEGRATION.md`](../runtime/ASYNC_STREAMING_INTEGRATION.md): Runtime integration guide
+- [`../runtime/ASYNC_STREAMING_INTEGRATION.md`](../runtime/ASYNC_STREAMING_INTEGRATION.md)
 
+## Current State
 
+- Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload callbacks.
+- Async loading pipeline with telemetry integrated into runtime diagnostics; handle validation hooks enabled in debug builds.
+
+## Usage
+
+- Run C++ tests for assets:
+  - `ctest --preset linux-gcc-debug -R assets`
+- See examples above and tests under `engine/assets/tests/` for end-to-end usage.
+
+## TODO / Next Steps
+
+- Plan material persistence strategy and document it (`AS-320`); see ../../ROADMAP.md
+- Surface reload events in diagnostics shell with actionable hints (`AS-330`); see ../../ROADMAP.md
