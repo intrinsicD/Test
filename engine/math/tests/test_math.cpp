@@ -8,6 +8,7 @@
 
 #include "engine/math/common.hpp"
 #include "engine/math/utils/utils_rotation.hpp"
+#include "engine/math/utils/utils_matrix.hpp"
 #include "engine/math/math.hpp"
 
 using namespace engine::math;
@@ -33,7 +34,7 @@ namespace
         EXPECT_EQ(value.y, expected[2]);
         EXPECT_EQ(value.z, expected[3]);
     }
-    
+
     template <typename VectorLike, typename T>
     void ExpectVectorNear(const VectorLike& value, std::initializer_list<T> expected, T tolerance)
     {
@@ -175,7 +176,8 @@ TEST(Vector, CrossProduct)
 }
 
 
-TEST(Vector, ReflectAndRefract) {
+TEST(Vector, ReflectAndRefract)
+{
     const vec3 incident{1.0F, -1.0F, 0.0F};
     const vec3 normal{0.0F, 1.0F, 0.0F};
     const vec3 reflected = reflect(incident, normal);
@@ -192,7 +194,8 @@ TEST(Vector, ReflectAndRefract) {
     EXPECT_FLOAT_EQ(length(tir), 0.0F);
 }
 
-TEST(Vector, ProjectionAndLerp) {
+TEST(Vector, ProjectionAndLerp)
+{
     const vec3 a{3.0F, 4.0F, 0.0F};
     const vec3 b{1.0F, 0.0F, 0.0F};
     EXPECT_FLOAT_EQ(projection_coefficient(a, b), 3.0F);
@@ -366,7 +369,8 @@ TEST(Quaternion, ConjugateLengthNormalizeAndInverse)
     EXPECT_TRUE(std::abs(identity.z) <= tolerance);
 }
 
-TEST(Quaternion, SlerpSquadAndCast) {
+TEST(Quaternion, SlerpSquadAndCast)
+{
     const float pi = static_cast<float>(std::acos(-1.0));
     const Quaternion<float> identity = Quaternion<float>::Identity();
     const vec3 axis{0.0F, 0.0F, 1.0F};
@@ -394,7 +398,8 @@ TEST(Quaternion, SlerpSquadAndCast) {
     EXPECT_NEAR(cast_dst.z, -1.0, 1e-12);
 }
 
-TEST(Quaternion, AngleAxisAndEulerConversions) {
+TEST(Quaternion, AngleAxisAndEulerConversions)
+{
     const float pi = static_cast<float>(std::acos(-1.0));
     const vec3 axis = normalize(vec3{1.0F, 2.0F, 3.0F});
     const Quaternion<float> q = from_angle_axis(pi / 3.0F, axis);
@@ -412,7 +417,8 @@ TEST(Quaternion, AngleAxisAndEulerConversions) {
     EXPECT_NEAR(euler[2], 0.0F, tol);
 }
 
-TEST(RotationUtils, QuaternionMatrixRoundTrip) {
+TEST(RotationUtils, QuaternionMatrixRoundTrip)
+{
     const float pi = static_cast<float>(std::acos(-1.0));
     const vec3 axis = normalize(vec3{0.3F, 0.4F, 0.5F});
     const Quaternion<float> q = from_angle_axis(pi / 5.0F, axis);
@@ -422,7 +428,8 @@ TEST(RotationUtils, QuaternionMatrixRoundTrip) {
     EXPECT_NEAR(alignment, 1.0F, 1e-5F);
 }
 
-TEST(RotationUtils, AngleAxisOverloadsProduceConsistentMatrices) {
+TEST(RotationUtils, AngleAxisOverloadsProduceConsistentMatrices)
+{
     const float pi = static_cast<float>(std::acos(-1.0));
     const float angle = pi / 6.0F;
     const vec3 axis = normalize(vec3{1.0F, 1.0F, 0.5F});
@@ -433,8 +440,10 @@ TEST(RotationUtils, AngleAxisOverloadsProduceConsistentMatrices) {
     const mat3 R2 = utils::to_rotation_matrix(angle_axis3);
     const mat3 R3 = utils::to_rotation_matrix(angle_axis4);
 
-    for (std::size_t r = 0; r < 3; ++r) {
-        for (std::size_t c = 0; c < 3; ++c) {
+    for (std::size_t r = 0; r < 3; ++r)
+    {
+        for (std::size_t c = 0; c < 3; ++c)
+        {
             EXPECT_NEAR(R1[r][c], R2[r][c], 1e-5F);
             EXPECT_NEAR(R1[r][c], R3[r][c], 1e-5F);
         }
@@ -635,7 +644,8 @@ TEST(Matrix, TypeAliasesCompile)
     EXPECT_EQ(double_mat[0][0], 1.0);
 }
 
-TEST(Matrix, DeterminantMatchesAnalyticValues) {
+TEST(Matrix, DeterminantMatchesAnalyticValues)
+{
     const Matrix<float, 2, 2> m2(3.0F, 4.0F,
                                  2.0F, 5.0F);
     EXPECT_FLOAT_EQ(determinant(m2), 7.0F);
@@ -652,7 +662,8 @@ TEST(Matrix, DeterminantMatchesAnalyticValues) {
     EXPECT_FLOAT_EQ(determinant(m4), 120.0F);
 }
 
-TEST(Matrix, TryInverseReturnsExpectedResult) {
+TEST(Matrix, TryInverseReturnsExpectedResult)
+{
     const Matrix<float, 2, 2> m2(4.0F, 7.0F,
                                  2.0F, 6.0F);
     const auto inv2 = try_inverse(m2);
@@ -663,30 +674,38 @@ TEST(Matrix, TryInverseReturnsExpectedResult) {
     EXPECT_NEAR((*inv2)[1][1], 0.4F, 1e-6F);
 
     const Matrix<float, 3, 3> m3(0.0F, -1.0F, 0.0F,
-                                 1.0F,  0.0F, 0.0F,
-                                 0.0F,  0.0F, 1.0F);
+                                 1.0F, 0.0F, 0.0F,
+                                 0.0F, 0.0F, 1.0F);
     const auto inv3 = try_inverse(m3);
     ASSERT_TRUE(inv3.has_value());
     const Matrix<float, 3, 3> expected3(0.0F, 1.0F, 0.0F,
                                         -1.0F, 0.0F, 0.0F,
                                         0.0F, 0.0F, 1.0F);
-    for (std::size_t r = 0; r < 3; ++r) {
-        for (std::size_t c = 0; c < 3; ++c) {
+    for (std::size_t r = 0; r < 3; ++r)
+    {
+        for (std::size_t c = 0; c < 3; ++c)
+        {
             EXPECT_NEAR((*inv3)[r][c], expected3[r][c], 1e-6F);
         }
     }
 
     Matrix<float, 4, 4> m4 = identity_matrix<float, 4>();
-    m4[0][0] = 2.0F; m4[1][1] = 3.0F; m4[2][2] = 4.0F;
-    m4[0][3] = 1.0F; m4[1][3] = 2.0F; m4[2][3] = 3.0F;
+    m4[0][0] = 2.0F;
+    m4[1][1] = 3.0F;
+    m4[2][2] = 4.0F;
+    m4[0][3] = 1.0F;
+    m4[1][3] = 2.0F;
+    m4[2][3] = 3.0F;
     const auto inv4 = try_inverse(m4);
     ASSERT_TRUE(inv4.has_value());
     const Matrix<float, 4, 4> expected4(0.5F, 0.0F, 0.0F, -0.5F,
                                         0.0F, 1.0F / 3.0F, 0.0F, -2.0F / 3.0F,
                                         0.0F, 0.0F, 0.25F, -0.75F,
                                         0.0F, 0.0F, 0.0F, 1.0F);
-    for (std::size_t r = 0; r < 4; ++r) {
-        for (std::size_t c = 0; c < 4; ++c) {
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
             EXPECT_NEAR((*inv4)[r][c], expected4[r][c], 1e-5F);
         }
     }
@@ -699,41 +718,150 @@ TEST(Matrix, TryInverseReturnsExpectedResult) {
 TEST(Matrix, InverseAndCombineReturnIdentity)
 {
     const Matrix<float, 2, 2> m2(4.0F, 7.0F,
-                                  2.0F, 6.0F);
+                                 2.0F, 6.0F);
     const auto inv2 = try_inverse(m2);
     ASSERT_TRUE(inv2.has_value());
     const auto matrix2 = (*inv2) * m2;
 
-    for (std::size_t r = 0; r < 2; ++r) {
-        for (std::size_t c = 0; c < 2; ++c) {
+    for (std::size_t r = 0; r < 2; ++r)
+    {
+        for (std::size_t c = 0; c < 2; ++c)
+        {
             const float expected = (r == c) ? 1.0F : 0.0F;
             EXPECT_NEAR(matrix2[r][c], expected, 1e-6F);
         }
     }
 
     const Matrix<float, 3, 3> m3(0.0F, -1.0F, 0.0F,
-                                 1.0F,  0.0F, 0.0F,
-                                 0.0F,  0.0F, 1.0F);
+                                 1.0F, 0.0F, 0.0F,
+                                 0.0F, 0.0F, 1.0F);
     const auto inv3 = try_inverse(m3);
     ASSERT_TRUE(inv3.has_value());
     const auto matrix3 = (*inv3) * m3;
-    for (std::size_t r = 0; r < 3; ++r) {
-        for (std::size_t c = 0; c < 3; ++c) {
+    for (std::size_t r = 0; r < 3; ++r)
+    {
+        for (std::size_t c = 0; c < 3; ++c)
+        {
             const float expected = (r == c) ? 1.0F : 0.0F;
             EXPECT_NEAR(matrix3[r][c], expected, 1e-6F);
         }
     }
 
     Matrix<float, 4, 4> m4 = identity_matrix<float, 4>();
-    m4[0][0] = 2.0F; m4[1][1] = 3.0F; m4[2][2] = 4.0F;
-    m4[0][3] = 1.0F; m4[1][3] = 2.0F; m4[2][3] = 3.0F;
+    m4[0][0] = 2.0F;
+    m4[1][1] = 3.0F;
+    m4[2][2] = 4.0F;
+    m4[0][3] = 1.0F;
+    m4[1][3] = 2.0F;
+    m4[2][3] = 3.0F;
     const auto inv4 = try_inverse(m4);
     ASSERT_TRUE(inv4.has_value());
     const auto matrix4 = (*inv4) * m4;
-    for (std::size_t r = 0; r < 4; ++r) {
-        for (std::size_t c = 0; c < 4; ++c) {
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
             const float expected = (r == c) ? 1.0F : 0.0F;
             EXPECT_NEAR(matrix4[r][c], expected, 1e-5F);
+        }
+    }
+}
+
+TEST(Matrix, Pseudoinverse)
+{
+  const float tol = 1e-4F;
+
+    // Test 1: Simple 2x3 matrix
+    {
+        Matrix<float, 2, 3> A(1, 0, 0,
+                              0, 1, 0);
+        auto A_plus = utils::pseudo_inverse(A);
+
+        // A^+ * A should be close to identity
+        auto I = A_plus * A;
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            for (std::size_t j = 0; j < 3; ++j)
+            {
+                float expected = (i == j) ? 1.0F : 0.0F;
+                EXPECT_NEAR(I[i][j], expected, tol);
+            }
+        }
+    }
+
+    // Test 2: Overdetermined (tall) matrix - least squares
+    {
+        Matrix<float, 4, 2> A(1, 0,
+                              0, 1,
+                              1, 0,
+                              0, 1);
+        auto A_plus = utils::pseudo_inverse(A);
+        EXPECT_EQ(A_plus.rows(), 2u);
+        EXPECT_EQ(A_plus.cols(), 4u);
+
+        // A^+ * A should be identity
+        auto I = A_plus * A;
+        for (std::size_t i = 0; i < 2; ++i)
+        {
+            for (std::size_t j = 0; j < 2; ++j)
+            {
+                float expected = (i == j) ? 1.0F : 0.0F;
+                EXPECT_NEAR(I[i][j], expected, tol);
+            }
+        }
+    }
+
+    // Test 3: Underdetermined (wide) matrix - minimum norm
+    {
+        Matrix<float, 2, 4> A(1, 0, 1, 0,
+                              0, 1, 0, 1);
+        auto A_plus = utils::pseudo_inverse(A);
+
+        // A * A^+ should be identity
+        auto I = A * A_plus;
+        for (std::size_t i = 0; i < 2; ++i)
+        {
+            for (std::size_t j = 0; j < 2; ++j)
+            {
+                float expected = (i == j) ? 1.0F : 0.0F;
+                EXPECT_NEAR(I[i][j], expected, tol);
+            }
+        }
+    }
+
+    // Test 4: Rank-deficient square matrix
+    {
+        mat3 B(1, 2, 3,
+               2, 4, 6,
+               1, 0, 0);
+
+        auto B_plus = utils::pseudo_inverse(B);
+        // B * B^+ * B should equal B (weaker condition for rank-deficient)
+        auto reconstructed = B * (B_plus * B);
+        for (std::size_t r = 0; r < 3; ++r)
+        {
+            for (std::size_t c = 0; c < 3; ++c)
+            {
+                EXPECT_NEAR(reconstructed[r][c], B[r][c], 1e-3F);
+            }
+        }
+    }
+
+    // Test 5: Full rank square matrix should match inverse
+    {
+        mat3 C(1, 0, 0,
+               0, 2, 0,
+               0, 0, 3);
+        auto C_plus = utils::pseudo_inverse(C);
+        auto C_inv = try_inverse(C);
+        ASSERT_TRUE(C_inv.has_value());
+
+        for (std::size_t r = 0; r < 3; ++r)
+        {
+            for (std::size_t c = 0; c < 3; ++c)
+            {
+                EXPECT_NEAR(C_plus[r][c], (*C_inv)[r][c], tol);
+            }
         }
     }
 }
@@ -885,9 +1013,9 @@ TEST(SparseMatrix, BuildFromTripletsAndMultiply)
     // [  0  3  4 ]
     // [  1  0  5 ]
     std::vector<SM::Triplet> trips = {
-        {0,0,10}, {2,0,1},
-        {0,1, 2}, {1,1,3},
-        {1,2, 4}, {2,2,5}
+        {0, 0, 10}, {2, 0, 1},
+        {0, 1, 2}, {1, 1, 3},
+        {1, 2, 4}, {2, 2, 5}
     };
     SM A = SM::from_triplets(3, 3, trips, /*sum_duplicates*/true);
 
@@ -897,7 +1025,7 @@ TEST(SparseMatrix, BuildFromTripletsAndMultiply)
     ASSERT_EQ(A.nnz(), 6u);
 
     // Multiply by x = [1,2,3]^T
-    const std::vector<T> x{1,2,3};
+    const std::vector<T> x{1, 2, 3};
     const auto y = A * x;
 
     ASSERT_EQ(y.size(), 3u);
@@ -934,12 +1062,23 @@ TEST(SparseMatrix, TryGetSetAddToAndOrdering)
     ASSERT_TRUE(A.is_column_sorted());
     EXPECT_EQ(A.nnz(), 5u);
 
-    auto v00 = A.try_get(0,0); ASSERT_TRUE(v00.has_value()); EXPECT_NEAR(*v00, 1.0, 1e-12);
-    auto v20 = A.try_get(2,0); ASSERT_TRUE(v20.has_value()); EXPECT_NEAR(*v20, 5.0, 1e-12);
-    auto v30 = A.try_get(3,0); ASSERT_TRUE(v30.has_value()); EXPECT_NEAR(*v30, 7.0, 1e-12);
-    auto v11 = A.try_get(1,1); ASSERT_TRUE(v11.has_value()); EXPECT_NEAR(*v11, 3.0, 1e-12);
-    auto v02 = A.try_get(0,2); ASSERT_TRUE(v02.has_value()); EXPECT_NEAR(*v02, -4.0, 1e-12);
-    auto v12 = A.try_get(1,2); EXPECT_FALSE(v12.has_value()); // not present
+    auto v00 = A.try_get(0, 0);
+    ASSERT_TRUE(v00.has_value());
+    EXPECT_NEAR(*v00, 1.0, 1e-12);
+    auto v20 = A.try_get(2, 0);
+    ASSERT_TRUE(v20.has_value());
+    EXPECT_NEAR(*v20, 5.0, 1e-12);
+    auto v30 = A.try_get(3, 0);
+    ASSERT_TRUE(v30.has_value());
+    EXPECT_NEAR(*v30, 7.0, 1e-12);
+    auto v11 = A.try_get(1, 1);
+    ASSERT_TRUE(v11.has_value());
+    EXPECT_NEAR(*v11, 3.0, 1e-12);
+    auto v02 = A.try_get(0, 2);
+    ASSERT_TRUE(v02.has_value());
+    EXPECT_NEAR(*v02, -4.0, 1e-12);
+    auto v12 = A.try_get(1, 2);
+    EXPECT_FALSE(v12.has_value()); // not present
 
     // mat-vec quick check
     const std::vector<T> x{1.0, 2.0, -1.0}; // size=cols
@@ -963,16 +1102,21 @@ TEST(SparseMatrix, FromTripletsSumsDuplicatesAndDropsZeros)
     using SM = SparseMatrix<T>;
 
     std::vector<SM::Triplet> trips = {
-        {0,0, 2}, {0,0, -2}, // cancels to zero -> dropped
-        {1,0, 3}, {1,0, 1},  // sums to 4
-        {0,1, 5}
+        {0, 0, 2}, {0, 0, -2}, // cancels to zero -> dropped
+        {1, 0, 3}, {1, 0, 1}, // sums to 4
+        {0, 1, 5}
     };
     SM A = SM::from_triplets(2, 2, trips, /*sum_duplicates*/true);
 
     EXPECT_EQ(A.nnz(), 2u);
-    auto v10 = A.try_get(1,0); ASSERT_TRUE(v10.has_value()); EXPECT_EQ(*v10, 4);
-    auto v01 = A.try_get(0,1); ASSERT_TRUE(v01.has_value()); EXPECT_EQ(*v01, 5);
-    auto v00 = A.try_get(0,0); EXPECT_FALSE(v00.has_value());
+    auto v10 = A.try_get(1, 0);
+    ASSERT_TRUE(v10.has_value());
+    EXPECT_EQ(*v10, 4);
+    auto v01 = A.try_get(0, 1);
+    ASSERT_TRUE(v01.has_value());
+    EXPECT_EQ(*v01, 5);
+    auto v00 = A.try_get(0, 0);
+    EXPECT_FALSE(v00.has_value());
 }
 
 TEST(SparseMatrix, PlusMinusScalarMulAndPrune)
@@ -984,14 +1128,14 @@ TEST(SparseMatrix, PlusMinusScalarMulAndPrune)
     // [ 1 0 ]
     // [ 2 3 ]
     // [ 0 4 ]
-    std::vector<SM::Triplet> Ta = {{0,0,1},{1,0,2},{1,1,3},{2,1,4}};
+    std::vector<SM::Triplet> Ta = {{0, 0, 1}, {1, 0, 2}, {1, 1, 3}, {2, 1, 4}};
     SM A = SM::from_triplets(3, 2, Ta, true);
 
     // B:
     // [ 2 5 ]
     // [ 0 0 ]
     // [ 1 1 ]
-    std::vector<SM::Triplet> Tb = {{0,0,2},{0,1,5},{2,0,1},{2,1,1}};
+    std::vector<SM::Triplet> Tb = {{0, 0, 2}, {0, 1, 5}, {2, 0, 1}, {2, 1, 1}};
     SM B = SM::from_triplets(3, 2, Tb, true);
 
     SM C = A + B;
@@ -1000,13 +1144,25 @@ TEST(SparseMatrix, PlusMinusScalarMulAndPrune)
     // [ 2 3 ]
     // [ 1 5 ]
     {
-        auto c00 = C.try_get(0,0); ASSERT_TRUE(c00.has_value()); EXPECT_NEAR(*c00, 3.0F, 1e-6F);
-        auto c10 = C.try_get(1,0); ASSERT_TRUE(c10.has_value()); EXPECT_NEAR(*c10, 2.0F, 1e-6F);
-        auto c20 = C.try_get(2,0); ASSERT_TRUE(c20.has_value()); EXPECT_NEAR(*c20, 1.0F, 1e-6F);
+        auto c00 = C.try_get(0, 0);
+        ASSERT_TRUE(c00.has_value());
+        EXPECT_NEAR(*c00, 3.0F, 1e-6F);
+        auto c10 = C.try_get(1, 0);
+        ASSERT_TRUE(c10.has_value());
+        EXPECT_NEAR(*c10, 2.0F, 1e-6F);
+        auto c20 = C.try_get(2, 0);
+        ASSERT_TRUE(c20.has_value());
+        EXPECT_NEAR(*c20, 1.0F, 1e-6F);
 
-        auto c01 = C.try_get(0,1); ASSERT_TRUE(c01.has_value()); EXPECT_NEAR(*c01, 5.0F, 1e-6F);
-        auto c11 = C.try_get(1,1); ASSERT_TRUE(c11.has_value()); EXPECT_NEAR(*c11, 3.0F, 1e-6F);
-        auto c21 = C.try_get(2,1); ASSERT_TRUE(c21.has_value()); EXPECT_NEAR(*c21, 5.0F, 1e-6F);
+        auto c01 = C.try_get(0, 1);
+        ASSERT_TRUE(c01.has_value());
+        EXPECT_NEAR(*c01, 5.0F, 1e-6F);
+        auto c11 = C.try_get(1, 1);
+        ASSERT_TRUE(c11.has_value());
+        EXPECT_NEAR(*c11, 3.0F, 1e-6F);
+        auto c21 = C.try_get(2, 1);
+        ASSERT_TRUE(c21.has_value());
+        EXPECT_NEAR(*c21, 5.0F, 1e-6F);
     }
 
     SM D = C - A; // should equal B
@@ -1016,7 +1172,8 @@ TEST(SparseMatrix, PlusMinusScalarMulAndPrune)
     const auto yB = B * x;
     const auto yD = D * x;
     ASSERT_EQ(yB.size(), yD.size());
-    for (size_t i = 0; i < yB.size(); ++i) {
+    for (size_t i = 0; i < yB.size(); ++i)
+    {
         EXPECT_NEAR(yB[i], yD[i], 1e-6F);
     }
 
@@ -1036,10 +1193,10 @@ TEST(SparseMatrix, TransposeAdjointIdentity)
 
     // Random-looking small A (3x4)
     std::vector<SM::Triplet> trips = {
-        {0,0, 1.0}, {2,0, -2.0},
-        {1,1, 3.0},
-        {0,2, 4.0}, {2,2, 5.0},
-        {1,3, -1.0}
+        {0, 0, 1.0}, {2, 0, -2.0},
+        {1, 1, 3.0},
+        {0, 2, 4.0}, {2, 2, 5.0},
+        {1, 3, -1.0}
     };
     SM A = SM::from_triplets(3, 4, trips, true);
     SM AT = A.transpose();
@@ -1049,7 +1206,7 @@ TEST(SparseMatrix, TransposeAdjointIdentity)
     const std::vector<T> x{1.0, -2.0, 0.5, 3.0};
     const std::vector<T> y{0.25, -1.0, 2.0};
 
-    const auto Ax = A * x;          // size 3
+    const auto Ax = A * x; // size 3
     ASSERT_EQ(Ax.size(), y.size());
 
     // dot(Ax, y)
@@ -1057,7 +1214,7 @@ TEST(SparseMatrix, TransposeAdjointIdentity)
     for (size_t i = 0; i < y.size(); ++i) lhs += Ax[i] * y[i];
 
     // A^T y
-    const auto ATy = AT * y;        // size 4
+    const auto ATy = AT * y; // size 4
     ASSERT_EQ(ATy.size(), x.size());
 
     // dot(x, ATy)
@@ -1074,22 +1231,23 @@ TEST(SparseMatrix, MultiplyAccumulateMatchesOperatorTimes)
 
     // Diagonal-ish 5x5
     std::vector<SM::Triplet> trips;
-    trips.push_back({0,0, 2});
-    trips.push_back({1,1, 3});
-    trips.push_back({2,2, 4});
-    trips.push_back({3,3, 5});
-    trips.push_back({4,4, 6});
-    trips.push_back({4,0, 1}); // some off-diagonal
+    trips.push_back({0, 0, 2});
+    trips.push_back({1, 1, 3});
+    trips.push_back({2, 2, 4});
+    trips.push_back({3, 3, 5});
+    trips.push_back({4, 4, 6});
+    trips.push_back({4, 0, 1}); // some off-diagonal
     SM A = SM::from_triplets(5, 5, trips, true);
 
-    std::vector<T> x{1,2,3,4,5};
+    std::vector<T> x{1, 2, 3, 4, 5};
     const auto y = A * x;
 
     std::vector<T> y_acc(5, 0.0F);
     A.multiply_accumulate(x, y_acc);
 
     ASSERT_EQ(y.size(), y_acc.size());
-    for (size_t i = 0; i < y.size(); ++i) {
+    for (size_t i = 0; i < y.size(); ++i)
+    {
         EXPECT_NEAR(y[i], y_acc[i], 1e-6F);
     }
 }
@@ -1124,12 +1282,14 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_Consistency)
 
     // Build a deterministic dense matrix with some zeros and negatives.
     Matrix<T, Rows, Cols> M{};
-    for (std::size_t r = 0; r < Rows; ++r) {
-        for (std::size_t c = 0; c < Cols; ++c) {
+    for (std::size_t r = 0; r < Rows; ++r)
+    {
+        for (std::size_t c = 0; c < Cols; ++c)
+        {
             // Pattern: base value with sign flip, and introduce sparsity by zeroing some entries.
             T v = static_cast<T>((r + 1) * (c + 2));
-            if ((r + c) % 2 == 0) v = -v;           // flip sign on a checkerboard
-            if (((r + 2 * c) % 3) == 0) v = T(0);   // zero-out every ~3rd entry to ensure sparsity
+            if ((r + c) % 2 == 0) v = -v; // flip sign on a checkerboard
+            if (((r + 2 * c) % 3) == 0) v = T(0); // zero-out every ~3rd entry to ensure sparsity
             M[r][c] = v;
         }
     }
@@ -1138,8 +1298,10 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_Consistency)
     using SM = SparseMatrix<T>;
     std::vector<SM::Triplet> trips;
     trips.reserve(Rows * Cols);
-    for (std::size_t c = 0; c < Cols; ++c) {
-        for (std::size_t r = 0; r < Rows; ++r) {
+    for (std::size_t c = 0; c < Cols; ++c)
+    {
+        for (std::size_t r = 0; r < Rows; ++r)
+        {
             const T v = M[r][c];
             if (v != T(0)) trips.push_back({r, c, v});
         }
@@ -1150,7 +1312,8 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_Consistency)
     ASSERT_EQ(A.cols(), Cols);
 
     // Helper to compare dense vs sparse y = A * x
-    auto check_vec = [&](const std::array<T, Cols>& x_arr) {
+    auto check_vec = [&](const std::array<T, Cols>& x_arr)
+    {
         // Dense y = M * x
         Vector<T, Cols> x_dense{};
         for (std::size_t i = 0; i < Cols; ++i) x_dense[i] = x_arr[i];
@@ -1162,18 +1325,19 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_Consistency)
         const std::vector<T> y_sparse = A * x_sparse;
 
         ASSERT_EQ(y_sparse.size(), Rows);
-        for (std::size_t r = 0; r < Rows; ++r) {
+        for (std::size_t r = 0; r < Rows; ++r)
+        {
             EXPECT_NEAR(y_sparse[r], y_dense[r], 1e-5F);
         }
     };
 
     // Test multiple input vectors (basis, ones, ramp, mixed)
-    check_vec({1, 0, 0, 0});         // e0
-    check_vec({0, 1, 0, 0});         // e1
-    check_vec({0, 0, 1, 0});         // e2
-    check_vec({0, 0, 0, 1});         // e3
-    check_vec({1, 1, 1, 1});         // all ones
-    check_vec({-1, 2, -3, 4});       // mixed signs
+    check_vec({1, 0, 0, 0}); // e0
+    check_vec({0, 1, 0, 0}); // e1
+    check_vec({0, 0, 1, 0}); // e2
+    check_vec({0, 0, 0, 1}); // e3
+    check_vec({1, 1, 1, 1}); // all ones
+    check_vec({-1, 2, -3, 4}); // mixed signs
     check_vec({0.5F, -0.25F, 1.5F, -2.0F}); // fractional
 }
 
@@ -1185,11 +1349,13 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_TransposeConsistency)
 
     // Dense matrix with explicit structure: diagonal-ish plus some off-diagonals; enforce zeros too.
     Matrix<T, Rows, Cols> M{};
-    for (std::size_t r = 0; r < Rows; ++r) {
-        for (std::size_t c = 0; c < Cols; ++c) {
+    for (std::size_t r = 0; r < Rows; ++r)
+    {
+        for (std::size_t c = 0; c < Cols; ++c)
+        {
             T v = (r == (c % Rows)) ? T(2 + r) : T(0); // place a diagonal pattern
-            if ((r + 3*c) % 5 == 0) v = -v;            // some negatives
-            if (((r + c) % 4) == 0) v = T(0);          // induce sparsity
+            if ((r + 3 * c) % 5 == 0) v = -v; // some negatives
+            if (((r + c) % 4) == 0) v = T(0); // induce sparsity
             M[r][c] = v;
         }
     }
@@ -1197,8 +1363,10 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_TransposeConsistency)
     // Build sparse from triplets
     using SM = SparseMatrix<T>;
     std::vector<SM::Triplet> trips;
-    for (std::size_t c = 0; c < Cols; ++c) {
-        for (std::size_t r = 0; r < Rows; ++r) {
+    for (std::size_t c = 0; c < Cols; ++c)
+    {
+        for (std::size_t r = 0; r < Rows; ++r)
+        {
             const T v = M[r][c];
             if (v != T(0)) trips.push_back({r, c, v});
         }
@@ -1217,9 +1385,9 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_TransposeConsistency)
     Vector<T, Rows> y_dense{};
     for (std::size_t i = 0; i < Rows; ++i) y_dense[i] = y_arr[i];
 
-    const Vector<T, Rows> Ax_dense = M * x_dense;                   // (Rows)
-    const Matrix<T, Cols, Rows> MT = transpose(M);                  // Cols x Rows
-    const Vector<T, Cols> ATy_dense = MT * y_dense;                 // (Cols)
+    const Vector<T, Rows> Ax_dense = M * x_dense; // (Rows)
+    const Matrix<T, Cols, Rows> MT = transpose(M); // Cols x Rows
+    const Vector<T, Cols> ATy_dense = MT * y_dense; // (Cols)
 
     T lhs_dense = T(0), rhs_dense = T(0);
     for (std::size_t i = 0; i < Rows; ++i) lhs_dense += Ax_dense[i] * y_dense[i];
@@ -1229,9 +1397,9 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_TransposeConsistency)
     const std::vector<T> x_sparse(x_arr.begin(), x_arr.end());
     const std::vector<T> y_sparse(y_arr.begin(), y_arr.end());
 
-    const std::vector<T> Ax_sparse = A * x_sparse;                  // (Rows)
+    const std::vector<T> Ax_sparse = A * x_sparse; // (Rows)
     const SM AT = A.transpose();
-    const std::vector<T> ATy_sparse = AT * y_sparse;                // (Cols)
+    const std::vector<T> ATy_sparse = AT * y_sparse; // (Cols)
 
     T lhs_sparse = T(0), rhs_sparse = T(0);
     for (std::size_t i = 0; i < Rows; ++i) lhs_sparse += Ax_sparse[i] * y_sparse[i];
@@ -1239,7 +1407,7 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_TransposeConsistency)
 
     // Cross-check dense vs sparse results and adjoint identity
     EXPECT_NEAR(lhs_sparse, rhs_sparse, 1e-12);
-    EXPECT_NEAR(lhs_dense,  rhs_dense,  1e-12);
-    EXPECT_NEAR(lhs_sparse, lhs_dense,  1e-12);
-    EXPECT_NEAR(rhs_sparse, rhs_dense,  1e-12);
+    EXPECT_NEAR(lhs_dense, rhs_dense, 1e-12);
+    EXPECT_NEAR(lhs_sparse, lhs_dense, 1e-12);
+    EXPECT_NEAR(rhs_sparse, rhs_dense, 1e-12);
 }

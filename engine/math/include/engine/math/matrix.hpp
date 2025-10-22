@@ -117,6 +117,8 @@ namespace engine::math
         ENGINE_MATH_INLINE ConstRowProxy row(size_type i) const noexcept { return ConstRowProxy{this, i}; }
         ENGINE_MATH_INLINE Vector<T, Rows>& col(size_type j) noexcept { return columns[j]; }
         ENGINE_MATH_INLINE const Vector<T, Rows>& col(size_type j) const noexcept { return columns[j]; }
+        static ENGINE_MATH_INLINE std::size_t rows() noexcept { return Rows; }
+        static ENGINE_MATH_INLINE std::size_t cols() noexcept { return Cols; }
 
         ENGINE_MATH_INLINE Matrix& operator+=(const Matrix& rhs) noexcept
         {
