@@ -187,9 +187,10 @@ Once staffed, execute module-specific queues below.
   tooling and parity tracking work.
 - **Runtime** — `RT-005` tranche complete; support `SC-225` samples and `SC-230` alerting guidance as scene docs expand.
 - **Scene** — `SC-225` diagnostics samples and `SC-230` alerting thresholds extend the hierarchy playbook delivered in `SC-220`.
-- **Tools** — TL-110 documentation refresh completed; next focus is surfacing
-  metric descriptions in the diagnostics viewer while monitoring the Chrome
-  trace export from `TL-115`.
+- **Tools** — TL-110 documentation refresh completed; telemetry viewer smoke
+  tests now exist and require CI to package runtime shared libraries and export
+  `TEST_ENGINE_RUNTIME_LIBRARY_DIR`. Continue monitoring the Chrome trace
+  export from `TL-115` and extend annotations as operators request.
 
 ### Process & Audit Items
 

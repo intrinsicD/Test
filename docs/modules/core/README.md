@@ -20,11 +20,12 @@
 
 ## TODO / Next Steps
 
-- Coordinate with the Tools module on telemetry viewer smoke-test coverage once
-  runtime shared libraries are packaged in CI (`TL-101` follow-up) so the new
-  initialization failure guidance stays validated (see
+- Coordinate with the Tools module on packaging runtime shared libraries in CI
+  and exporting `TEST_ENGINE_RUNTIME_LIBRARY_DIR` so telemetry viewer smoke
+  tests run automatically (`TL-101` follow-up supporting `CC-001`). Track status via
   [docs/ROADMAP.md](../../ROADMAP.md#outstanding-backlog-focus) and
-  `docs/modules/core/ROADMAP.md`).
+  `docs/modules/core/ROADMAP.md` to keep initialization failure guidance
+  validated.
 
 This module tracks actionable work through the execution checklist below.
 
