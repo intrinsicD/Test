@@ -32,16 +32,20 @@ None.
    - **Follow-up:** Adjust numbering to `N. ## Heading` during the refactor.
 
 ## Documentation Status
-- [ ] `docs/prompts/architecture-audit.md`
-- [ ] `docs/prompts/refactor-playbook.md`
-- [ ] `docs/prompts/review-checklist.md`
-- [ ] `docs/README.md`
+- [x] `docs/prompts/architecture-audit.md`
+- [x] `docs/prompts/refactor-playbook.md`
+- [x] `docs/prompts/review-checklist.md`
+- [x] `docs/README.md`
 
 ## Test Coverage
 Not applicable (documentation review).
 
 ## Follow-Up Work
-- [ ] Publish the refactored prompt under `docs/prompts/` and update navigation to point to the new location.
+- [x] Publish the refactored prompt under `docs/prompts/` and update navigation to point to the new location (completed 2025-04-30).
+
+### Resolution Notes (2025-04-30)
+- Prompt catalogue (`implementation-playbook`, `architecture-audit`, `refactor-playbook`, `review-checklist`) now follows the shared template with updated navigation links.
 
 ## Verdict
-- [x] 🔄 Request Changes (address warnings before adopting the prompt)
+- [x] ✅ Approve
+- [ ] 🔄 Request Changes (address warnings before adopting the prompt)
