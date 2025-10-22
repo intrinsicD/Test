@@ -4,6 +4,7 @@ add_executable(engine_rendering_tests
     test_forward_pipeline.cpp
     test_backend_adapters.cpp
     test_vulkan_resource_translation.cpp
+    test_backend_validation.cpp
 )
 
 target_link_libraries(engine_rendering_tests

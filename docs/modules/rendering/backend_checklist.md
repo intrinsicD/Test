@@ -83,3 +83,5 @@ verify parity between the runtime submission path and the backend scheduler.
 - If the IO thread pool reports a saturated queue during asset streaming, adjust
   `RuntimeHostDependencies::streaming_config` before submitting the frame graph
   so asset uploads keep pace with rendering.
+- Leverage the backend validation telemetry metrics (`rendering.backend.*`) to
+  confirm parity status for each scheduler in dashboards and diagnostics runs.

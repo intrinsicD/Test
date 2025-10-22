@@ -211,5 +211,5 @@ MaterialDocument
 
 ## Open Questions
 - Confirm whether sampler assets should live in a dedicated cache or remain embedded definitions.
-- Align render state override schema with pending rendering backend parity checklist (`RE-530`).
+- Align render state override schema with the rendering backend parity checklist and validation metrics delivered under `RE-530`.
 - Decide if materials require localisation support for metadata fields in future tooling.
