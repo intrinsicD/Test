@@ -84,7 +84,7 @@ dependencies are restored.
 
 ## Execution Backlog Overview
 
-The architecture improvement plan is the authoritative backlog. The summary below mirrors [docs/ROADMAP.md](docs/ROADMAP.md#architecture-improvement-plan) and highlights the active slices agents should track.
+The architecture improvement plan is the authoritative backlog. The summary below mirrors [docs/ROADMAP.md](docs/ROADMAP.md) and highlights the active slices agents should track.
 
 ### Cross-Cutting Initiatives
 
@@ -124,18 +124,24 @@ Reconcile this table with the roadmap whenever priorities change. Update both do
 
 - **Compilers** – C++20-capable toolchain. Validated with **Clang 22.0**, **GCC 13.2**, and **MSVC 19.38**; minimum supported versions remain **Clang ≥ 22**, **GCC ≥ 12**, **MSVC ≥ 19.34**.
 - **Build system** – **CMake ≥ 3.20** (tested with 3.28.3) plus **Ninja ≥ 1.11** or the Visual Studio 2022 generator.
+  - If Ninja isn't installed, use the Unix Makefiles presets added under `scripts/build/presets/linux.json` (see commands below).
 - **Python** – Python 3.12+ with `pip` for scripts and harnesses.
 - **Host libraries** – Platform SDKs for the rendering backend you target (Vulkan SDK 1.3.x, DirectX 12 Agility SDK, system OpenGL drivers). Linux builds enabling GLFW require `libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, and `libxi-dev`.
 
 ### Configure and Build
 
 ```bash
-cmake --preset linux-gcc-debug          # CPU-only
+cmake --preset linux-gcc-debug          # CPU-only (Ninja)
 cmake --build --preset linux-gcc-debug
 ctest --preset linux-gcc-debug
 
 # or configure the CUDA variant
 cmake --preset linux-gcc-debug-cuda
+
+# If Ninja isn't available, use the Makefiles variants
+cmake --preset linux-gcc-debug-make
+cmake --build --preset linux-gcc-debug-make
+ctest --preset linux-gcc-debug-make
 ```
 
 ### Test & Validate

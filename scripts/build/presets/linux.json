@@ -117,6 +117,57 @@
         "ENGINE_WINDOW_BACKEND": "SDL",
         "ENGINE_ENABLE_GLFW": "OFF"
       }
+    },
+    {
+      "name": "linux-base-make",
+      "hidden": true,
+      "displayName": "Linux GCC Base (Makefiles)",
+      "description": "Common cache entries for Linux builds using GCC and Unix Makefiles",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "toolchainFile": "scripts/build/toolchains/linux-gcc.cmake",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": "ON",
+        "BUILD_TESTING": "ON",
+        "ENGINE_ENABLE_PYTHON": "ON",
+        "GLFW_BUILD_DOCS": "OFF",
+        "GLFW_BUILD_EXAMPLES": "OFF",
+        "GLFW_BUILD_TESTS": "OFF",
+        "GLFW_BUILD_WAYLAND": "OFF",
+        "GLFW_BUILD_X11": "ON",
+        "GLFW_INSTALL": "OFF",
+        "ENGINE_WINDOW_BACKEND": "GLFW",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
+      }
+    },
+    {
+      "name": "linux-gcc-debug-make",
+      "displayName": "Linux GCC Debug (Makefiles)",
+      "inherits": [
+        "linux-base-make"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENGINE_ENABLE_CUDA": "OFF",
+        "ENGINE_ENABLE_COMPUTE_CUDA": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-release-make",
+      "displayName": "Linux GCC Release (Makefiles)",
+      "inherits": [
+        "linux-base-make"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON",
+        "ENGINE_ENABLE_CUDA": "OFF",
+        "ENGINE_ENABLE_COMPUTE_CUDA": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -159,6 +210,16 @@
       "name": "linux-gcc-release-sdl",
       "displayName": "Build (Linux GCC Release SDL)",
       "configurePreset": "linux-gcc-release-sdl"
+    },
+    {
+      "name": "linux-gcc-debug-make",
+      "displayName": "Build (Linux GCC Debug Makefiles)",
+      "configurePreset": "linux-gcc-debug-make"
+    },
+    {
+      "name": "linux-gcc-release-make",
+      "displayName": "Build (Linux GCC Release Makefiles)",
+      "configurePreset": "linux-gcc-release-make"
     }
   ],
   "testPresets": [
@@ -225,6 +286,23 @@
       "name": "linux-gcc-release-sdl",
       "displayName": "CTest (Linux GCC Release SDL)",
       "configurePreset": "linux-gcc-release-sdl",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-debug-make",
+      "displayName": "CTest (Linux GCC Debug Makefiles)",
+      "configurePreset": "linux-gcc-debug-make",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-gcc-release-make",
+      "displayName": "CTest (Linux GCC Release Makefiles)",
+      "configurePreset": "linux-gcc-release-make",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true
