@@ -20,11 +20,10 @@
 
 ## TODO / Next Steps
 
-- Coordinate with the Tools module to ensure CI packages runtime shared
-  libraries in deterministic locations so telemetry viewer smoke-test
-  auto-discovery remains green without relying on
-  `TEST_ENGINE_RUNTIME_LIBRARY_DIR` (`TL-101` follow-up supporting `CC-001`).
-  Track status via
+- Ensure CI pipelines invoke `python scripts/ci/package_runtime_artifacts.py`
+  after builds so telemetry viewer smoke-test auto-discovery remains green
+  without relying on `TEST_ENGINE_RUNTIME_LIBRARY_DIR` overrides (`TL-101`
+  follow-up supporting `CC-001`). Track status via
   [docs/ROADMAP.md](../../ROADMAP.md#outstanding-backlog-focus) and
   `docs/modules/core/ROADMAP.md` to keep initialization failure guidance
   validated.

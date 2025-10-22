@@ -70,6 +70,10 @@
   renders without errors.
 - CI pipelines should continue packaging runtime shared libraries so the
   auto-discovery logic can locate them without additional configuration.
+- Use `python scripts/ci/package_runtime_artifacts.py --preset <preset>` to
+  stage runtime libraries and debug symbols under `out/artifacts/<preset>/runtime`
+  during CI builds. The script emits a manifest so downstream jobs and
+  diagnostics tooling can verify which artefacts were packaged.
 
 ### Investigate initialization failures
 - Capture a telemetry snapshot with
@@ -117,9 +121,9 @@
 - Track `TL-101`, `TL-110`, `TL-115` in the [central roadmap](../../ROADMAP.md)
   and update the execution checklist below when status changes — required for
   `CC-001` viewer work.
-- Keep CI packaging the runtime shared libraries in deterministic locations so
-  the telemetry viewer smoke test's auto-discovery resolves dependencies
-  without requiring `TEST_ENGINE_RUNTIME_LIBRARY_DIR` overrides.
+- Adopt the runtime packaging script in CI pipelines, monitor the generated
+  manifests for drift, and extend them when future tooling requires additional
+  runtime artefacts (`TL-101` follow-up supporting `CC-001`).
 - Monitor the Chrome trace export introduced by `TL-115` for regressions and
   extend coverage if operators request additional trace annotations.
 

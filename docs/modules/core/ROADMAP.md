@@ -31,6 +31,9 @@ _Last Updated: 2025-03-30_
 
 - Coordinate with Tools module to ensure diagnostics bridge supports viewer use
   cases.
+- Runtime packaging automation (`scripts/ci/package_runtime_artifacts.py`)
+  keeps telemetry tooling reproducible; monitor manifests when new runtime
+  dependencies are introduced.
 - Reflect lifecycle updates in task records and the central roadmap when
   complete.
 - Telemetry schema lives in [design/telemetry_schema.md](../../design/telemetry_schema.md);

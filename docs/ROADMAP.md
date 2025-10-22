@@ -162,9 +162,9 @@ Once staffed, execute module-specific queues below.
   work.
 - **Core** — Completed `CR-125` lifecycle audit, `CR-130` configuration
   refresh, `CR-135` dependency diagnostics, and `CR-136` structured logging.
-  With `CR-137` delivered, keep CI packaging runtime shared libraries so the
-  telemetry viewer smoke-test auto-discovery remains green and initialization
-  failure guidance stays validated.
+  With `CR-137` delivered, run the runtime packaging script in CI so telemetry
+  viewer smoke-test auto-discovery remains green and initialization failure
+  guidance stays validated.
 - **Geometry** — `GE-205` normal recompute benchmark landed with reporting;
   `GE-212` remeshing/parameterisation RFP is published (see
   `docs/design/ge-212-remeshing_parameterization_rfp.md`), and `GE-220`
@@ -192,11 +192,10 @@ Once staffed, execute module-specific queues below.
 - **Scene** — `SC-225` diagnostics samples now ship under
   `engine/scene/samples`; maintain the fixtures and dashboards alongside the
   `SC-230` alert policy.
-- **Tools** — TL-110 documentation refresh completed; telemetry viewer smoke
-  tests now auto-discover packaged runtime shared libraries. Keep CI artefacts
-  deterministic to avoid manual `TEST_ENGINE_RUNTIME_LIBRARY_DIR` overrides and
-  continue monitoring the Chrome trace export from `TL-115` for additional
-  annotation requests.
+- **Tools** — TL-110 documentation refresh completed and the runtime packaging
+  script keeps shared libraries in deterministic locations for telemetry
+  tooling. Continue monitoring the Chrome trace export from `TL-115` and gather
+  operator feedback for the next diagnostics viewer iteration.
 
 ### Process & Audit Items
 
