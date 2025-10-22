@@ -25,7 +25,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Rendering | 🔄 In Progress | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, and Vulkan scheduler prototype. | `RE-530`: backend validation tooling and parity tracking follow-up. |
 | Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, and submission into the rendering pipeline. | `AI-002`: extend async streaming diagnostics once assets hot-reload callbacks land. |
 | Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | `SC-225`: publish hierarchy diagnostics samples and alerting guidance follow-up. |
-| Tools | 🔄 In Progress | Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots. | Surface metric descriptions in diagnostics viewer output (follow-up to `TL-101`). |
+| Tools | 🔄 In Progress | Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots. | Plan telemetry viewer smoke test coverage once runtime shared libraries are packaged in CI (TL-101 follow-up). |
 
 ### Directory Map
 

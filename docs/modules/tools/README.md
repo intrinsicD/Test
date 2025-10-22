@@ -53,6 +53,8 @@
 - Adjust `--metric-prefix` (repeatable) to focus on specific subsystems and use
   `--max-issues` to expand hierarchy validation summaries when triaging scene
   diagnostics.
+- Pass `--verbose` to include metric description annotations alongside sampled
+  values when operators need additional context for unfamiliar counters.
 
 ### Troubleshooting
 - **Runtime library cannot be located.** The diagnostics scripts raise
@@ -87,7 +89,8 @@
 ## TODO / Next Steps
 
 - Track `TL-101`, `TL-110`, `TL-115` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — required for `CC-001` viewer work.
-- Expose metric description annotations in the diagnostics viewer verbose mode to address the outstanding review feedback for TL-101.
+- Plan telemetry viewer smoke test coverage once runtime shared libraries are packaged in CI (TL-101 follow-up).
+- ✅ Surface metric description annotations in the diagnostics viewer verbose mode (TL-101 follow-up) so operators can interpret unfamiliar counters quickly.
 
 This module tracks actionable work through the execution checklist below.
 

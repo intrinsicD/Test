@@ -88,6 +88,9 @@ samples filtered by prefix.
    summarises failure counters, echoes the latest exported error (when
    available), and lists remediation steps (verify watcher permissions,
    re-export corrupt assets, increase queue capacity, etc.).
+4. Provide `--verbose` to append metric description annotations when operators
+   need additional context alongside sampled values. Combine with
+   `--metric-prefix` filtering to keep verbose output focused.
 
 ## `collision_benchmark_report.py`
 
