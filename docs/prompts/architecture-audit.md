@@ -1,351 +1,120 @@
 # Architecture Audit Prompt
 
-Use this prompt to perform deep architectural reviews of the Test Engine codebase. This is distinct from individual PR reviews and focuses on system-wide consistency, debt accumulation, and alignment with architectural goals.
+Use this prompt to execute deep architectural reviews of the Test Engine codebase. It focuses on system-wide consistency, debt
+triage, and roadmap alignment rather than single-change pull-request reviews.
 
 ## When to Use
-- Quarterly architecture health checks
-- Before major milestone releases
-- When onboarding new contributors
-- After merging multiple related PRs
-- When architectural drift is suspected
+- Quarterly or milestone health checks.
+- After landing multiple related initiatives that could shift invariants.
+- When onboarding new contributors to architectural ownership roles.
+- Whenever telemetry or review findings hint at architectural drift.
+
+## Prerequisites Checklist
+- [ ] Review [`../README.md`](../README.md), [`architecture.md`](../architecture.md), and [`agents.md`](../agents.md) to
+      refresh invariants and reviewer expectations.
+- [ ] Inspect the architecture improvement plan tables in
+      [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked tasks/prints.
+- [ ] Open relevant specs under [`../specs/`](../specs/) and design notes in [`../design/`](../design/).
+- [ ] Collect module READMEs/ROADMAPs for the subsystems in scope.
+- [ ] Confirm required tooling is available (`cmake`, `python`, telemetry scripts).
 
 ## Scope Options
-
-### Full System Audit
-Review entire codebase against architectural principles
-
-### Module-Focused Audit
-Deep dive into specific module(s) and their interactions
-
-### Cross-Cutting Concern Audit
-Examine how a theme (e.g., error handling, resource lifetime) is handled across modules
-
-### Dependency Audit
-Validate module boundaries and dependency graph integrity
+- **Full-System Audit** – examine every module against invariants and roadmap intent.
+- **Module-Focused Audit** – deep dive into one or more modules plus their dependencies.
+- **Cross-Cutting Concern Audit** – follow a theme (e.g., error handling, resource lifetime, observability) across modules.
+- **Dependency Audit** – verify layering and plugin boundaries using build graphs.
 
 ## Prompt Template
 ```
-You are conducting an architectural audit of the Test Engine repository.
+You are conducting a Test Engine architecture audit.
 
-**Audit Scope:** [Full System | Module: {names} | Theme: {concern} | Dependencies]
+Do NOT disclose chain-of-thought. Respond only with requested artefacts and cited evidence.
 
-**Phase 1: Establish Baseline**
-1. Read `docs/README.md` → `docs/architecture.md` → `docs/agents.md` in sequence
-2. Review the architecture improvement plan in `docs/ROADMAP.md`
-3. Read all specs in `docs/specs/` to understand binding decisions
-4. Map the dependency graph from the root README build target inventory
+**Global Guardrails**
+- Preserve determinism, handle safety, and documentation discipline described in `docs/architecture.md`.
+- Cite files, specs, and roadmap entries that support each finding.
+- Prefer actionable tasks over vague advice; align follow-ups with roadmap/task IDs.
 
-**Phase 2: Invariant Verification**
+**Scope Configuration**
+- Audit Mode: {Full-System | Module[{names}] | Theme[{concern}] | Dependency}
+- Timebox: {e.g., 2h, 4h}
+- Initiatives in Focus: {IDs from roadmap}
+- Reference Artefacts: {list of READMEs/specs/tasks consulted}
 
-For each architectural invariant in `docs/architecture.md`:
+**Phase A — Baseline**
+1. Summarise the current architecture improvement plan items related to the scope.
+2. Capture dependency graph observations (targets, module layering, plugins).
+3. Note recent initiatives or merges that triggered this audit.
 
-**Deterministic Scheduler:**
-- [ ] Frame-graph compilation is deterministic for identical inputs
-- [ ] Resource transitions are explicit and validated
-- [ ] Backends cannot reorder passes
-- [ ] Test: `frame_graph_serialization_is_deterministic` exists and passes
+**Phase B — Invariant Verification**
+For each invariant in `docs/architecture.md`, record status and evidence.
 
-**Resource Ownership (AI-001):**
-- [ ] All asset handles use `ResourceHandle<Tag>`
-- [ ] Handles backed by `ResourcePool` with generation counters
-- [ ] Invalid handle access caught in debug builds
-- [ ] Test: `stale_handle_detection` exists and passes
+### Deterministic Scheduler
+- [ ] Frame-graph compilation deterministic for identical inputs.
+- [ ] Resource transitions explicit and validated.
+- [ ] Backend implementations cannot reorder passes.
+- [ ] Regression: `frame_graph_serialization_is_deterministic` present and passing.
 
-**Geometry Fidelity:**
-- [ ] Spatial structures (kd-tree, octree) sync with mesh mutations
-- [ ] Bounds and centroid updated before publishing
-- [ ] IO round-trips preserve topology
-- [ ] Test: `geometry_roundtrip_preserves_checksum` exists and passes
+### Resource Ownership (`AI-001`)
+- [ ] Asset/scene/runtime handles use `ResourceHandle<Tag>`.
+- [ ] Backed by `ResourcePool` with generation counters.
+- [ ] Debug builds trap invalid handle access.
+- [ ] Regression: `stale_handle_detection` passes.
 
-**Physics Integration:**
-- [ ] Mass/damping clamped to valid ranges
-- [ ] Static bodies (mass ≤ 0) ignore forces
-- [ ] Substep progression is monotonic
-- [ ] Collision detection delegates to geometry predicates
-- [ ] Test: `physics_static_bodies_ignore_gravity` exists and passes
+### Geometry Fidelity
+- [ ] Spatial structures (kd-tree, octree) stay in sync with mesh mutations.
+- [ ] Bounds/centroids recomputed before publication.
+- [ ] IO round-trips preserve topology/attributes.
+- [ ] Regression: `geometry_roundtrip_preserves_checksum` passes.
 
-**Documentation Discipline:**
-- [ ] Every module has README following `docs/README_TEMPLATE.md`
-- [ ] Roadmap items reference architectural decisions
-- [ ] ADRs exist for major subsystem designs
+### Physics Integration
+- [ ] Mass/damping clamped to valid ranges; static bodies ignore forces.
+- [ ] Substep progression monotonic.
+- [ ] Collision detection delegates to geometry predicates.
+- [ ] Regression: `physics_static_bodies_ignore_gravity` passes.
 
-**Phase 3: Module Boundary Analysis**
+### Documentation Discipline
+- [ ] Every affected module README matches `docs/README_TEMPLATE.md`.
+- [ ] Module and central roadmaps cross-reference current status.
+- [ ] ADRs/design notes cover major decisions.
 
-For each module in `engine/`:
-
-**Module:** {name}
-
-**Public API Surface:**
-- Headers in `include/engine/{module}/`: [list]
-- Exported symbols: [count from `nm` or equivalent]
-- API stability: [stable | evolving | experimental]
-
-**Dependencies:**
-- Direct dependencies: [from CMakeLists.txt]
-- Transitive dependencies: [from build graph]
-- Unexpected dependencies: [violations of layering]
-
-**Internal Complexity:**
-- Lines of code: [from `cloc`]
-- Cyclomatic complexity: [if available]
-- Test coverage: [% if available]
-
-**Documentation Health:**
-- README complete: [yes/no]
-- Roadmap aligned with central plan: [yes/no]
-- API examples present: [yes/no]
-- Migration guides for breaking changes: [yes/no]
-
-**Phase 4: Cross-Cutting Concern Analysis**
-
-**Error Handling (DC-004):**
-For each module, audit:
-- [ ] Public APIs return `Result<T, Error>` (not exceptions)
-- [ ] Module-specific error enums defined
-- [ ] `[[nodiscard]]` applied to Result-returning functions
-- [ ] Error paths have test coverage
-
-Document violations:
+**Phase C — Module Deep Dives**
+For each module in scope capture:
 - Module: {name}
-- Function: {signature}
-- Issue: {description}
-- Recommendation: {fix}
+- Public API Surface: headers/symbol counts and stability classification.
+- Dependencies: direct + transitive, unexpected couplings, plugin boundaries.
+- Internal Complexity: LOC, cyclomatic notes, test/benchmark coverage.
+- Documentation Health: README/ROADMAP freshness, TODO accuracy.
+- Telemetry & Tooling: emitted metrics, diagnostics bridge coverage.
 
-**Resource Lifetime (AI-001):**
-For each module managing resources:
-- [ ] Uses `ResourcePool` with typed handles
-- [ ] Handle validation before access
-- [ ] Lifecycle documented in README
-- [ ] Debug assertions catch violations
+**Phase D — Cross-Cutting Concerns**
+Evaluate themes relevant to the scope (error handling, resource lifetime, observability, performance). Document violations with
+file references and recommended fixes.
 
-Document violations:
-- Module: {name}
-- Resource: {type}
-- Issue: {description}
-- Recommendation: {fix}
+**Phase E — Findings & Follow-Up**
+1. Classify each issue: 🔴 Critical, ⚠️ Warning, 💡 Suggestion.
+2. Map blocking items to roadmap/task IDs or create new tasks.
+3. Highlight dependencies and owners for each follow-up.
 
-**Telemetry & Diagnostics (CC-001):**
-For performance-critical paths:
-- [ ] Profiling scopes present
-- [ ] Telemetry hooks exposed
-- [ ] Metrics documented
-- [ ] Overhead characterized
-
-Document gaps:
-- Module: {name}
-- Path: {function/loop}
-- Missing: {scope/metric}
-- Recommendation: {instrumentation}
-
-**Phase 5: Dependency Graph Validation**
-
-Build a complete module dependency graph:
-```
-                    ┌──────────┐
-                    │  Runtime │
-                    └────┬─────┘
-                         │
-         ┌───────────────┼───────────────┐
-         │               │               │
-    ┌────▼────┐     ┌───▼────┐     ┌───▼────┐
-    │Animation│     │Physics │     │Rendering│
-    └────┬────┘     └───┬────┘     └───┬─────┘
-         │              │              │
-         │         ┌────▼────┐    ┌────▼─────┐
-         │         │Geometry │    │ Assets   │
-         │         └────┬────┘    └────┬─────┘
-         │              │              │
-         └──────────────┼──────────────┘
-                        │
-                   ┌────▼────┐
-                   │  Math   │
-                   └─────────┘
+==============================================================================
+OUTPUT SCHEMA (strict)
+1. ## SUMMARY — one paragraph describing scope, triggers, and high-level results.
+2. ## SCOPE — audit mode, initiatives, artefacts consulted.
+3. ## BASELINE — dependency graph and recent-change context.
+4. ## INVARIANT_STATUS — table or checklist per invariant with citations.
+5. ## MODULE_ANALYSIS — per-module findings (API surface, dependencies, docs, telemetry).
+6. ## CROSS_CUTTING — theme-by-theme observations and evidence.
+7. ## FINDINGS — grouped by 🔴/⚠️/💡 with recommended actions.
+8. ## FOLLOW_UP — explicit task list with owners, priorities, and links.
+9. ## APPENDIX — optional tool outputs or additional references.
+==============================================================================
+PROJECT STANDARDS (Test Engine)
+- Respect invariants and policies in `docs/architecture.md`, `docs/conventions.md`, and `CODING_STYLE.md`.
+- Use `engine::Result<T, Error>` for recoverable failures; document ownership semantics.
+- Keep roadmap/task/docs artefacts synchronised with audit findings.
 ```
 
-**Validate:**
-- [ ] No circular dependencies
-- [ ] Longest dependency chain: [count] hops
-- [ ] High-fanout modules: [list modules with >5 dependents]
-- [ ] Isolated modules: [list modules with no dependents]
-
-**Identify:**
-- Unexpected dependencies: [violations]
-- Missing abstraction layers: [where interfaces would help]
-- Overly coupled modules: [candidates for refactoring]
-
-**Phase 6: Architecture Improvement Plan Progress**
-
-For each item in `docs/ROADMAP.md#architecture-improvement-plan`:
-
-**Item:** {ID} - {Title}
-- **Status:** [Not Started | In Progress | Completed]
-- **Priority:** {HIGH | MEDIUM | LOW}
-- **Dependencies:** {list}
-- **Completion:** {X/Y tasks done}
-- **Blockers:** {issues preventing progress}
-- **Drift:** {divergence from plan}
-
-**Critical Design Corrections (DC-*):**
-- Total items: {count}
-- Completed: {count}
-- Blocked: {count}
-- At risk: {count}
-
-**Architecture Improvements (AI-*):**
-- Total items: {count}
-- Completed: {count}
-- Blocked: {count}
-- At risk: {count}
-
-**Roadmap TODOs (RT-*):**
-- Total items: {count}
-- Completed: {count}
-- Blocked: {count}
-- At risk: {count}
-
-**Phase 7: Technical Debt Assessment**
-
-**Code Smells:**
-- [ ] God objects (>1000 LOC classes)
-- [ ] Long functions (>50 LOC)
-- [ ] Deep nesting (>4 levels)
-- [ ] High cyclomatic complexity (>15)
-- [ ] Duplicated code (>50 LOC blocks)
-
-**Architectural Debt:**
-- [ ] Missing abstractions
-- [ ] Leaky abstractions
-- [ ] Inappropriate coupling
-- [ ] Missing documentation
-- [ ] Inadequate test coverage
-
-**Process Debt:**
-- [ ] Missing task records
-- [ ] Outdated ADRs
-- [ ] Stale roadmap items
-- [ ] Unclosed follow-up issues
-
-**Output Format:**
-
-# Architecture Audit Report
-**Date:** {YYYY-MM-DD}
-**Scope:** {Full System | Module | Theme | Dependencies}
-**Auditor:** {name/AI}
-
-## Executive Summary
-[2-3 paragraphs highlighting overall health, major concerns, recommendations]
-
-## Invariant Compliance
-[Table showing pass/fail for each invariant with evidence]
-
-| Invariant | Status | Evidence | Issues |
-|-----------|--------|----------|--------|
-| Deterministic Scheduler | ✅ PASS | Tests passing | None |
-| Resource Ownership | ⚠️ PARTIAL | 2/12 modules non-compliant | Animation, Scene |
-| Geometry Fidelity | ✅ PASS | Round-trip tests pass | None |
-| ... | ... | ... | ... |
-
-## Module Health Matrix
-[Health score for each module: 🟢 Healthy | 🟡 Needs Attention | 🔴 Critical]
-
-| Module | API Stability | Dependencies | Tests | Docs | Overall |
-|--------|--------------|--------------|-------|------|---------|
-| Animation | 🟢 Stable | 🟢 Clean | 🟢 85% | 🟢 Complete | 🟢 |
-| Assets | 🟡 Evolving | 🟢 Clean | 🟡 65% | 🟡 Partial | 🟡 |
-| Compute | 🟢 Stable | 🔴 CUDA hardcoded | 🟢 80% | 🟢 Complete | 🟡 |
-| ... | ... | ... | ... | ... | ... |
-
-## Dependency Graph Analysis
-[Visual diagram + analysis of coupling, longest chains, violations]
-
-**Longest Chain:** Runtime → Assets → IO → Geometry → Math (5 hops)
-**Circular Dependencies:** None ✅
-**High Fanout:** Math (8 dependents), Core (6 dependents)
-**Violations:** [list unexpected dependencies]
-
-## Cross-Cutting Concern Compliance
-
-### Error Handling (DC-004)
-**Adoption Rate:** 60% (3/5 modules migrated)
-- ✅ IO module: Complete
-- ✅ Geometry module: Complete  
-- ✅ Assets module: Complete
-- ❌ Animation module: TODO
-- ❌ Physics module: TODO
-
-### Resource Lifetime (AI-001)
-**Adoption Rate:** 75% (9/12 resource types)
-- ✅ Meshes, Point Clouds, Graphs, Shaders, Textures
-- ❌ Materials (descriptor-only)
-- ❌ Animation clips (not pooled)
-- ❌ Physics bodies (not pooled)
-
-## Improvement Plan Progress
-**Overall Completion:** {X}%
-
-**Critical Design Corrections:** {X/Y} complete
-- 🔴 Blocked: {items}
-- ⚠️ At Risk: {items}
-- ✅ Complete: {items}
-
-**Architecture Improvements:** {X/Y} complete
-- 🔴 Blocked: {items}
-- ⚠️ At Risk: {items}
-- ✅ Complete: {items}
-
-## Technical Debt Assessment
-**Total Debt Items:** {count}
-**High Priority:** {count}
-**Medium Priority:** {count}
-**Low Priority:** {count}
-
-### Top 5 Debt Items
-1. {Description} - Priority: {HIGH|MED|LOW} - Module: {name}
-2. ...
-
-## Recommendations
-
-### Immediate Actions (0-2 weeks)
-1. {Specific action} - Rationale: {why} - Owner: {who}
-2. ...
-
-### Short-Term Actions (2-6 weeks)
-1. {Specific action} - Rationale: {why} - Owner: {who}
-2. ...
-
-### Long-Term Actions (2-3 months)
-1. {Specific action} - Rationale: {why} - Owner: {who}
-2. ...
-
-## Follow-Up Tasks
-- [ ] Create task records for immediate actions
-- [ ] Update roadmap priorities based on findings
-- [ ] Schedule follow-up audit in {X} weeks
-- [ ] Communicate findings to module owners
-
-## Appendices
-
-### A: Test Coverage by Module
-[Detailed breakdown if available]
-
-### B: Complexity Metrics
-[Cyclomatic complexity, LOC, function counts]
-
-### C: Documentation Gaps
-[Missing READMEs, ADRs, migration guides]
-
-### D: Build Time Analysis
-[Module build times, bottlenecks]
-```
-
-## Audit Frequency Recommendations
-
-- **Full System:** Quarterly or before major releases
-- **Module-Focused:** Monthly for active modules
-- **Cross-Cutting:** After completing improvement plan items
-- **Dependency:** Monthly or when adding modules
-
-## Tools and Automation
+## Tools & Automation
 
 ### Static Analysis
 ```
@@ -356,11 +125,11 @@ dot -Tpng deps.dot -o deps.png
 # Count lines of code
 cloc engine/ --by-file
 
-# Find complex functions
-# Use complexity tools like lizard or pmccabe
+# Identify complex functions
+lizard engine/ | sort -nr -k 6 | head
 ```
 
-### Test Coverage
+### Test & Coverage
 ```
 # Generate coverage report (if configured)
 cmake --preset linux-gcc-debug-coverage
@@ -372,93 +141,46 @@ genhtml coverage.info --output-directory coverage_html
 
 ### Documentation Validation
 ```
-# Check for broken links
 python scripts/validate_docs.py
-
-# Find missing READMEs
-find engine/ -type d -mindepth 1 ! -path "*/tests/*" ! -name "tests" \
-  -exec test ! -e {}/README.md \; -print
 ```
 
-### Dependency Graph Generation
+### Dependency Graph Inspection
 ```
-# Generate full dependency graph
 cmake --graphviz=full.dot -B build
-# Filter to engine modules only
-grep "engine_" full.dot > engine_deps.dot
+rg "engine_" full.dot > engine_deps.dot
 dot -Tpng engine_deps.dot -o engine_deps.png
 ```
 
 ## Example Audit Findings
 
 ### Finding: Resource Lifetime Inconsistency
-**Severity:** 🟡 Medium
-**Modules:** Animation, Physics
-**Issue:** Animation clips and physics bodies use raw pointers/indices instead of
-generational handles, creating potential for stale references.
-**Evidence:**
-- `engine/animation/include/engine/animation/api.hpp:45` - raw `uint32_t` IDs
-- `engine/physics/api.hpp:67` - body indices without generation
-
-**Recommendation:**
-1. Introduce `ClipHandle` and `BodyHandle` backed by `ResourcePool`
-2. Migrate storage in Animation and Physics modules
-3. Add debug validation similar to asset handles
-4. Update tests to attempt stale access
-
-**Task:** Create `T-0125-animation-physics-handle-migration.md`
+- **Severity:** 🟡 Medium
+- **Modules:** Animation, Physics
+- **Issue:** Animation clips and physics bodies rely on raw IDs instead of generational handles, risking stale references.
+- **Evidence:**
+  - `engine/animation/include/engine/animation/api.hpp:45` — raw `uint32_t` identifiers.
+  - `engine/physics/include/engine/physics/api.hpp:67` — body indices without generation.
+- **Recommendation:** introduce `ClipHandle`/`BodyHandle`, migrate storage, add validation tests, and document lifecycle rules.
+- **Task:** create `T-0125-animation-physics-handle-migration.md`.
 
 ### Finding: CUDA Hard Dependency
-**Severity:** 🔴 High
-**Modules:** Compute, Runtime
-**Issue:** CUDA is mandatory even for CPU-only builds, preventing lean deployments
-**Evidence:**
-- `engine/compute/CMakeLists.txt:15` - unconditional `find_package(CUDA)`
-- `engine/runtime/CMakeLists.txt:23` - always links `engine_compute_cuda`
-
-**Recommendation:**
-1. Implement DC-002 from improvement plan
-2. Add `ENGINE_ENABLE_CUDA` CMake option
-3. Create dispatcher abstraction shared by CPU/CUDA
-4. Add CPU-only CI preset
-
-**Task:** Already tracked as DC-002 in roadmap
+- **Severity:** 🔴 High
+- **Modules:** Compute, Runtime
+- **Issue:** CUDA is mandatory even for CPU-only builds, blocking lean deployments.
+- **Evidence:**
+  - `engine/compute/CMakeLists.txt:15` — unconditional `find_package(CUDA)`.
+  - `engine/runtime/CMakeLists.txt:23` — always links `engine_compute_cuda`.
+- **Recommendation:** land DC-002, add `ENGINE_ENABLE_CUDA`, introduce dispatcher abstraction, and add CPU-only preset.
 
 ### Finding: Missing Integration Tests
-**Severity:** 🟡 Medium
-**Modules:** Runtime, Rendering
-**Issue:** No end-to-end tests for runtime → frame graph → backend submission
-**Evidence:**
-- `engine/tests/integration/` exists but is empty
-- Module tests are isolated, no cross-module scenarios
-
-**Recommendation:**
-1. Create integration test framework in `engine/tests/integration/`
-2. Add test: tick runtime → build frame graph → submit to mock backend
-3. Add test: load asset → bind to handle → reference in rendering
-4. Document integration test patterns
-
-**Task:** Tracked as TI-001 in roadmap
+- **Severity:** 🟡 Medium
+- **Modules:** Runtime, Rendering
+- **Issue:** No end-to-end runtime → frame-graph → backend submission coverage.
+- **Evidence:** `engine/tests/integration/` lacks executable targets.
+- **Recommendation:** build integration harness, add runtime submission scenarios, document patterns, and track under `TI-001`.
 
 ## Post-Audit Actions
-
-1. **Triage Findings:**
-   - Critical (🔴): Create immediate action tasks
-   - Warning (⚠️): Add to sprint backlog
-   - Info (💡): Document for future consideration
-
-2. **Update Plans:**
-   - Adjust roadmap priorities based on findings
-   - Update module ROADMAPs with debt items
-   - Create ADRs for architectural decisions
-
-3. **Communicate:**
-   - Share report with module owners
-   - Discuss in architecture review meeting
-   - Update docs/architecture.md if invariants changed
-
-4. **Track Progress:**
-   - Schedule follow-up audit
-   - Monitor improvement plan completion
-   - Celebrate wins (debt paid down, invariants restored)
-```
+1. **Triage** — create roadmap/task updates for 🔴 issues; file backlog entries for ⚠️; document 💡 suggestions.
+2. **Update Artefacts** — synchronise module READMEs, module roadmaps, central roadmap, and relevant specs/prints with findings.
+3. **Communicate** — brief module owners, share in architecture review, and log outcomes in `docs/prints/` if required.
+4. **Schedule Follow-Up** — set next audit cadence, monitor improvement plan progress, and capture telemetry trends validating fixes.

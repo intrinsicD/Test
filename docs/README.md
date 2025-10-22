@@ -30,7 +30,10 @@
 | Agent-specific workflow and escalation paths | [agents.md](agents.md) |
 | Invariants, lifecycles, and data flow diagrams | [architecture.md](architecture.md) |
 | Coding, testing, documentation conventions | [conventions.md](conventions.md) |
-| Implementation playbook prompts | [prompts/implementation-playbook.md](prompts/implementation-playbook.md) |
+| Implementation playbook prompt | [prompts/implementation-playbook.md](prompts/implementation-playbook.md) |
+| Architecture audit prompt | [prompts/architecture-audit.md](prompts/architecture-audit.md) |
+| Refactor playbook prompt | [prompts/refactor-playbook.md](prompts/refactor-playbook.md) |
+| Code review checklist prompt | [prompts/review-checklist.md](prompts/review-checklist.md) |
 | Active task inventory & acceptance criteria | [tasks/README.md](tasks/README.md) |
 | Decision records, ADRs, and specifications | [specs/README.md](specs/README.md) |
 | Animation GPU sampling benchmark plan | [design/animation_gpu_parallel_sampling_benchmark.md](design/animation_gpu_parallel_sampling_benchmark.md) |
