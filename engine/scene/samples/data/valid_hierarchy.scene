@@ -1,0 +1,20 @@
+scene "ValidHierarchy" 3
+entity 0 4
+component Name "Root"
+component Hierarchy 4294967295 1 4294967295 4294967295
+component LocalTransform 1 1 1 1 0 0 0 0 0 0
+component WorldTransform 1 1 1 1 0 0 0 0 0 0
+entity_end
+entity 1 4
+component Name "Child"
+component Hierarchy 0 2 4294967295 4294967295
+component LocalTransform 1 1 1 1 0 0 0 0 0 0
+component WorldTransform 1 1 1 1 0 0 0 0 0 0
+entity_end
+entity 2 4
+component Name "Grandchild"
+component Hierarchy 1 4294967295 4294967295 4294967295
+component LocalTransform 1 1 1 1 0 0 0 0 0 0
+component WorldTransform 1 1 1 1 0 0 0 0 0 0
+entity_end
+scene_end

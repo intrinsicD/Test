@@ -1,0 +1,31 @@
+scene "InvalidHierarchy" 5
+entity 0 4
+component Name "Root"
+component Hierarchy 1 1 4294967295 4294967295
+component LocalTransform 1 1 1 1 0 0 0 0 0 0
+component WorldTransform 1 1 1 1 0 0 0 0 0 0
+entity_end
+entity 1 4
+component Name "CycleChild"
+component Hierarchy 0 2 2 4294967295
+component LocalTransform 1 1 1 1 0 0 0 0 0 0
+component WorldTransform 1 1 1 1 0 0 0 0 0 0
+entity_end
+entity 2 4
+component Name "DanglingChild"
+component Hierarchy 123456789 3 4 1
+component LocalTransform 1 1 1 1 0 0 0 2 -1 0.5
+component WorldTransform 1 1 1 1 0 0 0 8 -4 1
+entity_end
+entity 3 3
+component Name "MissingHierarchyParent"
+component LocalTransform 1 1 1 1 0 0 0 0 0 0
+component WorldTransform 1 1 1 1 0 0 0 0 0 0
+entity_end
+entity 4 4
+component Name "OrphanChild"
+component Hierarchy 3 4294967295 4294967295 2
+component LocalTransform 1 1 1 1 0 0 0 0 0 0
+component WorldTransform 1 1 1 1 0 0 0 0 0 0
+entity_end
+scene_end
