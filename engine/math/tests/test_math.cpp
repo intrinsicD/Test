@@ -777,13 +777,15 @@ TEST(Matrix, Pseudoinverse)
                               0, 1, 0);
         auto A_plus = utils::pseudo_inverse(A);
 
-        // A^+ * A should be close to identity
+        // A^+ * A projects onto the row space; with full row rank the projection
+        // acts like an identity on the first `rows` coordinates.
         auto I = A_plus * A;
+        const std::size_t identity_rank = (A.rows() < A.cols()) ? A.rows() : A.cols();
         for (std::size_t i = 0; i < 3; ++i)
         {
             for (std::size_t j = 0; j < 3; ++j)
             {
-                float expected = (i == j) ? 1.0F : 0.0F;
+                const float expected = (i == j && i < identity_rank) ? 1.0F : 0.0F;
                 EXPECT_NEAR(I[i][j], expected, tol);
             }
         }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "svd_jacobi.hpp"
+#include "engine/math/utils/utils.hpp"
 
 namespace engine::math::utils
 {
@@ -10,82 +11,35 @@ namespace engine::math::utils
         const Matrix<T, Rows, Cols>& A,
         T tolerance = T(1e-10)) noexcept
     {
-        // For small matrices, use Gram-Schmidt based approach
-        // Compute column space basis via modified Gram-Schmidt
+        constexpr std::size_t MinDim = (Rows < Cols) ? Rows : Cols;
 
-        Matrix<T, Rows, Cols> Q = A; // Will become orthonormal basis
-        Vector<T, Cols> norms{};
+        const auto svd = svd_one_sided_jacobi<T, Rows, Cols>(A);
 
-        // Gram-Schmidt orthogonalization
-        for (std::size_t j = 0; j < Cols; ++j)
+        Matrix<T, Cols, Rows> sigma_plus{};
+
+        T max_sigma = detail::zero<T>();
+        for (std::size_t i = 0; i < MinDim; ++i)
         {
-            // Orthogonalize column j against previous columns
-            for (std::size_t i = 0; i < j; ++i)
-            {
-                T proj = detail::zero<T>();
-                for (std::size_t r = 0; r < Rows; ++r)
-                {
-                    proj += Q.columns[i][r] * Q.columns[j][r];
-                }
-                for (std::size_t r = 0; r < Rows; ++r)
-                {
-                    Q.columns[j][r] -= proj * Q.columns[i][r];
-                }
-            }
+            max_sigma = utils::max(max_sigma, svd.S[i]);
+        }
 
-            // Compute norm
-            T norm = detail::zero<T>();
-            for (std::size_t r = 0; r < Rows; ++r)
-            {
-                norm += Q.columns[j][r] * Q.columns[j][r];
-            }
-            norms[j] = utils::sqrt(norm);
+        if (max_sigma == detail::zero<T>())
+        {
+            return sigma_plus;
+        }
 
-            // Normalize if not zero
-            if (norms[j] > tolerance)
+        const T cutoff = tolerance * static_cast<T>((Rows > Cols) ? Rows : Cols) * max_sigma;
+
+        for (std::size_t i = 0; i < MinDim; ++i)
+        {
+            const T sigma = svd.S[i];
+            if (sigma > cutoff)
             {
-                T inv_norm = detail::one<T>() / norms[j];
-                for (std::size_t r = 0; r < Rows; ++r)
-                {
-                    Q.columns[j][r] *= inv_norm;
-                }
+                sigma_plus[i][i] = detail::one<T>() / sigma;
             }
         }
 
-        // Build pseudoinverse: A^+ = (Q * R)^+ = R^+ * Q^T where A = Q * R
-        // For our purposes: A^+ ≈ Q * diag(1/norm_i) * ... (simplified)
-
-        // Use simpler formula: A^+ = A^T * (A * A^T)^+
-        // This works even for rank-deficient matrices
-
-        Matrix<T, Rows, Rows> AAT{};
-        for (std::size_t i = 0; i < Rows; ++i)
-        {
-            for (std::size_t j = 0; j < Rows; ++j)
-            {
-                T sum = detail::zero<T>();
-                for (std::size_t k = 0; k < Cols; ++k)
-                {
-                    sum += A[i][k] * A[j][k];
-                }
-                AAT[i][j] = sum;
-            }
-        }
-
-        // Add small regularization for rank-deficient case
-        for (std::size_t i = 0; i < Rows; ++i)
-        {
-            AAT[i][i] += tolerance * tolerance;
-        }
-
-        auto AAT_inv = try_inverse(AAT);
-        if (!AAT_inv.has_value())
-        {
-            // Return zero matrix if completely singular
-            return Matrix<T, Cols, Rows>{};
-        }
-
-        return transpose(A) * (*AAT_inv);
+        return svd.V * sigma_plus * transpose(svd.U);
     }
 
     // Moore-Penrose pseudoinverse: A^+ = V * Σ^+ * U^T
