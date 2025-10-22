@@ -25,6 +25,9 @@ _Last Updated: 2025-04-05_
 - 2025-04-30: Added verbose metric descriptions to `telemetry_viewer.py`,
   closing the outstanding TL-101 follow-up raised during the telemetry metric
   prefix review.
+- 2025-05-08: Introduced `scripts/ci/package_runtime_artifacts.py` to package
+  runtime libraries and debug symbols after CI builds, keeping TL-101 tooling
+  deterministic without manual environment overrides.
 - 2025-03-26: README now documents `runtime_frame_telemetry.py` prefix filters
   and `--metrics-all`, partially satisfying `TL-110` while additional
   troubleshooting guidance remains pending.

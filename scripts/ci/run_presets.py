@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from scripts.ci.package_runtime_artifacts import package_runtime_artefacts
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 PIPELINES = {
@@ -46,6 +48,10 @@ def run_command(command: list[str]) -> None:
 def drive_pipeline(pipeline: dict[str, str]) -> None:
     run_command(["cmake", "--preset", pipeline["configure"]])
     run_command(["cmake", "--build", "--preset", pipeline["build"]])
+    build_dir = REPO_ROOT / "out" / "build" / pipeline["build"]
+    artefact_dir = REPO_ROOT / "out" / "artifacts" / pipeline["build"] / "runtime"
+    result = package_runtime_artefacts(build_dir, artefact_dir)
+    print(f"[ci] packaged runtime artefacts -> {result.output_dir}")
     run_command(["ctest", "--preset", pipeline["test"]])
 
 
