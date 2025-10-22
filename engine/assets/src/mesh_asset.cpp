@@ -194,17 +194,37 @@ AssetLoadFuture<MeshHandle> MeshCache::load_async(const AssetLoadRequest& reques
         request.identifier,
         request.priority,
         request.allow_blocking_fallback,
-        [this, descriptor](detail::AssetLoadPromise<MeshHandle>&) -> AssetLoadResult<MeshHandle> {
+        [this, descriptor](detail::AssetLoadPromise<MeshHandle>& promise) -> AssetLoadResult<MeshHandle> {
+            const auto& identifier = descriptor.handle.id();
+
+            if (promise.cancellation_requested())
+            {
+                return detail::cancel_pending_request<MeshHandle>(
+                    promise, identifier, "geometry detection");
+            }
+
             if (!descriptor.source.empty())
             {
+                if (promise.cancellation_requested())
+                {
+                    return detail::cancel_pending_request<MeshHandle>(
+                        promise, identifier, "geometry detection");
+                }
+
                 if (const auto detection = io::detect_geometry_file(descriptor.source); !detection)
                 {
                     auto error = detail::make_geometry_asset_error(
                         descriptor.source, "load_async.detect_geometry_file", detection.error());
-                    AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                    AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                     return AssetLoadResult<MeshHandle>{error};
                 }
             }
+
+            if (promise.cancellation_requested())
+            {
+                return detail::cancel_pending_request<MeshHandle>(promise, identifier, "mesh decode");
+            }
+
             const auto make_error = [&descriptor](AssetLoadErrorCategory category, const char* reason) {
                 std::string message;
                 if (!descriptor.source.empty())
@@ -232,48 +252,54 @@ AssetLoadFuture<MeshHandle> MeshCache::load_async(const AssetLoadRequest& reques
             try
             {
                 const auto& asset = this->load(descriptor);
+
+                if (promise.cancellation_requested())
+                {
+                    return detail::cancel_pending_request<MeshHandle>(promise, identifier, "mesh decode");
+                }
+
                 return AssetLoadResult<MeshHandle>{asset.descriptor.handle};
             }
             catch (const AssetLoadException& ex)
             {
                 auto error = ex.error();
-                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                 return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::invalid_argument& ex)
             {
                 auto error = make_error(AssetLoadErrorCategory::ValidationError, ex.what());
-                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                 return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::out_of_range& ex)
             {
                 auto error = make_error(AssetLoadErrorCategory::ValidationError, ex.what());
-                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                 return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::filesystem::filesystem_error& ex)
             {
                 auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
-                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                 return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::system_error& ex)
             {
                 auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
-                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                 return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::runtime_error& ex)
             {
                 auto error = make_error(AssetLoadErrorCategory::IoFailure, ex.what());
-                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                 return AssetLoadResult<MeshHandle>{error};
             }
             catch (const std::exception& ex)
             {
                 auto error = make_error(AssetLoadErrorCategory::DecodeError, ex.what());
-                AssetHotReloadTelemetry::instance().record_failure(error, descriptor.handle.id());
+                AssetHotReloadTelemetry::instance().record_failure(error, identifier);
                 return AssetLoadResult<MeshHandle>{error};
             }
         },

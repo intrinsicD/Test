@@ -355,6 +355,29 @@ namespace engine::assets {
 
         template <typename Handle>
         std::pair<AssetLoadPromise<Handle>, AssetLoadFuture<Handle>> make_asset_load_channel();
+
+        template <typename Handle>
+        AssetLoadResult<Handle> cancel_pending_request(AssetLoadPromise<Handle>& promise,
+                                                       std::string_view identifier,
+                                                       std::string_view stage)
+        {
+            std::string message{"request cancelled"};
+            if (!stage.empty())
+            {
+                message.append(" during ");
+                message.append(stage);
+            }
+
+            if (!identifier.empty())
+            {
+                message.append(": ");
+                message.append(identifier);
+            }
+
+            auto error = make_asset_load_error(AssetLoadErrorCategory::Cancelled, std::move(message));
+            promise.set_cancelled(error);
+            return AssetLoadResult<Handle>{error};
+        }
     } // namespace detail
 
     template <typename Handle>
@@ -965,6 +988,14 @@ namespace engine::assets {
                 }
 
                 auto result = (*task_ptr)(promise_ref);
+
+                if (promise_ref.state() == AssetLoadState::Cancelled)
+                {
+                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
+                    AssetHotReloadTelemetry::instance().record_cancelled();
+                    return;
+                }
+
                 if (!result.has_value())
                 {
                     promise_ref.set_failed(result.error());

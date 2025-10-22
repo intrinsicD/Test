@@ -1,6 +1,6 @@
 # Assets Module Roadmap
 
-_Last Updated: 2025-02-19_
+_Last Updated: 2025-05-05_
 
 ## Milestone Overview
 
@@ -15,7 +15,7 @@ _Last Updated: 2025-02-19_
 | Task ID | Description | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
 | `AS-302` | Emit async queue telemetry and update diagnostics tooling. | Assets + Runtime | 2025-03-14 | ✅ Done |
-| `AS-305` | Harden async cancellation paths with regression coverage. | Assets | 2025-03-21 | 🟢 Todo |
+| `AS-305` | Harden async cancellation paths with regression coverage. | Assets | 2025-03-21 | ✅ Done |
 
 ## Upcoming (M3)
 
@@ -39,3 +39,6 @@ _Last Updated: 2025-02-19_
   [`../../ROADMAP.md`](../../ROADMAP.md#cc-002-hot-reload-infrastructure).
 - 2025-03-24: Published [`design/material_persistence_strategy.md`](../../design/material_persistence_strategy.md)
   completing `AS-320` and unblocking material cache implementation work.
+- 2025-05-05: Asset async queue cancellation checks guard geometry detection and
+  decode hand-offs, and tests verify cancellation telemetry remains
+  deterministic (`AS-305`).

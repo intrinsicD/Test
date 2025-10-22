@@ -469,3 +469,52 @@ TEST(AssetAsyncQueue, CancelPendingRequestResolvesFuture)
     EXPECT_EQ(completed.value().id(), "blocking");
 }
 
+TEST(AssetAsyncQueue, CancelDuringExecutionResolvesAsCancelled)
+{
+    auto& telemetry = engine::assets::AssetStreamingTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    IoThreadPoolScope scope{1, 4};
+    engine::assets::AssetAsyncQueue<engine::assets::MeshHandle> queue;
+
+    std::promise<void> task_started;
+    std::promise<void> allow_exit;
+
+    auto future = queue.schedule(
+        "cancel-during-execution",
+        engine::assets::AssetLoadPriority::Normal,
+        false,
+        [&task_started, &allow_exit](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>& promise)
+            -> engine::assets::AssetLoadResult<engine::assets::MeshHandle> {
+            task_started.set_value();
+            allow_exit.get_future().wait();
+
+            while (!promise.cancellation_requested())
+            {
+                std::this_thread::sleep_for(1ms);
+            }
+
+            auto error = engine::assets::make_asset_load_error(
+                engine::assets::AssetLoadErrorCategory::Cancelled, "request cancelled mid-execution");
+            promise.set_cancelled(error);
+            return engine::assets::AssetLoadResult<engine::assets::MeshHandle>{error};
+        },
+        engine::core::threading::IoThreadPool::instance());
+
+    task_started.get_future().wait();
+    future.cancel();
+    allow_exit.set_value();
+
+    future.wait();
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::Cancelled);
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.total_requests, 1U);
+    EXPECT_EQ(snapshot.total_completed, 0U);
+    EXPECT_EQ(snapshot.total_failed, 0U);
+    EXPECT_EQ(snapshot.total_cancelled, 1U);
+    EXPECT_EQ(snapshot.total_rejected, 0U);
+}
+
