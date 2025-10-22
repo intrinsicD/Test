@@ -1,82 +1,244 @@
 # Assets Module
 
-## Current State
-- Exposes generational `ResourceHandle<Tag>` wrappers for meshes, graphs, point
-  clouds, textures, shaders, and materials. Handles bind lazily to
-  `ResourcePool` instances, preventing stale references after unloads.
-- Caches track descriptors, last-write timestamps, and hot-reload callbacks while
-  delegating format-aware loading to `engine::io` utilities. Mesh and point cloud
-  caches offer `load_async()` entry points backed by `AssetAsyncQueue`, and all
-  hot-reload capable caches subscribe to the platform filesystem watcher to
-  trigger callbacks without manual polling loops.
-- Async loaders check cancellation tokens before geometry detection and decode
-  hand-offs, ensuring requests cancelled while queued or mid-flight skip
-  expensive work and surface deterministic telemetry.
-- Asset descriptors capture provenance, format hints, and binding metadata shared
-  between caches and runtime consumers.
-- Material assets currently store descriptor bindings (shader + texture handles),
-  and `AS-320` now codifies their authoring + serialization workflow in
-  [`design/material_persistence_strategy.md`](../../design/material_persistence_strategy.md).
-- Unit tests validate registration, reload behaviour, descriptor plumbing,
-  generational semantics, and unload invalidation. Integration coverage flows
-  through [`engine/tests/integration`](../../../engine/tests/integration/README.md).
+## Overview
 
-## Usage
-- Build via `cmake --build --preset <preset> --target engine_assets`; link against
-  `engine_io`.
-- Include `<engine/assets/handles.hpp>` plus relevant cache headers to request
-  loads; include `<engine/assets/async.hpp>` for asynchronous scenarios.
-- Run `ctest --preset <preset> --tests-regex engine_assets` to validate cache
-  behaviour.
-- Use `<engine/assets/async.hpp>` to create `AssetLoadRequest` descriptors and
-  `AssetLoadFuture` channels when scheduling asynchronous work.
-- Inspect async streaming telemetry with
-  ``python scripts/diagnostics/streaming_report.py --library-dir <build>`` to
-  review queue occupancy, completion totals, failures, cancellations, rejection counters,
-  and per-`GeometryIoErrorCode` breakdowns exposed via `geometry_failures_by_error`.
+The assets module provides handle-based resource management with generational handles, asynchronous loading, hot reload support, and comprehensive validation. It manages meshes, point clouds, graphs, textures, shaders, and materials through a unified cache architecture with telemetry integration.
 
-## Handle Lifecycle Guidance (`AI-001`)
-- Asset handles are lightweight identifiers backed by
-  `engine::assets::ResourceHandle<Tag>`; creation only stages the identifier and
-  defers binding until a cache loads the descriptor. See the
-  [resource management overview](../../design/resource_management.md) for the
-  generational handle model adopted across modules.
-- Cache entry points such as `MeshCache::load` acquire a
-  `core::memory::ResourcePool` slot, bind the handle via `handle.bind(raw)`, and
-  immediately merge pending hot-reload callbacks so all outstanding references
-  share the new generation.
-- Callers must treat handles as opaque tokens and always verify residency with
-  `handle.is_valid(pool)` (mirroring the internal `contains` checks) before
-  dereferencing cache state. When a resource is unloaded the cache invokes
-  `handle.reset_binding()`; stale handles therefore fail validation instead of
-  aliasing recycled storage.
-- Hot-reload and asynchronous queues reuse the same lifecycle: callbacks staged
-  against identifiers migrate to the live generational slot when a load
-  completes, and async completions deliver rebound handles inside
-  `AssetLoadResult` structures. Runtime integrations should rely on these
-  hand-offs instead of copying raw pool indices.
-- Debug builds assert on invalid access, while release builds surface structured
-  errors (`AssetLoadError`) so higher layers can attribute failure without
-  crashing. Documentation and telemetry updates must preserve these semantics
-  when expanding the async queue (`AI-002`).
-- Caches register validators with the handle validation registry, enabling
-  runtime and tooling code to call `engine::assets::validate_handle` for debug
-  assertions and telemetry counters (`runtime.handles.*`) when stale handles are
-  detected.
+## Core Concepts
 
-## TODO / Next Steps
+### Handle-Based Lifetime Management
 
-- Track `AS-302`, `AS-315`, `AS-320` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — aligns with `AI-002` and `CC-002`.
+Assets use generational handles to ensure safe resource access:
 
-This module tracks actionable work through the execution checklist below.
+```cpp
+#include "engine/assets/api.hpp"
 
-## Execution Checklist
+// Acquire a mesh handle
+auto mesh_handle = mesh_cache.load("character.obj");
 
-| Task ID | Scope | Exit Criteria | Status |
-| --- | --- | --- | --- |
-| `AS-302` | Instrument async queue telemetry (`AI-002`). | Queue metrics emitted through runtime telemetry, documented in module README and streaming task file. | ✅ Done |
-| `AS-305` | Harden async cancellation paths (`AI-002`). | Cancellation checks guard detection/ decode stages and regression tests cover in-flight cancellation. | ✅ Done |
-| `AS-315` | Integrate hot reload callbacks (`CC-002`). | Filesystem watcher hooks update caches, failures logged via diagnostics shell. | ✅ Done |
-| `AS-320` | Define material persistence strategy. | Draft design note covering serialization format and runtime reload semantics. | ✅ Done |
+// Handles are lightweight and copyable
+auto mesh_handle_copy = mesh_handle;
 
-See [ROADMAP.md](ROADMAP.md) for sequencing and dependencies.
+// Access the resource (returns nullptr if handle is stale)
+if (auto* mesh = mesh_cache.get(mesh_handle)) {
+    // Use mesh data
+}
+
+// Release decrements reference count
+mesh_cache.release(mesh_handle);
+```
+
+### Resource Types
+
+The module manages the following asset types:
+
+- **MeshAsset**: Surface meshes with vertices, indices, and optional vertex attributes
+- **PointCloudAsset**: Point cloud data with positions and optional attributes
+- **GraphAsset**: Graph structures (adjacency lists, navigation graphs)
+- **TextureAsset**: 2D/3D textures with mipmap support
+- **ShaderAsset**: Shader programs and bytecode
+- **MaterialAsset**: Material definitions referencing textures and shader parameters
+
+Each asset type has a corresponding cache (`MeshCache`, `PointCloudCache`, etc.) and handle type (`MeshHandle`, `PointCloudHandle`, etc.).
+
+### Synchronous Loading
+
+Load assets synchronously when immediate availability is required:
+
+```cpp
+using namespace engine::assets;
+
+// Load from file path
+MeshHandle handle = mesh_cache.load("assets/models/character.obj");
+
+// Load with parameters
+AssetLoadParams params{
+    .priority = AssetLoadPriority::High,
+    .cache_policy = CachePolicy::Persistent
+};
+MeshHandle handle2 = mesh_cache.load("terrain.obj", params);
+
+// Check if loaded successfully
+if (!mesh_cache.is_valid(handle)) {
+    // Handle load failure
+}
+```
+
+### Asynchronous Loading
+
+For non-blocking asset loading, use the async API:
+
+```cpp
+#include "engine/assets/async.hpp"
+#include "engine/core/threading/io_thread_pool.hpp"
+
+AssetLoadRequest request = AssetLoadRequest::from_path(
+    AssetType::mesh,
+    "assets/meshes/large_model.glb",
+    /*params*/ {},
+    AssetLoadPriority::High,
+    /*deadline*/ std::nullopt,
+    /*allow_blocking_fallback*/ false
+);
+
+AssetLoadFuture<MeshHandle> future = mesh_cache.load_async(
+    request,
+    core::threading::IoThreadPool::instance()
+);
+
+// Poll or wait for completion
+if (future.is_ready()) {
+    auto result = future.get();
+    if (result) {
+        MeshHandle handle = *result;
+        // Use loaded mesh
+    } else {
+        // Handle error: result.error()
+    }
+}
+```
+
+See [`../runtime/async_streaming_integration.md`](../runtime/async_streaming_integration.md) for runtime integration patterns.
+
+### Hot Reload
+
+Assets can be reloaded when source files change:
+
+```cpp
+// Register reload callback
+mesh_cache.register_reload_callback([](MeshHandle handle) {
+    fmt::print("Mesh {} reloaded\n", handle.id());
+});
+
+// Trigger reload (typically called by filesystem watcher)
+mesh_cache.reload("character.obj");
+```
+
+The platform module's filesystem watcher automatically triggers reload when files change. See `CC-002` in the roadmap for hot reload infrastructure details.
+
+## Handle Validation
+
+Debug builds automatically validate handle usage:
+
+```cpp
+MeshHandle handle = mesh_cache.load("model.obj");
+mesh_cache.release(handle);
+
+// Accessing stale handle logs telemetry and returns nullptr
+auto* mesh = mesh_cache.get(handle);  // nullptr, logs warning
+```
+
+Validation diagnostics are available through `RuntimeDiagnostics::handle_validation` when `ENGINE_ENABLE_ASSETS` is enabled.
+
+## Telemetry & Diagnostics
+
+Asset caches emit telemetry for monitoring:
+
+```cpp
+// Access streaming metrics
+auto metrics = engine::runtime::streaming_metrics();
+fmt::print("Pending: {}, Completed: {}, Failed: {}\n",
+    metrics.streaming_pending,
+    metrics.streaming_total_completed,
+    metrics.streaming_total_failed);
+
+// Geometry-specific error breakdown
+for (size_t i = 0; i < metrics.streaming_geometry_failures.size(); ++i) {
+    if (metrics.streaming_geometry_failures[i] > 0) {
+        fmt::print("  {}: {} failures\n",
+            metrics.streaming_geometry_failure_labels[i],
+            metrics.streaming_geometry_failures[i]);
+    }
+}
+```
+
+Telemetry tracks:
+- Queue health: worker count, capacity, pending tasks
+- Request lifecycle: enqueued, executed, completed, failed, cancelled
+- Error attribution: per-format failure counts with structured error codes
+
+## Cache Policies
+
+Control resource retention with cache policies:
+
+```cpp
+AssetLoadParams params{
+    .cache_policy = CachePolicy::Persistent  // Never auto-evict
+};
+
+// Or use time-based eviction
+params.cache_policy = CachePolicy::TimeToLive;
+params.ttl_seconds = 60.0;  // Evict after 60 seconds of no use
+```
+
+Available policies:
+- **Persistent**: Manually managed, never auto-evicted
+- **TimeToLive**: Evicted after specified duration
+- **LRU**: Least-recently-used eviction when cache is full
+
+## Error Handling
+
+Asset operations return `Result<T, Error>` following the `DC-004` pattern:
+
+```cpp
+auto result = animation::read_clip_json(stream);
+if (!result) {
+    AssetLoadError error = result.error();
+    fmt::print("Load failed: {} (code: {})\n",
+        error.message,
+        static_cast<int>(error.code));
+}
+```
+
+Error codes include:
+- `AssetLoadError::file_not_found`
+- `AssetLoadError::invalid_format`
+- `AssetLoadError::validation_failed`
+- `AssetLoadError::queue_full`
+- `AssetLoadError::cancelled`
+
+## Integration with IO Module
+
+Assets delegate format detection and parsing to the IO module:
+
+```cpp
+// IO module provides handlers
+auto mesh_result = io::import_mesh("model.obj");
+if (mesh_result) {
+    mesh_cache.insert("model.obj", std::move(*mesh_result));
+}
+```
+
+See [`../io/README.md`](../io/README.md) and [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md) for IO architecture.
+
+## Testing
+
+Tests validate:
+- Handle lifecycle and generational validation (`test_handle_validation.cpp`)
+- Synchronous and asynchronous loading (`test_assets.cpp`, `test_async.cpp`)
+- Cache eviction policies (`test_cache_policies.cpp`)
+- Hot reload callbacks (`test_hot_reload.cpp`)
+- Telemetry accuracy (`test_telemetry.cpp`)
+
+Run tests:
+```bash
+ctest --preset clang-debug -R assets
+```
+
+## Dependencies
+
+- **Core**: ECS registry, telemetry schema, IO thread pool
+- **IO**: Format handlers, signature detection, import/export
+- **Platform**: Filesystem watcher for hot reload
+- **Runtime** (integration): Consumes telemetry and orchestrates streaming
+
+## Related Documentation
+
+- [`ROADMAP.md`](ROADMAP.md): Module milestones and upcoming features
+- [`../../design/async_streaming.md`](../../design/async_streaming.md): Async architecture and design decisions
+- [`../../design/resource_management.md`](../../design/resource_management.md): Handle lifecycle patterns
+- [`../../design/material_persistence_strategy.md`](../../design/material_persistence_strategy.md): Material serialization planning
+- [`../../tasks/T-0115-assets-async-streaming-mvp.md`](../../tasks/T-0115-assets-async-streaming-mvp.md): Async streaming milestone
+- [`../runtime/async_streaming_integration.md`](../runtime/async_streaming_integration.md): Runtime integration guide
+
+

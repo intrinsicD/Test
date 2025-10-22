@@ -20,6 +20,7 @@ EXCLUDED_NAMES = {
     "out",
     "tmp",
     "venv",
+    "third_party"
 }
 
 

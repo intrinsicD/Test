@@ -1,105 +1,333 @@
 # Platform Module
 
-## Current State
-- Provides virtual filesystem providers, deterministic backend selection
-  plumbing, and mocked window/input services pending concrete OS integrations.
-- Exposes a cross-platform filesystem watcher abstraction powering cache hot
-  reload flows across modules.
-- Assets module consumes the watcher to resubscribe mesh/graph/point cloud/
-  shader/texture caches on load and unregister on unload.
-- Supports configuration via `ENGINE_WINDOW_BACKEND` and the runtime
-  `ENGINE_PLATFORM_WINDOW_BACKEND` override with deterministic fallbacks.
+## Overview
 
-## Usage
-- Build with `cmake --build --preset <preset> --target engine_platform`.
-- Include `<engine/platform/windowing/window.hpp>` to construct
-  `WindowConfig` instances and inspect backend capability requirements.
-- Include `<engine/platform/windowing/window_system.hpp>` to access backend
-  selection and window creation APIs.
-- Include `<engine/platform/filesystem/watcher.hpp>` to subscribe to file
-  change notifications; drive `FilesystemWatcher::poll()` from the engine's
-  main loop or an IO thread to surface hot reload events.
-- Run `ctest --preset <preset> --tests-regex engine_platform`.
+The platform module provides cross-platform abstractions for windowing, input handling, filesystem access, and hot-reload infrastructure. It supports multiple window backends (GLFW, SDL, Mock) with runtime selection and includes a filesystem watcher for asset hot-reload workflows (`CC-002`).
 
-## Backend Selection Reference (`PL-230`)
+## Window Backends
 
-Backend selection couples a build-time default with a runtime override while
-preserving deterministic fallbacks. The implementation lives in
-`engine/platform/windowing/window.hpp` and
-`engine/platform/src/windowing/window_system.cpp`.
+### Backend Selection
 
-### Build-Time Defaults
+The platform module supports multiple window backends with automatic fallback:
 
-- Configure the preferred backend at configure time via
-  `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK>`.
-- The cache entry is normalised to upper-case and stored as
-  `ENGINE_PLATFORM_DEFAULT_BACKEND` inside the generated build. Setting the
-  value to `AUTO` disables the build-time preference.
-- Presets under `scripts/build/presets/*.json` keep the default aligned with the
-  target platform (e.g., Linux desktop = GLFW, CI/headless = MOCK).
+```cpp
+#include "engine/platform/api.hpp"
+
+platform::WindowConfig config{
+    .title = "My Application",
+    .width = 1920,
+    .height = 1080,
+    .backend = platform::WindowBackend::Auto,  // Auto-select
+    .capabilities = {
+        .native_surface = true,
+        .headless_compatible = false
+    }
+};
+
+auto window = platform::create_window(config);
+if (!window) {
+    fmt::print("Window creation failed\n");
+}
+```
+
+### Available Backends
+
+| Backend | Headless Safe | Native Surface | Platforms |
+| --- | --- | --- | --- |
+| **GLFW** | ❌ | ✅ | Windows, Linux, macOS |
+| **SDL** | ✅ | ✅ | Windows, Linux, macOS, mobile |
+| **Mock** | ✅ | ❌ | All (testing) |
 
 ### Runtime Override
 
-- `ENGINE_PLATFORM_WINDOW_BACKEND` controls runtime selection. Accepted values:
-  `auto`, `glfw`, `sdl`, and `mock` (case-insensitive, surrounding whitespace
-  ignored).
-- Invalid values are treated as a request for the mock backend so headless
-  automation still launches successfully.
-- When a non-mock override is supplied the selector still appends mock as a
-  safety fallback to keep tests deterministic if capability requirements are not
-  satisfied.
+Override the default backend via environment variable:
 
-### Capability Filtering
+```bash
+# Use SDL instead of default
+export ENGINE_PLATFORM_WINDOW_BACKEND=sdl
 
-`WindowConfig::CapabilityRequirements` constrains the candidate list:
+# Force mock backend for headless testing
+export ENGINE_PLATFORM_WINDOW_BACKEND=mock
+```
 
-| Capability | Description | Eligible Backends |
-| --- | --- | --- |
-| `require_headless_safe` | Allow running without a display server. | SDL, Mock |
-| `require_native_surface` | Provide a native swapchain surface handle. | GLFW, SDL |
+Invalid values gracefully degrade to Mock backend to keep automation deterministic.
 
-Backends violating the required capabilities are removed before selection and
-produce explicit error messages when targeted directly.
+### Build-Time Configuration
 
-### Automatic Fallback Order
+Set the default backend during CMake configuration:
 
-When `WindowBackend::Auto` is requested the selector evaluates candidates in the
-following order, skipping anything unavailable or capability-incompatible:
+```bash
+cmake --preset clang-debug -DENGINE_WINDOW_BACKEND=SDL
+```
 
-1. Runtime override (`ENGINE_PLATFORM_WINDOW_BACKEND`), then mock if the
-   override was not already mock.
-2. Build-time default (`ENGINE_WINDOW_BACKEND`) when it resolves to an available
-   backend.
-3. Remaining compiled backends in a deterministic order (GLFW → SDL → Mock,
-   guarded by `ENGINE_PLATFORM_HAS_*` macros).
+Options: `GLFW`, `SDL`, `MOCK`, `AUTO` (no build-time preference)
 
-Each attempt records failure messages; an exception summarising all failed
-backends is raised when no candidate succeeds. Integrations should surface the
-message to ease troubleshooting.
+### Backend Implementation
 
-## SDL Backend Parity Checklist (`PL-215`)
+Each backend implements the `IWindowBackend` interface:
 
-- Follow the [SDL backend parity checklist](sdl_backend_checklist.md) to stage
-  work on a native SDL window implementation. The document summarises
-  prerequisites, validation steps, and remaining gaps relative to the GLFW
-  backend so `DC-003` adopters can plan implementation tasks without losing
-  determinism or observability guarantees.
+```cpp
+class IWindowBackend {
+public:
+    virtual bool initialize() = 0;
+    virtual void shutdown() = 0;
+    virtual void poll_events() = 0;
+    virtual bool should_close() const = 0;
+    virtual void swap_buffers() = 0;
+    virtual void set_title(std::string_view title) = 0;
+    // ... more methods
+};
+```
 
-## TODO / Next Steps
+## Input Handling
 
-- Track `PL-215` follow-ups using the SDL parity checklist (backend feature
-  parity, CI coverage, troubleshooting docs) and keep status synced with the
-  [central roadmap](../../ROADMAP.md) while `DC-003` implementation tasks are
-  staffed.
+### Keyboard Input
 
-This module tracks actionable work through the execution checklist below.
+```cpp
+auto& input = window->input();
 
-## Execution Checklist
+if (input.is_key_pressed(platform::Key::W)) {
+    // Move forward
+}
 
-| Task ID | Scope | Exit Criteria | Status |
-| --- | --- | --- | --- |
-| `PL-215` | Publish SDL backend parity checklist (`DC-003`). | Document feature parity, dependencies, and validation steps. | ✅ Done |
-| `PL-222` | Implement filesystem watcher abstraction (`CC-002`). | Provide cross-platform watcher with tests and README updates. | ✅ Done |
-| `PL-230` | Update backend selection docs. | Refresh README + root docs with backend selection flow. | ✅ Done |
+if (input.is_key_just_pressed(platform::Key::Space)) {
+    // Jump (once per press)
+}
+```
 
-See [ROADMAP.md](ROADMAP.md) for more detail.
+### Mouse Input
+
+```cpp
+auto mouse_pos = input.mouse_position();
+auto delta = input.mouse_delta();
+
+if (input.is_mouse_button_pressed(platform::MouseButton::Left)) {
+    // Handle click
+}
+
+float scroll = input.scroll_delta();
+```
+
+### Gamepad Support
+
+```cpp
+if (input.is_gamepad_connected(0)) {
+    float left_x = input.gamepad_axis(0, platform::GamepadAxis::LeftX);
+    
+    if (input.is_gamepad_button_pressed(0, platform::GamepadButton::A)) {
+        // Handle button press
+    }
+}
+```
+
+## Filesystem Abstraction
+
+### Virtual Filesystem
+
+Mount multiple filesystem providers:
+
+```cpp
+#include "engine/platform/filesystem/virtual_filesystem.hpp"
+
+platform::VirtualFilesystem vfs;
+
+// Mount physical directory
+vfs.mount("/assets", "C:/MyGame/Assets");
+
+// Mount archive (planned)
+vfs.mount("/textures", "textures.pak");
+
+// Read through VFS
+auto data = vfs.read_file("/assets/models/character.obj");
+```
+
+### Filesystem Watcher
+
+Monitor file changes for hot-reload:
+
+```cpp
+#include "engine/platform/filesystem/watcher.hpp"
+
+platform::FilesystemWatcher watcher;
+
+// Watch directory
+watcher.watch("assets/", [](const platform::FileEvent& event) {
+    if (event.type == platform::FileEventType::Modified) {
+        fmt::print("File changed: {}\n", event.path);
+        // Trigger asset reload
+    }
+});
+
+// Poll for events
+watcher.poll();
+```
+
+Integrates with asset hot-reload (`CC-002`):
+
+```cpp
+// Assets module registers callback
+watcher.watch("assets/meshes/", [&mesh_cache](const auto& event) {
+    if (event.path.extension() == ".obj") {
+        mesh_cache.reload(event.path);
+    }
+});
+```
+
+## Time & Clock
+
+High-resolution timing for frame pacing:
+
+```cpp
+#include "engine/platform/time.hpp"
+
+auto start = platform::now();
+// ... do work ...
+auto end = platform::now();
+
+double duration_ms = platform::duration_ms(start, end);
+double duration_us = platform::duration_us(start, end);
+```
+
+### Frame Limiter
+
+```cpp
+platform::FrameLimiter limiter{60.0};  // Target 60 FPS
+
+while (running) {
+    limiter.begin_frame();
+    
+    // Update & render
+    
+    limiter.end_frame();  // Sleeps to maintain target FPS
+    
+    double actual_fps = limiter.fps();
+}
+```
+
+## Threading Support
+
+Platform-specific thread utilities:
+
+```cpp
+#include "engine/platform/threading.hpp"
+
+// Get hardware concurrency
+size_t thread_count = platform::hardware_concurrency();
+
+// Set thread affinity (platform-specific)
+platform::set_thread_affinity(std::this_thread::get_id(), {0, 1});
+
+// Set thread priority
+platform::set_thread_priority(platform::ThreadPriority::High);
+```
+
+## Clipboard
+
+```cpp
+// Set clipboard text
+platform::set_clipboard_text("Copied text");
+
+// Get clipboard text
+std::string text = platform::get_clipboard_text();
+```
+
+## SDL Backend Integration (`PL-215`)
+
+The SDL backend provides parity with GLFW plus additional features:
+
+- Headless rendering support
+- Mobile platform support (Android, iOS)
+- Better gamepad compatibility
+- Audio subsystem integration (planned)
+
+See [`sdl_backend_checklist.md`](sdl_backend_checklist.md) for implementation progress.
+
+## Mock Backend (Testing)
+
+The Mock backend enables deterministic testing:
+
+```cpp
+platform::WindowConfig config{
+    .backend = platform::WindowBackend::Mock
+};
+
+auto window = platform::create_window(config);
+
+// Simulate input
+auto& mock = static_cast<platform::MockWindow&>(*window);
+mock.inject_key_press(platform::Key::W);
+mock.inject_mouse_motion(100, 100);
+mock.advance_frame();  // Deterministic timing
+```
+
+## Platform Detection
+
+Query platform at runtime:
+
+```cpp
+#include "engine/platform/platform_info.hpp"
+
+auto platform = platform::current_platform();
+switch (platform) {
+    case platform::Platform::Windows:
+        // Windows-specific code
+        break;
+    case platform::Platform::Linux:
+        // Linux-specific code
+        break;
+    case platform::Platform::MacOS:
+        // macOS-specific code
+        break;
+}
+
+bool is_desktop = platform::is_desktop_platform();
+bool is_mobile = platform::is_mobile_platform();
+```
+
+## Error Handling
+
+Platform operations return `Result<T, PlatformError>`:
+
+```cpp
+auto result = platform::create_window(config);
+if (!result) {
+    auto error = result.error();
+    fmt::print("Window creation failed: {}\n", error.message);
+    
+    // Check for missing dependencies
+    if (error.code == platform::PlatformError::missing_x11) {
+        fmt::print("Install X11 development headers\n");
+    }
+}
+```
+
+## Testing
+
+Platform tests validate:
+- Window backend selection and fallback (`test_window.cpp`)
+- Input event handling (`test_input.cpp`)
+- Filesystem watcher accuracy (`test_watcher.cpp`)
+- VFS mounting and resolution (`test_vfs.cpp`)
+- Mock backend determinism (`test_mock.cpp`)
+
+Run tests:
+```bash
+ctest --preset clang-debug -R platform
+```
+
+## Dependencies
+
+- **GLFW** (optional): When `ENGINE_ENABLE_GLFW=ON`
+- **SDL2** (optional): When SDL backend is compiled
+- **X11 libraries** (Linux): `libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, `libxi-dev`
+- **Core**: Error handling, telemetry
+
+## Related Documentation
+
+- [`ROADMAP.md`](ROADMAP.md): Module milestones including SDL backend work
+- [`sdl_backend_checklist.md`](sdl_backend_checklist.md): SDL implementation progress
+- [`../../README.md`](../../README.md): Backend selection reference in workspace snapshot
+- [`../../architecture.md`](../../architecture.md): Platform role in data flow
+- Used by: Runtime (window management), Assets (filesystem watcher), Rendering (surface creation)
+
+

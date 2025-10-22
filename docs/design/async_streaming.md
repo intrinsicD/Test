@@ -147,8 +147,8 @@ future iteration once their async loaders land.
 
 All state transitions generate events consumed by:
 
-- Runtime telemetry: `RuntimeHost::streaming_metrics()` exposes per-request and
-  aggregated timings.
+- Runtime telemetry: `engine::runtime::streaming_metrics()` exposes per-request and
+  aggregated timings (note: this is a free function in the runtime namespace, not a member of RuntimeHost).
 - Scripts: `scripts/diagnostics/streaming_report.py` queries the runtime C API
   and reports worker counts, queue occupancy, and per-state totals for
   asynchronous requests.
@@ -168,9 +168,11 @@ queue/dispatch/completion timestamps, bytes transferred, and error codes.
 
 ### Interaction with Runtime and Other Subsystems
 
-- Runtime exposes `RuntimeHost::request_asset_load(const AssetLoadRequest&)`
-  which forwards to the owning cache and registers the future with runtime
-  diagnostics.
+- Asset loading is performed through cache-specific methods (e.g., 
+  `MeshCache::load_async()`, `PointCloudCache::load_async()`) which accept
+  `AssetLoadRequest` and return `AssetLoadFuture`. The runtime orchestrates
+  these calls during initialization and streaming workflows, with telemetry
+  accessible via `engine::runtime::streaming_metrics()`.
 - Animation/physics subsystems can subscribe to future completion signals to
   delay evaluation until assets are ready. Integration-specific hooks will be
   designed per subsystem but all rely on the same future interface.
@@ -214,8 +216,12 @@ public:
     Result<ResourceHandleBase, AssetLoadError> get();
     void cancel();
     void reprioritise(AssetLoadPriority new_priority);
-};
+// Cache-specific async loading methods
+AssetLoadFuture MeshCache::load_async(const AssetLoadRequest& request, IoThreadPool& pool);
+AssetLoadFuture PointCloudCache::load_async(const AssetLoadRequest& request, IoThreadPool& pool);
 
+// Runtime telemetry (free function, not a RuntimeHost member)
+StreamingMetrics engine::runtime::streaming_metrics() noexcept;
 AssetLoadFuture RuntimeHost::request_asset_load(const AssetLoadRequest& request);
 AssetLoadFuture MeshCache::schedule_async(const AssetLoadRequest& request);
 ```
@@ -235,13 +241,14 @@ sharing the same underlying shared state.
   validate telemetry/logging output.
 - **Performance benchmarks** (later in AI-002) measure throughput and contention
   to tune default worker counts.
-
-## Phased Implementation Plan
-
-1. **Design foundation (this document).** Establish API contracts and data
-   flow. ✅
+   and shared future state. ✅
+3. **Cache integration.** Add `load_async` to each cache and wrap existing
+   synchronous imports in background tasks. ✅
+4. **Runtime integration.** Configure thread pool during `RuntimeHost::initialize()`,
+   expose streaming metrics via `engine::runtime::streaming_metrics()`, and update
+   diagnostics to report async queue health. ✅
 2. **Thread pool & scheduler core.** Introduce `IoThreadPool`, priority queue,
-   and shared future state.
+   acceptance criteria. ✅
 3. **Cache integration.** Add `schedule_async` to each cache and wrap existing
    synchronous imports in background tasks.
 4. **Runtime exposure.** Surface `RuntimeHost::request_asset_load` and update

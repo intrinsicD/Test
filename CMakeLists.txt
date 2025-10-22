@@ -16,6 +16,7 @@ set(ENGINE_MODULES
     rendering
     scene
     runtime
+    tools
 )
 
 option(ENGINE_ENABLE_CUDA "Enable CUDA support for compute module targets" OFF)

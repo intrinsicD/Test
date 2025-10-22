@@ -111,7 +111,5 @@ TEST(EcsRegistry, SchedulerExecutesSystems) {
 
     EXPECT_EQ(invoke_count, 1);
     EXPECT_EQ(registry.alive_count(), 1U);
-
-    draw_registry_debug_ui(registry, "Scheduler Debug");
 }
 

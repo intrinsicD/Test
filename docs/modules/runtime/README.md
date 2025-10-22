@@ -1,77 +1,172 @@
 # Runtime Module
 
-## Current State
-- `RuntimeHost` orchestrates animation, compute-driven physics, CPU linear blend
-  skinning, geometry deformation, and submission into the rendering pipeline in
-  line with [ADR-0006](../../specs/ADR-0006-animation-deformation.md).
-- Integrates with subsystem plugins discovered via core module facilities.
-- Emits diagnostics and telemetry for lifecycle monitoring, including
-  serialized frame-graph metadata and transient resource lifecycle events
-  captured during render submissions.
-- Rendering submissions consume the shared
-  `engine::rendering::RuntimeSubmissionContext` struct via the
-  `RuntimeHost::RenderSubmissionContext` alias so runtime APIs stay aligned with
-  backend contracts (`RT-003.1`).
-- Runtime diagnostics capture asynchronous streaming queue metrics (including
-  `geometry_failures_by_error` attribution) mirrored via
-  `scripts/diagnostics/runtime_frame_telemetry.py` for `AI-002` observability.
-- Scene hierarchy validation reports are published through the diagnostics
-  bridge so tooling and scripts receive detailed issue metadata (`RT-005.2`).
-- Hierarchy troubleshooting workflows are documented in
-  [diagnostics.md](diagnostics.md#hierarchy-diagnostics-playbook) so runtime and
-  tooling consumers share a common remediation playbook (`RT-005.3`).
-- Detailed instrumentation and troubleshooting workflows live in
-  [diagnostics.md](diagnostics.md).
-- Handle validation telemetry exposes `runtime.handles.*` counters populated by
-  `engine::assets::validate_handle`, allowing diagnostics tooling to detect
-  stale assets referenced by rendering submissions (`AI-001.2`).
+## Overview
 
-## Usage
-- Build with `cmake --build --preset <preset> --target engine_runtime`.
-- Include `<engine/runtime/runtime_host.hpp>` for orchestration APIs.
-- Run `ctest --preset <preset> --tests-regex engine_runtime`.
-- Follow the [async streaming integration guide](async_streaming_integration.md)
-  when wiring asset loading through the runtime and telemetry tooling (`AI-002.3`).
+The runtime module orchestrates the engine's main execution loop through `RuntimeHost`, which coordinates animation evaluation, physics simulation, geometry deformation, scene graph updates, and rendering submission. It acts as the integration point for all subsystems and provides comprehensive diagnostics and telemetry.
 
-### Skinned Mesh Workflow
+## Core Concepts
 
-- Populate `RuntimeHostDependencies::mesh.rest_positions` and
-  `RuntimeHostDependencies::binding` with matching vertex counts; the runtime
-  rejects mismatched bindings via `RuntimeError::dependency_invalid_binding` to
-  prevent undefined deformation results.【F:engine/runtime/src/api.cpp†L85-L134】
-- Provide inverse bind matrices and normalised weights for every joint in the
-  binding; `skinning::validate_binding` enforces these invariants on startup and
-  every tick before dispatching deformation work.【F:engine/animation/include/engine/animation/rigging/rig_binding.hpp†L17-L116】【F:engine/runtime/src/api.cpp†L1102-L1170】
-- During `RuntimeHost::tick` the dispatcher evaluates the animation pose,
-  applies physics-driven root motion, builds global joint transforms, and runs
-  `geometry::deform::apply_linear_blend_skinning` to update mesh positions and
-  normals deterministically.【F:engine/runtime/src/api.cpp†L1075-L1182】【F:engine/geometry/src/deform/linear_blend_skinning.cpp†L16-L73】
-- The resulting scene graph entries mirror joint transforms, allowing rendering
-  and diagnostics tooling to inspect joint hierarchies alongside the skinned
-  mesh.【F:engine/runtime/src/api.cpp†L949-L1101】
-- Capture performance baselines with
-  `python scripts/diagnostics/runtime_frame_telemetry.py --library-dir <build>/engine/runtime --frames 32 --variance-check geometry.deform:10 --variance-trim 0.1`.
-  The default debug build records ~22 ms per `geometry.deform` dispatch using the
-  cloth stress test mesh (trimmed mean over 32 frames).【ba1696†L1-L38】
+### RuntimeHost
 
-## TODO / Next Steps
+`RuntimeHost` is the primary entry point for managing the engine's lifecycle:
 
-- Keep the runtime diagnostics guide cross-linked with the
-  `scene_hierarchy_diagnostics_sample` fixtures delivered in `SC-225` and
-  ensure telemetry examples stay aligned. Continue pointing dashboards at
-  the `runtime.scene_validation.alert_level` metric (warning at 3 frames,
-  critical at 10) so hierarchy regressions surface consistently across
-  modules; track progress alongside
-  [RT-005](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
+```cpp
+#include "engine/runtime/api.hpp"
 
-This module tracks actionable work through the execution checklist below.
+engine::runtime::RuntimeHostDependencies deps{};
+deps.controller = animation::make_linear_controller(animation::make_default_clip());
+deps.mesh = geometry::make_unit_quad();
+deps.world = physics::PhysicsWorld{};
+deps.streaming_config.worker_count = 2;
+deps.streaming_config.queue_capacity = 64;
 
-## Execution Checklist
+engine::runtime::RuntimeHost host{std::move(deps)};
+host.initialize();
 
-| Task ID | Scope | Exit Criteria | Status |
-| --- | --- | --- | --- |
-| `RU-307` | Reconcile submission hooks with Vulkan backend (`RT-003`). | Unified submission struct validated by integration tests. | ✅ Done |
-| `RU-315` | Expose streaming metrics to telemetry (`AI-002`). | Runtime publishes queue metrics consumed by diagnostics viewer. | ✅ Done |
-| `RU-320` | Update runtime diagnostics guide. | Document lifecycle instrumentation and troubleshooting. | ✅ Done |
+// Main loop
+while (running) {
+    auto state = host.tick(delta_time);
+    // Process state.pose, state.bounds, state.body_positions, etc.
+}
 
-See [ROADMAP.md](ROADMAP.md) for detailed sequencing.
+host.shutdown();
+```
+
+### Lifecycle
+
+1. **Construction**: Accept `RuntimeHostDependencies` with animation controllers, physics world, geometry, and subsystem plugins
+2. **Initialization**: `initialize()` validates dependencies, starts the IO thread pool, and initializes all registered subsystems
+3. **Tick**: `tick(dt)` advances animation, physics, deformation, scene updates, and optionally rendering submission
+4. **Shutdown**: `shutdown()` tears down subsystems and the IO thread pool gracefully
+
+### Subsystem Integration
+
+The runtime discovers and manages subsystems through the plugin architecture:
+
+- **Explicit plugins**: Pass subsystem instances via `RuntimeHostDependencies::subsystem_plugins`
+- **Automatic discovery**: Use `configure_with_default_subsystems()` to load all compiled subsystems
+- **Selective enablement**: Provide subsystem names to `configure_with_default_subsystems(enabled_subsystems)`
+
+The subsystem registry validates dependencies and detects cycles during initialization, emitting `RuntimeError::dependency_cycle` when configuration is invalid.
+
+## Diagnostics & Telemetry
+
+Access runtime metrics through `RuntimeHost::diagnostics()`:
+
+```cpp
+const auto& diag = host.diagnostics();
+fmt::print("Ticks: {}, Avg: {:.3f}ms\n", diag.tick_count, diag.average_tick_ms);
+
+// Stage timings
+for (const auto& stage : diag.stage_timings) {
+    fmt::print("  {}: {:.3f}ms\n", stage.name, stage.last_ms);
+}
+
+// Streaming metrics
+fmt::print("Streaming: {}/{} completed\n", 
+    diag.streaming.streaming_total_completed,
+    diag.streaming.streaming_total_requests);
+
+// Scene validation
+if (diag.scene_validation.has_cycles) {
+    fmt::print("Scene has {} cycles\n", diag.scene_validation.cycle_count);
+}
+```
+
+### Available Metrics
+
+- **Lifecycle counters**: `initialize_count`, `tick_count`, `shutdown_count`, `initialize_failure_count`
+- **Timing data**: `last_*_ms`, `max_*_ms`, `average_tick_ms` for each stage
+- **Streaming telemetry**: Worker health, queue depth, completion/failure rates (see [`async_streaming_integration.md`](async_streaming_integration.md))
+- **Scene validation**: Cycle detection, depth analysis, alert levels (see [`diagnostics.md`](diagnostics.md))
+- **Physics collisions**: Contact manifolds, broad-phase metrics
+- **Handle validation**: Asset and rendering handle lifecycle tracking (when `ENGINE_ENABLE_ASSETS` is on)
+
+See [`diagnostics.md`](diagnostics.md) for complete metric reference and troubleshooting workflows.
+
+## Async Streaming Integration
+
+The runtime manages the IO thread pool for asynchronous asset loading:
+
+```cpp
+deps.streaming_config.worker_count = 2;
+deps.streaming_config.queue_capacity = 64;
+deps.streaming_config.enable = true;
+```
+
+Access streaming health metrics via `engine::runtime::streaming_metrics()` or through the diagnostics snapshot. See [`async_streaming_integration.md`](async_streaming_integration.md) for detailed integration patterns.
+
+## Rendering Submission
+
+When built with rendering support (`ENGINE_ENABLE_RENDERING=ON`), the runtime submits frame graphs:
+
+```cpp
+#if ENGINE_ENABLE_RENDERING
+engine::runtime::RuntimeHost::RenderSubmissionContext context{
+    .scheduler = my_scheduler,
+    .backend = rendering::Backend::Vulkan
+};
+host.submit_render_graph(context);
+#endif
+```
+
+Frame-graph metadata and resource events are captured in `diagnostics().frame_graph_serialization` and `diagnostics().frame_graph_events`.
+
+## C API for Tooling
+
+The runtime exposes a C API for Python bindings and external tooling:
+
+```c
+engine_runtime_initialize();
+engine_runtime_tick(0.016);
+size_t body_count = engine_runtime_body_count();
+const auto& diag = engine::runtime::diagnostics();
+engine_runtime_shutdown();
+```
+
+Python scripts in `scripts/diagnostics/` consume these APIs to generate telemetry reports and performance snapshots.
+
+## Configuration
+
+Key configuration surfaces:
+
+- `RuntimeHostDependencies::scene_name`: Labels for diagnostics and telemetry
+- `RuntimeHostDependencies::enabled_subsystems`: Explicit subsystem selection
+- `RuntimeHostDependencies::streaming_config`: IO thread pool tuning
+- Environment variable `ENGINE_PLATFORM_WINDOW_BACKEND`: Override window backend at runtime
+
+## Dependencies
+
+- **Core**: ECS registry, telemetry schema, plugin interfaces, IO thread pool
+- **Animation**: Clip evaluation, blend trees, deformation transforms
+- **Physics**: Rigid-body simulation, collision detection
+- **Geometry**: Mesh deformation, spatial queries, bounds computation
+- **Scene**: Hierarchy validation, transform propagation
+- **Assets** (optional): Handle validation, async queue metrics
+- **Rendering** (optional): Frame-graph submission, resource tracking
+- **Compute**: Kernel dispatcher for physics and deformation workloads
+
+## Testing
+
+Integration tests live in `engine/tests/integration/test_runtime_integration.cpp` and cover:
+
+- Lifecycle validation (initialize, tick, shutdown)
+- Subsystem registration and dependency resolution
+- Frame-graph submission determinism
+- Streaming telemetry accuracy
+- Scene validation integration
+
+Run tests via:
+```bash
+ctest --preset clang-debug -R runtime
+```
+
+## Related Documentation
+
+- [`ROADMAP.md`](ROADMAP.md): Module-specific task tracking
+- [`diagnostics.md`](diagnostics.md): Comprehensive telemetry reference and troubleshooting
+- [`async_streaming_integration.md`](async_streaming_integration.md): Asset loading workflows
+- [`../../architecture.md`](../../architecture.md): System-level data flow and invariants
+- [`../../design/telemetry_schema.md`](../../design/telemetry_schema.md): Shared metric definitions
+- [`../../tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md): Frame-graph integration milestone
+

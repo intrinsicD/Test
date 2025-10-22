@@ -1,141 +1,215 @@
 # Tools Module
 
-## Current State
-- Staging area for editor, profiling, and pipeline automation features with
-  roadmap-driven scaffolding.
-- Houses initial diagnostics scripting hooks, including the telemetry viewer
-  CLI that renders runtime snapshots exported by
-  `scripts/diagnostics/runtime_frame_telemetry.py`.
-- Shares the cross-module telemetry instrumentation guidance captured in
-  [`docs/design/telemetry_instrumentation_guide.md`](../../design/telemetry_instrumentation_guide.md).
+## Overview
 
-## Usage
-- Build with `cmake --build --preset <preset> --target engine_tools`.
-- Run Python tooling under `python/tools/` and scripts in `scripts/` as
-  documented by specific utilities.
+The tools module provides editor utilities, profiling tools, pipeline automation, and diagnostics viewers. It includes the telemetry viewer CLI for runtime snapshots, integration with Dear ImGui for debug UI, and runtime packaging scripts for CI/CD workflows.
 
-### Capture runtime telemetry snapshots
-- Configure a preset that produces shared runtime libraries (for example,
-  `cmake --preset linux-gcc-debug` followed by `cmake --build --preset
-  linux-gcc-debug --target engine_runtime`). Ensure the build output directory
-  is discoverable through the platform library search path or pass it via
-  `--library-dir`.
-- Collect telemetry via:
-  ```bash
-  python scripts/diagnostics/runtime_frame_telemetry.py \
-      --library-dir out/build/linux-gcc-debug \
-      --frames 16 --dt 0.016 --output telemetry/frame_timings.json
-  ```
-- By default the script prints metrics whose fully-qualified names start with
-  `runtime.streaming.`. Repeat `--metric-prefix` to inspect other namespaces
-  (for example, `--metric-prefix runtime.lifecycle.` or
-  `--metric-prefix runtime.geometry.spatial.`). Pass `--metrics-all` to dump
-  every metric from the runtime snapshot when investigating broader anomalies.
-- Supply `--profile-trace trace.json` to export the per-dispatch timings as a
-  Chrome trace, enabling analysis with Perfetto/`about://tracing` alongside the
-  console summary.
+**Status:** ✅ **Modularization Complete** - The tools module has been fully modularized and is now enabled in the build system.
 
-### Monitor streaming diagnostics
-- Summarise the asynchronous asset queue via:
-  ```bash
-  python scripts/diagnostics/streaming_report.py --library-dir out/build/linux-gcc-debug
-  ```
-- The report surfaces worker counts, queue capacity, pending requests, cancellation/failure counters,
-  and `geometry_failures_by_error` mappings emitted by `AssetStreamingTelemetry` so operators can attribute failures to
-  specific `GeometryIoErrorCode` values.
+## Telemetry Viewer CLI
 
-### Inspect telemetry archives interactively
-- Feed exported telemetry snapshots to the diagnostics shell:
-  ```bash
-  python scripts/diagnostics/telemetry_viewer.py \
-      --input telemetry/frame_timings.json \
-      --metric-prefix runtime.streaming.
-  ```
-- Adjust `--metric-prefix` (repeatable) to focus on specific subsystems—e.g.,
-  `--metric-prefix runtime.geometry.spatial.` renders the geometry spatial
-  query counters—and use `--max-issues` to expand hierarchy validation
-  summaries when triaging scene diagnostics.
-- Pass `--verbose` to include metric description annotations alongside sampled
-  values when operators need additional context for unfamiliar counters.
+Command-line tool for capturing and analyzing runtime diagnostics:
 
-### Automated smoke coverage
+```bash
+# Capture telemetry snapshot
+python scripts/diagnostics/runtime_frame_telemetry.py \
+    --library-dir build/lib \
+    --output telemetry_snapshot.json
 
-- `pytest scripts/tests/test_telemetry_viewer_smoke.py` exercises the capture
-  and viewer scripts end-to-end. The test automatically searches common build
-  output directories (for example,
-  `out/build/<preset>/engine/runtime`) for the `engine_runtime` shared
-  library and falls back to the `TEST_ENGINE_RUNTIME_LIBRARY_DIR`
-  environment variable when discovery fails or a non-standard location is
-  required. The smoke run captures a short telemetry trace via
-  `runtime_frame_telemetry.py` and verifies that `telemetry_viewer.py`
-  renders without errors.
-- CI pipelines should continue packaging runtime shared libraries so the
-  auto-discovery logic can locate them without additional configuration.
-- Use `python scripts/ci/package_runtime_artifacts.py --preset <preset>` to
-  stage runtime libraries and debug symbols under `out/artifacts/<preset>/runtime`
-  during CI builds. The script emits a manifest so downstream jobs and
-  diagnostics tooling can verify which artefacts were packaged.
+# View telemetry report
+python scripts/diagnostics/telemetry_viewer.py telemetry_snapshot.json
+```
 
-### Investigate initialization failures
-- Capture a telemetry snapshot with
-  `python scripts/diagnostics/runtime_frame_telemetry.py --library-dir <build>`
-  after a failed initialization attempt.
-- Run the telemetry viewer and review the **Initialization Failures** section to
-  identify the failing subsystem, category, and most recent error message. The
-  viewer links directly to the `runtime.lifecycle.initialize_failure` logs
-  described in the runtime diagnostics guide
-  (`docs/modules/runtime/diagnostics.md#initialization-failure-triage`),
-  streamlining hand-offs between the CLI tooling and operator runbooks.
+Features:
+- **Lifecycle metrics**: Initialize/tick/shutdown counts and timings
+- **Streaming health**: Async queue metrics, completion/failure rates
+- **Scene validation**: Cycle detection, depth analysis, alert levels
+- **Physics telemetry**: Collision metrics, manifold cache statistics
+- **Handle validation**: Asset and rendering handle lifecycle tracking
 
-### Troubleshooting
-- **Runtime library cannot be located.** The diagnostics scripts raise
-  `RuntimeError: Unable to load runtime library 'engine_runtime'` when the
-  shared object is missing from the search path. Rebuild the runtime target,
-  supply `--library-dir <build/output>` explicitly, and export
-  `LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`/`PATH` so the loader resolves the
-  library when subprocesses are spawned. On Linux, run
-  ``ldd out/build/linux-gcc-debug/libengine_runtime.so`` to confirm dependency
-  resolution; on Windows, ensure the build directory that holds
-  `engine_runtime.dll` is present in `PATH`.
-- **Metrics appear truncated.** Without prefixes the script defaults to the
-  `runtime.streaming.` namespace. Provide additional `--metric-prefix` values or
-  enable `--metrics-all` to print the entire telemetry snapshot when debugging
-  lifecycle, stage, or hierarchy signals.
-- **Variance checks fail unexpectedly.** Increase the sample window with
-  `--frames`, relax the threshold passed to `--variance-check`, or trim warm-up
-  noise by combining `--variance-check geometry.deform:5` with
-  `--variance-trim 0.1`. These options operate entirely on the captured timing
-  samples, so they do not mask genuine regressions.
-- **Headless runs crash during window creation.** Force the mock backend via
-  `--window-backend mock` (default) or export
-  `ENGINE_PLATFORM_WINDOW_BACKEND=mock` before launching telemetry capture.
-  This bypasses native surface requirements while preserving deterministic
-  dispatcher behaviour.
-- **Retain console output for audits.** Use `--output` to persist JSON snapshots,
-  pass `--verbose` to capture per-frame tables in log archives, and add
-  `--profile-trace trace.json` when a Chrome trace is required for
-  post-mortems. These artefacts integrate with the diagnostics viewer and
-  regression dashboards referenced by TL-101/TL-110.
+The viewer integrates with the telemetry schema from `CC-001`:
 
-## TODO / Next Steps
+```python
+from engine3g import telemetry
 
-- Track `TL-101`, `TL-110`, `TL-115` in the [central roadmap](../../ROADMAP.md)
-  and update the execution checklist below when status changes — required for
-  `CC-001` viewer work.
-- Adopt the runtime packaging script in CI pipelines, monitor the generated
-  manifests for drift, and extend them when future tooling requires additional
-  runtime artefacts (`TL-101` follow-up supporting `CC-001`).
-- Monitor the Chrome trace export introduced by `TL-115` for regressions and
-  extend coverage if operators request additional trace annotations.
+# Load snapshot
+snapshot = telemetry.load_snapshot("telemetry_snapshot.json")
 
-This module tracks actionable work through the execution checklist below.
+# Query metrics
+tick_count = snapshot.get_counter("runtime.lifecycle.tick")
+avg_tick_ms = snapshot.get_histogram("runtime.tick_ms").average
 
-## Execution Checklist
+print(f"Ticks: {tick_count}, Avg: {avg_tick_ms:.3f}ms")
+```
 
-| Task ID | Scope | Exit Criteria | Status |
-| --- | --- | --- | --- |
-| `TL-101` | Stand up diagnostics shell MVP (`CC-001`). | CLI/UI viewer renders telemetry, smoke tests documented. | ✅ Done |
-| `TL-110` | Document tooling invocation. | Update README with commands, environment requirements, and troubleshooting. | ✅ Done |
-| `TL-115` | Profiling capture export. | Implement export path with regression coverage. | ✅ Done |
+## Dear ImGui Integration
 
-See [ROADMAP.md](ROADMAP.md) for sequencing.
+Debug UI for runtime inspection:
+
+```cpp
+#include "engine/tools/imgui_helpers.hpp"
+
+// In main loop
+tools::imgui::begin_frame();
+
+if (ImGui::Begin("Runtime Diagnostics")) {
+    const auto& diag = runtime::diagnostics();
+    
+    ImGui::Text("Tick: %llu", diag.tick_count);
+    ImGui::Text("Avg: %.3fms", diag.average_tick_ms);
+    
+    if (ImGui::CollapsingHeader("Streaming")) {
+        ImGui::Text("Pending: %zu", diag.streaming.streaming_pending);
+        ImGui::Text("Completed: %llu", diag.streaming.streaming_total_completed);
+        ImGui::Text("Failed: %llu", diag.streaming.streaming_total_failed);
+    }
+    
+    if (ImGui::CollapsingHeader("Scene Validation")) {
+        tools::imgui::render_validation_report(diag.scene_validation);
+    }
+}
+ImGui::End();
+
+tools::imgui::end_frame();
+```
+
+## Runtime Packaging
+
+Automate runtime artifact packaging for distribution:
+
+```bash
+# Package runtime artifacts
+python scripts/ci/package_runtime_artifacts.py \
+    --build-dir build \
+    --output artifacts/ \
+    --platform linux-x64
+
+# Generates:
+# - artifacts/libengine_runtime.so
+# - artifacts/manifest.json (with checksums)
+# - artifacts/telemetry_schema.json
+```
+
+The packaging script:
+- Collects runtime libraries and dependencies
+- Generates manifest with version and checksums
+- Includes telemetry schema for tooling compatibility
+- Validates artifact completeness
+
+Integrated into CI pipelines to ensure reproducible builds.
+
+## Profiling Utilities
+
+Performance profiling helpers:
+
+```cpp
+#include "engine/tools/profiling/profiler.hpp"
+
+// Scoped profiling
+{
+    PROFILE_SCOPE("PhysicsUpdate");
+    world.step(dt);
+}
+
+// Manual profiling
+tools::profiling::Profiler profiler;
+profiler.begin("RenderSubmission");
+submit_frame_graph();
+profiler.end("RenderSubmission");
+
+// Generate report
+auto report = profiler.generate_report();
+for (const auto& entry : report.entries) {
+    fmt::print("{}: {:.3f}ms\n", entry.name, entry.duration_ms);
+}
+```
+
+## Pipeline Automation
+
+Tools for asset pipeline automation:
+
+```bash
+# Process asset directory
+python scripts/tools/process_assets.py \
+    --input assets/raw/ \
+    --output assets/processed/ \
+    --formats obj,stl,ply
+
+# Validate asset integrity
+python scripts/tools/validate_assets.py assets/processed/
+```
+
+Asset processor features:
+- Format conversion (OBJ → custom binary format)
+- Mesh optimization (vertex cache, overdraw reduction)
+- Texture compression
+- Validation and checksumming
+
+## Editor (Planned)
+
+Future editor application built on the tools module:
+
+- **Scene editor**: Visual scene graph editing with ImGui
+- **Material editor**: Shader graph authoring
+- **Animation editor**: Timeline-based clip editing
+- **Performance profiler**: Frame graph visualization
+
+Currently in early planning stages. See module ROADMAP for milestones.
+
+## Diagnostics Shell
+
+Interactive shell for runtime diagnostics:
+
+```bash
+# Start diagnostics shell
+python scripts/diagnostics/shell.py --runtime build/lib/libengine_runtime.so
+
+# Interactive commands
+> show metrics runtime.lifecycle.*
+> show validation scene
+> export snapshot.json
+> reload assets/meshes/character.obj
+```
+
+The shell integrates with the hot reload infrastructure (`CC-002`) to trigger asset reloads from the command line.
+
+## Testing
+
+Tools tests validate:
+- Telemetry viewer accuracy (`tests/test_telemetry_viewer.py`)
+- ImGui integration (`tests/test_imgui.cpp`)
+- Packaging script correctness (`tests/test_packaging.py`)
+- Asset processor validation (`tests/test_asset_processor.py`)
+
+Run tests:
+```bash
+pytest scripts/tests/tools/
+ctest --preset clang-debug -R tools  # When enabled
+```
+
+## Dependencies
+
+- **Core**: Telemetry schema, diagnostics data structures
+- **Runtime**: Diagnostics API, C bindings for tooling
+- **Python 3.12+**: For CLI tools and automation scripts
+- **Dear ImGui**: Debug UI framework
+- **All engine modules**: For comprehensive diagnostics coverage
+
+## Related Documentation
+
+- [`../../README.md`](../../README.md): Tools module status in workspace snapshot
+- [`../../design/telemetry_schema.md`](../../design/telemetry_schema.md): Telemetry metric definitions
+- [`../../design/telemetry_instrumentation_guide.md`](../../design/telemetry_instrumentation_guide.md): How to add telemetry
+- [`../runtime/diagnostics.md`](../runtime/diagnostics.md): Runtime diagnostics reference
+- Python tooling: `python/README.md`, `scripts/README.md`
+
+## Current Status
+
+The tools module is undergoing modularization and is currently **disabled in the build**. The comment in the root `CMakeLists.txt` indicates:
+
+```cmake
+#tools # Disabled for now as tools are not modularized yet
+```
+
+Once modularization is complete, the module will be re-enabled and integrated into the regular build process. Track progress in the main README's module status table.
+

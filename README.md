@@ -25,7 +25,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | Rendering | ✅ Stable | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, Vulkan scheduler prototype, and backend validation metrics covering all providers. | Monitor backend parity telemetry and scope future backend feature coverage. |
 | Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, and submission into the rendering pipeline. | `AI-002`: extend async streaming diagnostics once assets hot-reload callbacks land. |
 | Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | Keep the `SC-225` hierarchy diagnostics samples and dashboards aligned with the `runtime.scene_validation.alert_level` policy introduced by `SC-230`. |
-| Tools | ✅ Stable | Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots. | Adopt the runtime packaging script in CI pipelines, monitor artefact manifests, and gather feedback for the next diagnostics viewer iteration. |
+| Tools | ✅ Stable | Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots, Dear ImGui integration for diagnostics UI, and profiler utilities for performance analysis. | Adopt the runtime packaging script in CI pipelines, monitor artefact manifests, and gather feedback for the next diagnostics viewer iteration. |
 
 ### Directory Map
 
