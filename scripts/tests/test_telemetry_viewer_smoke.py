@@ -8,36 +8,72 @@ from pathlib import Path
 import pytest
 
 RUNTIME_LIBRARY_ENV = "TEST_ENGINE_RUNTIME_LIBRARY_DIR"
+_LIB_PATTERNS = (
+    "libengine_runtime*.so",
+    "libengine_runtime*.dylib",
+    "engine_runtime*.dll",
+)
 
 
 def _has_runtime_library(directory: Path) -> bool:
-    for pattern in (
-        "libengine_runtime*.so",
-        "libengine_runtime*.dylib",
-        "engine_runtime*.dll",
-    ):
+    for pattern in _LIB_PATTERNS:
         if any(directory.glob(pattern)):
             return True
     return False
 
 
-def test_telemetry_viewer_cli_smoke(tmp_path: Path) -> None:
-    env_value = os.environ.get(RUNTIME_LIBRARY_ENV)
-    if not env_value:
-        pytest.skip(
-            "set TEST_ENGINE_RUNTIME_LIBRARY_DIR to the build output containing "
-            "the engine runtime shared library to enable the smoke test"
-        )
+def _candidate_runtime_dirs(repository_root: Path) -> list[Path]:
+    search_roots = [
+        repository_root / "out" / "build",
+        repository_root / "build",
+        repository_root / "out",
+    ]
+    candidates: list[Path] = []
+    for root in search_roots:
+        if not root.exists():
+            continue
+        for lib_pattern in _LIB_PATTERNS:
+            for match in root.rglob(lib_pattern):
+                candidates.append(match.parent)
+    # Deduplicate while preserving stable ordering for deterministic behaviour.
+    ordered: list[Path] = []
+    seen: set[Path] = set()
+    for candidate in sorted(candidates):
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        ordered.append(candidate)
+    return ordered
 
-    runtime_dir = Path(env_value)
-    if not runtime_dir.is_dir():
-        pytest.fail(
-            f"runtime library directory {runtime_dir} does not exist or is not a directory"
-        )
-    if not _has_runtime_library(runtime_dir):
-        pytest.fail(
-            f"no engine runtime shared library found under {runtime_dir}; "
-            "ensure CI packages the runtime artifacts"
+
+def _resolve_runtime_library_dir() -> Path | None:
+    env_value = os.environ.get(RUNTIME_LIBRARY_ENV)
+    if env_value:
+        runtime_dir = Path(env_value)
+        if not runtime_dir.is_dir():
+            pytest.fail(
+                f"runtime library directory {runtime_dir} does not exist or is not a directory"
+            )
+        if not _has_runtime_library(runtime_dir):
+            pytest.fail(
+                f"no engine runtime shared library found under {runtime_dir}; "
+                "ensure CI packages the runtime artifacts"
+            )
+        return runtime_dir
+
+    repo_root = Path(__file__).resolve().parents[2]
+    for candidate in _candidate_runtime_dirs(repo_root):
+        if _has_runtime_library(candidate):
+            return candidate
+    return None
+
+
+def test_telemetry_viewer_cli_smoke(tmp_path: Path) -> None:
+    runtime_dir = _resolve_runtime_library_dir()
+    if runtime_dir is None:
+        pytest.skip(
+            "runtime library not found; build engine_runtime or set "
+            "TEST_ENGINE_RUNTIME_LIBRARY_DIR to enable the smoke test"
         )
 
     telemetry_output = tmp_path / "runtime_telemetry.json"

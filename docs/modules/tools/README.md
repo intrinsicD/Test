@@ -59,14 +59,16 @@
 ### Automated smoke coverage
 
 - `pytest scripts/tests/test_telemetry_viewer_smoke.py` exercises the capture
-  and viewer scripts end-to-end. Set the `TEST_ENGINE_RUNTIME_LIBRARY_DIR`
-  environment variable to the build output directory containing
-  `engine_runtime` shared libraries (for example,
-  `out/build/linux-gcc-debug/engine/runtime`). The test captures a short
-  telemetry trace via `runtime_frame_telemetry.py` and verifies that
-  `telemetry_viewer.py` renders without errors.
-- CI should export the variable once runtime shared libraries are packaged so
-  the smoke test runs automatically as part of the scripts test suite.
+  and viewer scripts end-to-end. The test automatically searches common build
+  output directories (for example,
+  `out/build/<preset>/engine/runtime`) for the `engine_runtime` shared
+  library and falls back to the `TEST_ENGINE_RUNTIME_LIBRARY_DIR`
+  environment variable when discovery fails or a non-standard location is
+  required. The smoke run captures a short telemetry trace via
+  `runtime_frame_telemetry.py` and verifies that `telemetry_viewer.py`
+  renders without errors.
+- CI pipelines should continue packaging runtime shared libraries so the
+  auto-discovery logic can locate them without additional configuration.
 
 ### Investigate initialization failures
 - Capture a telemetry snapshot with
@@ -114,9 +116,9 @@
 - Track `TL-101`, `TL-110`, `TL-115` in the [central roadmap](../../ROADMAP.md)
   and update the execution checklist below when status changes — required for
   `CC-001` viewer work.
-- Coordinate with CI packaging to export runtime shared libraries and set
-  `TEST_ENGINE_RUNTIME_LIBRARY_DIR` so the telemetry viewer smoke test executes
-  automatically (`TL-101` follow-up).
+- Keep CI packaging the runtime shared libraries in deterministic locations so
+  the telemetry viewer smoke test's auto-discovery resolves dependencies
+  without requiring `TEST_ENGINE_RUNTIME_LIBRARY_DIR` overrides.
 - Monitor the Chrome trace export introduced by `TL-115` for regressions and
   extend coverage if operators request additional trace annotations.
 

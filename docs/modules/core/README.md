@@ -20,9 +20,11 @@
 
 ## TODO / Next Steps
 
-- Coordinate with the Tools module on packaging runtime shared libraries in CI
-  and exporting `TEST_ENGINE_RUNTIME_LIBRARY_DIR` so telemetry viewer smoke
-  tests run automatically (`TL-101` follow-up supporting `CC-001`). Track status via
+- Coordinate with the Tools module to ensure CI packages runtime shared
+  libraries in deterministic locations so telemetry viewer smoke-test
+  auto-discovery remains green without relying on
+  `TEST_ENGINE_RUNTIME_LIBRARY_DIR` (`TL-101` follow-up supporting `CC-001`).
+  Track status via
   [docs/ROADMAP.md](../../ROADMAP.md#outstanding-backlog-focus) and
   `docs/modules/core/ROADMAP.md` to keep initialization failure guidance
   validated.
