@@ -24,49 +24,41 @@
   "engine/assets/src/graph_asset.cpp": {
     "throw std::invalid_argument(\"Graph handle identifier cannot be empty\");": 2,
     "throw std::out_of_range(\"Graph asset handle not found\");": 1,
-    "throw std::runtime_error(\"Failed to read graph: \" + std::string(result.error().message()));": 1,
-    "throw std::runtime_error(\"Geometry file detection failed: \" +": 1,
-    "throw std::runtime_error(\"Geometry file does not describe a graph\");": 1,
-    "throw std::runtime_error(\"Unable to determine graph file format for asset\");": 1
+    "throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}": 1
   },
   "engine/assets/src/material_asset.cpp": {
     "throw std::invalid_argument(\"Material handle identifier cannot be empty\");": 1,
     "throw std::out_of_range(\"Material asset handle not found\");": 1
   },
   "engine/assets/src/mesh_asset.cpp": {
+    "throw AssetLoadException(reload.error());": 1,
     "throw std::invalid_argument(\"Asset load request identifier cannot be empty\");": 1,
     "throw std::invalid_argument(\"Mesh handle identifier cannot be empty\");": 2,
-    "throw std::out_of_range(\"Mesh asset handle not found\");": 1,
-    "throw std::runtime_error(\"Failed to read mesh: \" + std::string(result.error().message()));": 1,
-    "throw std::runtime_error(\"Geometry file detection failed: \" +": 1,
-    "throw std::runtime_error(\"Geometry file does not describe a mesh\");": 1,
-    "throw std::runtime_error(\"Unable to determine mesh file format for asset\");": 1
+    "throw std::out_of_range(\"Mesh asset handle not found\");": 1
   },
   "engine/assets/src/point_cloud_asset.cpp": {
+    "throw AssetLoadException(reload.error());": 1,
     "throw std::invalid_argument(\"Asset load request identifier cannot be empty\");": 1,
     "throw std::invalid_argument(\"Point cloud handle identifier cannot be empty\");": 2,
-    "throw std::out_of_range(\"Point cloud asset handle not found\");": 1,
-    "throw std::runtime_error(\"Failed to read point cloud: \" +": 1,
-    "throw std::runtime_error(\"Geometry file detection failed: \" +": 1,
-    "throw std::runtime_error(\"Geometry file does not describe a point cloud\");": 1,
-    "throw std::runtime_error(\"Unable to determine point cloud file format for asset\");": 1
+    "throw std::out_of_range(\"Point cloud asset handle not found\");": 1
   },
   "engine/assets/src/shader_asset.cpp": {
     "throw std::invalid_argument(\"Shader handle identifier cannot be empty\");": 2,
     "throw std::out_of_range(\"Shader asset handle not found\");": 1,
-    "throw std::runtime_error(\"Failed to open shader file: \" + path.generic_string());": 1
+    "throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}": 1
   },
   "engine/assets/src/texture_asset.cpp": {
     "throw std::invalid_argument(\"Texture handle identifier cannot be empty\");": 2,
     "throw std::out_of_range(\"Texture asset handle not found\");": 1,
     "throw std::runtime_error(\"Failed to open texture file: \" + path.generic_string());": 1,
-    "throw std::runtime_error(\"Failed to read texture file: \" + path.generic_string());": 1
+    "throw std::runtime_error(\"Failed to read texture file: \" + path.generic_string());": 1,
+    "throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}": 1
   },
   "engine/compute/src/api.cpp": {
     "throw std::invalid_argument{\"ClockConfiguration.measure must be callable\"};": 1,
     "throw std::out_of_range{make_dependency_error(graph, unresolved)};": 1,
-    "throw std::runtime_error{make_cycle_error(graph, \"during dispatch\")};": 1,
-    "throw std::runtime_error{make_cycle_error(graph, \"during registration\")};": 1,
+    "throw std::runtime_error{make_cycle_error(graph, \"during dispatch\", cycle)};": 1,
+    "throw std::runtime_error{make_cycle_error(graph, \"during registration\", cycle)};": 1,
     "throw;": 1
   },
   "engine/core/include/engine/core/diagnostics/result.hpp": {
@@ -127,55 +119,45 @@
     "throw std::runtime_error(\"Unsupported PLY format: \" + format);": 1,
     "throw std::runtime_error(\"Unsupported PLY property type: \" + std::string{token});": 1
   },
-  "engine/io/src/animation_importer.cpp": {
-    "throw std::runtime_error(\"Animation clip path does not exist: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open animation file for detection: \" + path.string());": 1,
-    "throw std::runtime_error(\"Unsupported animation clip format for path: \" + path.string());": 2
-  },
   "engine/io/src/geometry_io.cpp": {
-    "throw std::runtime_error(\"Binary PCD files are not supported: \" + path.string());": 1,
-    "throw std::runtime_error(\"Binary PLY graphs are not supported: \" + path.string());": 1,
-    "throw std::runtime_error(\"Binary PLY meshes are not supported: \" + path.string());": 1,
-    "throw std::runtime_error(\"Binary PLY point clouds are not supported: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to add face while parsing OBJ file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to add face while parsing OFF file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to add face while parsing PLY file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open OBJ file for writing: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open OBJ file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open OFF file for writing: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open OFF file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open PCD file for writing: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open PCD file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open PLY file for inspection: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open PLY file for writing: \" + path.string());": 3,
-    "throw std::runtime_error(\"Failed to open PLY file: \" + path.string());": 3,
-    "throw std::runtime_error(\"Failed to open XYZ file for writing: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open XYZ file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open edge list file for writing: \" + path.string());": 1,
-    "throw std::runtime_error(\"Failed to open edge list file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Graph contains edge with unregistered vertex while writing PLY\");": 1,
-    "throw std::runtime_error(\"Graph contains edge with unregistered vertex while writing edge list\");": 1,
-    "throw std::runtime_error(\"Invalid OFF header in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Invalid PLY header in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Mesh contains face with unregistered vertex while writing OBJ\");": 1,
-    "throw std::runtime_error(\"Mesh contains face with unregistered vertex while writing OFF\");": 1,
-    "throw std::runtime_error(\"Mesh contains face with unregistered vertex while writing PLY\");": 1,
-    "throw std::runtime_error(\"OBJ face references invalid vertex index in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"OBJ face with fewer than 3 vertices in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"OBJ vertex without 3 coordinates in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"OFF face has fewer than 3 vertices in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"OFF face references invalid vertex index in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"PCD file missing XYZ fields: \" + path.string());": 1,
-    "throw std::runtime_error(\"PLY face has insufficient vertices in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"PLY face references invalid vertex index in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"PLY graph edge references invalid vertex index: \" + path.string());": 1,
-    "throw std::runtime_error(\"PLY point cloud vertex without 3 coordinates in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"PLY vertex without 3 coordinates in file: \" + path.string());": 1,
-    "throw std::runtime_error(\"Unexpected end of file while reading PLY faces: \" + path.string());": 1,
-    "throw std::runtime_error(\"Unexpected end of file while reading PLY graph edges: \" + path.string());": 1,
-    "throw std::runtime_error(\"Unexpected end of file while reading PLY graph vertices: \" + path.string());": 1,
-    "throw std::runtime_error(\"Unexpected end of file while reading PLY point cloud vertices: \" + path.string());": 1,
-    "throw std::runtime_error(\"Unexpected end of file while reading PLY vertices: \" + path.string());": 1
+    "throw GeometryIoException(": 6,
+    "throw GeometryIoException(GeometryIoError::invalid_argument,": 19,
+    "throw GeometryIoException(GeometryIoError::io_failure,": 8,
+    "throw GeometryIoException(GeometryIoError::unsupported_format,": 4,
+    "throw GeometryIoException(header_result.error().code(), header_result.error().message());": 3,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open OBJ file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open OFF file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open PCD file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open PLY file: \" + path.string());": 3,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open XYZ file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open edge list file: \" + path.string());": 1,
+    "throw std::runtime_error(\"Expected boolean value in signature database\");": 1,
+    "throw std::runtime_error(\"Expected literal '\" + std::string{literal} + \"' in signature database\");": 1,
+    "throw std::runtime_error(\"Expected string in signature database\");": 1,
+    "throw std::runtime_error(\"Expected unsigned integer in signature database\");": 1,
+    "throw std::runtime_error(\"Graph signature rule missing 'graph_format'\");": 1,
+    "throw std::runtime_error(\"Incomplete unicode escape in signature database string\");": 1,
+    "throw std::runtime_error(\"Invalid escape sequence in signature database string\");": 1,
+    "throw std::runtime_error(\"Invalid unicode escape in signature database string\");": 1,
+    "throw std::runtime_error(\"Mesh signature rule missing 'mesh_format'\");": 1,
+    "throw std::runtime_error(\"Non-ASCII unicode escapes are not supported in signature database strings\");": 1,
+    "throw std::runtime_error(\"Point cloud signature rule missing 'point_cloud_format'\");": 1,
+    "throw std::runtime_error(\"Signature match is missing 'type'\");": 1,
+    "throw std::runtime_error(\"Signature match must specify at least one pattern\");": 1,
+    "throw std::runtime_error(\"Signature rule missing 'kind'\");": 1,
+    "throw std::runtime_error(\"Signature rule missing 'match'\");": 1,
+    "throw std::runtime_error(\"Signature rule must provide at least one pattern\");": 1,
+    "throw std::runtime_error(\"Unexpected token while parsing signature database\");": 1,
+    "throw std::runtime_error(\"Unexpected trailing data in geometry signature database\");": 1,
+    "throw std::runtime_error(\"Unknown geometry kind in signature rule: \" + value);": 1,
+    "throw std::runtime_error(\"Unknown graph format in signature rule: \" + value);": 1,
+    "throw std::runtime_error(\"Unknown match type in signature rule: \" + value);": 1,
+    "throw std::runtime_error(\"Unknown mesh format in signature rule: \" + value);": 1,
+    "throw std::runtime_error(\"Unknown point cloud format in signature rule: \" + value);": 1,
+    "throw std::runtime_error(\"Unsupported escape sequence in signature database string\");": 1,
+    "throw std::runtime_error(\"Unterminated string in signature database\");": 1,
+    "throw std::runtime_error(std::string{\"Expected character '\"} + expected + \"' in signature database\");": 1,
+    "throw;": 1
   },
   "engine/io/src/geometry_io_registry.cpp": {
     "throw std::invalid_argument(\"Graph exporter cannot target unknown format\");": 1,
@@ -193,6 +175,10 @@
   },
   "engine/physics/src/api.cpp": {
     "throw std::out_of_range{\"physics::body_at index out of range\"};": 2
+  },
+  "engine/platform/src/filesystem/watcher.cpp": {
+    "throw std::invalid_argument(\"FilesystemWatcher cannot watch an empty path\");": 1,
+    "throw std::invalid_argument(\"FilesystemWatcher requires a valid callback\");": 1
   },
   "engine/platform/src/windowing/glfw_window.cpp": {
     "throw std::runtime_error{": 1,
@@ -214,6 +200,20 @@
   },
   "engine/rendering/include/engine/rendering/backend/native_scheduler_base.hpp": {
     "throw std::runtime_error{\"NativeSchedulerBase received unknown command buffer\"};": 1
+  },
+  "engine/rendering/src/backend/validation.cpp": {
+    "throw std::runtime_error{\"begin_frame failed; end_frame skipped\"};": 1,
+    "throw std::runtime_error{\"command buffer API mismatch\"};": 1,
+    "throw std::runtime_error{\"command buffer index mismatch\"};": 1,
+    "throw std::runtime_error{\"command buffer queue mismatch\"};": 1,
+    "throw std::runtime_error{\"command buffer returned zero value\"};": 1,
+    "throw std::runtime_error{\"fence API mismatch\"};": 1,
+    "throw std::runtime_error{\"fence returned zero value\"};": 1,
+    "throw std::runtime_error{\"queue handle API mismatch\"};": 1,
+    "throw std::runtime_error{\"queue handle returned zero value\"};": 1,
+    "throw std::runtime_error{\"queue handle type mismatch\"};": 1,
+    "throw std::runtime_error{\"timeline semaphore API mismatch\"};": 1,
+    "throw std::runtime_error{\"timeline semaphore returned zero value\"};": 1
   },
   "engine/rendering/src/backend/vulkan/resource_translation.cpp": {
     "throw std::invalid_argument{\"translate_access_mask received unknown access\"};": 1,
@@ -265,14 +265,26 @@
     "throw std::runtime_error(\"RuntimeHost must be initialized before submitting a render graph\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before tick()\");": 1,
     "throw std::runtime_error(format_dependency_errors(errors));": 1,
+    "throw;": 3,
     "throw_if_invalid_dependencies(deps);": 2
   },
   "engine/runtime/src/subsystem_registry.cpp": {
     "throw std::invalid_argument{\"Subsystem factory must not be null\"};": 1,
-    "throw std::invalid_argument{\"Subsystem name must not be empty\"};": 1
+    "throw std::invalid_argument{\"Subsystem name must not be empty\"};": 1,
+    "throw std::invalid_argument{format_cycle_message(*cycle)};": 2
+  },
+  "engine/runtime/tests/test_module.cpp": {
+    "FAIL() << \"Expected cycle detection to throw\";": 1,
+    "throw std::runtime_error(\"RecordingLifecycleSubsystem forced failure\");": 1
   },
   "engine/scene/include/engine/scene/scene.hpp": {
     "throw std::logic_error{\"Entity is not associated with a scene\"};": 1
+  },
+  "engine/scene/samples/hierarchy_diagnostics_sample.cpp": {
+    "throw std::runtime_error{\"Missing value after --emit-samples\"};": 1,
+    "throw std::runtime_error{\"Missing value after --sample\"};": 1,
+    "throw std::runtime_error{\"Missing value after --scene\"};": 1,
+    "throw std::runtime_error{message.str()};": 4
   },
   "engine/scene/src/scene.cpp": {
     "throw std::logic_error{\"Child entity does not belong to this scene\"};": 2,
@@ -287,7 +299,6 @@
     "throw std::runtime_error{\"Scene serialization: failed to read entity count\"};": 1,
     "throw std::runtime_error{\"Scene serialization: failed to read entity header\"};": 1,
     "throw std::runtime_error{\"Scene serialization: failed to read scene name\"};": 1,
-    "throw std::runtime_error{\"Scene serialization: unknown component type '\" + component_type + \"'\"};": 1,
-    "throw std::runtime_error{\"Scene serialization: unresolved hierarchy reference\"};": 1
+    "throw std::runtime_error{\"Scene serialization: unknown component type '\" + component_type + \"'\"};": 1
   }
 }
