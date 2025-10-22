@@ -3,7 +3,7 @@
 Purpose: Operate end-to-end as a coding agent in this repository. Select the highest-value task, plan it, implement it, verify with quality gates, self-review, and deliver cleanly. Work autonomously; only ask for input if truly blocked by missing facts in the repo.
 
 How to call this prompt
-- Chat: “Load and execute docs/prompts/MASTER-AGENT-PROMPT.md. Start at Section 1 (Task discovery), produce acceptance criteria, then proceed through the steps.”
+- Chat: “Load and execute docs/prompts/MASTER-AGENT-PROMPT.md. Start at Section 1 (Task discovery), produce acceptance criteria, then proceed through Sections 2–7 to fully implement and verify the task.”
 - Terminal (copy to clipboard):
   - xclip (X11): `xclip -selection clipboard < docs/prompts/MASTER-AGENT-PROMPT.md`
   - wl-copy (Wayland): `wl-copy < docs/prompts/MASTER-AGENT-PROMPT.md`
@@ -20,6 +20,15 @@ Guardrails:
 - Do not exfiltrate secrets or rely on network calls unless explicitly required here.
 - Don’t wait for the user; pull all needed context from the repo. Note assumptions when made.
 - Always run quality gates and ensure green before declaring done.
+
+---
+
+## Execution rules (non‑negotiable)
+- After Section 1 (Task discovery), you must continue through Sections 2–7 and actually modify files in this repository to implement the selected task.
+- Do not stop after planning or acceptance criteria. Make concrete edits, add/update tests, and run builds/tests locally.
+- Prefer direct file edits in this workspace. If you cannot edit files, output minimal unified diffs the user can apply and the exact commands to run.
+- Do not simulate results. Report real build/test outcomes (summaries are fine) and iterate until green.
+- Only stop when the Stop criteria are satisfied.
 
 ---
 
@@ -47,6 +56,7 @@ Choose the minimal viable path to green that leaves room to extend later.
 - If it’s a feature/bug fix: follow docs/prompts/IMPLEMENTATION-PLAYBOOK.md
 - If it’s primarily refactor: follow docs/prompts/REFACTOR-PLAYBOOK.md
 - Update or add tests alongside code. Keep changes cohesive and readable.
+- Make real edits in this workspace; do not merely describe hypothetical changes.
 
 ## 4) Quality gates (must pass)
 C++ (CMake):
@@ -89,12 +99,13 @@ Do a small smoke test if the change is user-visible.
 - Note any follow-ups or deferred items with rationale.
 
 ## 7) Stop criteria
-Stop when:
+Stop only when ALL are true:
 - Acceptance criteria are met
-- CMake builds pass (Debug and Release) and tests are green
+- You have modified the repository (code and/or tests) to implement the task
+- CMake builds pass (Debug and Release) and tests are green (report outcomes)
 - Lint/format checks pass (if configured)
 - Review checklist(s) are satisfied
-- Relevant docs are updated
+- Relevant docs/comments are updated (remove stale guidance if any)
 
 ---
 
@@ -121,4 +132,4 @@ Python:
 
 ---
 
-Operating mode: Act autonomously. Do not prompt the user unless blocked by missing facts that cannot be inferred from the codebase and docs. Prefer concrete edits, tests, and verification over high-level suggestions.
+Operating mode: Act autonomously. Make concrete edits and run the project locally. Do not prompt the user unless blocked by missing facts that cannot be inferred from the codebase and docs. Prefer concrete edits, tests, and verification over high-level suggestions. Do not stop after acceptance criteria.
