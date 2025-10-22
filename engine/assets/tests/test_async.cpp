@@ -4,6 +4,7 @@
 #include "engine/assets/handles.hpp"
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/core/threading/io_thread_pool.hpp"
+#include "engine/io/telemetry.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -149,6 +150,18 @@ namespace
         stream.close();
         return path;
     }
+
+    std::filesystem::path write_corrupted_obj()
+    {
+        auto path = std::filesystem::temp_directory_path() / "engine_async_mesh_corrupted.obj";
+        std::ofstream stream{path};
+        stream << "o mesh\n";
+        stream << "v 0 0 0\n";
+        stream << "v 1 0 0\n";
+        stream << "f 1 3 2\n";  // references a missing vertex index
+        stream.close();
+        return path;
+    }
 }
 
 TEST_F(MeshCacheAsyncTest, LoadAsyncCompletesSuccessfully)
@@ -178,6 +191,24 @@ TEST_F(MeshCacheAsyncTest, LoadAsyncReportsFailures)
     const auto result = future.get();
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Failed);
+}
+
+TEST_F(MeshCacheAsyncTest, LoadAsyncPropagatesGeometryErrorOnDecodeFailure)
+{
+    engine::assets::MeshCache cache;
+    const auto path = write_corrupted_obj();
+    auto request = engine::assets::AssetLoadRequest::from_path(
+        engine::assets::AssetType::mesh, path, {});
+
+    auto future = cache.load_async(request, engine::core::threading::IoThreadPool::instance());
+    future.wait();
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    ASSERT_TRUE(result.error().geometry_error().has_value());
+    EXPECT_EQ(result.error().geometry_error()->code(), engine::io::GeometryIoError::invalid_argument);
+    EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Failed);
+
+    std::filesystem::remove(path);
 }
 
 TEST_F(MeshCacheAsyncTest, LoadAsyncHonoursCancellation)
@@ -224,6 +255,10 @@ TEST(AssetStreamingTelemetry, RecordsSuccessfulTransition)
     EXPECT_EQ(snapshot.total_rejected, 0U);
     EXPECT_EQ(snapshot.pending, 0U);
     EXPECT_EQ(snapshot.loading, 0U);
+    for (const auto failure_count : snapshot.geometry_failures)
+    {
+        EXPECT_EQ(failure_count, 0U);
+    }
 
     std::filesystem::remove(path);
 }
@@ -244,6 +279,8 @@ TEST(AssetStreamingTelemetry, RecordsFailureTransition)
     future.wait();
     const auto result = future.get();
     ASSERT_FALSE(result.has_value());
+    ASSERT_TRUE(result.error().geometry_error().has_value());
+    EXPECT_EQ(result.error().geometry_error()->code(), engine::io::GeometryIoError::file_not_found);
     EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::IoFailure);
 
     const auto snapshot = telemetry.snapshot();
@@ -254,6 +291,45 @@ TEST(AssetStreamingTelemetry, RecordsFailureTransition)
     EXPECT_EQ(snapshot.total_rejected, 0U);
     EXPECT_EQ(snapshot.pending, 0U);
     EXPECT_EQ(snapshot.loading, 0U);
+    const auto failure_index = engine::io::geometry_io_error_index(engine::io::GeometryIoError::file_not_found);
+    ASSERT_LT(failure_index, snapshot.geometry_failures.size());
+    EXPECT_EQ(snapshot.geometry_failures[failure_index], 1U);
+}
+
+TEST(AssetStreamingTelemetry, RecordsDecodeFailureTransition)
+{
+    auto& telemetry = engine::assets::AssetStreamingTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    IoThreadPoolScope scope{0, 4};
+    engine::assets::MeshCache cache;
+
+    const auto path = write_corrupted_obj();
+    auto request = engine::assets::AssetLoadRequest::from_path(
+        engine::assets::AssetType::mesh, path, {});
+    request.allow_blocking_fallback = true;
+
+    auto future = cache.load_async(request, engine::core::threading::IoThreadPool::instance());
+    future.wait();
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    ASSERT_TRUE(result.error().geometry_error().has_value());
+    EXPECT_EQ(result.error().geometry_error()->code(), engine::io::GeometryIoError::invalid_argument);
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.total_requests, 1U);
+    EXPECT_EQ(snapshot.total_completed, 0U);
+    EXPECT_EQ(snapshot.total_failed, 1U);
+    EXPECT_EQ(snapshot.total_cancelled, 0U);
+    EXPECT_EQ(snapshot.total_rejected, 0U);
+    EXPECT_EQ(snapshot.pending, 0U);
+    EXPECT_EQ(snapshot.loading, 0U);
+    const auto failure_index =
+        engine::io::geometry_io_error_index(engine::io::GeometryIoError::invalid_argument);
+    ASSERT_LT(failure_index, snapshot.geometry_failures.size());
+    EXPECT_EQ(snapshot.geometry_failures[failure_index], 1U);
+
+    std::filesystem::remove(path);
 }
 
 TEST(AssetStreamingTelemetry, RecordsCancellationTransition)
@@ -297,6 +373,10 @@ TEST(AssetStreamingTelemetry, RecordsCancellationTransition)
     EXPECT_EQ(snapshot.total_rejected, 0U);
     EXPECT_EQ(snapshot.pending, 0U);
     EXPECT_EQ(snapshot.loading, 0U);
+    for (const auto failure_count : snapshot.geometry_failures)
+    {
+        EXPECT_EQ(failure_count, 0U);
+    }
 }
 
 TEST(AssetStreamingTelemetry, RecordsRejectedEnqueue)
@@ -330,6 +410,10 @@ TEST(AssetStreamingTelemetry, RecordsRejectedEnqueue)
     EXPECT_EQ(snapshot.total_rejected, 1U);
     EXPECT_EQ(snapshot.pending, 0U);
     EXPECT_EQ(snapshot.loading, 0U);
+    for (const auto failure_count : snapshot.geometry_failures)
+    {
+        EXPECT_EQ(failure_count, 0U);
+    }
 }
 
 TEST(AssetAsyncQueue, CancelPendingRequestResolvesFuture)
