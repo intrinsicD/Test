@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cmath>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -16,6 +17,7 @@
 #include "engine/animation/api.hpp"
 #include "engine/animation/rigging/rig_binding.hpp"
 #include "engine/assets/mesh_asset.hpp"
+#include "engine/assets/validation.hpp"
 #include "engine/geometry/api.hpp"
 #include "engine/geometry/deform/linear_blend_skinning.hpp"
 #include "engine/geometry/mesh/surface_mesh_conversion.hpp"
@@ -66,6 +68,48 @@ namespace
         std::vector<engine::assets::MaterialHandle> materials{};
         std::vector<engine::assets::ShaderHandle> shaders{};
     };
+
+    class ScopedHandleValidators
+    {
+    public:
+        ScopedHandleValidators()
+        {
+            auto& registry = engine::assets::HandleValidatorRegistry::instance();
+            mesh_ = registry.register_mesh_validator(
+                [](const engine::assets::MeshHandle&) { return true; });
+            graph_ = registry.register_graph_validator(
+                [](const engine::assets::GraphHandle&) { return true; });
+            point_cloud_ = registry.register_point_cloud_validator(
+                [](const engine::assets::PointCloudHandle&) { return true; });
+            material_ = registry.register_material_validator(
+                [](const engine::assets::MaterialHandle&) { return true; });
+            shader_ = registry.register_shader_validator(
+                [](const engine::assets::ShaderHandle&) { return true; });
+        }
+
+    private:
+        std::shared_ptr<void> mesh_{};
+        std::shared_ptr<void> graph_{};
+        std::shared_ptr<void> point_cloud_{};
+        std::shared_ptr<void> material_{};
+        std::shared_ptr<void> shader_{};
+    };
+
+    template <typename Handle>
+    Handle make_bound_handle(std::string identifier)
+    {
+        static std::atomic_uint32_t next_index{0};
+        Handle handle{std::move(identifier)};
+        typename Handle::pool_handle_type raw{};
+        raw.index = next_index.fetch_add(1U, std::memory_order_relaxed);
+        if (raw.index == Handle::pool_handle_type::invalid_index)
+        {
+            raw.index = 0U;
+        }
+        raw.generation = 1U;
+        handle.bind(raw);
+        return handle;
+    }
 
     class ScopedTempFile
     {
@@ -517,11 +561,12 @@ TEST(EngineIntegration, RuntimeConsumesMeshAssetsRoundTrip)
 
 TEST(EngineIntegration, RuntimeSubmitsFrameGraphThroughVulkanScheduler)
 {
+    ScopedHandleValidators handle_validators{};
     engine::runtime::RuntimeHostDependencies deps{};
     deps.binding = make_uniform_binding(deps.mesh.rest_positions.size());
     deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(
-        engine::assets::MeshHandle{std::string{"integration.runtime.mesh"}},
-        engine::assets::MaterialHandle{std::string{"integration.runtime.material"}});
+        make_bound_handle<engine::assets::MeshHandle>("integration.runtime.mesh"),
+        make_bound_handle<engine::assets::MaterialHandle>("integration.runtime.material"));
     deps.renderable_name = "integration.runtime.renderable";
 
     engine::runtime::RuntimeHost host{std::move(deps)};
@@ -531,9 +576,8 @@ TEST(EngineIntegration, RuntimeSubmitsFrameGraphThroughVulkanScheduler)
 
     engine::rendering::MaterialSystem materials;
     materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
-        engine::assets::MaterialHandle{std::string{"integration.runtime.material"}},
-        engine::assets::ShaderHandle{std::string{"integration.runtime.shader"}},
-    });
+        make_bound_handle<engine::assets::MaterialHandle>("integration.runtime.material"),
+        make_bound_handle<engine::assets::ShaderHandle>("integration.runtime.shader")});
 
     RecordingRenderResourceProvider resources;
     engine::rendering::resources::RecordingGpuResourceProvider device(
@@ -579,11 +623,12 @@ TEST(EngineIntegration, RuntimeSubmitsFrameGraphThroughVulkanScheduler)
 
 TEST(EngineIntegration, RuntimeSubmissionRemainsDeterministicAcrossInvocations)
 {
+    ScopedHandleValidators handle_validators{};
     engine::runtime::RuntimeHostDependencies deps{};
     deps.binding = make_uniform_binding(deps.mesh.rest_positions.size());
     deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(
-        engine::assets::MeshHandle{std::string{"integration.runtime.deterministic.mesh"}},
-        engine::assets::MaterialHandle{std::string{"integration.runtime.deterministic.material"}});
+        make_bound_handle<engine::assets::MeshHandle>("integration.runtime.deterministic.mesh"),
+        make_bound_handle<engine::assets::MaterialHandle>("integration.runtime.deterministic.material"));
     deps.renderable_name = "integration.runtime.deterministic";
 
     engine::runtime::RuntimeHost host{std::move(deps)};
@@ -592,9 +637,8 @@ TEST(EngineIntegration, RuntimeSubmissionRemainsDeterministicAcrossInvocations)
 
     engine::rendering::MaterialSystem materials;
     materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
-        engine::assets::MaterialHandle{std::string{"integration.runtime.deterministic.material"}},
-        engine::assets::ShaderHandle{std::string{"integration.runtime.deterministic.shader"}},
-    });
+        make_bound_handle<engine::assets::MaterialHandle>("integration.runtime.deterministic.material"),
+        make_bound_handle<engine::assets::ShaderHandle>("integration.runtime.deterministic.shader")});
 
     constexpr int iteration_count = 3;
     std::vector<SubmissionSnapshot> snapshots{};
