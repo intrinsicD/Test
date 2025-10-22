@@ -284,6 +284,12 @@ def _load_shared_library(identifier: str, search_paths: Optional[Iterable[os.Pat
         except OSError as error:
             last_error = error
             continue
+    bare_candidate = Path(library_name)
+    try:
+        attempted_paths.append(bare_candidate)
+        return ctypes.CDLL(library_name)
+    except OSError as error:
+        last_error = error
     search_hint = ", ".join(str(path) for path in attempted_paths) or "<none>"
     raise EngineLibraryNotFound(
         f"Unable to locate the shared library '{library_name}'. "
