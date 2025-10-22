@@ -6,6 +6,8 @@
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/geometry/shapes/ray.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
+#include "engine/geometry/shapes/segment.hpp"
+#include "engine/geometry/telemetry.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
 
 #include "engine/geometry/utils/bounded_heap.hpp"
@@ -18,6 +20,8 @@
 #include <numeric>
 #include <iterator>
 #include <utility>
+#include <cstdint>
+#include <type_traits>
 
 template <typename Shape>
 concept SpatialQueryShape =
@@ -168,6 +172,9 @@ namespace engine::geometry
             nodes[root_idx].aabb = BoundingAabb(element_aabbs.span());
 
             subdivide_volume(root_idx, 0);
+            GeometrySpatialTelemetry::instance().record_invocation(
+                GeometrySpatialQueryOperation::octree_build,
+                static_cast<std::uint64_t>(num_elements));
             return true;
         }
 
@@ -190,7 +197,11 @@ namespace engine::geometry
         void query(const Shape& query_shape, std::vector<size_t>& result) const
         {
             result.clear();
-            if (node_props_.empty()) return;
+            if (node_props_.empty())
+            {
+                record_spatial_query_results<Shape>(0U);
+                return;
+            }
 
             constexpr double eps = 0.0; // set to a small positive tolerance if you want numerical slack
             const double query_volume = static_cast<double>(Volume(query_shape));
@@ -249,6 +260,7 @@ namespace engine::geometry
                     }
                 }
             }
+            record_spatial_query_results<Shape>(result.size());
         }
 
         template <SpatialQueryShape Shape>
@@ -256,7 +268,11 @@ namespace engine::geometry
             requires (!VolumetricSpatialQueryShape<Shape>)
         {
             result.clear();
-            if (node_props_.empty()) return;
+            if (node_props_.empty())
+            {
+                record_spatial_query_results<Shape>(0U);
+                return;
+            }
 
             std::vector<NodeHandle> stack{NodeHandle{0}};
             while (!stack.empty())
@@ -298,12 +314,19 @@ namespace engine::geometry
                     }
                 }
             }
+            record_spatial_query_results<Shape>(result.size());
         }
 
         void query_knn(const math::vec3& query_point, std::size_t k, std::vector<size_t>& results) const
         {
             results.clear();
-            if (node_props_.empty() || k == 0) return;
+            if (node_props_.empty() || k == 0)
+            {
+                GeometrySpatialTelemetry::instance().record_invocation(
+                    GeometrySpatialQueryOperation::octree_query_knn,
+                    0U);
+                return;
+            }
 
             using QueueElement = std::pair<float, std::size_t>;
             utils::BoundedHeap<QueueElement> heap(k);
@@ -378,6 +401,9 @@ namespace engine::geometry
             auto pairs = heap.get_sorted_data(); // ascending
             results.resize(pairs.size());
             for (size_t i = 0; i < pairs.size(); ++i) results[i] = pairs[i].second;
+            GeometrySpatialTelemetry::instance().record_invocation(
+                GeometrySpatialQueryOperation::octree_query_knn,
+                static_cast<std::uint64_t>(results.size()));
         }
 
         void query_nearest(const math::vec3& query_point, std::size_t& result) const
@@ -385,6 +411,9 @@ namespace engine::geometry
             result = std::numeric_limits<size_t>::max();
             if (node_props_.empty())
             {
+                GeometrySpatialTelemetry::instance().record_invocation(
+                    GeometrySpatialQueryOperation::octree_query_nearest,
+                    0U);
                 return;
             }
 
@@ -458,6 +487,10 @@ namespace engine::geometry
                     }
                 }
             }
+            const auto recorded = (result == std::numeric_limits<std::size_t>::max()) ? 0U : 1U;
+            GeometrySpatialTelemetry::instance().record_invocation(
+                GeometrySpatialQueryOperation::octree_query_nearest,
+                static_cast<std::uint64_t>(recorded));
         }
 
         [[nodiscard]] bool validate_structure() const
@@ -467,6 +500,34 @@ namespace engine::geometry
         }
 
     private:
+        template <typename Shape>
+        static void record_spatial_query_results(std::size_t count) noexcept
+        {
+            const auto record = [count](GeometrySpatialQueryOperation op)
+            {
+                GeometrySpatialTelemetry::instance().record_invocation(
+                    op,
+                    static_cast<std::uint64_t>(count));
+            };
+
+            if constexpr (std::is_same_v<Shape, Aabb>)
+            {
+                record(GeometrySpatialQueryOperation::octree_query_aabb);
+            }
+            else if constexpr (std::is_same_v<Shape, Sphere>)
+            {
+                record(GeometrySpatialQueryOperation::octree_query_sphere);
+            }
+            else if constexpr (std::is_same_v<Shape, Ray>)
+            {
+                record(GeometrySpatialQueryOperation::octree_query_ray);
+            }
+            else if constexpr (std::is_same_v<Shape, Segment>)
+            {
+                record(GeometrySpatialQueryOperation::octree_query_segment);
+            }
+        }
+
         [[nodiscard]] bool validate_node(NodeHandle node_idx) const
         {
             const Node& node = nodes[node_idx];

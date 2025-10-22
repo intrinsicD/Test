@@ -5,7 +5,8 @@
   conversions, procedural primitives, ASCII import/export, and CPU linear blend
   skinning deformers that consume animation rig bindings.
 - Provides kd-tree and octree spatial acceleration structures for geometry and
-  point-cloud queries.
+  point-cloud queries, instrumented with spatial query telemetry that reports
+  invocation counts and result distributions for diagnostics consumers.【F:engine/geometry/include/engine/geometry/telemetry.hpp†L1-L78】【F:engine/geometry/include/engine/geometry/octree/octree.hpp†L137-L420】
 - Exposes helpers for mesh/point-cloud interchange with other subsystems.
 - Ships `geometry_normals_benchmark` +
   `geometry_normals_benchmark_report.py` to capture
@@ -35,7 +36,7 @@
 
 ## TODO / Next Steps
 
-- Track `GE-212`, `GE-220` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — supports `TI-002` benchmarking.
+- Track telemetry viewer documentation follow-up in the [central roadmap](../../ROADMAP.md) so diagnostics consumers understand the new metrics — supports `CC-001` alignment.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -45,7 +46,7 @@ This module tracks actionable work through the execution checklist below.
 | --- | --- | --- | --- |
 | `GE-205` | Benchmark accelerated normal recomputation (`TI-002`). | Publish benchmark results and integrate into CI perf harness. | ✅ Done |
 | `GE-212` | Draft remeshing/parameterisation RFP. | Produce design note outlining requirements and dependencies. | ✅ Done |
-| `GE-220` | Align geometry telemetry with diagnostics (`CC-001`). | Add instrumentation for spatial queries and document metrics. | 🟢 Todo |
+| `GE-220` | Align geometry telemetry with diagnostics (`CC-001`). | Add instrumentation for spatial queries and document metrics. | ✅ Done |
 
 The remeshing/parameterisation RFP produced for `GE-212` is available under
 [`docs/design/ge-212-remeshing_parameterization_rfp.md`](../../design/ge-212-remeshing_parameterization_rfp.md)
@@ -56,7 +57,7 @@ See [ROADMAP.md](ROADMAP.md) for full context.
 ### Staffing Notes
 
 - `GE-212` is a planning/RFP effort focused on defining scope and dependencies.
-- `GE-220` instruments telemetry pathways on top of the established diagnostics schema.
+- `GE-220` instrumentation is complete; coordinate with CC-001 stakeholders on viewer documentation for the new metrics.
 - Assign separate agents to each task and coordinate asynchronously on schema updates to keep workstreams decoupled.
 
 ### Benchmarks

@@ -24,6 +24,7 @@ add_library(${target_name}
     src/shapes/sphere.cpp
     src/shapes/triangle.cpp
     src/utils/shape_interactions.cpp
+    src/telemetry.cpp
 )
 
 engine_apply_module_defaults(${target_name}
