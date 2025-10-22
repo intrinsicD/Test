@@ -1,6 +1,6 @@
 # Scene Module Roadmap
 
-_Last Updated: 2025-03-22_
+_Last Updated: 2025-04-09_
 
 ## Focus
 
@@ -9,8 +9,8 @@ _Last Updated: 2025-03-22_
 | `SC-208` | Implement cycle detection and validation errors. | ✅ Done |
 | `SC-215` | Integrate runtime diagnostics bridge. | ✅ Done |
 | `SC-220` | Update documentation for validation workflows. | ✅ Done |
-| `SC-225` | Author hierarchy diagnostics samples. | 🟢 Planned |
-| `SC-230` | Define alert thresholds for hierarchy regressions. | 🟢 Planned |
+| `SC-225` | Author hierarchy diagnostics samples. | ✅ Done |
+| `SC-230` | Define alert thresholds for hierarchy regressions. | ✅ Done |
 
 ## Plan
 

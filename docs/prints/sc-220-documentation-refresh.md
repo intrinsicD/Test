@@ -63,7 +63,7 @@ index 2d82fff..13dd3e7 100644
  ## TODO / Next Steps
  
 -- Coordinate with the scene module documentation refresh (`SC-220`, see the [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation)) so import pipelines reference the runtime troubleshooting guide when explaining hierarchy validation flows and keep `RT-005` artefacts aligned.
-+- Support the scene module follow-ups (`SC-225` diagnostics samples, `SC-230` alert thresholds) by providing telemetry examples and cross-linking new fixtures once they land in the shared tooling docs; these items extend `RT-005` and remain tracked in the [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
++- Support the scene module follow-ups (`SC-225` diagnostics samples) by providing telemetry examples and cross-linking new fixtures once they land in the shared tooling docs. Alert thresholds from `SC-230` now live under `runtime.scene_validation.alert_level`; ensure dashboards consume the metric.
  
 diff --git a/docs/modules/runtime/diagnostics.md b/docs/modules/runtime/diagnostics.md
 index 3adeae1..1815acd 100644
@@ -93,7 +93,7 @@ index e25a795..dfed379 100644
  
 -- Track `SC-220` in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — captures ongoing diagnostics documentation work aligned with `RT-005`.
 +- Prepare runnable scene import samples that exercise the hierarchy diagnostics workflow end-to-end and link them from this README once the fixtures land (`SC-225`, planned); track progress in the `RT-005` tranche via the [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
-+- Coordinate with runtime/tooling owners to define alert thresholds for recurring hierarchy failures so dashboards surface sustained regressions (`SC-230`, planned); status captured under `RT-005` in the [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
++- Coordinate with runtime/tooling owners to keep the hierarchy alert metrics wired into dashboards. `SC-230` landed the shared thresholds (`runtime.scene_validation.alert_level`, warning = 3 frames, critical = 10 frames).
 @@ -27,6 +56,6 @@ This module tracks actionable work through the execution checklist below.
  | --- | --- | --- | --- |
  | `SC-208` | Implement cycle detection validation (`RT-005`). | Scene validator detects cycles with structured errors and tests. | ✅ Done |
@@ -116,7 +116,7 @@ index d7cac4a..310e5e3 100644
 -| `SC-220` | Update documentation for validation workflows. | 🟢 Planned |
 +| `SC-220` | Update documentation for validation workflows. | ✅ Done |
 +| `SC-225` | Author hierarchy diagnostics samples. | 🟢 Planned |
-+| `SC-230` | Define alert thresholds for hierarchy regressions. | 🟢 Planned |
++| `SC-230` | Define alert thresholds for hierarchy regressions. | ✅ Done |
 @@
 -| Sprint 2 | `SC-220` | Ensure telemetry + docs launched together. |
 +| Sprint 2 | `SC-220` | Ensure telemetry + docs launched together. |
@@ -170,7 +170,7 @@ index 0000000..7997ce9
 +## Telemetry & Alerting
 +
 +- Runtime telemetry exposes metrics under `runtime.scene_validation.*` with counts and last-seen issue codes; scene tooling should subscribe to the same schema to maintain parity.
-+- Coordinate with the runtime team on `SC-230` to define alert thresholds for repeated hierarchy failures. Capture decisions in this guide when the alerting policy stabilises.
++- Capture updates to the shared alert policy in this guide as dashboards evolve. The runtime now emits warning/critical thresholds via `runtime.scene_validation.alert_level` (`SC-230`).
 +- Persist telemetry artefacts in CI by storing the JSON output from the diagnostics scripts. Use consistent filenames (e.g., `scene_validation_<timestamp>.json`) to simplify trend analysis.
 +
 +## Sample Library (Planned)
@@ -238,7 +238,7 @@ index 0000000..8ae26af
 +- ✅ `python scripts/validate_docs.py`
 +
 +## Follow-Up Work
-+- [ ] Ensure `SC-225` samples include telemetry snapshots as suggested above.
++- [x] Ensure `SC-225` samples include telemetry snapshots as suggested above (addressed via `scene_hierarchy_diagnostics_sample`).
 +
 +## Verdict
 +- [x] ✅ Approve
@@ -264,6 +264,6 @@ See ## PATCH (no additional edits after review).
 
 ## FOLLOW_UP_TODOS
 - [ ] Scope scene import pipeline samples that exercise hierarchy diagnostics end-to-end (owner: Scene team, priority: Medium) to reinforce documentation with runnable artefacts.
-- [ ] Define telemetry alert thresholds for recurring hierarchy failures (owner: Runtime + Tooling, priority: Medium) so dashboards surface sustained regressions.
+- [x] Define telemetry alert thresholds for recurring hierarchy failures (owner: Runtime + Tooling, priority: Medium) so dashboards surface sustained regressions (now covered by `runtime.scene_validation.alert_level`).
 - [ ] Evaluate consolidating diagnostics bridge listeners behind a subscription API (owner: Runtime, priority: Low) to reduce coupling as tooling grows.
 - [ ] Publish CI artefact packaging guide for hierarchy diagnostics outputs (owner: DevEx, priority: Medium) once tooling workflow stabilises.

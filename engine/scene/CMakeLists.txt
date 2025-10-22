@@ -34,3 +34,5 @@ target_link_libraries(${target_name}
 if (BUILD_TESTING)
     add_subdirectory(tests)
 endif ()
+
+add_subdirectory(samples)

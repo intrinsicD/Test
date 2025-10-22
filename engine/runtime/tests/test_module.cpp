@@ -32,6 +32,14 @@
 #include "engine/geometry/telemetry.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 
+namespace engine::runtime::detail
+{
+    void update_scene_validation_alert_state(RuntimeDiagnostics& diagnostics,
+                                             const engine::scene::validation::HierarchyValidationReport& report,
+                                             double simulation_time,
+                                             double wall_seconds) noexcept;
+}
+
 namespace {
 
 std::vector<std::string_view> expected_default_modules()
@@ -1025,7 +1033,94 @@ TEST(RuntimeHost, DiagnosticsExposeMetricSchema)
     ASSERT_TRUE(issue_metric.has_value());
     EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*issue_metric].value), 0.0);
 
+    const auto warning_threshold_metric =
+        find_metric_index(metrics, "runtime.scene_validation.alert_threshold.warning_frames");
+    ASSERT_TRUE(warning_threshold_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*warning_threshold_metric].value), 3.0);
+
+    const auto critical_threshold_metric =
+        find_metric_index(metrics, "runtime.scene_validation.alert_threshold.critical_frames");
+    ASSERT_TRUE(critical_threshold_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*critical_threshold_metric].value), 10.0);
+
+    const auto consecutive_metric =
+        find_metric_index(metrics, "runtime.scene_validation.consecutive_failure_frames");
+    ASSERT_TRUE(consecutive_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*consecutive_metric].value), 0.0);
+
+    const auto alert_level_metric = find_metric_index(metrics, "runtime.scene_validation.alert_level");
+    ASSERT_TRUE(alert_level_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*alert_level_metric].value), 0.0);
+
+    const auto last_failure_time_metric =
+        find_metric_index(metrics, "runtime.scene_validation.last_failure_simulation_time");
+    ASSERT_TRUE(last_failure_time_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*last_failure_time_metric].value), -1.0);
+
+    const auto last_failure_wall_metric =
+        find_metric_index(metrics, "runtime.scene_validation.last_failure_wall_seconds");
+    ASSERT_TRUE(last_failure_wall_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*last_failure_wall_metric].value), -1.0);
+
     host.shutdown();
+}
+
+TEST(RuntimeDiagnostics, SceneValidationAlertStateTransitions)
+{
+    engine::runtime::RuntimeDiagnostics diagnostics{};
+    engine::scene::validation::HierarchyValidationReport report{};
+
+    engine::runtime::detail::update_scene_validation_alert_state(diagnostics, report, 0.016, 0.25);
+    EXPECT_EQ(diagnostics.scene_validation_consecutive_failure_frames, 0U);
+    EXPECT_EQ(diagnostics.scene_validation_failure_frame_count, 0U);
+    EXPECT_EQ(diagnostics.scene_validation_alert_level, engine::runtime::SceneValidationAlertLevel::None);
+    EXPECT_DOUBLE_EQ(diagnostics.last_scene_validation_failure_simulation_time, -1.0);
+    EXPECT_DOUBLE_EQ(diagnostics.last_scene_validation_failure_wall_seconds, -1.0);
+
+    report.metrics.issue_count = 1U;
+    engine::runtime::detail::update_scene_validation_alert_state(diagnostics, report, 0.032, 0.5);
+    EXPECT_EQ(diagnostics.scene_validation_consecutive_failure_frames, 1U);
+    EXPECT_EQ(diagnostics.scene_validation_failure_frame_count, 1U);
+    EXPECT_EQ(diagnostics.scene_validation_alert_level, engine::runtime::SceneValidationAlertLevel::None);
+    EXPECT_DOUBLE_EQ(diagnostics.last_scene_validation_failure_simulation_time, 0.032);
+    EXPECT_DOUBLE_EQ(diagnostics.last_scene_validation_failure_wall_seconds, 0.5);
+
+    engine::runtime::detail::update_scene_validation_alert_state(diagnostics, report, 0.048, 0.75);
+    EXPECT_EQ(diagnostics.scene_validation_consecutive_failure_frames, 2U);
+    EXPECT_EQ(diagnostics.scene_validation_failure_frame_count, 2U);
+    EXPECT_EQ(diagnostics.scene_validation_alert_level, engine::runtime::SceneValidationAlertLevel::None);
+
+    engine::runtime::detail::update_scene_validation_alert_state(diagnostics, report, 0.064, 1.0);
+    EXPECT_EQ(diagnostics.scene_validation_consecutive_failure_frames, 3U);
+    EXPECT_EQ(diagnostics.scene_validation_alert_level, engine::runtime::SceneValidationAlertLevel::Warning);
+    EXPECT_EQ(diagnostics.scene_validation_max_consecutive_failure_frames, 3U);
+
+    for (int index = 0; index < 7; ++index)
+    {
+        const double simulation_time = 0.08 + 0.016 * static_cast<double>(index);
+        const double wall_seconds = 1.0 + 0.25 * static_cast<double>(index + 1);
+        engine::runtime::detail::update_scene_validation_alert_state(
+            diagnostics,
+            report,
+            simulation_time,
+            wall_seconds);
+    }
+
+    EXPECT_EQ(diagnostics.scene_validation_consecutive_failure_frames, 10U);
+    EXPECT_EQ(diagnostics.scene_validation_failure_frame_count, 10U);
+    EXPECT_EQ(diagnostics.scene_validation_max_consecutive_failure_frames, 10U);
+    EXPECT_EQ(diagnostics.scene_validation_alert_level, engine::runtime::SceneValidationAlertLevel::Critical);
+    EXPECT_DOUBLE_EQ(diagnostics.last_scene_validation_failure_simulation_time, 0.08 + 0.016 * 6.0);
+    EXPECT_DOUBLE_EQ(diagnostics.last_scene_validation_failure_wall_seconds, 1.0 + 0.25 * 7.0);
+
+    report.metrics.issue_count = 0U;
+    engine::runtime::detail::update_scene_validation_alert_state(diagnostics, report, 0.25, 3.0);
+    EXPECT_EQ(diagnostics.scene_validation_consecutive_failure_frames, 0U);
+    EXPECT_EQ(diagnostics.scene_validation_alert_level, engine::runtime::SceneValidationAlertLevel::None);
+    EXPECT_EQ(diagnostics.scene_validation_failure_frame_count, 10U);
+    EXPECT_EQ(diagnostics.scene_validation_max_consecutive_failure_frames, 10U);
+    EXPECT_DOUBLE_EQ(diagnostics.last_scene_validation_failure_simulation_time, 0.08 + 0.016 * 6.0);
+    EXPECT_DOUBLE_EQ(diagnostics.last_scene_validation_failure_wall_seconds, 1.0 + 0.25 * 7.0);
 }
 
 TEST(RuntimeHost, DiagnosticsIncludePhysicsTelemetry)
