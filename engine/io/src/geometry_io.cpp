@@ -10,11 +10,13 @@
 #include <array>
 #include <cctype>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -146,6 +148,994 @@ namespace engine::io
         {
             return value.substr(0, prefix.size()) == prefix;
         }
+
+        constexpr std::size_t kSignatureScanBytes = 4096U;
+        constexpr char kSignatureDatabaseEnvVar[] = "ENGINE_IO_GEOMETRY_SIGNATURE_PATH";
+
+        enum class SignatureMatchType
+        {
+            byte_prefix,
+            line_prefix,
+            contains_all
+        };
+
+        struct SignatureMatch
+        {
+            SignatureMatchType type{SignatureMatchType::byte_prefix};
+            std::vector<std::string> patterns{};
+            std::vector<std::string> normalized_patterns{};
+            std::size_t offset{0U};
+            std::size_t max_scan_bytes{kSignatureScanBytes};
+            bool case_sensitive{false};
+            std::vector<std::string> comment_prefixes{};
+        };
+
+        struct GeometrySignatureRule
+        {
+            std::string id{};
+            GeometryKind kind{GeometryKind::unknown};
+            MeshFileFormat mesh_format{MeshFileFormat::unknown};
+            PointCloudFileFormat point_cloud_format{PointCloudFileFormat::unknown};
+            GraphFileFormat graph_format{GraphFileFormat::unknown};
+            std::string format_hint{};
+            SignatureMatch match{};
+        };
+
+        [[nodiscard]] std::string lowercase_ascii(std::string_view value)
+        {
+            std::string result;
+            result.reserve(value.size());
+            for (unsigned char c : value)
+            {
+                result.push_back(static_cast<char>(std::tolower(c)));
+            }
+            return result;
+        }
+
+        [[nodiscard]] GeometryKind parse_geometry_kind(const std::string& value)
+        {
+            const auto lowered = lowercase_ascii(value);
+            if (lowered == "mesh")
+            {
+                return GeometryKind::mesh;
+            }
+            if (lowered == "point_cloud" || lowered == "point-cloud")
+            {
+                return GeometryKind::point_cloud;
+            }
+            if (lowered == "graph")
+            {
+                return GeometryKind::graph;
+            }
+            throw std::runtime_error("Unknown geometry kind in signature rule: " + value);
+        }
+
+        [[nodiscard]] MeshFileFormat parse_mesh_format(const std::string& value)
+        {
+            const auto lowered = lowercase_ascii(value);
+            if (lowered == "obj")
+            {
+                return MeshFileFormat::obj;
+            }
+            if (lowered == "ply")
+            {
+                return MeshFileFormat::ply;
+            }
+            if (lowered == "off")
+            {
+                return MeshFileFormat::off;
+            }
+            if (lowered == "stl")
+            {
+                return MeshFileFormat::stl;
+            }
+            throw std::runtime_error("Unknown mesh format in signature rule: " + value);
+        }
+
+        [[nodiscard]] PointCloudFileFormat parse_point_cloud_format(const std::string& value)
+        {
+            const auto lowered = lowercase_ascii(value);
+            if (lowered == "ply")
+            {
+                return PointCloudFileFormat::ply;
+            }
+            if (lowered == "xyz")
+            {
+                return PointCloudFileFormat::xyz;
+            }
+            if (lowered == "pcd")
+            {
+                return PointCloudFileFormat::pcd;
+            }
+            throw std::runtime_error("Unknown point cloud format in signature rule: " + value);
+        }
+
+        [[nodiscard]] GraphFileFormat parse_graph_format(const std::string& value)
+        {
+            const auto lowered = lowercase_ascii(value);
+            if (lowered == "edgelist" || lowered == "edge-list")
+            {
+                return GraphFileFormat::edgelist;
+            }
+            if (lowered == "ply")
+            {
+                return GraphFileFormat::ply;
+            }
+            throw std::runtime_error("Unknown graph format in signature rule: " + value);
+        }
+
+        [[nodiscard]] SignatureMatchType parse_match_type(const std::string& value)
+        {
+            const auto lowered = lowercase_ascii(value);
+            if (lowered == "byte_prefix" || lowered == "byte-prefix")
+            {
+                return SignatureMatchType::byte_prefix;
+            }
+            if (lowered == "line_prefix" || lowered == "line-prefix")
+            {
+                return SignatureMatchType::line_prefix;
+            }
+            if (lowered == "contains_all" || lowered == "contains-all")
+            {
+                return SignatureMatchType::contains_all;
+            }
+            throw std::runtime_error("Unknown match type in signature rule: " + value);
+        }
+
+        void normalise_match_patterns(SignatureMatch& match)
+        {
+            match.normalized_patterns.clear();
+            match.normalized_patterns.reserve(match.patterns.size());
+            if (match.case_sensitive)
+            {
+                match.normalized_patterns = match.patterns;
+            }
+            else
+            {
+                for (const auto& pattern : match.patterns)
+                {
+                    match.normalized_patterns.push_back(lowercase_ascii(pattern));
+                }
+            }
+        }
+
+        class SignatureDatabaseParser
+        {
+        public:
+            explicit SignatureDatabaseParser(std::string_view data)
+                : m_data(data)
+            {
+            }
+
+            [[nodiscard]] std::vector<GeometrySignatureRule> parse()
+            {
+                skip_whitespace();
+                expect('{');
+
+                std::vector<GeometrySignatureRule> rules;
+                bool first = true;
+                while (!consume('}'))
+                {
+                    if (!first)
+                    {
+                        expect(',');
+                    }
+                    first = false;
+
+                    const std::string key = parse_string();
+                    expect(':');
+
+                    if (key == "rules")
+                    {
+                        auto parsed_rules = parse_rules_array();
+                        rules.insert(rules.end(), parsed_rules.begin(), parsed_rules.end());
+                    }
+                    else
+                    {
+                        skip_value();
+                    }
+                }
+
+                skip_whitespace();
+                if (!eof())
+                {
+                    throw std::runtime_error("Unexpected trailing data in geometry signature database");
+                }
+
+                return rules;
+            }
+
+        private:
+            [[nodiscard]] bool eof() const noexcept
+            {
+                return m_index >= m_data.size();
+            }
+
+            void skip_whitespace()
+            {
+                while (m_index < m_data.size())
+                {
+                    const unsigned char c = static_cast<unsigned char>(m_data[m_index]);
+                    if (std::isspace(c) == 0)
+                    {
+                        break;
+                    }
+                    ++m_index;
+                }
+            }
+
+            bool consume(char expected)
+            {
+                skip_whitespace();
+                if (m_index < m_data.size() && m_data[m_index] == expected)
+                {
+                    ++m_index;
+                    return true;
+                }
+                return false;
+            }
+
+            void expect(char expected)
+            {
+                if (!consume(expected))
+                {
+                    throw std::runtime_error(std::string{"Expected character '"} + expected + "' in signature database");
+                }
+            }
+
+            [[nodiscard]] char peek() const
+            {
+                if (m_index >= m_data.size())
+                {
+                    return '\0';
+                }
+                return m_data[m_index];
+            }
+
+            [[nodiscard]] bool match_literal(std::string_view literal) const noexcept
+            {
+                if (m_data.size() - m_index < literal.size())
+                {
+                    return false;
+                }
+                return m_data.substr(m_index, literal.size()) == literal;
+            }
+
+            void skip_literal(std::string_view literal)
+            {
+                if (!match_literal(literal))
+                {
+                    throw std::runtime_error("Expected literal '" + std::string{literal} + "' in signature database");
+                }
+                m_index += literal.size();
+            }
+
+            [[nodiscard]] std::string parse_string()
+            {
+                skip_whitespace();
+                if (m_index >= m_data.size() || m_data[m_index] != '"')
+                {
+                    throw std::runtime_error("Expected string in signature database");
+                }
+                ++m_index;
+
+                std::string result;
+                while (m_index < m_data.size())
+                {
+                    const char c = m_data[m_index++];
+                    if (c == '"')
+                    {
+                        return result;
+                    }
+                    if (c != '\\')
+                    {
+                        result.push_back(c);
+                        continue;
+                    }
+
+                    if (m_index >= m_data.size())
+                    {
+                        throw std::runtime_error("Invalid escape sequence in signature database string");
+                    }
+
+                    const char escape = m_data[m_index++];
+                    switch (escape)
+                    {
+                    case '"':
+                        result.push_back('"');
+                        break;
+                    case '\\':
+                        result.push_back('\\');
+                        break;
+                    case '/':
+                        result.push_back('/');
+                        break;
+                    case 'b':
+                        result.push_back('\b');
+                        break;
+                    case 'f':
+                        result.push_back('\f');
+                        break;
+                    case 'n':
+                        result.push_back('\n');
+                        break;
+                    case 'r':
+                        result.push_back('\r');
+                        break;
+                    case 't':
+                        result.push_back('\t');
+                        break;
+                    case 'u':
+                    {
+                        if (m_index + 4 > m_data.size())
+                        {
+                            throw std::runtime_error("Incomplete unicode escape in signature database string");
+                        }
+                        unsigned int code_point = 0U;
+                        for (int i = 0; i < 4; ++i)
+                        {
+                            const char hex = m_data[m_index++];
+                            code_point <<= 4U;
+                            if (hex >= '0' && hex <= '9')
+                            {
+                                code_point += static_cast<unsigned int>(hex - '0');
+                            }
+                            else if (hex >= 'a' && hex <= 'f')
+                            {
+                                code_point += static_cast<unsigned int>(10 + hex - 'a');
+                            }
+                            else if (hex >= 'A' && hex <= 'F')
+                            {
+                                code_point += static_cast<unsigned int>(10 + hex - 'A');
+                            }
+                            else
+                            {
+                                throw std::runtime_error("Invalid unicode escape in signature database string");
+                            }
+                        }
+
+                        if (code_point > 0x7FU)
+                        {
+                            throw std::runtime_error("Non-ASCII unicode escapes are not supported in signature database strings");
+                        }
+                        result.push_back(static_cast<char>(code_point));
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("Unsupported escape sequence in signature database string");
+                    }
+                }
+
+                throw std::runtime_error("Unterminated string in signature database");
+            }
+
+            void skip_number()
+            {
+                skip_whitespace();
+                if (m_index < m_data.size() && (m_data[m_index] == '-' || m_data[m_index] == '+'))
+                {
+                    ++m_index;
+                }
+                while (m_index < m_data.size() && std::isdigit(static_cast<unsigned char>(m_data[m_index])) != 0)
+                {
+                    ++m_index;
+                }
+                if (m_index < m_data.size() && m_data[m_index] == '.')
+                {
+                    ++m_index;
+                    while (m_index < m_data.size() && std::isdigit(static_cast<unsigned char>(m_data[m_index])) != 0)
+                    {
+                        ++m_index;
+                    }
+                }
+                if (m_index < m_data.size() && (m_data[m_index] == 'e' || m_data[m_index] == 'E'))
+                {
+                    ++m_index;
+                    if (m_index < m_data.size() && (m_data[m_index] == '+' || m_data[m_index] == '-'))
+                    {
+                        ++m_index;
+                    }
+                    while (m_index < m_data.size() && std::isdigit(static_cast<unsigned char>(m_data[m_index])) != 0)
+                    {
+                        ++m_index;
+                    }
+                }
+            }
+
+            std::size_t parse_unsigned()
+            {
+                skip_whitespace();
+                std::size_t value = 0U;
+                bool has_digit = false;
+                while (m_index < m_data.size())
+                {
+                    const char c = m_data[m_index];
+                    if (std::isdigit(static_cast<unsigned char>(c)) == 0)
+                    {
+                        break;
+                    }
+                    has_digit = true;
+                    value = (value * 10U) + static_cast<std::size_t>(c - '0');
+                    ++m_index;
+                }
+                if (!has_digit)
+                {
+                    throw std::runtime_error("Expected unsigned integer in signature database");
+                }
+                return value;
+            }
+
+            bool parse_bool()
+            {
+                skip_whitespace();
+                if (match_literal("true"))
+                {
+                    m_index += 4U;
+                    return true;
+                }
+                if (match_literal("false"))
+                {
+                    m_index += 5U;
+                    return false;
+                }
+                throw std::runtime_error("Expected boolean value in signature database");
+            }
+
+            std::vector<std::string> parse_string_array()
+            {
+                expect('[');
+                std::vector<std::string> values;
+                bool first = true;
+                while (!consume(']'))
+                {
+                    if (!first)
+                    {
+                        expect(',');
+                    }
+                    first = false;
+                    values.push_back(parse_string());
+                }
+                return values;
+            }
+
+            void skip_value()
+            {
+                skip_whitespace();
+                const char current = peek();
+                if (current == '{')
+                {
+                    expect('{');
+                    bool first = true;
+                    while (!consume('}'))
+                    {
+                        if (!first)
+                        {
+                            expect(',');
+                        }
+                        first = false;
+                        static_cast<void>(parse_string());
+                        expect(':');
+                        skip_value();
+                    }
+                    return;
+                }
+
+                if (current == '[')
+                {
+                    expect('[');
+                    bool first = true;
+                    while (!consume(']'))
+                    {
+                        if (!first)
+                        {
+                            expect(',');
+                        }
+                        first = false;
+                        skip_value();
+                    }
+                    return;
+                }
+
+                if (current == '"')
+                {
+                    static_cast<void>(parse_string());
+                    return;
+                }
+
+                if (std::isdigit(static_cast<unsigned char>(current)) != 0 || current == '-' || current == '+')
+                {
+                    skip_number();
+                    return;
+                }
+
+                if (match_literal("true"))
+                {
+                    skip_literal("true");
+                    return;
+                }
+                if (match_literal("false"))
+                {
+                    skip_literal("false");
+                    return;
+                }
+                if (match_literal("null"))
+                {
+                    skip_literal("null");
+                    return;
+                }
+
+                throw std::runtime_error("Unexpected token while parsing signature database");
+            }
+
+            std::vector<GeometrySignatureRule> parse_rules_array()
+            {
+                std::vector<GeometrySignatureRule> rules;
+                expect('[');
+                bool first = true;
+                while (!consume(']'))
+                {
+                    if (!first)
+                    {
+                        expect(',');
+                    }
+                    first = false;
+                    rules.push_back(parse_rule_object());
+                }
+                return rules;
+            }
+
+            GeometrySignatureRule parse_rule_object()
+            {
+                GeometrySignatureRule rule{};
+                expect('{');
+
+                bool has_kind = false;
+                bool has_match = false;
+                bool first = true;
+                while (!consume('}'))
+                {
+                    if (!first)
+                    {
+                        expect(',');
+                    }
+                    first = false;
+
+                    const std::string key = parse_string();
+                    expect(':');
+
+                    if (key == "id")
+                    {
+                        rule.id = parse_string();
+                    }
+                    else if (key == "kind")
+                    {
+                        rule.kind = parse_geometry_kind(parse_string());
+                        has_kind = true;
+                    }
+                    else if (key == "mesh_format")
+                    {
+                        rule.mesh_format = parse_mesh_format(parse_string());
+                    }
+                    else if (key == "point_cloud_format")
+                    {
+                        rule.point_cloud_format = parse_point_cloud_format(parse_string());
+                    }
+                    else if (key == "graph_format")
+                    {
+                        rule.graph_format = parse_graph_format(parse_string());
+                    }
+                    else if (key == "format_hint")
+                    {
+                        rule.format_hint = parse_string();
+                    }
+                    else if (key == "match")
+                    {
+                        rule.match = parse_match_object();
+                        has_match = true;
+                    }
+                    else
+                    {
+                        skip_value();
+                    }
+                }
+
+                if (!has_kind)
+                {
+                    throw std::runtime_error("Signature rule missing 'kind'");
+                }
+                if (!has_match)
+                {
+                    throw std::runtime_error("Signature rule missing 'match'");
+                }
+
+                switch (rule.kind)
+                {
+                case GeometryKind::mesh:
+                    if (rule.mesh_format == MeshFileFormat::unknown)
+                    {
+                        throw std::runtime_error("Mesh signature rule missing 'mesh_format'");
+                    }
+                    break;
+                case GeometryKind::point_cloud:
+                    if (rule.point_cloud_format == PointCloudFileFormat::unknown)
+                    {
+                        throw std::runtime_error("Point cloud signature rule missing 'point_cloud_format'");
+                    }
+                    break;
+                case GeometryKind::graph:
+                    if (rule.graph_format == GraphFileFormat::unknown)
+                    {
+                        throw std::runtime_error("Graph signature rule missing 'graph_format'");
+                    }
+                    break;
+                default:
+                    break;
+                }
+
+                if (rule.match.patterns.empty())
+                {
+                    throw std::runtime_error("Signature rule must provide at least one pattern");
+                }
+
+                normalise_match_patterns(rule.match);
+                return rule;
+            }
+
+            SignatureMatch parse_match_object()
+            {
+                SignatureMatch match{};
+                expect('{');
+
+                bool has_type = false;
+                bool first = true;
+                while (!consume('}'))
+                {
+                    if (!first)
+                    {
+                        expect(',');
+                    }
+                    first = false;
+
+                    const std::string key = parse_string();
+                    expect(':');
+
+                    if (key == "type")
+                    {
+                        match.type = parse_match_type(parse_string());
+                        has_type = true;
+                    }
+                    else if (key == "pattern")
+                    {
+                        match.patterns = {parse_string()};
+                    }
+                    else if (key == "patterns")
+                    {
+                        match.patterns = parse_string_array();
+                    }
+                    else if (key == "offset")
+                    {
+                        match.offset = parse_unsigned();
+                    }
+                    else if (key == "max_scan_bytes")
+                    {
+                        match.max_scan_bytes = parse_unsigned();
+                    }
+                    else if (key == "case_sensitive")
+                    {
+                        match.case_sensitive = parse_bool();
+                    }
+                    else if (key == "comment_prefixes")
+                    {
+                        match.comment_prefixes = parse_string_array();
+                    }
+                    else
+                    {
+                        skip_value();
+                    }
+                }
+
+                if (!has_type)
+                {
+                    throw std::runtime_error("Signature match is missing 'type'");
+                }
+                if (match.patterns.empty())
+                {
+                    throw std::runtime_error("Signature match must specify at least one pattern");
+                }
+
+                if (match.max_scan_bytes == 0U)
+                {
+                    match.max_scan_bytes = kSignatureScanBytes;
+                }
+
+                normalise_match_patterns(match);
+                return match;
+            }
+
+            std::string_view m_data;
+            std::size_t m_index{0U};
+        };
+
+        class SignatureDatabaseCache
+        {
+        public:
+            [[nodiscard]] const std::vector<GeometrySignatureRule>& rules()
+            {
+                std::lock_guard<std::mutex> guard(m_mutex);
+                if (!m_loaded)
+                {
+                    m_rules = load();
+                    m_loaded = true;
+                }
+                return m_rules;
+            }
+
+#if defined(ENGINE_IO_ENABLE_SIGNATURE_TEST_HOOKS)
+            void reset_for_testing()
+            {
+                std::lock_guard<std::mutex> guard(m_mutex);
+                m_rules.clear();
+                m_loaded = false;
+            }
+#endif
+
+        private:
+            [[nodiscard]] std::filesystem::path resolve_path() const
+            {
+                if (const char* override_path = std::getenv(kSignatureDatabaseEnvVar); override_path != nullptr && override_path[0] != '\0')
+                {
+                    return std::filesystem::path{override_path};
+                }
+#ifdef ENGINE_IO_GEOMETRY_SIGNATURE_DB_PATH
+                return std::filesystem::path{ENGINE_IO_GEOMETRY_SIGNATURE_DB_PATH};
+#else
+                return {};
+#endif
+            }
+
+            [[nodiscard]] std::vector<GeometrySignatureRule> load()
+            {
+                const auto path = resolve_path();
+                if (path.empty())
+                {
+                    spdlog::debug("Geometry signature database path not set; skipping data-driven detection");
+                    return {};
+                }
+
+                std::ifstream stream{path, std::ios::binary};
+                if (!stream)
+                {
+                    spdlog::warn("Failed to open geometry signature database '{}'", path.string());
+                    return {};
+                }
+
+                const std::string content{std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}};
+
+                try
+                {
+                    SignatureDatabaseParser parser(content);
+                    auto parsed_rules = parser.parse();
+                    if (parsed_rules.empty())
+                    {
+                        spdlog::warn("Geometry signature database '{}' contained no rules", path.string());
+                    }
+                    else
+                    {
+                        spdlog::debug("Loaded {} geometry signature rules from '{}'", parsed_rules.size(), path.string());
+                    }
+                    return parsed_rules;
+                }
+                catch (const std::exception& e)
+                {
+                    spdlog::warn("Failed to parse geometry signature database '{}': {}", path.string(), e.what());
+                    return {};
+                }
+            }
+
+            std::mutex m_mutex;
+            bool m_loaded{false};
+            std::vector<GeometrySignatureRule> m_rules{};
+        };
+
+        SignatureDatabaseCache& geometry_signature_database()
+        {
+            static SignatureDatabaseCache cache;
+            return cache;
+        }
+
+        [[nodiscard]] const std::vector<GeometrySignatureRule>& geometry_signature_rules()
+        {
+            return geometry_signature_database().rules();
+        }
+
+        [[nodiscard]] std::string_view first_non_comment_line(std::string_view data,
+                                                              const std::vector<std::string>& comment_prefixes)
+        {
+            std::size_t offset = 0U;
+            while (offset < data.size())
+            {
+                const auto newline_pos = data.find('\n', offset);
+                const std::size_t line_end = (newline_pos == std::string_view::npos) ? data.size() : newline_pos;
+                std::string_view line = data.substr(offset, line_end - offset);
+                if (!line.empty() && line.back() == '\r')
+                {
+                    line.remove_suffix(1U);
+                }
+
+                auto trimmed = ltrim(line);
+                if (!trimmed.empty())
+                {
+                    bool is_comment = false;
+                    for (const auto& prefix : comment_prefixes)
+                    {
+                        if (!prefix.empty() && starts_with(trimmed, prefix))
+                        {
+                            is_comment = true;
+                            break;
+                        }
+                    }
+
+                    if (!is_comment)
+                    {
+                        return trimmed;
+                    }
+                }
+
+                if (newline_pos == std::string_view::npos)
+                {
+                    break;
+                }
+                offset = newline_pos + 1U;
+            }
+
+            return {};
+        }
+
+        [[nodiscard]] bool match_byte_prefix(const SignatureMatch& match, std::string_view data)
+        {
+            if (match.patterns.empty())
+            {
+                return false;
+            }
+
+            const auto& pattern = match.patterns.front();
+            if (match.offset + pattern.size() > data.size())
+            {
+                return false;
+            }
+
+            const auto slice = data.substr(match.offset, pattern.size());
+            if (match.case_sensitive)
+            {
+                return std::equal(pattern.begin(), pattern.end(), slice.begin(), slice.end());
+            }
+
+            const auto lowered = lowercase_ascii(slice);
+            return lowered == match.normalized_patterns.front();
+        }
+
+        [[nodiscard]] bool match_contains_all(const SignatureMatch& match, std::string_view data)
+        {
+            if (match.patterns.empty())
+            {
+                return false;
+            }
+
+            const std::size_t scan = std::min(match.max_scan_bytes, data.size());
+            const std::string_view window = data.substr(0U, scan);
+
+            if (match.case_sensitive)
+            {
+                for (const auto& pattern : match.patterns)
+                {
+                    if (pattern.empty())
+                    {
+                        continue;
+                    }
+                    if (window.find(pattern) == std::string_view::npos)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            const auto lowered_window = lowercase_ascii(window);
+            for (const auto& pattern : match.normalized_patterns)
+            {
+                if (pattern.empty())
+                {
+                    continue;
+                }
+                if (lowered_window.find(pattern) == std::string::npos)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        [[nodiscard]] bool match_line_prefix(const SignatureMatch& match, std::string_view data)
+        {
+            const std::size_t scan = std::min(match.max_scan_bytes, data.size());
+            const std::string_view window = data.substr(0U, scan);
+            const auto line = first_non_comment_line(window, match.comment_prefixes);
+            if (line.empty())
+            {
+                return false;
+            }
+
+            if (match.case_sensitive)
+            {
+                for (const auto& pattern : match.patterns)
+                {
+                    if (!pattern.empty() && line.substr(0U, pattern.size()) == pattern)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            const auto lowered_line = lowercase_ascii(line);
+            for (const auto& pattern : match.normalized_patterns)
+            {
+                if (!pattern.empty() && lowered_line.rfind(pattern, 0U) == 0U)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        [[nodiscard]] bool matches_signature_rule(const GeometrySignatureRule& rule, std::string_view data)
+        {
+            switch (rule.match.type)
+            {
+            case SignatureMatchType::byte_prefix:
+                return match_byte_prefix(rule.match, data);
+            case SignatureMatchType::line_prefix:
+                return match_line_prefix(rule.match, data);
+            case SignatureMatchType::contains_all:
+                return match_contains_all(rule.match, data);
+            default:
+                return false;
+            }
+        }
+
+        [[nodiscard]] GeometryDetectionResult detect_geometry_from_signature_database(std::string_view data)
+        {
+            GeometryDetectionResult detection{};
+            if (data.empty())
+            {
+                return detection;
+            }
+
+            const auto& rules = geometry_signature_rules();
+            for (const auto& rule : rules)
+            {
+                if (!matches_signature_rule(rule, data))
+                {
+                    continue;
+                }
+
+                detection.kind = rule.kind;
+                detection.mesh_format = rule.mesh_format;
+                detection.point_cloud_format = rule.point_cloud_format;
+                detection.graph_format = rule.graph_format;
+                detection.format_hint = rule.format_hint;
+                return detection;
+            }
+
+            return detection;
+        }
+
+#if defined(ENGINE_IO_ENABLE_SIGNATURE_TEST_HOOKS)
+        void reset_geometry_signature_cache_for_testing_impl()
+        {
+            geometry_signature_database().reset_for_testing();
+        }
+#endif
 
         [[nodiscard]] std::string_view to_string(GeometryKind kind) noexcept
         {
@@ -405,10 +1395,9 @@ namespace engine::io
             return false;
         }
 
-        [[nodiscard]] GeometryDetectionResult detect_geometry_from_signatures(const std::filesystem::path& path)
+        [[nodiscard]] GeometryDetectionResult detect_geometry_from_builtin_signatures(std::string_view prefix)
         {
             GeometryDetectionResult detection{};
-            auto prefix = read_file_prefix(path, 4096U);
             if (prefix.empty())
             {
                 return detection;
@@ -443,6 +1432,27 @@ namespace engine::io
             }
 
             return detection;
+        }
+
+        [[nodiscard]] GeometryDetectionResult detect_geometry_from_signatures(std::string_view data)
+        {
+            if (auto database_detection = detect_geometry_from_signature_database(data); database_detection.kind != GeometryKind::unknown)
+            {
+                return database_detection;
+            }
+
+            return detect_geometry_from_builtin_signatures(data);
+        }
+
+        [[nodiscard]] GeometryDetectionResult detect_geometry_from_signatures(const std::string& data)
+        {
+            return detect_geometry_from_signatures(std::string_view{data});
+        }
+
+        [[nodiscard]] GeometryDetectionResult detect_geometry_from_signatures(const std::filesystem::path& path)
+        {
+            const auto prefix = read_file_prefix(path, kSignatureScanBytes);
+            return detect_geometry_from_signatures(prefix);
         }
 
         struct PlyHeaderInfo
@@ -1862,6 +2872,7 @@ namespace engine::io
                     "Cannot detect geometry content of non-existent file: " + path.string());
             }
 
+            std::string signature_prefix;
             const auto ext = extension_of(path);
             auto result = classify_extension_only(ext);
             result.format_hint = ext;
@@ -1916,9 +2927,15 @@ namespace engine::io
 
             if (result.kind == GeometryKind::unknown)
             {
-                if (auto signature_result = detect_geometry_from_signatures(path); signature_result.kind != GeometryKind::unknown)
+                if (signature_prefix.empty())
                 {
-                    if (!result.format_hint.empty())
+                    signature_prefix = read_file_prefix(path, kSignatureScanBytes);
+                }
+
+                if (auto signature_result = detect_geometry_from_signatures(signature_prefix);
+                    signature_result.kind != GeometryKind::unknown)
+                {
+                    if (signature_result.format_hint.empty())
                     {
                         signature_result.format_hint = result.format_hint;
                     }
@@ -1986,12 +3003,6 @@ namespace engine::io
 
             stream.clear();
             stream.seekg(0);
-
-            std::string buffer = read_file_prefix(path, 4096);
-            if (auto signature_result = detect_geometry_from_signatures(buffer); signature_result.kind != GeometryKind::unknown)
-            {
-                return signature_result;
-            }
 
             if (result.kind == GeometryKind::unknown)
             {
@@ -2519,6 +3530,16 @@ namespace engine::io
 
         return outcome;
     }
+
+#if defined(ENGINE_IO_ENABLE_SIGNATURE_TEST_HOOKS)
+    namespace detail
+    {
+        void reset_geometry_signature_cache_for_testing()
+        {
+            reset_geometry_signature_cache_for_testing_impl();
+        }
+    } // namespace detail
+#endif
 
     std::ostream& operator<<(std::ostream& stream, GeometryKind kind)
     {

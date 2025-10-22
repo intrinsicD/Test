@@ -8,13 +8,62 @@
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <system_error>
 
+namespace engine::io::detail
+{
+    void reset_geometry_signature_cache_for_testing();
+}
+
 namespace
 {
+    namespace io_detail = engine::io::detail;
+
+#if defined(_WIN32)
+    void set_env_variable(const char* name, const std::string& value)
+    {
+        _putenv_s(name, value.c_str());
+    }
+
+    void unset_env_variable(const char* name)
+    {
+        _putenv_s(name, "");
+    }
+#else
+    void set_env_variable(const char* name, const std::string& value)
+    {
+        ::setenv(name, value.c_str(), 1);
+    }
+
+    void unset_env_variable(const char* name)
+    {
+        ::unsetenv(name);
+    }
+#endif
+
+    class SignatureDatabaseOverride
+    {
+    public:
+        explicit SignatureDatabaseOverride(const std::filesystem::path& path)
+        {
+            set_env_variable("ENGINE_IO_GEOMETRY_SIGNATURE_PATH", path.string());
+            io_detail::reset_geometry_signature_cache_for_testing();
+        }
+
+        SignatureDatabaseOverride(const SignatureDatabaseOverride&) = delete;
+        SignatureDatabaseOverride& operator=(const SignatureDatabaseOverride&) = delete;
+
+        ~SignatureDatabaseOverride()
+        {
+            unset_env_variable("ENGINE_IO_GEOMETRY_SIGNATURE_PATH");
+            io_detail::reset_geometry_signature_cache_for_testing();
+        }
+    };
+
     struct TempDirectory
     {
         TempDirectory()
@@ -258,6 +307,58 @@ TEST(GeometryDetection, DetectsEdgelistWithoutExtension)
     const auto& info = detection.value();
     EXPECT_EQ(info.kind, engine::io::GeometryKind::graph);
     EXPECT_EQ(info.graph_format, engine::io::GraphFileFormat::edgelist);
+}
+
+TEST(GeometryDetection, UsesSignatureDatabaseOverride)
+{
+    TempDirectory temp;
+    const auto db_path = temp.path / "custom_signatures.json";
+    write_file(db_path,
+               "{\n"
+               "  \"rules\": [\n"
+               "    {\n"
+               "      \"id\": \"mesh.custom.marker\",\n"
+               "      \"kind\": \"mesh\",\n"
+               "      \"mesh_format\": \"obj\",\n"
+               "      \"match\": {\n"
+               "        \"type\": \"line_prefix\",\n"
+               "        \"patterns\": [\"@meshdb\"],\n"
+               "        \"case_sensitive\": false\n"
+               "      },\n"
+               "      \"format_hint\": \".obj\"\n"
+               "    }\n"
+               "  ]\n"
+               "}\n");
+
+    SignatureDatabaseOverride override{db_path};
+
+    const auto asset_path = temp.path / "custom.asset";
+    write_file(asset_path,
+               "@meshdb\n"
+               "points\n");
+
+    const auto detection = engine::io::detect_geometry_file(asset_path);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::obj);
+    EXPECT_EQ(info.format_hint, ".obj");
+}
+
+TEST(GeometryDetection, FallsBackWhenSignatureDatabaseMissing)
+{
+    TempDirectory temp;
+    const auto missing_db_path = temp.path / "missing.json";
+    SignatureDatabaseOverride override{missing_db_path};
+
+    const auto path = temp.path / "fallback.off";
+    write_off_mesh(path);
+
+    const auto detection = engine::io::detect_geometry_file(path);
+    ASSERT_TRUE(detection);
+    const auto& info = detection.value();
+    EXPECT_EQ(info.kind, engine::io::GeometryKind::mesh);
+    EXPECT_EQ(info.mesh_format, engine::io::MeshFileFormat::off);
 }
 
 TEST(GeometryDetection, ReportsMissingFile)

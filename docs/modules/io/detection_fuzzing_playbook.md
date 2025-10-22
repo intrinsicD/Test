@@ -71,17 +71,17 @@ signature catalogue gap.
 
 ## Signature Catalogue Management
 
-`RT-006.1` introduces a data-driven signature database consumed by the geometry
+`RT-006.1` introduced a data-driven signature database consumed by the geometry
 detector. Use this checklist whenever curating or updating the catalogue:
 
 1. **Source samples** — collect minimal fixtures covering the new format/variant
    (ASCII vs binary, presence of comments, large headers). Store them under
    `engine/io/tests/fixtures/<format>/` with provenance notes.
 2. **Record signatures** — encode prefix patterns (magic numbers, canonical
-   tokens) inside the catalogue file (planned location:
-   `engine/io/signatures/geometry_signatures.json`). Include fields for `kind`,
-   `format`, `offset`, and `pattern` so the detector can dispatch without new
-   code.
+   tokens) inside `engine/io/signatures/geometry_signatures.json`. Include
+   fields for `kind`, `format`, `offset`, and `pattern` so the detector can
+   dispatch without new code. Select a `match.type` (`byte_prefix`,
+   `line_prefix`, or `contains_all`) that minimises false positives.
 3. **Validate locally** — run `ctest --preset <preset> --tests-regex
    engine_io` to exercise unit coverage. Add targeted unit tests when extending
    detection heuristics so regressions fail deterministically.
@@ -89,6 +89,11 @@ detector. Use this checklist whenever curating or updating the catalogue:
    new format, listing required extensions and signature tokens.
 5. **Commit provenance** — annotate catalogue entries with source repositories,
    licenses, and generator scripts to keep legal review straightforward.
+
+Set the `ENGINE_IO_GEOMETRY_SIGNATURE_PATH` environment variable to point at an
+alternate catalogue when experimenting with draft signatures or trimmed
+datasets. Tests call `engine::io::detail::reset_geometry_signature_cache_for_testing()`
+after changing the environment so the loader re-reads the override.
 
 Until the catalogue lands, continue capturing manual heuristics in the code but
 prepare fixture folders so the transition to data-driven detection remains
