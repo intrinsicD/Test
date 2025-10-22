@@ -148,6 +148,32 @@ serialises the hierarchy report in its JSON output and console summary,
 surfacing entity IDs, relationship context, and error messages for up to five
 issues per invocation.
 
+Hierarchy validation metrics now include alert-oriented counters so dashboards
+can identify sustained regressions:
+
+- `runtime.scene_validation.consecutive_failure_frames` — consecutive frames
+  that reported hierarchy errors.
+- `runtime.scene_validation.max_consecutive_failure_frames` — longest streak
+  observed since initialisation for historical comparison.
+- `runtime.scene_validation.failure_frame_count` — total frames containing
+  hierarchy issues.
+- `runtime.scene_validation.last_failure_simulation_time` and
+  `runtime.scene_validation.last_failure_wall_seconds` — timestamps (simulation
+  seconds and wall-clock seconds since `RuntimeHost::initialize`) for the most
+  recent failure. Values of `-1` indicate that no failure has occurred.
+- `runtime.scene_validation.alert_threshold.warning_frames` and
+  `runtime.scene_validation.alert_threshold.critical_frames` — documented alert
+  thresholds (3 and 10 consecutive frames respectively) consumed by tooling and
+  operators.
+- `runtime.scene_validation.alert_level` — derived alert state
+  (`0 = none`, `1 = warning`, `2 = critical`).
+
+Dashboards should trigger an informational alert when
+`runtime.scene_validation.alert_level >= 1` (3 consecutive failing frames) and
+escalate to paging when the value reaches `2` (10 consecutive failing frames).
+These defaults keep short-lived authoring mistakes from paging operators while
+still surfacing persistent regressions quickly.
+
 Scene authors should review the
 [scene diagnostics guide](../scene/diagnostics.md) for module-specific
 remediation steps and planned follow-up samples introduced by `SC-220`.
@@ -200,7 +226,9 @@ issues to remediation guides.
 
 - The diagnostics bridge emits `engine.runtime.diagnostics.scene` logs with the
   issue summary. Integrate the logging sink with existing monitoring to raise
-  alerts when the failure rate exceeds acceptable thresholds.
+  alerts when the failure rate exceeds acceptable thresholds. The
+  `runtime.scene_validation.alert_level` metric mirrors the recommended warning
+  (`>= 1`) and paging (`>= 2`) breakpoints for dashboards.
 - Tooling consuming the bridge should debounce notifications to avoid flooding
   UI surfaces when the same issue persists across ticks.
 - When running in headless CI environments, persist the JSON output as part of

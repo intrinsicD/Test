@@ -74,18 +74,100 @@ instrumentation context.
 - Runtime telemetry exposes metrics under `runtime.scene_validation.*`
   with counts and last-seen issue codes; scene tooling should subscribe
   to the same schema to maintain parity.
-- Coordinate with the runtime team on `SC-230` to define alert thresholds
-  for repeated hierarchy failures. Capture decisions in this guide when
-  the alerting policy stabilises.
+- `runtime.scene_validation.alert_threshold.warning_frames` and
+  `runtime.scene_validation.alert_threshold.critical_frames` document the
+  runtime's baked-in alert policy (warning after 3 consecutive failing frames,
+  critical after 10). Dashboards should page when
+  `runtime.scene_validation.alert_level` reaches `2` and file follow-up issues
+  when it remains at `1` for longer than a few minutes.
+- Monitor `runtime.scene_validation.consecutive_failure_frames` to understand
+  current streak length, `runtime.scene_validation.max_consecutive_failure_frames`
+  for historical context, and
+  `runtime.scene_validation.last_failure_{simulation_time,wall_seconds}` to
+  correlate failures with authored actions or CI jobs.
 - Persist telemetry artefacts in CI by storing the JSON output from the
   diagnostics scripts. Use consistent filenames (e.g.,
   `scene_validation_<timestamp>.json`) to simplify trend analysis.
 
-## Sample Library (Planned)
+## Sample Library
 
-`SC-225` will introduce runnable samples that exercise the validation
-workflow end-to-end. Once merged, link the fixtures here with setup
-instructions and expected telemetry snapshots.
+`engine/scene/samples` ships the `scene_hierarchy_diagnostics_sample`
+CLI introduced by `SC-225`. It exercises the hierarchy validation
+workflow end-to-end with reproducible fixtures and JSON output that
+matches the runtime diagnostics schema.
+
+### Building the CLI
+
+```bash
+cmake --build --preset <preset> --target scene_hierarchy_diagnostics_sample
+```
+
+The executable is written to
+`out/build/<preset>/engine/scene/scene_hierarchy_diagnostics_sample`.
+
+### Validating Built-in Fixtures
+
+Two fixtures demonstrate clean and failing hierarchies:
+
+- `valid_hierarchy` — three nodes with consistent transforms and
+  relationships.
+- `invalid_hierarchy` — introduces cycles, dangling parents, missing
+  hierarchy components, and mismatched transforms.
+
+Invoke the CLI directly against the fixtures:
+
+```bash
+./out/build/<preset>/engine/scene/scene_hierarchy_diagnostics_sample \
+    --sample invalid_hierarchy --pretty --fail-on-issues
+```
+
+`--scene <path>` validates external `.scene` files while `--emit-samples`
+regenerates the committed fixtures under
+`engine/scene/samples/data/`. Use `--list-samples` to enumerate the
+available definitions.
+
+### Expected Output
+
+Every run prints a human-readable summary followed by JSON mirroring
+`HierarchyValidationReport`. Example output for the
+`invalid_hierarchy` fixture:
+
+```json
+{
+  "ok": false,
+  "metrics": {
+    "issue_count": 3,
+    "cycle_count": 1,
+    "dangling_parent_count": 1,
+    "missing_parent_hierarchy_count": 1,
+    "non_finite_transform_count": 0,
+    "transform_mismatch_count": 0
+  },
+  "issues": [
+    {
+      "entity": 4,
+      "related": 3,
+      "type": "missing_parent_hierarchy",
+      "message": "Entity 4 references parent 3 that is missing a Hierarchy component"
+    },
+    {
+      "entity": 2,
+      "related": 123456789,
+      "type": "dangling_parent",
+      "message": "Entity 2 references invalid parent 123456789"
+    },
+    {
+      "entity": 0,
+      "related": 1,
+      "type": "cycle",
+      "message": "Cycle detected when traversing parent chain for entity 0 via parent 1"
+    }
+  ]
+}
+```
+
+Use these artefacts in documentation, dashboards, and CI pipelines to
+compare runtime telemetry against expected diagnostics output.
 
 ## Related References
 

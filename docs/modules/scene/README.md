@@ -38,15 +38,18 @@
 
 ## TODO / Next Steps
 
-- Prepare runnable scene import samples that exercise the hierarchy
-  diagnostics workflow end-to-end and link them from this README once the
-  fixtures land (`SC-225`, planned); track progress in the `RT-005`
-  tranche via the
+- Keep the `scene_hierarchy_diagnostics_sample` fixtures current as new
+  `HierarchyValidationIssueType` values land. Regenerate the committed
+  `.scene` files and refresh the documentation snippets whenever
+  validation semantics evolve; track the follow-up under `RT-005`
+  (`SC-225`) in the
   [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
-- Coordinate with runtime/tooling owners to define alert thresholds for
-  recurring hierarchy failures so dashboards surface sustained
-  regressions (`SC-230`, planned); status captured under `RT-005` in the
-  [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
+- Continue adopting the shared alert policy delivered in `SC-230` by
+  monitoring `runtime.scene_validation.alert_level` (warning at 3
+  consecutive failing frames, paging at 10). Link local dashboards to the
+  runtime metrics so scene regressions surface alongside runtime
+  telemetry and the new sample output while reporting status against
+  `RT-005`.
 
 This module tracks actionable work through the execution checklist below.
 

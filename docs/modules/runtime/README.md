@@ -55,11 +55,13 @@
 
 ## TODO / Next Steps
 
-- Support the scene module follow-ups (`SC-225` diagnostics samples,
-  `SC-230` alert thresholds) by providing telemetry examples and
-  cross-linking new fixtures once they land in the shared tooling docs;
-  these items extend `RT-005` and remain tracked in the
-  [central roadmap](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
+- Keep the runtime diagnostics guide cross-linked with the
+  `scene_hierarchy_diagnostics_sample` fixtures delivered in `SC-225` and
+  ensure telemetry examples stay aligned. Continue pointing dashboards at
+  the `runtime.scene_validation.alert_level` metric (warning at 3 frames,
+  critical at 10) so hierarchy regressions surface consistently across
+  modules; track progress alongside
+  [RT-005](../../ROADMAP.md#rt-005-scene-hierarchy-validation).
 
 This module tracks actionable work through the execution checklist below.
 

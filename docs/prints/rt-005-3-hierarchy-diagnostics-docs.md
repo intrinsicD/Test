@@ -305,7 +305,7 @@ index 0000000..fcfb462
 +
 +## FOLLOW_UP_TODOS
 +- [ ] Align scene module documentation with the hierarchy troubleshooting guide (owner: TBD, priority: High) to close `SC-220`.
-+- [ ] Add telemetry alert thresholds for repeated hierarchy failures (owner: TBD, priority: Medium) so observability dashboards surface sustained regressions.
++- [x] Add telemetry alert thresholds for repeated hierarchy failures (owner: Runtime, priority: Medium) so observability dashboards surface sustained regressions (completed via `runtime.scene_validation.alert_level`).
 +- [ ] Evaluate consolidating diagnostics bridge listeners behind a subscription API (owner: TBD, priority: Low) to reduce coupling as tooling grows.
 +- [ ] Publish a runbook for packaging telemetry artefacts in CI (owner: TBD, priority: Medium) extending the diagnostics documentation set.
 ```
@@ -359,6 +359,6 @@ See ## PATCH.
 
 ## FOLLOW_UP_TODOS
 - [x] Align scene module documentation with the hierarchy troubleshooting guide (owner: Scene, priority: High) to close `SC-220` (completed 2025-03-22; see `docs/prints/sc-220-documentation-refresh.md`).
-- [ ] Add telemetry alert thresholds for repeated hierarchy failures (owner: TBD, priority: Medium) so observability dashboards surface sustained regressions.
+- [x] Add telemetry alert thresholds for repeated hierarchy failures (owner: Runtime, priority: Medium) so observability dashboards surface sustained regressions (completed via `runtime.scene_validation.alert_level`).
 - [ ] Evaluate consolidating diagnostics bridge listeners behind a subscription API (owner: TBD, priority: Low) to reduce coupling as tooling grows.
 - [ ] Publish a runbook for packaging telemetry artefacts in CI (owner: TBD, priority: Medium) extending the diagnostics documentation set.

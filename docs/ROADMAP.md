@@ -185,8 +185,12 @@ Once staffed, execute module-specific queues below.
 - **Rendering** — `RE-520` backend documentation updates building on the
   completed metadata schema (`AI-003`), followed by `RE-530` backend validation
   tooling and parity tracking work.
-- **Runtime** — `RT-005` tranche complete; support `SC-225` samples and `SC-230` alerting guidance as scene docs expand.
-- **Scene** — `SC-225` diagnostics samples and `SC-230` alerting thresholds extend the hierarchy playbook delivered in `SC-220`.
+- **Runtime** — `RT-005` tranche complete; keep the hierarchy alert metrics
+  (`runtime.scene_validation.alert_level`) wired into observability and surface
+  the new `SC-225` sample outputs in diagnostics tooling.
+- **Scene** — `SC-225` diagnostics samples now ship under
+  `engine/scene/samples`; maintain the fixtures and dashboards alongside the
+  `SC-230` alert policy.
 - **Tools** — TL-110 documentation refresh completed; telemetry viewer smoke
   tests now auto-discover packaged runtime shared libraries. Keep CI artefacts
   deterministic to avoid manual `TEST_ENGINE_RUNTIME_LIBRARY_DIR` overrides and

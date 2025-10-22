@@ -41,7 +41,7 @@ None.
 - ✅ `python scripts/validate_docs.py`
 
 ## Follow-Up Work
-- [ ] Ensure `SC-225` samples include telemetry snapshots as suggested above.
+- [x] Ensure `SC-225` samples include telemetry snapshots as suggested above (closed by `SC-225`).
 
 ## Verdict
 - [x] ✅ Approve

@@ -63,6 +63,24 @@
 
 namespace
 {
+    constexpr std::uint64_t kHierarchyFailureWarningThreshold = 3;
+    constexpr std::uint64_t kHierarchyFailureCriticalThreshold = 10;
+
+    [[nodiscard]] engine::runtime::SceneValidationAlertLevel evaluate_scene_validation_alert(
+        std::uint64_t consecutive_failures) noexcept
+    {
+        using engine::runtime::SceneValidationAlertLevel;
+        if (consecutive_failures >= kHierarchyFailureCriticalThreshold)
+        {
+            return SceneValidationAlertLevel::Critical;
+        }
+        if (consecutive_failures >= kHierarchyFailureWarningThreshold)
+        {
+            return SceneValidationAlertLevel::Warning;
+        }
+        return SceneValidationAlertLevel::None;
+    }
+
     using engine::runtime::RuntimeError;
     using engine::runtime::RuntimeErrorCode;
 
@@ -370,6 +388,33 @@ namespace
     }
 } // namespace
 
+namespace engine::runtime::detail
+{
+    void update_scene_validation_alert_state(RuntimeDiagnostics& diagnostics,
+                                             const scene::validation::HierarchyValidationReport& report,
+                                             double simulation_time,
+                                             double wall_seconds) noexcept
+    {
+        if (!report.ok())
+        {
+            diagnostics.scene_validation_failure_frame_count += 1U;
+            diagnostics.scene_validation_consecutive_failure_frames += 1U;
+            diagnostics.scene_validation_max_consecutive_failure_frames = std::max(
+                diagnostics.scene_validation_max_consecutive_failure_frames,
+                diagnostics.scene_validation_consecutive_failure_frames);
+            diagnostics.last_scene_validation_failure_simulation_time = simulation_time;
+            diagnostics.last_scene_validation_failure_wall_seconds = wall_seconds;
+        }
+        else
+        {
+            diagnostics.scene_validation_consecutive_failure_frames = 0U;
+        }
+
+        diagnostics.scene_validation_alert_level = evaluate_scene_validation_alert(
+            diagnostics.scene_validation_consecutive_failure_frames);
+    }
+}
+
 namespace engine::runtime
 {
     struct RuntimeHost::Impl
@@ -393,6 +438,7 @@ namespace engine::runtime
         std::vector<math::Transform<float>> joint_global_transforms{};
         std::vector<math::Transform<float>> skinning_transforms{};
         using Clock = std::chrono::steady_clock;
+        Clock::time_point runtime_start_time{Clock::now()};
         RuntimeDiagnostics diagnostics{};
         std::unordered_map<std::string, std::size_t> stage_lookup{};
         std::unordered_map<std::string, std::size_t> subsystem_lookup{};
@@ -995,6 +1041,37 @@ namespace engine::runtime
             add_issue_metric("missing_parent_hierarchy", validation.missing_parent_hierarchy_count);
             add_issue_metric("non_finite_transform", validation.non_finite_transform_count);
             add_issue_metric("transform_mismatch", validation.transform_mismatch_count);
+            add_gauge("runtime.scene_validation.consecutive_failure_frames",
+                      "Consecutive frames that reported hierarchy validation failures",
+                      static_cast<double>(diagnostics.scene_validation_consecutive_failure_frames),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.scene_validation.max_consecutive_failure_frames",
+                      "Maximum consecutive frames with hierarchy validation failures since initialization",
+                      static_cast<double>(diagnostics.scene_validation_max_consecutive_failure_frames),
+                      core::telemetry::MetricUnit::Count);
+            add_counter("runtime.scene_validation.failure_frame_count",
+                        "Total frames that reported hierarchy validation failures since initialization",
+                        clamp_to_int(diagnostics.scene_validation_failure_frame_count));
+            add_gauge("runtime.scene_validation.last_failure_simulation_time",
+                      "Simulation time recorded for the most recent hierarchy validation failure",
+                      diagnostics.last_scene_validation_failure_simulation_time,
+                      core::telemetry::MetricUnit::Seconds);
+            add_gauge("runtime.scene_validation.last_failure_wall_seconds",
+                      "Seconds since runtime initialization when the most recent hierarchy validation failure occurred",
+                      diagnostics.last_scene_validation_failure_wall_seconds,
+                      core::telemetry::MetricUnit::Seconds);
+            add_gauge("runtime.scene_validation.alert_threshold.warning_frames",
+                      "Consecutive failure frames required to enter the warning alert state",
+                      static_cast<double>(kHierarchyFailureWarningThreshold),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.scene_validation.alert_threshold.critical_frames",
+                      "Consecutive failure frames required to enter the critical alert state",
+                      static_cast<double>(kHierarchyFailureCriticalThreshold),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.scene_validation.alert_level",
+                      "Hierarchy validation alert level (0 = none, 1 = warning, 2 = critical)",
+                      static_cast<double>(static_cast<std::uint32_t>(diagnostics.scene_validation_alert_level)),
+                      core::telemetry::MetricUnit::None);
 
             diagnostics.metrics = std::move(snapshot);
 #if ENGINE_ENABLE_ASSETS
@@ -1176,6 +1253,7 @@ namespace engine::runtime
         {
             initialized = false;
             simulation_time = 0.0;
+            runtime_start_time = Clock::now();
             controller = dependencies.controller;
             pose = animation::evaluate_controller(controller);
             mesh = dependencies.mesh;
@@ -1298,7 +1376,7 @@ namespace engine::runtime
 #endif
         }
 
-        void synchronize_scene_graph(const math::vec3& body_translation)
+        void synchronize_scene_graph(const math::vec3& body_translation, double frame_dt)
         {
             if (joint_entities.size() != pose.joints.size())
             {
@@ -1371,6 +1449,14 @@ namespace engine::runtime
             DiagnosticsBridge::instance().publish_hierarchy_report(
                 diagnostics.scene_validation,
                 simulation_time);
+            const auto now = Clock::now();
+            const double wall_seconds = std::chrono::duration<double>(now - runtime_start_time).count();
+            const double frame_simulation_time = simulation_time + frame_dt;
+            detail::update_scene_validation_alert_state(
+                diagnostics,
+                diagnostics.scene_validation,
+                frame_simulation_time,
+                wall_seconds);
 
             for (const auto& entity : joint_entities)
             {
@@ -1426,7 +1512,7 @@ namespace engine::runtime
             const math::vec3 translation = body_positions.empty()
                                                ? math::vec3{0.0F, 0.0F, 0.0F}
                                                : body_positions.front();
-            synchronize_scene_graph(translation);
+            synchronize_scene_graph(translation, 0.0);
             const engine::core::plugin::SubsystemLifecycleContext lifecycle{runtime_name_view()};
             std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> started_plugins{};
             started_plugins.reserve(dependencies.subsystem_plugins.size());
@@ -1491,6 +1577,7 @@ namespace engine::runtime
             }
 
             record_initialize_duration(Clock::now() - initialize_start);
+            runtime_start_time = Clock::now();
             refresh_streaming_metrics();
             rebuild_metric_snapshot();
         }
@@ -1631,7 +1718,7 @@ namespace engine::runtime
                     const math::vec3 translation = body_positions.empty()
                                                        ? math::vec3{0.0F, 0.0F, 0.0F}
                                                        : body_positions.front();
-                    synchronize_scene_graph(translation);
+                    synchronize_scene_graph(translation, dt);
                 },
                 {deform});
 

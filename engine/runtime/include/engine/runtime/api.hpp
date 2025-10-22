@@ -144,6 +144,13 @@ struct ENGINE_RUNTIME_API RuntimeSubsystemTiming
     std::string last_initialize_failure_message{};
 };
 
+enum class SceneValidationAlertLevel : std::uint32_t
+{
+    None = 0U,
+    Warning = 1U,
+    Critical = 2U,
+};
+
 struct ENGINE_RUNTIME_API RuntimeDiagnostics
 {
     std::uint64_t initialize_count{0};
@@ -162,6 +169,12 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     std::vector<RuntimeStageTiming> stage_timings{};
     std::vector<RuntimeSubsystemTiming> subsystem_timings{};
     scene::validation::HierarchyValidationReport scene_validation{};
+    std::uint64_t scene_validation_failure_frame_count{0};
+    std::uint64_t scene_validation_consecutive_failure_frames{0};
+    std::uint64_t scene_validation_max_consecutive_failure_frames{0};
+    double last_scene_validation_failure_simulation_time{-1.0};
+    double last_scene_validation_failure_wall_seconds{-1.0};
+    SceneValidationAlertLevel scene_validation_alert_level{SceneValidationAlertLevel::None};
     physics::CollisionTelemetry physics_collision{};
     core::telemetry::MetricSet metrics{};
     io::GeometryIoTelemetrySnapshot geometry_io{};
@@ -175,6 +188,15 @@ struct ENGINE_RUNTIME_API RuntimeDiagnostics
     RuntimeInitializationFailure last_initialize_failure{};
     bool has_initialize_failure{false};
 };
+
+namespace detail
+{
+    ENGINE_RUNTIME_API void update_scene_validation_alert_state(
+        RuntimeDiagnostics& diagnostics,
+        const scene::validation::HierarchyValidationReport& report,
+        double simulation_time,
+        double wall_seconds) noexcept;
+}
 
 class ENGINE_RUNTIME_API RuntimeHost {
 public:
