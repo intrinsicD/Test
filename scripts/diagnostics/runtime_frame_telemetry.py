@@ -107,6 +107,21 @@ class RuntimeSubsystemMetric:
     initialize_count: int
     tick_count: int
     shutdown_count: int
+    initialize_failure_count: int
+    last_initialize_failure_ms: float
+    last_initialize_failure_category: str
+    last_initialize_failure_message: str
+
+
+@dataclass
+class RuntimeInitializationFailure:
+    """Details about the most recent runtime initialization failure."""
+
+    runtime: str
+    subsystem: str
+    category: str
+    message: str
+    duration_ms: float
 
 
 @dataclass
@@ -225,11 +240,14 @@ class RuntimeDiagnosticsSnapshot:
     """Aggregated runtime lifecycle diagnostics exposed through the C ABI."""
 
     initialize_count: int
+    initialize_failure_count: int
     shutdown_count: int
     tick_count: int
     last_initialize_ms: float
     last_shutdown_ms: float
     last_tick_ms: float
+    has_initialize_failure: bool
+    last_initialize_failure: Optional[RuntimeInitializationFailure]
     average_tick_ms: float
     max_tick_ms: float
     stages: List[RuntimeStageMetric]
@@ -353,6 +371,8 @@ class RuntimeBindings:
         try:
             lib.engine_runtime_diagnostic_initialize_count.restype = ctypes.c_uint64
             lib.engine_runtime_diagnostic_initialize_count.argtypes = []
+            lib.engine_runtime_diagnostic_initialize_failure_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_initialize_failure_count.argtypes = []
             lib.engine_runtime_diagnostic_shutdown_count.restype = ctypes.c_uint64
             lib.engine_runtime_diagnostic_shutdown_count.argtypes = []
             lib.engine_runtime_diagnostic_tick_count.restype = ctypes.c_uint64
@@ -363,6 +383,18 @@ class RuntimeBindings:
             lib.engine_runtime_diagnostic_last_shutdown_ms.argtypes = []
             lib.engine_runtime_diagnostic_last_tick_ms.restype = ctypes.c_double
             lib.engine_runtime_diagnostic_last_tick_ms.argtypes = []
+            lib.engine_runtime_diagnostic_has_initialize_failure.restype = ctypes.c_bool
+            lib.engine_runtime_diagnostic_has_initialize_failure.argtypes = []
+            lib.engine_runtime_diagnostic_last_initialize_failure_runtime.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_last_initialize_failure_runtime.argtypes = []
+            lib.engine_runtime_diagnostic_last_initialize_failure_subsystem.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_last_initialize_failure_subsystem.argtypes = []
+            lib.engine_runtime_diagnostic_last_initialize_failure_category.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_last_initialize_failure_category.argtypes = []
+            lib.engine_runtime_diagnostic_last_initialize_failure_message.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_last_initialize_failure_message.argtypes = []
+            lib.engine_runtime_diagnostic_last_initialize_failure_duration_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_last_initialize_failure_duration_ms.argtypes = []
             lib.engine_runtime_diagnostic_average_tick_ms.restype = ctypes.c_double
             lib.engine_runtime_diagnostic_average_tick_ms.argtypes = []
             lib.engine_runtime_diagnostic_max_tick_ms.restype = ctypes.c_double
@@ -395,12 +427,20 @@ class RuntimeBindings:
             lib.engine_runtime_diagnostic_subsystem_tick_count.argtypes = [ctypes.c_size_t]
             lib.engine_runtime_diagnostic_subsystem_shutdown_count.restype = ctypes.c_uint64
             lib.engine_runtime_diagnostic_subsystem_shutdown_count.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_initialize_failure_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_subsystem_initialize_failure_count.argtypes = [ctypes.c_size_t]
             lib.engine_runtime_diagnostic_subsystem_max_initialize_ms.restype = ctypes.c_double
             lib.engine_runtime_diagnostic_subsystem_max_initialize_ms.argtypes = [ctypes.c_size_t]
             lib.engine_runtime_diagnostic_subsystem_max_tick_ms.restype = ctypes.c_double
             lib.engine_runtime_diagnostic_subsystem_max_tick_ms.argtypes = [ctypes.c_size_t]
             lib.engine_runtime_diagnostic_subsystem_max_shutdown_ms.restype = ctypes.c_double
             lib.engine_runtime_diagnostic_subsystem_max_shutdown_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_category.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_category.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_message.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_message.argtypes = [ctypes.c_size_t]
             lib.engine_runtime_diagnostic_metric_count.restype = ctypes.c_size_t
             lib.engine_runtime_diagnostic_metric_count.argtypes = []
             lib.engine_runtime_diagnostic_metric_name.restype = ctypes.c_char_p
@@ -571,13 +611,19 @@ class RuntimeBindings:
     def diagnostics_snapshot(self) -> Optional[RuntimeDiagnosticsSnapshot]:
         if not self._has_diagnostics:
             return None
+        has_initialize_failure = bool(self._lib.engine_runtime_diagnostic_has_initialize_failure())
         return RuntimeDiagnosticsSnapshot(
             initialize_count=int(self._lib.engine_runtime_diagnostic_initialize_count()),
+            initialize_failure_count=int(
+                self._lib.engine_runtime_diagnostic_initialize_failure_count()
+            ),
             shutdown_count=int(self._lib.engine_runtime_diagnostic_shutdown_count()),
             tick_count=int(self._lib.engine_runtime_diagnostic_tick_count()),
             last_initialize_ms=float(self._lib.engine_runtime_diagnostic_last_initialize_ms()),
             last_shutdown_ms=float(self._lib.engine_runtime_diagnostic_last_shutdown_ms()),
             last_tick_ms=float(self._lib.engine_runtime_diagnostic_last_tick_ms()),
+            has_initialize_failure=has_initialize_failure,
+            last_initialize_failure=self._collect_last_initialize_failure(has_initialize_failure),
             average_tick_ms=float(self._lib.engine_runtime_diagnostic_average_tick_ms()),
             max_tick_ms=float(self._lib.engine_runtime_diagnostic_max_tick_ms()),
             stages=self._collect_stage_metrics(),
@@ -586,6 +632,28 @@ class RuntimeBindings:
             hot_reload=self._collect_hot_reload_metrics(),
             scene_validation=self._collect_scene_validation(),
             metrics=self._collect_metrics(),
+        )
+
+    def _collect_last_initialize_failure(
+        self, has_initialize_failure: bool
+    ) -> Optional[RuntimeInitializationFailure]:
+        if not has_initialize_failure:
+            return None
+
+        def _decode(value: Optional[bytes]) -> str:
+            return value.decode("utf-8") if value else ""
+
+        runtime = _decode(self._lib.engine_runtime_diagnostic_last_initialize_failure_runtime())
+        subsystem = _decode(self._lib.engine_runtime_diagnostic_last_initialize_failure_subsystem())
+        category = _decode(self._lib.engine_runtime_diagnostic_last_initialize_failure_category())
+        message = _decode(self._lib.engine_runtime_diagnostic_last_initialize_failure_message())
+        duration = float(self._lib.engine_runtime_diagnostic_last_initialize_failure_duration_ms())
+        return RuntimeInitializationFailure(
+            runtime=runtime,
+            subsystem=subsystem,
+            category=category,
+            message=message,
+            duration_ms=duration,
         )
 
     def _collect_stage_metrics(self) -> List[RuntimeStageMetric]:
@@ -611,6 +679,8 @@ class RuntimeBindings:
         for index in range(count):
             raw_name = self._lib.engine_runtime_diagnostic_subsystem_name(index)
             name = raw_name.decode("utf-8") if raw_name else ""
+            failure_category = self._lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_category(index)
+            failure_message = self._lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_message(index)
             metrics.append(
                 RuntimeSubsystemMetric(
                     name=name,
@@ -641,6 +711,18 @@ class RuntimeBindings:
                     shutdown_count=int(
                         self._lib.engine_runtime_diagnostic_subsystem_shutdown_count(index)
                     ),
+                    initialize_failure_count=int(
+                        self._lib.engine_runtime_diagnostic_subsystem_initialize_failure_count(index)
+                    ),
+                    last_initialize_failure_ms=float(
+                        self._lib.engine_runtime_diagnostic_subsystem_last_initialize_failure_ms(index)
+                    ),
+                    last_initialize_failure_category=failure_category.decode("utf-8")
+                    if failure_category
+                    else "",
+                    last_initialize_failure_message=failure_message.decode("utf-8")
+                    if failure_message
+                    else "",
                 )
             )
         return metrics
@@ -895,11 +977,24 @@ def summarise(samples: Sequence[FrameSample]) -> Dict[str, float]:
 def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, object]:
     return {
         "initialize_count": snapshot.initialize_count,
+        "initialize_failure_count": snapshot.initialize_failure_count,
         "shutdown_count": snapshot.shutdown_count,
         "tick_count": snapshot.tick_count,
         "last_initialize_ms": snapshot.last_initialize_ms,
         "last_shutdown_ms": snapshot.last_shutdown_ms,
         "last_tick_ms": snapshot.last_tick_ms,
+        "has_initialize_failure": snapshot.has_initialize_failure,
+        "last_initialize_failure": (
+            {
+                "runtime": snapshot.last_initialize_failure.runtime,
+                "subsystem": snapshot.last_initialize_failure.subsystem,
+                "category": snapshot.last_initialize_failure.category,
+                "message": snapshot.last_initialize_failure.message,
+                "duration_ms": snapshot.last_initialize_failure.duration_ms,
+            }
+            if snapshot.last_initialize_failure
+            else None
+        ),
         "average_tick_ms": snapshot.average_tick_ms,
         "max_tick_ms": snapshot.max_tick_ms,
         "streaming": _streaming_to_dict(snapshot.streaming),
@@ -926,6 +1021,10 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
                 "initialize_count": subsystem.initialize_count,
                 "tick_count": subsystem.tick_count,
                 "shutdown_count": subsystem.shutdown_count,
+                "initialize_failure_count": subsystem.initialize_failure_count,
+                "last_initialize_failure_ms": subsystem.last_initialize_failure_ms,
+                "last_initialize_failure_category": subsystem.last_initialize_failure_category,
+                "last_initialize_failure_message": subsystem.last_initialize_failure_message,
             }
             for subsystem in snapshot.subsystems
         ],

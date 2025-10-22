@@ -300,11 +300,18 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_hot_reload_metrics(
     struct engine_runtime_hot_reload_metrics* out_metrics) noexcept;
 
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_count() noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_failure_count() noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_shutdown_count() noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_tick_count() noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_initialize_ms() noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_shutdown_ms() noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_tick_ms() noexcept;
+extern "C" ENGINE_RUNTIME_API bool engine_runtime_diagnostic_has_initialize_failure() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_last_initialize_failure_runtime() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_last_initialize_failure_subsystem() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_last_initialize_failure_category() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_last_initialize_failure_message() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_initialize_failure_duration_ms() noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_average_tick_ms() noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_max_tick_ms() noexcept;
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_stage_count() noexcept;
@@ -321,9 +328,17 @@ extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_sh
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_initialize_count(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_tick_count(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_shutdown_count(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_initialize_failure_count(
+    std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_initialize_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_tick_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_shutdown_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_initialize_failure_ms(
+    std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_subsystem_last_initialize_failure_category(
+    std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_subsystem_last_initialize_failure_message(
+    std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_issue_count() noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_cycle_count() noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_dangling_parent_count() noexcept;

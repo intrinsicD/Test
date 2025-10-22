@@ -56,6 +56,17 @@
 - Pass `--verbose` to include metric description annotations alongside sampled
   values when operators need additional context for unfamiliar counters.
 
+### Investigate initialization failures
+- Capture a telemetry snapshot with
+  `python scripts/diagnostics/runtime_frame_telemetry.py --library-dir <build>`
+  after a failed initialization attempt.
+- Run the telemetry viewer and review the **Initialization Failures** section to
+  identify the failing subsystem, category, and most recent error message. The
+  viewer links directly to the `runtime.lifecycle.initialize_failure` logs
+  described in the runtime diagnostics guide
+  (`docs/modules/runtime/diagnostics.md#initialization-failure-triage`),
+  streamlining hand-offs between the CLI tooling and operator runbooks.
+
 ### Troubleshooting
 - **Runtime library cannot be located.** The diagnostics scripts raise
   `RuntimeError: Unable to load runtime library 'engine_runtime'` when the

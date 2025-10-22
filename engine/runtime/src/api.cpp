@@ -2274,6 +2274,11 @@ extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize
     return engine::runtime::diagnostics().initialize_count;
 }
 
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_failure_count() noexcept
+{
+    return engine::runtime::diagnostics().initialize_failure_count;
+}
+
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_shutdown_count() noexcept
 {
     return engine::runtime::diagnostics().shutdown_count;
@@ -2297,6 +2302,61 @@ extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_shutdown_ms(
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_tick_ms() noexcept
 {
     return engine::runtime::diagnostics().last_tick_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API bool engine_runtime_diagnostic_has_initialize_failure() noexcept
+{
+    return engine::runtime::diagnostics().has_initialize_failure;
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_last_initialize_failure_runtime() noexcept
+{
+    const auto& diagnostics = engine::runtime::diagnostics();
+    if (!diagnostics.has_initialize_failure)
+    {
+        return "";
+    }
+    return diagnostics.last_initialize_failure.runtime.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_last_initialize_failure_subsystem() noexcept
+{
+    const auto& diagnostics = engine::runtime::diagnostics();
+    if (!diagnostics.has_initialize_failure)
+    {
+        return "";
+    }
+    return diagnostics.last_initialize_failure.subsystem.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_last_initialize_failure_category() noexcept
+{
+    const auto& diagnostics = engine::runtime::diagnostics();
+    if (!diagnostics.has_initialize_failure)
+    {
+        return "";
+    }
+    return diagnostics.last_initialize_failure.category.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_last_initialize_failure_message() noexcept
+{
+    const auto& diagnostics = engine::runtime::diagnostics();
+    if (!diagnostics.has_initialize_failure)
+    {
+        return "";
+    }
+    return diagnostics.last_initialize_failure.message.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_last_initialize_failure_duration_ms() noexcept
+{
+    const auto& diagnostics = engine::runtime::diagnostics();
+    if (!diagnostics.has_initialize_failure)
+    {
+        return 0.0;
+    }
+    return diagnostics.last_initialize_failure.duration_ms;
 }
 
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_average_tick_ms() noexcept
@@ -2444,6 +2504,17 @@ extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_
     return subsystems[index].shutdown_count;
 }
 
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_subsystem_initialize_failure_count(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0;
+    }
+    return subsystems[index].initialize_failure_count;
+}
+
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_initialize_ms(
     std::size_t index) noexcept
 {
@@ -2474,6 +2545,39 @@ extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_max_shu
         return 0.0;
     }
     return subsystems[index].max_shutdown_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_initialize_failure_ms(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return 0.0;
+    }
+    return subsystems[index].last_initialize_failure_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_subsystem_last_initialize_failure_category(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return "";
+    }
+    return subsystems[index].last_initialize_failure_category.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_subsystem_last_initialize_failure_message(
+    std::size_t index) noexcept
+{
+    const auto& subsystems = engine::runtime::diagnostics().subsystem_timings;
+    if (index >= subsystems.size())
+    {
+        return "";
+    }
+    return subsystems[index].last_initialize_failure_message.c_str();
 }
 
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_scene_issue_count() noexcept

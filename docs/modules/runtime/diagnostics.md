@@ -66,6 +66,25 @@ via `RuntimeDiagnostics::last_initialize_failure`. Tooling can read the stored
 the `runtime.lifecycle.initialize.failures` counter exposed in
 `RuntimeDiagnostics::metrics` to correlate failures with lifecycle activity.
 
+### Initialization Failure Triage
+
+- `initialize_failure_count` and per-subsystem `initialize_failure_count`
+  counters expose the lifetime failure totals for the process and each plugin.
+  Use these to determine whether repeated startup issues are isolated or systemic.
+- `runtime_frame_telemetry.py` now records the full failure payload in the JSON
+  export. The telemetry viewer prints an **Initialization Failures** section that
+  summarizes the total failure count, the most recent subsystem/runtime that
+  failed, and per-subsystem diagnostics (including the last failure category,
+  duration, and message).
+- Operators should triage failures by capturing a telemetry snapshot, reviewing
+  the viewer output, and then following the logging guidance below. The viewer
+  points directly to `runtime.lifecycle.initialize_failure` log entries so the
+  structured log stream and telemetry remain aligned.
+- When failures persist, consult the troubleshooting checklist in this document
+  to validate configuration, subsystem ordering, and dependency availability.
+  Escalate recurring issues into the Core module backlog to extend automation or
+  additional diagnostics if manual remediation becomes repetitive.
+
 ### Dependency Cycle Diagnostics
 `RuntimeHostDependencies` validation emits
 `RuntimeError::dependency_cycle` when explicit subsystem selections produce a
@@ -197,6 +216,11 @@ validate queue affinity and resource hazards (`AI-003`, `RT-003`).
 
 - **Slow frames or spikes** – inspect `stage_timings` to locate the phase with
   elevated `last_ms`/`max_ms`, then drill into per-subsystem timings.
+- **Initialization failures** – capture telemetry with
+  `runtime_frame_telemetry.py`, review the **Initialization Failures** section in
+  the telemetry viewer to identify the subsystem/category involved, and inspect
+  matching `runtime.lifecycle.initialize_failure` logs for context before
+  reconfiguring plugins or dependencies.
 - **Async backlog growth** – compare `pending_tasks` against `queue_capacity` and
   `streaming_total_rejected`. Increase worker count or investigate cache
   bottlenecks when the queue saturates.

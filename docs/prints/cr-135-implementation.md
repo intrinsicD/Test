@@ -73,6 +73,6 @@
 
 ## FOLLOW_UP_TODOS
 - [x] `CR-136`: Structured logging for subsystem initialization failures (owner: Core, medium priority, follows CR-135 telemetry guidance).
-- [ ] `CR-137`: Update diagnostics viewer to surface initialization/dependency failure logs (observability task, depends on `TL-101`).
+- [x] `CR-137`: Update diagnostics viewer to surface initialization/dependency failure logs (observability task, depends on `TL-101`).
 - [ ] Evaluate registry tooling reuse for editor-facing dependency graphs (tech debt).
-- [ ] Extend runtime runbook with dependency failure troubleshooting workflow (documentation).
+- [x] Extend runtime runbook with dependency failure troubleshooting workflow (documentation).

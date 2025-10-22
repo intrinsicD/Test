@@ -20,9 +20,10 @@
 
 ## TODO / Next Steps
 
-- Track `CR-137` with the Tools module to surface the new initialization
-  failure logs and metrics inside diagnostics output and the runtime runbook
-  (see [docs/ROADMAP.md](../../ROADMAP.md#outstanding-backlog-focus) and
+- Coordinate with the Tools module on telemetry viewer smoke-test coverage once
+  runtime shared libraries are packaged in CI (`TL-101` follow-up) so the new
+  initialization failure guidance stays validated (see
+  [docs/ROADMAP.md](../../ROADMAP.md#outstanding-backlog-focus) and
   `docs/modules/core/ROADMAP.md`).
 
 This module tracks actionable work through the execution checklist below.

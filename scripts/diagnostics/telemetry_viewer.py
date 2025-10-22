@@ -199,6 +199,87 @@ def _format_streaming(diagnostics: Mapping[str, object]) -> str:
     return _format_section("Streaming", lines)
 
 
+def _format_initialization_failures(diagnostics: Mapping[str, object]) -> str:
+    if not isinstance(diagnostics, Mapping):
+        return ""
+
+    def _coerce_int(value: object) -> int:
+        if isinstance(value, bool):
+            return int(value)
+        if isinstance(value, (int, float)):
+            return int(value)
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError:
+                return 0
+        return 0
+
+    total_failures = _coerce_int(diagnostics.get("initialize_failure_count"))
+    has_last_failure = bool(diagnostics.get("has_initialize_failure"))
+    last_failure = diagnostics.get("last_initialize_failure") if has_last_failure else None
+
+    subsystem_summaries: List[str] = []
+    subsystems = diagnostics.get("subsystems")
+    if isinstance(subsystems, Sequence):
+        for subsystem in subsystems:
+            if not isinstance(subsystem, Mapping):
+                continue
+            count = _coerce_int(subsystem.get("initialize_failure_count"))
+            if count <= 0:
+                continue
+            name = str(subsystem.get("name", "unknown")).strip() or "unknown"
+            duration = subsystem.get("last_initialize_failure_ms")
+            category = str(subsystem.get("last_initialize_failure_category", "")).strip()
+            message = str(subsystem.get("last_initialize_failure_message", "")).strip()
+            entry = f"{name}: failures={count}"
+            if isinstance(duration, (int, float)) and duration > 0.0:
+                entry += f" last={float(duration):.3f} ms"
+            if category:
+                entry += f" category={category}"
+            if message:
+                entry += f" message={message}"
+            subsystem_summaries.append(entry)
+
+    if total_failures <= 0 and not subsystem_summaries and not has_last_failure:
+        return ""
+
+    lines: List[str] = [f"Total initialization failures: {total_failures}"]
+    if isinstance(last_failure, Mapping):
+        runtime = str(last_failure.get("runtime", "")).strip()
+        subsystem = str(last_failure.get("subsystem", "")).strip()
+        category = str(last_failure.get("category", "")).strip()
+        message = str(last_failure.get("message", "")).strip()
+        duration = last_failure.get("duration_ms")
+        details: List[str] = []
+        if subsystem:
+            details.append(f"subsystem={subsystem}")
+        if runtime:
+            details.append(f"runtime={runtime}")
+        if isinstance(duration, (int, float)) and duration > 0.0:
+            details.append(f"duration={float(duration):.3f} ms")
+        if category:
+            details.append(f"category={category}")
+        if details:
+            lines.append(f"Last failure: {' '.join(details)}")
+        if message:
+            lines.append(f"  • Message: {message}")
+        lines.append(
+            "  • Inspect runtime.lifecycle.initialize_failure logs to correlate with telemetry."
+        )
+
+    if subsystem_summaries:
+        lines.append("Subsystem failure summary:")
+        for summary in subsystem_summaries:
+            lines.append(f"  • {summary}")
+
+    lines.append(
+        "Consult the runtime diagnostics guide for initialization triage "
+        "(docs/modules/runtime/diagnostics.md#initialization-failure-triage)."
+    )
+    return _format_section("Initialization Failures", lines)
+
+
 def _format_hot_reload_guidance(diagnostics: Mapping[str, object]) -> str:
     if not isinstance(diagnostics, Mapping):
         return ""
@@ -402,6 +483,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     prefixes = _select_prefixes(args.metric_prefix)
     sections = [
         _format_frame_summary(payload),
+        _format_initialization_failures(diagnostics),
         _format_streaming(diagnostics),
         _format_hot_reload_guidance(diagnostics),
         _format_stage_timings(diagnostics),
