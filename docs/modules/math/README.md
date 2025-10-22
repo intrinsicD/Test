@@ -311,7 +311,7 @@ math::vec3 right = math::normalize(math::cross(up, forward));
 
 ## Format Conversions
 
-The module provides conversion utilities for external formats. See [`format_conversions.md`](format_conversions.md) for:
+The module provides conversion utilities for external formats. See [`FORMAT_CONVERSIONS.md`](FORMAT_CONVERSIONS.md) for:
 - OpenGL ↔ Vulkan ↔ DirectX coordinate system conversions
 - Row-major ↔ column-major matrix layouts
 - Left-handed ↔ right-handed coordinate systems
@@ -350,9 +350,9 @@ ctest --preset clang-debug -R math
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones and planned improvements
-- [`format_conversions.md`](format_conversions.md): Coordinate system conversion reference
-- [`solver_stability.md`](solver_stability.md): Numerical stability considerations for physics/animation
+- [`BACKLOG.md`](BACKLOG.md): Module milestones and planned improvements
+- [`FORMAT_CONVERSIONS.md`](FORMAT_CONVERSIONS.md): Coordinate system conversion reference
+- [`SOLVER_STABILITY.md`](SOLVER_STABILITY.md): Numerical stability considerations for physics/animation
 - Used by: Animation, Physics, Geometry, Rendering, Scene modules
 
 

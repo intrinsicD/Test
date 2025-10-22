@@ -57,7 +57,7 @@ external memory.
 - **Determinism.** Array order is fixed; the first element written by
   `to_column_major_array` is `[0][0]`, mirroring GPU API expectations. Pair the
   helpers with `math::try_inverse`/`math::pseudo_inverse` guidance documented in
-  [`solver_stability.md`](solver_stability.md) when ingesting untrusted data.
+  [`SOLVER_STABILITY.md`](SOLVER_STABILITY.md) when ingesting untrusted data.
 
 ## Regression Coverage
 
@@ -67,8 +67,8 @@ memory ordering. Extend these tests when introducing new helper variants.
 
 ## Related Materials
 
-- [`docs/modules/math/solver_stability.md`](solver_stability.md) — numerical
+- [`docs/modules/math/SOLVER_STABILITY.md`](SOLVER_STABILITY.md) — numerical
   tolerances and preconditioning tips when operating on external data.
-- [`docs/modules/runtime/async_streaming_integration.md`](../runtime/async_streaming_integration.md)
+- [`docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md`](../runtime/ASYNC_STREAMING_INTEGRATION.md)
   — how conversion helpers feed into runtime asset streaming once data is
   decoded from disk.

@@ -30,5 +30,5 @@ execution checklist below or include a short narrative when appropriate.
 - [Ensure each row maps to an entry in `docs/ROADMAP.md` or
   `docs/tasks/*.md`. Keep tasks small enough for a single PR and update
   statuses together with roadmap/task files.]
-- [Reference additional material such as `modules/<name>/ROADMAP.md` for phased
+- [Reference additional material such as `modules/<name>/BACKLOG.md` for phased
   plans or historical context.]

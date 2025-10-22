@@ -277,8 +277,8 @@ ctest --preset clang-release -R physics_benchmark
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones including `RT-002` manifold work
-- [`../../architecture.md`](../../architecture.md): Physics integration in data flow
+- [`BACKLOG.md`](BACKLOG.md): Module milestones including `RT-002` manifold work
+- [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): Physics integration in data flow
 - [`../../tasks/T-0117-physics-contact-manifolds.md`](../../tasks/T-0117-physics-contact-manifolds.md): Manifold implementation milestone
 - Benchmark results: `engine/physics/benchmarks/`
 

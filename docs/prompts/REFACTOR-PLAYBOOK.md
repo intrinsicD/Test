@@ -23,7 +23,7 @@ You are guiding a Test Engine refactor.
 Do NOT reveal chain-of-thought. Provide only the requested artefacts with citations to files, specs, and tasks.
 
 **Global Guardrails**
-- Preserve invariants in `docs/architecture.md` and policies in `docs/conventions.md`.
+- Preserve invariants in `docs/ARCHITECTURE.md` and policies in `../../CODING_STYLE.md`.
 - Maintain deterministic behaviour, resource lifetime safety, and structured error handling (`engine::Result<T, Error>`).
 - Keep documentation, roadmap checklists, and tasks synchronised with the refactor plan.
 
@@ -116,7 +116,7 @@ PROJECT STANDARDS (Test Engine)
 ## Refactor: Introduce Async Asset Streaming (AI-002)
 
 ### Context
-- [ ] Read `docs/design/async_streaming.md`.
+- [ ] Read `docs/design/ASYNC_STREAMING.md`.
 - [ ] Review `docs/modules/assets/README.md` and runtime integration docs.
 - [ ] Confirm dependencies: AI-001, DC-001.
 

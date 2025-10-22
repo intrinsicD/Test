@@ -10,7 +10,7 @@ triage, and roadmap alignment rather than single-change pull-request reviews.
 - Whenever telemetry or review findings hint at architectural drift.
 
 ## Prerequisites Checklist
-- [ ] Review [`../README.md`](../README.md), [`architecture.md`](../architecture.md), and [`agents.md`](../agents.md) to
+- [ ] Review [`../NAVIGATION.md`](../NAVIGATION.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), and [`../../AGENTS.md`](../../AGENTS.md) to
       refresh invariants and reviewer expectations.
 - [ ] Inspect the architecture improvement plan tables in
       [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked tasks/prints.
@@ -31,7 +31,7 @@ You are conducting a Test Engine architecture audit.
 Do NOT disclose chain-of-thought. Respond only with requested artefacts and cited evidence.
 
 **Global Guardrails**
-- Preserve determinism, handle safety, and documentation discipline described in `docs/architecture.md`.
+- Preserve determinism, handle safety, and documentation discipline described in `docs/ARCHITECTURE.md`.
 - Cite files, specs, and roadmap entries that support each finding.
 - Prefer actionable tasks over vague advice; align follow-ups with roadmap/task IDs.
 
@@ -47,7 +47,7 @@ Do NOT disclose chain-of-thought. Respond only with requested artefacts and cite
 3. Note recent initiatives or merges that triggered this audit.
 
 **Phase B — Invariant Verification**
-For each invariant in `docs/architecture.md`, record status and evidence.
+For each invariant in `docs/ARCHITECTURE.md`, record status and evidence.
 
 ### Deterministic Scheduler
 - [ ] Frame-graph compilation deterministic for identical inputs.
@@ -109,7 +109,7 @@ OUTPUT SCHEMA (strict)
 9. ## APPENDIX — optional tool outputs or additional references.
 ==============================================================================
 PROJECT STANDARDS (Test Engine)
-- Respect invariants and policies in `docs/architecture.md`, `docs/conventions.md`, and `CODING_STYLE.md`.
+- Respect invariants and policies in `docs/ARCHITECTURE.md` and `CODING_STYLE.md`.
 - Use `engine::Result<T, Error>` for recoverable failures; document ownership semantics.
 - Keep roadmap/task/docs artefacts synchronised with audit findings.
 ```

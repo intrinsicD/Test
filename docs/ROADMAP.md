@@ -5,22 +5,80 @@ queues. It is the single source of truth for prioritisation; keep it in sync
 with [`../README.md`](../README.md), module READMEs, and task files under
 [`tasks/`](tasks/).
 
-## Architecture Improvement Plan
+---
 
-### Initiative Summary
+## 🎯 Active Work (Q4 2025)
 
-| ID | Intent | Dependencies | Status | Owning Groups |
+| ID | Intent | Dependencies | Next Milestone | Owning Groups |
 | --- | --- | --- | --- | --- |
-| `DC-004` | Standardise error handling on `engine::Result<T, Error>` across modules. | – | ✅ Done | Core, IO |
-| `AI-001` | Propagate handle-based lifetime management and validation hooks. | `DC-004` | ✅ Done | Assets, Rendering |
-| `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | 🔄 In Progress | Assets, Runtime |
-| `AI-003` | Extend frame-graph metadata and queue affinity for backend parity. | – | ✅ Done | Rendering, Runtime |
-| `RT-002` | Harden physics with persistent manifolds and benchmarking. | – | ✅ Done | Physics |
-| `RT-003` | Achieve Vulkan runtime parity and publish backend guidance. | `AI-003` | ✅ Done | Rendering, Runtime |
-| `RT-005` | Validate scene hierarchies and expose diagnostics. | – | ✅ Done | Scene, Runtime |
-| `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | 🟠 Blocked on fuzz harness infra | IO |
-| `CC-001` | Instrument telemetry and ship a diagnostics viewer. | – | ✅ Done | Core, Tools |
-| `CC-002` | Build hot reload infrastructure across caches/backends. | `AI-001` | ✅ Done | Assets, Platform |
+| `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | Cancellation hardening (`AI-002.2`) | Assets, Runtime |
+| `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO |
+
+### Active Task Details
+
+#### `AI-002` — Async Asset Streaming (🔄 In Progress)
+
+| Task ID | Description | Exit Criteria | Status |
+| --- | --- | --- | --- |
+| `AI-002.1` | Instrument async queue telemetry. | Runtime exposes queue metrics, `scripts/diagnostics/streaming_report.py` documents usage. | ✅ Done |
+| `AI-002.2` | Harden cancellation + failure flows. | Futures support cancellation with integration tests covering failure propagation. | 🔄 In Progress |
+| `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | ✅ Done |
+
+**Recent Updates:**
+- 2025-02-20: Published `runtime/ASYNC_STREAMING_INTEGRATION.md` detailing configuration and telemetry consumption (`AI-002.3`).
+
+#### `RT-006` — IO Signature Hardening (🟠 Blocked)
+
+| Task ID | Description | Exit Criteria | Status |
+| --- | --- | --- | --- |
+| `RT-006.1` | Build signature database. | Curated signature set committed with provenance notes; fuzz harness consumes it. | ✅ Done |
+| `RT-006.2` | Integrate libFuzzer harness. | Harness built with curated corpus; CI automation tracked separately. | ✅ Done |
+| `RT-006.3` | Author detection docs. | IO README explains detection workflow, failure handling, and fuzzing steps. | ✅ Done |
+
+**Blocker:** CI fuzzing infrastructure provisioning pending.
+
+---
+
+## 📋 Backlog (Prioritized)
+
+### Immediate Next (Ready for Sprint Planning)
+
+- **AN-230** — GPU/parallel sampling benchmarks (blocked on `CO-170` compute queue extensions)
+- **AS-320** — Material persistence planning and strategy document
+- **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
+- **DC-003** — SDL backend implementation (see `platform/SDL_BACKEND_CHECKLIST.md`)
+
+### Mid-term (3-6 months)
+
+- **PY-001** — Core bindings and `.pyi` stubs for Python integration
+- **TL-120** — Advanced diagnostics dashboard with Chrome trace export
+- **CO-170** — Runtime integration sample showing dispatcher orchestration
+
+### Long-term / Research
+
+- **AN-240** — Advanced state machine authoring (see `specs/AN-240-state-machine-authoring.md`)
+- **Plugin hot-reload** — Architecture for dynamic plugin loading/unloading
+- **Distributed rendering** — Multi-GPU frame graph scheduling
+
+---
+
+## ✅ Recently Completed (Archive after 30 days)
+
+| ID | Intent | Completed | Key Deliverables |
+| --- | --- | --- | --- |
+| `DC-004` | Standardise error handling on `engine::Result<T, Error>` | 2025-03-17 | `design/ERROR_HANDLING_MIGRATION.md`, IO migration |
+| `AI-001` | Handle-based lifetime management and validation hooks | 2025-04-30 | Debug validation, telemetry counters |
+| `AI-003` | Frame-graph metadata and queue affinity for backend parity | 2025-03 | Metadata schema, Vulkan integration |
+| `RT-002` | Physics persistent manifolds and benchmarking | 2025-03-15 | Manifold cache, collision benchmark harness |
+| `RT-003` | Vulkan runtime parity and backend guidance | 2025-03 | Backend checklist, integration regression |
+| `RT-005` | Scene hierarchy validation and diagnostics | 2025-03 | Cycle detection, runtime diagnostics bridge |
+| `CC-001` | Telemetry instrumentation and diagnostics viewer | 2025-03-25 | Telemetry schema, viewer CLI, instrumentation guide |
+| `CC-002` | Hot reload infrastructure | 2025-03-24 | Filesystem watcher, cache callbacks, diagnostics |
+
+<details>
+<summary><b>Completed Initiative Details (Click to expand)</b></summary>
+
+### `DC-004` — Error Handling Standardisation
 
 ### Task Breakdowns
 
@@ -28,7 +86,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `DC-004.1` | Publish canonical error-handling guide. | `docs/design/error_handling_migration.md` updated with examples and linked from module READMEs. | ✅ Done |
+| `DC-004.1` | Publish canonical error-handling guide. | `docs/design/ERROR_HANDLING_MIGRATION.md` updated with examples and linked from module READMEs. | ✅ Done |
 | `DC-004.2` | Migrate IO module APIs to `Result<T>`. | All IO entry points return `Result<T>`, tests cover error paths, and module README updated. | ✅ Done |
 | `DC-004.3` | Add lint/check tooling. | Static check preventing legacy error patterns integrated into CI. | ✅ Done |
 
@@ -58,7 +116,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `AI-002.2` | Harden cancellation + failure flows. | Futures support cancellation with integration tests covering failure propagation. | ✅ Done |
 | `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | ✅ Done |
 
-- 2025-02-20: Published [`runtime/async_streaming_integration.md`](modules/runtime/async_streaming_integration.md)
+- 2025-02-20: Published [`runtime/ASYNC_STREAMING_INTEGRATION.md`](modules/runtime/ASYNC_STREAMING_INTEGRATION.md)
   detailing configuration, request workflows, and telemetry consumption for the
   runtime streaming path (`AI-002.3`).
 
@@ -90,7 +148,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `RT-003.1` | Align runtime submission API. | Runtime + Vulkan backend share a unified submission struct with documentation. | ✅ Done |
-| `RT-003.2` | Author backend checklist. | Public checklist covering prerequisites, platform dependencies, and validation steps (see [`backend_checklist.md`](modules/rendering/backend_checklist.md)). | ✅ Done |
+| `RT-003.2` | Author backend checklist. | Public checklist covering prerequisites, platform dependencies, and validation steps (see [`BACKEND_CHECKLIST.md`](modules/rendering/BACKEND_CHECKLIST.md)). | ✅ Done |
 | `RT-003.3` | Integration regression. | Cross-module test ensures runtime submits deterministic workloads to Vulkan path. | ✅ Done |
 
 #### `RT-005` — Scene Hierarchy Validation
@@ -117,7 +175,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `CC-001.2` | Implement viewer shell. | Tools module exposes CLI/UI to inspect metrics with scripted smoke tests. | ✅ Done |
 | `CC-001.3` | Publish instrumentation guide. | Cross-module doc outlining how to emit and consume metrics. | ✅ Done |
 
-- 2025-02-28: Published [`design/telemetry_schema.md`](design/telemetry_schema.md)
+- 2025-02-28: Published [`design/TELEMETRY_SCHEMA.md`](design/TELEMETRY_SCHEMA.md)
   and integrated runtime diagnostics with the shared schema.
 - 2025-03-20: Added `scripts/diagnostics/telemetry_viewer.py` with smoke tests to
   deliver `CC-001.2`/`TL-101`, enabling operators to inspect runtime telemetry
@@ -127,7 +185,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   `ENGINE_IO_GEOMETRY_SIGNATURE_PATH` override for experimentation and fuzzing
   workflows, unblocking the remaining `RT-006` harness work once CI capacity is
   restored.
-- 2025-03-22: Published [`design/telemetry_instrumentation_guide.md`](design/telemetry_instrumentation_guide.md)
+- 2025-03-22: Published [`design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](design/TELEMETRY_INSTRUMENTATION_GUIDE.md)
   detailing module authoring patterns and closing `CC-001.3`.
 
 #### `CC-002` — Hot Reload Infrastructure
@@ -145,77 +203,106 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   and the diagnostics viewer surfaces failure guidance, completing
   `CC-002.3` and closing the hot reload infrastructure initiative.
 
-## Outstanding Backlog Focus
 
-Prioritise cross-cutting items first to maintain a stable architectural base.
-Once staffed, execute module-specific queues below.
+</details>
 
-### Module Execution Queues
+---
 
-- **Animation** — `AN-230` GPU/parallel sampling benchmarks once compute queue
-  extensions land, followed by `AN-240` state-machine authoring spec work.
-- **Assets** — `AS-305` cancellation hardening keeps async telemetry stable;
-  next focus areas are `AS-320` material persistence planning and `AS-330`
-  diagnostics shell reload surfacing.
-- **Compute** — `CO-150` cycle detection tooling and `CO-160` CUDA preset
-  alignment completed; focus shifts to `CO-170` runtime integration sample
-  work.
-- **Core** — Completed `CR-125` lifecycle audit, `CR-130` configuration
-  refresh, `CR-135` dependency diagnostics, and `CR-136` structured logging.
-  With `CR-137` delivered, run the runtime packaging script in CI so telemetry
-  viewer smoke-test auto-discovery remains green and initialization failure
-  guidance stays validated.
-- **Geometry** — `GE-205` normal recompute benchmark landed with reporting;
-  `GE-212` remeshing/parameterisation RFP is published (see
-  `docs/design/ge-212-remeshing_parameterization_rfp.md`), and `GE-220`
-  telemetry alignment instrumentation now feeds diagnostics metrics. With the
-  viewer docs live, focus on sequencing the remeshing execution milestones
-  captured under `GE-221+`.
-- **IO** — Signature catalogue and fuzz harness (`IO-221`/`RT-006.2`) ship with
-  curated corpus and regression coverage; CI scheduling remains a follow-up
-  once runner capacity is provisioned. Detection & fuzzing playbook published
-  (`RT-006.3`). Structured error catalog (`IO-230`) published; telemetry
-  alignment (`IO-240`) remains available for follow-up instrumentation work.
-- **Math** — External format conversions documented in
-  `docs/modules/math/format_conversions.md`; scope telemetry metrics (`MA-130`)
-  that highlight conversion drift after adoption.
-- **Physics** — `PH-430` collision throughput telemetry surfaced in diagnostics;
-  next sprint should scope automation for publishing long-term trends.
-- **Platform** — SDL parity checklist published (`PL-215`); keep presets and the
-  new checklist aligned as SDL backend implementation tasks are scoped for
-  `DC-003` follow-up work.
-- **Rendering** — Backend validation tooling (`RE-530`) now emits parity metrics
-  across schedulers; keep dashboards aligned with the telemetry and scope future
-  backend feature coverage as new initiatives land.
-- **Runtime** — `RT-005` tranche complete; keep the hierarchy alert metrics
-  (`runtime.scene_validation.alert_level`) wired into observability and surface
-  the new `SC-225` sample outputs in diagnostics tooling.
-- **Scene** — `SC-225` diagnostics samples now ship under
-  `engine/scene/samples`; maintain the fixtures and dashboards alongside the
-  `SC-230` alert policy.
-- **Tools** — TL-110 documentation refresh completed and the runtime packaging
-  script keeps shared libraries in deterministic locations for telemetry
-  tooling. Continue monitoring the Chrome trace export from `TL-115` and gather
-  operator feedback for the next diagnostics viewer iteration.
+## 📦 Module-Specific Work Queues
 
-### Process & Audit Items
+Each module maintains a detailed BACKLOG.md file. This section provides a high-level summary.
 
-- Architecture audit checklist – reopen items covering frame-graph determinism,
-  handle safety, geometry fidelity, physics invariants, documentation
-  completeness, telemetry coverage, and dependency graphs before the next audit
-  cycle.
-- Milestone hygiene – ensure sprint boards under [`tasks/`](tasks/) reference
-  the latest roadmap positions and that status icons in [`../README.md`](../README.md)
-  match this document.
+### Animation
+- **Next:** `AN-230` GPU/parallel sampling benchmarks (blocked on `CO-170`)
+- **Following:** `AN-240` state-machine authoring spec work
+- See [`modules/animation/BACKLOG.md`](modules/animation/BACKLOG.md)
 
-## Status Review Cadence
+### Assets
+- **In Progress:** `AS-305` cancellation hardening for async telemetry stability
+- **Next:** `AS-320` material persistence planning, `AS-330` diagnostics shell reload surfacing
+- See [`modules/assets/BACKLOG.md`](modules/assets/BACKLOG.md)
 
-- **Weekly triage** — update task tables above, rotating blockers to the top and
-  noting owner changes.
-- **Sprint planning** — refresh `Sprint Horizon` in [`../README.md`](../README.md)
-  and align module queues with sprint commitments.
-- **Post-merge** — whenever an initiative task completes, update the relevant
-  table, module README, and task record within the same change.
+### Compute
+- **Completed:** `CO-150` cycle detection, `CO-160` CUDA preset alignment
+- **Next:** `CO-170` runtime integration sample showing dispatcher orchestration
+- See [`modules/compute/BACKLOG.md`](modules/compute/BACKLOG.md)
 
-Maintaining this roadmap keeps the architecture modular, performant, and
-predictable for the entire agentic workflow.
+### Core
+- **Completed:** `CR-125`–`CR-137` lifecycle/config/diagnostics work
+- **Next:** Maintain runtime packaging in CI for telemetry tooling validation
+- See [`modules/core/BACKLOG.md`](modules/core/BACKLOG.md)
+
+### Geometry
+- **Completed:** `GE-205` normal recompute benchmark, `GE-220` telemetry alignment
+- **Published:** `GE-212` remeshing/parameterization RFP
+- **Next:** Sequence remeshing execution milestones (`GE-221+`)
+- See [`modules/geometry/BACKLOG.md`](modules/geometry/BACKLOG.md)
+
+### IO
+- **Completed:** `IO-221`/`RT-006.2` signature catalogue and fuzz harness, `IO-230` error catalog
+- **Blocked:** CI fuzzing automation (infra provisioning)
+- **Available:** `IO-240` telemetry alignment instrumentation
+- See [`modules/io/BACKLOG.md`](modules/io/BACKLOG.md)
+
+### Math
+- **Completed:** External format conversions documented
+- **Next:** `MA-130` telemetry metrics for conversion drift monitoring
+- See [`modules/math/BACKLOG.md`](modules/math/BACKLOG.md)
+
+### Physics
+- **Completed:** `PH-430` collision throughput telemetry in diagnostics
+- **Next:** Automation for long-term collision telemetry trends
+- See [`modules/physics/BACKLOG.md`](modules/physics/BACKLOG.md)
+
+### Platform
+- **Completed:** `PL-215` SDL parity checklist published
+- **Next:** SDL backend implementation tasks (`DC-003`)
+- See [`modules/platform/BACKLOG.md`](modules/platform/BACKLOG.md)
+
+### Rendering
+- **Completed:** `RE-530` backend validation tooling with parity metrics
+- **Next:** Monitor dashboards, scope future backend feature coverage
+- See [`modules/rendering/BACKLOG.md`](modules/rendering/BACKLOG.md)
+
+### Runtime
+- **Completed:** `RT-005` hierarchy validation tranche
+- **Next:** Maintain hierarchy alert metrics in observability, surface `SC-225` samples
+- See [`modules/runtime/BACKLOG.md`](modules/runtime/BACKLOG.md)
+
+### Scene
+- **Completed:** `SC-225` hierarchy diagnostics samples, `SC-230` alert policy
+- **Next:** Maintain fixtures and dashboards aligned with alert thresholds
+- See [`modules/scene/BACKLOG.md`](modules/scene/BACKLOG.md)
+
+### Tools
+- **Completed:** `TL-110` documentation refresh, runtime packaging script
+- **Next:** Monitor Chrome trace export, gather diagnostics viewer feedback
+- See [`modules/tools/BACKLOG.md`](modules/tools/BACKLOG.md)
+
+---
+
+## 🔄 Process & Maintenance
+
+### Weekly Triage
+- Update active work table with progress notes
+- Rotate blockers to top with escalation paths
+- Note owner changes and dependency updates
+
+### Sprint Planning
+- Refresh sprint horizon in `../README.md`
+- Align module queues with sprint commitments
+- Create task records in `tasks/` for planned work
+
+### Post-Merge
+- Update relevant tables (Active/Completed/Backlog)
+- Update module README and roadmap within same commit
+- Archive completed initiatives after 30 days
+
+### Monthly Archival
+- Move initiatives completed >30 days ago to `archive/tasks/done/`
+- Update module summaries to reflect current priorities
+- Run `scripts/validate_docs.py` to verify link integrity
+
+---
+
+**Last updated:** 2025-10-22 (Restructured for improved active work visibility)

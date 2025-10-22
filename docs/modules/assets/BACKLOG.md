@@ -37,7 +37,7 @@ _Last Updated: 2025-05-05_
   [`docs/tasks/T-0115-assets-async-streaming-mvp.md`](../../tasks/T-0115-assets-async-streaming-mvp.md).
 - Coordinate hot reload work with the broader initiative documented in
   [`../../ROADMAP.md`](../../ROADMAP.md#cc-002-hot-reload-infrastructure).
-- 2025-03-24: Published [`design/material_persistence_strategy.md`](../../design/material_persistence_strategy.md)
+- 2025-03-24: Published [`design/MATERIAL_PERSISTENCE_STRATEGY.md`](../../design/MATERIAL_PERSISTENCE_STRATEGY.md)
   completing `AS-320` and unblocking material cache implementation work.
 - 2025-05-05: Asset async queue cancellation checks guard geometry detection and
   decode hand-offs, and tests verify cancellation telemetry remains

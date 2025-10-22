@@ -17,7 +17,7 @@ external dashboards.
 - Document validation commands for telemetry-heavy changes.
 
 This document complements the schema reference in
-[`telemetry_schema.md`](telemetry_schema.md) and replaces ad-hoc notes in task
+[`TELEMETRY_SCHEMA.md`](TELEMETRY_SCHEMA.md) and replaces ad-hoc notes in task
 files.
 
 ## Prerequisites
@@ -174,7 +174,7 @@ Record outcomes in the PR summary to keep CI reproducible.
 
 ## References
 
-- [`telemetry_schema.md`](telemetry_schema.md) — canonical data model.
-- [`design/architecture_improvement_plan.md`](architecture_improvement_plan.md) — initiative context for `CC-001`.
+- [`TELEMETRY_SCHEMA.md`](TELEMETRY_SCHEMA.md) — canonical data model.
+- [`design/ARCHITECTURE_IMPROVEMENT_PLAN.md`](ARCHITECTURE_IMPROVEMENT_PLAN.md) — initiative context for `CC-001`.
 - [`scripts/diagnostics/runtime_frame_telemetry.py`](../../scripts/diagnostics/runtime_frame_telemetry.py) — CLI viewer and regression tests.
 - [`docs/modules/tools/README.md`](../modules/tools/README.md) — diagnostics tooling overview.

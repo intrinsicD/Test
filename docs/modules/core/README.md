@@ -373,11 +373,11 @@ Python bindings in `python/engine3g/` wrap the C API.
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones and completed work
-- [`../../design/telemetry_schema.md`](../../design/telemetry_schema.md): Comprehensive metric definitions
-- [`../../design/telemetry_instrumentation_guide.md`](../../design/telemetry_instrumentation_guide.md): How to add telemetry to new code
-- [`../../design/plugin_architecture.md`](../../design/plugin_architecture.md): Subsystem plugin design
-- [`../../design/error_handling_migration.md`](../../design/error_handling_migration.md): Result<T> usage patterns
-- [`../../architecture.md`](../../architecture.md): System-level invariants and data flow
+- [`BACKLOG.md`](BACKLOG.md): Module milestones and completed work
+- [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Comprehensive metric definitions
+- [`../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md): How to add telemetry to new code
+- [`../../design/PLUGIN_ARCHITECTURE.md`](../../design/PLUGIN_ARCHITECTURE.md): Subsystem plugin design
+- [`../../design/ERROR_HANDLING_MIGRATION.md`](../../design/ERROR_HANDLING_MIGRATION.md): Result<T> usage patterns
+- [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): System-level invariants and data flow
 
 

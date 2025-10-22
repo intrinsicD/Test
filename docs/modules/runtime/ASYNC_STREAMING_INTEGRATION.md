@@ -15,7 +15,7 @@ harnesses. The guide covers configuration, request lifecycles, telemetry, and
 validation workflows.
 
 Before proceeding, familiarise yourself with the architectural design in
-[`docs/design/async_streaming.md`](../../design/async_streaming.md) and the asset
+[`docs/design/ASYNC_STREAMING.md`](../../design/ASYNC_STREAMING.md) and the asset
 module overview in [`docs/modules/assets/README.md`](../assets/README.md).
 
 ## Prerequisites

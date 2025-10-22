@@ -179,7 +179,7 @@ Alert levels (from `SC-230`):
 - `Warning`: Minor issues, scene still functional
 - `Critical`: Cycles or orphans detected, requires intervention
 
-See [`diagnostics.md`](diagnostics.md) for complete validation workflow.
+See [`DIAGNOSTICS.md`](DIAGNOSTICS.md) for complete validation workflow.
 
 ## Serialization
 
@@ -319,9 +319,9 @@ ctest --preset clang-debug -R scene_samples
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones including `RT-005` validation work
-- [`diagnostics.md`](diagnostics.md): Scene validation diagnostics reference
-- [`../../architecture.md`](../../architecture.md): Scene role in data flow
+- [`BACKLOG.md`](BACKLOG.md): Module milestones including `RT-005` validation work
+- [`DIAGNOSTICS.md`](DIAGNOSTICS.md): Scene validation diagnostics reference
+- [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): Scene role in data flow
 - [`../../tasks/2025-02-17-sprint-06.md`](../../tasks/2025-02-17-sprint-06.md): Scene validation sprint milestone
 
 

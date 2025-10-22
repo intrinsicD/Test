@@ -8,9 +8,9 @@ Use this prompt to perform consistent, high-signal reviews for Test Engine pull 
 - Release readiness passes that require comprehensive verification.
 
 ## Prerequisites Checklist
-- [ ] Read [`../agents.md`](../agents.md) for reviewer expectations.
-- [ ] Refresh invariants in [`../architecture.md`](../architecture.md) and coding/testing standards in
-      [`../conventions.md`](../conventions.md).
+- [ ] Read [`../NAVIGATION.md`](../NAVIGATION.md) for reviewer expectations and documentation structure.
+- [ ] Refresh invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md) and coding/testing standards in
+      [`../../CODING_STYLE.md`](../../CODING_STYLE.md).
 - [ ] Open module READMEs/ROADMAPs for affected subsystems.
 - [ ] Locate referenced tasks in [`../tasks/`](../tasks/) and related specs/prints.
 - [ ] Ensure access to build/test tooling to reproduce results if needed.
@@ -60,7 +60,7 @@ Evaluate the change against repository invariants (check each box with supportin
 - [ ] Specs/tasks updated or created as needed.
 
 **Phase D — Quality & Testing**
-1. Evaluate style, naming, and commentary quality against `docs/conventions.md` and `CODING_STYLE.md`.
+1. Evaluate style, naming, and commentary quality against `CODING_STYLE.md`.
 2. Confirm tests cover new behaviour, regressions, and negative cases.
 3. Verify reported commands (`cmake --build`, `ctest`, `pytest`, `python scripts/validate_docs.py`) are appropriate.
 

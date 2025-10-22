@@ -10,7 +10,7 @@ previously stored under `docs/prints/`.
 
 ## Prerequisites Checklist
 Before invoking the prompt, confirm:
-- [ ] You have read [`../README.md`](../README.md) and [`../../README.md`](../../README.md) for the current workspace snapshot.
+- [ ] You have read [`../NAVIGATION.md`](../NAVIGATION.md) and [`../../README.md`](../../README.md) for the current workspace snapshot.
 - [ ] The relevant task record(s) in [`../tasks/`](../tasks/) are open in another tab (e.g., `T-0104`, `T-0112`, `T-0115`,
       `T-0116`, `T-0117`).
 - [ ] Module-specific READMEs and roadmaps in [`../modules/`](../modules/) are reviewed for impacted subsystems.
@@ -35,11 +35,11 @@ checklists.
 - Performance: respect hot paths (frame-graph, geometry kernels, physics solvers); avoid unbounded allocations.
 - Observability: emit actionable logs/metrics without leaking PII/PHI; prefer structured logging.
 - Documentation discipline: keep README/ROADMAP/spec entries in sync with the change set.
-- Compliance: follow [`CODING_STYLE.md`](../../CODING_STYLE.md), [`docs/conventions.md`](../conventions.md), and
-  [`docs/agents.md`](../agents.md).
+- Compliance: follow [`CODING_STYLE.md`](../../CODING_STYLE.md) and
+  [`../../AGENTS.md`](../../AGENTS.md).
 
 **Repository Context**
-- Review the subsystem overview in [`../../README.md`](../../README.md) and invariants in [`../architecture.md`](../architecture.md).
+- Review the subsystem overview in [`../../README.md`](../../README.md) and invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
 - Inspect the active backlog via [`../tasks/README.md`](../tasks/README.md) with emphasis on:
   - `T-0104 Runtime frame-graph integration`
   - `T-0112 Geometry/IO round-trip hardening`
@@ -47,7 +47,7 @@ checklists.
   - `T-0115 Assets async streaming MVP`
   - `T-0116 Rendering Vulkan resource translation`
   - `T-0117 Physics contact manifolds`
-- Honour non-goals described in [`../design/async_streaming.md#non-goals`](../design/async_streaming.md#non-goals) unless a task
+- Honour non-goals described in [`../design/ASYNC_STREAMING.md#non-goals`](../design/ASYNC_STREAMING.md#non-goals) unless a task
   explicitly lifts them.
 
 **Tooling & Quality Gates**

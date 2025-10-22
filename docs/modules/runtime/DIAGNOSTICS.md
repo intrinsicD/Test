@@ -8,7 +8,7 @@ runtime loop. It complements the async streaming design note and captures the
 scene hierarchy validation workflows delivered in `RT-005.2`/`RT-005.3`.
 
 All metrics adhere to the shared schema documented in
-[`docs/design/telemetry_schema.md`](../../design/telemetry_schema.md). Consumers
+[`docs/design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md). Consumers
 should prefer the schema APIs over bespoke structs to remain compatible with
 future tooling such as the diagnostics viewer (`CC-001`).
 
@@ -125,7 +125,7 @@ schema.
   `GeometryIoErrorCode` and drive the `runtime.streaming.geometry_failures` telemetry counters.
 
 These values feed the async streaming diagnostics described in
-[`docs/design/async_streaming.md`](../../design/async_streaming.md), the shared
+[`docs/design/ASYNC_STREAMING.md`](../../design/ASYNC_STREAMING.md), the shared
 schema reference, and the associated task record
 [`T-0115`](../../tasks/T-0115-assets-async-streaming-mvp.md).
 
@@ -177,7 +177,7 @@ These defaults keep short-lived authoring mistakes from paging operators while
 still surfacing persistent regressions quickly.
 
 Scene authors should review the
-[scene diagnostics guide](../scene/diagnostics.md) for module-specific
+[scene diagnostics guide](../scene/DIAGNOSTICS.md) for module-specific
 remediation steps and planned follow-up samples introduced by `SC-220`.
 
 ## Hierarchy Diagnostics Playbook

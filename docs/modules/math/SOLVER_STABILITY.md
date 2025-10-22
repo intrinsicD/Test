@@ -99,6 +99,6 @@ When in doubt, pre-normalise using double precision and cast back to float.
   solver modes are introduced to keep this guidance accurate.
 
 Pair these recommendations with the published
-[`format_conversions.md`](format_conversions.md) cheatsheet when shuttling data
+[`FORMAT_CONVERSIONS.md`](FORMAT_CONVERSIONS.md) cheatsheet when shuttling data
 between external formats and engine types; revisit both documents if new
 formats introduce tighter precision constraints.

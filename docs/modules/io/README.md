@@ -66,7 +66,7 @@ Format detection uses:
 - Content heuristics (ASCII formats)
 - File extension as fallback
 
-See [`detection_fuzzing_playbook.md`](detection_fuzzing_playbook.md) for signature database details.
+See [`DETECTION_FUZZING_PLAYBOOK.md`](DETECTION_FUZZING_PLAYBOOK.md) for signature database details.
 
 ## Error Handling
 
@@ -214,7 +214,7 @@ Fuzzing targets:
 - Validation edge cases
 - Memory safety
 
-See [`detection_fuzzing_playbook.md`](detection_fuzzing_playbook.md) for fuzzing workflow and corpus management.
+See [`DETECTION_FUZZING_PLAYBOOK.md`](DETECTION_FUZZING_PLAYBOOK.md) for fuzzing workflow and corpus management.
 
 ## Cache Integration
 
@@ -272,8 +272,8 @@ cmake --build --preset clang-debug-fuzz
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones including `RT-006` fuzzing initiative
-- [`detection_fuzzing_playbook.md`](detection_fuzzing_playbook.md): Fuzzing workflows and signature database
+- [`BACKLOG.md`](BACKLOG.md): Module milestones including `RT-006` fuzzing initiative
+- [`DETECTION_FUZZING_PLAYBOOK.md`](DETECTION_FUZZING_PLAYBOOK.md): Fuzzing workflows and signature database
 - [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md): IO architecture decisions
 - [`../../tasks/T-0112-geometry-io-roundtrip-hardening.md`](../../tasks/T-0112-geometry-io-roundtrip-hardening.md): Hardening milestone
 

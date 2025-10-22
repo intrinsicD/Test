@@ -98,7 +98,7 @@ if (future.is_ready()) {
 }
 ```
 
-See [`../runtime/async_streaming_integration.md`](../runtime/async_streaming_integration.md) for runtime integration patterns.
+See [`../runtime/ASYNC_STREAMING_INTEGRATION.md`](../runtime/ASYNC_STREAMING_INTEGRATION.md) for runtime integration patterns.
 
 ### Hot Reload
 
@@ -234,11 +234,11 @@ ctest --preset clang-debug -R assets
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones and upcoming features
-- [`../../design/async_streaming.md`](../../design/async_streaming.md): Async architecture and design decisions
-- [`../../design/resource_management.md`](../../design/resource_management.md): Handle lifecycle patterns
-- [`../../design/material_persistence_strategy.md`](../../design/material_persistence_strategy.md): Material serialization planning
+- [`BACKLOG.md`](BACKLOG.md): Module milestones and upcoming features
+- [`../../design/ASYNC_STREAMING.md`](../../design/ASYNC_STREAMING.md): Async architecture and design decisions
+- [`../../design/RESOURCE_MANAGEMENT.md`](../../design/RESOURCE_MANAGEMENT.md): Handle lifecycle patterns
+- [`../../design/MATERIAL_PERSISTENCE_STRATEGY.md`](../../design/MATERIAL_PERSISTENCE_STRATEGY.md): Material serialization planning
 - [`../../tasks/T-0115-assets-async-streaming-mvp.md`](../../tasks/T-0115-assets-async-streaming-mvp.md): Async streaming milestone
-- [`../runtime/async_streaming_integration.md`](../runtime/async_streaming_integration.md): Runtime integration guide
+- [`../runtime/ASYNC_STREAMING_INTEGRATION.md`](../runtime/ASYNC_STREAMING_INTEGRATION.md): Runtime integration guide
 
 

@@ -180,5 +180,5 @@ follow-up import attempt.
 - [ ] Update this playbook and the IO README whenever detection or fuzzing
       workflows change.
 - [ ] Mirror status updates into [`docs/ROADMAP.md`](../../ROADMAP.md) and the
-      module roadmap (`docs/modules/io/ROADMAP.md`).
+      module backlog (`docs/modules/io/BACKLOG.md`).
 

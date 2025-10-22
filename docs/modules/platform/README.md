@@ -240,7 +240,7 @@ The SDL backend provides parity with GLFW plus additional features:
 - Better gamepad compatibility
 - Audio subsystem integration (planned)
 
-See [`sdl_backend_checklist.md`](sdl_backend_checklist.md) for implementation progress.
+See [`SDL_BACKEND_CHECKLIST.md`](SDL_BACKEND_CHECKLIST.md) for implementation progress.
 
 ## Mock Backend (Testing)
 
@@ -324,10 +324,10 @@ ctest --preset clang-debug -R platform
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones including SDL backend work
-- [`sdl_backend_checklist.md`](sdl_backend_checklist.md): SDL implementation progress
+- [`BACKLOG.md`](BACKLOG.md): Module milestones including SDL backend work
+- [`SDL_BACKEND_CHECKLIST.md`](SDL_BACKEND_CHECKLIST.md): SDL implementation progress
 - [`../../README.md`](../../README.md): Backend selection reference in workspace snapshot
-- [`../../architecture.md`](../../architecture.md): Platform role in data flow
+- [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): Platform role in data flow
 - Used by: Runtime (window management), Assets (filesystem watcher), Rendering (surface creation)
 
 

@@ -8,7 +8,7 @@ validation workflow, where telemetry lives, and how to respond when
 issues surface.
 
 Use this document alongside the runtime diagnostics guide
-([`docs/modules/runtime/diagnostics.md`](../runtime/diagnostics.md)) to
+([`docs/modules/runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md)) to
 keep troubleshooting material synchronised across modules.
 
 ## Entry Points
@@ -66,7 +66,7 @@ keep troubleshooting material synchronised across modules.
 | `InvalidTransform` | Propagated transforms contain NaNs or degenerate scales. | Clamp authoring data, reset invalid nodes, and inspect physics/animation contributors. |
 
 Augment this table when new `HierarchyValidationIssueCode` values land.
-Reference `docs/modules/runtime/diagnostics.md` for additional
+Reference `docs/modules/runtime/DIAGNOSTICS.md` for additional
 instrumentation context.
 
 ## Telemetry & Alerting
@@ -171,8 +171,8 @@ compare runtime telemetry against expected diagnostics output.
 
 ## Related References
 
-- [`docs/modules/runtime/diagnostics.md`](../runtime/diagnostics.md)
+- [`docs/modules/runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md)
 - [`docs/prints/sc-220-documentation-refresh.md`](../../prints/sc-220-documentation-refresh.md)
 - [`docs/prints/rt-005-3-hierarchy-diagnostics-docs.md`](../../prints/rt-005-3-hierarchy-diagnostics-docs.md)
-- [`docs/design/telemetry_schema.md`](../../design/telemetry_schema.md)
+- [`docs/design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md)
 - [`docs/tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md)

@@ -172,7 +172,7 @@ preserve attribute fidelity (normals, tangents, weights) across remeshing.
   seam length totals, atlas fill rate, and cancellation rates.
 - Produce structured logs with mesh identifiers, configuration digests, and error
   reasons; integrate with diagnostics viewer to display recent runs and warnings.
-- Align telemetry field names with `design/telemetry_schema.md` and plan schema
+- Align telemetry field names with `design/TELEMETRY_SCHEMA.md` and plan schema
   extensions if necessary (`geometry.remesh.error.hausdorff`, etc.).
 
 ## Security & Compliance

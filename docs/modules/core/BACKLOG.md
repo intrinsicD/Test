@@ -36,7 +36,7 @@ _Last Updated: 2025-03-30_
   dependencies are introduced.
 - Reflect lifecycle updates in task records and the central roadmap when
   complete.
-- Telemetry schema lives in [design/telemetry_schema.md](../../design/telemetry_schema.md);
+- Telemetry schema lives in [design/TELEMETRY_SCHEMA.md](../../design/TELEMETRY_SCHEMA.md);
   keep the document updated as additional modules emit metrics.
 - Observability milestone (`CR-137`) now surfaces initialization failure logs
   inside the diagnostics viewer and runtime runbook, keeping structured logging

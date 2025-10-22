@@ -8,7 +8,7 @@ callback plumbing, and collision telemetry for the physics module.
 - Code: `engine/physics/include/engine/physics/api.hpp`,
   `engine/physics/src/collisions.cpp`, `engine/physics/tests/test_module.cpp`.
 - Docs: [`docs/modules/physics/README.md`](../modules/physics/README.md),
-  [`docs/modules/physics/ROADMAP.md`](../modules/physics/ROADMAP.md),
+  [`docs/modules/physics/BACKLOG.md`](../modules/physics/BACKLOG.md),
   [`docs/ROADMAP.md`](../ROADMAP.md#rt-002-physics-contact-manifolds).
 
 ## Constraints

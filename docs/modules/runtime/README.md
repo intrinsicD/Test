@@ -77,12 +77,12 @@ if (diag.scene_validation.has_cycles) {
 
 - **Lifecycle counters**: `initialize_count`, `tick_count`, `shutdown_count`, `initialize_failure_count`
 - **Timing data**: `last_*_ms`, `max_*_ms`, `average_tick_ms` for each stage
-- **Streaming telemetry**: Worker health, queue depth, completion/failure rates (see [`async_streaming_integration.md`](async_streaming_integration.md))
-- **Scene validation**: Cycle detection, depth analysis, alert levels (see [`diagnostics.md`](diagnostics.md))
+- **Streaming telemetry**: Worker health, queue depth, completion/failure rates (see [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md))
+- **Scene validation**: Cycle detection, depth analysis, alert levels (see [`DIAGNOSTICS.md`](DIAGNOSTICS.md))
 - **Physics collisions**: Contact manifolds, broad-phase metrics
 - **Handle validation**: Asset and rendering handle lifecycle tracking (when `ENGINE_ENABLE_ASSETS` is on)
 
-See [`diagnostics.md`](diagnostics.md) for complete metric reference and troubleshooting workflows.
+See [`DIAGNOSTICS.md`](DIAGNOSTICS.md) for complete metric reference and troubleshooting workflows.
 
 ## Async Streaming Integration
 
@@ -94,7 +94,7 @@ deps.streaming_config.queue_capacity = 64;
 deps.streaming_config.enable = true;
 ```
 
-Access streaming health metrics via `engine::runtime::streaming_metrics()` or through the diagnostics snapshot. See [`async_streaming_integration.md`](async_streaming_integration.md) for detailed integration patterns.
+Access streaming health metrics via `engine::runtime::streaming_metrics()` or through the diagnostics snapshot. See [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md) for detailed integration patterns.
 
 ## Rendering Submission
 
@@ -163,10 +163,10 @@ ctest --preset clang-debug -R runtime
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module-specific task tracking
-- [`diagnostics.md`](diagnostics.md): Comprehensive telemetry reference and troubleshooting
+- [`BACKLOG.md`](BACKLOG.md): Module-specific task tracking
+- [`DIAGNOSTICS.md`](DIAGNOSTICS.md): Comprehensive telemetry reference and troubleshooting
 - [`async_streaming_integration.md`](async_streaming_integration.md): Asset loading workflows
-- [`../../architecture.md`](../../architecture.md): System-level data flow and invariants
-- [`../../design/telemetry_schema.md`](../../design/telemetry_schema.md): Shared metric definitions
+- [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): System-level data flow and invariants
+- [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Shared metric definitions
 - [`../../tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md): Frame-graph integration milestone
 

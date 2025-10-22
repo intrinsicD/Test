@@ -279,6 +279,6 @@ sharing the same underlying shared state.
 
 ## References
 
-- `AI-001` Resource management design (`docs/design/resource_management.md`).
-- Error handling policy (`docs/design/error_handling_migration.md`).
+- `AI-001` Resource management design (`docs/design/RESOURCE_MANAGEMENT.md`).
+- Error handling policy (`docs/design/ERROR_HANDLING_MIGRATION.md`).
 - Runtime module overview (`docs/modules/runtime/README.md`).

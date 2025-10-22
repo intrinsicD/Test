@@ -8,7 +8,7 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
 - Telemetry instrumentation and reporting script updates.
 
 ## Background
-- Design reference: [`docs/design/async_streaming.md`](../design/async_streaming.md).
+- Design reference: [`docs/design/ASYNC_STREAMING.md`](../design/ASYNC_STREAMING.md).
 - Current status: `AssetLoadRequest`/`AssetLoadFuture` primitives exist; scheduler, thread pool, and telemetry hooks are missing.
 - Dependencies: Resource lifetime management (`AI-001`) guarantees handle safety; error handling (`DC-004`) standardises
   `Result<T, Error>` usage.
@@ -75,7 +75,7 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
   where cancellation occurs before worker dispatch, ensuring futures resolve
   with `Cancelled` results instead of placeholder validation errors.
 - Runtime integration guidance lives in
-  [`docs/modules/runtime/async_streaming_integration.md`](../modules/runtime/async_streaming_integration.md),
+  [`docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md`](../modules/runtime/ASYNC_STREAMING_INTEGRATION.md),
   documenting configuration, scheduling flows, and telemetry consumption for
   runtime consumers (`AI-002.3`).
 

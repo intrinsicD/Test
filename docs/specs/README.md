@@ -14,4 +14,4 @@ When creating a new record:
 1. Copy the structure from `ADR-0003` (Title, Status, Context, Decision, Consequences).
 2. Reference relevant roadmap items (`DC-`, `AI-`, `RT-`).
 3. Link impacted modules and update their READMEs.
-4. Add the file to this index and cross-link from `docs/architecture.md` if the decision introduces new invariants.
+4. Add the file to this index and cross-link from `docs/ARCHITECTURE.md` if the decision introduces new invariants.

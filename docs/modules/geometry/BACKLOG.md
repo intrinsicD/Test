@@ -25,14 +25,14 @@ _Last Updated: 2025-05-06_
 > **Staffing Guidance:** `GE-212` focused on planning and RFP authorship, while `GE-220` delivered telemetry instrumentation. With viewer documentation published, direct capacity toward sequencing the remeshing execution milestones captured under `GE-221+`.
 
 The published RFP for `GE-212` lives in
-[`docs/design/ge-212-remeshing_parameterization_rfp.md`](../../design/ge-212-remeshing_parameterization_rfp.md)
+[`docs/design/GE-212-REMESHING_PARAMETERIZATION_RFP.md`](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md)
 and should be treated as the contract for subsequent implementation milestones.
 
 ## Dependencies
 
 - **Testing infrastructure (`TI-002`)** — hosts benchmark harness.
 - **Diagnostics initiative (`CC-001`)** — provides telemetry schema (now
-  documented in `design/telemetry_schema.md`).
+  documented in `design/TELEMETRY_SCHEMA.md`).
 
 Document findings in the relevant task files (`T-0112`) and update the central
 roadmap after each milestone.

@@ -1,13 +1,36 @@
 # Contributor Guidance
 
+## AI Agent Priority Stack
+
+When working as an AI agent, prioritize in this order:
+
+1. **Correctness** – preserve invariants and task acceptance criteria.
+2. **Clarity** – maintain documentation, comments, and tests that explain why decisions were made.
+3. **Performance** – ensure changes respect the existing profiling budgets and telemetry.
+4. **Velocity** – prefer incremental, well-scoped tasks over sweeping refactors.
+
+### Always Do
+
+- Cite every file path or command you reference.
+- Follow the session checklist in [`docs/NAVIGATION.md`](docs/NAVIGATION.md) before modifying anything.
+- Update or add tests for every behaviour change. Place C++ coverage under the owning module in `engine/<module>/tests/` and Python coverage under `python/tests/` or `scripts/tests/`.
+- Mirror behavioural or dependency changes into module READMEs, module roadmaps, the central roadmap, and relevant task files.
+- Escalate missing context by listing the exact files or specifications you require.
+
+### Never Do
+
+- Invent APIs or behaviours that contradict the decision records in [`docs/specs/`](docs/specs/) or the architecture plan.
+- Merge changes without aligning task status and documentation.
+- Introduce new dependencies without documenting installation and runtime implications.
+
 ## 1. Always Start With the Documentation
 - Read the repository root `README.md` before making changes; it summarises the workspace layout, build presets, and current TODO backlog.
-- Open [`docs/README.md`](docs/README.md) immediately afterwards. It links the working agreement in this file with subsystem invariants, task backlogs, and ADRs so contributors follow the same workflow as our AI collaborators.
+- Open [`docs/NAVIGATION.md`](docs/NAVIGATION.md) immediately afterwards. It provides a directory index and links the working agreement in this file with subsystem invariants, task backlogs, and ADRs so contributors follow the same workflow as our AI collaborators.
 - When touching any module, review its local `README.md`. Create or update it using `docs/README_TEMPLATE.md` so every directory explains:
   - What the component does and how it relates to neighbouring modules.
   - How to build and run its samples/tests.
   - Its local TODO items and how they map back to the aggregated backlog table in the root README.
-- Keep documentation in sync with the implementation. Whenever behaviour, dependencies, or workflows change, update the relevant README(s) and design notes under `docs/` and cross-link them from [`docs/README.md`](docs/README.md).
+- Keep documentation in sync with the implementation. Whenever behaviour, dependencies, or workflows change, update the relevant README(s) and design notes under `docs/` and cross-link them from [`docs/NAVIGATION.md`](docs/NAVIGATION.md).
 
 ## 1.1 Architecture Improvement Plan Alignment
 - Treat [`docs/ROADMAP.md#architecture-improvement-plan`](docs/ROADMAP.md#architecture-improvement-plan) as the authoritative backlog

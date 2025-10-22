@@ -93,7 +93,7 @@ rendering::GpuScheduler scheduler{
 };
 ```
 
-See [`backend_checklist.md`](backend_checklist.md) for Vulkan implementation status.
+See [`BACKEND_CHECKLIST.md`](BACKEND_CHECKLIST.md) for Vulkan implementation status.
 
 ### DirectX 12 Backend (Planned)
 
@@ -319,7 +319,7 @@ fmt::print("Pipeline switches: {}\n", backend_metrics.pipeline_switch_count);
 fmt::print("GPU time: {:.3f}ms\n", backend_metrics.gpu_time_ms);
 ```
 
-Metrics align with the schema in [`metadata_schema.md`](metadata_schema.md).
+Metrics align with the schema in [`METADATA_SCHEMA.md`](METADATA_SCHEMA.md).
 
 ## Performance Considerations
 
@@ -357,9 +357,9 @@ ctest --preset clang-debug -R rendering
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones including backend parity work
-- [`backend_checklist.md`](backend_checklist.md): Backend implementation status
-- [`metadata_schema.md`](metadata_schema.md): Frame graph metadata specification
+- [`BACKLOG.md`](BACKLOG.md): Module milestones including backend parity work
+- [`BACKEND_CHECKLIST.md`](BACKEND_CHECKLIST.md): Backend implementation status
+- [`METADATA_SCHEMA.md`](METADATA_SCHEMA.md): Frame graph metadata specification
 - [`../../specs/ADR-0003-runtime-frame-graph.md`](../../specs/ADR-0003-runtime-frame-graph.md): Frame graph architecture
 - [`../../tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md): Integration milestone
 - [`../../tasks/T-0116-rendering-vulkan-resource-translation.md`](../../tasks/T-0116-rendering-vulkan-resource-translation.md): Vulkan implementation

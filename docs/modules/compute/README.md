@@ -260,9 +260,9 @@ ctest --preset clang-debug -R compute_cuda
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones including GPU sampling prototypes
-- [`../../architecture.md`](../../architecture.md): Compute integration in simulation pipeline
-- [`../../design/animation_gpu_parallel_sampling_benchmark.md`](../../design/animation_gpu_parallel_sampling_benchmark.md): Planned GPU animation sampling
+- [`BACKLOG.md`](BACKLOG.md): Module milestones including GPU sampling prototypes
+- [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): Compute integration in simulation pipeline
+- [`../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md`](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md): Planned GPU animation sampling
 - Used by: Physics module (body integration), Geometry module (deformation), Animation module (planned)
 
 

@@ -198,9 +198,9 @@ ctest --preset clang-debug -R tools  # When enabled
 ## Related Documentation
 
 - [`../../README.md`](../../README.md): Tools module status in workspace snapshot
-- [`../../design/telemetry_schema.md`](../../design/telemetry_schema.md): Telemetry metric definitions
-- [`../../design/telemetry_instrumentation_guide.md`](../../design/telemetry_instrumentation_guide.md): How to add telemetry
-- [`../runtime/diagnostics.md`](../runtime/diagnostics.md): Runtime diagnostics reference
+- [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Telemetry metric definitions
+- [`../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md): How to add telemetry
+- [`../runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md): Runtime diagnostics reference
 - Python tooling: `python/README.md`, `scripts/README.md`
 
 ## Current Status

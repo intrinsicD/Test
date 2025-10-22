@@ -311,8 +311,8 @@ ctest --preset clang-debug -R geometry
 
 ## Related Documentation
 
-- [`ROADMAP.md`](ROADMAP.md): Module milestones and planned features
-- [`../../design/ge-212-remeshing_parameterization_rfp.md`](../../design/ge-212-remeshing_parameterization_rfp.md): Remeshing proposal
+- [`BACKLOG.md`](BACKLOG.md): Module milestones and planned features
+- [`../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md`](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md): Remeshing proposal
 - [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md): IO architecture decisions
 - [`../../specs/ADR-0006-animation-deformation.md`](../../specs/ADR-0006-animation-deformation.md): Deformation pipeline design
 - [`../../tasks/T-0112-geometry-io-roundtrip-hardening.md`](../../tasks/T-0112-geometry-io-roundtrip-hardening.md): IO hardening milestone
