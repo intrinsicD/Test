@@ -121,6 +121,8 @@ schema.
 - Cache state totals: `streaming_pending`, `streaming_loading`
 - Request outcomes: `streaming_total_completed`, `streaming_total_failed`,
   `streaming_total_cancelled`, `streaming_total_rejected`
+- Error attribution: `streaming_geometry_failures` (C++) / `geometry_failures_by_error` (C ABI) enumerate failures by
+  `GeometryIoErrorCode` and drive the `runtime.streaming.geometry_failures` telemetry counters.
 
 These values feed the async streaming diagnostics described in
 [`docs/design/async_streaming.md`](../../design/async_streaming.md), the shared

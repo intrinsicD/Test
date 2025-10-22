@@ -230,6 +230,7 @@ def test_diagnostics_to_dict_roundtrip() -> None:
             streaming_total_failed=1,
             streaming_total_cancelled=0,
             streaming_total_rejected=0,
+            geometry_failures_by_error={'invalid_argument': 1},
         ),
         hot_reload=telemetry.HotReloadMetrics(
             attempt_count=3,
@@ -269,6 +270,7 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["hot_reload"]["failure_count"] == 1
     assert payload["hot_reload"]["error_hint"] == "Rebuild shader"
     assert payload["hot_reload"]["total_requests"] == 3
+    assert payload["streaming"]["geometry_failures_by_error"]["invalid_argument"] == 1
     assert payload["initialize_failure_count"] == 2
     assert payload["has_initialize_failure"] is True
     assert payload["last_initialize_failure"]["runtime"] == "test_runtime"

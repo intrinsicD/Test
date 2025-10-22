@@ -12,7 +12,8 @@
   `engine::rendering::RuntimeSubmissionContext` struct via the
   `RuntimeHost::RenderSubmissionContext` alias so runtime APIs stay aligned with
   backend contracts (`RT-003.1`).
-- Runtime diagnostics capture asynchronous streaming queue metrics mirrored via
+- Runtime diagnostics capture asynchronous streaming queue metrics (including
+  `geometry_failures_by_error` attribution) mirrored via
   `scripts/diagnostics/runtime_frame_telemetry.py` for `AI-002` observability.
 - Scene hierarchy validation reports are published through the diagnostics
   bridge so tooling and scripts receive detailed issue metadata (`RT-005.2`).

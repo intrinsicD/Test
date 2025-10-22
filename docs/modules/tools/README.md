@@ -40,8 +40,9 @@
   ```bash
   python scripts/diagnostics/streaming_report.py --library-dir out/build/linux-gcc-debug
   ```
-- The report surfaces worker counts, queue capacity, pending requests, and
-  cancellation/failure counters emitted by `AssetStreamingTelemetry`.
+- The report surfaces worker counts, queue capacity, pending requests, cancellation/failure counters,
+  and `geometry_failures_by_error` mappings emitted by `AssetStreamingTelemetry` so operators can attribute failures to
+  specific `GeometryIoErrorCode` values.
 
 ### Inspect telemetry archives interactively
 - Feed exported telemetry snapshots to the diagnostics shell:

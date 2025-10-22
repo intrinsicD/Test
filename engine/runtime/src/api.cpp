@@ -825,6 +825,14 @@ namespace engine::runtime
             add_counter("runtime.streaming.total_rejected",
                         "Rejected asset streaming requests due to capacity",
                         clamp_to_int(streaming.streaming_total_rejected));
+            const auto geometry_errors = engine::io::geometry_io_error_codes();
+            for (std::size_t error_index = 0; error_index < geometry_errors.size(); ++error_index)
+            {
+                add_counter("runtime.streaming.geometry_failures",
+                            "Failed asset streaming requests grouped by geometry error code",
+                            clamp_to_int(streaming.streaming_geometry_failures[error_index]),
+                            make_single_label("error", io::to_string(geometry_errors[error_index])));
+            }
 
             const auto& hot_reload = diagnostics.hot_reload;
             add_counter("runtime.hot_reload.attempt_count",
@@ -1955,6 +1963,12 @@ namespace engine::runtime
         metrics.streaming_total_failed = snapshot.total_failed;
         metrics.streaming_total_cancelled = snapshot.total_cancelled;
         metrics.streaming_total_rejected = snapshot.total_rejected;
+        const auto geometry_errors = engine::io::geometry_io_error_codes();
+        for (std::size_t index = 0; index < geometry_errors.size(); ++index)
+        {
+            metrics.streaming_geometry_failures[index] = snapshot.geometry_failures[index];
+            metrics.streaming_geometry_failure_labels[index] = io::to_string(geometry_errors[index]);
+        }
 #endif
         return metrics;
     }
@@ -2352,6 +2366,12 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
     }
 }
 
+extern "C" ENGINE_RUNTIME_API std::size_t
+engine_runtime_streaming_geometry_failure_capacity_value() noexcept
+{
+    return engine::io::geometry_io_error_count();
+}
+
 extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
     struct ::engine_runtime_streaming_metrics* out_metrics) noexcept
 {
@@ -2374,6 +2394,14 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_streaming_metrics(
     out_metrics->streaming_total_failed = metrics.streaming_total_failed;
     out_metrics->streaming_total_cancelled = metrics.streaming_total_cancelled;
     out_metrics->streaming_total_rejected = metrics.streaming_total_rejected;
+    const auto geometry_errors = engine::io::geometry_io_error_codes();
+    out_metrics->streaming_geometry_failure_count =
+        static_cast<std::uint32_t>(geometry_errors.size());
+    for (std::size_t index = 0; index < geometry_errors.size(); ++index)
+    {
+        out_metrics->streaming_geometry_failures[index] = metrics.streaming_geometry_failures[index];
+        out_metrics->streaming_geometry_failure_labels[index] = engine::io::to_string(geometry_errors[index]).data();
+    }
 }
 
 extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_streaming_metrics(
@@ -2398,6 +2426,14 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_streaming_metrics(
     out_metrics->streaming_total_failed = metrics.streaming_total_failed;
     out_metrics->streaming_total_cancelled = metrics.streaming_total_cancelled;
     out_metrics->streaming_total_rejected = metrics.streaming_total_rejected;
+    const auto geometry_errors = engine::io::geometry_io_error_codes();
+    out_metrics->streaming_geometry_failure_count =
+        static_cast<std::uint32_t>(geometry_errors.size());
+    for (std::size_t index = 0; index < geometry_errors.size(); ++index)
+    {
+        out_metrics->streaming_geometry_failures[index] = metrics.streaming_geometry_failures[index];
+        out_metrics->streaming_geometry_failure_labels[index] = engine::io::to_string(geometry_errors[index]).data();
+    }
 }
 
 extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_hot_reload_metrics(

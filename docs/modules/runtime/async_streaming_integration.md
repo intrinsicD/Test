@@ -107,8 +107,11 @@ printf("pending=%" PRIu64 "\n", metrics.streaming_pending);
 Include `<inttypes.h>` before using the `PRIu64` macro in C integrations.
 
 Fields include worker counts, queue capacity, pending/active tasks, total jobs
-enqueued/executed, and per-state streaming totals (completed, failed,
-cancelled, rejected). Metrics refresh automatically when the runtime
+enqueued/executed, per-state streaming totals (completed, failed,
+cancelled, rejected), and geometry failure attribution arrays. The C++ struct
+exposes `streaming_geometry_failures` while the C ABI surfaces a
+`geometry_failures_by_error` dictionary keyed by `GeometryIoErrorCode` strings
+so tooling can identify the dominant failure modes. Metrics refresh automatically when the runtime
 initialises, ticks, or shuts down; hosts can call `engine::runtime::streaming_metrics()`
 for an up-to-date snapshot at any time.
 
@@ -121,9 +124,9 @@ JSON form. Typical usage:
 python scripts/diagnostics/streaming_report.py --library-dir out/build/linux-gcc-debug
 ```
 
-Integrate the script into CI to monitor queue saturation and failure rates. For
+Integrate the script into CI to monitor queue saturation, failure attribution, and queue pressure. For
 deep dives, pair it with `scripts/diagnostics/runtime_frame_telemetry.py`, which
-includes streaming metrics alongside frame timings and hierarchy diagnostics.
+includes streaming metrics (including `geometry_failures_by_error` mappings) alongside frame timings and hierarchy diagnostics.
 
 ## Error Handling Expectations
 

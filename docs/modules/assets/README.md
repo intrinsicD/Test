@@ -32,8 +32,8 @@
   `AssetLoadFuture` channels when scheduling asynchronous work.
 - Inspect async streaming telemetry with
   ``python scripts/diagnostics/streaming_report.py --library-dir <build>`` to
-  review queue occupancy, completion totals, failures, cancellations, and
-  rejection counters emitted by `AssetStreamingTelemetry`.
+  review queue occupancy, completion totals, failures, cancellations, rejection counters,
+  and per-`GeometryIoErrorCode` breakdowns exposed via `geometry_failures_by_error`.
 
 ## Handle Lifecycle Guidance (`AI-001`)
 - Asset handles are lightweight identifiers backed by
