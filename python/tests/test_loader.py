@@ -139,6 +139,19 @@ class LoadSharedLibraryTests(unittest.TestCase):
         self.assertIsInstance(ctx.exception.__cause__, OSError)
         self.assertEqual(str(ctx.exception.__cause__), "missing")
 
+    def test_load_shared_library_falls_back_to_bare_name(self) -> None:
+        with mock.patch.object(loader, "_candidate_paths", return_value=()):
+
+            def fake_cdll(path: str):
+                self.assertEqual(path, "libengine_core.so")
+                return mock.sentinel.runtime
+
+            with mock.patch("ctypes.CDLL", side_effect=fake_cdll) as mocked_cdll:
+                result = loader._load_shared_library("engine_core", search_paths=None)
+
+        self.assertIs(result, mock.sentinel.runtime)
+        mocked_cdll.assert_called_once_with("libengine_core.so")
+
 
 class HandleBehaviourTests(unittest.TestCase):
     def test_engine_module_handle_resolved_name(self) -> None:
