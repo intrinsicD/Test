@@ -6,6 +6,8 @@
 - Integrates with runtime submission paths and asset handles.
 - Frame-graph compilation validates queue affinity and resource metadata to
   reject incompatible submissions early.
+- Provides backend validation tooling that inspects GPU resource providers and
+  emits telemetry metrics for parity tracking across schedulers (`RE-530`).
 - The [`Frame-Graph Metadata Schema`](metadata_schema.md) documents resource and
   pass descriptors adopted by runtime and backend integrations (`RE-503`).
 - The shared `RuntimeSubmissionContext` struct (see
@@ -48,7 +50,10 @@
 
 ## TODO / Next Steps
 
-- Track `RE-530` backend validation tooling follow-up in the [central roadmap](../../ROADMAP.md) and update the execution checklist below when status changes — critical for sustaining `RT-003` coverage.
+- Track backend validation metrics supporting runtime parity dashboards
+  (`RT-003`) using the new tooling and keep the
+  [central roadmap](../../ROADMAP.md) dashboards aligned with parity status
+  updates.
 
 This module tracks actionable work through the execution checklist below.
 
@@ -59,5 +64,6 @@ This module tracks actionable work through the execution checklist below.
 | `RE-503` | Finalise resource metadata schema (`AI-003`). | Schema adopted by runtime + rendering with documentation. | ✅ Done |
 | `RE-510` | Implement queue affinity validation. | Frame-graph rejects invalid transitions with regression coverage. | ✅ Done |
 | `RE-520` | Update backend documentation. | Publish checklist + backend guides covering Vulkan parity. | ✅ Done |
+| `RE-530` | Backend validation tooling + parity metrics. | Validation API available with telemetry coverage across providers. | ✅ Done |
 
 See [ROADMAP.md](ROADMAP.md) for broader plan.

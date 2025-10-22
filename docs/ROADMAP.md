@@ -182,9 +182,9 @@ Once staffed, execute module-specific queues below.
 - **Platform** — SDL parity checklist published (`PL-215`); keep presets and the
   new checklist aligned as SDL backend implementation tasks are scoped for
   `DC-003` follow-up work.
-- **Rendering** — `RE-520` backend documentation updates building on the
-  completed metadata schema (`AI-003`), followed by `RE-530` backend validation
-  tooling and parity tracking work.
+- **Rendering** — Backend validation tooling (`RE-530`) now emits parity metrics
+  across schedulers; keep dashboards aligned with the telemetry and scope future
+  backend feature coverage as new initiatives land.
 - **Runtime** — `RT-005` tranche complete; keep the hierarchy alert metrics
   (`runtime.scene_validation.alert_level`) wired into observability and surface
   the new `SC-225` sample outputs in diagnostics tooling.

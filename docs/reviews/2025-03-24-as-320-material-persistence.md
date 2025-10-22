@@ -23,7 +23,7 @@ None.
    - Follow-up task: Convert open question into execution item when scheduling material cache implementation.
 
 2. Link render state override alignment to `RE-530`
-   - Rationale: emphasising dependency on backend parity work keeps roadmap cross-references actionable for reviewers.
+   - Rationale: reference the completed backend validation metrics to keep roadmap cross-references actionable for reviewers.
    - Follow-up task: Update rendering module roadmap alongside implementation to ensure schemas stay in sync.
 
 ## Documentation Status
