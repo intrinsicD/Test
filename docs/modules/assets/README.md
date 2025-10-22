@@ -9,6 +9,9 @@
   caches offer `load_async()` entry points backed by `AssetAsyncQueue`, and all
   hot-reload capable caches subscribe to the platform filesystem watcher to
   trigger callbacks without manual polling loops.
+- Async loaders check cancellation tokens before geometry detection and decode
+  hand-offs, ensuring requests cancelled while queued or mid-flight skip
+  expensive work and surface deterministic telemetry.
 - Asset descriptors capture provenance, format hints, and binding metadata shared
   between caches and runtime consumers.
 - Material assets currently store descriptor bindings (shader + texture handles),
@@ -72,6 +75,7 @@ This module tracks actionable work through the execution checklist below.
 | Task ID | Scope | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `AS-302` | Instrument async queue telemetry (`AI-002`). | Queue metrics emitted through runtime telemetry, documented in module README and streaming task file. | ✅ Done |
+| `AS-305` | Harden async cancellation paths (`AI-002`). | Cancellation checks guard detection/ decode stages and regression tests cover in-flight cancellation. | ✅ Done |
 | `AS-315` | Integrate hot reload callbacks (`CC-002`). | Filesystem watcher hooks update caches, failures logged via diagnostics shell. | ✅ Done |
 | `AS-320` | Define material persistence strategy. | Draft design note covering serialization format and runtime reload semantics. | ✅ Done |
 

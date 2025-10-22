@@ -154,9 +154,9 @@ Once staffed, execute module-specific queues below.
 
 - **Animation** — `AN-230` GPU/parallel sampling benchmarks once compute queue
   extensions land, followed by `AN-240` state-machine authoring spec work.
-- **Assets** — `AS-315` hot reload callback integration (`CC-002`), then
-  `AS-320` material persistence planning and `AS-330` diagnostics shell reload
-  surfacing.
+- **Assets** — `AS-305` cancellation hardening keeps async telemetry stable;
+  next focus areas are `AS-320` material persistence planning and `AS-330`
+  diagnostics shell reload surfacing.
 - **Compute** — `CO-150` cycle detection tooling and `CO-160` CUDA preset
   alignment completed; focus shifts to `CO-170` runtime integration sample
   work.
