@@ -83,6 +83,11 @@ Toggle GLFW fetching/building using `-DENGINE_ENABLE_GLFW=<ON|OFF>`. Missing X11
 development headers automatically demote presets to the mock backend until
 dependencies are restored.
 
+The CMake configuration now disables `ENGINE_ENABLE_GLFW` automatically when the
+GLFW target cannot be generated (for example, if the dependency fetch fails or
+required headers are unavailable) so configure/build steps continue to succeed
+with the mock backend.
+
 ## Execution Backlog Overview
 
 The architecture improvement plan is the authoritative backlog. The summary below mirrors [docs/ROADMAP.md](docs/ROADMAP.md) and highlights the active slices agents should track.

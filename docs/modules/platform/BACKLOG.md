@@ -20,3 +20,8 @@ _Last Updated: 2025-03-04_
 Coordinate watcher work with Tools (`TL-101`) to ensure hot reload flows remain
 integrated end-to-end now that Assets (`AS-315`) consumes the watcher
 abstraction and exports telemetry for diagnostics consumers.
+
+## Notes
+
+- 2025-10-23: CMake now disables `ENGINE_ENABLE_GLFW` when GLFW cannot be
+  configured so presets fall back to the mock backend without breaking builds.
