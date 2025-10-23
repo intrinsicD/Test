@@ -10,6 +10,8 @@ namespace engine::rendering
     class ForwardPipeline
     {
     public:
-        void render(scene::Scene& scene, RuntimeSubmissionContext& submission);
+        virtual ~ForwardPipeline() = default;
+
+        virtual void render(scene::Scene& scene, RuntimeSubmissionContext& submission);
     };
 }
