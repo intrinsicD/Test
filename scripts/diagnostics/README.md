@@ -66,6 +66,16 @@ metrics gathered from the runtime thread pool and `AssetStreamingTelemetry`.
    most recent failures with remediation hints) sourced from the runtime
    diagnostics bridge.
 
+4. Provide `--format text` to emit a human-readable dashboard that surfaces
+   queue utilisation, aggregate outcomes, geometry failure attribution, and hot
+   reload remediation guidance directly on stdout. Use `--output` alongside the
+   format flag to archive the textual summary.
+
+5. Supply `--chrome-trace trace.json` to generate a Chrome trace containing
+   counter events for streaming and hot reload metrics. Visualise the trace via
+   Chrome's `about://tracing` or Perfetto. Override the embedded label with
+   `--chrome-trace-label` when correlating multiple captures.
+
 Integrate the script into CI to monitor queue health and failure attribution once
 large streaming workloads are exercised.
 
