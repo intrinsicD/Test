@@ -123,6 +123,21 @@ TEST(Vector, ArithmeticOperators)
     ExpectVectorEqual(rhs / 2.0F, {2.0F, 2.5F, 3.0F});
 }
 
+TEST(Vector, ComponentWiseArithmetic)
+{
+    vec3 lhs{2.0F, 4.0F, 8.0F};
+    const vec3 rhs{1.0F, 2.0F, 4.0F};
+
+    lhs *= rhs;
+    ExpectVectorEqual(lhs, {2.0F, 8.0F, 32.0F});
+
+    lhs /= rhs;
+    ExpectVectorEqual(lhs, {2.0F, 4.0F, 8.0F});
+
+    ExpectVectorEqual(lhs * rhs, {2.0F, 8.0F, 32.0F});
+    ExpectVectorEqual(lhs / rhs, {2.0F, 2.0F, 2.0F});
+}
+
 TEST(Vector, CompoundAssignmentOperators)
 {
     vec3 value{1.0F, 2.0F, 3.0F};
@@ -165,6 +180,9 @@ TEST(Vector, DotLengthAndNormalize)
     const vec3 zero{};
     const auto normalized_zero = normalize(zero);
     EXPECT_TRUE(normalized_zero == zero);
+
+    const vec3 other{3.0F, 4.0F, 1.0F};
+    EXPECT_FLOAT_EQ(distance(value, other), 1.0F);
 }
 
 TEST(Vector, CrossProduct)
@@ -195,6 +213,25 @@ TEST(Vector, ReflectAndRefract)
     EXPECT_FLOAT_EQ(length(tir), 0.0F);
 }
 
+TEST(Vector, ClampMinMaxAndAbs)
+{
+    const vec3 value{-2.5F, 0.25F, 5.5F};
+    const vec3 min_bounds{-1.0F, 0.0F, 1.0F};
+    const vec3 max_bounds{1.0F, 1.0F, 4.0F};
+
+    ExpectVectorEqual(clamp(value, min_bounds, max_bounds), {-1.0F, 0.25F, 4.0F});
+    ExpectVectorEqual(min(value, max_bounds), {-2.5F, 0.25F, 4.0F});
+    ExpectVectorEqual(max(value, min_bounds), {-1.0F, 0.25F, 5.5F});
+    ExpectVectorEqual(abs(value), {2.5F, 0.25F, 5.5F});
+}
+
+TEST(Vector, FloorAndCeil)
+{
+    const vec3 value{-1.2F, 0.0F, 2.8F};
+    ExpectVectorEqual(floor(value), {-2.0F, 0.0F, 2.0F});
+    ExpectVectorEqual(ceil(value), {-1.0F, 0.0F, 3.0F});
+}
+
 TEST(Vector, ProjectionAndLerp)
 {
     const vec3 a{3.0F, 4.0F, 0.0F};
@@ -223,6 +260,30 @@ TEST(Vector, TypeAliasesProvideExpectedDimensions)
 
     vec4 value(1.0F);
     ExpectVectorEqual(value, {1.0F, 1.0F, 1.0F, 1.0F});
+}
+
+TEST(Vector, ComparisonUtilities)
+{
+    const vec3 a{1.0F, 2.0F, 3.0F};
+    const vec3 b{1.0F + 1e-6F, 2.0F - 1e-6F, 3.0F + 2e-5F};
+
+    EXPECT_TRUE(equal(a, b, 1e-4F));
+    EXPECT_FALSE(equal(a, b, 1e-6F));
+
+    EXPECT_TRUE(is_zero(vec3{1e-7F, -1e-7F, 5e-7F}, 1e-6F));
+    EXPECT_FALSE(is_zero(vec3{0.0F, 0.0F, 1e-4F}, 1e-6F));
+
+    const auto mask = greater_than(b, a);
+    EXPECT_TRUE(mask[0]);
+    EXPECT_FALSE(mask[1]);
+    EXPECT_TRUE(mask[2]);
+
+    EXPECT_TRUE(any(mask));
+    EXPECT_FALSE(all(mask));
+
+    const auto strict = greater_than(a, a);
+    EXPECT_FALSE(any(strict));
+    EXPECT_TRUE(all(greater_than(vec3{2.0F, 3.0F, 4.0F}, a)));
 }
 
 TEST(Matrix, DefaultConstructedIsZeroInitialized)

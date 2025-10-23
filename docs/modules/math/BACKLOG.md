@@ -34,6 +34,9 @@ _Last Updated: 2025-05-16_
 - 2025-05-20: Authored [`FORMAT_CONVERSIONS.md`](FORMAT_CONVERSIONS.md) and
   landed conversion helper tests to complete `MA-125`. Next step is defining
   telemetry metrics for conversion drift analysis (`MA-130`).
+- 2025-05-30: Added vector component-wise arithmetic and comparison utilities
+  to close documentation gaps around advanced vector helpers and unblock
+  downstream consumers requiring deterministic clamp/min/max workflows.
 
 Coordinate updates with consuming modules (animation, physics) to keep guidance
 consistent.
