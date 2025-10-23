@@ -35,3 +35,6 @@ Coordinate efforts with runtime (`RU-307`) and asset lifetime initiative
 - 2025-10-28: Frame-graph resource descriptors now reject empty or duplicate names to keep
   backend telemetry and serialization unambiguous. Update propagated to unit tests and module
   documentation.
+- 2025-10-29: OpenGL scheduler enforces provider API validation and exposes aggregated
+  `glMemoryBarrier` masks for diagnostics, with adapter tests covering no-access barriers and
+  construction preconditions.
