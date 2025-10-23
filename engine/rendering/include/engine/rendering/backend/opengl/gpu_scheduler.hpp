@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -88,6 +89,26 @@ namespace engine::rendering::backend::opengl
         std::vector<OpenGLTimelineSubmit> signals;
         resources::FenceNativeHandle fence{};
         std::uint64_t fence_value{0};
+
+        [[nodiscard]] std::uint32_t begin_memory_barrier_mask() const noexcept
+        {
+            std::uint32_t mask = 0U;
+            for (const auto& barrier : begin_barriers)
+            {
+                mask |= barrier.memory_barrier_mask;
+            }
+            return mask;
+        }
+
+        [[nodiscard]] std::uint32_t end_memory_barrier_mask() const noexcept
+        {
+            std::uint32_t mask = 0U;
+            for (const auto& barrier : end_barriers)
+            {
+                mask |= barrier.memory_barrier_mask;
+            }
+            return mask;
+        }
     };
 
     /// Scheduler that maps frame-graph work onto an OpenGL command stream.
@@ -99,6 +120,10 @@ namespace engine::rendering::backend::opengl
         explicit OpenGLGpuScheduler(resources::IGpuResourceProvider& provider)
             : Base(provider)
         {
+            if (provider.api() != resources::GraphicsApi::OpenGL)
+            {
+                throw std::invalid_argument{"OpenGLGpuScheduler requires an OpenGL resource provider"};
+            }
         }
 
         QueueType select_queue(const RenderPass& pass, QueueType preferred) override
@@ -123,19 +148,13 @@ namespace engine::rendering::backend::opengl
             submission.begin_barriers.reserve(info.begin_barriers.size());
             for (const auto& barrier : info.begin_barriers)
             {
-                OpenGLBarrier translated{};
-                translated.barrier = barrier;
-                translated.memory_barrier_mask = detail::barrier_mask(barrier);
-                submission.begin_barriers.push_back(translated);
+                submission.begin_barriers.push_back(translate_barrier(barrier));
             }
 
             submission.end_barriers.reserve(info.end_barriers.size());
             for (const auto& barrier : info.end_barriers)
             {
-                OpenGLBarrier translated{};
-                translated.barrier = barrier;
-                translated.memory_barrier_mask = detail::barrier_mask(barrier);
-                submission.end_barriers.push_back(translated);
+                submission.end_barriers.push_back(translate_barrier(barrier));
             }
 
             if (info.fence != nullptr)
@@ -170,6 +189,15 @@ namespace engine::rendering::backend::opengl
             }
 
             return submission;
+        }
+
+    private:
+        [[nodiscard]] static constexpr OpenGLBarrier translate_barrier(const resources::Barrier& barrier) noexcept
+        {
+            OpenGLBarrier translated{};
+            translated.barrier = barrier;
+            translated.memory_barrier_mask = detail::barrier_mask(barrier);
+            return translated;
         }
     };
 }

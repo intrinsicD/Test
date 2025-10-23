@@ -121,6 +121,9 @@ rendering::GpuScheduler scheduler{
 rendering::resources::RecordingGpuResourceProvider provider(rendering::resources::GraphicsApi::OpenGL);
 rendering::backend::opengl::OpenGLGpuScheduler scheduler{provider};
 
+// Constructing the scheduler with a provider that does not report
+// GraphicsApi::OpenGL throws std::invalid_argument.
+
 auto command_buffer = scheduler.request_command_buffer(rendering::QueueType::Compute, "LightingPass");
 
 rendering::GpuSubmitInfo submit{};
@@ -137,6 +140,8 @@ submit.begin_barriers.push_back({
 scheduler.submit(submit);
 
 const auto& submission = scheduler.submissions().front();
+const auto begin_mask = submission.begin_memory_barrier_mask();
+const auto end_mask = submission.end_memory_barrier_mask();
 for (const auto& barrier : submission.begin_barriers)
 {
     fmt::print("Barrier mask: 0x{:04x}\n", barrier.memory_barrier_mask);
@@ -146,7 +151,8 @@ for (const auto& barrier : submission.begin_barriers)
 - `OpenGLGpuScheduler::select_queue` coerces compute/transfer queues to `Graphics` to match the single-queue OpenGL command
   stream while preserving deterministic scheduling.
 - Each submission captures translated barrier metadata via `OpenGLBarrier::memory_barrier_mask`, combining the required
-  `glMemoryBarrier` bits for both the source and destination pipeline stages.
+  `glMemoryBarrier` bits for both the source and destination pipeline stages, and exposes aggregated masks through
+  `OpenGLSubmission::begin_memory_barrier_mask()` / `end_memory_barrier_mask()` for diagnostics.
 - Barrier translation constants (`backend::opengl::shader_image_access_barrier_bit`,
   `backend::opengl::texture_update_barrier_bit`, …) are exposed for diagnostics and tests.
 - Backend adapter tests (`BackendAdapters.OpenGLSchedulerRecordsGraphicsQueue` and
