@@ -217,6 +217,66 @@ class HandleBehaviourTests(unittest.TestCase):
         handle = loader.EngineRuntimeHandle(fake_library)
         self.assertEqual(handle.dispatch_durations(), durations)
 
+    def test_engine_runtime_handle_context_manager_initializes_and_shutdowns(self) -> None:
+        events: list[str] = []
+
+        fake_library = _make_runtime_namespace(
+            engine_runtime_initialize=_DummyFunction(lambda: events.append("init")),
+            engine_runtime_shutdown=_DummyFunction(lambda: events.append("shutdown")),
+        )
+
+        handle = loader.EngineRuntimeHandle(fake_library)
+
+        with handle as runtime:
+            self.assertIs(runtime, handle)
+            self.assertEqual(events, ["init"])
+
+        self.assertEqual(events, ["init", "shutdown"])
+
+        events.clear()
+        with handle:
+            pass
+        self.assertEqual(events, ["init", "shutdown"])
+
+    def test_engine_runtime_handle_context_manager_preserves_external_initialization(self) -> None:
+        init_calls: list[str] = []
+        shutdown_calls: list[str] = []
+
+        fake_library = _make_runtime_namespace(
+            engine_runtime_initialize=_DummyFunction(lambda: init_calls.append("init")),
+            engine_runtime_shutdown=_DummyFunction(lambda: shutdown_calls.append("shutdown")),
+        )
+
+        handle = loader.EngineRuntimeHandle(fake_library)
+        handle.initialize()
+
+        with handle:
+            pass
+
+        self.assertEqual(init_calls, ["init"])
+        self.assertEqual(shutdown_calls, [])
+
+        handle.shutdown()
+        self.assertEqual(shutdown_calls, ["shutdown"])
+
+    def test_engine_runtime_handle_context_manager_shutdowns_on_exception(self) -> None:
+        init_calls: list[str] = []
+        shutdown_calls: list[str] = []
+
+        fake_library = _make_runtime_namespace(
+            engine_runtime_initialize=_DummyFunction(lambda: init_calls.append("init")),
+            engine_runtime_shutdown=_DummyFunction(lambda: shutdown_calls.append("shutdown")),
+        )
+
+        handle = loader.EngineRuntimeHandle(fake_library)
+
+        with self.assertRaisesRegex(RuntimeError, "boom"):
+            with handle:
+                raise RuntimeError("boom")
+
+        self.assertEqual(init_calls, ["init"])
+        self.assertEqual(shutdown_calls, ["shutdown"])
+
     def test_engine_runtime_handle_load_modules(self) -> None:
         runtime = loader.EngineRuntimeHandle(
             _make_runtime_namespace(
