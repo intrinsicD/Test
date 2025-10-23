@@ -159,6 +159,61 @@ include(FetchContent)
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 
+set(ENGINE_GLFW_TARGET_NAME "")
+set(ENGINE_GLFW_AVAILABLE OFF)
+
+if(ENGINE_ENABLE_GLFW)
+    if(UNIX AND NOT APPLE)
+        find_path(GLFW_XRANDR_INCLUDE_DIR "X11/extensions/Xrandr.h")
+        if(NOT GLFW_XRANDR_INCLUDE_DIR)
+            message(WARNING "Xrandr headers not found; disabling GLFW support. Install libxrandr-dev to enable it.")
+            set(ENGINE_ENABLE_GLFW OFF CACHE BOOL "Fetch and build GLFW to provide the GLFW window backend" FORCE)
+        endif()
+    endif()
+
+    if(ENGINE_ENABLE_GLFW)
+        set(GLFW_DIR "${THIRD_PARTY_DIR}/glfw")
+        if(EXISTS "${GLFW_DIR}/CMakeLists.txt")
+            add_subdirectory(${GLFW_DIR})
+        else()
+            set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+            set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+            set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+            set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+            set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
+
+            option(ENGINE_GLFW_BUILD_X11 "Enable the GLFW X11 backend" ON)
+            if(ENGINE_GLFW_BUILD_X11)
+                set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
+            else()
+                set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE)
+            endif()
+
+            FetchContent_Declare(glfw_external
+                GIT_REPOSITORY https://github.com/glfw/glfw.git
+                GIT_TAG 3.4
+                GIT_SHALLOW TRUE
+            )
+            FetchContent_MakeAvailable(glfw_external)
+        endif()
+
+        if(TARGET glfw)
+            set(ENGINE_GLFW_TARGET_NAME glfw)
+            set(ENGINE_GLFW_AVAILABLE ON)
+        elseif(TARGET glfw_shared)
+            set(ENGINE_GLFW_TARGET_NAME glfw_shared)
+            set(ENGINE_GLFW_AVAILABLE ON)
+        else()
+            message(WARNING "GLFW support requested but target not available after configuration; disabling GLFW support.")
+            set(ENGINE_ENABLE_GLFW OFF CACHE BOOL "Fetch and build GLFW to provide the GLFW window backend" FORCE)
+        endif()
+    endif()
+endif()
+
+if(NOT ENGINE_ENABLE_GLFW OR NOT ENGINE_GLFW_AVAILABLE)
+    message(STATUS "GLFW support disabled; platform module will rely on mock/SDL backends only.")
+endif()
+
 if(Python3_Interpreter_FOUND)
     add_custom_target(docs
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/validate_docs.py
@@ -249,7 +304,7 @@ if(EXISTS "${IMGUI_DIR}" AND (EXISTS "${IMGUI_DIR}/CMakeLists.txt" OR _IMGUI_LOC
         set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
         target_include_directories(imgui PUBLIC ${IMGUI_DIR})
         target_link_libraries(imgui PUBLIC engine::project_options)
-        if(ENGINE_ENABLE_GLFW AND _IMGUI_LOCAL_HAS_BACKENDS)
+        if(ENGINE_ENABLE_GLFW AND ENGINE_GLFW_TARGET_NAME AND _IMGUI_LOCAL_HAS_BACKENDS)
             set(_IMGUI_BACKEND_SOURCES)
             foreach(_IMGUI_FILENAME IN LISTS _IMGUI_BACKEND_FILENAMES)
                 list(APPEND _IMGUI_BACKEND_SOURCES "${IMGUI_DIR}/${_IMGUI_FILENAME}")
@@ -257,10 +312,10 @@ if(EXISTS "${IMGUI_DIR}" AND (EXISTS "${IMGUI_DIR}/CMakeLists.txt" OR _IMGUI_LOC
             target_sources(imgui PRIVATE ${_IMGUI_BACKEND_SOURCES})
             target_include_directories(imgui PUBLIC
                 ${IMGUI_DIR}/backends
-                $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
+                $<TARGET_PROPERTY:${ENGINE_GLFW_TARGET_NAME},INTERFACE_INCLUDE_DIRECTORIES>
             )
-            target_link_libraries(imgui PUBLIC glfw)
-        elseif(ENGINE_ENABLE_GLFW AND NOT _IMGUI_LOCAL_HAS_BACKENDS)
+            target_link_libraries(imgui PUBLIC ${ENGINE_GLFW_TARGET_NAME})
+        elseif(ENGINE_ENABLE_GLFW AND ENGINE_GLFW_TARGET_NAME AND NOT _IMGUI_LOCAL_HAS_BACKENDS)
             message(WARNING "ImGui GLFW backends are missing from ${IMGUI_DIR}; skipping backend compilation.")
         endif()
     endif()
@@ -284,16 +339,16 @@ else()
         set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
         target_include_directories(imgui PUBLIC ${imgui_external_SOURCE_DIR})
         target_link_libraries(imgui PUBLIC engine::project_options)
-        if(ENGINE_ENABLE_GLFW)
+        if(ENGINE_ENABLE_GLFW AND ENGINE_GLFW_TARGET_NAME)
             target_sources(imgui PRIVATE
                 ${imgui_external_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
                 ${imgui_external_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
             )
             target_include_directories(imgui PUBLIC
                 ${imgui_external_SOURCE_DIR}/backends
-                $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
+                $<TARGET_PROPERTY:${ENGINE_GLFW_TARGET_NAME},INTERFACE_INCLUDE_DIRECTORIES>
             )
-            target_link_libraries(imgui PUBLIC glfw)
+            target_link_libraries(imgui PUBLIC ${ENGINE_GLFW_TARGET_NAME})
         endif()
     endif()
 endif()
@@ -307,48 +362,9 @@ if(TARGET imgui)
     set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 # Ensure ImGui has GLFW include dirs and linkage when using the GLFW backend
-if(ENGINE_ENABLE_GLFW AND TARGET imgui AND TARGET glfw)
-    target_include_directories(imgui PUBLIC $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>)
-    target_link_libraries(imgui PUBLIC glfw)
-endif()
-
-if(ENGINE_ENABLE_GLFW)
-    if(UNIX AND NOT APPLE)
-        find_path(GLFW_XRANDR_INCLUDE_DIR "X11/extensions/Xrandr.h")
-        if(NOT GLFW_XRANDR_INCLUDE_DIR)
-            message(WARNING "Xrandr headers not found; disabling GLFW support. Install libxrandr-dev to enable it.")
-            set(ENGINE_ENABLE_GLFW OFF CACHE BOOL "Fetch and build GLFW to provide the GLFW window backend" FORCE)
-        endif()
-    endif()
-endif()
-
-if(ENGINE_ENABLE_GLFW)
-    set(GLFW_DIR "${THIRD_PARTY_DIR}/glfw")
-    if(EXISTS "${GLFW_DIR}/CMakeLists.txt")
-        add_subdirectory(${GLFW_DIR})
-    else()
-        set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-        set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
-
-        option(ENGINE_GLFW_BUILD_X11 "Enable the GLFW X11 backend" ON)
-        if(ENGINE_GLFW_BUILD_X11)
-            set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
-        else()
-            set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE)
-        endif()
-
-        FetchContent_Declare(glfw_external
-            GIT_REPOSITORY https://github.com/glfw/glfw.git
-            GIT_TAG 3.4
-            GIT_SHALLOW TRUE
-        )
-        FetchContent_MakeAvailable(glfw_external)
-    endif()
-else()
-    message(STATUS "GLFW support disabled; platform module will rely on mock/SDL backends only.")
+if(ENGINE_ENABLE_GLFW AND ENGINE_GLFW_TARGET_NAME AND TARGET imgui)
+    target_include_directories(imgui PUBLIC $<TARGET_PROPERTY:${ENGINE_GLFW_TARGET_NAME},INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries(imgui PUBLIC ${ENGINE_GLFW_TARGET_NAME})
 endif()
 
 add_subdirectory(engine)

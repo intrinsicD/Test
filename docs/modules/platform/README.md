@@ -318,6 +318,9 @@ ctest --preset linux-gcc-debug -R platform
 ## Dependencies
 
 - **GLFW** (optional): When `ENGINE_ENABLE_GLFW=ON`
+-   CMake now disables the option automatically when GLFW cannot be configured
+    (missing headers or fetch failures) so builds fall back to the mock backend
+    instead of failing during configuration.
 - **SDL2** (optional): When SDL backend is compiled
 - **X11 libraries** (Linux): `libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, `libxi-dev`
 - **Core**: Error handling, telemetry
