@@ -153,5 +153,6 @@ runtime submission paths and backend schedulers.
 - When integrating with runtime submission flows, capture telemetry counters via
   `backend::validation::backend_parity_metrics` to ensure OpenGL parity remains
   aligned with the Vulkan baseline.
-- Upcoming work (`RE-541`) will add a runtime smoke test covering OpenGL queue
-  normalisation; coordinate with that effort when extending diagnostics.
+- The runtime smoke test `RuntimeHost.SubmitsRenderGraphThroughOpenGLScheduler`
+  exercises queue normalisation end-to-end; use it when validating telemetry
+  integration with the runtime submission harness.

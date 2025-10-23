@@ -53,7 +53,6 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - **AN-230** — GPU/parallel sampling benchmarks (blocked on `CO-170` compute queue extensions)
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
 - **DC-003** — SDL backend implementation (see `platform/SDL_BACKEND_CHECKLIST.md`)
-- **RE-541** — Runtime smoke test capturing OpenGL queue normalisation telemetry (depends on runtime submission harness)
 
 ### Mid-term (3-6 months)
 

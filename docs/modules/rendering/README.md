@@ -372,6 +372,7 @@ Rendering tests validate:
 - Resource lifetime tracking (`test_resources.cpp`)
 - Command recording (`test_commands.cpp`)
 - Vulkan integration (`test_vulkan.cpp`)
+- Runtime integration with OpenGL queue normalisation (`engine/runtime/tests/test_module.cpp` → `RuntimeHost.SubmitsRenderGraphThroughOpenGLScheduler`)
 
 Run tests:
 ```bash
@@ -407,5 +408,5 @@ ctest --preset linux-gcc-debug -R rendering
 
 ## TODO / Next Steps
 
-- `RE-541` — Publish a runtime smoke test exercising the OpenGL scheduler to capture queue normalisation and memory barrier telemetry; coordinate with the runtime submission harness.
+- Sync the next rendering milestone in [`docs/ROADMAP.md`](../../ROADMAP.md) once the `RE-541` telemetry dashboards are promoted to the runtime diagnostics suite.
 - Continue monitoring backend parity telemetry and extend the backend checklist/metadata schema alignment as Vulkan/DX12 coverage expands; see ../../ROADMAP.md for cross-module scheduling dependencies.

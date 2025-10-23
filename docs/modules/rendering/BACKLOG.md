@@ -1,6 +1,6 @@
 # Rendering Module Roadmap
 
-_Last Updated: 2025-10-26_
+_Last Updated: 2025-10-27_
 
 ## Workstreams
 
@@ -19,12 +19,13 @@ _Last Updated: 2025-10-26_
 | `RE-503` | Rendering + Runtime | 2025-03-07 | ✅ Done |
 | `RE-520` | Rendering | 2025-03-14 | ✅ Done |
 | `RE-530` | Rendering | 2025-04-07 | ✅ Done |
+| `RE-541` | Rendering + Runtime | 2025-10-27 | ✅ Done |
 
 ## Upcoming
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `RE-541` | Runtime smoke test capturing OpenGL queue normalisation telemetry. | Runtime submission harness |
+| – | _No upcoming tasks scheduled; roadmap refresh pending._ | – |
 
 Coordinate efforts with runtime (`RU-307`) and asset lifetime initiative
 (`AI-001`).

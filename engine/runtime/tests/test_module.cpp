@@ -19,8 +19,10 @@
 #include "engine/core/telemetry/schema.hpp"
 #include "engine/physics/api.hpp"
 #include "engine/rendering/render_pass.hpp"
+#include "engine/rendering/backend/opengl/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/resource_translation.hpp"
+#include "engine/rendering/forward_pipeline.hpp"
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/assets/point_cloud_asset.hpp"
 #include "engine/assets/validation.hpp"
@@ -327,6 +329,97 @@ public:
     std::vector<DescriptorRecord> begin_records;
     std::vector<DescriptorRecord> end_records;
     std::vector<std::unique_ptr<RecordingCommandEncoder>> completed_encoders;
+};
+
+class QueueNormalisationPipeline final : public engine::rendering::ForwardPipeline
+{
+public:
+    void render(engine::scene::Scene& scene, engine::rendering::RuntimeSubmissionContext& submission) override
+    {
+        auto& graph = submission.frame_graph;
+        graph.reset();
+
+        engine::rendering::FrameGraphResourceDescriptor compute_buffer{};
+        compute_buffer.name = "ComputeBuffer";
+        compute_buffer.dimension = engine::rendering::ResourceDimension::Buffer;
+        compute_buffer.usage = engine::rendering::ResourceUsage::ShaderRead
+                                | engine::rendering::ResourceUsage::ShaderWrite
+                                | engine::rendering::ResourceUsage::TransferSource
+                                | engine::rendering::ResourceUsage::TransferDestination;
+        compute_buffer.initial_state = engine::rendering::ResourceState::ShaderRead;
+        compute_buffer.final_state = engine::rendering::ResourceState::ShaderRead;
+        compute_buffer.size_bytes = 4096U;
+        const auto compute_handle = graph.create_resource(std::move(compute_buffer));
+
+        engine::rendering::FrameGraphResourceDescriptor staging_buffer{};
+        staging_buffer.name = "StagingBuffer";
+        staging_buffer.dimension = engine::rendering::ResourceDimension::Buffer;
+        staging_buffer.usage = engine::rendering::ResourceUsage::TransferDestination
+                               | engine::rendering::ResourceUsage::TransferSource
+                               | engine::rendering::ResourceUsage::ShaderRead;
+        staging_buffer.initial_state = engine::rendering::ResourceState::CopyDestination;
+        staging_buffer.final_state = engine::rendering::ResourceState::ShaderRead;
+        staging_buffer.size_bytes = 4096U;
+        const auto staging_handle = graph.create_resource(std::move(staging_buffer));
+
+        engine::rendering::FrameGraphResourceDescriptor color_target{};
+        color_target.name = "ColorTarget";
+        color_target.dimension = engine::rendering::ResourceDimension::Texture2D;
+        color_target.format = engine::rendering::ResourceFormat::Rgba8Unorm;
+        color_target.usage = engine::rendering::ResourceUsage::ColorAttachment
+                              | engine::rendering::ResourceUsage::ShaderRead;
+        color_target.initial_state = engine::rendering::ResourceState::ColorAttachment;
+        color_target.final_state = engine::rendering::ResourceState::ShaderRead;
+        color_target.width = 64U;
+        color_target.height = 64U;
+        color_target.depth = 1U;
+        color_target.array_layers = 1U;
+        color_target.mip_levels = 1U;
+        color_target.sample_count = engine::rendering::ResourceSampleCount::Count1;
+        const auto color_handle = graph.create_resource(std::move(color_target));
+
+        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+            "ComputeNormalize",
+            [compute_handle](engine::rendering::FrameGraphPassBuilder& builder) {
+                builder.write(compute_handle);
+            },
+            [](engine::rendering::FrameGraphPassExecutionContext& context) {
+                static_cast<void>(context.command_encoder());
+            },
+            engine::rendering::QueueType::Compute,
+            engine::rendering::PassPhase::Compute,
+            engine::rendering::ValidationSeverity::Warning));
+
+        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+            "TransferNormalize",
+            [compute_handle, staging_handle](engine::rendering::FrameGraphPassBuilder& builder) {
+                builder.read(compute_handle);
+                builder.write(staging_handle);
+            },
+            [](engine::rendering::FrameGraphPassExecutionContext& context) {
+                static_cast<void>(context.command_encoder());
+            },
+            engine::rendering::QueueType::Transfer,
+            engine::rendering::PassPhase::Transfer,
+            engine::rendering::ValidationSeverity::Warning));
+
+        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+            "GraphicsConsume",
+            [staging_handle, color_handle](engine::rendering::FrameGraphPassBuilder& builder) {
+                builder.read(staging_handle);
+                builder.write(color_handle);
+            },
+            [](engine::rendering::FrameGraphPassExecutionContext& context) {
+                static_cast<void>(context.command_encoder());
+            },
+            engine::rendering::QueueType::Graphics,
+            engine::rendering::PassPhase::Geometry,
+            engine::rendering::ValidationSeverity::Error));
+
+        graph.compile();
+        auto execution_context = submission.make_execution_context(scene);
+        graph.execute(execution_context);
+    }
 };
 
 class LocalRecordingScheduler final : public engine::rendering::IGpuScheduler
@@ -778,6 +871,122 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     EXPECT_LT(average_ms, 1.0);
     EXPECT_EQ(measurement_device.frames_begun(), static_cast<std::size_t>(iterations));
     EXPECT_EQ(measurement_device.frames_completed(), static_cast<std::size_t>(iterations));
+
+    host.shutdown();
+}
+
+TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler) {
+    using engine::rendering::backend::opengl::buffer_update_barrier_bit;
+    using engine::rendering::backend::opengl::command_barrier_bit;
+    using engine::rendering::backend::opengl::framebuffer_barrier_bit;
+    using engine::rendering::backend::opengl::texture_fetch_barrier_bit;
+    using engine::rendering::backend::opengl::texture_update_barrier_bit;
+    using engine::rendering::backend::opengl::uniform_barrier_bit;
+
+    ScopedHandleValidators handle_validators;
+    engine::runtime::RuntimeHostDependencies deps{};
+    engine::assets::MeshHandle mesh_handle{std::string{"runtime.mesh"}};
+    engine::assets::MeshHandle::pool_handle_type mesh_raw{};
+    mesh_raw.index = 0U;
+    mesh_raw.generation = 1U;
+    mesh_handle.bind(mesh_raw);
+    engine::assets::MaterialHandle material_handle{std::string{"runtime.material"}};
+    engine::assets::MaterialHandle::pool_handle_type material_raw{};
+    material_raw.index = 0U;
+    material_raw.generation = 1U;
+    material_handle.bind(material_raw);
+    deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(
+        mesh_handle,
+        material_handle);
+    deps.renderable_name = "runtime.renderable";
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+    const auto frame = host.tick(0.016);
+    ASSERT_FALSE(frame.scene_nodes.empty());  // NOLINT
+
+    engine::rendering::MaterialSystem materials;
+    engine::assets::ShaderHandle shader_handle{std::string{"runtime.shader"}};
+    engine::assets::ShaderHandle::pool_handle_type shader_raw{};
+    shader_raw.index = 0U;
+    shader_raw.generation = 1U;
+    shader_handle.bind(shader_raw);
+    materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
+        material_handle,
+        shader_handle,
+    });
+
+    RecordingRenderResourceProvider render_resources;
+    engine::rendering::resources::RecordingGpuResourceProvider device_provider(
+        engine::rendering::resources::GraphicsApi::OpenGL);
+    engine::rendering::backend::opengl::OpenGLGpuScheduler scheduler(device_provider);
+    RecordingCommandEncoderProvider command_encoders;
+    engine::rendering::FrameGraph graph;
+    QueueNormalisationPipeline pipeline;
+
+    engine::runtime::RuntimeHost::RenderSubmissionContext context{
+        render_resources,
+        materials,
+        device_provider,
+        scheduler,
+        command_encoders,
+        graph,
+        &pipeline,
+    };
+
+    host.submit_render_graph(context);
+
+    const auto expected_mask = command_barrier_bit | uniform_barrier_bit | texture_fetch_barrier_bit
+                               | framebuffer_barrier_bit | texture_update_barrier_bit
+                               | buffer_update_barrier_bit;
+
+    ASSERT_EQ(scheduler.submissions().size(), 3U);  // NOLINT
+    const auto& compute_submission = scheduler.submissions()[0];
+    EXPECT_EQ(compute_submission.pass_name, "ComputeNormalize");
+    EXPECT_EQ(compute_submission.command_buffer.queue.api,
+              engine::rendering::resources::GraphicsApi::OpenGL);
+    EXPECT_EQ(compute_submission.command_buffer.queue.queue, engine::rendering::QueueType::Graphics);
+    ASSERT_FALSE(compute_submission.begin_barriers.empty());  // NOLINT
+    EXPECT_EQ(compute_submission.begin_barriers.front().memory_barrier_mask, expected_mask);
+    ASSERT_FALSE(compute_submission.end_barriers.empty());  // NOLINT
+    EXPECT_EQ(compute_submission.end_barriers.front().memory_barrier_mask, expected_mask);
+
+    const auto& transfer_submission = scheduler.submissions()[1];
+    EXPECT_EQ(transfer_submission.pass_name, "TransferNormalize");
+    EXPECT_EQ(transfer_submission.command_buffer.queue.queue, engine::rendering::QueueType::Graphics);
+    ASSERT_FALSE(transfer_submission.begin_barriers.empty());  // NOLINT
+    EXPECT_EQ(transfer_submission.begin_barriers.front().memory_barrier_mask, expected_mask);
+
+    const auto& graphics_submission = scheduler.submissions()[2];
+    EXPECT_EQ(graphics_submission.pass_name, "GraphicsConsume");
+    EXPECT_EQ(graphics_submission.command_buffer.queue.queue, engine::rendering::QueueType::Graphics);
+    ASSERT_FALSE(graphics_submission.begin_barriers.empty());  // NOLINT
+    EXPECT_EQ(graphics_submission.begin_barriers.front().memory_barrier_mask, expected_mask);
+
+    EXPECT_EQ(device_provider.frames_begun(), 1U);
+    EXPECT_EQ(device_provider.frames_completed(), 1U);
+
+    for (const auto& record : command_encoders.begin_records)
+    {
+        EXPECT_EQ(record.queue, engine::rendering::QueueType::Graphics);
+    }
+    for (const auto& record : command_encoders.end_records)
+    {
+        EXPECT_EQ(record.queue, engine::rendering::QueueType::Graphics);
+    }
+
+    const auto& diagnostics = host.diagnostics();
+    EXPECT_NE(diagnostics.frame_graph_serialization.find("\"ComputeNormalize\""), std::string::npos);
+    EXPECT_NE(diagnostics.frame_graph_serialization.find("\"TransferNormalize\""), std::string::npos);
+    EXPECT_NE(diagnostics.frame_graph_serialization.find("\"queue\": \"Compute\""), std::string::npos);
+    EXPECT_NE(diagnostics.frame_graph_serialization.find("\"queue\": \"Transfer\""), std::string::npos);
+
+    ASSERT_EQ(diagnostics.frame_graph_events.size(), 6U);  // NOLINT
+    for (const auto& event : diagnostics.frame_graph_events)
+    {
+        EXPECT_TRUE(event.pass_name == "ComputeNormalize" || event.pass_name == "TransferNormalize"
+                    || event.pass_name == "GraphicsConsume");
+    }
 
     host.shutdown();
 }
