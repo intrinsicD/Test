@@ -6,6 +6,7 @@
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
+#include "engine/rendering/resources/synchronization.hpp"
 
 namespace
 {
@@ -25,8 +26,19 @@ namespace
         info.pass_name = "AdapterPass";
         info.queue = queue_type;
         info.command_buffer = command_buffer;
-        info.begin_barriers.push_back(Barrier{});
-        info.end_barriers.push_back(Barrier{});
+        Barrier begin{};
+        begin.source_stage = resources::PipelineStage::Compute;
+        begin.source_access = resources::Access::Write;
+        begin.destination_stage = resources::PipelineStage::Graphics;
+        begin.destination_access = resources::Access::Read;
+        info.begin_barriers.push_back(begin);
+
+        Barrier end{};
+        end.source_stage = resources::PipelineStage::Graphics;
+        end.source_access = resources::Access::Read;
+        end.destination_stage = resources::PipelineStage::Transfer;
+        end.destination_access = resources::Access::Write;
+        info.end_barriers.push_back(end);
         info.waits.push_back(resources::SemaphoreWait{&wait_semaphore, 1});
         info.signals.push_back(resources::SemaphoreSignal{&signal_semaphore, 2});
         info.fence = &fence;
@@ -120,4 +132,36 @@ TEST(BackendAdapters, OpenGLSchedulerRecordsGraphicsQueue)
     ASSERT_EQ(scheduler.submissions().size(), 1);  // NOLINT
     const auto& submission = scheduler.submissions().front();
     EXPECT_EQ(submission.command_buffer.queue.api, resources::GraphicsApi::OpenGL);
+
+    ASSERT_EQ(submission.begin_barriers.size(), 1);  // NOLINT
+    EXPECT_EQ(submission.begin_barriers.front().memory_barrier_mask,
+              backend::opengl::shader_image_access_barrier_bit | backend::opengl::shader_storage_barrier_bit
+                  | backend::opengl::atomic_counter_barrier_bit | backend::opengl::uniform_barrier_bit
+                  | backend::opengl::texture_fetch_barrier_bit | backend::opengl::command_barrier_bit);
+
+    ASSERT_EQ(submission.end_barriers.size(), 1);  // NOLINT
+    EXPECT_EQ(submission.end_barriers.front().memory_barrier_mask,
+              backend::opengl::pixel_buffer_barrier_bit | backend::opengl::buffer_update_barrier_bit
+                  | backend::opengl::texture_update_barrier_bit | backend::opengl::uniform_barrier_bit
+                  | backend::opengl::texture_fetch_barrier_bit | backend::opengl::command_barrier_bit);
+}
+
+TEST(BackendAdapters, OpenGLSchedulerNormalisesQueueSelections)
+{
+    using namespace engine::rendering;
+
+    resources::RecordingGpuResourceProvider provider(resources::GraphicsApi::OpenGL);
+    backend::opengl::OpenGLGpuScheduler scheduler(provider);
+
+    engine::rendering::CallbackRenderPass compute_pass{"ComputeStage",
+                                                        [](engine::rendering::FrameGraphPassBuilder&) {},
+                                                        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+                                                        QueueType::Compute};
+    EXPECT_EQ(scheduler.select_queue(compute_pass, compute_pass.queue()), QueueType::Graphics);
+
+    engine::rendering::CallbackRenderPass transfer_pass{"TransferStage",
+                                                         [](engine::rendering::FrameGraphPassBuilder&) {},
+                                                         [](engine::rendering::FrameGraphPassExecutionContext&) {},
+                                                         QueueType::Transfer};
+    EXPECT_EQ(scheduler.select_queue(transfer_pass, transfer_pass.queue()), QueueType::Graphics);
 }

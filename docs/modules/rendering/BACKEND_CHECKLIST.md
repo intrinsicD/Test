@@ -1,22 +1,36 @@
-# Vulkan Backend Checklist
+# Rendering Backend Checklist
 
-This checklist distils the requirements for exercising the Vulkan prototype that
-backs `RT-003`. Use it to bootstrap environments, configure the engine, and
-verify parity between the runtime submission path and the backend scheduler.
+This checklist distils the requirements for exercising the Vulkan and OpenGL GPU
+schedulers that back the rendering module initiatives (`RT-003`, `RE-540`). Use
+it to bootstrap environments, configure the engine, and verify parity between
+runtime submission paths and backend schedulers.
 
-## Prerequisites
+## Shared Prerequisites
 
-- **Vulkan SDK 1.3.x** – install the latest 1.3 series SDK from LunarG. Ensure
+- **Toolchain** – Modern C++20 compiler (Clang ≥ 22, GCC ≥ 12, MSVC ≥ 19.34) and
+  CMake ≥ 3.20 as captured in the root workspace documentation. Ninja is the
+  default generator for the supplied presets.
+- **Rendering + Platform toggles** – Configure CMake with
+  `-DENGINE_ENABLE_RENDERING=ON` and `-DENGINE_ENABLE_PLATFORM=ON`. The presets
+  under `scripts/build/presets/` already enable these flags.
+- **Tests** – Build `engine_rendering` and `engine_rendering_tests` targets when
+  exercising backend schedulers. Pair the backend under test with
+  `resources::RecordingGpuResourceProvider` to surface translated handles without
+  binding to real driver APIs.
+
+## Vulkan Backend
+
+### Prerequisites
+
+- **Vulkan SDK 1.3.x** – Install the latest 1.3 series SDK from LunarG. Ensure
   `VULKAN_SDK` is exported and `VK_LAYER_PATH` points at the validation layer
   manifest directory. Enable `VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation`
   during local runs to surface contract violations early.
-- **Platform drivers** – install GPU drivers that match the SDK. Headless CI can
+- **Platform drivers** – Install GPU drivers that match the SDK. Headless CI can
   rely on the Vulkan stub implementation shipped in
   [`vulkan_stub.hpp`](../../../engine/rendering/include/engine/rendering/backend/vulkan/vulkan_stub.hpp).
-- **Toolchain** – modern C++20 compiler (Clang ≥ 22, GCC ≥ 12, or MSVC ≥ 19.34)
-  and CMake ≥ 3.20, as captured in the root workspace documentation.
 
-## Configure the Build
+### Configure the Build
 
 1. Enable the rendering and platform subsystems when configuring CMake:
 
@@ -39,7 +53,7 @@ verify parity between the runtime submission path and the backend scheduler.
    cmake --build --preset linux-gcc-debug --target engine_rendering_tests
    ```
 
-## Runtime Submission Flow
+### Runtime Submission Flow
 
 - Instantiate `engine::runtime::RuntimeHost` and advance it with `tick()` to
   populate animation, physics, and geometry state.
@@ -53,7 +67,7 @@ verify parity between the runtime submission path and the backend scheduler.
 - Ensure materials and meshes are registered with the render resource provider
   prior to submission, as shown in the same test case.
 
-## Validation & Testing
+### Validation & Testing
 
 - Compile the frame graph and execute it through the Vulkan scheduler. The
   rendering test suite exercises resource translation and barrier mapping via
@@ -69,7 +83,7 @@ verify parity between the runtime submission path and the backend scheduler.
   without emitting `VK_LAYER_KHRONOS_validation` errors. Failures usually point
   to incorrect resource states or queue selection metadata.
 
-## Telemetry & Troubleshooting
+### Telemetry & Troubleshooting
 
 - Inspect `engine::runtime::RuntimeDiagnostics::scene_validation` and stage
   timings to confirm deterministic execution when integrating with the runtime
@@ -85,3 +99,59 @@ verify parity between the runtime submission path and the backend scheduler.
   so asset uploads keep pace with rendering.
 - Leverage the backend validation telemetry metrics (`rendering.backend.*`) to
   confirm parity status for each scheduler in dashboards and diagnostics runs.
+
+## OpenGL Backend
+
+### Prerequisites
+
+- **OpenGL 4.5 driver** – Install platform drivers providing OpenGL 4.5 core
+  functionality (Mesa, NVIDIA, AMD, or platform-specific SDKs). A headless
+  driver or OSMesa build is sufficient for CI; the adapter tests operate on
+  translated handles without requiring a live context.
+- **Platform surface** – The platform module (GLFW/Mock) supplies windowing.
+  For smoke tests a mock surface is acceptable; presentation flows still require
+  a concrete window backend.
+
+### Configure the Build
+
+1. Configure CMake with rendering/platform enabled. The default presets already
+   provide suitable flags:
+
+   ```bash
+   cmake --preset linux-gcc-debug
+   cmake --build --preset linux-gcc-debug --target engine_rendering_tests
+   ```
+
+   Set `ENGINE_WINDOW_BACKEND=MOCK` when no swap chain is required.
+2. No additional SDK integration is necessary; the scheduler translates frame
+   graph metadata into OpenGL submission structures using
+   `RecordingGpuResourceProvider`.
+
+### Validation & Testing
+
+- Run the backend adapter tests that exercise queue normalisation and barrier
+  translation:
+
+  ```bash
+  ctest --preset linux-gcc-debug --tests-regex BackendAdapters.OpenGL
+  ```
+
+- `BackendAdapters.OpenGLSchedulerRecordsGraphicsQueue` validates semaphore and
+  fence translation alongside the computed `glMemoryBarrier` mask stored in
+  `OpenGLSubmission::begin_barriers`/`end_barriers`.
+- `BackendAdapters.OpenGLSchedulerNormalisesQueueSelections` asserts that
+  compute/transfer passes are coerced to the graphics queue, mirroring the
+  single-queue OpenGL command stream.
+
+### Diagnostics & Troubleshooting
+
+- Inspect `backend::opengl::OpenGLSubmission` instances produced by
+  `RecordingGpuResourceProvider` to verify `memory_barrier_mask` values. The
+  inline constants (for example,
+  `backend::opengl::shader_image_access_barrier_bit`) map directly to the
+  `glMemoryBarrier` bitfield.
+- When integrating with runtime submission flows, capture telemetry counters via
+  `backend::validation::backend_parity_metrics` to ensure OpenGL parity remains
+  aligned with the Vulkan baseline.
+- Upcoming work (`RE-541`) will add a runtime smoke test covering OpenGL queue
+  normalisation; coordinate with that effort when extending diagnostics.
