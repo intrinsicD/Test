@@ -29,6 +29,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 **Recent Updates:**
 - 2025-02-20: Published `runtime/ASYNC_STREAMING_INTEGRATION.md` detailing configuration and telemetry consumption (`AI-002.3`).
+- 2025-10-22: RuntimeHost now exposes `request_mesh_asset` / `request_point_cloud_asset` wrappers to schedule asynchronous loads through configured caches, advancing cancellation/failure hardening (`AI-002.2`).
 
 <!-- Anchor for RT-002 task references -->
 <a id="rt-002-physics-contact-manifolds"></a>
