@@ -3150,4 +3150,74 @@ namespace engine::geometry
     {
         return Contains(outer, inner.start) && Contains(outer, inner.end);
     }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Frustum intersection tests
+
+    bool Intersects(const Frustum& frustum, const math::vec3& point) noexcept
+    {
+        // Point is inside frustum if it's on the inside (positive) side of all planes
+        for (const auto& plane : frustum.planes) {
+            if (SignedDistance(plane, point) < 0.0f) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool Intersects(const Frustum& frustum, const Aabb& aabb) noexcept
+    {
+        // AABB intersects frustum if it's not completely outside any plane
+        // Use n-vertex/p-vertex test for efficiency
+        for (const auto& plane : frustum.planes) {
+            // Find the "positive vertex" (vertex furthest in plane normal direction)
+            math::vec3 p_vertex;
+            p_vertex[0] = (plane.normal[0] >= 0.0f) ? aabb.max[0] : aabb.min[0];
+            p_vertex[1] = (plane.normal[1] >= 0.0f) ? aabb.max[1] : aabb.min[1];
+            p_vertex[2] = (plane.normal[2] >= 0.0f) ? aabb.max[2] : aabb.min[2];
+
+            // If p-vertex is outside (negative side), entire AABB is outside this plane
+            if (SignedDistance(plane, p_vertex) < 0.0f) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool Intersects(const Frustum& frustum, const Sphere& sphere) noexcept
+    {
+        // Sphere intersects frustum if center is within radius distance from all planes
+        for (const auto& plane : frustum.planes) {
+            const float dist = SignedDistance(plane, sphere.center);
+            if (dist < -sphere.radius) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool Intersects(const Frustum& frustum, const Obb& obb) noexcept
+    {
+        // Conservative test: check if OBB's bounding sphere intersects frustum
+        // For more accuracy, would need SAT test with all OBB axes and frustum edges
+        const Sphere bounding = BoundingSphere(obb);
+        return Intersects(frustum, bounding);
+    }
+
+    // Symmetric overloads
+    bool Intersects(const Aabb& aabb, const Frustum& frustum) noexcept
+    {
+        return Intersects(frustum, aabb);
+    }
+
+    bool Intersects(const Sphere& sphere, const Frustum& frustum) noexcept
+    {
+        return Intersects(frustum, sphere);
+    }
+
+    bool Intersects(const Obb& obb, const Frustum& frustum) noexcept
+    {
+        return Intersects(frustum, obb);
+    }
+
 } // namespace engine::geometry

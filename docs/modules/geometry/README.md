@@ -85,6 +85,30 @@ engine::geometry::update_bounds(mesh);
 auto center = engine::geometry::centroid(mesh);
 ```
 
+### Frustum Culling
+
+Extract view frustums from projection matrices and perform efficient intersection tests:
+
+```cpp
+#include "engine/geometry/shapes/frustum.hpp"
+#include "engine/geometry/utils/shape_interactions.hpp"
+
+// Extract frustum from view-projection matrix
+engine::geometry::Frustum frustum = engine::geometry::ExtractFrustum(view_projection_matrix);
+
+// Test intersection with bounding volumes
+bool visible = engine::geometry::Intersects(frustum, object_aabb);
+bool sphere_visible = engine::geometry::Intersects(frustum, bounding_sphere);
+
+// Get frustum corner points
+auto corners = engine::geometry::GetCorners(frustum);
+```
+
+The frustum is defined by 6 planes (left, right, bottom, top, near, far) with normals pointing inward. Intersection tests use optimized algorithms:
+- **Frustum-AABB**: p-vertex/n-vertex test for early rejection
+- **Frustum-Sphere**: signed distance to all planes vs. radius
+- **Frustum-Point**: containment test against all planes
+
 ## IO Integration
 
 Load and save meshes via the module API:

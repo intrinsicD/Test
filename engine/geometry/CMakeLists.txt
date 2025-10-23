@@ -15,6 +15,7 @@ add_library(${target_name}
     src/shapes/aabb.cpp
     src/shapes/cylinder.cpp
     src/shapes/ellipsoid.cpp
+    src/shapes/frustum.cpp
     src/shapes/line.cpp
     src/shapes/obb.cpp
     src/shapes/plane.cpp

@@ -12,6 +12,7 @@ add_executable(engine_geometry_tests
         test_octree.cpp
         test_kdtree.cpp
         test_deformation.cpp
+        test_frustum.cpp
 )
 
 add_executable(engine_geometry_shape_interactions_tests

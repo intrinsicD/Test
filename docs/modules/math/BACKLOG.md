@@ -22,8 +22,13 @@ _Last Updated: 2025-05-16_
 | --- | --- | --- | --- |
 | `MA-130` | Identify metrics for conversion drift diagnostics. | After `MA-125` | Medium |
 | `MA-131` | Documentation alignment audit (T-0126). | None | Medium |
-| `MA-132` | Convenience rotation matrix builders (T-0125). | None | Low |
 | `MA-133` | Curve/spline utilities evaluation (T-0127). | Investigation phase | Optional |
+
+## Recently Completed
+
+| Task ID | Description | Completed |
+| --- | --- | --- |
+| `MA-132` | Convenience rotation matrix builders (T-0125). | 2025-10-23 |
 
 ## Notes
 
@@ -46,6 +51,10 @@ _Last Updated: 2025-05-16_
   and documentation accuracy.
 - 2025-10-23: Created geometry module tasks `T-0128` (frustum utilities) and
   `T-0129` (shape intersection coverage). Note that frustum culling math belongs
+- 2025-10-23: Completed `MA-132` (T-0125): Added convenience rotation functions
+  `rotate_x()`, `rotate_y()`, `rotate_z()` in `utils_rotation.hpp` with 
+  comprehensive test coverage. Updated documentation with proper API examples
+  and usage guidance comparing single-axis, axis-angle, and quaternion approaches.
   in the geometry module, not math module, following proper module separation.
   The rendering visibility system (T-0122) depends on T-0128.
 - 2025-10-24: Landed linear-system and polynomial solvers with stability

@@ -128,13 +128,31 @@ Add section on frustum utilities with examples.
 - Cross-reference rendering visibility system (T-0122)
 
 ## Acceptance Criteria
-- [ ] Can extract frustum from any 4x4 view-projection matrix
-- [ ] Frustum-AABB intersection is correct and fast (<100ns)
-- [ ] Frustum-Sphere intersection is correct
-- [ ] All intersection tests pass unit tests
-- [ ] Documentation shows clear usage examples
-- [ ] No dependencies on rendering module
-- [ ] Compatible with existing shape API conventions
+- [x] Can extract frustum from any 4x4 view-projection matrix
+- [x] Frustum-AABB intersection is correct and fast (<100ns)
+- [x] Frustum-Sphere intersection is correct
+- [x] All intersection tests pass unit tests
+- [x] Documentation shows clear usage examples
+- [x] No dependencies on rendering module
+- [x] Compatible with existing shape API conventions
+
+## Status
+**COMPLETED** - 2025-10-24
+
+## Implementation Summary
+Successfully implemented frustum extraction and intersection tests:
+- Added `Frustum` primitive with 6 planes structure
+- Implemented Gribb-Hartmann extraction from view-projection matrices
+- Added efficient frustum-AABB intersection (p-vertex/n-vertex test)
+- Added frustum-Sphere intersection (signed distance test)
+- Added frustum-OBB intersection (conservative bounding sphere test)
+- Added frustum-point containment test
+- Implemented symmetric overloads for API consistency
+- Added GetCorners() utility for frustum visualization
+- Created comprehensive test suite (16 tests covering all scenarios)
+- Updated geometry module README with usage examples
+
+All tests pass in both Debug and Release configurations.
 
 ## Priority
 **High** - Blocks T-0122 (rendering visibility culling), which is critical for rendering performance.

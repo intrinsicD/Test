@@ -157,34 +157,39 @@ math::vec3 ceiled = math::ceil(v);
 ### Construction
 
 ```cpp
-// Translation matrix
-math::mat4 translation = math::translate(math::vec3{1.0f, 2.0f, 3.0f});
+#include "engine/math/utils/utils_rotation.hpp"
+#include "engine/math/utils/utils_camera.hpp"
 
-// Rotation matrices
-math::mat4 rotate_x = math::rotate_x(math::radians(45.0f));
-math::mat4 rotate_y = math::rotate_y(math::radians(90.0f));
-math::mat4 rotate_z = math::rotate_z(math::radians(30.0f));
+// Rotation matrices (single-axis convenience functions)
+math::mat4 rotate_x_mat = math::utils::rotate_x(math::utils::radians(45.0f));
+math::mat4 rotate_y_mat = math::utils::rotate_y(math::utils::radians(90.0f));
+math::mat4 rotate_z_mat = math::utils::rotate_z(math::utils::radians(30.0f));
 
-// Scale matrix
-math::mat4 scale = math::scale(math::vec3{2.0f, 2.0f, 2.0f});
+// General rotation from angle and axis
+math::vec3 axis{0.0f, 1.0f, 0.0f};
+math::mat4 rotation = math::utils::to_rotation_matrix(angle, axis);
+
+// Rotation from quaternion
+math::quat q = math::quat::from_euler(pitch, yaw, roll);
+math::mat4 rotation_from_quat = math::utils::to_rotation_matrix(q);
 
 // Look-at matrix (view matrix)
-math::mat4 view = math::look_at(
+math::mat4 view = math::utils::look_at(
     eye_position,
     target_position,
     up_vector
 );
 
 // Perspective projection
-math::mat4 proj = math::perspective(
-    math::radians(60.0f),  // FOV
+math::mat4 proj = math::utils::perspective(
+    math::utils::radians(60.0f),  // FOV
     aspect_ratio,
     near_plane,
     far_plane
 );
 
 // Orthographic projection
-math::mat4 ortho = math::ortho(left, right, bottom, top, near, far);
+math::mat4 ortho = math::utils::orthographic(left, right, bottom, top, near, far);
 ```
 
 ### Operations
@@ -239,6 +244,65 @@ math::quat slerp_result = math::slerp(q1, q2, t);
 // Normalized lerp (faster approximation)
 math::quat nlerp_result = math::nlerp(q1, q2, t);
 ```
+
+## Rotation Utilities
+
+The math module provides several ways to create rotation transformations, each suited for different use cases.
+
+### Single-Axis Rotations
+
+For simple rotations around cardinal axes, use the convenience functions in `utils_rotation.hpp`:
+
+```cpp
+#include "engine/math/utils/utils_rotation.hpp"
+
+// Rotate 90 degrees around X-axis (right-handed coordinates)
+float angle = math::utils::radians(90.0f);
+math::mat4 rx = math::utils::rotate_x(angle);
+
+// Rotate around Y-axis (pitch/yaw)
+math::mat4 ry = math::utils::rotate_y(angle);
+
+// Rotate around Z-axis (roll)
+math::mat4 rz = math::utils::rotate_z(angle);
+
+// Combine rotations (applied right-to-left)
+math::mat4 combined = rz * ry * rx;
+```
+
+**When to use**: Simple axis-aligned rotations, camera controls, or building complex rotations step-by-step.
+
+**Advantages**: Direct sin/cos computation, no quaternion overhead, clear intent.
+
+### General Axis-Angle Rotations
+
+For rotations around arbitrary axes:
+
+```cpp
+// Rotation around normalized arbitrary axis
+math::vec3 axis = math::normalize(math::vec3{1.0f, 1.0f, 0.0f});
+float angle = math::utils::radians(45.0f);
+math::mat4 rotation = math::utils::to_rotation_matrix(angle, axis);
+```
+
+**When to use**: Physics simulations, joint rotations, or any rotation around a known axis.
+
+### Quaternion-Based Rotations
+
+For smooth interpolation and avoiding gimbal lock:
+
+```cpp
+// Create from euler angles
+math::quat q = math::quat::from_euler(pitch, yaw, roll);
+math::mat4 rotation = math::utils::to_rotation_matrix(q);
+
+// Smooth interpolation between orientations
+math::quat interpolated = math::slerp(start_quat, end_quat, 0.5f);
+```
+
+**When to use**: Animation, smooth camera transitions, or when combining many rotations.
+
+**Advantages**: Avoids gimbal lock, efficient composition, smooth interpolation (slerp).
 
 ## Utility Functions
 

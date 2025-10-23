@@ -3,6 +3,7 @@
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/geometry/shapes/cylinder.hpp"
 #include "engine/geometry/shapes/ellipsoid.hpp"
+#include "engine/geometry/shapes/frustum.hpp"
 #include "engine/geometry/shapes/line.hpp"
 #include "engine/geometry/shapes/obb.hpp"
 #include "engine/geometry/shapes/plane.hpp"

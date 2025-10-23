@@ -223,4 +223,68 @@ namespace engine::math::utils
 
         return {tangent, bitangent, n};
     }
+
+    /// Convenience functions for single-axis rotations
+    /// These provide a more ergonomic API for common rotation operations.
+    /// Right-handed coordinate system, column-major matrices.
+
+    /// Create a rotation matrix around the X-axis by the given angle (in radians).
+    /// @param angle Rotation angle in radians
+    /// @return 4x4 rotation matrix
+    template <typename T>
+    ENGINE_MATH_INLINE Matrix<T, 4, 4> rotate_x(T angle) noexcept
+    {
+        Matrix<T, 4, 4> result = math::identity_matrix<T, 4>();
+        const T c = std::cos(angle);
+        const T s = std::sin(angle);
+
+        // Column-major: result[col][row]
+        // Match existing to_rotation_matrix convention
+        result[1][1] = c;
+        result[1][2] = -s;
+        result[2][1] = s;
+        result[2][2] = c;
+
+        return result;
+    }
+
+    /// Create a rotation matrix around the Y-axis by the given angle (in radians).
+    /// @param angle Rotation angle in radians
+    /// @return 4x4 rotation matrix
+    template <typename T>
+    ENGINE_MATH_INLINE Matrix<T, 4, 4> rotate_y(T angle) noexcept
+    {
+        Matrix<T, 4, 4> result = math::identity_matrix<T, 4>();
+        const T c = std::cos(angle);
+        const T s = std::sin(angle);
+
+        // Column-major: result[col][row]
+        // Match existing to_rotation_matrix convention
+        result[0][0] = c;
+        result[0][2] = s;
+        result[2][0] = -s;
+        result[2][2] = c;
+
+        return result;
+    }
+
+    /// Create a rotation matrix around the Z-axis by the given angle (in radians).
+    /// @param angle Rotation angle in radians
+    /// @return 4x4 rotation matrix
+    template <typename T>
+    ENGINE_MATH_INLINE Matrix<T, 4, 4> rotate_z(T angle) noexcept
+    {
+        Matrix<T, 4, 4> result = math::identity_matrix<T, 4>();
+        const T c = std::cos(angle);
+        const T s = std::sin(angle);
+
+        // Column-major: result[col][row]
+        // Match existing to_rotation_matrix convention
+        result[0][0] = c;
+        result[0][1] = -s;
+        result[1][0] = s;
+        result[1][1] = c;
+
+        return result;
+    }
 } // namespace engine::math::utils

@@ -1557,3 +1557,219 @@ TEST(SparseMatrix, DenseVsSparse_MatVec_TransposeConsistency)
     EXPECT_NEAR(lhs_sparse, lhs_dense, 1e-12);
     EXPECT_NEAR(rhs_sparse, rhs_dense, 1e-12);
 }
+
+// Tests for convenience rotation functions (T-0125)
+
+TEST(RotationUtils, RotateXIdentity)
+{
+    const auto result = utils::rotate_x(0.0f);
+    const auto identity = identity_matrix<float, 4>();
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            EXPECT_FLOAT_EQ(result[r][c], identity[r][c]);
+        }
+    }
+}
+
+TEST(RotationUtils, RotateYIdentity)
+{
+    const auto result = utils::rotate_y(0.0f);
+    const auto identity = identity_matrix<float, 4>();
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            EXPECT_FLOAT_EQ(result[r][c], identity[r][c]);
+        }
+    }
+}
+
+TEST(RotationUtils, RotateZIdentity)
+{
+    const auto result = utils::rotate_z(0.0f);
+    const auto identity = identity_matrix<float, 4>();
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            EXPECT_FLOAT_EQ(result[r][c], identity[r][c]);
+        }
+    }
+}
+
+TEST(RotationUtils, RotateXBy90Degrees)
+{
+    const float angle = std::numbers::pi_v<float> / 2.0f;
+    const auto result = utils::rotate_x(angle);
+
+    // In column-major, columns are the transformed basis vectors
+    // Column 0 is transformed X-axis (should be unchanged)
+    // Column 1 is transformed Y-axis
+    // Column 2 is transformed Z-axis
+
+    EXPECT_NEAR(result[0][0], 1.0f, 1e-6f);
+    EXPECT_NEAR(result[0][1], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[0][2], 0.0f, 1e-6f);
+
+    EXPECT_NEAR(result[1][0], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[1][1], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[1][2], -1.0f, 1e-6f);
+
+    EXPECT_NEAR(result[2][0], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[2][1], 1.0f, 1e-6f);
+    EXPECT_NEAR(result[2][2], 0.0f, 1e-6f);
+}
+
+TEST(RotationUtils, RotateYBy90Degrees)
+{
+    const float angle = std::numbers::pi_v<float> / 2.0f;
+    const auto result = utils::rotate_y(angle);
+
+    // Column 0 is transformed X-axis
+    // Column 1 is transformed Y-axis (should be unchanged)
+    // Column 2 is transformed Z-axis
+
+    EXPECT_NEAR(result[0][0], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[0][1], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[0][2], 1.0f, 1e-6f);
+
+    EXPECT_NEAR(result[1][0], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[1][1], 1.0f, 1e-6f);
+    EXPECT_NEAR(result[1][2], 0.0f, 1e-6f);
+
+    EXPECT_NEAR(result[2][0], -1.0f, 1e-6f);
+    EXPECT_NEAR(result[2][1], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[2][2], 0.0f, 1e-6f);
+}
+
+TEST(RotationUtils, RotateZBy90Degrees)
+{
+    const float angle = std::numbers::pi_v<float> / 2.0f;
+    const auto result = utils::rotate_z(angle);
+
+    // Column 0 is transformed X-axis
+    // Column 1 is transformed Y-axis
+    // Column 2 is transformed Z-axis (should be unchanged)
+
+    EXPECT_NEAR(result[0][0], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[0][1], -1.0f, 1e-6f);
+    EXPECT_NEAR(result[0][2], 0.0f, 1e-6f);
+
+    EXPECT_NEAR(result[1][0], 1.0f, 1e-6f);
+    EXPECT_NEAR(result[1][1], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[1][2], 0.0f, 1e-6f);
+
+    EXPECT_NEAR(result[2][0], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[2][1], 0.0f, 1e-6f);
+    EXPECT_NEAR(result[2][2], 1.0f, 1e-6f);
+}
+
+TEST(RotationUtils, RotateXBy180Degrees)
+{
+    const float angle = std::numbers::pi_v<float>;
+    const auto result = utils::rotate_x(angle);
+
+    // Y -> -Y, Z -> -Z, X unchanged
+    EXPECT_NEAR(result[0][0], 1.0f, 1e-6f);
+    EXPECT_NEAR(result[1][1], -1.0f, 1e-6f);
+    EXPECT_NEAR(result[2][2], -1.0f, 1e-6f);
+}
+
+TEST(RotationUtils, RotateXEquivalentToAxisAngle)
+{
+    const float angle = 0.7854f; // 45 degrees
+    const auto rotate_x_result = utils::rotate_x(angle);
+    const auto axis_angle_result = utils::to_rotation_matrix(angle, vec3{1.0f, 0.0f, 0.0f});
+
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            EXPECT_NEAR(rotate_x_result[r][c], axis_angle_result[r][c], 1e-6f);
+        }
+    }
+}
+
+TEST(RotationUtils, RotateYEquivalentToAxisAngle)
+{
+    const float angle = 1.2f;
+    const auto rotate_y_result = utils::rotate_y(angle);
+    const auto axis_angle_result = utils::to_rotation_matrix(angle, vec3{0.0f, 1.0f, 0.0f});
+
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            EXPECT_NEAR(rotate_y_result[r][c], axis_angle_result[r][c], 1e-6f);
+        }
+    }
+}
+
+TEST(RotationUtils, RotateZEquivalentToAxisAngle)
+{
+    const float angle = -0.5f;
+    const auto rotate_z_result = utils::rotate_z(angle);
+    const auto axis_angle_result = utils::to_rotation_matrix(angle, vec3{0.0f, 0.0f, 1.0f});
+
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            EXPECT_NEAR(rotate_z_result[r][c], axis_angle_result[r][c], 1e-6f);
+        }
+    }
+}
+
+TEST(RotationUtils, RotationCompositionOrder)
+{
+    const float angle = std::numbers::pi_v<float> / 4.0f;
+    const auto rx = utils::rotate_x(angle);
+    const auto ry = utils::rotate_y(angle);
+    const auto rz = utils::rotate_z(angle);
+
+    // Compose rotations: Rz * Ry * Rx
+    const auto composed = rz * ry * rx;
+
+    // Test that a point transforms correctly
+    vec4 point{1.0f, 0.0f, 0.0f, 1.0f};
+    vec4 result = composed * point;
+
+    // Verify the result is a valid rotation (preserves magnitude)
+    const float original_len = std::sqrt(point[0] * point[0] + point[1] * point[1] + point[2] * point[2]);
+    const float result_len = std::sqrt(result[0] * result[0] + result[1] * result[1] + result[2] * result[2]);
+    EXPECT_NEAR(result_len, original_len, 1e-6f);
+}
+
+TEST(RotationUtils, DoubleTypeRotateX)
+{
+    const double angle = std::numbers::pi / 3.0;
+    const auto result = utils::rotate_x(angle);
+
+    // Column-major: result[col][row]
+    EXPECT_NEAR(result[1][1], std::cos(angle), 1e-12);
+    EXPECT_NEAR(result[1][2], -std::sin(angle), 1e-12);
+    EXPECT_NEAR(result[2][1], std::sin(angle), 1e-12);
+    EXPECT_NEAR(result[2][2], std::cos(angle), 1e-12);
+}
+
+TEST(RotationUtils, NegativeAngles)
+{
+    const float angle = -std::numbers::pi_v<float> / 6.0f;
+    const auto result = utils::rotate_z(angle);
+
+    // Negative rotation should be inverse of positive rotation
+    const auto positive = utils::rotate_z(-angle);
+    const auto composed = result * positive;
+    const auto identity = identity_matrix<float, 4>();
+
+    for (std::size_t r = 0; r < 4; ++r)
+    {
+        for (std::size_t c = 0; c < 4; ++c)
+        {
+            EXPECT_NEAR(composed[r][c], identity[r][c], 1e-6f);
+        }
+    }
+}
+

@@ -15,6 +15,7 @@ namespace engine::geometry
     struct Aabb;
     struct Cylinder;
     struct Ellipsoid;
+    struct Frustum;
     struct Line;
     struct Obb;
     struct Plane;
@@ -289,6 +290,19 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle& a, const Triangle& b) noexcept;
 
+    // Frustum intersection tests
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Aabb& aabb) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Sphere& sphere) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Obb& obb) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const math::vec3& point) noexcept;
+
+    // Symmetric overloads
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& aabb, const Frustum& frustum) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& sphere, const Frustum& frustum) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb& obb, const Frustum& frustum) noexcept;
+
+    //------------------------------------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Contains(const Aabb& outer, const math::vec3& inner) noexcept;
