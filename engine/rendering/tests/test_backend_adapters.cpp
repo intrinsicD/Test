@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <stdexcept>
+
 #include "engine/rendering/backend/directx12/gpu_scheduler.hpp"
 #include "engine/rendering/backend/metal/gpu_scheduler.hpp"
 #include "engine/rendering/backend/opengl/gpu_scheduler.hpp"
@@ -164,4 +166,42 @@ TEST(BackendAdapters, OpenGLSchedulerNormalisesQueueSelections)
                                                          [](engine::rendering::FrameGraphPassExecutionContext&) {},
                                                          QueueType::Transfer};
     EXPECT_EQ(scheduler.select_queue(transfer_pass, transfer_pass.queue()), QueueType::Graphics);
+}
+
+TEST(BackendAdapters, OpenGLSchedulerRejectsNonOpenGLProviders)
+{
+    using namespace engine::rendering;
+
+    resources::RecordingGpuResourceProvider provider(resources::GraphicsApi::Vulkan);
+    EXPECT_THROW({ backend::opengl::OpenGLGpuScheduler scheduler(provider); }, std::invalid_argument);
+}
+
+TEST(BackendAdapters, OpenGLSchedulerPropagatesNoAccessBarriers)
+{
+    using namespace engine::rendering;
+
+    resources::RecordingGpuResourceProvider provider(resources::GraphicsApi::OpenGL);
+    backend::opengl::OpenGLGpuScheduler scheduler(provider);
+
+    auto command_buffer = scheduler.request_command_buffer(QueueType::Graphics, "NoAccess");
+
+    GpuSubmitInfo info{};
+    info.pass_name = "NoAccess";
+    info.queue = QueueType::Graphics;
+    info.command_buffer = command_buffer;
+
+    resources::Barrier none{};
+    none.source_access = resources::Access::None;
+    none.destination_access = resources::Access::None;
+    info.begin_barriers.push_back(none);
+
+    scheduler.submit(info);
+    scheduler.recycle(command_buffer);
+
+    ASSERT_EQ(scheduler.submissions().size(), 1U);  // NOLINT
+    const auto& submission = scheduler.submissions().front();
+    ASSERT_EQ(submission.begin_barriers.size(), 1U);  // NOLINT
+    EXPECT_EQ(submission.begin_barriers.front().memory_barrier_mask, 0U);
+    EXPECT_EQ(submission.begin_memory_barrier_mask(), 0U);
+    EXPECT_EQ(submission.end_memory_barrier_mask(), 0U);
 }
