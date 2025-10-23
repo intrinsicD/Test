@@ -39,6 +39,12 @@ cloud.colors = {{1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}};
 cloud.normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}};
 ```
 
+`PointCloudIOFlags::Format::kAuto` infers the writer format from the destination
+file extension (case-insensitive) and falls back to PLY when the extension is
+missing or unknown, honouring the binary flag when set. This keeps round-trip
+helpers resilient in scripting pipelines that generate temporary files without
+extensions.
+
 ### Graphs
 
 `Graph` represents connectivity data:
