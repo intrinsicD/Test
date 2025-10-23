@@ -1,10 +1,12 @@
 #pragma once
 
 #include "engine/math/common.hpp"
+#include "engine/math/utils/utils.hpp"
 
-#include <ostream>
-#include <cassert>
 #include <array>
+#include <cassert>
+#include <limits>
+#include <ostream>
 
 namespace engine::math
 {
@@ -118,6 +120,24 @@ namespace engine::math
             return (*this) *= inv;
         }
 
+        ENGINE_MATH_INLINE Vector& operator*=(const Vector& rhs) noexcept
+        {
+            for (size_type i = 0; i < N; ++i)
+            {
+                elements[i] *= rhs.elements[i];
+            }
+            return *this;
+        }
+
+        ENGINE_MATH_INLINE Vector& operator/=(const Vector& rhs) noexcept
+        {
+            for (size_type i = 0; i < N; ++i)
+            {
+                elements[i] /= rhs.elements[i];
+            }
+            return *this;
+        }
+
         ENGINE_MATH_INLINE T* data() noexcept { return elements; }
 
         ENGINE_MATH_INLINE const T* data() const noexcept { return elements; }
@@ -152,9 +172,23 @@ namespace engine::math
     }
 
     template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> operator*(Vector<T, N> lhs, const Vector<T, N>& rhs) noexcept
+    {
+        lhs *= rhs;
+        return lhs;
+    }
+
+    template <typename T, std::size_t N>
     ENGINE_MATH_INLINE Vector<T, N> operator/(Vector<T, N> lhs, T scalar) noexcept
     {
         lhs /= scalar;
+        return lhs;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> operator/(Vector<T, N> lhs, const Vector<T, N>& rhs) noexcept
+    {
+        lhs /= rhs;
         return lhs;
     }
 
@@ -208,7 +242,7 @@ namespace engine::math
     template <typename T, std::size_t N>
     ENGINE_MATH_INLINE T length(const Vector<T, N>& value) noexcept
     {
-        return static_cast<T>(::sqrt(static_cast<double>(length_squared(value))));
+        return utils::sqrt(length_squared(value));
     }
 
     template <typename T, std::size_t N>
@@ -252,7 +286,7 @@ namespace engine::math
         {
             return Vector<T, N>{}; // Total internal reflection
         }
-        const T cos_t = static_cast<T>(sqrt(static_cast<double>(detail::one<T>() - sin2_t)));
+        const T cos_t = utils::sqrt(detail::one<T>() - sin2_t);
         return eta * unit_incident + (eta * cos_i - cos_t) * unit_normal;
     }
 
@@ -277,6 +311,147 @@ namespace engine::math
     ENGINE_MATH_INLINE Vector<T, N> lerp(const Vector<T, N>& a, const Vector<T, N>& b, T t) noexcept
     {
         return (detail::one<T>() - t) * a + t * b;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE T distance(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
+    {
+        return length(a - b);
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> abs(const Vector<T, N>& value) noexcept
+    {
+        Vector<T, N> result{};
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            result[i] = utils::abs(value[i]);
+        }
+        return result;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> floor(const Vector<T, N>& value) noexcept
+    {
+        Vector<T, N> result{};
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            result[i] = utils::floor(value[i]);
+        }
+        return result;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> ceil(const Vector<T, N>& value) noexcept
+    {
+        Vector<T, N> result{};
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            result[i] = utils::ceil(value[i]);
+        }
+        return result;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> min(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
+    {
+        Vector<T, N> result{};
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            result[i] = utils::min(a[i], b[i]);
+        }
+        return result;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> max(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
+    {
+        Vector<T, N> result{};
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            result[i] = utils::max(a[i], b[i]);
+        }
+        return result;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE Vector<T, N> clamp(const Vector<T, N>& value,
+                                          const Vector<T, N>& min_value,
+                                          const Vector<T, N>& max_value) noexcept
+    {
+        Vector<T, N> result{};
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            result[i] = utils::clamp(value[i], min_value[i], max_value[i]);
+        }
+        return result;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE bool equal(const Vector<T, N>& a,
+                                  const Vector<T, N>& b,
+                                  T epsilon = std::numeric_limits<T>::epsilon()) noexcept
+    {
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            if (utils::abs(a[i] - b[i]) > epsilon)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE bool is_zero(const Vector<T, N>& value,
+                                    T epsilon = std::numeric_limits<T>::epsilon()) noexcept
+    {
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            if (utils::abs(value[i]) > epsilon)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template <typename T, std::size_t N>
+    ENGINE_MATH_INLINE std::array<bool, N> greater_than(const Vector<T, N>& lhs,
+                                                        const Vector<T, N>& rhs) noexcept
+    {
+        std::array<bool, N> mask{};
+        for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
+        {
+            mask[i] = lhs[i] > rhs[i];
+        }
+        return mask;
+    }
+
+    template <std::size_t N>
+    ENGINE_MATH_INLINE bool all(const std::array<bool, N>& mask) noexcept
+    {
+        for (bool value : mask)
+        {
+            if (!value)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template <std::size_t N>
+    ENGINE_MATH_INLINE bool any(const std::array<bool, N>& mask) noexcept
+    {
+        for (bool value : mask)
+        {
+            if (value)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     template <typename T, std::size_t N>

@@ -264,6 +264,7 @@ bool nearly_zero = math::is_zero(v, epsilon);
 
 // Component-wise comparison
 bool all_greater = math::all(math::greater_than(a, b));
+bool any_greater = math::any(math::greater_than(a, b));
 ```
 
 ### Bounds & Geometry

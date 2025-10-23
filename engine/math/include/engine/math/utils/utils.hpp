@@ -11,6 +11,18 @@ namespace engine::math::utils
     ENGINE_MATH_INLINE T abs(T v) noexcept { return v < T(0) ? -v : v; }
 
     template <typename T>
+    ENGINE_MATH_INLINE T floor(T v) noexcept
+    {
+        return static_cast<T>(::floor(static_cast<double>(v)));
+    }
+
+    template <typename T>
+    ENGINE_MATH_INLINE T ceil(T v) noexcept
+    {
+        return static_cast<T>(::ceil(static_cast<double>(v)));
+    }
+
+    template <typename T>
     ENGINE_MATH_INLINE T max(T a, T b) noexcept { return a < b ? b : a; }
 
     template <typename T>
