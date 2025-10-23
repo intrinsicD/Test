@@ -85,9 +85,13 @@ engine::assets::AssetLoadFuture<engine::assets::MeshHandle> future = host.reques
 state machine (`Pending → Loading → Ready/Failed/Cancelled`). Futures surface
 completion via `is_ready()`, `wait()`, and `get()`; callers must handle
 `Result<ResourceHandle<Tag>, AssetLoadError>` outcomes and propagate structured
-errors upstream. Cancellation requests transition futures to `Cancelled` as long
-as the worker has not committed the result. When subsystems require bespoke
-queues they can still invoke `MeshCache::load_async()` and
+errors upstream. When the runtime host is not initialised or required caches are
+absent, `request_mesh_asset()` and `request_point_cloud_asset()` return futures
+containing `AssetLoadErrorCategory::ValidationError` results immediately and
+increment rejection telemetry instead of throwing exceptions. Cancellation
+requests transition futures to `Cancelled` as long as the worker has not
+committed the result. When subsystems require bespoke queues they can still
+invoke `MeshCache::load_async()` and
 `PointCloudCache::load_async()` directly, supplying the IO thread pool singleton.
 
 ## Runtime Diagnostics and Telemetry

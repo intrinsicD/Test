@@ -1780,6 +1780,8 @@ namespace engine::io
             mesh.clear();
 
             std::vector<geometry::VertexHandle> vertex_handles;
+            bool saw_vertex = false;
+            bool saw_face = false;
             std::string line;
             while (std::getline(stream, line))
             {
@@ -1805,6 +1807,7 @@ namespace engine::io
                     const float y = std::stof(tokens[2]);
                     const float z = std::stof(tokens[3]);
                     vertex_handles.push_back(mesh.add_vertex(vec3{x, y, z}));
+                    saw_vertex = true;
                 }
                 else if (tokens[0] == "f")
                 {
@@ -1835,7 +1838,20 @@ namespace engine::io
                         throw GeometryIoException(GeometryIoError::invalid_argument,
                                                   "Failed to add face while parsing OBJ file: " + path.string());
                     }
+                    saw_face = true;
                 }
+            }
+
+            if (!saw_vertex)
+            {
+                throw GeometryIoException(GeometryIoError::invalid_argument,
+                                          "OBJ file does not define any vertices: " + path.string());
+            }
+
+            if (!saw_face)
+            {
+                throw GeometryIoException(GeometryIoError::invalid_argument,
+                                          "OBJ file does not define any faces: " + path.string());
             }
         }
 

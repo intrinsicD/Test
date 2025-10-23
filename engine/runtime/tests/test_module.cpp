@@ -983,6 +983,9 @@ TEST(RuntimeHost, StreamingMetricsReflectConfiguration)
 
 TEST(RuntimeHost, RequestMeshAssetRequiresConfiguredCache)
 {
+    engine::assets::AssetStreamingTelemetry::instance().reset_for_testing();
+    engine::assets::AssetHotReloadTelemetry::instance().reset_for_testing();
+
     engine::runtime::RuntimeHost host{};
     host.initialize();
 
@@ -994,7 +997,61 @@ TEST(RuntimeHost, RequestMeshAssetRequiresConfiguredCache)
         std::nullopt,
         true);
 
-    EXPECT_THROW(host.request_mesh_asset(request), std::runtime_error);
+    auto future = host.request_mesh_asset(request);
+    ASSERT_TRUE(future.is_ready());
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::ValidationError);
+    EXPECT_NE(result.error().message().find("MeshCache"), std::string::npos);
+
+    const auto metrics = engine::runtime::streaming_metrics();
+    EXPECT_GE(metrics.streaming_total_rejected, 1U);
+
+    host.shutdown();
+}
+
+TEST(RuntimeHost, RequestMeshAssetRequiresInitialization)
+{
+    engine::runtime::RuntimeHost host{};
+
+    auto request = engine::assets::AssetLoadRequest::from_identifier(
+        engine::assets::AssetType::mesh,
+        "missing.mesh",
+        {},
+        engine::assets::AssetLoadPriority::Normal,
+        std::nullopt,
+        true);
+
+    auto future = host.request_mesh_asset(request);
+    ASSERT_TRUE(future.is_ready());
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_NE(result.error().message().find("initialized"), std::string::npos);
+}
+
+TEST(RuntimeHost, RequestPointCloudAssetRequiresConfiguredCache)
+{
+    engine::assets::AssetStreamingTelemetry::instance().reset_for_testing();
+    engine::assets::AssetHotReloadTelemetry::instance().reset_for_testing();
+
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+
+    auto request = engine::assets::AssetLoadRequest::from_identifier(
+        engine::assets::AssetType::point_cloud,
+        "missing.ply",
+        {},
+        engine::assets::AssetLoadPriority::Normal,
+        std::nullopt,
+        true);
+
+    auto future = host.request_point_cloud_asset(request);
+    ASSERT_TRUE(future.is_ready());
+    const auto result = future.get();
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::ValidationError);
+    EXPECT_NE(result.error().message().find("PointCloudCache"), std::string::npos);
+
     host.shutdown();
 }
 
