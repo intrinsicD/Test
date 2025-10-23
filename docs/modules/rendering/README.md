@@ -109,12 +109,43 @@ rendering::GpuScheduler scheduler{
 };
 ```
 
-### OpenGL Backend (Legacy)
+### OpenGL Backend (Queue-Normalised)
 
 ```cpp
-rendering::GpuScheduler scheduler{rendering::Backend::OpenGL};
-// Simplified API for legacy support
+rendering::resources::RecordingGpuResourceProvider provider(rendering::resources::GraphicsApi::OpenGL);
+rendering::backend::opengl::OpenGLGpuScheduler scheduler{provider};
+
+auto command_buffer = scheduler.request_command_buffer(rendering::QueueType::Compute, "LightingPass");
+
+rendering::GpuSubmitInfo submit{};
+submit.pass_name = "LightingPass";
+submit.queue = rendering::QueueType::Graphics;  // non-graphics queues are normalised
+submit.command_buffer = command_buffer;
+submit.begin_barriers.push_back({
+    .source_stage = rendering::resources::PipelineStage::Compute,
+    .source_access = rendering::resources::Access::Write,
+    .destination_stage = rendering::resources::PipelineStage::Graphics,
+    .destination_access = rendering::resources::Access::Read,
+});
+
+scheduler.submit(submit);
+
+const auto& submission = scheduler.submissions().front();
+for (const auto& barrier : submission.begin_barriers)
+{
+    fmt::print("Barrier mask: 0x{:04x}\n", barrier.memory_barrier_mask);
+}
 ```
+
+- `OpenGLGpuScheduler::select_queue` coerces compute/transfer queues to `Graphics` to match the single-queue OpenGL command
+  stream while preserving deterministic scheduling.
+- Each submission captures translated barrier metadata via `OpenGLBarrier::memory_barrier_mask`, combining the required
+  `glMemoryBarrier` bits for both the source and destination pipeline stages.
+- Barrier translation constants (`backend::opengl::shader_image_access_barrier_bit`,
+  `backend::opengl::texture_update_barrier_bit`, …) are exposed for diagnostics and tests.
+- Backend adapter tests (`BackendAdapters.OpenGLSchedulerRecordsGraphicsQueue` and
+  `BackendAdapters.OpenGLSchedulerNormalisesQueueSelections`) validate queue selection, barrier translation, and semaphore
+  resolution.
 
 ## Resource Management
 
@@ -366,7 +397,7 @@ ctest --preset linux-gcc-debug -R rendering
 
 ## Current State
 
-- Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, Vulkan scheduler prototype, and backend validation metrics covering all providers. Metadata schema aligned with runtime submission invariants.
+- Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, Vulkan scheduler prototype, and OpenGL scheduler queue-normalisation with translated `glMemoryBarrier` masks. Backend validation metrics cover all providers and consume the shared metadata schema aligned with runtime submission invariants.
 
 ## Usage
 
@@ -376,5 +407,5 @@ ctest --preset linux-gcc-debug -R rendering
 
 ## TODO / Next Steps
 
-- Monitor backend parity telemetry and scope future backend feature coverage; see ../../ROADMAP.md
-- Maintain and extend the backend checklist and metadata schema alignment (`AI-003` follow-ups); see ../../ROADMAP.md
+- `RE-541` — Publish a runtime smoke test exercising the OpenGL scheduler to capture queue normalisation and memory barrier telemetry; coordinate with the runtime submission harness.
+- Continue monitoring backend parity telemetry and extend the backend checklist/metadata schema alignment as Vulkan/DX12 coverage expands; see ../../ROADMAP.md for cross-module scheduling dependencies.
