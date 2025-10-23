@@ -230,11 +230,7 @@ class EngineRuntimeHandle:
         self, search_paths: Optional[Iterable[os.PathLike[str] | str]] = None
     ) -> Mapping[str, EngineModuleHandle]:
         """Load all registered modules and return them keyed by module name."""
-        reusable_paths: Optional[Iterable[os.PathLike[str] | str]]
-        if search_paths is None:
-            reusable_paths = None
-        else:
-            reusable_paths = tuple(search_paths)
+        reusable_paths = _freeze_search_paths(search_paths)
         modules: MutableMapping[str, EngineModuleHandle] = {}
         for name in self.module_names():
             modules[name] = load_module(name, search_paths=reusable_paths)
@@ -303,13 +299,33 @@ def _load_shared_library(identifier: str, search_paths: Optional[Iterable[os.Pat
 
 
 def _candidate_paths(library_name: str, search_paths: Optional[Iterable[os.PathLike[str] | str]]):
-    seen = set()
-    for base in list(search_paths or []) + _default_search_paths():
+    seen: set[Path] = set()
+    for base in _iter_search_path_bases(search_paths) + _default_search_paths():
         path = Path(base).expanduser().resolve() / library_name
         if path in seen:
             continue
         seen.add(path)
         yield path
+
+
+def _freeze_search_paths(
+    search_paths: Optional[Iterable[os.PathLike[str] | str]]
+) -> Optional[Tuple[os.PathLike[str] | str, ...]]:
+    if search_paths is None:
+        return None
+    if isinstance(search_paths, (str, os.PathLike)):
+        return (search_paths,)
+    return tuple(search_paths)
+
+
+def _iter_search_path_bases(
+    search_paths: Optional[Iterable[os.PathLike[str] | str]]
+) -> List[Path]:
+    if search_paths is None:
+        return []
+    if isinstance(search_paths, (str, os.PathLike)):
+        return [Path(search_paths)]
+    return [Path(entry) for entry in search_paths]
 
 
 def _default_search_paths() -> List[Path]:

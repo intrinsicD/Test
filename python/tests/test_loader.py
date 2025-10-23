@@ -107,6 +107,15 @@ class CandidatePathsTests(unittest.TestCase):
             ],
         )
 
+    def test_candidate_paths_accepts_path_objects(self) -> None:
+        base_path = Path("/custom/engine")
+        library = "libengine_core.so"
+        with mock.patch.object(loader, "_default_search_paths", return_value=[]):
+            candidates = list(loader._candidate_paths(library, base_path))
+
+        expected = base_path.expanduser().resolve() / library
+        self.assertEqual(candidates, [expected])
+
 
 class LoadSharedLibraryTests(unittest.TestCase):
     def test_load_shared_library_tries_candidates_until_success(self) -> None:
@@ -223,6 +232,22 @@ class HandleBehaviourTests(unittest.TestCase):
 
         mocked_load_module.assert_called_once_with("graphics", search_paths=("/libs",))
         self.assertEqual(modules, {"graphics": module_handle})
+
+    def test_engine_runtime_handle_load_modules_accepts_path(self) -> None:
+        runtime = loader.EngineRuntimeHandle(
+            _make_runtime_namespace(
+                engine_runtime_module_count=_DummyFunction(lambda: 1),
+                engine_runtime_module_at=_DummyFunction(lambda index: b"graphics"),
+            )
+        )
+
+        module_handle = loader.EngineModuleHandle("graphics", "engine_graphics", library=mock.sentinel.lib)
+        base_path = Path("/libs")
+
+        with mock.patch.object(loader, "load_module", return_value=module_handle) as mocked_load_module:
+            runtime.load_modules(search_paths=base_path)
+
+        mocked_load_module.assert_called_once_with("graphics", search_paths=(base_path,))
 
     def test_engine_runtime_handle_load_modules_supports_generators(self) -> None:
         runtime = loader.EngineRuntimeHandle(
