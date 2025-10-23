@@ -344,7 +344,7 @@ Rendering tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R rendering
+ctest --preset linux-gcc-debug -R rendering
 ```
 
 ## Dependencies

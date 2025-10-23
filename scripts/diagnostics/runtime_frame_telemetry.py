@@ -10,7 +10,10 @@ vertical slice that links RuntimeHost to the rendering frame graph.
 Example usage (after building the engine with a shared runtime library)::
 
     python scripts/diagnostics/runtime_frame_telemetry.py \
-        --library-dir build/linux-clang-debug
+        --library-dir out/build/linux-gcc-debug
+
+Adjust the directory to match the preset you configured (e.g., use the
+Windows preset path when running on MSVC builds).
 
 Set ``--frames`` to record multiple consecutive frames and ``--output`` to
 persist the structured telemetry as JSON for later comparison. ``--window-backend``

@@ -303,12 +303,12 @@ Scene tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R scene
+ctest --preset linux-gcc-debug -R scene
 ```
 
 Sample scenes for debugging:
 ```bash
-ctest --preset clang-debug -R scene_samples
+ctest --preset linux-gcc-debug -R scene_samples
 ```
 
 ## Dependencies

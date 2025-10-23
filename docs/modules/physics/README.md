@@ -261,12 +261,12 @@ Physics tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R physics
+ctest --preset linux-gcc-debug -R physics
 ```
 
 Benchmarks:
 ```bash
-ctest --preset clang-release -R physics_benchmark
+ctest --preset linux-gcc-release -R physics_benchmark
 ```
 
 ## Dependencies

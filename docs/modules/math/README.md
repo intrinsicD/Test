@@ -341,7 +341,7 @@ Math tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R math
+ctest --preset linux-gcc-debug -R math
 ```
 
 ## Dependencies
