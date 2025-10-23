@@ -99,6 +99,48 @@ TEST(PointCloud, RoundTripsAsciiPLY)
     std::filesystem::remove(file);
 }
 
+TEST(PointCloud, AutoFormatInfersFromExtension)
+{
+    geo::PointCloud cloud;
+    auto intensity = cloud.interface.vertex_property<float>("p:intensity", 0.0F);
+
+    const auto v0 = cloud.interface.add_vertex({1.0F, 0.0F, 0.0F});
+    const auto v1 = cloud.interface.add_vertex({-1.0F, 1.5F, 3.0F});
+
+    intensity[v0] = 2.5F;
+    intensity[v1] = -4.0F;
+
+    const auto file = std::filesystem::temp_directory_path() /
+                      "engine_geometry_point_cloud_auto_infer.PLY"; // Intentional upper-case.
+
+    geo::PointCloudIOFlags flags;
+    flags.format = geo::PointCloudIOFlags::Format::kAuto;
+    geo::point_cloud::write(cloud.interface, file, flags);
+
+    geo::PointCloud loaded;
+    geo::point_cloud::read(loaded.interface, file);
+
+    EXPECT_EQ(loaded.interface.vertex_count(), 2U);
+
+    auto loaded_intensity = loaded.interface.get_vertex_property<float>("p:intensity");
+    ASSERT_TRUE(loaded_intensity);
+
+    const auto h0 = geo::VertexHandle(0U);
+    const auto h1 = geo::VertexHandle(1U);
+
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[0], cloud.interface.position(v0)[0]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[1], cloud.interface.position(v0)[1]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[2], cloud.interface.position(v0)[2]);
+    EXPECT_FLOAT_EQ(loaded_intensity[h0], intensity[v0]);
+
+    EXPECT_FLOAT_EQ(loaded.interface.position(h1)[0], cloud.interface.position(v1)[0]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h1)[1], cloud.interface.position(v1)[1]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h1)[2], cloud.interface.position(v1)[2]);
+    EXPECT_FLOAT_EQ(loaded_intensity[h1], intensity[v1]);
+
+    std::filesystem::remove(file);
+}
+
 TEST(PointCloud, SkipsDeletedVerticesDuringRoundTrip)
 {
     geo::PointCloud cloud;
@@ -142,6 +184,39 @@ TEST(PointCloud, SkipsDeletedVerticesDuringRoundTrip)
     EXPECT_FLOAT_EQ(loaded.interface.position(h1)[1], cloud.interface.position(v2)[1]);
     EXPECT_FLOAT_EQ(loaded.interface.position(h1)[2], cloud.interface.position(v2)[2]);
     EXPECT_FLOAT_EQ(loaded_intensity[h1], intensity[v2]);
+
+    std::filesystem::remove(file);
+}
+
+TEST(PointCloud, AutoFormatDefaultsWithoutExtension)
+{
+    geo::PointCloud cloud;
+    auto normals = cloud.interface.vertex_property<engine::math::vec3>("p:normal", {0.0F, 0.0F, 1.0F});
+
+    const auto v0 = cloud.interface.add_vertex({0.5F, -1.0F, 2.0F});
+    normals[v0] = engine::math::vec3{0.0F, -1.0F, 0.0F};
+
+    const auto file = std::filesystem::temp_directory_path() /
+                      "engine_geometry_point_cloud_auto_default"; // No extension on purpose.
+
+    geo::PointCloudIOFlags flags;
+    flags.format = geo::PointCloudIOFlags::Format::kAuto;
+    flags.binary = true;
+    geo::point_cloud::write(cloud.interface, file, flags);
+
+    geo::PointCloud loaded;
+    geo::point_cloud::read(loaded.interface, file);
+
+    EXPECT_EQ(loaded.interface.vertex_count(), 1U);
+
+    auto loaded_normals = loaded.interface.get_vertex_property<engine::math::vec3>("p:normal");
+    ASSERT_TRUE(loaded_normals);
+
+    const auto h0 = geo::VertexHandle(0U);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[0], cloud.interface.position(v0)[0]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[1], cloud.interface.position(v0)[1]);
+    EXPECT_FLOAT_EQ(loaded.interface.position(h0)[2], cloud.interface.position(v0)[2]);
+    EXPECT_FLOAT_EQ(loaded_normals[h0][1], normals[v0][1]);
 
     std::filesystem::remove(file);
 }

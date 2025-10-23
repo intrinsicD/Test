@@ -540,7 +540,13 @@ namespace engine::geometry::point_cloud
             {
                 return IOFlags::Format::kPLY;
             }
-            throw std::runtime_error("Unable to infer output format from file extension");
+
+            // Default to PLY when the caller leaves the extension unspecified or provides
+            // an unknown extension. This mirrors historical behaviour where the point cloud
+            // writer only supported PLY output and keeps `kAuto` usable in scripting
+            // pipelines that rely on temporary files without extensions. The binary flag is
+            // still honoured downstream.
+            return IOFlags::Format::kPLY;
         }
 
         void ensure_parent_directory(const std::filesystem::path& path)
@@ -736,9 +742,9 @@ namespace engine::geometry::point_cloud
         switch (const auto format = resolve_format(flags, path))
         {
             case IOFlags::Format::kPLY:
+            case IOFlags::Format::kAuto:
                 write_ply(cloud, path, flags);
                 break;
-            case IOFlags::Format::kAuto: //TODO: What is kAuto doing here? What is it anyway?
             default:
                 throw std::runtime_error("Unsupported point cloud output format");
         }
