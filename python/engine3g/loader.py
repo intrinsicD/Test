@@ -261,7 +261,11 @@ def load_all_modules(search_paths: Optional[Iterable[os.PathLike[str] | str]] = 
 
 
 def _canonical_identifier(module_name: str) -> str:
-    sanitized = module_name.replace(".", "_")
+    sanitized = module_name.strip().replace(".", "_")
+    if not sanitized:
+        raise ValueError("Module name must not be empty")
+    if sanitized.startswith("engine_"):
+        return sanitized
     return f"engine_{sanitized}"
 
 

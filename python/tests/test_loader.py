@@ -63,6 +63,13 @@ class CanonicalIdentifierTests(unittest.TestCase):
     def test_canonical_identifier_replaces_dots(self) -> None:
         self.assertEqual(loader._canonical_identifier("physics.module"), "engine_physics_module")
 
+    def test_canonical_identifier_accepts_prefixed_names(self) -> None:
+        self.assertEqual(loader._canonical_identifier("engine_geometry"), "engine_geometry")
+
+    def test_canonical_identifier_rejects_empty_names(self) -> None:
+        with self.assertRaises(ValueError):
+            loader._canonical_identifier("   ")
+
 
 class SharedLibraryNameTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -290,6 +297,23 @@ class PublicLoaderHelpersTests(unittest.TestCase):
         self.assertEqual(handle.name, "rendering.core")
         self.assertEqual(handle.identifier, "engine_rendering_core")
         self.assertIs(handle.library, mock.sentinel.module_lib)
+
+    def test_load_module_accepts_canonical_identifier(self) -> None:
+        with mock.patch.object(
+            loader,
+            "_load_shared_library",
+            side_effect=lambda identifier, search_paths: mock.sentinel.module_lib,
+        ) as mocked_load:
+            handle = loader.load_module("engine_geometry", search_paths=None)
+
+        mocked_load.assert_called_once_with("engine_geometry", None)
+        self.assertEqual(handle.name, "engine_geometry")
+        self.assertEqual(handle.identifier, "engine_geometry")
+        self.assertIs(handle.library, mock.sentinel.module_lib)
+
+    def test_load_module_rejects_empty_name(self) -> None:
+        with self.assertRaises(ValueError):
+            loader.load_module("   ", search_paths=None)
 
     def test_load_all_modules_aggregates_modules(self) -> None:
         module_handle = loader.EngineModuleHandle("graphics", "engine_graphics", library=mock.sentinel.lib)
