@@ -244,12 +244,12 @@ Compute tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R compute
+ctest --preset linux-gcc-debug -R compute
 ```
 
 CUDA tests (when enabled):
 ```bash
-ctest --preset clang-debug -R compute_cuda
+ctest --preset linux-gcc-debug-cuda -R compute_cuda
 ```
 
 ## Dependencies

@@ -12,8 +12,9 @@ Command-line tool for capturing and analyzing runtime diagnostics:
 
 ```bash
 # Capture telemetry snapshot
+# Adjust the preset directory to match your build tree.
 python scripts/diagnostics/runtime_frame_telemetry.py \
-    --library-dir build/lib \
+    --library-dir out/build/linux-gcc-debug \
     --output telemetry_snapshot.json
 
 # View telemetry report
@@ -162,7 +163,8 @@ Interactive shell for runtime diagnostics:
 
 ```bash
 # Start diagnostics shell
-python scripts/diagnostics/shell.py --runtime build/lib/libengine_runtime.so
+# Adjust the path to reflect your selected preset.
+python scripts/diagnostics/shell.py --runtime out/build/linux-gcc-debug/libengine_runtime.so
 
 # Interactive commands
 > show metrics runtime.lifecycle.*
@@ -184,7 +186,7 @@ Tools tests validate:
 Run tests:
 ```bash
 pytest scripts/tests/tools/
-ctest --preset clang-debug -R tools  # When enabled
+ctest --preset linux-gcc-debug -R tools  # When enabled
 ```
 
 ## Dependencies

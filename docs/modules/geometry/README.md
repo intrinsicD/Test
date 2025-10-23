@@ -299,7 +299,7 @@ Tests cover:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R geometry
+ctest --preset linux-gcc-debug -R geometry
 ```
 
 ## Dependencies

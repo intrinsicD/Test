@@ -253,15 +253,15 @@ IO tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R io
+ctest --preset linux-gcc-debug -R io
 ```
 
 Run fuzz tests:
 ```bash
-# Requires libFuzzer build
-cmake --preset clang-debug-fuzz
-cmake --build --preset clang-debug-fuzz
-./build/engine/io/io_fuzz_import corpus/ -runs=10000
+# Requires libFuzzer build (adjust paths for your preset)
+cmake --preset linux-gcc-debug -DENGINE_ENABLE_FUZZING=ON
+cmake --build --preset linux-gcc-debug --target engine_io_geometry_fuzz
+./out/build/linux-gcc-debug/engine/io/engine_io_geometry_fuzz corpus/ -runs=10000
 ```
 
 ## Dependencies

@@ -57,7 +57,7 @@ Invalid values gracefully degrade to Mock backend to keep automation determinist
 Set the default backend during CMake configuration:
 
 ```bash
-cmake --preset clang-debug -DENGINE_WINDOW_BACKEND=SDL
+cmake --preset linux-gcc-debug -DENGINE_WINDOW_BACKEND=SDL
 ```
 
 Options: `GLFW`, `SDL`, `MOCK`, `AUTO` (no build-time preference)
@@ -312,7 +312,7 @@ Platform tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R platform
+ctest --preset linux-gcc-debug -R platform
 ```
 
 ## Dependencies

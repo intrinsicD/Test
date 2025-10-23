@@ -3,7 +3,7 @@
 Usage examples::
 
     python scripts/diagnostics/collision_benchmark_report.py \
-        --current build/linux-gcc-debug/physics_collision_benchmark.json
+        --current out/build/linux-gcc-debug/physics_collision_benchmark.json
 
     python scripts/diagnostics/collision_benchmark_report.py \
         --current results/current.json --baseline results/previous.json

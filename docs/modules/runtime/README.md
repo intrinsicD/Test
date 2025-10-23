@@ -158,7 +158,7 @@ Integration tests live in `engine/tests/integration/test_runtime_integration.cpp
 
 Run tests via:
 ```bash
-ctest --preset clang-debug -R runtime
+ctest --preset linux-gcc-debug -R runtime
 ```
 
 ## Current State

@@ -201,7 +201,7 @@ Tests cover:
 
 Run animation tests:
 ```bash
-ctest --preset clang-debug -R animation
+ctest --preset linux-gcc-debug -R animation
 ```
 
 ## Dependencies

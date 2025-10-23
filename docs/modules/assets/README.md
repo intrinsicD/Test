@@ -222,7 +222,7 @@ Tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R assets
+ctest --preset linux-gcc-debug -R assets
 ```
 
 ## Dependencies

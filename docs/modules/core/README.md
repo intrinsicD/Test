@@ -352,7 +352,7 @@ Core tests validate:
 
 Run tests:
 ```bash
-ctest --preset clang-debug -R core
+ctest --preset linux-gcc-debug -R core
 ```
 
 ## C API

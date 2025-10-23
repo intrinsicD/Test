@@ -10,13 +10,13 @@ acceptance criteria (`AI-003`, `RT-003`, `RT-004`).
 ## `runtime_frame_telemetry.py`
 
 1. **Build the engine** with a preset that produces shared libraries (for
-   example `cmake --preset linux-clang-debug` followed by `cmake --build --preset
-   linux-clang-debug --target engine_runtime`). Ensure the build output
+   example `cmake --preset linux-gcc-debug` followed by `cmake --build --preset
+   linux-gcc-debug --target engine_runtime`). Ensure the build output
    directory is discoverable through `LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`/`PATH`.
 2. **Run the script** from the repository root:
    ```bash
    python scripts/diagnostics/runtime_frame_telemetry.py \
-       --library-dir build/linux-clang-debug \
+       --library-dir out/build/linux-gcc-debug \
        --frames 8 --dt 0.016 --output telemetry/frame_timings.json
    ```
 3. **Inspect the output**. The script prints aggregate timings by subsystem and
