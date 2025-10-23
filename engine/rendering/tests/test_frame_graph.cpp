@@ -500,6 +500,27 @@ TEST(FrameGraph, RejectsMissingResourceMetadata)
     EXPECT_THROW(graph.compile(), std::logic_error);
 }
 
+TEST(FrameGraph, RejectsEmptyResourceNames)
+{
+    engine::rendering::FrameGraph graph;
+
+    engine::rendering::FrameGraphResourceDescriptor descriptor{};
+    descriptor.name.clear();
+    EXPECT_THROW(graph.create_resource(descriptor), std::invalid_argument);
+
+    EXPECT_THROW(graph.create_resource("", engine::rendering::ResourceLifetime::Transient), std::invalid_argument);
+}
+
+TEST(FrameGraph, RejectsDuplicateResourceNames)
+{
+    engine::rendering::FrameGraph graph;
+    graph.create_resource(make_color_resource("Color"));
+
+    EXPECT_THROW(graph.create_resource(make_color_resource("Color")), std::invalid_argument);
+
+    EXPECT_THROW(graph.create_resource("Color", engine::rendering::ResourceLifetime::Transient), std::invalid_argument);
+}
+
 TEST(FrameGraph, PreventsMultipleWritersForResource)
 {
     engine::rendering::FrameGraph graph;
