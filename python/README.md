@@ -12,6 +12,16 @@
   normalises both forms while resolving shared libraries.
 - The loader enforces unique module names when aggregating runtime subsystems, raising a descriptive error if duplicates are
   reported so misconfigured registries do not produce partially loaded module sets.
+- Manage runtime lifetime ergonomically using the context manager exposed by `engine3g.loader.load_runtime()` or
+  `EngineRuntimeHandle`; entering the context calls `initialize()` and exiting always calls `shutdown()` when the runtime was
+  activated by the context:
+
+  ```python
+  from engine3g import loader
+
+  with loader.load_runtime() as runtime:
+      runtime.tick(1.0 / 60.0)
+  ```
 
 ## Environment Setup
 

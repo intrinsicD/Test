@@ -5,6 +5,8 @@
 - Contains `test_loader.py`, a unittest suite validating the behaviour of `engine3g.loader`.
 - Exercises canonical identifier generation, platform-specific shared library naming, search path aggregation, and error handling during dynamic loading.
 - Uses lightweight stand-ins for C symbols to verify handle helpers without requiring compiled engine libraries, relying heavily on `unittest.mock` and dummy callable wrappers.
+- Covers the runtime context manager to guarantee that `initialize()` and `shutdown()` fire deterministically, even when
+  exceptions occur inside the managed block or the runtime was already initialised.
 
 ## Usage
 

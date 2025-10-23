@@ -92,6 +92,8 @@ class EngineRuntimeHandle:
             ctypes.POINTER(ctypes.c_float),
             ctypes.POINTER(ctypes.c_float),
         ]
+        self._is_initialized: bool = False
+        self._context_owns_runtime: bool = False
 
     def name(self) -> str:
         """Return the runtime library name."""
@@ -111,14 +113,33 @@ class EngineRuntimeHandle:
     def initialize(self) -> None:
         """Ensure the native runtime is initialized."""
         self.library.engine_runtime_initialize()
+        self._is_initialized = True
 
     def shutdown(self) -> None:
         """Request that the runtime release all cached state."""
         self.library.engine_runtime_shutdown()
+        self._is_initialized = False
 
     def tick(self, dt: float) -> None:
         """Advance the runtime simulation by ``dt`` seconds."""
         self.library.engine_runtime_tick(ctypes.c_double(dt))
+
+    def __enter__(self) -> EngineRuntimeHandle:
+        """Activate the runtime when used as a context manager."""
+        if not self._is_initialized:
+            self.initialize()
+            self._context_owns_runtime = True
+        else:
+            self._context_owns_runtime = False
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        """Shut down the runtime on context manager exit."""
+        try:
+            if self._context_owns_runtime:
+                self.shutdown()
+        finally:
+            self._context_owns_runtime = False
 
     def mesh_bounds(self) -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
         """Return the axis-aligned bounds of the deformed mesh."""

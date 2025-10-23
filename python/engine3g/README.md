@@ -17,8 +17,12 @@
 - `EngineRuntimeHandle.load_modules()` validates that each module name reported by the runtime is unique and aborts with a
   descriptive error if duplicates appear, preventing partially constructed module maps when subsystem registration is
   misconfigured.
+- `EngineRuntimeHandle` implements the context manager protocol. Use `with loader.load_runtime() as runtime:` to automatically
+  initialise the runtime on entry and shut it down on exit. When the runtime was already initialised, the context manager
+  preserves the existing lifetime so shared handles remain valid.
 - Add ergonomic wrappers or CLI entry points alongside new runtime capabilities.
 
 ## TODO / Next Steps
 
-- Harden the loader API and expose ergonomic runtime bindings.
+- Harden the loader API further by layering typed helpers over the runtime context manager and surfacing structured error
+  handling.
