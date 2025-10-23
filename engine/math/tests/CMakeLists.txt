@@ -1,5 +1,6 @@
 add_executable(engine_math_tests
     test_math.cpp
+    test_solvers.cpp
 )
 
 target_link_libraries(engine_math_tests

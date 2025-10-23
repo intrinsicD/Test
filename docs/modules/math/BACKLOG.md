@@ -37,6 +37,9 @@ _Last Updated: 2025-05-16_
 - 2025-05-30: Added vector component-wise arithmetic and comparison utilities
   to close documentation gaps around advanced vector helpers and unblock
   downstream consumers requiring deterministic clamp/min/max workflows.
+- 2025-10-24: Landed linear-system and polynomial solvers with stability
+  guidance and regression tests to support physics/geometry intersection
+  workflows ahead of `MA-130` telemetry work.
 
 Coordinate updates with consuming modules (animation, physics) to keep guidance
 consistent.

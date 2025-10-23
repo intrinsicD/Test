@@ -295,6 +295,49 @@ struct Plane {
 };
 ```
 
+## Solver Utilities
+
+The solver helpers cover small linear systems and low-degree polynomials that
+appear in physics constraints, animation blending, and geometry intersection
+tests.
+
+```cpp
+#include "engine/math/solvers.hpp"
+
+// Solve Ax = b for a 3x3 matrix. Returns std::optional<vec3>.
+math::mat3 A{
+    3.0, 2.0, -1.0,
+    2.0, -2.0, 4.0,
+    -1.0, 0.5, -1.0};
+math::vec3 b{1.0F, -2.0F, 0.0F};
+
+auto x = math::solvers::try_solve_linear_system(A, b);
+if (x)
+{
+    // -> {1, -2, -2}
+}
+
+// Quadratic roots (coefficients ax^2 + bx + c = 0)
+std::array<float, 2> roots{};
+const std::size_t root_count = math::solvers::solve_quadratic(1.0F, -5.0F, 6.0F, roots);
+// root_count == 2, roots == {2, 3}
+
+// Cubic roots. Returns 1, 2, or 3 real solutions sorted ascending.
+std::array<double, 3> cubic_roots{};
+const std::size_t cubic_count = math::solvers::solve_cubic(1.0, -6.0, 11.0, -6.0, cubic_roots);
+// cubic_roots == {1, 2, 3}
+```
+
+### Numerical Domains
+
+- `try_solve_linear_system` uses partial pivoting with tolerances matching the
+  matrix inversion helpers: pivots smaller than `1e-6` (float) or `1e-12`
+  (double) trigger a `std::nullopt` result; pass an explicit tolerance for
+  custom scaling regimes.
+- The polynomial solvers internally promote to long double, clamp discriminants
+  with the same `1e-6`/`1e-12` thresholds, and gracefully fall back to lower-
+  degree problems when the leading coefficient vanishes.
+
 ## Orthonormal Basis
 
 Create coordinate frames:
