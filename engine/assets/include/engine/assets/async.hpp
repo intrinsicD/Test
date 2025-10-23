@@ -829,7 +829,7 @@ namespace engine::assets {
         }
 
         void record_failure(const AssetLoadError& error,
-                             std::string_view /*identifier*/ = {},
+                             std::string_view identifier = {},
                              std::string_view hint_override = {})
         {
             failure_count_.fetch_add(1, std::memory_order_relaxed);

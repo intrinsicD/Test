@@ -4,6 +4,9 @@
 
 - Provides the root for Python-based automation, testing, and runtime bindings.
 - Relies on the native modules to be discoverable via environment configuration.
+- Ships a manually curated `.pyi` stub for `engine3g.loader` so editors and
+  static analyzers have type information while `PY-001` bindings mature (see
+  [docs/ROADMAP.md](../docs/ROADMAP.md#py-001-core-bindings)).
 
 ## Usage
 

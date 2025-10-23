@@ -4,6 +4,8 @@
 
 - Contains the Python loader that discovers and interacts with compiled engine modules.
 - Establishes the namespace for higher-level scripting utilities.
+- Provides a `.pyi` stub for `engine3g.loader` so downstream tooling can adopt
+  typed surfaces ahead of compiled binding coverage.
 
 ## Usage
 

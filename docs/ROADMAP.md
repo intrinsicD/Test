@@ -54,7 +54,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 ### Mid-term (3-6 months)
 
-- **PY-001** — Core bindings and `.pyi` stubs for Python integration
+- **PY-001** — Core bindings and `.pyi` stubs for Python integration *(loader
+  module ships manual stub; extend coverage to compiled bindings next)*
 - **TL-120** — Advanced diagnostics dashboard with Chrome trace export
 - **CO-170** — Runtime integration sample showing dispatcher orchestration
 

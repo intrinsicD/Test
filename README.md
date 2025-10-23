@@ -31,7 +31,8 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 
 - **`docs/`** – Design records, module READMEs, task trackers, and reusable templates. Start here to align on priorities.
 - **`engine/`** – Native subsystems with headers, sources, and associated tests.
-- **`python/`** – Runtime loaders and utilities that mirror C++ APIs.
+- **`python/`** – Runtime loaders and utilities that mirror C++ APIs; now ships
+  a manually curated `.pyi` stub for `engine3g.loader` as part of `PY-001`.
 - **`scripts/`** – Build, validation, CI, and diagnostics orchestration entry points.
 - **`third_party/`** – Vendored dependencies (EnTT, Dear ImGui, spdlog, GoogleTest, ...). Update only when dependency baselines shift.
 
