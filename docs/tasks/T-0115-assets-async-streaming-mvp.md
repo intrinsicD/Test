@@ -78,6 +78,10 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
   [`docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md`](../modules/runtime/ASYNC_STREAMING_INTEGRATION.md),
   documenting configuration, scheduling flows, and telemetry consumption for
   runtime consumers (`AI-002.3`).
+- `RuntimeHost::request_mesh_asset` / `request_point_cloud_asset` delegate
+  asynchronous scheduling to the configured caches, ensuring telemetry captures
+  completion/cancellation outcomes while keeping runtime orchestration
+  deterministic (`AI-002.2`).
 
 ## Open Questions
 - Do we expose per-asset-type worker pools or a shared pool with weighted priorities?

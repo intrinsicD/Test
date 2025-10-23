@@ -58,23 +58,27 @@ Key behaviours:
 
 ## Scheduling Asset Requests
 
-Subsystems request asynchronous work through asset caches. Each cache accepts an
-`AssetLoadRequest` describing the identifier, priority, and optional deadline.
-Example for meshes:
+Subsystems can either call cache APIs directly or delegate to the runtime host.
+Provide cache instances through `RuntimeHostDependencies::asset_streaming` and
+use the convenience wrappers when the runtime should own the scheduling:
 
 ```cpp
-using namespace engine::assets;
+engine::assets::MeshCache mesh_cache;
+engine::runtime::RuntimeHostDependencies deps{};
+deps.asset_streaming.mesh_cache = &mesh_cache;
 
-AssetLoadRequest request = AssetLoadRequest::from_path(
-    AssetType::mesh,
+engine::runtime::RuntimeHost host{std::move(deps)};
+host.initialize();
+
+auto request = engine::assets::AssetLoadRequest::from_path(
+    engine::assets::AssetType::mesh,
     "assets/meshes/rigged_character.glb",
     /*params*/ {},
-    AssetLoadPriority::High,
+    engine::assets::AssetLoadPriority::High,
     /*deadline*/ std::nullopt,
-    /*allow_blocking_fallback*/ false);
+    /*allow_blocking_fallback*/ true);
 
-AssetLoadFuture<MeshHandle> future =
-    mesh_cache.load_async(request, engine::core::threading::IoThreadPool::instance());
+engine::assets::AssetLoadFuture<engine::assets::MeshHandle> future = host.request_mesh_asset(request);
 ```
 
 `AssetAsyncQueue` deduplicates concurrent requests by identifier and tracks the
@@ -82,7 +86,9 @@ state machine (`Pending → Loading → Ready/Failed/Cancelled`). Futures surfac
 completion via `is_ready()`, `wait()`, and `get()`; callers must handle
 `Result<ResourceHandle<Tag>, AssetLoadError>` outcomes and propagate structured
 errors upstream. Cancellation requests transition futures to `Cancelled` as long
-as the worker has not committed the result.
+as the worker has not committed the result. When subsystems require bespoke
+queues they can still invoke `MeshCache::load_async()` and
+`PointCloudCache::load_async()` directly, supplying the IO thread pool singleton.
 
 ## Runtime Diagnostics and Telemetry
 

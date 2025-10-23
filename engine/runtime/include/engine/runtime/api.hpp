@@ -22,6 +22,8 @@
 #include "engine/scene/validation.hpp"
 
 #if ENGINE_ENABLE_ASSETS
+#    include "engine/assets/mesh_asset.hpp"
+#    include "engine/assets/point_cloud_asset.hpp"
 #    include "engine/assets/validation.hpp"
 #endif
 
@@ -76,6 +78,15 @@ struct ENGINE_RUNTIME_API RuntimeHostDependencies {
 #if ENGINE_ENABLE_RENDERING
     rendering::components::RenderGeometry render_geometry{};
     std::string renderable_name{"runtime.renderable"};
+#endif
+#if ENGINE_ENABLE_ASSETS
+    struct AssetStreamingProviders
+    {
+        assets::MeshCache* mesh_cache{nullptr};
+        assets::PointCloudCache* point_cloud_cache{nullptr};
+    };
+
+    AssetStreamingProviders asset_streaming{};
 #endif
 };
 
@@ -241,6 +252,15 @@ public:
     void submit_render_graph(RenderSubmissionContext& context);
 #endif
 
+#if ENGINE_ENABLE_ASSETS
+    [[nodiscard]] assets::AssetLoadFuture<assets::MeshHandle>
+        request_mesh_asset(const assets::AssetLoadRequest& request);
+    [[nodiscard]] assets::AssetLoadFuture<assets::PointCloudHandle>
+        request_point_cloud_asset(const assets::AssetLoadRequest& request);
+    [[nodiscard]] assets::AssetLoadState mesh_asset_state(std::string_view identifier) const;
+    [[nodiscard]] assets::AssetLoadState point_cloud_asset_state(std::string_view identifier) const;
+#endif
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
@@ -263,6 +283,15 @@ ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
 [[nodiscard]] ENGINE_RUNTIME_API std::vector<std::string> default_subsystem_names();
 [[nodiscard]] ENGINE_RUNTIME_API StreamingMetrics streaming_metrics() noexcept;
 [[nodiscard]] ENGINE_RUNTIME_API const RuntimeDiagnostics& diagnostics() noexcept;
+
+#if ENGINE_ENABLE_ASSETS
+[[nodiscard]] ENGINE_RUNTIME_API assets::AssetLoadFuture<assets::MeshHandle>
+    request_mesh_asset(const assets::AssetLoadRequest& request);
+[[nodiscard]] ENGINE_RUNTIME_API assets::AssetLoadFuture<assets::PointCloudHandle>
+    request_point_cloud_asset(const assets::AssetLoadRequest& request);
+[[nodiscard]] ENGINE_RUNTIME_API assets::AssetLoadState mesh_asset_state(std::string_view identifier);
+[[nodiscard]] ENGINE_RUNTIME_API assets::AssetLoadState point_cloud_asset_state(std::string_view identifier);
+#endif
 
 #if ENGINE_ENABLE_RENDERING
 ENGINE_RUNTIME_API void submit_render_graph(RuntimeHost::RenderSubmissionContext& context);

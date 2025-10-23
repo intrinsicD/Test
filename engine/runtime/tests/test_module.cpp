@@ -4,6 +4,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -20,6 +21,8 @@
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/resource_translation.hpp"
+#include "engine/assets/mesh_asset.hpp"
+#include "engine/assets/point_cloud_asset.hpp"
 #include "engine/assets/validation.hpp"
 #include "engine/io/telemetry.hpp"
 #include "engine/runtime/api.hpp"
@@ -107,6 +110,13 @@ std::optional<std::size_t> find_metric_index(const engine::core::telemetry::Metr
     }
 
     return std::nullopt;
+}
+
+std::filesystem::path geometry_fixture_path(const char* name)
+{
+    auto source_dir = std::filesystem::path{__FILE__}.parent_path();
+    auto base = std::filesystem::absolute(source_dir / "../../io/tests/corpus/geometry_detection");
+    return base / name;
 }
 
 class TestSubsystem final : public engine::core::plugin::ISubsystemInterface {
@@ -968,6 +978,68 @@ TEST(RuntimeHost, StreamingMetricsReflectConfiguration)
     const auto metrics = engine::runtime::streaming_metrics();
     EXPECT_EQ(metrics.worker_count, deps.streaming_config.worker_count);
     EXPECT_EQ(metrics.queue_capacity, deps.streaming_config.queue_capacity);
+    host.shutdown();
+}
+
+TEST(RuntimeHost, RequestMeshAssetRequiresConfiguredCache)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+
+    auto request = engine::assets::AssetLoadRequest::from_identifier(
+        engine::assets::AssetType::mesh,
+        "missing.mesh",
+        {},
+        engine::assets::AssetLoadPriority::Normal,
+        std::nullopt,
+        true);
+
+    EXPECT_THROW(host.request_mesh_asset(request), std::runtime_error);
+    host.shutdown();
+}
+
+TEST(RuntimeHost, RequestMeshAssetSchedulesAsyncLoad)
+{
+    auto& telemetry = engine::assets::AssetStreamingTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    engine::assets::MeshCache mesh_cache;
+    engine::assets::PointCloudCache point_cache;
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.streaming_config.worker_count = 1;
+    deps.streaming_config.queue_capacity = 8;
+    deps.asset_streaming.mesh_cache = &mesh_cache;
+    deps.asset_streaming.point_cloud_cache = &point_cache;
+
+    engine::runtime::RuntimeHost host{deps};
+    host.initialize();
+
+    const auto mesh_path = geometry_fixture_path("mesh_triangle.obj");
+    ASSERT_TRUE(std::filesystem::exists(mesh_path));
+
+    auto request = engine::assets::AssetLoadRequest::from_path(
+        engine::assets::AssetType::mesh,
+        mesh_path,
+        {},
+        engine::assets::AssetLoadPriority::High,
+        std::nullopt,
+        true);
+
+    auto future = host.request_mesh_asset(request);
+    future.wait();
+    auto result = future.get();
+    ASSERT_TRUE(result.has_value()) << result.error().message();
+    const auto handle = result.value();
+    EXPECT_TRUE(handle.is_bound());
+    EXPECT_EQ(mesh_cache.async_state(request.identifier), engine::assets::AssetLoadState::Ready);
+
+    const auto metrics = engine::runtime::streaming_metrics();
+    EXPECT_GE(metrics.streaming_total_completed, 1U);
+    EXPECT_EQ(metrics.streaming_total_failed, 0U);
+    EXPECT_EQ(metrics.streaming_total_cancelled, 0U);
+
+    mesh_cache.unload(handle);
     host.shutdown();
 }
 

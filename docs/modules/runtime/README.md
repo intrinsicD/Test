@@ -94,7 +94,34 @@ deps.streaming_config.queue_capacity = 64;
 deps.streaming_config.enable = true;
 ```
 
-Access streaming health metrics via `engine::runtime::streaming_metrics()` or through the diagnostics snapshot. See [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md) for detailed integration patterns.
+Access streaming health metrics via `engine::runtime::streaming_metrics()` or through the diagnostics snapshot. Supply cache providers through `RuntimeHostDependencies::asset_streaming` to orchestrate requests directly from the runtime:
+
+```cpp
+engine::assets::MeshCache mesh_cache;
+engine::assets::PointCloudCache point_cache;
+
+engine::runtime::RuntimeHostDependencies deps{};
+deps.asset_streaming.mesh_cache = &mesh_cache;
+deps.asset_streaming.point_cloud_cache = &point_cache;
+
+engine::runtime::RuntimeHost host{std::move(deps)};
+host.initialize();
+
+auto request = engine::assets::AssetLoadRequest::from_path(
+    engine::assets::AssetType::mesh,
+    "assets/meshes/rigged_character.glb",
+    /*params*/ {},
+    engine::assets::AssetLoadPriority::High,
+    /*deadline*/ std::nullopt,
+    /*allow_blocking_fallback*/ true);
+
+engine::assets::AssetLoadFuture<engine::assets::MeshHandle> future = host.request_mesh_asset(request);
+future.wait();
+```
+
+`RuntimeHost::request_mesh_asset()` and `RuntimeHost::request_point_cloud_asset()` validate that the IO thread pool is initialised, dispatch the work to the configured cache, and keep diagnostics in sync. Call `RuntimeHost::mesh_asset_state()` or `RuntimeHost::point_cloud_asset_state()` to inspect the async state machine for a specific identifier. Subsystems that require finer control can continue to invoke cache-level `load_async()` helpers directly.
+
+See [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md) for detailed integration patterns and telemetry expectations.
 
 ## Rendering Submission
 
@@ -133,6 +160,7 @@ Key configuration surfaces:
 - `RuntimeHostDependencies::scene_name`: Labels for diagnostics and telemetry
 - `RuntimeHostDependencies::enabled_subsystems`: Explicit subsystem selection
 - `RuntimeHostDependencies::streaming_config`: IO thread pool tuning
+- `RuntimeHostDependencies::asset_streaming`: Optional asset cache providers for async loads
 - Environment variable `ENGINE_PLATFORM_WINDOW_BACKEND`: Override window backend at runtime
 
 ## Dependencies

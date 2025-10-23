@@ -209,7 +209,7 @@ if (mesh_result) {
 }
 ```
 
-See [`../io/README.md`](../io/README.md) and [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md) for IO architecture.
+See [`../io/README.md`](../io/README.md) and [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md) for IO architecture. Runtime consumers can supply cache pointers through `RuntimeHostDependencies::asset_streaming` and call `RuntimeHost::request_mesh_asset()` / `RuntimeHost::request_point_cloud_asset()` when orchestration should occur on the runtime thread.
 
 ## Testing
 

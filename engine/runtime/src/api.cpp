@@ -448,6 +448,10 @@ namespace engine::runtime
         scene::Entity render_entity{};
         rendering::ForwardPipeline forward_pipeline{};
 #endif
+#if ENGINE_ENABLE_ASSETS
+        assets::MeshCache* mesh_cache{nullptr};
+        assets::PointCloudCache* point_cloud_cache{nullptr};
+#endif
 
         static void throw_if_invalid_dependencies(const RuntimeHostDependencies& deps)
         {
@@ -1243,6 +1247,61 @@ namespace engine::runtime
             return diagnostics;
         }
 
+#if ENGINE_ENABLE_ASSETS
+        [[nodiscard]] assets::MeshCache& require_mesh_cache() const
+        {
+            if (mesh_cache == nullptr)
+            {
+                throw std::runtime_error("RuntimeHost asset streaming requires a configured MeshCache");
+            }
+            return *mesh_cache;
+        }
+
+        [[nodiscard]] assets::PointCloudCache& require_point_cloud_cache() const
+        {
+            if (point_cloud_cache == nullptr)
+            {
+                throw std::runtime_error("RuntimeHost asset streaming requires a configured PointCloudCache");
+            }
+            return *point_cloud_cache;
+        }
+
+        void ensure_streaming_ready() const
+        {
+            if (!initialized)
+            {
+                throw std::runtime_error(
+                    "RuntimeHost must be initialized before requesting asynchronous asset loads");
+            }
+        }
+
+        [[nodiscard]] assets::AssetLoadFuture<assets::MeshHandle>
+            request_mesh_asset(const assets::AssetLoadRequest& request)
+        {
+            ensure_streaming_ready();
+            auto& cache = require_mesh_cache();
+            return cache.load_async(request, core::threading::IoThreadPool::instance());
+        }
+
+        [[nodiscard]] assets::AssetLoadFuture<assets::PointCloudHandle>
+            request_point_cloud_asset(const assets::AssetLoadRequest& request)
+        {
+            ensure_streaming_ready();
+            auto& cache = require_point_cloud_cache();
+            return cache.load_async(request, core::threading::IoThreadPool::instance());
+        }
+
+        [[nodiscard]] assets::AssetLoadState mesh_asset_state(std::string_view identifier) const
+        {
+            return require_mesh_cache().async_state(identifier);
+        }
+
+        [[nodiscard]] assets::AssetLoadState point_cloud_asset_state(std::string_view identifier) const
+        {
+            return require_point_cloud_cache().async_state(identifier);
+        }
+#endif
+
 #if ENGINE_ENABLE_RENDERING
         void ensure_render_entity()
         {
@@ -1303,6 +1362,10 @@ namespace engine::runtime
             {
                 renderable_name = dependencies.renderable_name;
             }
+#endif
+#if ENGINE_ENABLE_ASSETS
+            mesh_cache = dependencies.asset_streaming.mesh_cache;
+            point_cloud_cache = dependencies.asset_streaming.point_cloud_cache;
 #endif
             refresh_physics_metrics();
             rebuild_subsystem_cache();
@@ -1884,6 +1947,30 @@ namespace engine::runtime
         return impl_->diagnostics_view();
     }
 
+#if ENGINE_ENABLE_ASSETS
+    assets::AssetLoadFuture<assets::MeshHandle>
+        RuntimeHost::request_mesh_asset(const assets::AssetLoadRequest& request)
+    {
+        return impl_->request_mesh_asset(request);
+    }
+
+    assets::AssetLoadFuture<assets::PointCloudHandle>
+        RuntimeHost::request_point_cloud_asset(const assets::AssetLoadRequest& request)
+    {
+        return impl_->request_point_cloud_asset(request);
+    }
+
+    assets::AssetLoadState RuntimeHost::mesh_asset_state(std::string_view identifier) const
+    {
+        return impl_->mesh_asset_state(identifier);
+    }
+
+    assets::AssetLoadState RuntimeHost::point_cloud_asset_state(std::string_view identifier) const
+    {
+        return impl_->point_cloud_asset_state(identifier);
+    }
+#endif
+
 #if ENGINE_ENABLE_RENDERING
     void RuntimeHost::submit_render_graph(RenderSubmissionContext& context)
     {
@@ -1987,6 +2074,32 @@ namespace engine::runtime
     {
         return global_host().diagnostics();
     }
+
+#if ENGINE_ENABLE_ASSETS
+    assets::AssetLoadFuture<assets::MeshHandle>
+        request_mesh_asset(const assets::AssetLoadRequest& request)
+    {
+        auto& host = ensure_initialized_host();
+        return host.request_mesh_asset(request);
+    }
+
+    assets::AssetLoadFuture<assets::PointCloudHandle>
+        request_point_cloud_asset(const assets::AssetLoadRequest& request)
+    {
+        auto& host = ensure_initialized_host();
+        return host.request_point_cloud_asset(request);
+    }
+
+    assets::AssetLoadState mesh_asset_state(std::string_view identifier)
+    {
+        return ensure_initialized_host().mesh_asset_state(identifier);
+    }
+
+    assets::AssetLoadState point_cloud_asset_state(std::string_view identifier)
+    {
+        return ensure_initialized_host().point_cloud_asset_state(identifier);
+    }
+#endif
 
     std::string_view module_name() noexcept
     {
