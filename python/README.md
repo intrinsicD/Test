@@ -80,10 +80,96 @@ Follow these steps to configure a clean workspace-local environment:
    Use `python -m unittest python.tests.test_loader` when `pytest` is
    unavailable.
 
+## Generating Type Stubs
+
+`pybind11-stubgen` produces `.pyi` interfaces for the compiled bindings once
+the native modules are built. Generate the stubs whenever the C++ bindings
+change so editor integrations and downstream packages stay in sync.
+
+1. **Build the native presets** that export the Python bindings. For example:
+
+   ```bash
+   cmake --preset linux-gcc-debug
+   cmake --build --preset linux-gcc-debug --target <binding-target>
+   ```
+
+   Replace `<binding-target>` with the module-specific CMake target documented
+   by the subsystem you are packaging (for example, consult the module README
+   for names such as `engine_geometry_python`). The build directory produced by
+   the preset will host the compiled `.so`/`.pyd` artefacts.
+
+2. **Activate the virtual environment and install requirements** as described
+   above. The stub generator ships via `pybind11-stubgen` in
+   `python/requirements.txt`.
+
+3. **Expose the build tree and package sources on `PYTHONPATH`** so the module
+   is importable by the stub generator. When using the default presets this is
+   typically:
+
+   ```bash
+   export PYTHONPATH="$(pwd)/python:$(pwd)/out/build/linux-gcc-debug/python"
+   ```
+
+   Adjust the build directory to match the preset you compiled.
+
+4. **Invoke `pybind11-stubgen`** for each binding module. The command below
+   emits stubs into `python/stubs/` and skips generating an auxiliary
+   `setup.py`:
+
+   ```bash
+   pybind11-stubgen engine3g.runtime --output-dir python/stubs --root-suffix "" --no-setup-py
+   ```
+
+   Swap `engine3g.runtime` for the fully-qualified module you wish to
+   document. Repeat the invocation for additional bindings (for example,
+   `engine3g.geometry`).
+
+5. **Validate and commit the stubs**. Ensure they import cleanly and regenerate
+   them whenever the native signatures change:
+
+   ```bash
+   python -m compileall python/stubs
+   ```
+
+## Packaging Runbook
+
+Use the Python packaging toolchain to produce wheels and source archives for
+distribution. These steps assume you have already built the native modules for
+the target platform.
+
+1. **Clean previous artefacts** to avoid publishing stale builds:
+
+   ```bash
+   rm -rf dist build
+   ```
+
+2. **Build the package** using `python -m build`. This command produces both a
+   wheel and an sdist under `dist/`:
+
+   ```bash
+   python -m build --wheel --sdist
+   ```
+
+3. **Validate metadata** before uploading. `twine check` verifies the wheel and
+   sdist structure:
+
+   ```bash
+   python -m twine check dist/*
+   ```
+
+4. **Upload to the chosen repository**. Use TestPyPI while iterating; swap the
+   repository once ready for production distribution:
+
+   ```bash
+   python -m twine upload --repository testpypi dist/*
+   ```
+
+   Provide credentials via environment variables or a `.pypirc` configuration.
+
+5. **Record published versions** in release notes and tag the repository. Keep
+   the roadmap (`docs/ROADMAP.md`) in sync when packaging milestones complete.
+
 ## TODO / Next Steps
 
-- Document the `pybind11-stubgen` invocation patterns once bindings land so the
-  generated type hints are reproducible in CI.
-- Capture packaging runbook steps (build, wheel validation, and `twine` usage)
-  alongside the future publishing workflow for
-  [PY-001](../docs/ROADMAP.md#py-001-core-bindings).
+- Automate stub generation and package verification in CI once bindings
+  stabilise.
