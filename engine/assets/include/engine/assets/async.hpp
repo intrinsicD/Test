@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -795,6 +796,13 @@ namespace engine::assets {
         std::array<std::atomic<std::uint64_t>, io::geometry_io_error_count()> geometry_failures_{};
     };
 
+    struct AssetHotReloadFailureRecord
+    {
+        std::string identifier{};
+        std::string error{};
+        std::string hint{};
+    };
+
     struct AssetHotReloadTelemetrySnapshot
     {
         std::uint64_t hot_reload_attempts{0};
@@ -803,6 +811,7 @@ namespace engine::assets {
         std::uint64_t rejected_count{0};
         std::string last_error{};
         std::string error_hint{};
+        std::vector<AssetHotReloadFailureRecord> recent_failures{};
     };
 
     class AssetHotReloadTelemetry
@@ -843,6 +852,16 @@ namespace engine::assets {
             {
                 last_hint_.assign(default_hint(error.code()));
             }
+
+            AssetHotReloadFailureRecord record{};
+            record.identifier.assign(identifier.begin(), identifier.end());
+            record.error = last_error_;
+            record.hint = last_hint_;
+            if (recent_failures_.size() >= max_recent_failures)
+            {
+                recent_failures_.pop_front();
+            }
+            recent_failures_.emplace_back(std::move(record));
         }
 
         void record_cancelled()
@@ -865,6 +884,7 @@ namespace engine::assets {
             snapshot.rejected_count = rejected_count_.load(std::memory_order_relaxed);
             snapshot.last_error = last_error_;
             snapshot.error_hint = last_hint_;
+            snapshot.recent_failures.assign(recent_failures_.rbegin(), recent_failures_.rend());
             return snapshot;
         }
 
@@ -877,9 +897,12 @@ namespace engine::assets {
             std::lock_guard lock{mutex_};
             last_error_.clear();
             last_hint_.clear();
+            recent_failures_.clear();
         }
 
     private:
+        static constexpr std::size_t max_recent_failures = 8;
+
         static std::string default_hint(AssetLoadErrorCategory category)
         {
             switch (category)
@@ -906,6 +929,7 @@ namespace engine::assets {
         mutable std::mutex mutex_{};
         std::string last_error_{};
         std::string last_hint_{};
+        std::deque<AssetHotReloadFailureRecord> recent_failures_{};
     };
 
     inline bool is_terminal_state(AssetLoadState state) noexcept

@@ -88,7 +88,8 @@ samples filtered by prefix.
    `--max-issues` when triaging specific subsystems or scene hierarchy reports.
    When hot reload
    failures accumulate, the viewer adds a **Hot Reload Guidance** section that
-   summarises failure counters, echoes the latest exported error (when
+   summarises failure counters, enumerates the most recent failing asset
+   identifiers with their error messages, echoes the latest exported error (when
    available), and lists remediation steps (verify watcher permissions,
    re-export corrupt assets, increase queue capacity, etc.).
 4. Provide `--verbose` to append metric description annotations when operators

@@ -215,7 +215,9 @@ Once modularization is complete, the module will be re-enabled and integrated in
 
 ## Current State
 
-- Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots, Dear ImGui integration for diagnostics UI, and profiler utilities; runtime packaging script available for CI.
+- Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots—including recent
+  asset reload failures with per-asset hints—Dear ImGui integration for diagnostics UI, and profiler utilities; runtime packaging
+  script available for CI.
 
 ## Usage
 

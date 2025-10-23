@@ -342,6 +342,23 @@ def _format_hot_reload_guidance(diagnostics: Mapping[str, object]) -> str:
             lines.append(
                 "  • Monitor pending/loading handles; excessive backlog can mask repeated reload failures."
             )
+        recent_failures = hot_reload.get("recent_failures")
+        if isinstance(recent_failures, Sequence):
+            rendered_failures: List[str] = []
+            for entry in recent_failures:
+                if not isinstance(entry, Mapping):
+                    continue
+                identifier = str(entry.get("identifier", "")).strip()
+                error_message = str(entry.get("error", "")).strip()
+                hint_message = str(entry.get("hint", "")).strip()
+                label = identifier or "<unknown asset>"
+                detail = f"    • {label}: {error_message}" if error_message else f"    • {label}"
+                rendered_failures.append(detail)
+                if hint_message:
+                    rendered_failures.append(f"      Hint: {hint_message}")
+            if rendered_failures:
+                lines.append("  • Recent reload failures:")
+                lines.extend(rendered_failures)
 
     if cancelled_count > 0:
         lines.append(

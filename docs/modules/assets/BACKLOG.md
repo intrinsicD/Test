@@ -22,8 +22,6 @@ _Last Updated: 2025-05-05_
 | Task ID | Description | Dependency |
 | --- | --- | --- |
 | `AS-315` | Integrate filesystem watcher callbacks for hot reload (`CC-002`). | `PL-222` watcher abstraction. |
-| `AS-320` | Draft material persistence strategy and serialization format. | None |
-| `AS-330` | Extend diagnostics shell to surface cache reload failures. | `TL-101` diagnostics MVP |
 
 ## Dependencies
 
@@ -39,6 +37,9 @@ _Last Updated: 2025-05-05_
   [`../../ROADMAP.md`](../../ROADMAP.md#cc-002-hot-reload-infrastructure).
 - 2025-03-24: Published [`design/MATERIAL_PERSISTENCE_STRATEGY.md`](../../design/MATERIAL_PERSISTENCE_STRATEGY.md)
   completing `AS-320` and unblocking material cache implementation work.
+- Diagnostics shell now enumerates recent asset reload failures with hints,
+  completing `AS-330` and providing actionable triage data alongside the
+  existing hot-reload telemetry.
 - 2025-05-05: Asset async queue cancellation checks guard geometry detection and
   decode hand-offs, and tests verify cancellation telemetry remains
   deterministic (`AS-305`).

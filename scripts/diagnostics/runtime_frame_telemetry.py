@@ -145,6 +145,15 @@ class RuntimeStreamingMetrics:
 
 
 @dataclass
+class HotReloadFailure:
+    """Most recent hot reload failure captured by the runtime."""
+
+    identifier: str
+    error: str
+    hint: str
+
+
+@dataclass
 class HotReloadMetrics:
     """Hot reload telemetry snapshot exported through the runtime diagnostics."""
 
@@ -157,6 +166,7 @@ class HotReloadMetrics:
     total_requests: int
     last_error: str
     error_hint: str
+    recent_failures: List[HotReloadFailure]
 
 
 @dataclass
@@ -317,6 +327,7 @@ class RuntimeBindings:
         self._has_diagnostics = False
         self._has_streaming_metrics = False
         self._has_hot_reload_metrics = False
+        self._has_hot_reload_failure_details = False
         self._has_scene_validation = False
         self._has_metrics = False
         self._streaming_metrics_capacity = _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK
@@ -326,6 +337,10 @@ class RuntimeBindings:
         )
         self._streaming_metrics_func = None
         self._hot_reload_metrics_func = None
+        self._hot_reload_failure_count_func = None
+        self._hot_reload_failure_identifier_func = None
+        self._hot_reload_failure_error_func = None
+        self._hot_reload_failure_hint_func = None
         self._configure_signatures()
 
     @staticmethod
@@ -540,9 +555,49 @@ class RuntimeBindings:
         except AttributeError:
             self._has_hot_reload_metrics = False
             self._hot_reload_metrics_func = None
+            self._has_hot_reload_failure_details = False
+            self._hot_reload_failure_count_func = None
+            self._hot_reload_failure_identifier_func = None
+            self._hot_reload_failure_error_func = None
+            self._hot_reload_failure_hint_func = None
         else:
             self._has_hot_reload_metrics = True
             self._hot_reload_metrics_func = lib.engine_runtime_diagnostic_hot_reload_metrics
+            try:
+                lib.engine_runtime_diagnostic_hot_reload_recent_failure_count.restype = ctypes.c_uint32
+                lib.engine_runtime_diagnostic_hot_reload_recent_failure_count.argtypes = []
+                lib.engine_runtime_diagnostic_hot_reload_recent_failure_identifier.restype = ctypes.c_char_p
+                lib.engine_runtime_diagnostic_hot_reload_recent_failure_identifier.argtypes = [
+                    ctypes.c_uint32
+                ]
+                lib.engine_runtime_diagnostic_hot_reload_recent_failure_error.restype = ctypes.c_char_p
+                lib.engine_runtime_diagnostic_hot_reload_recent_failure_error.argtypes = [
+                    ctypes.c_uint32
+                ]
+                lib.engine_runtime_diagnostic_hot_reload_recent_failure_hint.restype = ctypes.c_char_p
+                lib.engine_runtime_diagnostic_hot_reload_recent_failure_hint.argtypes = [
+                    ctypes.c_uint32
+                ]
+            except AttributeError:
+                self._has_hot_reload_failure_details = False
+                self._hot_reload_failure_count_func = None
+                self._hot_reload_failure_identifier_func = None
+                self._hot_reload_failure_error_func = None
+                self._hot_reload_failure_hint_func = None
+            else:
+                self._has_hot_reload_failure_details = True
+                self._hot_reload_failure_count_func = (
+                    lib.engine_runtime_diagnostic_hot_reload_recent_failure_count
+                )
+                self._hot_reload_failure_identifier_func = (
+                    lib.engine_runtime_diagnostic_hot_reload_recent_failure_identifier
+                )
+                self._hot_reload_failure_error_func = (
+                    lib.engine_runtime_diagnostic_hot_reload_recent_failure_error
+                )
+                self._hot_reload_failure_hint_func = (
+                    lib.engine_runtime_diagnostic_hot_reload_recent_failure_hint
+                )
 
         if self._has_diagnostics:
             try:
@@ -651,6 +706,38 @@ class RuntimeBindings:
         self._hot_reload_metrics_func(ctypes.byref(data))
         last_error = data.last_error.decode("utf-8") if data.last_error else ""
         error_hint = data.error_hint.decode("utf-8") if data.error_hint else ""
+        failures: List[HotReloadFailure] = []
+        if self._has_hot_reload_failure_details and self._hot_reload_failure_count_func is not None:
+            try:
+                count = int(self._hot_reload_failure_count_func())
+            except Exception:  # pragma: no cover - defensive against ABI drift
+                count = 0
+            for index in range(count):
+                identifier_ptr = (
+                    self._hot_reload_failure_identifier_func(index)
+                    if self._hot_reload_failure_identifier_func is not None
+                    else None
+                )
+                error_ptr = (
+                    self._hot_reload_failure_error_func(index)
+                    if self._hot_reload_failure_error_func is not None
+                    else None
+                )
+                hint_ptr = (
+                    self._hot_reload_failure_hint_func(index)
+                    if self._hot_reload_failure_hint_func is not None
+                    else None
+                )
+                identifier = identifier_ptr.decode("utf-8") if identifier_ptr else ""
+                error_message = error_ptr.decode("utf-8") if error_ptr else ""
+                hint_message = hint_ptr.decode("utf-8") if hint_ptr else ""
+                failures.append(
+                    HotReloadFailure(
+                        identifier=identifier,
+                        error=error_message,
+                        hint=hint_message,
+                    )
+                )
         return HotReloadMetrics(
             attempt_count=int(data.attempt_count),
             failure_count=int(data.failure_count),
@@ -661,6 +748,7 @@ class RuntimeBindings:
             total_requests=int(data.total_requests),
             last_error=last_error,
             error_hint=error_hint,
+            recent_failures=failures,
         )
 
     def diagnostics_snapshot(self) -> Optional[RuntimeDiagnosticsSnapshot]:
@@ -1124,6 +1212,14 @@ def _hot_reload_to_dict(metrics: Optional[HotReloadMetrics]) -> Optional[Dict[st
         "total_requests": metrics.total_requests,
         "last_error": metrics.last_error,
         "error_hint": metrics.error_hint,
+        "recent_failures": [
+            {
+                "identifier": failure.identifier,
+                "error": failure.error,
+                "hint": failure.hint,
+            }
+            for failure in metrics.recent_failures
+        ],
     }
 
 
