@@ -107,6 +107,13 @@ struct ENGINE_RUNTIME_API RuntimeStageTiming
     std::uint64_t sample_count{0};
 };
 
+struct ENGINE_RUNTIME_API HotReloadFailureSummary
+{
+    std::string identifier{};
+    std::string error{};
+    std::string hint{};
+};
+
 struct ENGINE_RUNTIME_API HotReloadDiagnostics
 {
     std::uint64_t attempt_count{0};
@@ -118,6 +125,7 @@ struct ENGINE_RUNTIME_API HotReloadDiagnostics
     std::uint64_t total_requests{0};
     std::string last_error{};
     std::string error_hint{};
+    std::vector<HotReloadFailureSummary> recent_failures{};
 };
 
 struct ENGINE_RUNTIME_API RuntimeInitializationFailure
@@ -332,6 +340,14 @@ struct engine_runtime_hot_reload_metrics
 };
 extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_hot_reload_metrics(
     struct engine_runtime_hot_reload_metrics* out_metrics) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint32_t
+    engine_runtime_diagnostic_hot_reload_recent_failure_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char*
+    engine_runtime_diagnostic_hot_reload_recent_failure_identifier(std::uint32_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char*
+    engine_runtime_diagnostic_hot_reload_recent_failure_error(std::uint32_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char*
+    engine_runtime_diagnostic_hot_reload_recent_failure_hint(std::uint32_t index) noexcept;
 
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_count() noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_failure_count() noexcept;

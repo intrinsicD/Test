@@ -68,6 +68,13 @@ def telemetry_payload() -> dict[str, object]:
                 "total_requests": 4,
                 "last_error": "compile error",
                 "error_hint": "Verify shader includes",
+                "recent_failures": [
+                    {
+                        "identifier": "textures/paint_albedo.ktx2",
+                        "error": "compile error",
+                        "hint": "Verify shader includes",
+                    }
+                ],
             },
             "stages": [
                 {
@@ -169,6 +176,9 @@ def test_viewer_filters_metrics_without_verbose(
     assert "Hot Reload Guidance" in captured
     assert "Failed reload attempts: 1" in captured
     assert "Verify the source asset path" in captured
+    assert "Recent reload failures" in captured
+    assert "textures/paint_albedo.ktx2" in captured
+    assert "Hint: Verify shader includes" in captured
     assert "Initialization Failures" in captured
     assert "Total initialization failures: 1" in captured
     assert "physics.startup" in captured
@@ -231,6 +241,7 @@ def test_viewer_suppresses_hot_reload_guidance_without_failures(
     hot_reload["rejected_count"] = 0
     hot_reload["last_error"] = ""
     hot_reload["error_hint"] = ""
+    hot_reload["recent_failures"] = []
     payload_path = tmp_path / "telemetry.json"
     payload_path.write_text(json.dumps(payload), encoding="utf-8")
 

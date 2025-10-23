@@ -175,7 +175,7 @@ MaterialDocument
 ## Observability
 - Extend `AssetStreamingTelemetry` to include `material_reload_latency` histogram and `material_reload_failures` counter.
 - Emit structured logs on load/reload with correlation IDs for dependency chains.
-- Hook into diagnostics shell (`AS-330`) to surface most recent material reload status per asset.
+- Diagnostics shell (`AS-330`) surfaces the most recent material reload status per asset, mirroring hot-reload telemetry.
 
 ## Security & Integrity
 - Reject documents with external URI schemes; only relative project paths allowed.
@@ -204,7 +204,8 @@ MaterialDocument
 3. **Tooling & Docs (Sprint M3–M4)**
    - Publish CLI utility `material_inspect` under `tools/` for validation and packing binaries.
    - Document workflows in `docs/modules/assets/README.md` and `docs/modules/rendering/README.md`.
-   - Update diagnostics shell once `AS-330` begins.
+   - Diagnostics shell integration landed (`AS-330`), ensuring operators can inspect recent reload failures directly from the
+     telemetry viewer.
 4. **Future Enhancements (Post-M4)**
    - Introduce template inheritance authoring helpers.
    - Explore binary-only format for console builds while keeping JSON as authoring source.

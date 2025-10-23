@@ -242,6 +242,13 @@ def test_diagnostics_to_dict_roundtrip() -> None:
             total_requests=3,
             last_error="compile error",
             error_hint="Rebuild shader",
+            recent_failures=[
+                telemetry.HotReloadFailure(
+                    identifier="materials/paint.material.json",
+                    error="compile error",
+                    hint="Rebuild shader",
+                )
+            ],
         ),
         scene_validation=telemetry.SceneValidationSnapshot(
             issue_count=2,
@@ -270,6 +277,7 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["hot_reload"]["failure_count"] == 1
     assert payload["hot_reload"]["error_hint"] == "Rebuild shader"
     assert payload["hot_reload"]["total_requests"] == 3
+    assert payload["hot_reload"]["recent_failures"][0]["identifier"] == "materials/paint.material.json"
     assert payload["streaming"]["geometry_failures_by_error"]["invalid_argument"] == 1
     assert payload["initialize_failure_count"] == 2
     assert payload["has_initialize_failure"] is True

@@ -1172,6 +1172,16 @@ namespace engine::runtime
             diagnostics.hot_reload.total_requests = hot_reload_snapshot.hot_reload_attempts;
             diagnostics.hot_reload.last_error = hot_reload_snapshot.last_error;
             diagnostics.hot_reload.error_hint = hot_reload_snapshot.error_hint;
+            diagnostics.hot_reload.recent_failures.clear();
+            diagnostics.hot_reload.recent_failures.reserve(hot_reload_snapshot.recent_failures.size());
+            for (const auto& failure : hot_reload_snapshot.recent_failures)
+            {
+                HotReloadFailureSummary summary{};
+                summary.identifier = failure.identifier;
+                summary.error = failure.error;
+                summary.hint = failure.hint;
+                diagnostics.hot_reload.recent_failures.emplace_back(std::move(summary));
+            }
 #else
             diagnostics.hot_reload = {};
 #endif
@@ -2454,6 +2464,49 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_hot_reload_metrics(
     out_metrics->total_requests = hot_reload.total_requests;
     out_metrics->last_error = hot_reload.last_error.c_str();
     out_metrics->error_hint = hot_reload.error_hint.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint32_t
+engine_runtime_diagnostic_hot_reload_recent_failure_count() noexcept
+{
+    const auto& failures = engine::runtime::diagnostics().hot_reload.recent_failures;
+    return static_cast<std::uint32_t>(failures.size());
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_hot_reload_recent_failure_identifier(std::uint32_t index) noexcept
+{
+    const auto& failures = engine::runtime::diagnostics().hot_reload.recent_failures;
+    if (index >= failures.size())
+    {
+        return nullptr;
+    }
+
+    return failures[index].identifier.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_hot_reload_recent_failure_error(std::uint32_t index) noexcept
+{
+    const auto& failures = engine::runtime::diagnostics().hot_reload.recent_failures;
+    if (index >= failures.size())
+    {
+        return nullptr;
+    }
+
+    return failures[index].error.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_hot_reload_recent_failure_hint(std::uint32_t index) noexcept
+{
+    const auto& failures = engine::runtime::diagnostics().hot_reload.recent_failures;
+    if (index >= failures.size())
+    {
+        return nullptr;
+    }
+
+    return failures[index].hint.c_str();
 }
 
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_initialize_count() noexcept

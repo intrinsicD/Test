@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "engine/assets/async.hpp"
 #include "engine/assets/graph_asset.hpp"
 #include "engine/assets/material_asset.hpp"
 #include "engine/assets/mesh_asset.hpp"
@@ -434,5 +435,35 @@ TEST(MaterialCache, StoresDescriptors)
     EXPECT_EQ(asset.descriptor.name, "Basic");
     ASSERT_EQ(asset.descriptor.textures.size(), 1U);
     EXPECT_EQ(asset.descriptor.textures.front().id(), tex.id());
+}
+
+TEST(AssetHotReloadTelemetry, RetainsRecentFailures)
+{
+    using engine::assets::AssetHotReloadTelemetry;
+    using engine::assets::AssetLoadErrorCategory;
+
+    auto& telemetry = AssetHotReloadTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    for (int index = 0; index < 10; ++index)
+    {
+        const std::string identifier = "material/" + std::to_string(index);
+        const auto error = engine::assets::make_asset_load_error(
+            AssetLoadErrorCategory::ValidationError,
+            "Validation failed for material " + std::to_string(index));
+        telemetry.record_failure(error, identifier);
+    }
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.failure_count, 10U);
+    ASSERT_EQ(snapshot.recent_failures.size(), 8U);
+    EXPECT_EQ(snapshot.recent_failures.front().identifier, "material/9");
+    EXPECT_EQ(snapshot.recent_failures.front().error,
+              "Validation failed for material 9");
+    EXPECT_EQ(snapshot.recent_failures.front().hint,
+              "Check asset metadata, dependencies, and descriptor configuration.");
+    EXPECT_EQ(snapshot.recent_failures.back().identifier, "material/2");
+
+    telemetry.reset_for_testing();
 }
 

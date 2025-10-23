@@ -245,6 +245,8 @@ ctest --preset clang-debug -R assets
 
 - Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload callbacks.
 - Async loading pipeline with telemetry integrated into runtime diagnostics; handle validation hooks enabled in debug builds.
+- Diagnostics shell (`scripts/diagnostics/telemetry_viewer.py`) surfaces recent asset reload failures with per-asset hints to
+  accelerate hot-reload triage (`AS-330`).
 
 ## Usage
 
@@ -254,5 +256,5 @@ ctest --preset clang-debug -R assets
 
 ## TODO / Next Steps
 
-- Plan material persistence strategy and document it (`AS-320`); see ../../ROADMAP.md
-- Surface reload events in diagnostics shell with actionable hints (`AS-330`); see ../../ROADMAP.md
+- Integrate filesystem watcher callbacks for hot reload (`AS-315`); see ../../ROADMAP.md
+- Coordinate with tools diagnostics dashboards so asset reload telemetry feeds CI alerts (`TL-120`); see ../../ROADMAP.md
