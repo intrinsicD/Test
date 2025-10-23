@@ -10,6 +10,8 @@
 - Execute `pytest` after building native modules to validate the Python side.
 - Provide explicit search directories as strings or `pathlib.Path` objects when invoking `engine3g.loader` helpers; the loader
   normalises both forms while resolving shared libraries.
+- The loader enforces unique module names when aggregating runtime subsystems, raising a descriptive error if duplicates are
+  reported so misconfigured registries do not produce partially loaded module sets.
 
 ## Environment Setup
 

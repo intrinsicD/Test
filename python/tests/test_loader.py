@@ -286,6 +286,22 @@ class HandleBehaviourTests(unittest.TestCase):
         )
         self.assertEqual(modules, {"graphics": graphics_handle, "physics": physics_handle})
 
+    def test_engine_runtime_handle_load_modules_rejects_duplicates(self) -> None:
+        runtime = loader.EngineRuntimeHandle(
+            _make_runtime_namespace(
+                engine_runtime_module_count=_DummyFunction(lambda: 2),
+                engine_runtime_module_at=_DummyFunction(
+                    lambda index: [b"graphics", b"graphics"][index]
+                ),
+            )
+        )
+
+        with mock.patch.object(loader, "load_module") as mocked_load_module:
+            with self.assertRaisesRegex(ValueError, "duplicate module names"):
+                runtime.load_modules(search_paths=["/libs"])
+
+        mocked_load_module.assert_not_called()
+
     def test_engine_runtime_handle_filters_null_module_names(self) -> None:
         runtime = loader.EngineRuntimeHandle(
             _make_runtime_namespace(

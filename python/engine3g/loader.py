@@ -231,8 +231,31 @@ class EngineRuntimeHandle:
     ) -> Mapping[str, EngineModuleHandle]:
         """Load all registered modules and return them keyed by module name."""
         reusable_paths = _freeze_search_paths(search_paths)
+        module_names = self.module_names()
+
+        seen: set[str] = set()
+        duplicates: list[str] = []
+        for name in module_names:
+            if name in seen and name not in duplicates:
+                duplicates.append(name)
+            else:
+                seen.add(name)
+
+        if duplicates:
+            search_hint: str
+            if reusable_paths is None:
+                search_hint = "<none>"
+            else:
+                search_hint = ", ".join(str(path) for path in reusable_paths) or "<empty>"
+            duplicate_list = ", ".join(sorted(duplicates))
+            raise ValueError(
+                "Runtime reported duplicate module names; all modules must be uniquely "
+                "identified before loading. "
+                f"Duplicates: {duplicate_list}. Search paths: {search_hint}."
+            )
+
         modules: MutableMapping[str, EngineModuleHandle] = {}
-        for name in self.module_names():
+        for name in module_names:
             modules[name] = load_module(name, search_paths=reusable_paths)
         return modules
 
