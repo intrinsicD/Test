@@ -13,6 +13,9 @@ vector norms before any internal normalisation.
 | `try_inverse(Matrix<T,2,2/3,3>)` | `|det| ≥ 1e-6` | `|det| ≥ 1e-12` | Direct adjugate / determinant paths reject zero determinants without tolerance; treat near-singular matrices as unstable. |
 | `try_inverse(Matrix<T,4,4>)` | Pivot magnitudes `≥ 1e-6` | Pivot magnitudes `≥ 1e-12` | Gaussian elimination with partial pivoting aborts if a pivot is numerically zero; rescale transforms before inversion. |
 | `utils::pseudo_inverse` | Largest singular value `σ_max`, discard `σ < 1e-10 · σ_max` | `σ < 1e-12 · σ_max` | Default tolerance clips small singular values; pass custom tolerance for tightly-conditioned problems. |
+| `solvers::try_solve_linear_system` | Pivot magnitudes `≥ 1e-6` | Pivot magnitudes `≥ 1e-12` | Shares the inversion thresholds; returns `std::nullopt` when partial pivoting encounters small pivots. |
+| `solvers::solve_quadratic` | `|a| ≥ 1e-6` else linear fallback; discriminant `≥ -1e-6` | `|a| ≥ 1e-12`; discriminant `≥ -1e-12` | Promotes to long double, clamps near-zero discriminants, and handles degenerate linear cases. |
+| `solvers::solve_cubic` | `|a| ≥ 1e-6` else quadratic fallback; discriminant `≥ -1e-6` | `|a| ≥ 1e-12`; discriminant `≥ -1e-12` | Cardano solver with long double promotion; cosine branch clamps arguments and sorts real roots. |
 | `Transform::from_matrix` | Column lengths `≥ 1e-6`, `w ≈ 1 ± 1e-6` | Column lengths `≥ 1e-12`, `w ≈ 1 ± 1e-12` | Degenerate scales fall back to identity rotation; ensure affine inputs. |
 | `normalize`, projection helpers | Vector norm `≥ 1e-6` | Vector norm `≥ 1e-12` | Zero-length vectors return the original input; guard against division by small magnitudes. |
 
@@ -41,6 +44,12 @@ Regression coverage exercises representative inputs and rejects singular cases,
 showing where the helpers succeed today.【F:engine/math/tests/test_math.cpp†L665-L768】
 Add new fixtures when introducing matrices with higher condition numbers.
 
+`math::solvers::try_solve_linear_system` mirrors the inversion thresholds: if
+partial pivoting cannot select a row whose absolute pivot magnitude exceeds the
+configured tolerance, it returns `std::nullopt`. Tune the tolerance upward when
+inputs are pre-scaled into the `1e-3` range to suppress noise-driven pivots, or
+downward when high-precision doubles expose stable solutions.
+
 ## Pseudoinverse and SVD Tolerance
 
 `utils::pseudo_inverse` cascades through direct normal-equation inversions
@@ -58,6 +67,9 @@ an analytic solver with preconditioning.
 
 Existing tests cover full-rank, overdetermined, underdetermined, and rank-
 deficient cases, providing baselines for the documented tolerances.【F:engine/math/tests/test_math.cpp†L770-L869】
+
+The dedicated solver tests capture 3×3/4×4 systems, singular rejection, and the
+quadratic/cubic paths including repeated and fallback roots.【F:engine/math/tests/test_solvers.cpp†L19-L120】
 
 ## Transform Decomposition and Inversion
 
