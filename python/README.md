@@ -8,6 +8,8 @@
 ## Usage
 
 - Execute `pytest` after building native modules to validate the Python side.
+- Provide explicit search directories as strings or `pathlib.Path` objects when invoking `engine3g.loader` helpers; the loader
+  normalises both forms while resolving shared libraries.
 
 ## Environment Setup
 
