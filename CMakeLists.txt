@@ -217,31 +217,51 @@ endif()
 
 # imgui: submodule first, fallback to FetchContent with wrapper if needed
 set(IMGUI_DIR "${THIRD_PARTY_DIR}/imgui")
-if(EXISTS "${IMGUI_DIR}")
+set(_IMGUI_CORE_FILENAMES imgui.cpp imgui_draw.cpp imgui_tables.cpp imgui_widgets.cpp)
+set(_IMGUI_BACKEND_FILENAMES backends/imgui_impl_glfw.cpp backends/imgui_impl_opengl3.cpp)
+
+set(_IMGUI_LOCAL_HAS_CORE TRUE)
+foreach(_IMGUI_FILENAME IN LISTS _IMGUI_CORE_FILENAMES)
+    if(NOT EXISTS "${IMGUI_DIR}/${_IMGUI_FILENAME}")
+        set(_IMGUI_LOCAL_HAS_CORE FALSE)
+        break()
+    endif()
+endforeach()
+
+set(_IMGUI_LOCAL_HAS_BACKENDS TRUE)
+foreach(_IMGUI_FILENAME IN LISTS _IMGUI_BACKEND_FILENAMES)
+    if(NOT EXISTS "${IMGUI_DIR}/${_IMGUI_FILENAME}")
+        set(_IMGUI_LOCAL_HAS_BACKENDS FALSE)
+        break()
+    endif()
+endforeach()
+
+if(EXISTS "${IMGUI_DIR}" AND (EXISTS "${IMGUI_DIR}/CMakeLists.txt" OR _IMGUI_LOCAL_HAS_CORE))
     if(EXISTS "${IMGUI_DIR}/CMakeLists.txt")
         add_subdirectory(${IMGUI_DIR})
     else()
         # Local imgui present without CMake; build a minimal wrapper from local sources
-        set(_IMGUI_CORE_SOURCES
-            ${IMGUI_DIR}/imgui.cpp
-            ${IMGUI_DIR}/imgui_draw.cpp
-            ${IMGUI_DIR}/imgui_tables.cpp
-            ${IMGUI_DIR}/imgui_widgets.cpp
-        )
+        set(_IMGUI_CORE_SOURCES)
+        foreach(_IMGUI_FILENAME IN LISTS _IMGUI_CORE_FILENAMES)
+            list(APPEND _IMGUI_CORE_SOURCES "${IMGUI_DIR}/${_IMGUI_FILENAME}")
+        endforeach()
         add_library(imgui STATIC ${_IMGUI_CORE_SOURCES})
         set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
         target_include_directories(imgui PUBLIC ${IMGUI_DIR})
         target_link_libraries(imgui PUBLIC engine::project_options)
-        if(ENGINE_ENABLE_GLFW)
-            target_sources(imgui PRIVATE
-                ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-                ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-            )
+        if(ENGINE_ENABLE_GLFW AND _IMGUI_LOCAL_HAS_BACKENDS)
+            set(_IMGUI_BACKEND_SOURCES)
+            foreach(_IMGUI_FILENAME IN LISTS _IMGUI_BACKEND_FILENAMES)
+                list(APPEND _IMGUI_BACKEND_SOURCES "${IMGUI_DIR}/${_IMGUI_FILENAME}")
+            endforeach()
+            target_sources(imgui PRIVATE ${_IMGUI_BACKEND_SOURCES})
             target_include_directories(imgui PUBLIC
                 ${IMGUI_DIR}/backends
                 $<TARGET_PROPERTY:glfw,INTERFACE_INCLUDE_DIRECTORIES>
             )
             target_link_libraries(imgui PUBLIC glfw)
+        elseif(ENGINE_ENABLE_GLFW AND NOT _IMGUI_LOCAL_HAS_BACKENDS)
+            message(WARNING "ImGui GLFW backends are missing from ${IMGUI_DIR}; skipping backend compilation.")
         endif()
     endif()
 else()
