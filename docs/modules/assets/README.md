@@ -116,6 +116,10 @@ mesh_cache.reload("character.obj");
 
 The platform module's filesystem watcher automatically triggers reload when files change. See `CC-002` in the roadmap for hot reload infrastructure details.
 
+Hot reload attempts validate that OBJ sources still contain usable geometry. If a watched mesh is replaced with content that
+omits vertices or faces, the cache now raises a validation failure, preserves the previous asset, and records the error in
+`AssetHotReloadTelemetry` so diagnostics surface the regression immediately.
+
 ## Handle Validation
 
 Debug builds automatically validate handle usage:
@@ -209,7 +213,7 @@ if (mesh_result) {
 }
 ```
 
-See [`../io/README.md`](../io/README.md) and [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md) for IO architecture. Runtime consumers can supply cache pointers through `RuntimeHostDependencies::asset_streaming` and call `RuntimeHost::request_mesh_asset()` / `RuntimeHost::request_point_cloud_asset()` when orchestration should occur on the runtime thread.
+See [`../io/README.md`](../io/README.md) and [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md) for IO architecture. Runtime consumers can supply cache pointers through `RuntimeHostDependencies::asset_streaming` and call `RuntimeHost::request_mesh_asset()` / `RuntimeHost::request_point_cloud_asset()` when orchestration should occur on the runtime thread. These runtime helpers return futures that resolve to `AssetLoadErrorCategory::ValidationError` when the host is not initialised or caches are absent, keeping async orchestration deterministic without throwing exceptions.
 
 ## Testing
 

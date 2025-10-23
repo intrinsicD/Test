@@ -119,7 +119,13 @@ engine::assets::AssetLoadFuture<engine::assets::MeshHandle> future = host.reques
 future.wait();
 ```
 
-`RuntimeHost::request_mesh_asset()` and `RuntimeHost::request_point_cloud_asset()` validate that the IO thread pool is initialised, dispatch the work to the configured cache, and keep diagnostics in sync. Call `RuntimeHost::mesh_asset_state()` or `RuntimeHost::point_cloud_asset_state()` to inspect the async state machine for a specific identifier. Subsystems that require finer control can continue to invoke cache-level `load_async()` helpers directly.
+`RuntimeHost::request_mesh_asset()` and `RuntimeHost::request_point_cloud_asset()` validate that the IO thread pool is
+initialised and the relevant caches are configured before dispatching work. When prerequisites are missing (for example, the
+runtime is not initialised or a cache pointer was not supplied) these helpers return futures resolved with
+`AssetLoadErrorCategory::ValidationError`, increment streaming rejection telemetry, and log a descriptive message instead of
+throwing exceptions. Call `RuntimeHost::mesh_asset_state()` or `RuntimeHost::point_cloud_asset_state()` to inspect the async
+state machine for a specific identifier; the accessors return `AssetLoadState::Failed` when the runtime lacks the necessary
+cache configuration. Subsystems that require finer control can continue to invoke cache-level `load_async()` helpers directly.
 
 See [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md) for detailed integration patterns and telemetry expectations.
 

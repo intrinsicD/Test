@@ -74,6 +74,8 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
 - `AssetAsyncQueue.CancelPendingRequestResolvesFuture` guards the regression
   where cancellation occurs before worker dispatch, ensuring futures resolve
   with `Cancelled` results instead of placeholder validation errors.
+- Hot reload telemetry regression now ensures OBJ reloads missing vertices or
+  faces raise validation failures so counters reflect real asset errors.
 - Runtime integration guidance lives in
   [`docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md`](../modules/runtime/ASYNC_STREAMING_INTEGRATION.md),
   documenting configuration, scheduling flows, and telemetry consumption for

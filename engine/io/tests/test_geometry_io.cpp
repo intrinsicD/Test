@@ -473,6 +473,21 @@ TEST(GeometryIO, ReadMeshInvalidDataReturnsInvalidArgument)
     EXPECT_EQ(result.error().code(), engine::io::GeometryIoError::invalid_argument);
 }
 
+TEST(GeometryIO, ReadMeshWithoutGeometryReturnsInvalidArgument)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "empty_geometry.obj";
+    write_file(path, "# empty file\n");
+
+    engine::geometry::Mesh mesh;
+    const auto result = engine::io::read_mesh(path, mesh.interface, engine::io::MeshFileFormat::obj);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error().code(), engine::io::GeometryIoError::invalid_argument);
+    const auto& message = result.error().message();
+    EXPECT_TRUE(message.find("does not define any vertices") != std::string::npos ||
+                message.find("does not define any faces") != std::string::npos);
+}
+
 TEST(GeometryIO, WriteMeshWithInvalidParentReturnsIoFailure)
 {
     TempDirectory temp;

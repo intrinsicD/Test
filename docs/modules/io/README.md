@@ -11,6 +11,7 @@ The IO module provides file format detection, import/export handlers for meshes 
 Supported import/export formats:
 
 - **OBJ**: Wavefront OBJ with material libraries (`.obj`, `.mtl`)
+  - Files that omit vertices or faces are rejected with `invalid_argument` errors to prevent silent hot-reload of empty geometry.
 - **STL**: Binary and ASCII STL (`.stl`)
 - **PLY**: Polygon File Format (`.ply`)
 - **OFF**: Object File Format (`.off`)

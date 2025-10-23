@@ -1248,57 +1248,113 @@ namespace engine::runtime
         }
 
 #if ENGINE_ENABLE_ASSETS
-        [[nodiscard]] assets::MeshCache& require_mesh_cache() const
+        template <typename Handle>
+        [[nodiscard]] assets::AssetLoadFuture<Handle> make_streaming_configuration_failure(
+            const assets::AssetLoadRequest& request, std::string message) const
         {
-            if (mesh_cache == nullptr)
-            {
-                throw std::runtime_error("RuntimeHost asset streaming requires a configured MeshCache");
-            }
-            return *mesh_cache;
-        }
-
-        [[nodiscard]] assets::PointCloudCache& require_point_cloud_cache() const
-        {
-            if (point_cloud_cache == nullptr)
-            {
-                throw std::runtime_error("RuntimeHost asset streaming requires a configured PointCloudCache");
-            }
-            return *point_cloud_cache;
-        }
-
-        void ensure_streaming_ready() const
-        {
-            if (!initialized)
-            {
-                throw std::runtime_error(
-                    "RuntimeHost must be initialized before requesting asynchronous asset loads");
-            }
+            auto channel = assets::detail::make_asset_load_channel<Handle>();
+            auto& promise = channel.first;
+            auto future = std::move(channel.second);
+            auto error = assets::make_asset_load_error(
+                assets::AssetLoadErrorCategory::ValidationError, std::move(message));
+            promise.set_failed(error);
+            assets::AssetStreamingTelemetry::instance().on_failure(error);
+            assets::AssetStreamingTelemetry::instance().on_rejected();
+            assets::AssetHotReloadTelemetry::instance().record_rejected();
+            assets::AssetHotReloadTelemetry::instance().record_failure(error, request.identifier);
+            return future;
         }
 
         [[nodiscard]] assets::AssetLoadFuture<assets::MeshHandle>
             request_mesh_asset(const assets::AssetLoadRequest& request)
         {
-            ensure_streaming_ready();
-            auto& cache = require_mesh_cache();
-            return cache.load_async(request, core::threading::IoThreadPool::instance());
+            if (!initialized)
+            {
+                spdlog::error(
+                    "RuntimeHost::request_mesh_asset called before initialization (identifier='{}')",
+                    request.identifier);
+                return make_streaming_configuration_failure<assets::MeshHandle>(
+                    request,
+                    "RuntimeHost must be initialized before requesting asynchronous asset loads");
+            }
+
+            if (mesh_cache == nullptr)
+            {
+                spdlog::error(
+                    "RuntimeHost::request_mesh_asset missing MeshCache configuration (identifier='{}')",
+                    request.identifier);
+                return make_streaming_configuration_failure<assets::MeshHandle>(
+                    request, "RuntimeHost asset streaming requires a configured MeshCache");
+            }
+
+            return mesh_cache->load_async(request, core::threading::IoThreadPool::instance());
         }
 
         [[nodiscard]] assets::AssetLoadFuture<assets::PointCloudHandle>
             request_point_cloud_asset(const assets::AssetLoadRequest& request)
         {
-            ensure_streaming_ready();
-            auto& cache = require_point_cloud_cache();
-            return cache.load_async(request, core::threading::IoThreadPool::instance());
+            if (!initialized)
+            {
+                spdlog::error(
+                    "RuntimeHost::request_point_cloud_asset called before initialization (identifier='{}')",
+                    request.identifier);
+                return make_streaming_configuration_failure<assets::PointCloudHandle>(
+                    request,
+                    "RuntimeHost must be initialized before requesting asynchronous asset loads");
+            }
+
+            if (point_cloud_cache == nullptr)
+            {
+                spdlog::error(
+                    "RuntimeHost::request_point_cloud_asset missing PointCloudCache configuration (identifier='{}')",
+                    request.identifier);
+                return make_streaming_configuration_failure<assets::PointCloudHandle>(
+                    request, "RuntimeHost asset streaming requires a configured PointCloudCache");
+            }
+
+            return point_cloud_cache->load_async(request, core::threading::IoThreadPool::instance());
         }
 
         [[nodiscard]] assets::AssetLoadState mesh_asset_state(std::string_view identifier) const
         {
-            return require_mesh_cache().async_state(identifier);
+            if (!initialized)
+            {
+                spdlog::warn(
+                    "RuntimeHost::mesh_asset_state requested before initialization (identifier='{}')",
+                    identifier);
+                return assets::AssetLoadState::Failed;
+            }
+
+            if (mesh_cache == nullptr)
+            {
+                spdlog::warn(
+                    "RuntimeHost::mesh_asset_state missing MeshCache configuration (identifier='{}')",
+                    identifier);
+                return assets::AssetLoadState::Failed;
+            }
+
+            return mesh_cache->async_state(identifier);
         }
 
         [[nodiscard]] assets::AssetLoadState point_cloud_asset_state(std::string_view identifier) const
         {
-            return require_point_cloud_cache().async_state(identifier);
+            if (!initialized)
+            {
+                spdlog::warn(
+                    "RuntimeHost::point_cloud_asset_state requested before initialization (identifier='{}')",
+                    identifier);
+                return assets::AssetLoadState::Failed;
+            }
+
+            if (point_cloud_cache == nullptr)
+            {
+                spdlog::warn(
+                    "RuntimeHost::point_cloud_asset_state missing PointCloudCache configuration (identifier='{}')",
+                    identifier);
+                return assets::AssetLoadState::Failed;
+            }
+
+            return point_cloud_cache->async_state(identifier);
         }
 #endif
 
