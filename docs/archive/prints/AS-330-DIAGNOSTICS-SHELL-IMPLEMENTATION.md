@@ -73,7 +73,7 @@
 - As described in the PATCH section; no changes required post-review.
 
 ## FOLLOW_UP_TODOS
-- [ ] File AS-315 implementation plan update (owner: TBD, priority: high) — integrate filesystem watcher callbacks with asset caches to retire remaining hot-reload TODO.
+- [x] File AS-315 implementation plan update (owner: Assets, priority: high) — watcher callbacks now feed runtime telemetry and the streaming report, retiring the outstanding hot-reload TODO.
 - [ ] [Observability] Automate export of recent reload failures into CI dashboards (owner: TBD, priority: medium) once telemetry viewer automation lands.
 - [ ] [Tech Debt] Evaluate sharing recent-failure ring buffer utility across caches to deduplicate logic (owner: TBD, priority: low).
 - [ ] [Documentation] Extend troubleshooting guide with sample diagnostics shell output for asset reload failures (owner: TBD, priority: medium).

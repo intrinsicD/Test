@@ -139,6 +139,44 @@ TEST(MeshCache, HotReloadNotifies)
     EXPECT_TRUE(reloaded);
 }
 
+TEST(MeshCache, HotReloadTelemetryRecordsSuccess)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "hot_reload_success.obj";
+    write_text(path,
+               "v 0 0 0\n"
+               "v 1 0 0\n"
+               "v 1 1 0\n"
+               "f 1 2 3\n");
+
+    auto& telemetry = engine::assets::AssetHotReloadTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    engine::assets::MeshCache cache;
+    const auto descriptor =
+        engine::assets::MeshAssetDescriptor::from_file(path, engine::io::MeshFileFormat::obj);
+
+    [[maybe_unused]] const auto& asset = cache.load(descriptor);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    write_text(path,
+               "v 0 0 0\n"
+               "v 1 0 0\n"
+               "v 1 1 0\n"
+               "v 0 1 0\n"
+               "f 1 2 3\n"
+               "f 1 3 4\n");
+
+    cache.poll();
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.hot_reload_attempts, 1U);
+    EXPECT_EQ(snapshot.failure_count, 0U);
+    EXPECT_TRUE(snapshot.recent_failures.empty());
+
+    telemetry.reset_for_testing();
+}
+
 TEST(MeshCache, UnloadStopsHotReload)
 {
     TempDirectory temp;
@@ -171,6 +209,41 @@ TEST(MeshCache, UnloadStopsHotReload)
 
     cache.poll();
     EXPECT_FALSE(reloaded);
+}
+
+TEST(MeshCache, HotReloadTelemetryRecordsFailure)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "hot_reload_failure.obj";
+    write_text(path,
+               "v 0 0 0\n"
+               "v 1 0 0\n"
+               "v 0 1 0\n"
+               "f 1 2 3\n");
+
+    auto& telemetry = engine::assets::AssetHotReloadTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    engine::assets::MeshCache cache;
+    const auto descriptor =
+        engine::assets::MeshAssetDescriptor::from_file(path, engine::io::MeshFileFormat::obj);
+
+    [[maybe_unused]] const auto& asset = cache.load(descriptor);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    write_text(path, "not a valid obj file\n");
+
+    cache.poll();
+
+    const auto snapshot = telemetry.snapshot();
+    EXPECT_EQ(snapshot.hot_reload_attempts, 1U);
+    EXPECT_EQ(snapshot.failure_count, 1U);
+    ASSERT_FALSE(snapshot.recent_failures.empty());
+    EXPECT_EQ(snapshot.recent_failures.front().identifier, descriptor.handle.id());
+    EXPECT_FALSE(snapshot.last_error.empty());
+    EXPECT_FALSE(snapshot.error_hint.empty());
+
+    telemetry.reset_for_testing();
 }
 
 TEST(MeshCache, UnloadInvalidatesHandle)

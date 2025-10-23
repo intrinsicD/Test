@@ -49,7 +49,6 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 ### Immediate Next (Ready for Sprint Planning)
 
 - **AN-230** — GPU/parallel sampling benchmarks (blocked on `CO-170` compute queue extensions)
-- **AS-315** — Integrate filesystem watcher callbacks for hot reload telemetry
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
 - **DC-003** — SDL backend implementation (see `platform/SDL_BACKEND_CHECKLIST.md`)
 
@@ -79,6 +78,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `RT-005` | Scene hierarchy validation and diagnostics | 2025-03 | Cycle detection, runtime diagnostics bridge |
 | `CC-001` | Telemetry instrumentation and diagnostics viewer | 2025-03-25 | Telemetry schema, viewer CLI, instrumentation guide |
 | `CC-002` | Hot reload infrastructure | 2025-03-24 | Filesystem watcher, cache callbacks, diagnostics |
+| `AS-315` | Integrate filesystem watcher callbacks for hot reload telemetry | 2025-05-24 | Watcher-driven reloads feed runtime telemetry and diagnostics report |
 | `AS-330` | Asset hot-reload diagnostics integration | 2025-05-20 | Telemetry viewer surfaces recent reload failures with per-asset hints |
 
 <details>
