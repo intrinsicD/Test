@@ -31,6 +31,12 @@ Notes:
 
 See `engine/geometry/point_cloud/` for point cloud primitives and IO.
 
+`PointCloudIOFlags::Format::kAuto` infers the writer format from the destination
+file extension (case-insensitive) and falls back to PLY when the extension is
+missing or unknown, honouring the binary flag when set. This keeps round-trip
+helpers resilient in scripting pipelines that generate temporary files without
+extensions.
+
 ### Graphs
 
 Connectivity utilities live under `engine/geometry/graph/`.

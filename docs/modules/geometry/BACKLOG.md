@@ -40,3 +40,9 @@ and should be treated as the contract for subsequent implementation milestones.
 
 Document findings in the relevant task files (`T-0112`) and update the central
 roadmap after each milestone.
+
+## Maintenance Log
+
+- 2025-05-09 — Defaulted `PointCloudIOFlags::Format::kAuto` to PLY when file
+  extensions are missing or unrecognised, ensuring round-trip tooling for
+  `T-0112` handles temporary exports without manual flag overrides.
