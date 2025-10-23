@@ -27,9 +27,15 @@ namespace {
 }
 
 TEST(FrustumTest, ExtractFrustumFromIdentity) {
-    // Identity matrix should create a specific frustum
-    const mat4 identity{};
-    const Frustum frustum = ExtractFrustum(identity);
+    // Simple orthographic projection as a basic test
+    // Create a simple orthographic matrix: maps [-1,1] cube to clip space
+    mat4 ortho{};
+    ortho[0][0] = 1.0f;  // x scale
+    ortho[1][1] = 1.0f;  // y scale
+    ortho[2][2] = -1.0f; // z scale (flip for right-handed)
+    ortho[3][3] = 1.0f;  // w
+
+    const Frustum frustum = ExtractFrustum(ortho);
 
     // All planes should be normalized
     for (const auto& plane : frustum.planes) {
@@ -238,8 +244,14 @@ TEST(FrustumTest, SymmetricIntersectionSphere) {
 }
 
 TEST(FrustumTest, GetCornersReturnsEightPoints) {
-    const mat4 identity{};
-    const Frustum frustum = ExtractFrustum(identity);
+    // Simple orthographic projection
+    mat4 ortho{};
+    ortho[0][0] = 1.0f;
+    ortho[1][1] = 1.0f;
+    ortho[2][2] = -1.0f;
+    ortho[3][3] = 1.0f;
+
+    const Frustum frustum = ExtractFrustum(ortho);
 
     const auto corners = GetCorners(frustum);
     EXPECT_EQ(corners.size(), 8u) << "Frustum should have 8 corners";

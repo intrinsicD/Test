@@ -10,55 +10,56 @@ namespace engine::geometry {
         Frustum frustum;
 
         // Extract frustum planes from view-projection matrix using Gribb-Hartmann method
+        // Matrix is column-major: vp[col][row]
         // Each plane equation is derived from the homogeneous clip space: -w <= x,y,z <= w
 
-        // Left plane: vp[3] + vp[0]
+        // Left plane: row3 + row0
         frustum.planes[Frustum::kLeft].normal = math::vec3{
-            vp[0][3] + vp[0][0],
-            vp[1][3] + vp[1][0],
-            vp[2][3] + vp[2][0]
+            vp[3][0] + vp[0][0],
+            vp[3][1] + vp[0][1],
+            vp[3][2] + vp[0][2]
         };
-        frustum.planes[Frustum::kLeft].distance = vp[3][3] + vp[3][0];
+        frustum.planes[Frustum::kLeft].distance = vp[3][3] + vp[0][3];
 
-        // Right plane: vp[3] - vp[0]
+        // Right plane: row3 - row0
         frustum.planes[Frustum::kRight].normal = math::vec3{
-            vp[0][3] - vp[0][0],
-            vp[1][3] - vp[1][0],
-            vp[2][3] - vp[2][0]
+            vp[3][0] - vp[0][0],
+            vp[3][1] - vp[0][1],
+            vp[3][2] - vp[0][2]
         };
-        frustum.planes[Frustum::kRight].distance = vp[3][3] - vp[3][0];
+        frustum.planes[Frustum::kRight].distance = vp[3][3] - vp[0][3];
 
-        // Bottom plane: vp[3] + vp[1]
+        // Bottom plane: row3 + row1
         frustum.planes[Frustum::kBottom].normal = math::vec3{
-            vp[0][3] + vp[0][1],
-            vp[1][3] + vp[1][1],
-            vp[2][3] + vp[2][1]
+            vp[3][0] + vp[1][0],
+            vp[3][1] + vp[1][1],
+            vp[3][2] + vp[1][2]
         };
-        frustum.planes[Frustum::kBottom].distance = vp[3][3] + vp[3][1];
+        frustum.planes[Frustum::kBottom].distance = vp[3][3] + vp[1][3];
 
-        // Top plane: vp[3] - vp[1]
+        // Top plane: row3 - row1
         frustum.planes[Frustum::kTop].normal = math::vec3{
-            vp[0][3] - vp[0][1],
-            vp[1][3] - vp[1][1],
-            vp[2][3] - vp[2][1]
+            vp[3][0] - vp[1][0],
+            vp[3][1] - vp[1][1],
+            vp[3][2] - vp[1][2]
         };
-        frustum.planes[Frustum::kTop].distance = vp[3][3] - vp[3][1];
+        frustum.planes[Frustum::kTop].distance = vp[3][3] - vp[1][3];
 
-        // Near plane: vp[3] + vp[2]
+        // Near plane: row3 + row2
         frustum.planes[Frustum::kNear].normal = math::vec3{
-            vp[0][3] + vp[0][2],
-            vp[1][3] + vp[1][2],
-            vp[2][3] + vp[2][2]
+            vp[3][0] + vp[2][0],
+            vp[3][1] + vp[2][1],
+            vp[3][2] + vp[2][2]
         };
-        frustum.planes[Frustum::kNear].distance = vp[3][3] + vp[3][2];
+        frustum.planes[Frustum::kNear].distance = vp[3][3] + vp[2][3];
 
-        // Far plane: vp[3] - vp[2]
+        // Far plane: row3 - row2
         frustum.planes[Frustum::kFar].normal = math::vec3{
-            vp[0][3] - vp[0][2],
-            vp[1][3] - vp[1][2],
-            vp[2][3] - vp[2][2]
+            vp[3][0] - vp[2][0],
+            vp[3][1] - vp[2][1],
+            vp[3][2] - vp[2][2]
         };
-        frustum.planes[Frustum::kFar].distance = vp[3][3] - vp[3][2];
+        frustum.planes[Frustum::kFar].distance = vp[3][3] - vp[2][3];
 
         // Normalize all planes
         for (auto& plane : frustum.planes) {
