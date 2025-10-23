@@ -168,6 +168,9 @@ ENGINE_PHYSICS_API void apply_force(PhysicsWorld& world, std::size_t index, cons
 
 ENGINE_PHYSICS_API void integrate(PhysicsWorld& world, double dt);
 
+// Perform a full simulation tick: integrates motion and updates contacts/telemetry.
+ENGINE_PHYSICS_API void step(PhysicsWorld& world, double dt);
+
 ENGINE_PHYSICS_API void set_linear_damping(PhysicsWorld& world, float damping) noexcept;
 
 ENGINE_PHYSICS_API void set_substepping(PhysicsWorld& world, float max_step, std::uint32_t max_substeps) noexcept;

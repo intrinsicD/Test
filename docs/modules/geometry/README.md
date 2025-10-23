@@ -2,300 +2,103 @@
 
 ## Overview
 
-The geometry module provides core geometric data structures (meshes, point clouds, graphs), spatial acceleration structures (kd-trees, octrees), deformation algorithms (linear blend skinning), procedural primitive generation, and IO integration for import/export workflows.
+The geometry module provides geometric data structures (meshes, point clouds, graphs), spatial acceleration structures (kd-trees, octrees), deformation algorithms, procedural primitives, and IO helpers.
 
 ## Core Data Structures
 
 ### Surface Meshes
 
-`SurfaceMesh` represents indexed triangle meshes with optional vertex attributes:
+`SurfaceMesh` represents an indexed triangle mesh with positions, optional normals, and a cached AABB:
 
 ```cpp
 #include "engine/geometry/api.hpp"
 
-geometry::SurfaceMesh mesh;
+engine::geometry::SurfaceMesh mesh;
 mesh.positions = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
 mesh.indices = {0, 1, 2};
-mesh.normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}};
 
-// Optional attributes
-mesh.uvs = {{0, 0}, {1, 0}, {0, 1}};
-mesh.colors = {{1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}};
+// Compute derived data explicitly
+engine::geometry::recompute_vertex_normals(mesh);
+engine::geometry::update_bounds(mesh);
+const auto c = engine::geometry::centroid(mesh);
 ```
 
-Meshes automatically maintain:
-- **Bounds (AABB)**: `mesh.bounds` updated on vertex modification
-- **Centroid**: `mesh.centroid` computed from vertex positions
-- **Connectivity**: Optional halfedge data structure for topology queries
+Notes:
+- Call `recompute_vertex_normals(mesh)` after you change positions.
+- Call `update_bounds(mesh)` after you change positions or topology.
 
 ### Point Clouds
 
-`PointCloud` stores unconnected point data with attributes:
-
-```cpp
-geometry::PointCloud cloud;
-cloud.positions = {{0, 0, 0}, {1, 1, 1}, {2, 2, 2}};
-cloud.colors = {{1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}};
-cloud.normals = {{0, 0, 1}, {0, 0, 1}, {0, 0, 1}};
-```
+See `engine/geometry/point_cloud/` for point cloud primitives and IO.
 
 ### Graphs
 
-`Graph` represents connectivity data:
-
-```cpp
-geometry::Graph graph;
-graph.add_node(0, {.position = {0, 0, 0}});
-graph.add_node(1, {.position = {1, 0, 0}});
-graph.add_edge(0, 1, {.weight = 1.0});
-
-// Query neighbors
-auto neighbors = graph.neighbors(0);
-```
+Connectivity utilities live under `engine/geometry/graph/`.
 
 ## Procedural Primitives
 
-Generate common geometric shapes:
-
-```cpp
-// Quad (2 triangles)
-auto quad = geometry::make_unit_quad();
-
-// Cube with optional subdivision
-auto cube = geometry::make_unit_cube(/*subdivisions=*/1);
-
-// Sphere (UV sphere or icosphere)
-auto sphere = geometry::make_uv_sphere(/*radius=*/1.0f, /*segments=*/32, /*rings=*/16);
-auto ico_sphere = geometry::make_icosphere(/*radius=*/1.0f, /*subdivisions=*/2);
-
-// Cylinder
-auto cylinder = geometry::make_cylinder(/*radius=*/1.0f, /*height=*/2.0f, /*segments=*/32);
-
-// Torus
-auto torus = geometry::make_torus(/*major_radius=*/1.0f, /*minor_radius=*/0.3f);
-```
-
-All primitives include proper normals, UVs, and tangents where applicable.
+Basic shapes and utilities live under `engine/geometry/shapes/` with pairwise intersection queries under `engine/geometry/utils/shape_interactions.hpp`.
 
 ## Spatial Acceleration
 
 ### KD-Tree
 
-Fast nearest-neighbor and range queries:
-
 ```cpp
 #include "engine/geometry/kdtree/kdtree.hpp"
 
-geometry::KdTree tree(mesh.positions);
-
-// Nearest neighbor
+engine::geometry::KdTree tree(mesh.positions);
 auto nearest = tree.nearest({0, 0, 0});
-fmt::print("Nearest point index: {}\n", nearest.index);
-
-// K-nearest neighbors
-auto k_nearest = tree.k_nearest({0, 0, 0}, /*k=*/10);
-
-// Range query
-auto in_radius = tree.radius_search({0, 0, 0}, /*radius=*/5.0f);
 ```
 
 ### Octree
 
-Hierarchical spatial partitioning:
-
 ```cpp
 #include "engine/geometry/octree/octree.hpp"
 
-geometry::Octree octree(mesh.positions, /*max_depth=*/8, /*max_points_per_leaf=*/32);
-
-// Query points in AABB
-geometry::Aabb query_box{{-1, -1, -1}, {1, 1, 1}};
-auto points_in_box = octree.query(query_box);
-
-// Frustum culling
-geometry::Frustum frustum = compute_frustum_from_camera(camera);
-auto visible_points = octree.query(frustum);
+engine::geometry::Octree oct(mesh.positions, /*max_depth=*/8, /*max_points_per_leaf=*/32);
+auto points_in_box = oct.query(engine::geometry::MakeAabbFromCenterExtent({0,0,0}, {1,1,1}));
 ```
 
-Both structures automatically rebuild when mesh topology changes.
+Rebuild these structures when you modify source data.
 
 ## Deformation
 
-### Linear Blend Skinning (LBS)
-
-Apply skeletal animation to meshes:
-
-```cpp
-#include "engine/geometry/deform/linear_blend_skinning.hpp"
-
-// Binding prepared by animation module
-animation::RigBinding binding = /*...*/;
-std::vector<math::mat4> joint_transforms = /*...*/;
-
-// Apply deformation
-geometry::apply_linear_blend_skinning(mesh, joint_transforms, binding.joint_weights);
-
-// Mesh positions, normals updated in-place
-// Bounds and centroid recomputed automatically
-```
-
-### Other Deformers
-
-```cpp
-// Lattice-based free-form deformation
-geometry::apply_ffd(mesh, lattice);
-
-// Laplacian smoothing
-geometry::smooth_laplacian(mesh, /*iterations=*/5, /*lambda=*/0.5f);
-```
+LBS and other deformers live under `engine/geometry/deform/` and integrate with the animation module.
 
 ## Topology Operations
 
-### Halfedge Mesh Conversion
-
-Convert to/from halfedge representation for advanced queries:
-
-```cpp
-auto halfedge_mesh = geometry::to_halfedge(mesh);
-
-// Traverse around vertex
-for (auto he : halfedge_mesh.outgoing_halfedges(vertex_id)) {
-    auto target = halfedge_mesh.target(he);
-    // Process edge
-}
-
-// Convert back
-auto indexed_mesh = geometry::from_halfedge(halfedge_mesh);
-```
-
-### Topology Queries
-
-```cpp
-// Compute vertex valence (number of adjacent edges)
-auto valence = geometry::vertex_valence(mesh, vertex_id);
-
-// Find boundary edges
-auto boundary = geometry::extract_boundary(mesh);
-
-// Compute face adjacency
-auto adjacent_faces = geometry::face_neighbors(mesh, face_id);
-```
+Halfedge conversion and utilities live under `engine/geometry/mesh/` and `engine/geometry/topology/`.
 
 ## Geometric Computations
 
-### Normals & Tangents
+### Normals, Bounds, Centroid
 
 ```cpp
-// Compute per-vertex normals (area-weighted)
-geometry::compute_normals(mesh);
-
-// Flat shading normals (per-face)
-geometry::compute_flat_normals(mesh);
-
-// Tangent space for normal mapping
-geometry::compute_tangents(mesh);
-```
-
-### Bounds & Centroid
-
-```cpp
-// AABB
-geometry::Aabb bounds = geometry::compute_bounds(mesh);
-fmt::print("Min: ({}, {}, {})\n", bounds.min.x, bounds.min.y, bounds.min.z);
-fmt::print("Max: ({}, {}, {})\n", bounds.max.x, bounds.max.y, bounds.max.z);
-
-// Centroid
-math::vec3 centroid = geometry::compute_centroid(mesh);
-
-// Bounding sphere
-geometry::Sphere bounding_sphere = geometry::compute_bounding_sphere(mesh);
-```
-
-### Intersections
-
-```cpp
-// Ray-mesh intersection
-geometry::Ray ray{{0, 0, -10}, {0, 0, 1}};
-auto hit = geometry::intersect_ray_mesh(ray, mesh);
-if (hit) {
-    fmt::print("Hit at t={}, triangle={}\n", hit->t, hit->triangle_index);
-}
-
-// AABB-AABB intersection
-bool intersects = geometry::intersect_aabb_aabb(box1, box2);
-
-// Sphere-sphere intersection
-bool spheres_overlap = geometry::intersect_sphere_sphere(sphere1, sphere2);
+engine::geometry::recompute_vertex_normals(mesh);
+engine::geometry::update_bounds(mesh);
+auto center = engine::geometry::centroid(mesh);
 ```
 
 ## IO Integration
 
-Import and export via the IO module:
+Load and save meshes via the module API:
 
 ```cpp
-#include "engine/io/api.hpp"
+#include "engine/geometry/api.hpp"
 
-// Import
-auto result = io::import_mesh("model.obj");
-if (result) {
-    geometry::SurfaceMesh mesh = std::move(*result);
-}
-
-// Export
-io::export_mesh(mesh, "output.obj", io::MeshFormat::OBJ);
+engine::geometry::SurfaceMesh mesh = engine::geometry::load_surface_mesh("triangle.obj");
+engine::geometry::save_surface_mesh(mesh, "out.obj");
 ```
-
-See [`../io/README.md`](../io/README.md) for format support and error handling.
-
-## Validation
-
-Validate mesh topology and attributes:
-
-```cpp
-auto validation = geometry::validate_mesh(mesh);
-if (!validation.is_valid) {
-    for (const auto& error : validation.errors) {
-        fmt::print("Validation error: {}\n", error.message);
-    }
-}
-```
-
-Validation checks:
-- Index buffer bounds (no out-of-range vertex references)
-- Consistent attribute counts (positions, normals, UVs match)
-- Non-degenerate triangles (area > epsilon)
-- Manifold topology (no non-manifold edges)
-- Orientation consistency (winding order)
 
 ## Telemetry
 
-Geometry operations emit telemetry for diagnostics:
-
-```cpp
-auto telemetry = io::geometry_io_telemetry();
-for (const auto& [format, metrics] : telemetry.formats) {
-    fmt::print("{}: {} imports, {} failures\n",
-        format, metrics.import_count, metrics.import_failures);
-}
-```
+See diagnostics and IO modules for telemetry surfaces.
 
 ## Performance Benchmarks
 
-From `GE-205` benchmarking task:
-- Normal recomputation: ~1.2ms for 50k vertices
-- Bounds computation: ~0.3ms for 50k vertices
-- KD-tree construction: ~15ms for 100k points
-- Octree construction: ~8ms for 100k points
-- LBS deformation: ~0.8ms for 1000 vertices with 20 joints
+See `engine/geometry/benchmarks/` for current microbenchmarks (e.g., normal recomputation).
 
 ## Testing
-
-Tests cover:
-- Mesh construction and validation (`test_mesh.cpp`)
-- Spatial structure queries (`test_kdtree.cpp`, `test_octree.cpp`)
-- Deformation correctness (`test_deformation.cpp`)
-- Procedural primitive generation (`test_shapes.cpp`)
-- Topology operations (`test_topology.cpp`)
 
 Run tests:
 ```bash
@@ -304,32 +107,29 @@ ctest --preset linux-gcc-debug -R geometry
 
 ## Dependencies
 
-- **Math**: Vector, matrix, and quaternion types
-- **IO** (integration): Format handlers for import/export
-- **Animation** (integration): Rig binding for deformation
-- **Runtime** (integration): Telemetry and diagnostics
+- Math: vector/matrix primitives
+- IO (integration): import/export
+- Animation (integration): deformers
+- Runtime (integration): telemetry
 
 ## Related Documentation
 
-- [`BACKLOG.md`](BACKLOG.md): Module milestones and planned features
-- [`../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md`](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md): Remeshing proposal
-- [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md): IO architecture decisions
-- [`../../specs/ADR-0006-animation-deformation.md`](../../specs/ADR-0006-animation-deformation.md): Deformation pipeline design
-- [`../../tasks/T-0112-geometry-io-roundtrip-hardening.md`](../../tasks/T-0112-geometry-io-roundtrip-hardening.md): IO hardening milestone
+- See `docs/design/` and `docs/specs/` for ADRs and RFPs.
 
 ## Current State
 
-- `SurfaceMesh` and conversions, procedural primitives, ASCII IO, kd-tree and octree accelerators, and CPU linear blend skinning deformers with telemetry.
-- Topology utilities (halfedge conversion, circulators, connectivity) implemented and covered by tests.
+Surface mesh utilities, shapes and intersections, kd-tree and octree accelerators, IO helpers, and deformation hooks covered by unit tests.
 
 ## Usage
 
-- Run geometry tests and benchmarks:
+- Build and run geometry tests:
   - `ctest --preset linux-gcc-debug -R geometry`
-  - `ctest --preset linux-gcc-debug -R geometry_bench`
-- See `engine/geometry/tests/` and `engine/geometry/benchmarks/` for examples.
+- Run the normals microbenchmark:
+  - `ctest --preset linux-gcc-debug -R geometry_normals_benchmark`
+- Explore examples under `engine/geometry/tests/` and benchmarks under `engine/geometry/benchmarks/`.
 
 ## TODO / Next Steps
 
-- Sequence remeshing execution milestones derived from the published RFP (`GE-221+`); see ../../ROADMAP.md
-- Track parameterization and decimation follow-ups aligned to `GE-212` RFP; see ../../ROADMAP.md
+- Track remeshing and parameterization work per `GE-221+` planning (see [docs/ROADMAP.md](../../ROADMAP.md)).
+- Extend decimation and UV parameterization utilities aligned to the published RFPs (see [docs/ROADMAP.md](../../ROADMAP.md)).
+- Expand telemetry coverage for spatial queries and IO round-trips.

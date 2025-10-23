@@ -1,8 +1,8 @@
 #pragma once
 
 #include <variant>
+#include <vulkan/vulkan.h>
 
-#include "engine/rendering/backend/vulkan/vulkan_stub.hpp"
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/resources/synchronization.hpp"
 

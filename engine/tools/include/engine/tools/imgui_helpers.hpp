@@ -22,11 +22,11 @@ namespace engine::tools::imgui
     ENGINE_TOOLS_API void end_frame();
 
     // Render runtime diagnostics UI
-    ENGINE_TOOLS_API void render_diagnostics(const engine::runtime::RuntimeDiagnostics& diagnostics);
+    ENGINE_TOOLS_API void render_diagnostics(const runtime::RuntimeDiagnostics& diagnostics);
 
     // Render scene validation report UI
     ENGINE_TOOLS_API void render_validation_report(
-        const engine::scene::validation::HierarchyValidationReport& report);
+        const scene::validation::HierarchyValidationReport& report);
 
     // Render profiling data
     ENGINE_TOOLS_API void render_profiler_window(bool* p_open = nullptr);

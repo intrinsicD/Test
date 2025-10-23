@@ -141,6 +141,12 @@ const Collider* collider_at(const PhysicsWorld& world, std::size_t index) noexce
     return &world.bodies[index].collider;
 }
 
+// Perform a full simulation tick: integrates motion and updates contacts/telemetry.
+void step(PhysicsWorld& world, double dt) {
+    integrate(world, dt);
+    update_contact_manifolds(world);
+}
+
 }  // namespace engine::physics
 
 extern "C" ENGINE_PHYSICS_API const char* engine_physics_module_name() noexcept {

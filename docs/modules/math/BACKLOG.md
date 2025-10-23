@@ -18,9 +18,12 @@ _Last Updated: 2025-05-16_
 
 ## Upcoming
 
-| Task ID | Description | Dependency |
-| --- | --- | --- |
-| `MA-130` | Identify metrics for conversion drift diagnostics. | After `MA-125` |
+| Task ID | Description | Dependency | Priority |
+| --- | --- | --- | --- |
+| `MA-130` | Identify metrics for conversion drift diagnostics. | After `MA-125` | Medium |
+| `MA-131` | Documentation alignment audit (T-0126). | None | Medium |
+| `MA-132` | Convenience rotation matrix builders (T-0125). | None | Low |
+| `MA-133` | Curve/spline utilities evaluation (T-0127). | Investigation phase | Optional |
 
 ## Notes
 
@@ -37,6 +40,14 @@ _Last Updated: 2025-05-16_
 - 2025-05-30: Added vector component-wise arithmetic and comparison utilities
   to close documentation gaps around advanced vector helpers and unblock
   downstream consumers requiring deterministic clamp/min/max workflows.
+- 2025-10-23: Created tasks for optional enhancements: `T-0125` (convenience
+  rotation builders), `T-0126` (documentation alignment), and `T-0127` (curve
+  utilities evaluation). These are non-blocking improvements for API ergonomics
+  and documentation accuracy.
+- 2025-10-23: Created geometry module tasks `T-0128` (frustum utilities) and
+  `T-0129` (shape intersection coverage). Note that frustum culling math belongs
+  in the geometry module, not math module, following proper module separation.
+  The rendering visibility system (T-0122) depends on T-0128.
 - 2025-10-24: Landed linear-system and polynomial solvers with stability
   guidance and regression tests to support physics/geometry intersection
   workflows ahead of `MA-130` telemetry work.
