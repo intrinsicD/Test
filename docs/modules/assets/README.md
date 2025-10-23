@@ -262,4 +262,4 @@ ctest --preset linux-gcc-debug -R assets
 
 ## TODO / Next Steps
 
-- Coordinate with tools diagnostics dashboards so asset reload telemetry feeds CI alerts (`TL-120`); see ../../ROADMAP.md
+- Coordinate the upcoming M3 authoring & hot-reload milestone with tooling ([BACKLOG.md#upcoming-m3](BACKLOG.md#upcoming-m3)) to extend `CC-002` follow-ups and keep roadmap alignment current (see [../../ROADMAP.md](../../ROADMAP.md))

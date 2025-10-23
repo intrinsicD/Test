@@ -46,3 +46,6 @@ _Last Updated: 2025-05-05_
 - 2025-05-24: Hot-reload watcher callbacks feed runtime telemetry and the
   diagnostics streaming report, completing `AS-315` and surfacing recent
   failures for tooling consumers.
+- 2025-10-24: Asset streaming report outputs a textual dashboard and Chrome
+  trace counters (`TL-120`), enabling CI dashboards to track reload failures and
+  queue utilisation alongside runtime telemetry.

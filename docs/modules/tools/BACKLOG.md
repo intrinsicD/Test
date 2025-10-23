@@ -1,6 +1,6 @@
 # Tools Module Roadmap
 
-_Last Updated: 2025-04-05_
+_Last Updated: 2025-10-24_
 
 ## Roadmap
 
@@ -9,6 +9,7 @@ _Last Updated: 2025-04-05_
 | `TL-101` | Implement diagnostics shell to visualise telemetry (`CC-001`). | ✅ Done |
 | `TL-110` | Document tooling usage + troubleshooting. | ✅ Done |
 | `TL-115` | Add profiling capture/export workflow. | ✅ Done |
+| `TL-120` | Advanced diagnostics dashboard with Chrome trace export for asset telemetry. | ✅ Done |
 
 ## Plan
 
@@ -33,5 +34,8 @@ _Last Updated: 2025-04-05_
   troubleshooting guidance remains pending.
 - 2025-04-05: Completed TL-110 by documenting runtime library discovery,
   variance-tuning, and log capture workflows for telemetry tooling.
+- 2025-10-24: `streaming_report.py` now renders a textual dashboard and emits
+  Chrome trace counter snapshots so asset reload telemetry can feed dashboards,
+  closing TL-120 and aligning assets/runtime observability goals.
 
 Coordinate with Core (`CR-118`) for telemetry bridge requirements.

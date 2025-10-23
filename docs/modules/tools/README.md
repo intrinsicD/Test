@@ -230,5 +230,5 @@ Once modularization is complete, the module will be re-enabled and integrated in
 
 ## TODO / Next Steps
 
-- Adopt the runtime packaging script in CI pipelines, monitor artefact manifests, and gather feedback for the next diagnostics viewer iteration (`TL-110`); see ../../ROADMAP.md
-- Add Chrome trace export and document workflows for performance investigations (`TL-120`); see ../../ROADMAP.md
+- Expand diagnostics viewer iterations based on operator feedback once new telemetry lands (`CC-001`; coordinate with [../../ROADMAP.md](../../ROADMAP.md) and [BACKLOG.md](BACKLOG.md)).
+- Assist assets/runtime teams with the M3 hot-reload milestone by integrating dashboard outputs into CI (`CC-002`, [../assets/BACKLOG.md#upcoming-m3](../assets/BACKLOG.md#upcoming-m3), see [../../ROADMAP.md](../../ROADMAP.md)).

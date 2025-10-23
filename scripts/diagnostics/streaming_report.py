@@ -8,7 +8,7 @@ import ctypes
 import ctypes.util
 import json
 from pathlib import Path
-from typing import Optional, Sequence, Type
+from typing import Mapping, Optional, Sequence, Type
 
 
 _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK = 5
@@ -204,6 +204,158 @@ class RuntimeStreamingBindings:
         return metrics, failures
 
 
+def _render_text_dashboard(payload: Mapping[str, object]) -> str:
+    lines: list[str] = []
+
+    def section(title: str) -> None:
+        if lines:
+            lines.append("")
+        lines.append(title)
+        lines.append("-" * len(title))
+
+    section("Streaming Queue")
+    lines.append(f"Workers: {int(payload.get('worker_count', 0))}")
+    lines.append(f"Queue capacity: {int(payload.get('queue_capacity', 0))}")
+    lines.append(f"Pending tasks: {int(payload.get('pending_tasks', 0))}")
+    lines.append(f"Active workers: {int(payload.get('active_workers', 0))}")
+
+    section("Streaming Totals")
+    lines.append(f"Requests observed: {int(payload.get('streaming_total_requests', 0))}")
+    lines.append(f"Completed: {int(payload.get('streaming_total_completed', 0))}")
+    lines.append(f"Failed: {int(payload.get('streaming_total_failed', 0))}")
+    lines.append(f"Cancelled: {int(payload.get('streaming_total_cancelled', 0))}")
+    lines.append(f"Rejected: {int(payload.get('streaming_total_rejected', 0))}")
+    lines.append(f"In-flight — pending: {int(payload.get('streaming_pending', 0))}")
+    lines.append(f"In-flight — loading: {int(payload.get('streaming_loading', 0))}")
+
+    failures = payload.get("geometry_failures_by_error")
+    if isinstance(failures, Mapping) and failures:
+        section("Geometry Failure Attribution")
+        for label, count in sorted((str(key), int(value)) for key, value in failures.items()):
+            lines.append(f"{label}: {count}")
+
+    hot_reload = payload.get("hot_reload")
+    if isinstance(hot_reload, Mapping):
+        section("Hot Reload Summary")
+        lines.append(f"Attempts: {int(hot_reload.get('attempt_count', 0))}")
+        lines.append(f"Failures: {int(hot_reload.get('failure_count', 0))}")
+        lines.append(f"Cancelled: {int(hot_reload.get('cancelled_count', 0))}")
+        lines.append(f"Rejected: {int(hot_reload.get('rejected_count', 0))}")
+        lines.append(f"Pending: {int(hot_reload.get('pending_count', 0))}")
+        lines.append(f"Loading: {int(hot_reload.get('loading_count', 0))}")
+        last_error = str(hot_reload.get("last_error", "")).strip()
+        error_hint = str(hot_reload.get("error_hint", "")).strip()
+        if last_error:
+            lines.append(f"Last error: {last_error}")
+        if error_hint:
+            lines.append(f"Hint: {error_hint}")
+        recent = hot_reload.get("recent_failures")
+        if isinstance(recent, Sequence) and recent:
+            lines.append("Recent failures:")
+            for entry in recent:
+                if not isinstance(entry, Mapping):
+                    continue
+                identifier = str(entry.get("identifier", "")).strip() or "<unknown>"
+                error = str(entry.get("error", "")).strip()
+                hint = str(entry.get("hint", "")).strip()
+                detail = f"  • {identifier}"
+                if error:
+                    detail += f": {error}"
+                lines.append(detail)
+                if hint:
+                    lines.append(f"    Hint: {hint}")
+
+    return "\n".join(lines)
+
+
+def _build_chrome_trace(payload: Mapping[str, object], label: str) -> dict[str, object]:
+    events: list[dict[str, object]] = []
+    events.append({"name": "process_name", "ph": "M", "pid": 0, "args": {"name": label}})
+    events.append({"name": "thread_name", "ph": "M", "pid": 0, "tid": 0, "args": {"name": "Streaming"}})
+
+    streaming_args = {
+        "worker_count": int(payload.get("worker_count", 0)),
+        "queue_capacity": int(payload.get("queue_capacity", 0)),
+        "pending_tasks": int(payload.get("pending_tasks", 0)),
+        "active_workers": int(payload.get("active_workers", 0)),
+        "streaming_pending": int(payload.get("streaming_pending", 0)),
+        "streaming_loading": int(payload.get("streaming_loading", 0)),
+        "streaming_total_requests": int(payload.get("streaming_total_requests", 0)),
+        "streaming_total_completed": int(payload.get("streaming_total_completed", 0)),
+        "streaming_total_failed": int(payload.get("streaming_total_failed", 0)),
+        "streaming_total_cancelled": int(payload.get("streaming_total_cancelled", 0)),
+        "streaming_total_rejected": int(payload.get("streaming_total_rejected", 0)),
+        "total_enqueued": int(payload.get("total_enqueued", 0)),
+        "total_executed": int(payload.get("total_executed", 0)),
+    }
+    events.append(
+        {
+            "name": "Streaming Counters",
+            "cat": "assets.streaming",
+            "ph": "C",
+            "pid": 0,
+            "tid": 0,
+            "ts": 0,
+            "args": streaming_args,
+        }
+    )
+
+    failures = payload.get("geometry_failures_by_error")
+    if isinstance(failures, Mapping) and failures:
+        failure_args = {str(key): int(value) for key, value in failures.items()}
+        events.append(
+            {
+                "name": "Geometry Failures",
+                "cat": "assets.streaming",
+                "ph": "C",
+                "pid": 0,
+                "tid": 0,
+                "ts": 0,
+                "args": failure_args,
+            }
+        )
+
+    hot_reload = payload.get("hot_reload")
+    if isinstance(hot_reload, Mapping):
+        hot_reload_args = {
+            "attempt_count": int(hot_reload.get("attempt_count", 0)),
+            "failure_count": int(hot_reload.get("failure_count", 0)),
+            "cancelled_count": int(hot_reload.get("cancelled_count", 0)),
+            "rejected_count": int(hot_reload.get("rejected_count", 0)),
+            "pending_count": int(hot_reload.get("pending_count", 0)),
+            "loading_count": int(hot_reload.get("loading_count", 0)),
+            "total_requests": int(hot_reload.get("total_requests", 0)),
+        }
+        last_error = str(hot_reload.get("last_error", "")).strip()
+        error_hint = str(hot_reload.get("error_hint", "")).strip()
+        if last_error:
+            hot_reload_args["last_error"] = last_error
+        if error_hint:
+            hot_reload_args["error_hint"] = error_hint
+        recent = hot_reload.get("recent_failures")
+        if isinstance(recent, Sequence) and recent:
+            identifiers = [
+                str(entry.get("identifier", "")).strip() or "<unknown>"
+                for entry in recent
+                if isinstance(entry, Mapping)
+            ]
+            if identifiers:
+                hot_reload_args["recent_failures"] = ", ".join(identifiers)
+        events.append(
+            {
+                "name": "Hot Reload Counters",
+                "cat": "assets.hot_reload",
+                "ph": "C",
+                "pid": 0,
+                "tid": 0,
+                "ts": 0,
+                "args": hot_reload_args,
+            }
+        )
+
+    return {"traceEvents": events, "displayTimeUnit": "ms"}
+
+
 def _candidate_names(base: str):
     if ctypes.sizeof(ctypes.c_void_p) == 8 and Path("lib" + base + ".so").exists():
         yield f"lib{base}.so"
@@ -224,10 +376,35 @@ def _candidate_names(base: str):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--library-dir", type=Path, default=None,
-                        help="Directory containing the runtime shared library.")
-    parser.add_argument("--output", type=Path, default=None,
-                        help="Optional path to write the metrics JSON.")
+    parser.add_argument(
+        "--library-dir",
+        type=Path,
+        default=None,
+        help="Directory containing the runtime shared library.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Optional path to write the rendered report.",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("json", "text"),
+        default="json",
+        help="Output format: JSON (default) or a human-readable text dashboard.",
+    )
+    parser.add_argument(
+        "--chrome-trace",
+        type=Path,
+        default=None,
+        help="Optional path to persist a Chrome trace counter snapshot for asset telemetry.",
+    )
+    parser.add_argument(
+        "--chrome-trace-label",
+        default="Asset Streaming Telemetry",
+        help="Label embedded in the generated Chrome trace metadata (default: 'Asset Streaming Telemetry').",
+    )
     args = parser.parse_args()
 
     bindings = RuntimeStreamingBindings.load("engine_runtime", args.library_dir)
@@ -273,10 +450,18 @@ def main() -> None:
     else:
         payload["hot_reload"] = None
 
-    text = json.dumps(payload, indent=2, sort_keys=True)
-    print(text)
+    if args.chrome_trace is not None:
+        trace_payload = _build_chrome_trace(payload, args.chrome_trace_label)
+        args.chrome_trace.write_text(json.dumps(trace_payload, indent=2) + "\n", encoding="utf-8")
+
+    if args.format == "text":
+        rendered = _render_text_dashboard(payload)
+    else:
+        rendered = json.dumps(payload, indent=2, sort_keys=True)
+
+    print(rendered)
     if args.output is not None:
-        args.output.write_text(text + "\n", encoding="utf-8")
+        args.output.write_text(rendered + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

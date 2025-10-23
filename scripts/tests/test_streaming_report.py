@@ -66,7 +66,7 @@ class StubRuntimeLibrary:
                 "hint": "Check watcher permissions",
             },
         ]
-        self._failure_labels: list[ctypes.c_char_p] = []
+        self._failure_labels: list[ctypes.Array[ctypes.c_char]] = []
 
     def _fill_streaming_metrics(self, out_ptr) -> None:
         metrics = ctypes.cast(out_ptr, ctypes.POINTER(report.StreamingMetrics)).contents
@@ -87,11 +87,15 @@ class StubRuntimeLibrary:
         metrics.geometry_failures[0] = 1
         metrics.geometry_failures[1] = 0
         self._failure_labels = [
-            ctypes.c_char_p(b"geometry.io_failure"),
-            ctypes.c_char_p(b"geometry.validation"),
+            ctypes.create_string_buffer(b"geometry.io_failure"),
+            ctypes.create_string_buffer(b"geometry.validation"),
         ]
-        metrics.geometry_failure_labels[0] = self._failure_labels[0]
-        metrics.geometry_failure_labels[1] = self._failure_labels[1]
+        metrics.geometry_failure_labels[0] = ctypes.cast(
+            self._failure_labels[0], ctypes.c_char_p
+        )
+        metrics.geometry_failure_labels[1] = ctypes.cast(
+            self._failure_labels[1], ctypes.c_char_p
+        )
 
     def _fill_hot_reload_metrics(self, out_ptr) -> None:
         metrics = ctypes.cast(out_ptr, ctypes.POINTER(report.HotReloadMetrics)).contents
@@ -134,3 +138,37 @@ def test_collects_hot_reload_metrics(
     failures = payload["geometry_failures_by_error"]
     observed = failures.get("geometry.io_failure", failures.get("error_0"))
     assert observed == 1
+
+
+def test_renders_text_dashboard(
+    stub_bindings: report.RuntimeStreamingBindings,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["streaming_report.py", "--format", "text"])
+    report.main()
+    captured = capsys.readouterr().out
+    assert "Streaming Queue" in captured
+    assert "Hot Reload Summary" in captured
+    assert "Geometry Failure Attribution" in captured
+
+
+def test_emits_chrome_trace(
+    stub_bindings: report.RuntimeStreamingBindings,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    trace_path = tmp_path / "trace.json"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["streaming_report.py", "--chrome-trace", str(trace_path)],
+    )
+    report.main()
+    _ = capsys.readouterr()
+    trace_payload = json.loads(trace_path.read_text(encoding="utf-8"))
+    assert "traceEvents" in trace_payload
+    counters = [event for event in trace_payload["traceEvents"] if event.get("ph") == "C"]
+    assert any(event.get("name") == "Streaming Counters" for event in counters)
+    assert any(event.get("name") == "Hot Reload Counters" for event in counters)
