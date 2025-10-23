@@ -49,6 +49,20 @@ StreamingMetrics = _create_streaming_metrics_type(
 )
 
 
+class HotReloadMetrics(ctypes.Structure):
+    _fields_ = [
+        ("attempt_count", ctypes.c_uint64),
+        ("failure_count", ctypes.c_uint64),
+        ("cancelled_count", ctypes.c_uint64),
+        ("rejected_count", ctypes.c_uint64),
+        ("pending_count", ctypes.c_uint64),
+        ("loading_count", ctypes.c_uint64),
+        ("total_requests", ctypes.c_uint64),
+        ("last_error", ctypes.c_char_p),
+        ("error_hint", ctypes.c_char_p),
+    ]
+
+
 class RuntimeStreamingBindings:
     def __init__(self, library: ctypes.CDLL) -> None:
         self._lib = library
@@ -57,6 +71,7 @@ class RuntimeStreamingBindings:
         self._streaming_metrics_type = _create_streaming_metrics_type(
             self._streaming_metrics_capacity
         )
+        self._has_hot_reload_metrics = False
         self._configure_signatures()
 
     @staticmethod
@@ -116,6 +131,38 @@ class RuntimeStreamingBindings:
         lib.engine_runtime_streaming_metrics.restype = None
         lib.engine_runtime_streaming_metrics.argtypes = [metrics_pointer]
 
+        try:
+            lib.engine_runtime_diagnostic_hot_reload_metrics.restype = None
+            lib.engine_runtime_diagnostic_hot_reload_metrics.argtypes = [
+                ctypes.POINTER(HotReloadMetrics)
+            ]
+            lib.engine_runtime_diagnostic_hot_reload_recent_failure_count.restype = (
+                ctypes.c_uint32
+            )
+            lib.engine_runtime_diagnostic_hot_reload_recent_failure_count.argtypes = []
+            lib.engine_runtime_diagnostic_hot_reload_recent_failure_identifier.restype = (
+                ctypes.c_char_p
+            )
+            lib.engine_runtime_diagnostic_hot_reload_recent_failure_identifier.argtypes = [
+                ctypes.c_uint32
+            ]
+            lib.engine_runtime_diagnostic_hot_reload_recent_failure_error.restype = (
+                ctypes.c_char_p
+            )
+            lib.engine_runtime_diagnostic_hot_reload_recent_failure_error.argtypes = [
+                ctypes.c_uint32
+            ]
+            lib.engine_runtime_diagnostic_hot_reload_recent_failure_hint.restype = (
+                ctypes.c_char_p
+            )
+            lib.engine_runtime_diagnostic_hot_reload_recent_failure_hint.argtypes = [
+                ctypes.c_uint32
+            ]
+        except AttributeError:
+            self._has_hot_reload_metrics = False
+        else:
+            self._has_hot_reload_metrics = True
+
     def metrics(self) -> StreamingMetrics:
         data = self._streaming_metrics_type()
         self._lib.engine_runtime_streaming_metrics(ctypes.byref(data))
@@ -124,6 +171,37 @@ class RuntimeStreamingBindings:
     @property
     def streaming_metrics_capacity(self) -> int:
         return self._streaming_metrics_capacity
+
+    def hot_reload_metrics(self) -> Optional[tuple[HotReloadMetrics, list[dict[str, str]]]]:
+        if not self._has_hot_reload_metrics:
+            return None
+
+        metrics = HotReloadMetrics()
+        self._lib.engine_runtime_diagnostic_hot_reload_metrics(ctypes.byref(metrics))
+
+        count = int(
+            self._lib.engine_runtime_diagnostic_hot_reload_recent_failure_count()
+        )
+        failures: list[dict[str, str]] = []
+        for index in range(count):
+            identifier = self._lib.engine_runtime_diagnostic_hot_reload_recent_failure_identifier(  # type: ignore[attr-defined]
+                ctypes.c_uint32(index)
+            )
+            error = self._lib.engine_runtime_diagnostic_hot_reload_recent_failure_error(  # type: ignore[attr-defined]
+                ctypes.c_uint32(index)
+            )
+            hint = self._lib.engine_runtime_diagnostic_hot_reload_recent_failure_hint(  # type: ignore[attr-defined]
+                ctypes.c_uint32(index)
+            )
+            failures.append(
+                {
+                    "identifier": (identifier or b"").decode("utf-8"),
+                    "error": (error or b"").decode("utf-8"),
+                    "hint": (hint or b"").decode("utf-8"),
+                }
+            )
+
+        return metrics, failures
 
 
 def _candidate_names(base: str):
@@ -176,6 +254,24 @@ def main() -> None:
         "streaming_total_rejected": metrics.streaming_total_rejected,
         "geometry_failures_by_error": failure_counts,
     }
+
+    hot_reload = bindings.hot_reload_metrics()
+    if hot_reload is not None:
+        metrics_struct, recent_failures = hot_reload
+        payload["hot_reload"] = {
+            "attempt_count": metrics_struct.attempt_count,
+            "failure_count": metrics_struct.failure_count,
+            "cancelled_count": metrics_struct.cancelled_count,
+            "rejected_count": metrics_struct.rejected_count,
+            "pending_count": metrics_struct.pending_count,
+            "loading_count": metrics_struct.loading_count,
+            "total_requests": metrics_struct.total_requests,
+            "last_error": (metrics_struct.last_error or b"").decode("utf-8"),
+            "error_hint": (metrics_struct.error_hint or b"").decode("utf-8"),
+            "recent_failures": recent_failures,
+        }
+    else:
+        payload["hot_reload"] = None
 
     text = json.dumps(payload, indent=2, sort_keys=True)
     print(text)

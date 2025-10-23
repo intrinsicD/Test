@@ -247,6 +247,8 @@ ctest --preset clang-debug -R assets
 - Async loading pipeline with telemetry integrated into runtime diagnostics; handle validation hooks enabled in debug builds.
 - Diagnostics shell (`scripts/diagnostics/telemetry_viewer.py`) surfaces recent asset reload failures with per-asset hints to
   accelerate hot-reload triage (`AS-330`).
+- `scripts/diagnostics/streaming_report.py` exports hot-reload metrics (attempt/failure/cancellation counters and recent
+  failures) alongside async queue health for CI dashboards.
 
 ## Usage
 
@@ -256,5 +258,4 @@ ctest --preset clang-debug -R assets
 
 ## TODO / Next Steps
 
-- Integrate filesystem watcher callbacks for hot reload (`AS-315`); see ../../ROADMAP.md
 - Coordinate with tools diagnostics dashboards so asset reload telemetry feeds CI alerts (`TL-120`); see ../../ROADMAP.md

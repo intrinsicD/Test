@@ -60,8 +60,11 @@ metrics gathered from the runtime thread pool and `AssetStreamingTelemetry`.
    ```
 3. Inspect the JSON payload printed to stdout or persisted via `--output`. The
    report includes worker counts, queue saturation, pending request totals,
-   cancellation/failure counters, and a `geometry_failures_by_error` mapping so
-   operators can attribute failures to specific `GeometryIoErrorCode` values.
+   cancellation/failure counters, a `geometry_failures_by_error` mapping so
+   operators can attribute failures to specific `GeometryIoErrorCode` values,
+   and a `hot_reload` section (attempt/failure/cancellation counters plus the
+   most recent failures with remediation hints) sourced from the runtime
+   diagnostics bridge.
 
 Integrate the script into CI to monitor queue health and failure attribution once
 large streaming workloads are exercised.

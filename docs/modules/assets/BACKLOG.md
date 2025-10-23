@@ -21,7 +21,7 @@ _Last Updated: 2025-05-05_
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `AS-315` | Integrate filesystem watcher callbacks for hot reload (`CC-002`). | `PL-222` watcher abstraction. |
+| _TBD_ | Next milestone under evaluation. | – |
 
 ## Dependencies
 
@@ -43,3 +43,6 @@ _Last Updated: 2025-05-05_
 - 2025-05-05: Asset async queue cancellation checks guard geometry detection and
   decode hand-offs, and tests verify cancellation telemetry remains
   deterministic (`AS-305`).
+- 2025-05-24: Hot-reload watcher callbacks feed runtime telemetry and the
+  diagnostics streaming report, completing `AS-315` and surfacing recent
+  failures for tooling consumers.

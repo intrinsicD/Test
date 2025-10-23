@@ -17,6 +17,6 @@ _Last Updated: 2025-03-04_
 | Sprint 1 | `PL-215` | ✅ Delivered 2025-03-31 |
 | Sprint 2 | `PL-230` | ✅ Delivered 2025-03-04 |
 
-Coordinate watcher work with Assets (`AS-315`) and Tools (`TL-101`) to ensure
-hot reload flows are integrated end-to-end now that the watcher abstraction is
-available.
+Coordinate watcher work with Tools (`TL-101`) to ensure hot reload flows remain
+integrated end-to-end now that Assets (`AS-315`) consumes the watcher
+abstraction and exports telemetry for diagnostics consumers.
