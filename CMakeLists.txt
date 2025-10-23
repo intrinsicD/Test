@@ -79,6 +79,7 @@ endforeach()
 
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
+# Third-party knobs
 option(ENGINE_ENABLE_GLFW "Fetch and build GLFW to provide the GLFW window backend" ON)
 option(ENGINE_ENABLE_FUZZING "Enable fuzzing harness targets" OFF)
 
@@ -155,64 +156,8 @@ function(engine_apply_module_defaults target)
 endfunction()
 
 include(CTest)
-include(FetchContent)
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
-
-set(ENGINE_GLFW_TARGET_NAME "")
-set(ENGINE_GLFW_AVAILABLE OFF)
-
-if(ENGINE_ENABLE_GLFW)
-    if(UNIX AND NOT APPLE)
-        find_path(GLFW_XRANDR_INCLUDE_DIR "X11/extensions/Xrandr.h")
-        if(NOT GLFW_XRANDR_INCLUDE_DIR)
-            message(WARNING "Xrandr headers not found; disabling GLFW support. Install libxrandr-dev to enable it.")
-            set(ENGINE_ENABLE_GLFW OFF CACHE BOOL "Fetch and build GLFW to provide the GLFW window backend" FORCE)
-        endif()
-    endif()
-
-    if(ENGINE_ENABLE_GLFW)
-        set(GLFW_DIR "${THIRD_PARTY_DIR}/glfw")
-        if(EXISTS "${GLFW_DIR}/CMakeLists.txt")
-            add_subdirectory(${GLFW_DIR})
-        else()
-            set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-            set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-            set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-            set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-            set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
-
-            option(ENGINE_GLFW_BUILD_X11 "Enable the GLFW X11 backend" ON)
-            if(ENGINE_GLFW_BUILD_X11)
-                set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
-            else()
-                set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE)
-            endif()
-
-            FetchContent_Declare(glfw_external
-                GIT_REPOSITORY https://github.com/glfw/glfw.git
-                GIT_TAG 3.4
-                GIT_SHALLOW TRUE
-            )
-            FetchContent_MakeAvailable(glfw_external)
-        endif()
-
-        if(TARGET glfw)
-            set(ENGINE_GLFW_TARGET_NAME glfw)
-            set(ENGINE_GLFW_AVAILABLE ON)
-        elseif(TARGET glfw_shared)
-            set(ENGINE_GLFW_TARGET_NAME glfw_shared)
-            set(ENGINE_GLFW_AVAILABLE ON)
-        else()
-            message(WARNING "GLFW support requested but target not available after configuration; disabling GLFW support.")
-            set(ENGINE_ENABLE_GLFW OFF CACHE BOOL "Fetch and build GLFW to provide the GLFW window backend" FORCE)
-        endif()
-    endif()
-endif()
-
-if(NOT ENGINE_ENABLE_GLFW OR NOT ENGINE_GLFW_AVAILABLE)
-    message(STATUS "GLFW support disabled; platform module will rely on mock/SDL backends only.")
-endif()
 
 if(Python3_Interpreter_FOUND)
     add_custom_target(docs
@@ -224,147 +169,13 @@ else()
     message(WARNING "Python3 interpreter not found; the docs validation target is disabled.")
 endif()
 
+# Centralized third-party dependencies
+add_subdirectory(third_party)
+
+# Tests
 if(BUILD_TESTING)
-    add_subdirectory(third_party/googletest)
     add_subdirectory(engine/tests/integration)
 endif()
 
-set(THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third_party")
-
-set(ENTT_DIR "${THIRD_PARTY_DIR}/entt")
-if(EXISTS "${ENTT_DIR}/CMakeLists.txt")
-    add_subdirectory(${ENTT_DIR})
-else()
-    FetchContent_Declare(entt_external
-        GIT_REPOSITORY https://github.com/skypjack/entt.git
-        GIT_TAG v3.13.0
-        GIT_SHALLOW TRUE
-    )
-    FetchContent_MakeAvailable(entt_external)
-endif()
-
-# spdlog: submodule first, fallback to FetchContent
-set(SPDLOG_DIR "${THIRD_PARTY_DIR}/spdlog")
-if(EXISTS "${SPDLOG_DIR}/CMakeLists.txt")
-    # Disable extras when consuming as submodule
-    set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
-    set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(SPDLOG_INSTALL OFF CACHE BOOL "" FORCE)
-    add_subdirectory(${SPDLOG_DIR})
-else()
-    # Fetch pinned spdlog if submodule not present
-    set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
-    set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(SPDLOG_INSTALL OFF CACHE BOOL "" FORCE)
-    FetchContent_Declare(spdlog_external
-        GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.13.0
-        GIT_SHALLOW TRUE
-    )
-    FetchContent_MakeAvailable(spdlog_external)
-endif()
-# Provide a compatibility header-only alias if only spdlog::spdlog exists
-if(TARGET spdlog::spdlog AND NOT TARGET spdlog::spdlog_header_only)
-    add_library(spdlog_header_only INTERFACE)
-    target_link_libraries(spdlog_header_only INTERFACE spdlog::spdlog)
-    add_library(spdlog::spdlog_header_only ALIAS spdlog_header_only)
-endif()
-
-# imgui: submodule first, fallback to FetchContent with wrapper if needed
-set(IMGUI_DIR "${THIRD_PARTY_DIR}/imgui")
-set(_IMGUI_CORE_FILENAMES imgui.cpp imgui_draw.cpp imgui_tables.cpp imgui_widgets.cpp)
-set(_IMGUI_BACKEND_FILENAMES backends/imgui_impl_glfw.cpp backends/imgui_impl_opengl3.cpp)
-
-set(_IMGUI_LOCAL_HAS_CORE TRUE)
-foreach(_IMGUI_FILENAME IN LISTS _IMGUI_CORE_FILENAMES)
-    if(NOT EXISTS "${IMGUI_DIR}/${_IMGUI_FILENAME}")
-        set(_IMGUI_LOCAL_HAS_CORE FALSE)
-        break()
-    endif()
-endforeach()
-
-set(_IMGUI_LOCAL_HAS_BACKENDS TRUE)
-foreach(_IMGUI_FILENAME IN LISTS _IMGUI_BACKEND_FILENAMES)
-    if(NOT EXISTS "${IMGUI_DIR}/${_IMGUI_FILENAME}")
-        set(_IMGUI_LOCAL_HAS_BACKENDS FALSE)
-        break()
-    endif()
-endforeach()
-
-if(EXISTS "${IMGUI_DIR}" AND (EXISTS "${IMGUI_DIR}/CMakeLists.txt" OR _IMGUI_LOCAL_HAS_CORE))
-    if(EXISTS "${IMGUI_DIR}/CMakeLists.txt")
-        add_subdirectory(${IMGUI_DIR})
-    else()
-        # Local imgui present without CMake; build a minimal wrapper from local sources
-        set(_IMGUI_CORE_SOURCES)
-        foreach(_IMGUI_FILENAME IN LISTS _IMGUI_CORE_FILENAMES)
-            list(APPEND _IMGUI_CORE_SOURCES "${IMGUI_DIR}/${_IMGUI_FILENAME}")
-        endforeach()
-        add_library(imgui STATIC ${_IMGUI_CORE_SOURCES})
-        set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
-        target_include_directories(imgui PUBLIC ${IMGUI_DIR})
-        target_link_libraries(imgui PUBLIC engine::project_options)
-        if(ENGINE_ENABLE_GLFW AND ENGINE_GLFW_TARGET_NAME AND _IMGUI_LOCAL_HAS_BACKENDS)
-            set(_IMGUI_BACKEND_SOURCES)
-            foreach(_IMGUI_FILENAME IN LISTS _IMGUI_BACKEND_FILENAMES)
-                list(APPEND _IMGUI_BACKEND_SOURCES "${IMGUI_DIR}/${_IMGUI_FILENAME}")
-            endforeach()
-            target_sources(imgui PRIVATE ${_IMGUI_BACKEND_SOURCES})
-            target_include_directories(imgui PUBLIC
-                ${IMGUI_DIR}/backends
-                $<TARGET_PROPERTY:${ENGINE_GLFW_TARGET_NAME},INTERFACE_INCLUDE_DIRECTORIES>
-            )
-            target_link_libraries(imgui PUBLIC ${ENGINE_GLFW_TARGET_NAME})
-        elseif(ENGINE_ENABLE_GLFW AND ENGINE_GLFW_TARGET_NAME AND NOT _IMGUI_LOCAL_HAS_BACKENDS)
-            message(WARNING "ImGui GLFW backends are missing from ${IMGUI_DIR}; skipping backend compilation.")
-        endif()
-    endif()
-else()
-    FetchContent_Declare(imgui_external
-        GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG v1.90.5-docking
-        GIT_SHALLOW TRUE
-    )
-    FetchContent_MakeAvailable(imgui_external)
-    if(EXISTS "${imgui_external_SOURCE_DIR}/CMakeLists.txt")
-        add_subdirectory(${imgui_external_SOURCE_DIR} ${imgui_external_BINARY_DIR})
-    else()
-        set(_IMGUI_CORE_SOURCES
-            ${imgui_external_SOURCE_DIR}/imgui.cpp
-            ${imgui_external_SOURCE_DIR}/imgui_draw.cpp
-            ${imgui_external_SOURCE_DIR}/imgui_tables.cpp
-            ${imgui_external_SOURCE_DIR}/imgui_widgets.cpp
-        )
-        add_library(imgui STATIC ${_IMGUI_CORE_SOURCES})
-        set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
-        target_include_directories(imgui PUBLIC ${imgui_external_SOURCE_DIR})
-        target_link_libraries(imgui PUBLIC engine::project_options)
-        if(ENGINE_ENABLE_GLFW AND ENGINE_GLFW_TARGET_NAME)
-            target_sources(imgui PRIVATE
-                ${imgui_external_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-                ${imgui_external_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-            )
-            target_include_directories(imgui PUBLIC
-                ${imgui_external_SOURCE_DIR}/backends
-                $<TARGET_PROPERTY:${ENGINE_GLFW_TARGET_NAME},INTERFACE_INCLUDE_DIRECTORIES>
-            )
-            target_link_libraries(imgui PUBLIC ${ENGINE_GLFW_TARGET_NAME})
-        endif()
-    endif()
-endif()
-
-# Ensure a consistent namespace alias for ImGui
-if(TARGET imgui AND NOT TARGET imgui::imgui)
-    add_library(imgui::imgui ALIAS imgui)
-endif()
-# Ensure imgui is built with PIC even if provided by submodule CMake
-if(TARGET imgui)
-    set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
-# Ensure ImGui has GLFW include dirs and linkage when using the GLFW backend
-if(ENGINE_ENABLE_GLFW AND ENGINE_GLFW_TARGET_NAME AND TARGET imgui)
-    target_include_directories(imgui PUBLIC $<TARGET_PROPERTY:${ENGINE_GLFW_TARGET_NAME},INTERFACE_INCLUDE_DIRECTORIES>)
-    target_link_libraries(imgui PUBLIC ${ENGINE_GLFW_TARGET_NAME})
-endif()
-
+# Engine modules
 add_subdirectory(engine)

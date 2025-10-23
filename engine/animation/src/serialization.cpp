@@ -267,7 +267,7 @@ namespace engine::animation
                 return result;
             }
 
-            [[nodiscard]] std::string parse_string()
+            std::string parse_string()
             {
                 expect_character('"');
                 std::string result;

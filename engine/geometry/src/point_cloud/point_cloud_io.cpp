@@ -733,12 +733,14 @@ namespace engine::geometry::point_cloud
 
     void write(const PointCloudInterface& cloud, const std::filesystem::path& path, const IOFlags& flags)
     {
-        const auto format = resolve_format(flags, path);
-        switch (format)
+        switch (const auto format = resolve_format(flags, path))
         {
             case IOFlags::Format::kPLY:
                 write_ply(cloud, path, flags);
                 break;
+            case IOFlags::Format::kAuto: //TODO: What is kAuto doing here? What is it anyway?
+            default:
+                throw std::runtime_error("Unsupported point cloud output format");
         }
     }
 } // namespace engine::geometry::point_cloud
