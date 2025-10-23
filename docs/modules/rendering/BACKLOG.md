@@ -1,6 +1,6 @@
 # Rendering Module Roadmap
 
-_Last Updated: 2025-10-27_
+_Last Updated: 2025-10-28_
 
 ## Workstreams
 
@@ -29,3 +29,9 @@ _Last Updated: 2025-10-27_
 
 Coordinate efforts with runtime (`RU-307`) and asset lifetime initiative
 (`AI-001`).
+
+### Recent Updates
+
+- 2025-10-28: Frame-graph resource descriptors now reject empty or duplicate names to keep
+  backend telemetry and serialization unambiguous. Update propagated to unit tests and module
+  documentation.

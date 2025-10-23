@@ -271,6 +271,22 @@ namespace engine::rendering
 
     FrameGraphResourceHandle FrameGraph::create_resource(FrameGraphResourceDescriptor descriptor)
     {
+        if (descriptor.name.empty())
+        {
+            throw std::invalid_argument{"FrameGraph::create_resource requires a non-empty resource name"};
+        }
+
+        const auto duplicate = std::find_if(resources_.begin(), resources_.end(),
+                                            [&](const ResourceNode& resource) {
+                                                return resource.name == descriptor.name;
+                                            });
+
+        if (duplicate != resources_.end())
+        {
+            throw std::invalid_argument{"FrameGraph::create_resource received duplicate resource name: '" +
+                                        descriptor.name + "'"};
+        }
+
         compiled_ = false;
         resources_.push_back(ResourceNode{});
         auto& node = resources_.back();

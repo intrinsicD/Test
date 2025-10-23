@@ -44,6 +44,12 @@ builder.add_pass("geometry_pass")
 auto frame_graph = builder.compile();
 ```
 
+> **Resource naming**
+>
+> Frame-graph resources must be declared with unique, non-empty names. The builder throws
+> `std::invalid_argument` if a descriptor omits a name or attempts to reuse an existing identifier
+> so telemetry, serialization, and diagnostics remain unambiguous.
+
 ### Frame Graph Execution
 
 Execute the compiled graph through a scheduler:
