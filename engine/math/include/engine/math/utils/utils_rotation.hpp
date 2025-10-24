@@ -6,6 +6,7 @@
 #include "engine/math/vector.hpp"
 
 #include <array>
+#include <cstddef>
 
 namespace engine::math::utils
 {
@@ -228,6 +229,60 @@ namespace engine::math::utils
     /// These provide a more ergonomic API for common rotation operations.
     /// Right-handed coordinate system, column-major matrices.
 
+    /// Create a 3x3 rotation matrix around the X-axis by the given angle (in radians).
+    /// @param angle Rotation angle in radians
+    /// @return 3x3 rotation matrix
+    template <typename T>
+    ENGINE_MATH_INLINE Matrix<T, 3, 3> rotate_x3(T angle) noexcept
+    {
+        Matrix<T, 3, 3> result = math::identity_matrix<T, 3>();
+        const T c = std::cos(angle);
+        const T s = std::sin(angle);
+
+        result[1][1] = c;
+        result[1][2] = -s;
+        result[2][1] = s;
+        result[2][2] = c;
+
+        return result;
+    }
+
+    /// Create a 3x3 rotation matrix around the Y-axis by the given angle (in radians).
+    /// @param angle Rotation angle in radians
+    /// @return 3x3 rotation matrix
+    template <typename T>
+    ENGINE_MATH_INLINE Matrix<T, 3, 3> rotate_y3(T angle) noexcept
+    {
+        Matrix<T, 3, 3> result = math::identity_matrix<T, 3>();
+        const T c = std::cos(angle);
+        const T s = std::sin(angle);
+
+        result[0][0] = c;
+        result[0][2] = s;
+        result[2][0] = -s;
+        result[2][2] = c;
+
+        return result;
+    }
+
+    /// Create a 3x3 rotation matrix around the Z-axis by the given angle (in radians).
+    /// @param angle Rotation angle in radians
+    /// @return 3x3 rotation matrix
+    template <typename T>
+    ENGINE_MATH_INLINE Matrix<T, 3, 3> rotate_z3(T angle) noexcept
+    {
+        Matrix<T, 3, 3> result = math::identity_matrix<T, 3>();
+        const T c = std::cos(angle);
+        const T s = std::sin(angle);
+
+        result[0][0] = c;
+        result[0][1] = -s;
+        result[1][0] = s;
+        result[1][1] = c;
+
+        return result;
+    }
+
     /// Create a rotation matrix around the X-axis by the given angle (in radians).
     /// @param angle Rotation angle in radians
     /// @return 4x4 rotation matrix
@@ -235,15 +290,15 @@ namespace engine::math::utils
     ENGINE_MATH_INLINE Matrix<T, 4, 4> rotate_x(T angle) noexcept
     {
         Matrix<T, 4, 4> result = math::identity_matrix<T, 4>();
-        const T c = std::cos(angle);
-        const T s = std::sin(angle);
+        const Matrix<T, 3, 3> basis = rotate_x3(angle);
 
-        // Column-major: result[col][row]
-        // Match existing to_rotation_matrix convention
-        result[1][1] = c;
-        result[1][2] = -s;
-        result[2][1] = s;
-        result[2][2] = c;
+        for (std::size_t r = 0; r < 3; ++r)
+        {
+            for (std::size_t c = 0; c < 3; ++c)
+            {
+                result[r][c] = basis[r][c];
+            }
+        }
 
         return result;
     }
@@ -255,15 +310,15 @@ namespace engine::math::utils
     ENGINE_MATH_INLINE Matrix<T, 4, 4> rotate_y(T angle) noexcept
     {
         Matrix<T, 4, 4> result = math::identity_matrix<T, 4>();
-        const T c = std::cos(angle);
-        const T s = std::sin(angle);
+        const Matrix<T, 3, 3> basis = rotate_y3(angle);
 
-        // Column-major: result[col][row]
-        // Match existing to_rotation_matrix convention
-        result[0][0] = c;
-        result[0][2] = s;
-        result[2][0] = -s;
-        result[2][2] = c;
+        for (std::size_t r = 0; r < 3; ++r)
+        {
+            for (std::size_t c = 0; c < 3; ++c)
+            {
+                result[r][c] = basis[r][c];
+            }
+        }
 
         return result;
     }
@@ -275,15 +330,15 @@ namespace engine::math::utils
     ENGINE_MATH_INLINE Matrix<T, 4, 4> rotate_z(T angle) noexcept
     {
         Matrix<T, 4, 4> result = math::identity_matrix<T, 4>();
-        const T c = std::cos(angle);
-        const T s = std::sin(angle);
+        const Matrix<T, 3, 3> basis = rotate_z3(angle);
 
-        // Column-major: result[col][row]
-        // Match existing to_rotation_matrix convention
-        result[0][0] = c;
-        result[0][1] = -s;
-        result[1][0] = s;
-        result[1][1] = c;
+        for (std::size_t r = 0; r < 3; ++r)
+        {
+            for (std::size_t c = 0; c < 3; ++c)
+            {
+                result[r][c] = basis[r][c];
+            }
+        }
 
         return result;
     }

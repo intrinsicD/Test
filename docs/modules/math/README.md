@@ -161,9 +161,12 @@ math::vec3 ceiled = math::ceil(v);
 #include "engine/math/utils/utils_camera.hpp"
 
 // Rotation matrices (single-axis convenience functions)
-math::mat4 rotate_x_mat = math::utils::rotate_x(math::utils::radians(45.0f));
-math::mat4 rotate_y_mat = math::utils::rotate_y(math::utils::radians(90.0f));
-math::mat4 rotate_z_mat = math::utils::rotate_z(math::utils::radians(30.0f));
+math::mat3 rotate_x3_mat = math::utils::rotate_x3(math::radians(45.0f));
+math::mat3 rotate_y3_mat = math::utils::rotate_y3(math::radians(90.0f));
+math::mat3 rotate_z3_mat = math::utils::rotate_z3(math::radians(30.0f));
+math::mat4 rotate_x_mat = math::utils::rotate_x(math::radians(45.0f));
+math::mat4 rotate_y_mat = math::utils::rotate_y(math::radians(90.0f));
+math::mat4 rotate_z_mat = math::utils::rotate_z(math::radians(30.0f));
 
 // General rotation from angle and axis
 math::vec3 axis{0.0f, 1.0f, 0.0f};
@@ -182,7 +185,7 @@ math::mat4 view = math::utils::look_at(
 
 // Perspective projection
 math::mat4 proj = math::utils::perspective(
-    math::utils::radians(60.0f),  // FOV
+    math::radians(60.0f),  // FOV
     aspect_ratio,
     near_plane,
     far_plane
@@ -257,7 +260,7 @@ For simple rotations around cardinal axes, use the convenience functions in `uti
 #include "engine/math/utils/utils_rotation.hpp"
 
 // Rotate 90 degrees around X-axis (right-handed coordinates)
-float angle = math::utils::radians(90.0f);
+float angle = math::radians(90.0f);
 math::mat4 rx = math::utils::rotate_x(angle);
 
 // Rotate around Y-axis (pitch/yaw)
@@ -281,7 +284,7 @@ For rotations around arbitrary axes:
 ```cpp
 // Rotation around normalized arbitrary axis
 math::vec3 axis = math::normalize(math::vec3{1.0f, 1.0f, 0.0f});
-float angle = math::utils::radians(45.0f);
+float angle = math::radians(45.0f);
 math::mat4 rotation = math::utils::to_rotation_matrix(angle, axis);
 ```
 

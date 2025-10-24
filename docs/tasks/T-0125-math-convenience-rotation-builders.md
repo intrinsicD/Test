@@ -27,11 +27,11 @@ Add convenience functions for single-axis rotation matrices to improve API ergon
 - Documentation updates removing aspirational examples and adding actual API.
 
 ## Checklist
-- [ ] Implement `rotate_x`, `rotate_y`, `rotate_z` in `utils/utils_rotation.hpp`.
-- [ ] Add 3x3 variants if needed by consumers.
-- [ ] Write unit tests verifying rotation correctness and composition order.
-- [ ] Update `docs/modules/math/README.md` to reflect actual API.
-- [ ] Add usage examples in documentation.
+- [x] Implement `rotate_x`, `rotate_y`, `rotate_z` in `utils/utils_rotation.hpp`.
+- [x] Add 3x3 variants if needed by consumers.
+- [x] Write unit tests verifying rotation correctness and composition order.
+- [x] Update `docs/modules/math/README.md` to reflect actual API.
+- [x] Add usage examples in documentation.
 - [ ] Verify no performance regression with benchmark comparisons.
 
 ## Work Breakdown
