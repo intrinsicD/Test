@@ -18,6 +18,7 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 - [`T-0114-testing-integration-suites.md`](T-0114-testing-integration-suites.md) – build the cross-module integration test harness for `TI-001`.
 - [`T-0118-testing-framework-upgrade.md`](T-0118-testing-framework-upgrade.md) – restore fixture support in the Googletest dependency to unblock `TI-001`.
 - [`DC-003-sdl-backend-implementation.md`](DC-003-sdl-backend-implementation.md) – execute the SDL backend parity plan for `DC-003`.
+- [`DC-003.1-sdl-window-lifecycle.md`](DC-003.1-sdl-window-lifecycle.md) – implement native SDL window lifecycle, deterministic event pumping, and telemetry to unblock `DC-003`.
 - [`T-0115-assets-async-streaming-mvp.md`](T-0115-assets-async-streaming-mvp.md) – complete the async streaming MVP for `AI-002`.
 - [`T-0116-rendering-vulkan-resource-translation.md`](T-0116-rendering-vulkan-resource-translation.md) – finish Vulkan backend deliverables for `RT-003`.
 - [`T-0119-rendering-command-encoder-implementation.md`](T-0119-rendering-command-encoder-implementation.md) – implement concrete command encoders for all graphics backends.

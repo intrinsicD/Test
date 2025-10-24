@@ -28,6 +28,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `DC-003.3` | Expand validation, CI, and telemetry coverage. | Platform + runtime integration tests execute with SDL enabled in CI, diagnostics capture SDL errors, README/checklist updated. | 🟢 Todo |
 
 **Recent Updates:**
+- 2025-10-25: Task card [`DC-003.1`](tasks/DC-003.1-sdl-window-lifecycle.md) published to deliver native SDL window lifecycle and deterministic event pumping.
 - 2025-10-24: `PL-215` published the SDL parity checklist; implementation work now tracked under `DC-003`.
 
 <!-- Anchor for RT-002 task references -->
