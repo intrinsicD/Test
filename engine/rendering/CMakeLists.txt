@@ -3,6 +3,7 @@ set(target_name engine_rendering)
 add_library(${target_name}
     src/api.cpp
     src/backend/validation.cpp
+    src/backend/opengl/command_stream.cpp
     src/backend/vulkan/resource_translation.cpp
     src/frame_graph.cpp
     src/forward_pipeline.cpp
@@ -30,6 +31,22 @@ target_link_libraries(${target_name}
         engine_platform
         engine_scene
 )
+
+if(TARGET glad::gl_core)
+    target_link_libraries(${target_name}
+        PUBLIC
+            glad::gl_core
+    )
+    target_compile_definitions(${target_name}
+        PRIVATE
+            ENGINE_RENDERING_HAS_GLAD=1
+    )
+else()
+    target_compile_definitions(${target_name}
+        PRIVATE
+            ENGINE_RENDERING_HAS_GLAD=0
+    )
+endif()
 
 if(BUILD_TESTING)
     add_subdirectory(tests)

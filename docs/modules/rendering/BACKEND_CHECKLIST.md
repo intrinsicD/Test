@@ -142,6 +142,9 @@ runtime submission paths and backend schedulers.
 - `BackendAdapters.OpenGLSchedulerNormalisesQueueSelections` asserts that
   compute/transfer passes are coerced to the graphics queue, mirroring the
   single-queue OpenGL command stream.
+- `BackendAdapters.OpenGLSchedulerDispatchesCommandStream` ensures translated
+  submissions are forwarded to the overridable command stream in the expected
+  order so driver integrations can record synchronisation behaviour deterministically.
 
 ### Diagnostics & Troubleshooting
 
@@ -150,6 +153,10 @@ runtime submission paths and backend schedulers.
   inline constants (for example,
   `backend::opengl::shader_image_access_barrier_bit`) map directly to the
   `glMemoryBarrier` bitfield.
+- Override `backend::opengl::CommandStream` to surface driver calls or frame
+  capture hooks. The default implementation issues `glMemoryBarrier`/`glFlush`
+  calls (when GLAD is available) so headless environments still observe barrier
+  ordering without an OpenGL context.
 - When integrating with runtime submission flows, capture telemetry counters via
   `backend::validation::backend_parity_metrics` to ensure OpenGL parity remains
   aligned with the Vulkan baseline.

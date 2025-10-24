@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "engine/rendering/backend/directx12/gpu_scheduler.hpp"
 #include "engine/rendering/backend/metal/gpu_scheduler.hpp"
@@ -12,6 +15,71 @@
 
 namespace
 {
+    class RecordingOpenGLStream final : public engine::rendering::backend::opengl::CommandStream
+    {
+    public:
+        enum class EventType
+        {
+            Begin,
+            Wait,
+            Barrier,
+            Execute,
+            Signal,
+            Fence,
+            End,
+        };
+
+        struct Event
+        {
+            EventType type;
+            std::uint32_t mask{0};
+            std::uint64_t value{0};
+        };
+
+        void begin_submission(const engine::rendering::backend::opengl::OpenGLSubmission& submission) override
+        {
+            last_submission = submission.pass_name;
+            events.push_back(Event{EventType::Begin});
+        }
+
+        void wait_timeline(const engine::rendering::backend::opengl::OpenGLTimelineSubmit& submit) override
+        {
+            events.push_back(Event{EventType::Wait, 0U, submit.value});
+        }
+
+        void issue_memory_barrier(std::uint32_t mask) override
+        {
+            events.push_back(Event{EventType::Barrier, mask});
+        }
+
+        void execute_command_buffer(const engine::rendering::backend::opengl::OpenGLCommandEncoderSubmit& submit) override
+        {
+            executed_command = submit;
+            events.push_back(Event{EventType::Execute});
+        }
+
+        void signal_timeline(const engine::rendering::backend::opengl::OpenGLTimelineSubmit& submit) override
+        {
+            events.push_back(Event{EventType::Signal, 0U, submit.value});
+        }
+
+        void signal_fence(engine::rendering::resources::FenceNativeHandle fence, std::uint64_t value) override
+        {
+            fence_handle = fence;
+            events.push_back(Event{EventType::Fence, 0U, value});
+        }
+
+        void end_submission(const engine::rendering::backend::opengl::OpenGLSubmission& submission) override
+        {
+            events.push_back(Event{EventType::End, 0U, submission.fence_value});
+        }
+
+        std::string last_submission;
+        engine::rendering::backend::opengl::OpenGLCommandEncoderSubmit executed_command{};
+        engine::rendering::resources::FenceNativeHandle fence_handle{};
+        std::vector<Event> events;
+    };
+
     template <typename Scheduler>
     void verify_submission_translation(Scheduler& scheduler, engine::rendering::resources::RecordingGpuResourceProvider& provider,
                                        engine::rendering::QueueType queue_type)
@@ -123,7 +191,8 @@ TEST(BackendAdapters, OpenGLSchedulerRecordsGraphicsQueue)
     using namespace engine::rendering;
 
     resources::RecordingGpuResourceProvider provider(resources::GraphicsApi::OpenGL);
-    backend::opengl::OpenGLGpuScheduler scheduler(provider);
+    RecordingOpenGLStream stream;
+    backend::opengl::OpenGLGpuScheduler scheduler(provider, &stream);
 
     engine::rendering::CallbackRenderPass graphics_pass{"Any",
                                                         [](engine::rendering::FrameGraphPassBuilder&) {},
@@ -153,7 +222,8 @@ TEST(BackendAdapters, OpenGLSchedulerNormalisesQueueSelections)
     using namespace engine::rendering;
 
     resources::RecordingGpuResourceProvider provider(resources::GraphicsApi::OpenGL);
-    backend::opengl::OpenGLGpuScheduler scheduler(provider);
+    RecordingOpenGLStream stream;
+    backend::opengl::OpenGLGpuScheduler scheduler(provider, &stream);
 
     engine::rendering::CallbackRenderPass compute_pass{"ComputeStage",
                                                         [](engine::rendering::FrameGraphPassBuilder&) {},
@@ -181,7 +251,8 @@ TEST(BackendAdapters, OpenGLSchedulerPropagatesNoAccessBarriers)
     using namespace engine::rendering;
 
     resources::RecordingGpuResourceProvider provider(resources::GraphicsApi::OpenGL);
-    backend::opengl::OpenGLGpuScheduler scheduler(provider);
+    RecordingOpenGLStream stream;
+    backend::opengl::OpenGLGpuScheduler scheduler(provider, &stream);
 
     auto command_buffer = scheduler.request_command_buffer(QueueType::Graphics, "NoAccess");
 
@@ -204,4 +275,74 @@ TEST(BackendAdapters, OpenGLSchedulerPropagatesNoAccessBarriers)
     EXPECT_EQ(submission.begin_barriers.front().memory_barrier_mask, 0U);
     EXPECT_EQ(submission.begin_memory_barrier_mask(), 0U);
     EXPECT_EQ(submission.end_memory_barrier_mask(), 0U);
+}
+
+TEST(BackendAdapters, OpenGLSchedulerDispatchesCommandStream)
+{
+    using namespace engine::rendering;
+
+    resources::RecordingGpuResourceProvider provider(resources::GraphicsApi::OpenGL);
+    RecordingOpenGLStream stream;
+    backend::opengl::OpenGLGpuScheduler scheduler(provider, &stream);
+
+    resources::Fence fence{"open.gl.fence"};
+    resources::TimelineSemaphore wait_semaphore{"wait.timeline"};
+    resources::TimelineSemaphore signal_semaphore{"signal.timeline"};
+
+    auto command_buffer = scheduler.request_command_buffer(QueueType::Graphics, "DispatchPass");
+
+    GpuSubmitInfo info{};
+    info.pass_name = "DispatchPass";
+    info.queue = QueueType::Graphics;
+    info.command_buffer = command_buffer;
+
+    resources::Barrier begin_barrier{};
+    begin_barrier.source_stage = resources::PipelineStage::Compute;
+    begin_barrier.destination_stage = resources::PipelineStage::Graphics;
+    begin_barrier.source_access = resources::Access::Read;
+    begin_barrier.destination_access = resources::Access::Write;
+    const auto expected_begin_mask = backend::opengl::detail::barrier_mask(begin_barrier);
+    info.begin_barriers.push_back(begin_barrier);
+
+    resources::Barrier end_barrier{};
+    end_barrier.source_stage = resources::PipelineStage::Graphics;
+    end_barrier.destination_stage = resources::PipelineStage::Transfer;
+    end_barrier.source_access = resources::Access::Read;
+    end_barrier.destination_access = resources::Access::Write;
+    const auto expected_end_mask = backend::opengl::detail::barrier_mask(end_barrier);
+    info.end_barriers.push_back(end_barrier);
+
+    info.waits.push_back(resources::SemaphoreWait{&wait_semaphore, 5});
+    info.signals.push_back(resources::SemaphoreSignal{&signal_semaphore, 7});
+    info.fence = &fence;
+    info.fence_value = 11;
+
+    scheduler.submit(info);
+    scheduler.recycle(command_buffer);
+
+    ASSERT_EQ(stream.events.size(), 8U);  // NOLINT
+    EXPECT_EQ(stream.events[0].type, RecordingOpenGLStream::EventType::Begin);
+    EXPECT_EQ(stream.events[1].type, RecordingOpenGLStream::EventType::Wait);
+    EXPECT_EQ(stream.events[1].value, 5U);
+    EXPECT_EQ(stream.events[2].type, RecordingOpenGLStream::EventType::Barrier);
+    EXPECT_EQ(stream.events[2].mask, expected_begin_mask);
+    EXPECT_EQ(stream.events[3].type, RecordingOpenGLStream::EventType::Execute);
+    EXPECT_EQ(stream.events[4].type, RecordingOpenGLStream::EventType::Barrier);
+    EXPECT_EQ(stream.events[4].mask, expected_end_mask);
+    EXPECT_EQ(stream.events[5].type, RecordingOpenGLStream::EventType::Signal);
+    EXPECT_EQ(stream.events[5].value, 7U);
+    EXPECT_EQ(stream.events[6].type, RecordingOpenGLStream::EventType::Fence);
+    EXPECT_EQ(stream.events[6].value, 11U);
+    EXPECT_EQ(stream.events[7].type, RecordingOpenGLStream::EventType::End);
+
+    EXPECT_EQ(stream.executed_command.queue.api, resources::GraphicsApi::OpenGL);
+    EXPECT_EQ(stream.executed_command.command_buffer.queue, QueueType::Graphics);
+    EXPECT_EQ(stream.fence_handle.api, resources::GraphicsApi::OpenGL);
+
+    EXPECT_EQ(fence.value(), 11U);
+    EXPECT_EQ(wait_semaphore.last_wait_value(), 5U);
+    EXPECT_EQ(signal_semaphore.value(), 7U);
+
+    ASSERT_EQ(scheduler.submissions().size(), 1U);  // NOLINT
+    EXPECT_EQ(scheduler.submissions().front().pass_name, "DispatchPass");
 }

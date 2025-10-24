@@ -158,6 +158,25 @@ for (const auto& barrier : submission.begin_barriers)
 - Backend adapter tests (`BackendAdapters.OpenGLSchedulerRecordsGraphicsQueue` and
   `BackendAdapters.OpenGLSchedulerNormalisesQueueSelections`) validate queue selection, barrier translation, and semaphore
   resolution.
+- The scheduler routes translated submissions through an overridable command stream interface. Provide a custom
+  `backend::opengl::CommandStream` implementation when instrumentation or driver integration is required:
+
+  ```cpp
+  class LoggingStream final : public rendering::backend::opengl::CommandStream {
+  public:
+      void begin_submission(const rendering::backend::opengl::OpenGLSubmission& submission) override {
+          fmt::print("Begin {}\n", submission.pass_name);
+      }
+      // Override the remaining virtual members as needed…
+  };
+
+  LoggingStream stream;
+  rendering::backend::opengl::OpenGLGpuScheduler scheduler(provider, &stream);
+  ```
+
+- When no custom stream is supplied the default implementation issues `glMemoryBarrier` calls (when GLAD is available) for the
+  aggregated masks and flushes the queue, allowing headless test harnesses to observe deterministic ordering without requiring
+  a live OpenGL context.
 
 ## Resource Management
 

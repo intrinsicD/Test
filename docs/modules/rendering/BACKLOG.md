@@ -38,3 +38,6 @@ Coordinate efforts with runtime (`RU-307`) and asset lifetime initiative
 - 2025-10-29: OpenGL scheduler enforces provider API validation and exposes aggregated
   `glMemoryBarrier` masks for diagnostics, with adapter tests covering no-access barriers and
   construction preconditions.
+- 2025-10-30: OpenGL scheduler gains a command-stream interface backed by a default GLAD-driven
+  implementation, enabling driver integrations to observe memory-barrier masks while tests
+  verify dispatch ordering via the new adapter coverage.

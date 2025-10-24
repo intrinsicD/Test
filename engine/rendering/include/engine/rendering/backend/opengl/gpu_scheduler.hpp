@@ -79,6 +79,10 @@ namespace engine::rendering::backend::opengl
         std::uint32_t memory_barrier_mask{0};
     };
 
+    class CommandStream;
+
+    CommandStream& default_command_stream() noexcept;
+
     struct OpenGLSubmission
     {
         std::string pass_name;
@@ -111,18 +115,98 @@ namespace engine::rendering::backend::opengl
         }
     };
 
+    /// Interface that consumes translated OpenGL submissions and drives the command stream.
+    class CommandStream
+    {
+    public:
+        virtual ~CommandStream() = default;
+
+        virtual void begin_submission(const OpenGLSubmission& submission) = 0;
+        virtual void wait_timeline(const OpenGLTimelineSubmit& submit) = 0;
+        virtual void issue_memory_barrier(std::uint32_t mask) = 0;
+        virtual void execute_command_buffer(const OpenGLCommandEncoderSubmit& submit) = 0;
+        virtual void signal_timeline(const OpenGLTimelineSubmit& submit) = 0;
+        virtual void signal_fence(resources::FenceNativeHandle fence, std::uint64_t value) = 0;
+        virtual void end_submission(const OpenGLSubmission& submission) = 0;
+    };
+
     /// Scheduler that maps frame-graph work onto an OpenGL command stream.
     class OpenGLGpuScheduler final : public backend::NativeSchedulerBase<OpenGLGpuScheduler, OpenGLSubmission>
     {
     public:
         using Base = backend::NativeSchedulerBase<OpenGLGpuScheduler, OpenGLSubmission>;
 
-        explicit OpenGLGpuScheduler(resources::IGpuResourceProvider& provider)
+        explicit OpenGLGpuScheduler(resources::IGpuResourceProvider& provider, CommandStream* stream = nullptr)
             : Base(provider)
+            , command_stream_{stream != nullptr ? stream : &default_command_stream()}
         {
             if (provider.api() != resources::GraphicsApi::OpenGL)
             {
                 throw std::invalid_argument{"OpenGLGpuScheduler requires an OpenGL resource provider"};
+            }
+        }
+
+        void submit(const GpuSubmitInfo& info) override
+        {
+            const auto* encoder = this->encoder_for(info.command_buffer);
+            if (encoder == nullptr)
+            {
+                throw std::runtime_error{"NativeSchedulerBase received unknown command buffer"};
+            }
+
+            auto submission = build_submission(info, *encoder);
+
+            command_stream_->begin_submission(submission);
+            for (const auto& wait : submission.waits)
+            {
+                command_stream_->wait_timeline(wait);
+            }
+
+            const auto begin_mask = submission.begin_memory_barrier_mask();
+            if (begin_mask != 0U)
+            {
+                command_stream_->issue_memory_barrier(begin_mask);
+            }
+
+            command_stream_->execute_command_buffer(submission.command_buffer);
+
+            const auto end_mask = submission.end_memory_barrier_mask();
+            if (end_mask != 0U)
+            {
+                command_stream_->issue_memory_barrier(end_mask);
+            }
+
+            for (const auto& signal : submission.signals)
+            {
+                command_stream_->signal_timeline(signal);
+            }
+
+            if (submission.fence.api != resources::GraphicsApi::Unknown || submission.fence.value != 0U)
+            {
+                command_stream_->signal_fence(submission.fence, submission.fence_value);
+            }
+
+            command_stream_->end_submission(submission);
+
+            submissions_.push_back(submission);
+
+            if (info.fence != nullptr)
+            {
+                info.fence->signal(info.fence_value);
+            }
+            for (const auto& wait : info.waits)
+            {
+                if (wait.semaphore != nullptr)
+                {
+                    wait.semaphore->wait(wait.value);
+                }
+            }
+            for (const auto& signal : info.signals)
+            {
+                if (signal.semaphore != nullptr)
+                {
+                    signal.semaphore->signal(signal.value);
+                }
             }
         }
 
@@ -192,6 +276,8 @@ namespace engine::rendering::backend::opengl
         }
 
     private:
+        CommandStream* command_stream_;
+
         [[nodiscard]] static constexpr OpenGLBarrier translate_barrier(const resources::Barrier& barrier) noexcept
         {
             OpenGLBarrier translated{};
