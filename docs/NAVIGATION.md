@@ -61,6 +61,7 @@
 - **Telemetry:** [`design/TELEMETRY_SCHEMA.md`](design/TELEMETRY_SCHEMA.md), [`design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](design/TELEMETRY_INSTRUMENTATION_GUIDE.md)
 - **Error Handling:** [`design/ERROR_HANDLING_MIGRATION.md`](design/ERROR_HANDLING_MIGRATION.md)
 - **Resource Management:** [`design/RESOURCE_MANAGEMENT.md`](design/RESOURCE_MANAGEMENT.md)
+- **Architecture Reviews:** [`reviews/2025-10-26-architecture-audit.md`](reviews/2025-10-26-architecture-audit.md)
 
 ## 🗂️ Module Overview
 
@@ -103,4 +104,4 @@ When a lower-precedence document conflicts with a higher one, update the higher-
 
 ---
 
-**Last updated:** 2025-10-22 (Restructured from docs/README.md)
+**Last updated:** 2025-10-26 (Added architecture audit reference and load-order documentation update)

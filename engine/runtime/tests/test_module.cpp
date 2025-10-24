@@ -1030,6 +1030,28 @@ TEST(RuntimeHost, LoadsSubsystemsFromRegistrySelection) {
     host.shutdown();
 }
 
+TEST(SubsystemRegistry, LoadsDependenciesBeforeDependentsRegardlessOfRegistrationOrder)
+{
+    engine::runtime::SubsystemRegistry registry{};
+    registry.register_subsystem(engine::runtime::SubsystemDescriptor{
+        "beta",
+        {"alpha"},
+        []() { return make_test_subsystem("beta", {"alpha"}); },
+        false});
+    registry.register_subsystem(engine::runtime::SubsystemDescriptor{
+        "alpha",
+        {},
+        []() { return make_test_subsystem("alpha"); },
+        false});
+
+    const std::array<std::string_view, 1> requested{std::string_view{"beta"}};
+    const auto plugins = registry.load(requested);
+
+    ASSERT_EQ(plugins.size(), 2U);
+    EXPECT_EQ(plugins[0]->name(), "alpha");
+    EXPECT_EQ(plugins[1]->name(), "beta");
+}
+
 TEST(SubsystemRegistry, RejectsDependencyCycles)
 {
     engine::runtime::SubsystemRegistry registry{};

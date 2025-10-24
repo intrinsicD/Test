@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <initializer_list>
 #include <optional>
+#include <queue>
 #include <sstream>
 #include <stdexcept>
 
@@ -274,15 +275,14 @@ std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> SubsystemRegistr
         }
     }
 
-    std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> plugins{};
-    plugins.reserve(enabled.size());
+    const auto order = resolve_load_order(enabled);
 
-    for (const auto& descriptor : descriptors_)
+    std::vector<std::shared_ptr<core::plugin::ISubsystemInterface>> plugins{};
+    plugins.reserve(order.size());
+
+    for (const auto index : order)
     {
-        if (!enabled.contains(descriptor.name))
-        {
-            continue;
-        }
+        const auto& descriptor = descriptors_[index];
         auto plugin = descriptor.factory();
         if (plugin != nullptr)
         {
@@ -388,3 +388,86 @@ SubsystemRegistry make_default_subsystem_registry()
 }
 
 }  // namespace engine::runtime
+
+std::vector<std::size_t> engine::runtime::SubsystemRegistry::resolve_load_order(
+    const std::unordered_set<std::string>& enabled) const
+{
+    std::vector<std::size_t> order{};
+    if (enabled.empty())
+    {
+        return order;
+    }
+
+    std::vector<std::size_t> indegree(descriptors_.size(), 0U);
+    std::vector<std::vector<std::size_t>> adjacency(descriptors_.size());
+    std::vector<std::size_t> active_indices{};
+    active_indices.reserve(enabled.size());
+
+    for (std::size_t index = 0; index < descriptors_.size(); ++index)
+    {
+        const auto& descriptor = descriptors_[index];
+        if (!enabled.contains(descriptor.name))
+        {
+            continue;
+        }
+
+        active_indices.push_back(index);
+        for (const auto& dependency_name : descriptor.dependencies)
+        {
+            const auto dependency = index_map_.find(dependency_name);
+            if (dependency == index_map_.end())
+            {
+                continue;
+            }
+
+            const auto dependency_index = dependency->second;
+            if (!enabled.contains(descriptors_[dependency_index].name))
+            {
+                continue;
+            }
+
+            adjacency[dependency_index].push_back(index);
+            indegree[index] += 1U;
+        }
+    }
+
+    order.reserve(active_indices.size());
+    std::priority_queue<std::size_t, std::vector<std::size_t>, std::greater<>> ready{};
+
+    for (const auto index : active_indices)
+    {
+        if (indegree[index] == 0U)
+        {
+            ready.push(index);
+        }
+    }
+
+    while (!ready.empty())
+    {
+        const auto index = ready.top();
+        ready.pop();
+        order.push_back(index);
+
+        for (const auto dependent : adjacency[index])
+        {
+            auto& dependent_indegree = indegree[dependent];
+            if (dependent_indegree == 0U)
+            {
+                continue;
+            }
+
+            dependent_indegree -= 1U;
+            if (dependent_indegree == 0U)
+            {
+                ready.push(dependent);
+            }
+        }
+    }
+
+    if (order.size() != active_indices.size())
+    {
+        throw std::logic_error{"Subsystem dependency cycle detected while computing load order"};
+    }
+
+    return order;
+}
