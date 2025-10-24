@@ -14,23 +14,21 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | ID | Intent | Dependencies | Next Milestone | Owning Groups |
 | --- | --- | --- | --- | --- |
-| `AI-002` | Deliver async asset streaming with telemetry and runtime integration. | `AI-001`, `DC-001` | Cancellation hardening (`AI-002.2`) | Assets, Runtime |
+| `DC-003` | Bring the SDL window backend to feature parity with GLFW, including telemetry and CI coverage. | `PL-215`, `CC-002` | Native window + event pump implementation (`DC-003.1`) | Platform |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO |
 
 ### Active Task Details
 
-#### `AI-002` — Async Asset Streaming (🔄 In Progress)
+#### `DC-003` — SDL Backend Implementation (🔄 In Progress)
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `AI-002.1` | Instrument async queue telemetry. | Runtime exposes queue metrics, `scripts/diagnostics/streaming_report.py` documents usage. | ✅ Done |
-| `AI-002.2` | Harden cancellation + failure flows. | Futures support cancellation with integration tests covering failure propagation. | 🔄 In Progress |
-| `AI-002.3` | Publish runtime integration guide. | Runtime README explains streaming lifecycle and telemetry expectations. | ✅ Done |
+| `DC-003.1` | Stand up native SDL window lifecycle and deterministic event pumping. | SDL backend creates native windows, translates input/events, and demotes to the mock backend when SDL is unavailable; unit smoke tests green. | 🟢 Todo |
+| `DC-003.2` | Integrate swapchain surface export and backend selection fallbacks. | Vulkan/OpenGL surfaces exposed through `SwapchainSurface`, build presets updated, runtime override respects fallback order. | 🟢 Todo |
+| `DC-003.3` | Expand validation, CI, and telemetry coverage. | Platform + runtime integration tests execute with SDL enabled in CI, diagnostics capture SDL errors, README/checklist updated. | 🟢 Todo |
 
 **Recent Updates:**
-- 2025-02-20: Published `runtime/ASYNC_STREAMING_INTEGRATION.md` detailing configuration and telemetry consumption (`AI-002.3`).
-- 2025-10-22: RuntimeHost now exposes `request_mesh_asset` / `request_point_cloud_asset` wrappers to schedule asynchronous loads through configured caches, advancing cancellation/failure hardening (`AI-002.2`).
-- 2025-10-23: OBJ reload validation now rejects geometry-free updates so `AssetHotReloadTelemetry` records failures during mesh hot reloads (`AI-002.2`).
+- 2025-10-24: `PL-215` published the SDL parity checklist; implementation work now tracked under `DC-003`.
 
 <!-- Anchor for RT-002 task references -->
 <a id="rt-002-physics-contact-manifolds"></a>
@@ -52,7 +50,6 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 - **AN-230** — GPU/parallel sampling benchmarks (blocked on `CO-170` compute queue extensions)
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
-- **DC-003** — SDL backend implementation (see `platform/SDL_BACKEND_CHECKLIST.md`)
 
 ### Mid-term (3-6 months)
 
@@ -75,6 +72,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | --- | --- | --- | --- |
 | `DC-004` | Standardise error handling on `engine::Result<T, Error>` | 2025-03-17 | `design/ERROR_HANDLING_MIGRATION.md`, IO migration |
 | `AI-001` | Handle-based lifetime management and validation hooks | 2025-04-30 | Debug validation, telemetry counters |
+| `AI-002` | Async asset streaming with telemetry and runtime integration | 2025-10-24 | IO thread pool, runtime futures, streaming diagnostics |
 | `AI-003` | Frame-graph metadata and queue affinity for backend parity | 2025-03 | Metadata schema, Vulkan integration |
 | `RT-002` | Physics persistent manifolds and benchmarking | 2025-03-15 | Manifold cache, collision benchmark harness |
 | `RT-003` | Vulkan runtime parity and backend guidance | 2025-03 | Backend checklist, integration regression |
@@ -129,6 +127,12 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-02-20: Published [`runtime/ASYNC_STREAMING_INTEGRATION.md`](modules/runtime/ASYNC_STREAMING_INTEGRATION.md)
   detailing configuration, request workflows, and telemetry consumption for the
   runtime streaming path (`AI-002.3`).
+- 2025-10-22: `RuntimeHost::request_mesh_asset` / `request_point_cloud_asset` now
+  schedule asynchronous loads through configured caches, completing the runtime
+  integration workstream for `AI-002.2`.
+- 2025-10-23: OBJ hot-reload validation rejects geometry-free updates so
+  `AssetHotReloadTelemetry` records failures accurately, finalising
+  cancellation/failure hardening for `AI-002.2`.
 
 #### `AI-003` — Frame-Graph Metadata
 
@@ -244,4 +248,4 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 <!-- Anchor for TI-001 integration suites references -->
 <a id="ti-001-integration-suites"></a>
-**Last updated:** 2025-10-22 (Restructured for improved active work visibility)
+**Last updated:** 2025-10-25 (Added `DC-003` SDL backend implementation to active work)
