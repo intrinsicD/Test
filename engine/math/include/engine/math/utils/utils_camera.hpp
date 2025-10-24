@@ -3,7 +3,7 @@
 #include "engine/math/common.hpp"
 #include "engine/math/vector.hpp"
 #include "engine/math/matrix.hpp"
-#include "engine/math/utils.hpp"
+#include "engine/math/utils/utils.hpp"
 
 namespace engine::math::utils
 {
@@ -49,7 +49,8 @@ template <typename T>
     ENGINE_MATH_INLINE Matrix<T, 4, 4> look_at(const Vector<T, 3>& eye, const Vector<T, 3>& center, const Vector<T, 3>& up) noexcept
     {
         const Vector<T, 3> forward = center - eye;
-        if (length_squared(forward) < detail::epsilon<T>())
+        const T min_length_sq = std::numeric_limits<T>::epsilon();
+        if (length_squared(forward) < min_length_sq)
         {
             return identity_matrix<T, 4>();
         }

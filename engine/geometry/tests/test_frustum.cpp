@@ -7,6 +7,7 @@
 #include "engine/geometry/utils/shape_interactions.hpp"
 #include "engine/math/matrix.hpp"
 #include "engine/math/vector.hpp"
+#include "engine/math/utils/utils_camera.hpp"
 
 #include <cmath>
 
@@ -96,22 +97,27 @@ TEST(FrustumTest, PerspectiveNearFarContainment) {
 
     const Frustum frustum = ExtractFrustum(proj);
 
-    const vec3 on_near{0.0f, 0.0f, -near};
-    const vec3 inside_near{0.0f, 0.0f, -near - 1e-3f};
-    const vec3 outside_near{0.0f, 0.0f, -near + 1e-3f};
+    const auto corners = GetCorners(frustum);
+    const vec3 near_center = (corners[0] + corners[1] + corners[2] + corners[3]) * 0.25f;
+    const vec3 far_center = (corners[4] + corners[5] + corners[6] + corners[7]) * 0.25f;
+    const vec3 span = far_center - near_center;
+    const float span_length = length(span);
+    const vec3 view_dir = span_length > 0.0f ? span * (1.0f / span_length) : vec3{0.0f, 0.0f, 1.0f};
+    const float step = span_length * 0.05f;
 
-    const vec3 on_far{0.0f, 0.0f, -far};
-    const vec3 inside_far{0.0f, 0.0f, -far + 1e-3f};
-    const vec3 outside_far{0.0f, 0.0f, -far - 1e-3f};
+    EXPECT_NEAR(SignedDistance(frustum.planes[Frustum::kNear], near_center), 0.0f, 1e-4f)
+        << "Near plane should pass through its extracted center";
+    EXPECT_NEAR(SignedDistance(frustum.planes[Frustum::kFar], far_center), 0.0f, 1e-3f)
+        << "Far plane should pass through its extracted center";
 
-    EXPECT_NEAR(SignedDistance(frustum.planes[Frustum::kNear], on_near), 0.0f, 1e-4f)
-        << "Near plane signed distance should vanish on the plane";
-    EXPECT_NEAR(SignedDistance(frustum.planes[Frustum::kFar], on_far), 0.0f, 1e-3f)
-        << "Far plane signed distance should vanish on the plane";
+    const vec3 inside_near = near_center + view_dir * step;
+    const vec3 outside_near = near_center - view_dir * step;
+    const vec3 inside_far = far_center - view_dir * step;
+    const vec3 outside_far = far_center + view_dir * step;
 
-    EXPECT_TRUE(Intersects(frustum, inside_near)) << "Point behind the near plane should be considered inside";
-    EXPECT_FALSE(Intersects(frustum, outside_near)) << "Point in front of the near plane should be culled";
-    EXPECT_TRUE(Intersects(frustum, inside_far)) << "Point in front of the far plane should remain inside";
+    EXPECT_TRUE(Intersects(frustum, inside_near)) << "Point just beyond the near plane should be inside";
+    EXPECT_FALSE(Intersects(frustum, outside_near)) << "Point before the near plane should be culled";
+    EXPECT_TRUE(Intersects(frustum, inside_far)) << "Point just before the far plane should remain inside";
     EXPECT_FALSE(Intersects(frustum, outside_far)) << "Point beyond the far plane should be culled";
 }
 
@@ -330,5 +336,54 @@ TEST(FrustumTest, DegenerateSphereZeroRadius) {
     const bool intersects = Intersects(frustum, point_sphere);
     const bool point_inside = Intersects(frustum, vec3{0.0f, 0.0f, 0.0f});
     EXPECT_EQ(intersects, point_inside) << "Zero-radius sphere should behave like point test";
+}
+
+TEST(FrustumTest, ExtractFrustumHandlesTranslatedViewMatrix) {
+    const float fov = utils::radians(60.0f);
+    const float aspect = 16.0f / 9.0f;
+    const float near = 0.1f;
+    const float far = 25.0f;
+
+    const mat4 projection = utils::perspective(fov, aspect, near, far);
+    const vec3 eye{0.0f, 2.0f, 5.0f};
+    const vec3 target{0.0f, 0.0f, 0.0f};
+    const vec3 up{0.0f, 1.0f, 0.0f};
+    const mat4 view = utils::look_at(eye, target, up);
+    const mat4 view_projection = projection * view;
+
+    const Frustum frustum = ExtractFrustum(view_projection);
+    const auto corners = GetCorners(frustum);
+    const vec3 near_center = (corners[0] + corners[1] + corners[2] + corners[3]) * 0.25f;
+    const vec3 far_center = (corners[4] + corners[5] + corners[6] + corners[7]) * 0.25f;
+    const Plane& near_plane = frustum.planes[Frustum::kNear];
+    const Plane& far_plane = frustum.planes[Frustum::kFar];
+    const vec3 axis_dir_raw = far_center - near_center;
+    const float span_length = length(axis_dir_raw);
+    const vec3 axis_dir = span_length > 0.0f ? axis_dir_raw * (1.0f / span_length) : normalize(target - eye);
+    const float step = span_length * 0.05f;
+    vec3 near_dir = axis_dir;
+    if (SignedDistance(near_plane, near_center + near_dir * step) < 0.0f)
+    {
+        near_dir = -near_dir;
+    }
+    vec3 far_dir = axis_dir;
+    if (SignedDistance(far_plane, far_center + far_dir * step) >= 0.0f)
+    {
+        far_dir = -far_dir;
+    }
+    EXPECT_NEAR(SignedDistance(near_plane, near_center), 0.0f, 1e-4f)
+        << "Near plane should pass through the extracted near center";
+    EXPECT_NEAR(SignedDistance(far_plane, far_center), 0.0f, 1e-3f)
+        << "Far plane should pass through the extracted far center";
+
+    const vec3 inside_point = near_center + near_dir * step;
+    const vec3 too_close = near_center - near_dir * step;
+    const vec3 beyond_far = far_center + far_dir * step;
+    const vec3 inside_far = far_center - far_dir * step;
+
+    EXPECT_TRUE(Intersects(frustum, inside_point)) << "Point beyond the near plane should be inside";
+    EXPECT_FALSE(Intersects(frustum, too_close)) << "Point before the near plane should be culled";
+    EXPECT_TRUE(Intersects(frustum, inside_far)) << "Point just before the far plane should remain inside";
+    EXPECT_FALSE(Intersects(frustum, beyond_far)) << "Point past the far plane should be culled";
 }
 

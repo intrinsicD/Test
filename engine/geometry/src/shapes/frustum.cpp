@@ -1,45 +1,113 @@
 #include "engine/geometry/shapes/frustum.hpp"
 #include "engine/math/vector.hpp"
 
+#include <array>
 #include <cmath>
 #include <limits>
 
 namespace engine::geometry {
 
-    Frustum ExtractFrustum(const math::mat4& vp) noexcept {
+    namespace
+    {
+        using CornerArray = std::array<math::vec3, 8>;
+
+        [[nodiscard]] CornerArray UnprojectCorners(const math::mat4& vp) noexcept
+        {
+            CornerArray corners{};
+
+            const auto vp_d = math::cast<double>(vp);
+            const auto inverse_opt = math::try_inverse(vp_d);
+            if (!inverse_opt)
+            {
+                return corners;
+            }
+
+            const auto inverse = *inverse_opt;
+            std::size_t index = 0;
+            for (int z = -1; z <= 1; z += 2)
+            {
+                for (int y = -1; y <= 1; y += 2)
+                {
+                    for (int x = -1; x <= 1; x += 2)
+                    {
+                        const math::Vector<double, 4> clip_corner{
+                            static_cast<double>(x),
+                            static_cast<double>(y),
+                            static_cast<double>(z),
+                            1.0
+                        };
+                        const auto world_h = inverse * clip_corner;
+                        const double w = world_h[3];
+                        if (std::abs(w) > std::numeric_limits<double>::epsilon())
+                        {
+                            const double inv_w = 1.0 / w;
+                            corners[index] = math::vec3{
+                                static_cast<float>(world_h[0] * inv_w),
+                                static_cast<float>(world_h[1] * inv_w),
+                                static_cast<float>(world_h[2] * inv_w)
+                            };
+                        }
+                        else
+                        {
+                            corners[index] = math::vec3{0.0f, 0.0f, 0.0f};
+                        }
+                        ++index;
+                    }
+                }
+            }
+
+            return corners;
+        }
+
+        [[nodiscard]] Plane MakePlane(const math::vec3& a,
+                                      const math::vec3& b,
+                                      const math::vec3& c,
+                                      const math::vec3& center) noexcept
+        {
+            math::vec3 normal = math::cross(b - a, c - a);
+            const float length = math::length(normal);
+            if (length <= std::numeric_limits<float>::epsilon())
+            {
+                return Plane{math::vec3{0.0f, 0.0f, 0.0f}, 0.0f};
+            }
+
+            normal *= 1.0f / length;
+            float distance = -math::dot(normal, a);
+            const math::vec3 to_center = center - a;
+            if (math::dot(normal, to_center) < 0.0f)
+            {
+                normal = -normal;
+                distance = -distance;
+            }
+
+            return Plane{normal, distance};
+        }
+    } // namespace
+
+    Frustum ExtractFrustum(const math::mat4& vp) noexcept
+    {
         Frustum frustum;
 
-        // Extract frustum planes from view-projection matrix using the Gribb-Hartmann method.
-        // The math::mat4 stores data in column-major order, so we operate on columns directly
-        // (equivalent to taking the planes of the clip-space frustum and transforming them by
-        // the inverse-transpose of the view-projection matrix).
+        const CornerArray corners = UnprojectCorners(vp);
 
-        const math::vec4 column0 = vp.col(0);
-        const math::vec4 column1 = vp.col(1);
-        const math::vec4 column2 = vp.col(2);
-        const math::vec4 column3 = vp.col(3);
+        math::vec3 center{0.0f};
+        for (const auto& corner : corners)
+        {
+            center += corner;
+        }
+        center *= 1.0f / static_cast<float>(corners.size());
 
-        const auto assign_plane = [](Plane& plane, const math::vec4& coefficients) {
-            plane.normal = math::vec3{coefficients[0], coefficients[1], coefficients[2]};
-            plane.distance = coefficients[3];
+        const auto plane_from_indices = [&](std::size_t i0, std::size_t i1, std::size_t i2) {
+            return MakePlane(corners[i0], corners[i1], corners[i2], center);
         };
 
-        assign_plane(frustum.planes[Frustum::kLeft], column3 + column0);
-        assign_plane(frustum.planes[Frustum::kRight], column3 - column0);
-        assign_plane(frustum.planes[Frustum::kBottom], column3 + column1);
-        assign_plane(frustum.planes[Frustum::kTop], column3 - column1);
-        assign_plane(frustum.planes[Frustum::kNear], column3 + column2);
-        assign_plane(frustum.planes[Frustum::kFar], column3 - column2);
-
-        // Normalize all planes so SignedDistance can rely on unit-length normals.
-        for (auto& plane : frustum.planes) {
-            const float length = math::length(plane.normal);
-            if (length > std::numeric_limits<float>::epsilon()) {
-                const float inv_length = 1.0f / length;
-                plane.normal = plane.normal * inv_length;
-                plane.distance *= inv_length;
-            }
-        }
+        // Corner ordering: 0=NBL, 1=NBR, 2=NTL, 3=NTR, 4=FBL, 5=FBR, 6=FTL, 7=FTR.
+        frustum.planes[Frustum::kLeft] = plane_from_indices(0, 4, 2);
+        frustum.planes[Frustum::kRight] = plane_from_indices(1, 3, 5);
+        frustum.planes[Frustum::kBottom] = plane_from_indices(0, 5, 1);
+        frustum.planes[Frustum::kTop] = plane_from_indices(2, 6, 3);
+        frustum.planes[Frustum::kNear] = plane_from_indices(0, 1, 3);
+        frustum.planes[Frustum::kFar] = plane_from_indices(4, 7, 6);
 
         return frustum;
     }
