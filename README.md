@@ -98,7 +98,8 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | --- | --- | --- | --- | --- |
 | `DC-004` | Standardise error handling across modules. | Migrate IO to `Result<T>` and publish migration guide. | Core, IO | ✅ Done |
 | `AI-001` | Handle-based lifetime management across assets + rendering. | Debug validation hooks and telemetry wired across caches and rendering entry points. | Assets, Rendering | ✅ Done |
-| `AI-002` | Async asset streaming with telemetry and runtime integration. | Land async queue instrumentation and runtime metrics bridge. | Assets, Runtime | 🔄 In Progress |
+| `AI-002` | Async asset streaming with telemetry and runtime integration. | IO thread pool, cancellation hardening, and diagnostics integration delivered. | Assets, Runtime | ✅ Done |
+| `DC-003` | SDL backend implementation. | Stand up native SDL window lifecycle, event pumping, and CI validation. | Platform | 🔄 In Progress |
 | `AI-003` | Frame-graph metadata + queue affinity for backend parity. | Publish metadata schema and align runtime submission invariants. | Rendering, Runtime | ✅ Done |
 | `RT-002` | Persistent physics manifolds with benchmarking. | ✅ Completed – manifold cache, telemetry, and collision benchmark harness captured in CI. | Physics | ✅ Done |
 | `RT-003` | Vulkan backend parity and documentation. | Align runtime submission surfaces and publish backend checklist. | Rendering, Runtime | ✅ Done |
