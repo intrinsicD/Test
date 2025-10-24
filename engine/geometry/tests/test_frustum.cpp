@@ -2,6 +2,7 @@
 
 #include "engine/geometry/shapes/frustum.hpp"
 #include "engine/geometry/shapes/aabb.hpp"
+#include "engine/geometry/shapes/plane.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
 #include "engine/math/matrix.hpp"
@@ -74,6 +75,44 @@ TEST(FrustumTest, ExtractFrustumFromPerspective) {
     // Near and far planes should roughly point in opposite Z directions
     EXPECT_LT(frustum.planes[Frustum::kNear].normal[2], 0.0f) << "Near plane should point backward";
     EXPECT_GT(frustum.planes[Frustum::kFar].normal[2], 0.0f) << "Far plane should point forward";
+}
+
+TEST(FrustumTest, PerspectiveNearFarContainment) {
+    const float fov = 3.14159f / 4.0f;
+    const float aspect = 1.0f;
+    const float near = 0.1f;
+    const float far = 10.0f;
+
+    const float tan_half_fov = std::tan(fov / 2.0f);
+    const float f = 1.0f / tan_half_fov;
+
+    mat4 proj{};
+    proj[0][0] = f / aspect;
+    proj[1][1] = f;
+    proj[2][2] = -(far + near) / (far - near);
+    proj[2][3] = -1.0f;
+    proj[3][2] = -(2.0f * far * near) / (far - near);
+    proj[3][3] = 0.0f;
+
+    const Frustum frustum = ExtractFrustum(proj);
+
+    const vec3 on_near{0.0f, 0.0f, -near};
+    const vec3 inside_near{0.0f, 0.0f, -near - 1e-3f};
+    const vec3 outside_near{0.0f, 0.0f, -near + 1e-3f};
+
+    const vec3 on_far{0.0f, 0.0f, -far};
+    const vec3 inside_far{0.0f, 0.0f, -far + 1e-3f};
+    const vec3 outside_far{0.0f, 0.0f, -far - 1e-3f};
+
+    EXPECT_NEAR(SignedDistance(frustum.planes[Frustum::kNear], on_near), 0.0f, 1e-4f)
+        << "Near plane signed distance should vanish on the plane";
+    EXPECT_NEAR(SignedDistance(frustum.planes[Frustum::kFar], on_far), 0.0f, 1e-3f)
+        << "Far plane signed distance should vanish on the plane";
+
+    EXPECT_TRUE(Intersects(frustum, inside_near)) << "Point behind the near plane should be considered inside";
+    EXPECT_FALSE(Intersects(frustum, outside_near)) << "Point in front of the near plane should be culled";
+    EXPECT_TRUE(Intersects(frustum, inside_far)) << "Point in front of the far plane should remain inside";
+    EXPECT_FALSE(Intersects(frustum, outside_far)) << "Point beyond the far plane should be culled";
 }
 
 TEST(FrustumTest, ExtractFrustumFromOrthographic) {

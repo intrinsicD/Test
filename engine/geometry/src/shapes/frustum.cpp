@@ -9,59 +9,29 @@ namespace engine::geometry {
     Frustum ExtractFrustum(const math::mat4& vp) noexcept {
         Frustum frustum;
 
-        // Extract frustum planes from view-projection matrix using Gribb-Hartmann method
-        // Matrix is column-major: vp[col][row]
-        // Each plane equation is derived from the homogeneous clip space: -w <= x,y,z <= w
+        // Extract frustum planes from view-projection matrix using the Gribb-Hartmann method.
+        // The math::mat4 stores data in column-major order, so we operate on columns directly
+        // (equivalent to taking the planes of the clip-space frustum and transforming them by
+        // the inverse-transpose of the view-projection matrix).
 
-        // Left plane: row3 + row0
-        frustum.planes[Frustum::kLeft].normal = math::vec3{
-            vp[3][0] + vp[0][0],
-            vp[3][1] + vp[0][1],
-            vp[3][2] + vp[0][2]
+        const math::vec4 column0 = vp.col(0);
+        const math::vec4 column1 = vp.col(1);
+        const math::vec4 column2 = vp.col(2);
+        const math::vec4 column3 = vp.col(3);
+
+        const auto assign_plane = [](Plane& plane, const math::vec4& coefficients) {
+            plane.normal = math::vec3{coefficients[0], coefficients[1], coefficients[2]};
+            plane.distance = coefficients[3];
         };
-        frustum.planes[Frustum::kLeft].distance = vp[3][3] + vp[0][3];
 
-        // Right plane: row3 - row0
-        frustum.planes[Frustum::kRight].normal = math::vec3{
-            vp[3][0] - vp[0][0],
-            vp[3][1] - vp[0][1],
-            vp[3][2] - vp[0][2]
-        };
-        frustum.planes[Frustum::kRight].distance = vp[3][3] - vp[0][3];
+        assign_plane(frustum.planes[Frustum::kLeft], column3 + column0);
+        assign_plane(frustum.planes[Frustum::kRight], column3 - column0);
+        assign_plane(frustum.planes[Frustum::kBottom], column3 + column1);
+        assign_plane(frustum.planes[Frustum::kTop], column3 - column1);
+        assign_plane(frustum.planes[Frustum::kNear], column3 + column2);
+        assign_plane(frustum.planes[Frustum::kFar], column3 - column2);
 
-        // Bottom plane: row3 + row1
-        frustum.planes[Frustum::kBottom].normal = math::vec3{
-            vp[3][0] + vp[1][0],
-            vp[3][1] + vp[1][1],
-            vp[3][2] + vp[1][2]
-        };
-        frustum.planes[Frustum::kBottom].distance = vp[3][3] + vp[1][3];
-
-        // Top plane: row3 - row1
-        frustum.planes[Frustum::kTop].normal = math::vec3{
-            vp[3][0] - vp[1][0],
-            vp[3][1] - vp[1][1],
-            vp[3][2] - vp[1][2]
-        };
-        frustum.planes[Frustum::kTop].distance = vp[3][3] - vp[1][3];
-
-        // Near plane: row3 + row2
-        frustum.planes[Frustum::kNear].normal = math::vec3{
-            vp[3][0] + vp[2][0],
-            vp[3][1] + vp[2][1],
-            vp[3][2] + vp[2][2]
-        };
-        frustum.planes[Frustum::kNear].distance = vp[3][3] + vp[2][3];
-
-        // Far plane: row3 - row2
-        frustum.planes[Frustum::kFar].normal = math::vec3{
-            vp[3][0] - vp[2][0],
-            vp[3][1] - vp[2][1],
-            vp[3][2] - vp[2][2]
-        };
-        frustum.planes[Frustum::kFar].distance = vp[3][3] - vp[2][3];
-
-        // Normalize all planes
+        // Normalize all planes so SignedDistance can rely on unit-length normals.
         for (auto& plane : frustum.planes) {
             const float length = math::length(plane.normal);
             if (length > std::numeric_limits<float>::epsilon()) {
