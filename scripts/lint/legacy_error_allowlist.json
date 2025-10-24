@@ -114,14 +114,14 @@
     "throw std::runtime_error(\"Failed to write PLY vertex data\");": 1,
     "throw std::runtime_error(\"PLY stream is empty\");": 1,
     "throw std::runtime_error(\"PLY vertex element does not describe positions\");": 1,
-    "throw std::runtime_error(\"Unable to infer output format from file extension\");": 1,
     "throw std::runtime_error(\"Unexpected end of PLY vertex data\");": 2,
     "throw std::runtime_error(\"Unsupported PLY format: \" + format);": 1,
-    "throw std::runtime_error(\"Unsupported PLY property type: \" + std::string{token});": 1
+    "throw std::runtime_error(\"Unsupported PLY property type: \" + std::string{token});": 1,
+    "throw std::runtime_error(\"Unsupported point cloud output format\");": 1
   },
   "engine/io/src/geometry_io.cpp": {
     "throw GeometryIoException(": 6,
-    "throw GeometryIoException(GeometryIoError::invalid_argument,": 19,
+    "throw GeometryIoException(GeometryIoError::invalid_argument,": 21,
     "throw GeometryIoException(GeometryIoError::io_failure,": 8,
     "throw GeometryIoException(GeometryIoError::unsupported_format,": 4,
     "throw GeometryIoException(header_result.error().code(), header_result.error().message());": 3,
@@ -201,6 +201,10 @@
   "engine/rendering/include/engine/rendering/backend/native_scheduler_base.hpp": {
     "throw std::runtime_error{\"NativeSchedulerBase received unknown command buffer\"};": 1
   },
+  "engine/rendering/include/engine/rendering/backend/opengl/gpu_scheduler.hpp": {
+    "throw std::invalid_argument{\"OpenGLGpuScheduler requires an OpenGL resource provider\"};": 1,
+    "throw std::runtime_error{\"NativeSchedulerBase received unknown command buffer\"};": 1
+  },
   "engine/rendering/src/backend/validation.cpp": {
     "throw std::runtime_error{\"begin_frame failed; end_frame skipped\"};": 1,
     "throw std::runtime_error{\"command buffer API mismatch\"};": 1,
@@ -230,6 +234,8 @@
   },
   "engine/rendering/src/frame_graph.cpp": {
     "throw std::invalid_argument{\"FrameGraph::add_pass expects a valid RenderPass\"};": 1,
+    "throw std::invalid_argument{\"FrameGraph::create_resource received duplicate resource name: '\" +": 1,
+    "throw std::invalid_argument{\"FrameGraph::create_resource requires a non-empty resource name\"};": 1,
     "throw std::logic_error(\"FrameGraph buffer resource '\" + resource.name + \"' missing size metadata\");": 1,
     "throw std::logic_error(\"FrameGraph resource '\" + resource.name + \"' missing dimension metadata\");": 1,
     "throw std::logic_error(\"FrameGraph resource '\" + resource.name + \"' missing final state metadata\");": 1,
