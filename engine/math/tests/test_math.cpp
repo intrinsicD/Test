@@ -1773,3 +1773,59 @@ TEST(RotationUtils, NegativeAngles)
     }
 }
 
+TEST(RotationUtils, RotateX3Identity)
+{
+    const auto result = utils::rotate_x3(0.0f);
+    const auto identity = identity_matrix<float, 3>();
+    for (std::size_t r = 0; r < 3; ++r)
+    {
+        for (std::size_t c = 0; c < 3; ++c)
+        {
+            EXPECT_FLOAT_EQ(result[r][c], identity[r][c]);
+        }
+    }
+}
+
+TEST(RotationUtils, RotateX3MatchesRotateXTopLeft)
+{
+    const float angle = std::numbers::pi_v<float> / 3.0f;
+    const auto mat3 = utils::rotate_x3(angle);
+    const auto mat4 = utils::rotate_x(angle);
+
+    for (std::size_t r = 0; r < 3; ++r)
+    {
+        for (std::size_t c = 0; c < 3; ++c)
+        {
+            EXPECT_NEAR(mat3[r][c], mat4[r][c], 1e-6f);
+        }
+    }
+}
+
+TEST(RotationUtils, RotateY3MatchesAxisAngle)
+{
+    const float angle = -0.35f;
+    const auto mat3 = utils::rotate_y3(angle);
+    const auto axis_angle = utils::to_rotation_matrix(angle, vec3{0.0f, 1.0f, 0.0f});
+
+    for (std::size_t r = 0; r < 3; ++r)
+    {
+        for (std::size_t c = 0; c < 3; ++c)
+        {
+            EXPECT_NEAR(mat3[r][c], axis_angle[r][c], 1e-6f);
+        }
+    }
+}
+
+TEST(RotationUtils, RotateZ3TransformsVector)
+{
+    const float angle = std::numbers::pi_v<float> / 2.0f;
+    const auto mat3 = utils::rotate_z3(angle);
+
+    const vec3 v{1.0f, 0.0f, 0.0f};
+    const vec3 rotated = mat3 * v;
+
+    EXPECT_NEAR(rotated[0], 0.0f, 1e-6f);
+    EXPECT_NEAR(rotated[1], 1.0f, 1e-6f);
+    EXPECT_NEAR(rotated[2], 0.0f, 1e-6f);
+}
+
