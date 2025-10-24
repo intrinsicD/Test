@@ -20,10 +20,11 @@ This hybrid workflow merges:
 
 ### For AI Agents
 1. **Load your role**: Start with [`agents/AGENTS-INDEX.md`](../agents/AGENTS-INDEX.md)
-2. **Read context**: Review the 5 essential documents listed
-3. **Get context pack**: Request from Agent Orchestrator using template
-4. **Execute**: Follow your role-specific guidance
-5. **Deliver**: Use templates and validate against Definition of Done
+2. **Learn the coordination loop**: Skim the operating manual in [`agents/AGENTS.md`](../agents/AGENTS.md)
+3. **Read context**: Review the 5 essential documents listed
+4. **Get context pack**: Request from Agent Orchestrator using template
+5. **Execute**: Follow your role-specific guidance
+6. **Deliver**: Use templates and validate against Definition of Done
 
 ### For Human Contributors
 1. **Orient**: Read [`README.md`](../README.md) for workspace overview

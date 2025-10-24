@@ -27,17 +27,18 @@ The old and new agentic workflows have been successfully merged into a **unified
 1. **[README.md](../README.md)** - Project overview, now with hybrid workflow link
 2. **[docs/HYBRID_WORKFLOW.md](HYBRID_WORKFLOW.md)** - **Main workflow guide** (new)
 3. **[agents/AGENTS-INDEX.md](../agents/AGENTS-INDEX.md)** - Role directory and quick start
+4. **[agents/AGENTS.md](../agents/AGENTS.md)** - Operating manual for coordination and hand-offs
 
 ### Workflow Analysis
 
-4. **[docs/WORKFLOW_COMPARISON.md](WORKFLOW_COMPARISON.md)** - Detailed old vs new comparison
-5. **[docs/AGENTIC_WORKFLOW_ENHANCEMENT.md](AGENTIC_WORKFLOW_ENHANCEMENT.md)** - Enhancement implementation log
+1. **[docs/WORKFLOW_COMPARISON.md](WORKFLOW_COMPARISON.md)** - Detailed old vs new comparison
+2. **[docs/AGENTIC_WORKFLOW_ENHANCEMENT.md](AGENTIC_WORKFLOW_ENHANCEMENT.md)** - Enhancement implementation log
 
 ### Navigation & Standards
 
-6. **[docs/NAVIGATION.md](NAVIGATION.md)** - Updated to reference hybrid workflow
-7. **[CODING_STYLE.md](../CODING_STYLE.md)** - Code standards (unchanged)
-8. **[docs/ROADMAP.md](ROADMAP.md)** - Strategic roadmap (unchanged)
+1. **[docs/NAVIGATION.md](NAVIGATION.md)** - Updated to reference hybrid workflow
+2. **[CODING_STYLE.md](../CODING_STYLE.md)** - Code standards (unchanged)
+3. **[docs/ROADMAP.md](ROADMAP.md)** - Strategic roadmap (unchanged)
 
 ---
 
@@ -77,11 +78,12 @@ The old and new agentic workflows have been successfully merged into a **unified
 
 ```
 1. Start → agents/AGENTS-INDEX.md
-2. Read → 5 essential documents
-3. Request → Context Pack from Orchestrator
-4. Execute → Follow role-specific guidance
-5. Validate → Use templates and DoD checklist
-6. Submit → PR with all quality gates passed
+2. Learn → agents/AGENTS.md (coordination loop)
+3. Read → 5 essential documents
+4. Request → Context Pack from Orchestrator
+5. Execute → Follow role-specific guidance
+6. Validate → Use templates and DoD checklist
+7. Submit → PR with all quality gates passed
 ```
 
 ### For Human Contributors

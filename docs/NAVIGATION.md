@@ -33,6 +33,7 @@
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
+| [`../agents/AGENTS.md`](../agents/AGENTS.md) | Multi-agent operating manual | Coordinating hand-offs and context packs |
 | [`HYBRID_WORKFLOW.md`](HYBRID_WORKFLOW.md) | Complete unified workflow guide | Understanding the full workflow |
 | [`HYBRID_WORKFLOW_SUMMARY.md`](HYBRID_WORKFLOW_SUMMARY.md) | Quick reference and FAQ | Quick lookups, onboarding |
 | [`HYBRID_WORKFLOW_DIAGRAM.md`](HYBRID_WORKFLOW_DIAGRAM.md) | Visual workflow diagram | Understanding flow and phases |
