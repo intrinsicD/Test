@@ -1,3 +1,5 @@
+#if ENGINE_RENDERING_HAS_VULKAN
+
 #include <gtest/gtest.h>
 
 #include <variant>
@@ -99,3 +101,4 @@ TEST(VulkanTranslation, TranslatesBarriers)
     EXPECT_EQ(translated.source_access, VK_ACCESS_MEMORY_READ_BIT);
     EXPECT_EQ(translated.destination_access, VK_ACCESS_MEMORY_WRITE_BIT);
 }
+#endif  // ENGINE_RENDERING_HAS_VULKAN
