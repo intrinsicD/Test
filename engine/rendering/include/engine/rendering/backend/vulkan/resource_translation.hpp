@@ -1,13 +1,21 @@
 #pragma once
 
 #include <variant>
-#include <vulkan/vulkan.h>
+
+#ifndef ENGINE_RENDERING_HAS_VULKAN
+#define ENGINE_RENDERING_HAS_VULKAN 0
+#endif
+
+#if ENGINE_RENDERING_HAS_VULKAN
+#    include <vulkan/vulkan.h>
+#endif
 
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/resources/synchronization.hpp"
 
 namespace engine::rendering::backend::vulkan
 {
+#if ENGINE_RENDERING_HAS_VULKAN
     struct VulkanImageResourceDescription
     {
         VkImageCreateInfo image{};
@@ -46,4 +54,5 @@ namespace engine::rendering::backend::vulkan
     };
 
     VulkanBarrier translate_barrier(const resources::Barrier& barrier);
+#endif
 }

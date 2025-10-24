@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#if ENGINE_RENDERING_HAS_VULKAN
+
 namespace engine::rendering::backend::vulkan
 {
     namespace
@@ -300,3 +302,5 @@ namespace engine::rendering::backend::vulkan
         return translated;
     }
 }
+
+#endif

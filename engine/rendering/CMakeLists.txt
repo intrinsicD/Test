@@ -4,7 +4,6 @@ add_library(${target_name}
     src/api.cpp
     src/backend/validation.cpp
     src/backend/opengl/command_stream.cpp
-    src/backend/vulkan/resource_translation.cpp
     src/frame_graph.cpp
     src/forward_pipeline.cpp
     src/material_system.cpp
@@ -22,6 +21,47 @@ target_compile_definitions(${target_name}
     PRIVATE
         ENGINE_RENDERING_EXPORTS
 )
+
+find_package(Vulkan QUIET)
+
+if(Vulkan_FOUND)
+    target_sources(${target_name}
+        PRIVATE
+            src/backend/vulkan/resource_translation.cpp
+    )
+
+    if(TARGET Vulkan::Vulkan)
+        target_link_libraries(${target_name}
+            PUBLIC
+                Vulkan::Vulkan
+        )
+    elseif(Vulkan_LIBRARIES)
+        target_link_libraries(${target_name}
+            PUBLIC
+                ${Vulkan_LIBRARIES}
+        )
+    endif()
+
+    if(Vulkan_INCLUDE_DIRS)
+        target_include_directories(${target_name}
+            PRIVATE
+                ${Vulkan_INCLUDE_DIRS}
+        )
+    endif()
+
+    target_compile_definitions(${target_name}
+        PUBLIC
+            ENGINE_RENDERING_HAS_VULKAN=1
+    )
+else()
+    message(STATUS "Vulkan SDK not found; Vulkan backend translation helpers will be disabled.")
+    target_compile_definitions(${target_name}
+        PUBLIC
+            ENGINE_RENDERING_HAS_VULKAN=0
+    )
+endif()
+
+set(ENGINE_RENDERING_VULKAN_AVAILABLE ${Vulkan_FOUND})
 
 # Rendering depends on core platform layers.
 target_link_libraries(${target_name}

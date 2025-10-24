@@ -1,10 +1,19 @@
-add_executable(engine_rendering_tests
+set(ENGINE_RENDERING_TEST_SOURCES
     test_module.cpp
     test_frame_graph.cpp
     test_forward_pipeline.cpp
     test_backend_adapters.cpp
-    test_vulkan_resource_translation.cpp
     test_backend_validation.cpp
+)
+
+if(ENGINE_RENDERING_VULKAN_AVAILABLE)
+    list(APPEND ENGINE_RENDERING_TEST_SOURCES
+        test_vulkan_resource_translation.cpp
+    )
+endif()
+
+add_executable(engine_rendering_tests
+    ${ENGINE_RENDERING_TEST_SOURCES}
 )
 
 target_link_libraries(engine_rendering_tests

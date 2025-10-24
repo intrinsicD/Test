@@ -21,7 +21,14 @@
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/backend/opengl/gpu_scheduler.hpp"
 #include "engine/rendering/backend/vulkan/gpu_scheduler.hpp"
-#include "engine/rendering/backend/vulkan/resource_translation.hpp"
+
+#ifndef ENGINE_RENDERING_HAS_VULKAN
+#define ENGINE_RENDERING_HAS_VULKAN 0
+#endif
+
+#if ENGINE_RENDERING_HAS_VULKAN
+#    include "engine/rendering/backend/vulkan/resource_translation.hpp"
+#endif
 #include "engine/rendering/forward_pipeline.hpp"
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/assets/point_cloud_asset.hpp"
@@ -665,6 +672,7 @@ TEST(RuntimeHost, AppliesLinearBlendSkinning) {
     host.shutdown();
 }
 
+#if ENGINE_RENDERING_HAS_VULKAN
 TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     ScopedHandleValidators handle_validators;
     engine::runtime::RuntimeHostDependencies deps{};
@@ -874,6 +882,11 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
 
     host.shutdown();
 }
+#else
+TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
+    GTEST_SKIP() << "Vulkan SDK not available; Vulkan submission path not exercised.";
+}
+#endif
 
 TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler) {
     using engine::rendering::backend::opengl::buffer_update_barrier_bit;
