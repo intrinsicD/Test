@@ -24,6 +24,7 @@ This document captures the stable truths about the engine. Treat it as the autho
 ## Invariants
 
 - **Deterministic Scheduler:** Frame-graph compilation must be deterministic for identical inputs. Backends may add validation, but they cannot reorder resource transitions.
+- **Runtime Subsystem Ordering:** `SubsystemRegistry` resolves dependency closure and loads subsystems in topological order so initialization always observes prerequisites before dependents, regardless of registration order.
 - **Resource Ownership:** Assets expose handles via `engine::headers`. Lifetime is reference-counted; releasing a handle must free GPU/CPU resources deterministically.
 - **Geometry Fidelity:** Spatial structures (kd-tree, octree) must stay in sync with mesh/point-cloud mutations. All geometry changes update bounds and centroid data before publishing to other systems. Linear blend skinning validates rig bindings and recomputes normals/bounds after deformation.
 - **Physics Integration:** The physics world clamps mass/damping and maintains monotonic substep progression. Sweeps respect branchless hot loops to avoid perf regressions.

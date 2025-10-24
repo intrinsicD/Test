@@ -64,6 +64,7 @@ namespace engine::runtime
 
     private:
         void gather_dependencies(std::string_view name, std::unordered_set<std::string>& accumulator) const;
+        [[nodiscard]] std::vector<std::size_t> resolve_load_order(const std::unordered_set<std::string>& enabled) const;
 
         std::vector<SubsystemDescriptor> descriptors_{};
         std::unordered_map<std::string, std::size_t, StringHash, std::equal_to<>> index_map_{};

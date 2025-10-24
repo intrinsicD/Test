@@ -49,6 +49,8 @@ The runtime discovers and manages subsystems through the plugin architecture:
 
 The subsystem registry validates dependencies and detects cycles during initialization, emitting `RuntimeError::dependency_cycle` when configuration is invalid.
 
+`SubsystemRegistry` also computes a deterministic topological ordering whenever subsystems are loaded so that each subsystem's dependencies are initialized before the subsystem itself, even if the registration order was inverted in configuration code.
+
 ## Diagnostics & Telemetry
 
 Access runtime metrics through `RuntimeHost::diagnostics()`:
