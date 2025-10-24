@@ -6,7 +6,8 @@
 1. Read [README.md](../README.md) - workspace snapshot and module health
 2. Review [docs/NAVIGATION.md](../docs/NAVIGATION.md) - documentation structure
 3. Check [CODING_STYLE.md](../CODING_STYLE.md) - coding standards
-4. Understand the build workflow (see section below)
+4. Skim [agents/AGENTS.md](AGENTS.md) - coordination loop and hand-off expectations
+5. Understand the build workflow (see section below)
 
 ---
 

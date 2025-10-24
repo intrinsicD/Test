@@ -20,8 +20,7 @@ mv -v docs/RESTRUCTURE_SUMMARY.md docs/archive/workflow-migration/ 2>/dev/null |
 
 # Remove old/redundant AGENTS.md files
 echo "🗑️  Removing redundant AGENTS.md files..."
-rm -v AGENTS.md || echo "  ⚠️  Root AGENTS.md already removed"
-rm -v agents/AGENTS.md || echo "  ⚠️  agents/AGENTS.md already removed"
+echo "  ℹ️  Skipping removal — AGENTS.md and agents/AGENTS.md are now authoritative."
 rm -v agents/README.md || echo "  ⚠️  agents/README.md already removed"
 
 # Optional: Remove README_TEMPLATE.md if unused
@@ -33,7 +32,8 @@ echo "✅ Cleanup complete!"
 echo ""
 echo "📊 Summary:"
 echo "  - Archived: 3 historical restructure documents"
-echo "  - Removed: 3 redundant AGENTS.md files"
+echo "  - Removed: agents/README.md (if present)"
+echo "  - Retained: AGENTS.md and agents/AGENTS.md (authoritative manuals)"
 echo ""
 echo "🔍 Remaining workflow documents:"
 echo "  - docs/HYBRID_WORKFLOW.md (main guide)"

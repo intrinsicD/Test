@@ -13,7 +13,8 @@ This is your **single entry point** for AI-driven collaboration on the engine pr
 1. **Read this index** (you are here)
 2. **Review the workspace**: [README.md](../README.md) - module health, build presets, current status
 3. **Understand navigation**: [docs/NAVIGATION.md](../docs/NAVIGATION.md) - documentation structure
-4. **Pick your role** below based on your task
+4. **Skim the operations manual**: [AGENTS.md](AGENTS.md) - how roles coordinate and hand-offs work
+5. **Pick your role** below based on your task
 
 ---
 
@@ -246,7 +247,7 @@ Every PR must satisfy:
 
 ## 📖 Additional Resources
 
-- **[AGENTS.md](AGENTS.md)** - Operating manual for the multi-agent workflow
+- **[AGENTS.md](AGENTS.md)** - Operating manual covering coordination loops, hand-offs, and shared tooling
 - **[AGENTS-QUICKSTART.md](AGENTS-QUICKSTART.md)** - Step-by-step workflow guide
 - **[README.md](README.md)** - Brief overview of the agent system
 - **[17-Example-Session.md](17-Example-Session.md)** - Example task execution

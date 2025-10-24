@@ -13,6 +13,7 @@ When working as an AI agent, prioritize in this order:
 
 - Cite every file path or command you reference.
 - Follow the session checklist in [`docs/NAVIGATION.md`](docs/NAVIGATION.md) before modifying anything.
+- When collaborating across multiple roles, review the coordination guidance in [`agents/AGENTS.md`](agents/AGENTS.md) so hand-offs and context packs stay aligned.
 - Update or add tests for every behaviour change. Place C++ coverage under the owning module in `engine/<module>/tests/` and Python coverage under `python/tests/` or `scripts/tests/`.
 - Mirror behavioural or dependency changes into module READMEs, module roadmaps, the central roadmap, and relevant task files.
 - Escalate missing context by listing the exact files or specifications you require.
@@ -99,112 +100,158 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
     CMakePresets.json
     CODING_STYLE.md
     README.md
+    agents/
+        00-COMMON-GUARDRAILS.md
+        10-Product-Manager.md
+        11-Agent-Orchestrator.md
+        12-Knowledge-Librarian.md
+        13-Research-Scientist.md
+        14-Auto-Improver.md
+        15-Security-Safety-Gate.md
+        16-Community-Maintainer.md
+        17-Example-Session.md
+        20-Chief-Architect.md
+        30-Tech-Lead.md
+        40-Rendering-Engineer.md
+        50-Geometry-Math-Engineer.md
+        60-Physics-Engineer.md
+        70-Tools-Build-CI-Engineer.md
+        80-Performance-Engineer.md
+        90-QA-Test-Engineer.md
+        95-Docs-DevRel.md
+        98-Release-Manager.md
+        99-Reviewer.md
+        AGENTS-INDEX.md
+        AGENTS-QUICKSTART.md
+        AGENTS.md
+        TEMPLATES/
+            ADR_TEMPLATE.md
+            CONTEXT_PACK.md
+            ISSUE_TEMPLATE.md
+            PR_TEMPLATE.md
+            TASK_CARD.md
     docs/
-        agents.md
-        architecture.md
-        conventions.md
-        glossary.md
-        README.md
+        AGENTIC_WORKFLOW_ENHANCEMENT.md
+        ARCHITECTURE.md
+        CODEX_PROMPTING_GUIDE.md
+        GLOSSARY.md
+        HYBRID_WORKFLOW.md
+        HYBRID_WORKFLOW_DIAGRAM.md
+        HYBRID_WORKFLOW_SUMMARY.md
+        NAVIGATION.md
         README_TEMPLATE.md
         ROADMAP.md
+        WORKFLOW_COMPARISON.md
+        archive/
+            README.md
+            prints/
+                AI-002-STREAMING-GEOMETRY-TELEMETRY.md
+                AN-201-IMPLEMENTATION.md
+                AS-330-DIAGNOSTICS-SHELL-IMPLEMENTATION.md
+                CC-001-TELEMETRY-METRIC-PREFIX.md
+                CC-002-3-SHADER-IMPLEMENTATION.md
+                CO-150-CO-160-IMPLEMENTATION.md
+                CR-125-CR-130-IMPLEMENTATION.md
+                CR-135-IMPLEMENTATION.md
+                GE-212-GE-220-WORK-DIVISION.md
+                IMPLEMENTATION_PROMPT.md
+                IO-230-IMPLEMENTATION.md
+                MA-110-SIMD-VALIDATION-HARNESS-REVIEW.md
+                MA-110-SIMD-VALIDATION-HARNESS.md
+                MA-118-SOLVER-STABILITY-DOCUMENTATION.md
+                README.md
+                RT-005-3-HIERARCHY-DIAGNOSTICS-DOCS.md
+                RT-005-4-HIERARCHY-ALERT-THRESHOLDS.md
+                RT-006-3-IO-DETECTION-DOCS.md
+                SC-220-DOCUMENTATION-REFRESH.md
+                SC-225-HIERARCHY-DIAGNOSTICS-SAMPLES.md
+                TL-110-TELEMETRY-DOCS-FOLLOWUP.md
+            reviews/
+                2025-02-17-RUNTIME-TELEMETRY.MD
+                2025-02-18-IMPLEMENTATION-PROMPT.MD
+                2025-03-17-GEOMETRY-IO-RESULT-MIGRATION.MD
+                2025-03-22-SCENE-DOCS.MD
+                2025-03-24-ANIMATION-PLANNING.MD
+                2025-03-24-AS-320-MATERIAL-PERSISTENCE.MD
+                2025-03-28-CORE-PLUGIN-LIFECYCLE.MD
+                2025-03-GEOMETRY-STAFFING.MD
+                2025-03-TELEMETRY-METRIC-PREFIX.MD
+                2025-04-05-COMPUTE-CYCLE-DIAGNOSTICS.MD
+                README.md
+            workflow-migration/
+                DOCUMENTATION_RESTRUCTURE_CHANGELOG.md
+                DOCUMENTATION_RESTRUCTURE_PROPOSAL.md
+                RESTRUCTURE_SUMMARY.md
         design/
-            animation_gpu_parallel_sampling_benchmark.md
-            architecture_improvement_plan.md
-            async_streaming.md
-            error_handling_migration.md
-            ge-212-remeshing_parameterization_rfp.md
-            material_persistence_strategy.md
-            plugin_architecture.md
-            resource_management.md
-            telemetry_instrumentation_guide.md
-            telemetry_schema.md
+            ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md
+            ARCHITECTURE_IMPROVEMENT_PLAN.md
+            ASYNC_STREAMING.md
+            ERROR_HANDLING_MIGRATION.md
+            GE-212-REMESHING_PARAMETERIZATION_RFP.md
+            MATERIAL_PERSISTENCE_STRATEGY.md
+            PLUGIN_ARCHITECTURE.md
+            RESOURCE_MANAGEMENT.md
+            TELEMETRY_INSTRUMENTATION_GUIDE.md
+            TELEMETRY_SCHEMA.md
         modules/
             README.md
             animation/
+                BACKLOG.md
                 README.md
-                ROADMAP.md
             assets/
+                BACKLOG.md
                 README.md
-                ROADMAP.md
             compute/
-                dispatcher-extension-guide.md
+                BACKLOG.md
+                DISPATCHER-EXTENSION-GUIDE.md
                 README.md
-                ROADMAP.md
             core/
+                BACKLOG.md
                 README.md
-                ROADMAP.md
             geometry/
+                BACKLOG.md
                 README.md
-                ROADMAP.md
             io/
-                detection_fuzzing_playbook.md
+                BACKLOG.md
+                DETECTION_FUZZING_PLAYBOOK.md
                 README.md
-                ROADMAP.md
             math/
-                format_conversions.md
+                BACKLOG.md
+                FORMAT_CONVERSIONS.md
                 README.md
-                ROADMAP.md
-                solver_stability.md
+                SOLVER_STABILITY.md
             physics/
+                BACKLOG.md
                 README.md
-                ROADMAP.md
             platform/
+                BACKLOG.md
                 README.md
-                ROADMAP.md
-                sdl_backend_checklist.md
+                SDL_BACKEND_CHECKLIST.md
             rendering/
-                backend_checklist.md
-                metadata_schema.md
+                BACKEND_CHECKLIST.md
+                BACKLOG.md
+                METADATA_SCHEMA.md
                 README.md
-                ROADMAP.md
             runtime/
-                async_streaming_integration.md
-                diagnostics.md
+                ASYNC_STREAMING_INTEGRATION.md
+                BACKLOG.md
+                DIAGNOSTICS.md
                 README.md
-                ROADMAP.md
             scene/
-                diagnostics.md
+                BACKLOG.md
+                DIAGNOSTICS.md
                 README.md
-                ROADMAP.md
             tools/
+                BACKLOG.md
                 README.md
-                ROADMAP.md
-        prints/
-            ai-002-streaming-geometry-telemetry.md
-            an-201-implementation.md
-            cc-001-telemetry-metric-prefix.md
-            cc-002-3-shader-implementation.md
-            co-150-co-160-implementation.md
-            cr-125-cr-130-implementation.md
-            cr-135-implementation.md
-            ge-212-ge-220-work-division.md
-            implementation_prompt.md
-            io-230-implementation.md
-            ma-110-simd-validation-harness-review.md
-            ma-110-simd-validation-harness.md
-            ma-118-solver-stability-documentation.md
-            rt-005-3-hierarchy-diagnostics-docs.md
-            rt-005-4-hierarchy-alert-thresholds.md
-            rt-006-3-io-detection-docs.md
-            sc-220-documentation-refresh.md
-            sc-225-hierarchy-diagnostics-samples.md
-            tl-110-telemetry-docs-followup.md
         prompts/
-            architecture-audit.md
-            implementation-playbook.md
-            refactor-playbook.md
-            review-checklist.md
+            ARCHITECTURE-AUDIT.md
+            IMPLEMENTATION-PLAYBOOK.md
+            MASTER-AGENT-PROMPT.md
+            REFACTOR-PLAYBOOK.md
+            REVIEW-CHECKLIST.md
         reviews/
-            2025-02-17-runtime-telemetry.md
-            2025-02-18-implementation-prompt.md
-            2025-03-17-geometry-io-result-migration.md
             2025-03-22-scene-docs.md
-            2025-03-24-animation-planning.md
-            2025-03-24-as-320-material-persistence.md
-            2025-03-28-core-plugin-lifecycle.md
-            2025-03-geometry-staffing.md
-            2025-03-telemetry-metric-prefix.md
-            2025-04-05-compute-cycle-diagnostics.md
         specs/
             ADR-0003-runtime-frame-graph.md
             ADR-0005-geometry-io-roundtrip.md
@@ -222,6 +269,17 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             T-0116-rendering-vulkan-resource-translation.md
             T-0117-physics-contact-manifolds.md
             T-0118-testing-framework-upgrade.md
+            T-0119-rendering-command-encoder-implementation.md
+            T-0120-rendering-gpu-resource-provider-implementation.md
+            T-0121-rendering-standard-passes-library.md
+            T-0122-rendering-visibility-culling-system.md
+            T-0123-rendering-pipeline-state-management.md
+            T-0124-rendering-lighting-system.md
+            T-0125-math-convenience-rotation-builders.md
+            T-0126-math-documentation-alignment.md
+            T-0127-math-optional-curve-utilities.md
+            T-0128-geometry-frustum-utilities.md
+            T-0129-geometry-shape-intersection-coverage.md
     engine/
         CMakeLists.txt
         animation/
@@ -385,6 +443,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                             aabb.hpp
                             cylinder.hpp
                             ellipsoid.hpp
+                            frustum.hpp
                             line.hpp
                             obb.hpp
                             plane.hpp
@@ -425,6 +484,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                     aabb.cpp
                     cylinder.cpp
                     ellipsoid.cpp
+                    frustum.cpp
                     line.cpp
                     obb.cpp
                     plane.cpp
@@ -438,6 +498,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             tests/
                 CMakeLists.txt
                 test_deformation.cpp
+                test_frustum.cpp
                 test_graph.cpp
                 test_graph_io.cpp
                 test_halfedge_io.cpp
@@ -506,6 +567,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         math.hpp
                         matrix.hpp
                         quaternion.hpp
+                        solvers.hpp
                         sparse_matrix.hpp
                         transform.hpp
                         vector.hpp
@@ -519,6 +581,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 CMakeLists.txt
                 test_math.cpp
                 test_math_simd.cpp
+                test_solvers.cpp
         physics/
             CMakeLists.txt
             benchmarks/
@@ -628,6 +691,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 material_system.cpp
                 backend/
                     validation.cpp
+                    opengl/
+                        command_stream.cpp
                     vulkan/
                         resource_translation.cpp
                 resources/
@@ -716,26 +781,40 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             performance/
             unit/
         tools/
+            CMakeLists.txt
             editor/
+            include/
+                engine/
+                    tools/
+                        api.hpp
+                        imgui_helpers.hpp
+                        profiling/
+                            profiler.hpp
             pipelines/
             profiling/
+            src/
+                api.cpp
+                imgui_helpers.cpp
+                profiling/
+                    profiler.cpp
+            tests/
+                CMakeLists.txt
+                test_module.cpp
+                test_profiler.cpp
     python/
         README.md
         requirements.txt
         engine3g/
             __init__.py
             loader.py
+            loader.pyi
             README.md
-            __pycache__/
-                __init__.cpython-312.pyc
-                loader.cpython-312.pyc
         tests/
             README.md
             test_loader.py
-            __pycache__/
-                test_loader.cpython-312.pyc
     scripts/
         __init__.py
+        cleanup_redundant_docs.sh
         README.md
         update_agents_tree.py
         validate_docs.py
@@ -760,6 +839,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_geometry_normals_benchmark_report.py
             test_package_runtime_artifacts.py
             test_runtime_frame_telemetry.py
+            test_streaming_report.py
             test_telemetry_viewer.py
             test_telemetry_viewer_smoke.py
             test_update_agents_tree.py
