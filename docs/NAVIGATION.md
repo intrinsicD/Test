@@ -4,8 +4,9 @@
 
 **First-time or general questions?**
 1. Read [`../README.md`](../README.md) - workspace overview, build steps, module health
-2. Read [`../AGENTS.md`](../AGENTS.md) - your working agreement and workflow rules
-3. Return here for specialized documentation
+2. Read [`HYBRID_WORKFLOW.md`](HYBRID_WORKFLOW.md) - unified agentic workflow (best of both approaches)
+3. Read [`../agents/AGENTS-INDEX.md`](../agents/AGENTS-INDEX.md) - role directory and quick start
+4. Return here for specialized documentation
 
 **Working on a specific task?**
 1. Check [`ROADMAP.md`](ROADMAP.md) - is your work active, backlog, or blocked?
@@ -27,6 +28,17 @@
 | `tasks/` | Active sprint work, acceptance criteria | Implementing assigned work |
 | `prompts/` | Reusable agent instruction templates | Standardizing AI workflows |
 | `archive/` | Historical artifacts (prints, reviews, completed tasks) | Historical research only |
+
+## 🔀 Hybrid Workflow Documents
+
+| Document | Purpose | When to Use |
+|----------|---------|-------------|
+| [`HYBRID_WORKFLOW.md`](HYBRID_WORKFLOW.md) | Complete unified workflow guide | Understanding the full workflow |
+| [`HYBRID_WORKFLOW_SUMMARY.md`](HYBRID_WORKFLOW_SUMMARY.md) | Quick reference and FAQ | Quick lookups, onboarding |
+| [`HYBRID_WORKFLOW_DIAGRAM.md`](HYBRID_WORKFLOW_DIAGRAM.md) | Visual workflow diagram | Understanding flow and phases |
+| [`CODEX_PROMPTING_GUIDE.md`](CODEX_PROMPTING_GUIDE.md) | **How to prompt AI agents** | **Starting any AI-assisted work** |
+| [`WORKFLOW_COMPARISON.md`](WORKFLOW_COMPARISON.md) | Old vs new analysis | Understanding design decisions |
+| [`AGENTIC_WORKFLOW_ENHANCEMENT.md`](AGENTIC_WORKFLOW_ENHANCEMENT.md) | Implementation log | Historical context |
 
 ## 🔧 Common Tasks
 

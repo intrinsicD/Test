@@ -10,7 +10,7 @@ triage, and roadmap alignment rather than single-change pull-request reviews.
 - Whenever telemetry or review findings hint at architectural drift.
 
 ## Prerequisites Checklist
-- [ ] Review [`../NAVIGATION.md`](../NAVIGATION.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), and [`../../AGENTS.md`](../../AGENTS.md) to
+- [ ] Review [`../NAVIGATION.md`](../NAVIGATION.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), and [`../../agents/AGENTS-INDEX.md`](../../agents/AGENTS-INDEX.md) to
       refresh invariants and reviewer expectations.
 - [ ] Inspect the architecture improvement plan tables in
       [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked tasks/prints.

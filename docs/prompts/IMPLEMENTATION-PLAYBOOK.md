@@ -36,7 +36,7 @@ checklists.
 - Observability: emit actionable logs/metrics without leaking PII/PHI; prefer structured logging.
 - Documentation discipline: keep README/ROADMAP/spec entries in sync with the change set.
 - Compliance: follow [`CODING_STYLE.md`](../../CODING_STYLE.md) and
-  [`../../AGENTS.md`](../../AGENTS.md).
+  [`../../agents/AGENTS-INDEX.md`](../../agents/AGENTS-INDEX.md).
 
 **Repository Context**
 - Review the subsystem overview in [`../../README.md`](../../README.md) and invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
