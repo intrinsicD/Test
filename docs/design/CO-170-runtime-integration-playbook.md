@@ -50,6 +50,13 @@ RuntimeHost::tick
        --input telemetry/compute_dispatch.json --top 5 --jitter-threshold 5
    ```
 
+   Provide additional telemetry captures to the same command (`--input` accepts
+   multiple paths) when validating benchmark stability. The reporter prints a
+   run-to-run variance summary and warns when the aggregated standard deviation
+   exceeds the configurable `--variance-threshold` (default 2%). This keeps the
+   "≤2% variance" roadmap requirement actionable without manual spreadsheet
+   analysis.
+
 ## Telemetry Payload
 
 The sample emits a JSON document with:

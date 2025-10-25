@@ -105,6 +105,12 @@ workloads.
    optimised run or its single-queue baseline exceeds the configured budget. Supplying `--jitter-threshold`
    still enables per-kernel jitter outlier detection for additional diagnostics.
 
+   Provide multiple telemetry captures to `--input` when validating benchmark
+   stability. The reporter compares the mean frame time across runs, prints a
+   run-to-run variance summary, and warns when the standard deviation exceeds the
+   `--variance-threshold` percentage (default 2%). Set the threshold to `0` when
+   you only want the summary without variance checks.
+
 Use `--output` to persist the textual summary for dashboards or CI artefacts.
 Provide `--baseline` to the runtime sample to capture a single-queue reference;
 the report surfaces the observed speed-up and warns when the capture fails to
