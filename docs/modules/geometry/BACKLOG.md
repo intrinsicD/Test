@@ -53,3 +53,5 @@ roadmap after each milestone.
   `GE-212` to unblock `GE-221+` execution work.
 - 2025-11-04 — Added remeshing edge statistics and target resolution utilities to
   feed GE-221+ execution planning and telemetry baselines.
+- 2025-11-05 — Implemented uniform remeshing kernel executing split/collapse loops
+  with Laplacian relaxation, producing `RemeshOutput` for GE-221+ Phase 1.

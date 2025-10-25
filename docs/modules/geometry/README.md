@@ -168,14 +168,24 @@ if (!validation.has_value())
     // log_warning("Remesh request rejected: {}", error.message());
 }
 
-const engine::geometry::RemeshResult<engine::geometry::ResolvedRemeshingTargets> resolved_targets =
-    engine::geometry::ResolveRemeshingTargets(request);
+const auto resolved_targets = engine::geometry::ResolveRemeshingTargets(request);
 if (resolved_targets.has_value())
 {
-    const engine::geometry::ResolvedRemeshingTargets& targets = resolved_targets.value();
+    const auto& targets = resolved_targets.value();
     const float target_length = targets.target_edge_length.value();
     const float mean_length = targets.edge_statistics.mean_edge_length();
     // Feed derived targets into remeshing kernels and telemetry reporting.
+}
+
+const auto remesh_result = engine::geometry::Remesh(request);
+if (remesh_result.has_value())
+{
+    const engine::geometry::RemeshOutput& output = remesh_result.value();
+    // Uniform remeshing splits long edges, collapses short edges, and applies
+    // Laplacian relaxation to unlocked vertices.
+    const auto iterations = output.statistics.iteration_count;
+    const auto max_edge_length = output.statistics.max_edge_length;
+    // Consume the statistics for telemetry or diagnostics reporting.
 }
 ```
 
@@ -183,13 +193,16 @@ if (resolved_targets.has_value())
 attribute transfer policies, and parameterisation preferences while
 `ValidateRemeshRequest` enforces the invariants published in the
 [`GE-212` remeshing RFP](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md).
-Future execution milestones (`GE-221+`) will consume these structures directly
-and emit `RemeshOutput` statistics once kernels land.
+The Phase 1 uniform remeshing kernel consumes these structures directly,
+returning a new `SurfaceMesh` alongside iteration counts and edge statistics in
+`RemeshOutput`.
 
 Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
-or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request and
-produces consistent absolute edge-length targets even when callers specify only a
-relative scale.
+or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request
+and produces consistent absolute edge-length targets even when callers specify only
+a relative scale. Uniform remeshing currently supports triangle meshes and locks
+boundary/feature vertices according to the feature preservation policy so downstream
+steps can assume landmarks remain stable.
 
 ## IO Integration
 

@@ -3,12 +3,17 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <exception>
 #include <limits>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "engine/math/math.hpp"
 #include "engine/math/utils/utils.hpp"
+#include "engine/geometry/mesh/halfedge_mesh.hpp"
+#include "engine/geometry/mesh/surface_mesh_conversion.hpp"
+#include "engine/geometry/topology/surface_topology.hpp"
 
 namespace engine::geometry
 {
@@ -344,6 +349,386 @@ namespace engine::geometry
         }
 
         return RemeshResult<ResolvedRemeshingTargets>{resolved};
+    }
+
+    namespace
+    {
+        constexpr float kDefaultSplitThreshold = 4.0F / 3.0F;
+        constexpr float kDefaultCollapseThreshold = 4.0F / 5.0F;
+
+        [[nodiscard]] std::vector<bool> initialise_locked_vertices(const SurfaceMesh& mesh,
+                                                                   MeshInterface& interface,
+                                                                   const RemeshRequest& request)
+        {
+            std::vector<bool> locked(interface.vertices_size(), false);
+
+            const SurfaceTopologySummary summary = AnalyzeSurfaceTopology(
+                mesh, math::radians(request.feature_preservation.minimum_feature_angle_degrees));
+
+            const bool lock_boundaries = request.feature_preservation.lock_boundary_edges;
+            const bool lock_features = request.feature_preservation.lock_feature_edges;
+
+            for (std::size_t index = 0; index < summary.vertices.size() && index < locked.size(); ++index)
+            {
+                const SurfaceVertexTag& tag = summary.vertices[index];
+                if ((lock_boundaries && tag.is_boundary) || (lock_features && tag.is_feature))
+                {
+                    locked[index] = true;
+                }
+            }
+
+            return locked;
+        }
+
+        [[nodiscard]] bool is_locked_vertex(const std::vector<bool>& locked, VertexHandle vertex) noexcept
+        {
+            const std::size_t index = vertex.index();
+            if (index >= locked.size())
+            {
+                return false;
+            }
+            return locked[index];
+        }
+
+        void ensure_vertex_capacity(std::vector<bool>& locked, const MeshInterface& interface)
+        {
+            if (locked.size() < interface.vertices_size())
+            {
+                locked.resize(interface.vertices_size(), false);
+            }
+        }
+
+        void laplacian_relaxation(MeshInterface& interface,
+                                  const std::vector<bool>& locked,
+                                  float factor)
+        {
+            if (factor <= 0.0F)
+            {
+                return;
+            }
+
+            std::vector<math::vec3> updated(interface.vertices_size(), math::vec3{0.0F});
+            std::vector<bool> has_update(interface.vertices_size(), false);
+
+            for (auto vertex : interface.vertices())
+            {
+                if (interface.is_deleted(vertex))
+                {
+                    continue;
+                }
+
+                if (is_locked_vertex(locked, vertex))
+                {
+                    continue;
+                }
+
+                auto neighbors = interface.vertices(vertex);
+                if (!neighbors)
+                {
+                    continue;
+                }
+
+                const auto start = neighbors;
+                math::vec3 sum{0.0F};
+                std::size_t count = 0U;
+                do
+                {
+                    const VertexHandle neighbor = *neighbors;
+                    if (!interface.is_deleted(neighbor))
+                    {
+                        sum += interface.position(neighbor);
+                        ++count;
+                    }
+                }
+                while (++neighbors != start);
+
+                if (count == 0U)
+                {
+                    continue;
+                }
+
+                const math::vec3 current = interface.position(vertex);
+                const math::vec3 average = sum / static_cast<float>(count);
+                updated[vertex.index()] = current + factor * (average - current);
+                has_update[vertex.index()] = true;
+            }
+
+            for (auto vertex : interface.vertices())
+            {
+                if (interface.is_deleted(vertex))
+                {
+                    continue;
+                }
+
+                const std::size_t index = vertex.index();
+                if (index >= has_update.size() || !has_update[index])
+                {
+                    continue;
+                }
+
+                interface.position(vertex) = updated[index];
+            }
+        }
+
+        bool can_collapse_edge(const RemeshRequest& request,
+                               const std::vector<bool>& locked,
+                               MeshInterface& interface,
+                               EdgeHandle edge,
+                               HalfedgeHandle& collapse_halfedge,
+                               VertexHandle& keep_vertex,
+                               VertexHandle& remove_vertex)
+        {
+            if (interface.is_deleted(edge))
+            {
+                return false;
+            }
+
+            if (request.feature_preservation.lock_boundary_edges && interface.is_boundary(edge))
+            {
+                return false;
+            }
+
+            HalfedgeHandle candidate = interface.halfedge(edge, 0);
+            HalfedgeHandle opposite = interface.opposite_halfedge(candidate);
+
+            VertexHandle keep = interface.to_vertex(candidate);
+            VertexHandle remove = interface.to_vertex(opposite);
+
+            if (is_locked_vertex(locked, remove) && !is_locked_vertex(locked, keep))
+            {
+                candidate = interface.halfedge(edge, 1);
+                opposite = interface.opposite_halfedge(candidate);
+                keep = interface.to_vertex(candidate);
+                remove = interface.to_vertex(opposite);
+            }
+
+            if (is_locked_vertex(locked, keep) || is_locked_vertex(locked, remove))
+            {
+                return false;
+            }
+
+            if (!interface.is_collapse_ok(candidate))
+            {
+                return false;
+            }
+
+            collapse_halfedge = candidate;
+            keep_vertex = keep;
+            remove_vertex = remove;
+            return true;
+        }
+
+        std::uint32_t execute_uniform_remesh(const RemeshRequest& request,
+                                             MeshInterface& interface,
+                                             std::vector<bool>& locked,
+                                             float target_length,
+                                             float split_threshold,
+                                             float collapse_threshold)
+        {
+            std::uint32_t performed_iterations = 0U;
+            const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
+
+            for (; performed_iterations < request.max_iterations; ++performed_iterations)
+            {
+                std::vector<EdgeHandle> edges_to_split;
+                std::vector<EdgeHandle> edges_to_collapse;
+
+                for (auto edge : interface.edges())
+                {
+                    if (interface.is_deleted(edge))
+                    {
+                        continue;
+                    }
+
+                    const HalfedgeHandle h0 = interface.halfedge(edge, 0);
+                    const HalfedgeHandle h1 = interface.halfedge(edge, 1);
+                    const math::vec3& p0 = interface.position(interface.to_vertex(h0));
+                    const math::vec3& p1 = interface.position(interface.to_vertex(h1));
+                    const float length = math::length(p0 - p1);
+
+                    if (!std::isfinite(length) || length <= std::numeric_limits<float>::epsilon())
+                    {
+                        continue;
+                    }
+
+                    if (length > target_length * split_threshold)
+                    {
+                        edges_to_split.push_back(edge);
+                    }
+                    else if (length < target_length * collapse_threshold)
+                    {
+                        edges_to_collapse.push_back(edge);
+                    }
+                }
+
+                bool iteration_changed = false;
+
+                for (EdgeHandle edge : edges_to_collapse)
+                {
+                    if (interface.is_deleted(edge))
+                    {
+                        continue;
+                    }
+
+                    const HalfedgeHandle h0 = interface.halfedge(edge, 0);
+                    const HalfedgeHandle h1 = interface.halfedge(edge, 1);
+                    const math::vec3& p0 = interface.position(interface.to_vertex(h0));
+                    const math::vec3& p1 = interface.position(interface.to_vertex(h1));
+                    const float length = math::length(p0 - p1);
+
+                    if (!(length < target_length * collapse_threshold))
+                    {
+                        continue;
+                    }
+
+                    HalfedgeHandle collapse_halfedge{};
+                    VertexHandle keep_vertex{};
+                    VertexHandle remove_vertex{};
+
+                    if (!can_collapse_edge(request, locked, interface, edge, collapse_halfedge, keep_vertex, remove_vertex))
+                    {
+                        continue;
+                    }
+
+                    interface.position(keep_vertex) = (interface.position(keep_vertex) + interface.position(remove_vertex)) * 0.5F;
+                    interface.collapse(collapse_halfedge);
+                    iteration_changed = true;
+                }
+
+                ensure_vertex_capacity(locked, interface);
+
+                for (EdgeHandle edge : edges_to_split)
+                {
+                    if (interface.is_deleted(edge))
+                    {
+                        continue;
+                    }
+
+                    const HalfedgeHandle h0 = interface.halfedge(edge, 0);
+                    const HalfedgeHandle h1 = interface.halfedge(edge, 1);
+                    const math::vec3& p0 = interface.position(interface.to_vertex(h0));
+                    const math::vec3& p1 = interface.position(interface.to_vertex(h1));
+                    const float length = math::length(p0 - p1);
+
+                    if (!(length > target_length * split_threshold))
+                    {
+                        continue;
+                    }
+
+                    const std::size_t previous_vertices = interface.vertices_size();
+                    const auto new_halfedge = interface.split(edge, (p0 + p1) * 0.5F);
+                    (void)new_halfedge;
+                    ensure_vertex_capacity(locked, interface);
+
+                    if (interface.vertices_size() == previous_vertices + 1)
+                    {
+                        VertexHandle new_vertex(static_cast<std::uint32_t>(interface.vertices_size() - 1));
+                        bool lock_new = false;
+                        if (request.feature_preservation.lock_boundary_edges && interface.is_boundary(new_vertex))
+                        {
+                            lock_new = true;
+                        }
+                        if (!lock_new && request.feature_preservation.lock_feature_edges)
+                        {
+                            const bool v0_locked = is_locked_vertex(locked, interface.to_vertex(h0));
+                            const bool v1_locked = is_locked_vertex(locked, interface.to_vertex(h1));
+                            lock_new = v0_locked && v1_locked;
+                        }
+                        locked[new_vertex.index()] = lock_new;
+                    }
+
+                    iteration_changed = true;
+                }
+
+                if (!iteration_changed)
+                {
+                    break;
+                }
+
+                ensure_vertex_capacity(locked, interface);
+                laplacian_relaxation(interface, locked, smoothing_factor);
+            }
+
+            return performed_iterations;
+        }
+    } // namespace
+
+    RemeshResult<RemeshOutput> Remesh(const RemeshRequest& request) noexcept
+    {
+        if (const RemeshValidationResult validation = ValidateRemeshRequest(request); !validation.has_value())
+        {
+            return RemeshResult<RemeshOutput>{validation.error()};
+        }
+
+        switch (request.mode)
+        {
+        case RemeshingMode::kUniform:
+            break;
+        case RemeshingMode::kFeaturePreserving:
+        case RemeshingMode::kAdaptive:
+            return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::unsupported_mode,
+                                                                "remeshing mode not yet implemented")};
+        }
+
+        auto resolved_targets_result = ResolveRemeshingTargets(request);
+        if (!resolved_targets_result.has_value())
+        {
+            return RemeshResult<RemeshOutput>{resolved_targets_result.error()};
+        }
+
+        const ResolvedRemeshingTargets& resolved_targets = resolved_targets_result.value();
+        if (!resolved_targets.target_edge_length.has_value())
+        {
+            return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_target_configuration,
+                                                                "uniform remeshing requires a target edge length")};
+        }
+
+        Mesh mesh{};
+        try
+        {
+            mesh::build_halfedge_from_surface_mesh(*request.input_mesh, mesh.interface);
+        }
+        catch (const std::exception& error)
+        {
+            return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_input_mesh, error.what())};
+        }
+
+        if (!mesh.interface.is_triangle_mesh())
+        {
+            return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_input_mesh,
+                                                                "uniform remeshing currently supports triangle meshes only")};
+        }
+
+        std::vector<bool> locked = initialise_locked_vertices(*request.input_mesh, mesh.interface, request);
+
+        const float target_length = resolved_targets.target_edge_length.value();
+        const std::uint32_t iterations = execute_uniform_remesh(request,
+                                                                mesh.interface,
+                                                                locked,
+                                                                target_length,
+                                                                kDefaultSplitThreshold,
+                                                                kDefaultCollapseThreshold);
+
+        mesh.interface.garbage_collection();
+
+        RemeshOutput output{};
+        try
+        {
+            output.mesh = mesh::build_surface_mesh_from_halfedge(mesh.interface);
+        }
+        catch (const std::exception& error)
+        {
+            return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_input_mesh, error.what())};
+        }
+
+        output.statistics.iteration_count = iterations;
+        const MeshEdgeStatistics stats = ComputeMeshEdgeStatistics(output.mesh);
+        output.statistics.max_edge_length = stats.max_edge_length;
+        output.statistics.min_edge_length = stats.min_edge_length;
+        output.statistics.max_error = 0.0F;
+        output.parameterization = ParameterizationSummary{};
+
+        return RemeshResult<RemeshOutput>{output};
     }
 } // namespace engine::geometry
 

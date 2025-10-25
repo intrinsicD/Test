@@ -133,5 +133,7 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API RemeshResult<ResolvedRemeshingTargets> ResolveRemeshingTargets(
         const RemeshRequest& request) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API RemeshResult<RemeshOutput> Remesh(const RemeshRequest& request) noexcept;
 }
 
