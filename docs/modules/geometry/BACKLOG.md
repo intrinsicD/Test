@@ -51,3 +51,5 @@ roadmap after each milestone.
   `GE-221+` remeshing milestones.
 - 2025-11-03 — Introduced remeshing request/validation scaffolding aligning with
   `GE-212` to unblock `GE-221+` execution work.
+- 2025-11-04 — Added remeshing edge statistics and target resolution utilities to
+  feed GE-221+ execution planning and telemetry baselines.

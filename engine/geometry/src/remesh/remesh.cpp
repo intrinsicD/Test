@@ -1,7 +1,14 @@
 #include "engine/geometry/remesh/remesh.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cmath>
+#include <limits>
 #include <string>
+#include <unordered_set>
+
+#include "engine/math/math.hpp"
+#include "engine/math/utils/utils.hpp"
 
 namespace engine::geometry
 {
@@ -51,6 +58,15 @@ namespace engine::geometry
         {
             return RemeshValidationResult{make_remesh_error(RemeshError::invalid_input_mesh,
                                                             "triangle index buffer must be a multiple of three")};
+        }
+
+        for (const std::uint32_t index : request.input_mesh->indices)
+        {
+            if (index >= request.input_mesh->positions.size())
+            {
+                return RemeshValidationResult{make_remesh_error(RemeshError::invalid_input_mesh,
+                                                                "triangle index out of range")};
+            }
         }
 
         if (request.max_iterations == 0U)
@@ -187,6 +203,147 @@ namespace engine::geometry
         }
 
         return RemeshValidationResult{};
+    }
+
+    namespace
+    {
+        [[nodiscard]] std::uint64_t make_edge_key(std::uint32_t a, std::uint32_t b) noexcept
+        {
+            if (a > b)
+            {
+                std::swap(a, b);
+            }
+            return (static_cast<std::uint64_t>(a) << 32U) | static_cast<std::uint64_t>(b);
+        }
+    } // namespace
+
+    MeshEdgeStatistics ComputeMeshEdgeStatistics(const SurfaceMesh& mesh) noexcept
+    {
+        MeshEdgeStatistics statistics{};
+
+        if (mesh.positions.size() < 2U || mesh.indices.empty())
+        {
+            statistics.min_edge_length = 0.0f;
+            return statistics;
+        }
+
+        std::unordered_set<std::uint64_t> unique_edges{};
+        unique_edges.reserve(mesh.indices.size());
+
+        for (std::size_t i = 0; i + 2 < mesh.indices.size(); i += 3)
+        {
+            const std::uint32_t a = mesh.indices[i];
+            const std::uint32_t b = mesh.indices[i + 1];
+            const std::uint32_t c = mesh.indices[i + 2];
+
+            const std::array<std::pair<std::uint32_t, std::uint32_t>, 3> edges{{
+                {a, b},
+                {b, c},
+                {c, a},
+            }};
+
+            for (const auto& [u, v] : edges)
+            {
+                if (u == v)
+                {
+                    continue;
+                }
+
+                const std::uint64_t key = make_edge_key(u, v);
+                if (!unique_edges.insert(key).second)
+                {
+                    continue;
+                }
+
+                const math::vec3& p0 = mesh.positions[u];
+                const math::vec3& p1 = mesh.positions[v];
+                const float length = math::length(p1 - p0);
+
+                statistics.total_edge_length += length;
+                statistics.max_edge_length = std::max(statistics.max_edge_length, length);
+                statistics.min_edge_length = std::min(statistics.min_edge_length, length);
+                ++statistics.edge_count;
+            }
+        }
+
+        if (statistics.edge_count == 0U)
+        {
+            statistics.min_edge_length = 0.0f;
+            statistics.max_edge_length = 0.0f;
+            statistics.total_edge_length = 0.0f;
+        }
+
+        return statistics;
+    }
+
+    RemeshResult<ResolvedRemeshingTargets> ResolveRemeshingTargets(const RemeshRequest& request) noexcept
+    {
+        if (const RemeshValidationResult validation = ValidateRemeshRequest(request); !validation.has_value())
+        {
+            return RemeshResult<ResolvedRemeshingTargets>{validation.error()};
+        }
+
+        ResolvedRemeshingTargets resolved{};
+        resolved.edge_statistics = ComputeMeshEdgeStatistics(*request.input_mesh);
+
+        if (resolved.edge_statistics.edge_count == 0U)
+        {
+            resolved.edge_statistics.min_edge_length = 0.0f;
+        }
+
+        if (request.targets.maximum_normal_deviation_degrees.has_value())
+        {
+            resolved.maximum_normal_deviation_degrees = request.targets.maximum_normal_deviation_degrees;
+        }
+
+        if (request.targets.maximum_surface_deviation.has_value())
+        {
+            resolved.maximum_surface_deviation = request.targets.maximum_surface_deviation;
+        }
+
+        if (request.targets.target_edge_length.has_value())
+        {
+            resolved.target_edge_length = request.targets.target_edge_length;
+        }
+
+        if (request.targets.relative_edge_scale.has_value())
+        {
+            const float mean_length = resolved.edge_statistics.mean_edge_length();
+            if (mean_length <= std::numeric_limits<float>::min())
+            {
+                return RemeshResult<ResolvedRemeshingTargets>{make_remesh_error(
+                    RemeshError::invalid_target_configuration,
+                    "relative_edge_scale requires a mesh with non-degenerate edges")};
+            }
+
+            const float derived_edge_length =
+                mean_length * request.targets.relative_edge_scale.value();
+
+            if (resolved.target_edge_length.has_value())
+            {
+                if (!math::utils::nearly_equal(resolved.target_edge_length.value(), derived_edge_length, 1e-4f))
+                {
+                    return RemeshResult<ResolvedRemeshingTargets>{make_remesh_error(
+                        RemeshError::invalid_target_configuration,
+                        "absolute and relative edge targets disagree")};
+                }
+            }
+            else
+            {
+                resolved.target_edge_length = derived_edge_length;
+            }
+        }
+
+        if (!resolved.target_edge_length.has_value() && request.mode != RemeshingMode::kAdaptive)
+        {
+            // Validation should have caught this already, but provide a defensive guard for callers
+            // that bypass ValidateRemeshRequest.
+            return RemeshResult<ResolvedRemeshingTargets>{make_remesh_error(
+                RemeshError::invalid_target_configuration,
+                "remeshing mode requires an absolute edge length target")};
+        }
+
+        return RemeshResult<ResolvedRemeshingTargets>{resolved};
     }
 } // namespace engine::geometry
 

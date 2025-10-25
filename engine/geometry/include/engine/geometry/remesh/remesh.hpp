@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <limits>
 
 namespace engine::geometry
 {
@@ -105,6 +106,32 @@ namespace engine::geometry
         RemeshStatistics statistics{};
     };
 
+    struct ENGINE_GEOMETRY_API MeshEdgeStatistics
+    {
+        std::uint32_t edge_count{0U};
+        float min_edge_length{std::numeric_limits<float>::infinity()};
+        float max_edge_length{0.0f};
+        float total_edge_length{0.0f};
+
+        [[nodiscard]] float mean_edge_length() const noexcept
+        {
+            return edge_count > 0U ? total_edge_length / static_cast<float>(edge_count) : 0.0f;
+        }
+    };
+
+    struct ENGINE_GEOMETRY_API ResolvedRemeshingTargets
+    {
+        MeshEdgeStatistics edge_statistics{};
+        std::optional<float> target_edge_length{};
+        std::optional<float> maximum_normal_deviation_degrees{};
+        std::optional<float> maximum_surface_deviation{};
+    };
+
     [[nodiscard]] ENGINE_GEOMETRY_API RemeshValidationResult ValidateRemeshRequest(const RemeshRequest& request) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API MeshEdgeStatistics ComputeMeshEdgeStatistics(const SurfaceMesh& mesh) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API RemeshResult<ResolvedRemeshingTargets> ResolveRemeshingTargets(
+        const RemeshRequest& request) noexcept;
 }
 
