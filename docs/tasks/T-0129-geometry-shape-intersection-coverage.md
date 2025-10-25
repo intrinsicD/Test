@@ -155,3 +155,4 @@ Implement missing critical tests:
 
 ## Progress
 - 2025-11-20: Added regression tests covering symmetric cylinder intersection overloads (line, ray, segment, OBB, ellipsoid, sphere, triangle) and verified `Result` interval parity, ensuring both argument orders remain equivalent.
+- 2025-11-21: Extended parity regression coverage to ellipsoid line, ray, and segment intersections to protect `Result` interval symmetry in both invocation orders.
