@@ -285,6 +285,9 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   ```
   Analyse the JSON payload with `scripts/diagnostics/compute_dispatch_report.py`
   to highlight the hottest kernels, queue saturation, and jitter outliers.
+  Categories that are not explicitly mapped use deterministic FNV-1a hashing to
+  keep queue attribution stable across runs and toolchains, preserving the
+  comparability of telemetry captures.
 
 ## TODO / Next Steps
 

@@ -80,6 +80,9 @@ Persist the rendered report (`--output`) in CI to track regressions over time.
   selection using `--queue-map`. The JSON payload captures both the queue name
   recorded for each dispatch and the resolved `queue_assignments` summary so CI
   reports and dashboards can highlight affinity decisions.
+- **Deterministic attribution:** categories without explicit overrides fall back
+  to a case-insensitive FNV-1a hash to choose a queue index, guaranteeing that
+  telemetry compares cleanly across runs, platforms, and toolchains.
 - **GPU backends:** enable CUDA or upcoming compute shader backends via
   dispatcher factory selection to profile GPU execution. Update the playbook
   with backend-specific caveats (synchronisation, staging buffers, telemetry

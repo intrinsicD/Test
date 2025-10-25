@@ -238,3 +238,6 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
 - 2025-11-02: Integration tests assert steady-clock telemetry, deterministic
   dispatch ordering, and the dispatcher dependency graph to lock queue
   affinity regressions.
+- 2025-11-03: Queue attribution now uses deterministic FNV-1a hashing so
+  category-to-queue assignments remain stable across platforms even without
+  explicit overrides.

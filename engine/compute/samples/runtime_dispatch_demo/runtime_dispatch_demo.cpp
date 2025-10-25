@@ -1,5 +1,7 @@
 #include "engine/runtime/api.hpp"
 
+#include "queue_assignment.hpp"
+
 #include "engine/animation/api.hpp"
 #include "engine/animation/rigging/rig_binding.hpp"
 #include "engine/geometry/api.hpp"
@@ -325,8 +327,7 @@ namespace
             return 2U;
         }
 
-        const auto hash = std::hash<std::string>{}(lowered);
-        return hash % queue_count;
+        return engine::compute::samples::deterministic_queue_index(lowered, queue_count);
     }
 
     [[nodiscard]] std::string_view timing_domain_to_string(compute::TimingDomain domain) noexcept

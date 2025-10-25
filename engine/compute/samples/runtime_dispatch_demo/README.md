@@ -46,5 +46,9 @@ logical fence where work crosses queue boundaries and the JSON payload exposes
 timeline semaphore sequencing and validate multi-queue orchestration in
 telemetry dashboards.
 
+Queue attribution falls back to a deterministic FNV-1a hash so categories that
+are not explicitly mapped still resolve to stable queue indices across runs and
+platforms, ensuring telemetry comparisons remain reproducible.
+
 Combine the JSON output with `scripts/diagnostics/compute_dispatch_report.py`
 to render tabular summaries or enforce jitter thresholds in CI.
