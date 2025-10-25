@@ -56,6 +56,9 @@ scenarios align with their benchmark matrix.
   affinity decisions (`CO-170.2`).
 - 2025-11-03: Queue attribution switched to deterministic FNV-1a hashing to
   keep telemetry stable across toolchains and CI environments (`CO-170.2`).
+- 2025-11-04: `--baseline` instrumentation captures single-queue reference runs
+  and reports speed-up deltas, enabling automated enforcement of the 1.5×
+  performance target in diagnostics (`CO-170.2`).
 
 ---
 

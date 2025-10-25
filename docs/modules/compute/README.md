@@ -279,7 +279,7 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   ```bash
   cmake --build --preset <preset> --target engine_compute_runtime_sample
   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-      --frames 1024 --dt 0.016 --workload heavy --queues 3 \
+      --frames 1024 --dt 0.016 --workload heavy --queues 3 --baseline \
       --queue-names primary,async-0,async-1 --queue-map physics=async-0 \
       --output telemetry/compute_dispatch.json --pretty
   ```
@@ -287,7 +287,9 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   to highlight the hottest kernels, queue saturation, and jitter outliers.
   Categories that are not explicitly mapped use deterministic FNV-1a hashing to
   keep queue attribution stable across runs and toolchains, preserving the
-  comparability of telemetry captures.
+  comparability of telemetry captures. Supplying `--baseline` records a
+  single-queue reference run; the report surfaces the achieved speed-up and
+  flags regressions when the `1.5×` target is not met.
 
 ## TODO / Next Steps
 

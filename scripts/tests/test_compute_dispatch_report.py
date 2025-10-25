@@ -1,7 +1,5 @@
 import importlib.util
 import json
-import json
-import importlib.util
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
@@ -55,7 +53,7 @@ def _make_frame(index: int, dispatches: Dict[str, float]) -> Dict[str, Any]:
     }
 
 
-def _write_payload(path: Path, frames: List[Dict[str, Any]]) -> Path:
+def _write_payload(path: Path, frames: List[Dict[str, Any]], *, baseline_speedup: float = 1.6) -> Path:
     payload = {
         "metadata": {
             "timestep": 0.016,
@@ -92,6 +90,18 @@ def _write_payload(path: Path, frames: List[Dict[str, Any]]) -> Path:
                 }
             ],
         },
+        "baseline": {
+            "frames": len(frames),
+            "queue_count": 1,
+            "queue_names": ["queue-0"],
+            "average_frame_ms": 3.2,
+            "min_frame_ms": 3.0,
+            "max_frame_ms": 3.4,
+            "stddev_frame_ms": 0.2,
+            "jitter_percent": (0.2 / 3.2) * 100.0,
+            "speedup": baseline_speedup,
+            "target_speedup": 1.5,
+        },
     }
     path.write_text(json.dumps(payload), encoding="utf-8")
     return path
@@ -118,6 +128,8 @@ def test_render_summary_lists_top_kernels(tmp_path: Path, capsys: pytest.Capture
     assert "Queue totals:" in output
     assert "Cross-queue synchronization:" in output
     assert "queue-0 -> queue-1" in output
+    assert "Baseline frame time (1 queue):" in output
+    assert "Speed-up vs baseline: 1.600x (target 1.50x)" in output
 
 
 def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -128,6 +140,7 @@ def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[
             _make_frame(1, {"animation.evaluate": 0.4, "physics.integrate": 2.0}),
             _make_frame(2, {"animation.evaluate": 0.4, "physics.integrate": 0.5}),
         ],
+        baseline_speedup=1.2,
     )
 
     report.main(["--input", str(payload_path), "--jitter-threshold", "5.0", "--top", "1"])
@@ -135,3 +148,4 @@ def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[
 
     assert "WARNING" in output
     assert "physics.integrate" in output
+    assert "Speed-up below performance target" in output

@@ -69,11 +69,25 @@ class ReportSummary:
 
 
 @dataclass
+class BaselineStats:
+    frames: int
+    queue_count: int
+    average_frame_ms: float
+    min_frame_ms: float
+    max_frame_ms: float
+    stddev_frame_ms: float
+    jitter_percent: float
+    speedup: float
+    target_speedup: float
+
+
+@dataclass
 class ReportPayload:
     metadata: MutableMapping[str, object]
     frames: List[FrameSample]
     summary: ReportSummary
     stage_timings: List[MutableMapping[str, object]]
+    baseline: Optional[BaselineStats]
 
 
 def _load_frames(payload: MutableMapping[str, object]) -> List[FrameSample]:
@@ -184,7 +198,36 @@ def load_report(path: Path) -> ReportPayload:
                     }
                 )
         summary.queue_transitions = parsed_transitions
-    return ReportPayload(metadata=metadata, frames=frames, summary=summary, stage_timings=stage_timings)
+    baseline_payload = payload.get("baseline")
+    baseline_stats: Optional[BaselineStats] = None
+    if isinstance(baseline_payload, dict):
+        frames_count = int(baseline_payload.get("frames", 0))
+        queue_count = int(baseline_payload.get("queue_count", 0))
+        average_frame_ms = float(baseline_payload.get("average_frame_ms", 0.0))
+        min_frame_ms = float(baseline_payload.get("min_frame_ms", average_frame_ms))
+        max_frame_ms = float(baseline_payload.get("max_frame_ms", average_frame_ms))
+        stddev_frame_ms = float(baseline_payload.get("stddev_frame_ms", 0.0))
+        jitter_percent = float(baseline_payload.get("jitter_percent", 0.0))
+        speedup = float(baseline_payload.get("speedup", 0.0))
+        target_speedup = float(baseline_payload.get("target_speedup", 0.0))
+        baseline_stats = BaselineStats(
+            frames=frames_count,
+            queue_count=queue_count,
+            average_frame_ms=average_frame_ms,
+            min_frame_ms=min_frame_ms,
+            max_frame_ms=max_frame_ms,
+            stddev_frame_ms=stddev_frame_ms,
+            jitter_percent=jitter_percent,
+            speedup=speedup,
+            target_speedup=target_speedup,
+        )
+    return ReportPayload(
+        metadata=metadata,
+        frames=frames,
+        summary=summary,
+        stage_timings=stage_timings,
+        baseline=baseline_stats,
+    )
 
 
 def _format_stats(name: str, stats: SummaryStats, jitter_threshold: Optional[float]) -> str:
@@ -235,6 +278,23 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
     if assignments:
         lines.append(f"Queue assignments: {', '.join(assignments)}")
     lines.append(f"Average frame dispatch time: {payload.summary.frame_totals.mean_ms:.3f} ms")
+
+    if payload.baseline is not None:
+        baseline = payload.baseline
+        lines.append("")
+        queue_label = "queue" if baseline.queue_count == 1 else "queues"
+        lines.append(
+            (
+                f"Baseline frame time ({baseline.queue_count} {queue_label}): "
+                f"{baseline.average_frame_ms:.3f} ms (min {baseline.min_frame_ms:.3f}, max {baseline.max_frame_ms:.3f}, "
+                f"σ {baseline.stddev_frame_ms:.3f}, jitter {baseline.jitter_percent:.2f}%)"
+            )
+        )
+        lines.append(
+            f"Speed-up vs baseline: {baseline.speedup:.3f}x (target {baseline.target_speedup:.2f}x)"
+        )
+        if baseline.speedup < baseline.target_speedup:
+            lines.append("WARNING: Speed-up below performance target")
 
     if payload.summary.dispatches:
         lines.append("")

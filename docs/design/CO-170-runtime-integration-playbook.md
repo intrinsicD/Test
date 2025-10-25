@@ -39,7 +39,7 @@ RuntimeHost::tick
 2. **Capture telemetry**
    ```bash
    ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-       --frames 1024 --dt 0.016 --workload balanced --queues 3 \
+       --frames 1024 --dt 0.016 --workload balanced --queues 3 --baseline \
        --queue-names main,async-0,async-1 --queue-map physics=async-0 \
        --output telemetry/compute_dispatch.json --pretty
    ```
@@ -64,11 +64,15 @@ The sample emits a JSON document with:
 - `summary.queue_transitions[]` – edge list capturing every producer/consumer
   pair crossing queue boundaries to help reconstruct fence sequencing.
 - `diagnostics` – top-level tick counters and average frame duration.
+- `baseline` – average/min/max frame duration, jitter, and achieved speed-up for
+  the single-queue reference run recorded when `--baseline` is provided.
 
 `compute_dispatch_report.py` recomputes aggregate statistics, highlights
 categories and queues with the largest total contribution, and warns when the
 standard deviation-to-mean ratio (jitter) exceeds configurable thresholds.
 Persist the rendered report (`--output`) in CI to track regressions over time.
+When the baseline block is present the script also prints the observed speed-up
+and emits a warning if it falls below the `1.5×` target.
 
 ## Extending Workloads
 
@@ -95,6 +99,9 @@ Persist the rendered report (`--output`) in CI to track regressions over time.
   category totals, queue aggregates, and top kernels.
 - ✅ Jitter warnings triggered for kernels whose σ/μ exceeds configurable
   thresholds (default 5%).
+- ✅ Baseline capture (`--baseline`) records a single-queue reference, reports
+  speed-up, and warns when the observed acceleration drops below the 1.5×
+  target.
 - 🚧 Follow-up: integrate workload adapters for animation GPU sampling once
   dispatcher queue extensions land.
 - 🚧 Follow-up: feed captures into CI dashboards and baseline per-dispatch

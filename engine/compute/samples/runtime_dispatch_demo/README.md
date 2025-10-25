@@ -29,6 +29,7 @@ Options:
 - `--queues N` – logical compute queues to attribute telemetry to (default 1)
 - `--queue-names LIST` – comma-separated queue names (e.g. `async-a,async-b`); overrides the default `queue-N` labels
 - `--queue-map category=queue` – pin a category (e.g. `physics`) to a specific queue label
+- `--baseline` – capture a single-queue baseline and report the achieved speed-up versus the optimised run (target 1.5×)
 - `--output FILE` – path to write the JSON telemetry payload
 - `--pretty` – emit indented JSON when writing to `FILE`
 - `--help` – display the command reference
@@ -52,3 +53,9 @@ platforms, ensuring telemetry comparisons remain reproducible.
 
 Combine the JSON output with `scripts/diagnostics/compute_dispatch_report.py`
 to render tabular summaries or enforce jitter thresholds in CI.
+
+When `--baseline` is supplied the sample performs an additional run using a
+single logical queue, records the baseline frame timing statistics, and compares
+them against the multi-queue capture. The console summary and JSON payload list
+the baseline average/min/max frame times, jitter, and the observed speed-up with
+the `1.5×` target highlighted so regressions surface immediately in CI reports.
