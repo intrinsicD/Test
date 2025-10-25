@@ -8,6 +8,7 @@ target_link_libraries(${target_name}
     PRIVATE
         engine::project_options
         engine_animation
+        engine_compute
 )
 
 set_target_properties(${target_name}

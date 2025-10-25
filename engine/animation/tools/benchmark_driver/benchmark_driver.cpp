@@ -1,5 +1,7 @@
 #include "engine/animation/api.hpp"
 #include "engine/animation/benchmarking/statistics.hpp"
+#include "engine/animation/benchmarking/telemetry.hpp"
+#include "engine/compute/api.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -10,6 +12,7 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <utility>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -19,10 +22,29 @@
 
 namespace animation = engine::animation;
 namespace benchmarking = engine::animation::benchmarking;
+namespace compute = engine::compute;
 
 namespace
 {
     using Clock = std::chrono::steady_clock;
+
+    enum class Scenario
+    {
+        CpuBaseline,
+        GpuAsync,
+    };
+
+    [[nodiscard]] std::string_view to_string(Scenario scenario) noexcept
+    {
+        switch (scenario)
+        {
+        case Scenario::CpuBaseline:
+            return "cpu_baseline";
+        case Scenario::GpuAsync:
+            return "gpu_async";
+        }
+        return "cpu_baseline";
+    }
 
     struct CommandLineOptions
     {
@@ -34,6 +56,7 @@ namespace
         bool pretty{false};
         std::optional<std::size_t> rig_joints{};
         double jitter_budget_ms{0.5};
+        Scenario scenario{Scenario::CpuBaseline};
     };
 
     struct FrameTelemetry
@@ -41,6 +64,9 @@ namespace
         std::size_t index{0U};
         double simulation_time{0.0};
         double duration_ms{0.0};
+        std::vector<benchmarking::DispatchTelemetry> dispatches{};
+        std::vector<benchmarking::AggregatedTelemetry> category_totals{};
+        std::vector<benchmarking::AggregatedTelemetry> queue_totals{};
     };
 
     struct CaptureResult
@@ -48,6 +74,7 @@ namespace
         std::vector<FrameTelemetry> frames{};
         benchmarking::FrameTimingSummary summary{};
         std::size_t pose_joint_count{0U};
+        bool cuda_available{false};
     };
 
     [[nodiscard]] std::size_t parse_size(std::string_view value, std::string_view flag)
@@ -78,6 +105,22 @@ namespace
             throw std::invalid_argument(stream.str());
         }
         return result;
+    }
+
+    [[nodiscard]] Scenario parse_scenario(std::string_view value)
+    {
+        if (value == "cpu_baseline")
+        {
+            return Scenario::CpuBaseline;
+        }
+        if (value == "gpu_async")
+        {
+            return Scenario::GpuAsync;
+        }
+
+        std::ostringstream stream;
+        stream << "Unknown scenario: " << value;
+        throw std::invalid_argument(stream.str());
     }
 
     CommandLineOptions parse_command_line(int argc, char** argv)
@@ -136,6 +179,15 @@ namespace
                 options.rig_joints = parse_size(argv[++index], "--rig-joints");
                 continue;
             }
+            if (argument == "--scenario")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--scenario requires a value"};
+                }
+                options.scenario = parse_scenario(argv[++index]);
+                continue;
+            }
             if (argument == "--jitter-budget-ms")
             {
                 if (index + 1 >= argc)
@@ -169,6 +221,7 @@ namespace
         std::cout << "  --clip FILE          Animation clip JSON file to load\n";
         std::cout << "  --rig-joints N       Rig joint count metadata (defaults to track count)\n";
         std::cout << "  --output FILE        JSON output path for telemetry\n";
+        std::cout << "  --scenario NAME      Benchmark scenario (cpu_baseline | gpu_async)\n";
         std::cout << "  --jitter-budget-ms VALUE  Frame jitter budget (default: 0.5)\n";
         std::cout << "  --pretty             Pretty-print JSON output\n";
         std::cout << "  --help               Display this message\n";
@@ -184,9 +237,9 @@ namespace
         return animation::load_clip_json(*options.clip_path);
     }
 
-    [[nodiscard]] CaptureResult capture_frames(const animation::AnimationClip& clip,
-                                               std::size_t frames,
-                                               double timestep)
+    [[nodiscard]] CaptureResult capture_cpu_frames(const animation::AnimationClip& clip,
+                                                   std::size_t frames,
+                                                   double timestep)
     {
         animation::AnimationController controller = animation::make_linear_controller(clip);
         CaptureResult result{};
@@ -209,9 +262,92 @@ namespace
             frame.index = index;
             frame.simulation_time = static_cast<double>(index + 1U) * timestep;
             frame.duration_ms = duration_ms;
-            result.frames.push_back(frame);
-
+            frame.dispatches.push_back(benchmarking::DispatchTelemetry{
+                .name = "animation.sample_clip",
+                .category = "animation.sample",
+                .queue = "cpu",
+                .duration_ms = duration_ms,
+            });
+            frame.category_totals = benchmarking::aggregate_category_totals(frame.dispatches);
+            frame.queue_totals = benchmarking::aggregate_queue_totals(frame.dispatches);
             result.pose_joint_count = pose.joints.size();
+            result.frames.push_back(std::move(frame));
+        }
+
+        result.summary = benchmarking::compute_frame_timing_summary(frame_durations);
+        return result;
+    }
+
+    [[nodiscard]] compute::ClockConfiguration make_gpu_clock_configuration()
+    {
+        compute::ClockConfiguration configuration{};
+        configuration.name = "gpu_simulated_clock";
+        configuration.domain = compute::TimingDomain::Gpu;
+        configuration.measure = [](const compute::kernel_callback& callback) -> double {
+            const auto start = Clock::now();
+            if (callback)
+            {
+                callback();
+            }
+            const auto end = Clock::now();
+            return std::chrono::duration<double, std::milli>(end - start).count();
+        };
+        return configuration;
+    }
+
+    [[nodiscard]] CaptureResult capture_gpu_frames(const animation::AnimationClip& clip,
+                                                   std::size_t frames,
+                                                   double timestep)
+    {
+        animation::AnimationController controller = animation::make_linear_controller(clip);
+        CaptureResult result{};
+        result.frames.reserve(frames);
+        result.cuda_available = compute::is_cuda_dispatcher_available();
+
+        std::vector<double> frame_durations{};
+        frame_durations.reserve(frames);
+
+        animation::AnimationRigPose pose{};
+
+        for (std::size_t index = 0U; index < frames; ++index)
+        {
+            const auto cpu_start = Clock::now();
+            animation::advance_controller(controller, timestep);
+            const auto cpu_end = Clock::now();
+            const double submission_ms = std::chrono::duration<double, std::milli>(cpu_end - cpu_start).count();
+
+            auto dispatcher = compute::make_cuda_dispatcher();
+            dispatcher->set_clock(make_gpu_clock_configuration());
+            dispatcher->clear();
+            dispatcher->add_kernel("animation.sample_clip.gpu", [&controller, &pose]() {
+                pose = animation::evaluate_controller(controller);
+            });
+
+            const compute::ExecutionReport report = dispatcher->dispatch();
+            const double kernel_ms = !report.kernel_durations.empty() ? report.kernel_durations.front() : 0.0;
+
+            FrameTelemetry frame{};
+            frame.index = index;
+            frame.simulation_time = static_cast<double>(index + 1U) * timestep;
+            frame.duration_ms = submission_ms + kernel_ms;
+            frame.dispatches.push_back(benchmarking::DispatchTelemetry{
+                .name = "animation.submit_sample",
+                .category = "animation.control",
+                .queue = "cpu",
+                .duration_ms = submission_ms,
+            });
+            frame.dispatches.push_back(benchmarking::DispatchTelemetry{
+                .name = "animation.sample_clip.gpu",
+                .category = "animation.sample",
+                .queue = "gpu",
+                .duration_ms = kernel_ms,
+            });
+            frame.category_totals = benchmarking::aggregate_category_totals(frame.dispatches);
+            frame.queue_totals = benchmarking::aggregate_queue_totals(frame.dispatches);
+            result.pose_joint_count = pose.joints.size();
+            result.frames.push_back(std::move(frame));
+
+            frame_durations.push_back(submission_ms + kernel_ms);
         }
 
         result.summary = benchmarking::compute_frame_timing_summary(frame_durations);
@@ -314,38 +450,70 @@ namespace
 
             emit_indentation(stream, depth + 2, pretty);
             stream << '"' << "dispatches" << '"' << ':' << (pretty ? " [" : "[");
-            emit_indentation(stream, depth + 3, pretty);
-            stream << '{';
-            emit_indentation(stream, depth + 4, pretty);
-            stream << '"' << "name" << '"' << ':' << '"' << "animation.sample_clip" << '"' << ',';
-            emit_indentation(stream, depth + 4, pretty);
-            stream << '"' << "category" << '"' << ':' << '"' << "animation.sample" << '"' << ',';
-            emit_indentation(stream, depth + 4, pretty);
-            stream << '"' << "queue" << '"' << ':' << '"' << "cpu" << '"' << ',';
-            emit_indentation(stream, depth + 4, pretty);
-            stream << '"' << "duration_ms" << '"' << ':' << frame.duration_ms;
-            emit_indentation(stream, depth + 3, pretty);
-            stream << '}';
+            for (std::size_t dispatch_index = 0; dispatch_index < frame.dispatches.size(); ++dispatch_index)
+            {
+                const auto& dispatch = frame.dispatches[dispatch_index];
+                emit_indentation(stream, depth + 3, pretty);
+                stream << '{';
+                emit_indentation(stream, depth + 4, pretty);
+                stream << '"' << "name" << '"' << ':' << '"' << escape_json(dispatch.name) << '"' << ',';
+                emit_indentation(stream, depth + 4, pretty);
+                stream << '"' << "category" << '"' << ':' << '"' << escape_json(dispatch.category) << '"' << ',';
+                emit_indentation(stream, depth + 4, pretty);
+                stream << '"' << "queue" << '"' << ':' << '"' << escape_json(dispatch.queue) << '"' << ',';
+                emit_indentation(stream, depth + 4, pretty);
+                stream << '"' << "duration_ms" << '"' << ':' << dispatch.duration_ms;
+                emit_indentation(stream, depth + 3, pretty);
+                stream << '}';
+                if (dispatch_index + 1U < frame.dispatches.size())
+                {
+                    stream << ',';
+                }
+            }
             emit_indentation(stream, depth + 2, pretty);
             stream << (pretty ? " ]," : "],");
 
             emit_indentation(stream, depth + 2, pretty);
-            stream << '"' << "category_totals_ms" << '"' << ':' << (pretty ? " [{" : "[{" );
-            emit_indentation(stream, depth + 3, pretty);
-            stream << '"' << "category" << '"' << ':' << '"' << "animation.sample" << '"' << ',';
-            emit_indentation(stream, depth + 3, pretty);
-            stream << '"' << "duration_ms" << '"' << ':' << frame.duration_ms;
+            stream << '"' << "category_totals_ms" << '"' << ':' << (pretty ? " [" : "[");
+            for (std::size_t category_index = 0; category_index < frame.category_totals.size(); ++category_index)
+            {
+                const auto& total = frame.category_totals[category_index];
+                emit_indentation(stream, depth + 3, pretty);
+                stream << '{';
+                emit_indentation(stream, depth + 4, pretty);
+                stream << '"' << "category" << '"' << ':' << '"' << escape_json(total.label) << '"' << ',';
+                emit_indentation(stream, depth + 4, pretty);
+                stream << '"' << "duration_ms" << '"' << ':' << total.duration_ms;
+                emit_indentation(stream, depth + 3, pretty);
+                stream << '}';
+                if (category_index + 1U < frame.category_totals.size())
+                {
+                    stream << ',';
+                }
+            }
             emit_indentation(stream, depth + 2, pretty);
-            stream << (pretty ? " }]," : "}],");
+            stream << (pretty ? " ]," : "],");
 
             emit_indentation(stream, depth + 2, pretty);
-            stream << '"' << "queue_totals_ms" << '"' << ':' << (pretty ? " [{" : "[{" );
-            emit_indentation(stream, depth + 3, pretty);
-            stream << '"' << "queue" << '"' << ':' << '"' << "cpu" << '"' << ',';
-            emit_indentation(stream, depth + 3, pretty);
-            stream << '"' << "duration_ms" << '"' << ':' << frame.duration_ms;
+            stream << '"' << "queue_totals_ms" << '"' << ':' << (pretty ? " [" : "[");
+            for (std::size_t queue_index = 0; queue_index < frame.queue_totals.size(); ++queue_index)
+            {
+                const auto& total = frame.queue_totals[queue_index];
+                emit_indentation(stream, depth + 3, pretty);
+                stream << '{';
+                emit_indentation(stream, depth + 4, pretty);
+                stream << '"' << "queue" << '"' << ':' << '"' << escape_json(total.label) << '"' << ',';
+                emit_indentation(stream, depth + 4, pretty);
+                stream << '"' << "duration_ms" << '"' << ':' << total.duration_ms;
+                emit_indentation(stream, depth + 3, pretty);
+                stream << '}';
+                if (queue_index + 1U < frame.queue_totals.size())
+                {
+                    stream << ',';
+                }
+            }
             emit_indentation(stream, depth + 2, pretty);
-            stream << (pretty ? " }]" : "}]");
+            stream << (pretty ? " ]" : "]");
 
             emit_indentation(stream, depth + 1, pretty);
             stream << '}';
@@ -369,13 +537,15 @@ namespace
         const std::size_t rig_joints = options.rig_joints.value_or(std::max(track_count, capture.pose_joint_count));
         const bool jitter_exceeded = options.jitter_budget_ms >= 0.0
                                      && capture.summary.stddev_ms > options.jitter_budget_ms;
+        const std::string_view scenario_name = to_string(options.scenario);
+        const char* task_id = options.scenario == Scenario::GpuAsync ? "AN-230.2" : "AN-230.1";
 
         stream << '{';
 
         emit_indentation(stream, 1, pretty);
         stream << '"' << "metadata" << '"' << ':' << (pretty ? " {" : "{");
         emit_indentation(stream, 2, pretty);
-        stream << '"' << "task" << '"' << ':' << '"' << "AN-230.1" << '"' << ',';
+        stream << '"' << "task" << '"' << ':' << '"' << task_id << '"' << ',';
         emit_indentation(stream, 2, pretty);
         stream << '"' << "clip_name" << '"' << ':' << '"' << escape_json(clip.name) << '"' << ',';
         emit_indentation(stream, 2, pretty);
@@ -389,9 +559,12 @@ namespace
         emit_indentation(stream, 2, pretty);
         stream << '"' << "timestep" << '"' << ':' << options.timestep << ',';
         emit_indentation(stream, 2, pretty);
-        stream << '"' << "scenario" << '"' << ':' << '"' << "cpu_baseline" << '"' << ',';
+        stream << '"' << "scenario" << '"' << ':' << '"' << scenario_name << '"' << ',';
         emit_indentation(stream, 2, pretty);
         stream << '"' << "generator" << '"' << ':' << '"' << "engine_animation_benchmark_driver" << '"';
+        stream << ',';
+        emit_indentation(stream, 2, pretty);
+        stream << '"' << "cuda_available" << '"' << ':' << (capture.cuda_available ? "true" : "false");
         if (options.clip_path)
         {
             stream << ',';
@@ -451,10 +624,13 @@ int main(int argc, char** argv)
             throw std::runtime_error{"Animation clip contains no tracks"};
         }
 
-        const CaptureResult capture = capture_frames(clip, options.frames, options.timestep);
+        const CaptureResult capture = options.scenario == Scenario::GpuAsync
+                                           ? capture_gpu_frames(clip, options.frames, options.timestep)
+                                           : capture_cpu_frames(clip, options.frames, options.timestep);
         const double fps = capture.summary.mean_ms > 0.0 ? 1000.0 / capture.summary.mean_ms : 0.0;
 
-        std::cout << "Animation CPU Baseline" << '\n';
+        std::cout << "Animation Benchmark" << '\n';
+        std::cout << "Scenario: " << to_string(options.scenario) << '\n';
         std::cout << "Clip: " << (clip.name.empty() ? "<unnamed>" : clip.name) << '\n';
         std::cout << "Tracks: " << clip.tracks.size() << '\n';
         std::cout << "Frames sampled: " << capture.summary.samples << '\n';

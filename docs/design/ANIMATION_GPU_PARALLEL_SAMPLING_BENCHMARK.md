@@ -76,7 +76,7 @@ looped) and across cold cache/warm cache cycles to capture stability.
 
 ## Deliverables
 
-- Benchmark harness sources and build target integrated into CMake (`engine_animation_benchmark_driver`) emitting dispatcher-compatible telemetry.
+- Benchmark harness sources and build target integrated into CMake (`engine_animation_benchmark_driver`) emitting dispatcher-compatible telemetry (see [`AN-230.2 GPU Sampling Telemetry Integration`](AN-230.2-gpu-telemetry.md)).
 - Dataset manifest documenting rig statistics and licensing.
 - Telemetry dashboards (Grafana folder `Animation/GPU Sampling Bench`).
 - Summary report embedded into `docs/modules/animation/README.md` once data

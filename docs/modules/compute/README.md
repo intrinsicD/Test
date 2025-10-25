@@ -390,5 +390,5 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
 
 ## TODO / Next Steps
 
-- Integrate the runtime dispatcher sample telemetry gating into the forthcoming `AN-230` benchmarking pipelines and feed dispatcher metadata into `engine_animation_benchmark_driver` runs; see ../../ROADMAP.md
+- Integrate the runtime dispatcher sample telemetry gating into the `AN-230` benchmarking pipelines. The `gpu_async` scenario in `engine_animation_benchmark_driver` already emits queue/category telemetry via the dispatcher; see ../../ROADMAP.md for remaining report automation work.
 - Evaluate compute-shader backend alignment with frame-graph scheduling (`AI-003` follow-up); see ../../ROADMAP.md
