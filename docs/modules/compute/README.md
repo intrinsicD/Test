@@ -219,6 +219,25 @@ cross-queue fences, runtime stage timings, GPU staging estimates (256 MiB
 budget), frame jitter statistics, and per-run identifiers so CI dashboards can
 audit regressions and track run-to-run variance.
 
+### Automate Benchmark Captures
+
+`scripts/diagnostics/compute_dispatch_benchmark.py` automates the variance check
+required by `CO-170`. It executes the runtime sample multiple times (or consumes
+existing payloads), computes run-to-run statistics, and surfaces warnings when
+variance, jitter, or baseline speed-up fall outside their targets.
+
+```bash
+python scripts/diagnostics/compute_dispatch_benchmark.py \
+    --sample ./out/build/linux-gcc-debug/engine/compute/engine_compute_runtime_sample \
+    --runs 3 --frames 1024 --workload balanced --queues 3 --baseline \
+    --jitter-budget-ms 0.5 --variance-threshold 2.0 --exit-on-regression \
+    --output-dir telemetry/dispatch_benchmark --report telemetry/dispatch_benchmark.txt
+```
+
+Pass `--input` to reuse previously captured telemetry without re-running the
+executable and `--report` to persist the rendered summary for dashboards or CI
+artefacts.
+
 ### Analyse Results
 
 Use the diagnostics helper to render a textual summary or gate CI thresholds:
