@@ -197,6 +197,11 @@ The Phase 1 uniform remeshing kernel consumes these structures directly,
 returning a new `SurfaceMesh` alongside iteration counts and edge statistics in
 `RemeshOutput`.
 
+`RemeshStatistics::max_error` records the maximum absolute deviation between the
+resolved target edge length and the shortest/longest edges observed in the
+output mesh, giving remeshing telemetry a single scalar that quantifies how far
+the result strays from the requested budget.
+
 Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
 or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request
 and produces consistent absolute edge-length targets even when callers specify only

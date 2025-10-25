@@ -725,7 +725,18 @@ namespace engine::geometry
         const MeshEdgeStatistics stats = ComputeMeshEdgeStatistics(output.mesh);
         output.statistics.max_edge_length = stats.max_edge_length;
         output.statistics.min_edge_length = stats.min_edge_length;
-        output.statistics.max_error = 0.0F;
+
+        if (stats.edge_count > 0U)
+        {
+            const float target = resolved_targets.target_edge_length.value();
+            const float max_over_target = math::utils::abs(stats.max_edge_length - target);
+            const float max_under_target = math::utils::abs(stats.min_edge_length - target);
+            output.statistics.max_error = std::max(max_over_target, max_under_target);
+        }
+        else
+        {
+            output.statistics.max_error = 0.0F;
+        }
         output.parameterization = ParameterizationSummary{};
 
         return RemeshResult<RemeshOutput>{output};
