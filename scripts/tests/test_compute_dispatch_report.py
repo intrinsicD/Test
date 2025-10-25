@@ -89,6 +89,16 @@ def _write_payload(path: Path, frames: List[Dict[str, Any]], *, baseline_speedup
                     "to_queue": "queue-1",
                 }
             ],
+            "memory": {
+                "vertex_count": 4096,
+                "joint_count": 60,
+                "position_bytes": 4096 * 12,
+                "normal_bytes": 4096 * 12,
+                "transform_bytes": 60 * 64,
+                "total_bytes": 4096 * 24 + 60 * 64,
+                "budget_bytes": 256 * 1024 * 1024,
+                "exceeds_budget": False,
+            },
         },
         "baseline": {
             "frames": len(frames),
@@ -101,6 +111,10 @@ def _write_payload(path: Path, frames: List[Dict[str, Any]], *, baseline_speedup
             "jitter_percent": (0.2 / 3.2) * 100.0,
             "speedup": baseline_speedup,
             "target_speedup": 1.5,
+            "memory_total_bytes": 4096 * 24 + 60 * 64,
+            "memory_total_mebibytes": (4096 * 24 + 60 * 64) / (1024 * 1024),
+            "memory_budget_mebibytes": 256.0,
+            "memory_exceeds_budget": False,
         },
     }
     path.write_text(json.dumps(payload), encoding="utf-8")
@@ -130,6 +144,8 @@ def test_render_summary_lists_top_kernels(tmp_path: Path, capsys: pytest.Capture
     assert "queue-0 -> queue-1" in output
     assert "Baseline frame time (1 queue):" in output
     assert "Speed-up vs baseline: 1.600x (target 1.50x)" in output
+    assert "GPU staging estimate:" in output
+    assert "Baseline GPU staging:" in output
 
 
 def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

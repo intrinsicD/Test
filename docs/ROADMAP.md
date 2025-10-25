@@ -59,6 +59,9 @@ scenarios align with their benchmark matrix.
 - 2025-11-04: `--baseline` instrumentation captures single-queue reference runs
   and reports speed-up deltas, enabling automated enforcement of the 1.5×
   performance target in diagnostics (`CO-170.2`).
+- 2025-11-05: Telemetry export now embeds GPU staging estimates and warns when
+  the runtime sample exceeds the 256 MiB animation budget, satisfying the
+  memory acceptance criteria for `CO-170`.
 
 ---
 

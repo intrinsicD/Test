@@ -219,7 +219,9 @@ ctest --preset linux-gcc-debug -R runtime
   reports queue utilisation, enumerates cross-queue fences, and surfaces jitter
   warnings for `CO-170`. With `--baseline`, the report also captures a
   single-queue reference run and flags when the observed speed-up drops below
-  the `1.5×` target.
+  the `1.5×` target. The JSON summary includes a `summary.memory` section and
+  the CLI output prints a GPU staging estimate so runs breaching the 256 MiB
+  animation budget are easy to diagnose.
   Queue labels fall back to deterministic FNV-1a hashing so workload categories
   without explicit overrides remain stable between runs.
 

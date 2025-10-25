@@ -63,6 +63,8 @@ namespace
     };
 
     constexpr double kBaselineSpeedupTarget = 1.5;
+    constexpr std::size_t kMemoryBudgetBytes = 256ULL * 1024ULL * 1024ULL;
+    constexpr double kBytesPerMebibyte = 1024.0 * 1024.0;
 
     [[nodiscard]] std::string_view workload_to_string(WorkloadProfile workload) noexcept
     {
@@ -671,6 +673,31 @@ namespace
         }
     };
 
+    struct MemoryUsageSummary
+    {
+        std::size_t vertex_count{0U};
+        std::size_t joint_count{0U};
+        std::size_t position_bytes{0U};
+        std::size_t normal_bytes{0U};
+        std::size_t transform_bytes{0U};
+        std::size_t total_bytes{0U};
+
+        [[nodiscard]] double total_mebibytes() const noexcept
+        {
+            return static_cast<double>(total_bytes) / kBytesPerMebibyte;
+        }
+
+        [[nodiscard]] double budget_mebibytes() const noexcept
+        {
+            return static_cast<double>(kMemoryBudgetBytes) / kBytesPerMebibyte;
+        }
+
+        [[nodiscard]] bool exceeds_budget() const noexcept
+        {
+            return total_bytes > kMemoryBudgetBytes;
+        }
+    };
+
     struct RunSummary
     {
         std::map<std::string, SummaryStats> dispatches{};
@@ -679,6 +706,7 @@ namespace
         SummaryStats frame_totals{};
         std::vector<QueueTransition> queue_transitions{};
         std::vector<QueueDependencySummary> queue_dependencies{};
+        MemoryUsageSummary memory{};
     };
 
     struct RunResult
@@ -692,7 +720,25 @@ namespace
         std::size_t requested_frames{0U};
         std::map<std::string, std::string> queue_assignments{};
         compute::DependencyGraph dependency_graph{};
+        MemoryUsageSummary memory{};
     };
+
+    [[nodiscard]] MemoryUsageSummary compute_memory_usage(const runtime::RuntimeHost& host)
+    {
+        MemoryUsageSummary summary{};
+        const geometry::SurfaceMesh& mesh = host.current_mesh();
+        summary.vertex_count = mesh.positions.size();
+        summary.position_bytes = summary.vertex_count * sizeof(math::vec3);
+        summary.normal_bytes = mesh.normals.size() * sizeof(math::vec3);
+
+        const animation::AnimationRigPose& pose = host.current_pose();
+        summary.joint_count = pose.joints.size();
+        constexpr std::size_t kMatrixBytes = sizeof(float) * 16U;
+        summary.transform_bytes = summary.joint_count * kMatrixBytes;
+
+        summary.total_bytes = summary.position_bytes + summary.normal_bytes + summary.transform_bytes;
+        return summary;
+    }
 
     struct ExecutionOutcome
     {
@@ -955,6 +1001,9 @@ namespace
         result.summary.queue_transitions = transitions;
         result.summary.queue_dependencies = summarize_queue_dependencies(transitions);
 
+        result.summary.memory = compute_memory_usage(host);
+        result.memory = result.summary.memory;
+
         return result;
     }
 
@@ -1007,6 +1056,30 @@ namespace
             {
                 std::cout << "  - " << category << " -> " << queue_name << '\n';
             }
+        }
+
+        const MemoryUsageSummary& memory = result.summary.memory;
+        std::cout << '\n' << "GPU staging estimate:" << '\n';
+        std::cout << "  - Total: " << std::fixed << std::setprecision(3)
+                  << memory.total_mebibytes() << " MiB (budget "
+                  << std::setprecision(3) << memory.budget_mebibytes() << " MiB)";
+        if (memory.exceeds_budget())
+        {
+            std::cout << " ⚠";
+        }
+        std::cout << '\n';
+        std::cout << "  - Positions: " << std::setprecision(3)
+                  << static_cast<double>(memory.position_bytes) / kBytesPerMebibyte
+                  << " MiB across " << memory.vertex_count << " vertices\n";
+        std::cout << "  - Normals: " << std::setprecision(3)
+                  << static_cast<double>(memory.normal_bytes) / kBytesPerMebibyte
+                  << " MiB\n";
+        std::cout << "  - Skinning transforms: " << std::setprecision(3)
+                  << static_cast<double>(memory.transform_bytes) / kBytesPerMebibyte
+                  << " MiB across " << memory.joint_count << " joints\n";
+        if (memory.exceeds_budget())
+        {
+            std::cout << "  WARNING: Estimated GPU staging exceeds the 256 MiB budget." << '\n';
         }
 
         std::vector<std::pair<std::string, SummaryStats>> top_dispatches{};
@@ -1426,6 +1499,23 @@ namespace
                     stream << '\n';
                 }
             };
+            auto emit_bool = [&](std::string_view key, bool value, bool last) {
+                write_indent(stream, 2U, pretty);
+                stream << '"' << key << '"' << ':';
+                if (pretty)
+                {
+                    stream << ' ';
+                }
+                stream << (value ? "true" : "false");
+                if (!last)
+                {
+                    stream << ',';
+                }
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+            };
 
             emit_size("frames", stats.samples, false);
             emit_size("queue_count", baseline->queue_names.size(), false);
@@ -1467,7 +1557,11 @@ namespace
             emit_number("stddev_frame_ms", stats.stddev_ms, false);
             emit_number("jitter_percent", stats.jitter_percent(), false);
             emit_number("speedup", baseline_speedup, false);
-            emit_number("target_speedup", kBaselineSpeedupTarget, true);
+            emit_number("target_speedup", kBaselineSpeedupTarget, false);
+            emit_size("memory_total_bytes", baseline->summary.memory.total_bytes, false);
+            emit_number("memory_total_mebibytes", baseline->summary.memory.total_mebibytes(), false);
+            emit_number("memory_budget_mebibytes", baseline->summary.memory.budget_mebibytes(), false);
+            emit_bool("memory_exceeds_budget", baseline->summary.memory.exceeds_budget(), true);
 
             write_indent(stream, 1U, pretty);
             stream << "},";
@@ -2117,6 +2211,136 @@ namespace
         }
         write_indent(stream, 2U, pretty);
         stream << "]";
+        stream << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+
+        const MemoryUsageSummary& memory = result.summary.memory;
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "memory" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << "{";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "vertex_count" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << memory.vertex_count << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "joint_count" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << memory.joint_count << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "position_bytes" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << memory.position_bytes << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "normal_bytes" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << memory.normal_bytes << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "transform_bytes" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << memory.transform_bytes << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "total_bytes" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << memory.total_bytes << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "total_mebibytes" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << memory.total_mebibytes() << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "budget_bytes" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << kMemoryBudgetBytes << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "budget_mebibytes" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << memory.budget_mebibytes() << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 3U, pretty);
+        stream << '"' << "exceeds_budget" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << (memory.exceeds_budget() ? "true" : "false");
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << "}";
         stream << ',';
         if (pretty)
         {

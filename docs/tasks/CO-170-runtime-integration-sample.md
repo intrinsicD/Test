@@ -116,7 +116,7 @@ Implement a standalone runtime integration sample that:
 - [x] Performance: `--baseline` records a single-queue run, reports the
       observed speed-up, and warns when it drops below the ≥1.5× target for the
       60-joint animation workload captured in telemetry.
-- [ ] Memory: GPU staging buffers for the sample remain ≤256 MiB per frame,
+- [x] Memory: GPU staging buffers for the sample remain ≤256 MiB per frame,
       matching assumptions in `AN-230`.
 - [ ] Latency: Dispatch-to-completion jitter stays ≤0.5 ms at 60 FPS targets.
 
@@ -245,3 +245,6 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
 - 2025-11-04: Added `--baseline` mode that captures a single-queue reference,
   includes speed-up metrics in telemetry, and surfaces warnings when the
   observed acceleration misses the 1.5× goal.
+- 2025-11-05: Runtime sample now computes GPU staging estimates, embeds them in
+  telemetry, and flags runs that exceed the 256 MiB animation budget alongside
+  the diagnostics report.

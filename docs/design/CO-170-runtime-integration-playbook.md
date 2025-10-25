@@ -63,6 +63,9 @@ The sample emits a JSON document with:
   where timeline synchronization occurs along with the consuming kernels.
 - `summary.queue_transitions[]` – edge list capturing every producer/consumer
   pair crossing queue boundaries to help reconstruct fence sequencing.
+- `summary.memory` – per-frame GPU staging estimates (vertex data, normals, and
+  skinning transforms) with the 256 MiB animation budget baked in to surface
+  memory regressions directly in diagnostics.
 - `diagnostics` – top-level tick counters and average frame duration.
 - `baseline` – average/min/max frame duration, jitter, and achieved speed-up for
   the single-queue reference run recorded when `--baseline` is provided.
