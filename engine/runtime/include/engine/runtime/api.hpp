@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <span>
 #include <string>
@@ -75,6 +76,7 @@ struct ENGINE_RUNTIME_API RuntimeHostDependencies {
     std::shared_ptr<SubsystemRegistry> subsystem_registry{};
     std::vector<std::string> enabled_subsystems{};
     core::threading::IoThreadPoolConfig streaming_config{.worker_count = 2, .queue_capacity = 64, .enable = true};
+    std::function<std::unique_ptr<compute::Dispatcher>()> dispatcher_factory{};
 #if ENGINE_ENABLE_RENDERING
     rendering::components::RenderGeometry render_geometry{};
     std::string renderable_name{"runtime.renderable"};

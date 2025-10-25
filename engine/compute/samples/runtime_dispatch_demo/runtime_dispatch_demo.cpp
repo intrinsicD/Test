@@ -51,6 +51,59 @@ namespace
 
     using samples::WorkloadProfile;
 
+    enum class DispatcherBackend
+    {
+        Cpu,
+        Cuda,
+    };
+
+    [[nodiscard]] std::string_view dispatcher_backend_to_string(DispatcherBackend backend) noexcept
+    {
+        switch (backend)
+        {
+        case DispatcherBackend::Cuda:
+            return "cuda";
+        case DispatcherBackend::Cpu:
+        default:
+            return "cpu";
+        }
+    }
+
+    [[nodiscard]] DispatcherBackend parse_dispatcher_backend(std::string_view value)
+    {
+        std::string lowered;
+        lowered.reserve(value.size());
+        for (const unsigned char ch : value)
+        {
+            lowered.push_back(static_cast<char>(std::tolower(ch)));
+        }
+
+        if (lowered == "cpu")
+        {
+            return DispatcherBackend::Cpu;
+        }
+        if (lowered == "cuda" || lowered == "gpu")
+        {
+            return DispatcherBackend::Cuda;
+        }
+
+        std::ostringstream stream;
+        stream << "Unknown dispatcher backend: " << value;
+        throw std::invalid_argument(stream.str());
+    }
+
+    [[nodiscard]] samples::DispatcherFactory make_dispatcher_factory(DispatcherBackend backend)
+    {
+        switch (backend)
+        {
+        case DispatcherBackend::Cuda:
+            return []() { return compute::make_cuda_dispatcher(); };
+        case DispatcherBackend::Cpu:
+        default:
+            return []() { return compute::make_cpu_dispatcher(); };
+        }
+    }
+
     struct CommandLineOptions
     {
         bool show_help{false};
@@ -59,6 +112,7 @@ namespace
         double timestep{1.0 / 60.0};
         std::size_t queue_count{1U};
         WorkloadProfile workload{WorkloadProfile::Balanced};
+        DispatcherBackend dispatcher_backend{DispatcherBackend::Cpu};
         std::vector<std::string> queue_names{};
         std::map<std::string, std::string> queue_overrides{};
         std::optional<std::filesystem::path> output_path{};
@@ -218,6 +272,7 @@ namespace
                << "  --queue-names LIST   Comma-separated queue names (implies --queues=LIST length)\n"
                << "  --queue-map category=queue   Override queue selection for a category\n"
                << "  --workload PROFILE  Workload intensity: light | balanced | heavy (default: balanced)\n"
+               << "  --dispatcher-backend BACKEND  Dispatcher backend: cpu | cuda (default: cpu)\n"
                << "  --jitter-budget-ms VALUE  Maximum allowed frame dispatch jitter σ in milliseconds (default: 0.5)\n"
                << "  --baseline   Capture a single-queue baseline run and report speed-up (target 1.5x)\n"
                << "  --output FILE Write JSON payload to FILE instead of stdout\n"
@@ -353,6 +408,15 @@ namespace
                 options.workload = parse_workload(argv[++index]);
                 continue;
             }
+            if (argument == "--dispatcher-backend" || argument == "--backend")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--dispatcher-backend requires a value"};
+                }
+                options.dispatcher_backend = parse_dispatcher_backend(argv[++index]);
+                continue;
+            }
             if (argument == "--jitter-budget-ms")
             {
                 if (index + 1 >= argc)
@@ -383,6 +447,11 @@ namespace
         if (!(options.jitter_budget_ms >= 0.0))
         {
             throw std::invalid_argument{"--jitter-budget-ms must be non-negative"};
+        }
+
+        if (options.dispatcher_backend == DispatcherBackend::Cuda && !compute::is_cuda_dispatcher_available())
+        {
+            throw std::invalid_argument("CUDA dispatcher backend requested but not available in this build");
         }
 
         if (!options.queue_names.empty())
@@ -582,6 +651,7 @@ namespace
         std::string clock_name{};
         compute::TimingDomain clock_domain{compute::TimingDomain::Unknown};
         WorkloadProfile workload{WorkloadProfile::Balanced};
+        DispatcherBackend dispatcher_backend{DispatcherBackend::Cpu};
         std::vector<std::string> queue_names{};
         std::size_t requested_frames{0U};
         std::map<std::string, std::string> queue_assignments{};
@@ -751,6 +821,7 @@ namespace
     {
         RunResult result{};
         result.workload = options.workload;
+        result.dispatcher_backend = options.dispatcher_backend;
         result.requested_frames = options.frames;
         result.jitter_budget_ms = options.jitter_budget_ms;
         const std::size_t queue_count = std::max<std::size_t>(1U, options.queue_count);
@@ -878,7 +949,10 @@ namespace
     [[nodiscard]] ExecutionOutcome execute_run(const CommandLineOptions& options)
     {
         runtime::RuntimeHost host{};
-        samples::configure_runtime_host(host, options.workload);
+        samples::configure_runtime_host(
+            host,
+            options.workload,
+            make_dispatcher_factory(options.dispatcher_backend));
         host.initialize();
 
         RunResult result = run_sample(options, host);
@@ -901,6 +975,7 @@ namespace
         std::cout << "Clock: " << result.clock_name << " ("
                   << timing_domain_to_string(result.clock_domain) << ")\n";
         std::cout << "Workload: " << samples::workload_to_string(result.workload) << '\n';
+        std::cout << "Dispatcher backend: " << dispatcher_backend_to_string(result.dispatcher_backend) << '\n';
         std::cout << "Queues: " << result.queue_names.size();
         if (!result.queue_names.empty())
         {
@@ -1210,6 +1285,17 @@ namespace
             stream << '\n';
         }
         write_indent(stream, 2U, pretty);
+        stream << '"' << "dispatcher_backend" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << '"' << dispatcher_backend_to_string(result.dispatcher_backend) << '"' << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
         stream << '"' << "queue_count" << '"' << ':';
         if (pretty)
         {
@@ -1482,6 +1568,18 @@ namespace
             }
             write_indent(stream, 2U, pretty);
             stream << "],";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+
+            write_indent(stream, 2U, pretty);
+            stream << '"' << "dispatcher_backend" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << dispatcher_backend_to_string(baseline->dispatcher_backend) << '"' << ',';
             if (pretty)
             {
                 stream << '\n';

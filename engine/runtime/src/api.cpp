@@ -427,7 +427,7 @@ namespace engine::runtime
         geometry::SurfaceMesh mesh{};
         animation::RigBinding binding{};
         physics::PhysicsWorld world{};
-        std::unique_ptr<compute::Dispatcher> dispatcher{compute::make_cpu_dispatcher()};
+        std::unique_ptr<compute::Dispatcher> dispatcher{};
         compute::ExecutionReport last_report{};
         std::vector<math::vec3> body_positions{};
         std::vector<std::string> joint_names{};
@@ -460,6 +460,18 @@ namespace engine::runtime
             {
                 throw std::runtime_error(format_dependency_errors(errors));
             }
+        }
+
+        [[nodiscard]] std::unique_ptr<compute::Dispatcher> make_dispatcher() const
+        {
+            if (dependencies.dispatcher_factory)
+            {
+                if (auto instance = dependencies.dispatcher_factory(); instance)
+                {
+                    return instance;
+                }
+            }
+            return compute::make_cpu_dispatcher();
         }
 
         explicit Impl(RuntimeHostDependencies deps)
@@ -1397,9 +1409,10 @@ namespace engine::runtime
             geometry::recompute_vertex_normals(mesh);
             geometry::update_bounds(mesh);
             world = dependencies.world;
+            dispatcher = make_dispatcher();
             if (dispatcher == nullptr)
             {
-                dispatcher = compute::make_cpu_dispatcher();
+                throw std::runtime_error("RuntimeHost dispatcher_factory produced a null dispatcher");
             }
             dispatcher->clear();
             last_report = {};
@@ -1768,7 +1781,7 @@ namespace engine::runtime
             const auto tick_start = Clock::now();
             if (dispatcher == nullptr)
             {
-                dispatcher = compute::make_cpu_dispatcher();
+                dispatcher = make_dispatcher();
             }
             dispatcher->clear();
 

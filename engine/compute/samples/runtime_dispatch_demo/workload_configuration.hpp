@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
+#include <memory>
 #include <string_view>
 
 namespace engine::runtime
@@ -8,8 +10,14 @@ namespace engine::runtime
     class RuntimeHost;
 }
 
+namespace engine::compute
+{
+    class Dispatcher;
+}
+
 namespace engine::compute::samples
 {
+    using DispatcherFactory = std::function<std::unique_ptr<engine::compute::Dispatcher>()>;
 
     enum class WorkloadProfile
     {
@@ -29,7 +37,10 @@ namespace engine::compute::samples
 
     [[nodiscard]] WorkloadProfileDefinition workload_definition(WorkloadProfile profile) noexcept;
 
-    void configure_runtime_host(engine::runtime::RuntimeHost& host, WorkloadProfile workload);
+    void configure_runtime_host(
+        engine::runtime::RuntimeHost& host,
+        WorkloadProfile workload,
+        DispatcherFactory dispatcher_factory = {});
 
 }  // namespace engine::compute::samples
 

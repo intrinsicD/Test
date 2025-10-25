@@ -69,6 +69,7 @@ def _write_payload(
             "clock": {"name": "steady_clock", "domain": "cpu"},
             "requested_frames": len(frames),
             "workload": "balanced",
+            "dispatcher_backend": "cpu",
             "queue_count": 3,
             "queues": ["queue-0", "queue-1", "queue-2"],
             "queue_assignments": [
@@ -115,6 +116,7 @@ def _write_payload(
         "baseline": {
             "frames": len(frames),
             "queue_count": 1,
+            "dispatcher_backend": "cpu",
             "queue_names": ["queue-0"],
             "average_frame_ms": 3.2,
             "min_frame_ms": 3.0,
@@ -155,12 +157,14 @@ def test_render_summary_lists_top_kernels(tmp_path: Path, capsys: pytest.Capture
     assert "physics.integrate" in output
     assert "Runtime stage timings" in output
     assert "Workload: balanced" in output
+    assert "Dispatcher backend: cpu" in output
     assert "Queues: 3" in output
     assert "Queue assignments: animation→queue-0" in output
     assert "Queue totals:" in output
     assert "Cross-queue synchronization:" in output
     assert "queue-0 -> queue-1" in output
     assert "Baseline frame time (1 queue):" in output
+    assert "Baseline backend: cpu" in output
     assert "Speed-up vs baseline: 1.600x (target 1.50x)" in output
     assert "GPU staging estimate:" in output
     assert "Baseline GPU staging:" in output
@@ -189,6 +193,8 @@ def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[
 
     assert "WARNING" in output
     assert "physics.integrate" in output
+    assert "Dispatcher backend: cpu" in output
+    assert "Baseline backend: cpu" in output
     assert "Speed-up below performance target" in output
     assert "WARNING: Frame dispatch jitter exceeds budget" in output
     assert "WARNING: Baseline frame dispatch jitter" in output

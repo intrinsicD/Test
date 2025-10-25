@@ -2,6 +2,7 @@
 
 #include "engine/animation/api.hpp"
 #include "engine/animation/rigging/rig_binding.hpp"
+#include "engine/compute/api.hpp"
 #include "engine/geometry/api.hpp"
 #include "engine/physics/api.hpp"
 #include "engine/runtime/api.hpp"
@@ -156,7 +157,10 @@ namespace engine::compute::samples
         }
     }
 
-    void configure_runtime_host(engine::runtime::RuntimeHost& host, WorkloadProfile workload)
+    void configure_runtime_host(
+        engine::runtime::RuntimeHost& host,
+        WorkloadProfile workload,
+        DispatcherFactory dispatcher_factory)
     {
         engine::runtime::RuntimeHostDependencies dependencies{};
         const auto definition = workload_definition(workload);
@@ -164,6 +168,10 @@ namespace engine::compute::samples
         dependencies.mesh = make_grid_mesh(definition.mesh_subdivisions);
         dependencies.binding = make_uniform_binding(dependencies.mesh.rest_positions.size());
         dependencies.world = make_physics_world(definition.physics_bodies);
+        if (dispatcher_factory)
+        {
+            dependencies.dispatcher_factory = std::move(dispatcher_factory);
+        }
         host.configure(std::move(dependencies));
     }
 

@@ -98,8 +98,9 @@ workloads.
    python scripts/diagnostics/compute_dispatch_report.py \
        --input telemetry/compute_dispatch.json --top 5 --jitter-threshold 5
    ```
-3. Inspect the console output for the hottest kernels, per-category totals,
-   queue assignments, runtime stage timings, and frame dispatch jitter. The tool reads the
+3. Inspect the console output for the dispatcher backend, hottest kernels,
+   per-category totals, queue assignments, runtime stage timings, and frame
+   dispatch jitter. The tool reads the
    jitter budget recorded by the runtime sample (default 0.5 ms σ) and emits warnings when either the
    optimised run or its single-queue baseline exceeds the configured budget. Supplying `--jitter-threshold`
    still enables per-kernel jitter outlier detection for additional diagnostics.
