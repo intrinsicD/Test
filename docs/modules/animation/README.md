@@ -184,7 +184,7 @@ See [`../runtime/README.md`](../runtime/README.md) for orchestration details.
 - **Deterministic sampling**: Clip evaluation is deterministic and suitable for parallel execution
 - **Cache-friendly layout**: Keyframes are stored sequentially per joint for optimal prefetching
 - **SIMD opportunities**: Transform math uses the math module's vectorized types
-- **GPU sampling (planned)**: `AN-230` will prototype GPU-parallel sampling via compute shaders
+- **GPU sampling (active)**: `AN-230` is executing GPU-parallel sampling benchmarks via compute shaders using dispatcher telemetry
 
 Current benchmarks (from `T-0113`):
 - CPU LBS: ~0.8ms per frame for 1000-vertex mesh with 20 joints
@@ -232,5 +232,5 @@ ctest --preset linux-gcc-debug -R animation
 
 ## TODO / Next Steps
 
-- Track GPU/parallel sampling benchmarks (`AN-230`) once compute queue extensions land; see ../../ROADMAP.md
+- Track GPU/parallel sampling benchmarks (`AN-230`) as the current roadmap focus; see ../../ROADMAP.md
 - Coordinate with runtime for sampling telemetry and potential compute offload interfaces.

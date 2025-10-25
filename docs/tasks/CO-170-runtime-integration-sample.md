@@ -23,6 +23,12 @@ Kernel Dispatcher Runtime Integration Sample
 
 ---
 
+## Status
+
+- ✅ Completed — 2025-11-11 (runtime harness, telemetry tooling, and documentation shipped; CI gating follow-up tracked separately.)
+
+---
+
 ## Description
 
 ### Problem Statement

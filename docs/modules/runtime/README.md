@@ -250,6 +250,7 @@ ctest --preset linux-gcc-debug -R runtime
 
 ## TODO / Next Steps
 
+- Partner with animation/compute on `AN-230` GPU sampling benchmarks using the dispatcher telemetry workflow; see ../../ROADMAP.md
 - Extend async streaming diagnostics and ensure asset hot-reload callbacks are surfaced in tooling (`AI-002`); see ../../ROADMAP.md
 - Keep hierarchy alert metrics and samples aligned with scene module follow-ups (`SC-225`, `SC-230`); see ../../ROADMAP.md
 

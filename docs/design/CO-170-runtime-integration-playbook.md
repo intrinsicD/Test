@@ -1,8 +1,8 @@
 # CO-170 Runtime Integration Playbook
 
-**Status:** Draft (foundation complete)  
-**Owner:** Compute / Runtime Engineering  
-**Updated:** 2025-11-08
+**Status:** ✅ Adopted
+**Owner:** Compute / Runtime Engineering
+**Updated:** 2025-11-11
 
 ## Purpose
 
@@ -151,3 +151,5 @@ the repeated captures emitted by the sample.
 - 2025-11-08: Documented dispatcher backend selection metadata and jitter/memory
   budget warnings for both optimised and baseline captures; refreshed command
   examples to highlight new flags.
+- 2025-11-11: Marked the playbook adopted after `CO-170` completion and
+  highlighted `AN-230` benchmarking as the next consumer of the workflow.

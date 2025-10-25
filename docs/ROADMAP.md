@@ -15,7 +15,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | ID | Intent | Dependencies | Next Milestone | Owning Groups |
 | --- | --- | --- | --- | --- |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO |
-| `CO-170` | Prototype runtime integration sample showing dispatcher orchestration. | `RU-307` (done) | Publish runtime/compute sample + telemetry report | Compute, Runtime |
+| `AN-230` | GPU/parallel sampling benchmarks leveraging compute dispatcher telemetry. | `CO-170` (done) | Publish GPU benchmarking harness + telemetry analysis workflow | Animation, Compute |
 
 ### Active Task Details
 
@@ -33,52 +33,17 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 ---
 
-#### `CO-170` — Runtime Integration Sample (🟢 Active)
+#### `AN-230` — GPU Parallel Sampling Benchmarks (🟢 Active)
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `CO-170.1` | Author runtime/compute integration sample harness. | Sample executable (`engine_compute_runtime_sample`) builds on all presets, drives dispatcher queues, and emits telemetry snapshots. | ⏳ In Progress |
-| `CO-170.2` | Publish telemetry + analysis workflow. | `scripts/diagnostics/compute_dispatch_report.py` ingests sample output, dashboards updated, docs refreshed. | ⏳ In Progress |
-| `CO-170.3` | Document integration playbook and update module READMEs. | `docs/design/CO-170-runtime-integration-playbook.md` merged; compute/runtime READMEs include usage guide. | ⏳ In Progress |
+| `AN-230.1` | Stand up benchmarking harness and capture CPU baselines. | Harness builds under CMake presets, replays representative clips, and records telemetry aligned with `CO-170` dispatcher metrics. | 🟡 Planned |
+| `AN-230.2` | Integrate GPU sampling kernels with telemetry validation. | GPU compute paths execute benchmark scenarios, emit queue occupancy/jitter data, and compare against CPU baselines. | 🟡 Planned |
+| `AN-230.3` | Publish analysis workflow and dashboard/report updates. | Diagnostics scripts summarise results, dashboards refreshed, and animation/compute READMEs document usage. | 🟡 Planned |
 
-**Notes:** Unblocks `AN-230` GPU sampling benchmarks and provides dispatcher
-guidance for upcoming async workloads. Coordinate with animation team so sample
-scenarios align with their benchmark matrix.
+**Notes:** Activation follows the completion of `CO-170`. Coordinate animation and compute teams to share datasets, queue budgets, and telemetry thresholds with the runtime sample. Align benchmarking cadence with the GPU hardware lab schedule referenced in the `AN-230` plan.
 
-- 2025-10-30: Initial `engine_compute_runtime_sample` harness and
-  `compute_dispatch_report.py` landed to capture dispatcher telemetry and
-  support jitter analysis for `CO-170.1`.
-- 2025-10-31: Workload profiles and queue instrumentation added to the runtime
-  sample; telemetry now records per-queue aggregates and the analysis script
-  surfaces queue utilisation alongside jitter warnings (`CO-170.1`, `CO-170.2`).
-- 2025-11-01: Queue naming and per-category overrides added to the runtime
-  sample; telemetry exports `queue_assignments` so diagnostics reflect queue
-  affinity decisions (`CO-170.2`).
-- 2025-11-03: Queue attribution switched to deterministic FNV-1a hashing to
-  keep telemetry stable across toolchains and CI environments (`CO-170.2`).
-- 2025-11-04: `--baseline` instrumentation captures single-queue reference runs
-  and reports speed-up deltas, enabling automated enforcement of the 1.5×
-  performance target in diagnostics (`CO-170.2`).
-- 2025-11-05: Telemetry export now embeds GPU staging estimates and warns when
-  the runtime sample exceeds the 256 MiB animation budget, satisfying the
-  memory acceptance criteria for `CO-170`.
-- 2025-11-06: Runtime sample exposes `--jitter-budget-ms` and diagnostics warn
-  when frame dispatch jitter exceeds the 0.5 ms budget for both optimised and
-  baseline captures, meeting the latency acceptance criteria.
-- 2025-11-07: Shared workload configuration header and unit tests validate mesh
-  subdivisions and physics body counts across sample profiles,
-  strengthening dispatcher workload adapters (`CO-170.1`).
-- 2025-11-08: Documentation refreshed to highlight dispatcher backend selection
-  metadata, jitter/memory budgets, and diagnostics workflow for the runtime
-  sample (`CO-170.2`, `CO-170.3`).
-- 2025-11-09: Runtime sample gains `--repeat`/`--output-dir`, emits
-  per-capture metadata (`run_index`, `run_count`), and the diagnostics report
-  surfaces active run context to simplify benchmark variance tracking.
-- 2025-11-10: Diagnostics script adds `--exit-on-warning` so CI automation can
-  fail when the runtime capture reports jitter, memory, or performance
-  regressions (`CO-170.2`).
-- 2025-11-11: Added `compute_dispatch_benchmark.py` to automate ≤2% variance
-  enforcement and surface jitter/speed-up regressions in CI (`CO-170.2`).
+- 2025-11-11: `CO-170` runtime dispatcher sample, telemetry workflow, and documentation merged; roadmap focus shifts to building the GPU benchmarking harness for `AN-230`.
 
 ---
 
@@ -86,7 +51,6 @@ scenarios align with their benchmark matrix.
 
 ### Immediate Next (Ready for Sprint Planning)
 
-- **AN-230** — GPU/parallel sampling benchmarks (blocked on `CO-170` compute queue extensions)
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
   - 2025-11-05: Uniform remeshing baseline (split/collapse + relaxation) available via
     `Remesh`, returning `RemeshOutput` statistics for downstream tooling.
@@ -128,6 +92,7 @@ scenarios align with their benchmark matrix.
 
 | ID | Intent | Completed | Key Deliverables |
 | --- | --- | --- | --- |
+| `CO-170` | Runtime dispatcher integration sample + telemetry workflow | 2025-11-11 | `engine_compute_runtime_sample`, diagnostics reports, integration playbook |
 | `DC-005` | Headless automation support for GLFW | 2025-10-28 | Hidden window creation for headless configs, updated capability matrix, roadmap/docs refresh |
 | `DC-004` | Standardise error handling on `engine::Result<T, Error>` | 2025-03-17 | `design/ERROR_HANDLING_MIGRATION.md`, IO migration |
 | `AI-001` | Handle-based lifetime management and validation hooks | 2025-04-30 | Debug validation, telemetry counters |
@@ -144,6 +109,49 @@ scenarios align with their benchmark matrix.
 
 <details>
 <summary><b>Completed Initiative Details (Click to expand)</b></summary>
+
+#### `CO-170` — Runtime Integration Sample
+
+| Task ID | Description | Exit Criteria | Status |
+| --- | --- | --- | --- |
+| `CO-170.1` | Author runtime/compute integration sample harness. | Sample executable (`engine_compute_runtime_sample`) builds on all presets, drives dispatcher queues, and emits telemetry snapshots. | ✅ Done |
+| `CO-170.2` | Publish telemetry + analysis workflow. | `scripts/diagnostics/compute_dispatch_report.py` ingests sample output, dashboards updated, docs refreshed. | ✅ Done |
+| `CO-170.3` | Document integration playbook and update module READMEs. | `docs/design/CO-170-runtime-integration-playbook.md` merged; compute/runtime READMEs include usage guide. | ✅ Done |
+
+- 2025-10-30: Initial `engine_compute_runtime_sample` harness and
+  `compute_dispatch_report.py` landed to capture dispatcher telemetry and
+  support jitter analysis for `CO-170.1`.
+- 2025-10-31: Workload profiles and queue instrumentation added to the runtime
+  sample; telemetry now records per-queue aggregates and the analysis script
+  surfaces queue utilisation alongside jitter warnings (`CO-170.1`, `CO-170.2`).
+- 2025-11-01: Queue naming and per-category overrides added to the runtime
+  sample; telemetry exports `queue_assignments` so diagnostics reflect queue
+  affinity decisions (`CO-170.2`).
+- 2025-11-03: Queue attribution switched to deterministic FNV-1a hashing to
+  keep telemetry stable across toolchains and CI environments (`CO-170.2`).
+- 2025-11-04: `--baseline` instrumentation captures single-queue reference runs
+  and reports speed-up deltas, enabling automated enforcement of the 1.5×
+  performance target in diagnostics (`CO-170.2`).
+- 2025-11-05: Telemetry export now embeds GPU staging estimates and warns when
+  the runtime sample exceeds the 256 MiB animation budget, satisfying the
+  memory acceptance criteria for `CO-170`.
+- 2025-11-06: Runtime sample exposes `--jitter-budget-ms` and diagnostics warn
+  when frame dispatch jitter exceeds the 0.5 ms budget for both optimised and
+  baseline captures, meeting the latency acceptance criteria.
+- 2025-11-07: Shared workload configuration header and unit tests validate mesh
+  subdivisions and physics body counts across sample profiles,
+  strengthening dispatcher workload adapters (`CO-170.1`).
+- 2025-11-08: Documentation refreshed to highlight dispatcher backend selection
+  metadata, jitter/memory budgets, and diagnostics workflow for the runtime
+  sample (`CO-170.2`, `CO-170.3`).
+- 2025-11-09: Runtime sample gains `--repeat`/`--output-dir`, emits
+  per-capture metadata (`run_index`, `run_count`), and the diagnostics report
+  surfaces active run context to simplify benchmark variance tracking.
+- 2025-11-10: Diagnostics script adds `--exit-on-warning` so CI automation can
+  fail when the runtime capture reports jitter, memory, or performance
+  regressions (`CO-170.2`).
+- 2025-11-11: Added `compute_dispatch_benchmark.py` to automate ≤2% variance
+  enforcement and surface jitter/speed-up regressions in CI (`CO-170.2`).
 
 #### `DC-004` — Error Handling Standardisation
 
@@ -307,4 +315,4 @@ scenarios align with their benchmark matrix.
 
 <!-- Anchor for TI-001 integration suites references -->
 <a id="ti-001-integration-suites"></a>
-**Last updated:** 2025-10-29 (Activated `CO-170` runtime integration sample and logged sub-tasks)
+**Last updated:** 2025-11-11 (Marked `CO-170` complete and activated `AN-230` GPU benchmarking stream)
