@@ -38,9 +38,9 @@ RuntimeHost::tick
    ```
 2. **Capture telemetry**
    ```bash
-   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-       --frames 1024 --dt 0.016 --workload balanced --queues 3 --baseline \
-       --jitter-budget-ms 0.5 \
+  ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
+      --frames 1024 --dt 0.016 --workload balanced --dispatcher-backend cpu --queues 3 --baseline \
+      --jitter-budget-ms 0.5 \
        --queue-names main,async-0,async-1 --queue-map physics=async-0 \
        --output telemetry/compute_dispatch.json --pretty
    ```
@@ -55,7 +55,8 @@ RuntimeHost::tick
 The sample emits a JSON document with:
 
 - `metadata` – timestep, dispatcher size, requested frame count, workload
-  profile, queue count/names, queue assignments, and clock name/domain.
+  profile, dispatcher backend, queue count/names, queue assignments, and clock
+  name/domain.
 - `frames[]` – per-frame dispatch order, per-dispatch duration (ms), queue and
   category totals, and aggregate frame time.
 - `summary.stage_timings[]` – runtime stage timing snapshot for correlation.
@@ -112,6 +113,9 @@ and emits a warning if it falls below the `1.5×` target.
 - ✅ Baseline capture (`--baseline`) records a single-queue reference, reports
   speed-up, and warns when the observed acceleration drops below the 1.5×
   target.
+- ✅ Dispatcher backend selection (`--dispatcher-backend`) records CPU vs CUDA
+  captures in both the optimised run and the baseline metadata so telemetry
+  snapshots stay self-describing for GPU benchmarking.
 - 🚧 Follow-up: integrate workload adapters for animation GPU sampling once
   dispatcher queue extensions land.
 - 🚧 Follow-up: feed captures into CI dashboards and baseline per-dispatch

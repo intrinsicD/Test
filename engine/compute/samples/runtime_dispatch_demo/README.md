@@ -17,7 +17,7 @@ cmake --build --preset linux-gcc-debug --target engine_compute_runtime_sample
 
 ```bash
 ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-    --frames 1024 --dt 0.016 --workload balanced --queues 3 \
+    --frames 1024 --dt 0.016 --workload balanced --dispatcher-backend cpu --queues 3 \
     --output telemetry/compute_dispatch.json --pretty
 ```
 
@@ -26,6 +26,7 @@ Options:
 - `--frames N` – number of ticks to simulate (default 1024)
 - `--dt SECONDS` – timestep per tick (default 1/60)
 - `--workload PROFILE` – workload intensity (`light`, `balanced`, `heavy`; default `balanced`)
+- `--dispatcher-backend BACKEND` – dispatcher backend (`cpu`, `cuda`; default `cpu`)
 - `--queues N` – logical compute queues to attribute telemetry to (default 1)
 - `--queue-names LIST` – comma-separated queue names (e.g. `async-a,async-b`); overrides the default `queue-N` labels
 - `--queue-map category=queue` – pin a category (e.g. `physics`) to a specific queue label
@@ -50,7 +51,11 @@ telemetry dashboards.
 
 Queue attribution falls back to a deterministic FNV-1a hash so categories that
 are not explicitly mapped still resolve to stable queue indices across runs and
-platforms, ensuring telemetry comparisons remain reproducible.
+platforms, ensuring telemetry comparisons remain reproducible. Select
+`--dispatcher-backend cuda` once the CUDA dispatcher is available to compare GPU
+and CPU execution characteristics; the JSON payload and CLI summary record the
+backend for both the multi-queue run and the single-queue baseline so reports
+remain self-describing.
 
 Combine the JSON output with `scripts/diagnostics/compute_dispatch_report.py`
 to render tabular summaries or enforce jitter thresholds in CI.

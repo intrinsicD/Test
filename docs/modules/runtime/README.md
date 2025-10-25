@@ -210,7 +210,7 @@ ctest --preset linux-gcc-debug -R runtime
   ```bash
   cmake --build --preset <preset> --target engine_compute_runtime_sample
   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-      --frames 1024 --dt 0.016 --workload balanced --queues 3 --baseline \
+      --frames 1024 --dt 0.016 --workload balanced --dispatcher-backend cpu --queues 3 --baseline \
       --jitter-budget-ms 0.5 \
       --queue-names rt-main,rt-async,rt-deform --queue-map geometry=rt-deform \
       --output telemetry/compute_dispatch.json
@@ -221,11 +221,13 @@ ctest --preset linux-gcc-debug -R runtime
   warnings for `CO-170`. The runtime sample exports the frame dispatch jitter σ
   alongside the configured budget (default 0.5 ms) so the console summary and
   diagnostics report flag runs that exceed the latency target. With `--baseline`,
-  the report also captures a
-  single-queue reference run and flags when the observed speed-up drops below
-  the `1.5×` target. The JSON summary includes a `summary.memory` section and
-  the CLI output prints a GPU staging estimate so runs breaching the 256 MiB
-  animation budget are easy to diagnose.
+  the report also captures a single-queue reference run and flags when the
+  observed speed-up drops below the `1.5×` target. The JSON summary includes a
+  `summary.memory` section and the CLI output prints a GPU staging estimate so
+  runs breaching the 256 MiB animation budget are easy to diagnose. Provide
+  `--dispatcher-backend cuda` when available to profile GPU dispatchers; the
+  metadata records the backend for both the optimised run and the baseline so
+  diagnostics remain self-contained.
   Queue labels fall back to deterministic FNV-1a hashing so workload categories
   without explicit overrides remain stable between runs.
 

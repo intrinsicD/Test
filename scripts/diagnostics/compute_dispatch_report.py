@@ -73,6 +73,7 @@ class ReportSummary:
 class BaselineStats:
     frames: int
     queue_count: int
+    dispatcher_backend: str
     average_frame_ms: float
     min_frame_ms: float
     max_frame_ms: float
@@ -244,6 +245,7 @@ def load_report(path: Path) -> ReportPayload:
     if isinstance(baseline_payload, dict):
         frames_count = int(baseline_payload.get("frames", 0))
         queue_count = int(baseline_payload.get("queue_count", 0))
+        dispatcher_backend = str(baseline_payload.get("dispatcher_backend", "cpu"))
         average_frame_ms = float(baseline_payload.get("average_frame_ms", 0.0))
         min_frame_ms = float(baseline_payload.get("min_frame_ms", average_frame_ms))
         max_frame_ms = float(baseline_payload.get("max_frame_ms", average_frame_ms))
@@ -254,6 +256,7 @@ def load_report(path: Path) -> ReportPayload:
         baseline_stats = BaselineStats(
             frames=frames_count,
             queue_count=queue_count,
+            dispatcher_backend=dispatcher_backend,
             average_frame_ms=average_frame_ms,
             min_frame_ms=min_frame_ms,
             max_frame_ms=max_frame_ms,
@@ -316,6 +319,7 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
     timestep = payload.metadata.get("timestep", payload.frames[0].timestep if payload.frames else 0.0)
     requested_frames = int(payload.metadata.get("requested_frames", payload.summary.frame_totals.samples))
     workload = str(payload.metadata.get("workload", "balanced"))
+    dispatcher_backend = str(payload.metadata.get("dispatcher_backend", "cpu"))
     queue_names_raw = payload.metadata.get("queues", [])
     queue_names = [str(name) for name in queue_names_raw] if isinstance(queue_names_raw, list) else []
     queue_count_meta = payload.metadata.get("queue_count", None)
@@ -329,6 +333,7 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
     lines.append(f"Timestep: {timestep:.6f} s")
     lines.append(f"Clock: {clock_name} ({clock_domain})")
     lines.append(f"Workload: {workload}")
+    lines.append(f"Dispatcher backend: {dispatcher_backend}")
     if queue_names:
         lines.append(f"Queues: {queue_count} ({', '.join(queue_names)})")
     else:
@@ -366,6 +371,7 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
                 f"σ {baseline.stddev_frame_ms:.3f}, jitter {baseline.jitter_percent:.2f}%)"
             )
         )
+        lines.append(f"Baseline backend: {baseline.dispatcher_backend}")
         lines.append(
             f"Speed-up vs baseline: {baseline.speedup:.3f}x (target {baseline.target_speedup:.2f}x)"
         )

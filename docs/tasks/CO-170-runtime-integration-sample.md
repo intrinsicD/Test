@@ -104,10 +104,10 @@ Implement a standalone runtime integration sample that:
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] Sample executable initialises `RuntimeHost`, registers compute kernels,
+- [x] Sample executable initialises `RuntimeHost`, registers compute kernels,
       and executes at least 1,024 frame ticks with deterministic results across
       runs.
-- [ ] Dispatcher submissions cover multi-queue scheduling with timeline
+- [x] Dispatcher submissions cover multi-queue scheduling with timeline
       semaphore or fence callbacks recorded in telemetry.
 - [x] CLI arguments allow configuring queue counts, workload mix, and telemetry
       output path for automation.
@@ -130,11 +130,11 @@ Implement a standalone runtime integration sample that:
 - [ ] Coverage ≥85% on touched lines in compute/runtime modules.
 
 ### Documentation Requirements
-- [ ] Compute and runtime module READMEs updated with sample instructions.
-- [ ] Add a design playbook (`CO-170-runtime-integration-playbook.md`) outlining
+- [x] Compute and runtime module READMEs updated with sample instructions.
+- [x] Add a design playbook (`CO-170-runtime-integration-playbook.md`) outlining
       the sample architecture and extension hooks.
-- [ ] Central roadmap (`docs/ROADMAP.md`) reflects updated status of `CO-170`.
-- [ ] Telemetry workflow documented under `scripts/diagnostics/` README.
+- [x] Central roadmap (`docs/ROADMAP.md`) reflects updated status of `CO-170`.
+- [x] Telemetry workflow documented under `scripts/diagnostics/` README.
 
 ---
 
@@ -193,12 +193,12 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
 
 ## Deliverables
 
-- [ ] Code implementation
+- [x] Code implementation
 - [x] Unit tests
-- [ ] Integration tests
+- [x] Integration tests
 - [ ] Benchmarks
 - [ ] API documentation
-- [ ] Example code
+- [x] Example code
 - [ ] PR opened and linked
 - [ ] All CI checks passing
 
@@ -257,3 +257,6 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
 - 2025-11-06: Added `--jitter-budget-ms` CLI option and wired runtime +
   diagnostics warnings when frame dispatch jitter exceeds the 0.5 ms budget,
   satisfying the latency acceptance criterion.
+- 2025-11-08: Added `--dispatcher-backend` to select CPU vs CUDA dispatchers,
+  persisted the backend in telemetry/baseline metadata, and surfaced it in the
+  diagnostics report to unblock GPU benchmarking comparisons.

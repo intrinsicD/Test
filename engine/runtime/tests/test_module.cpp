@@ -16,6 +16,7 @@
 #include <variant>
 #include <vector>
 
+#include "engine/compute/api.hpp"
 #include "engine/core/telemetry/schema.hpp"
 #include "engine/physics/api.hpp"
 #include "engine/rendering/render_pass.hpp"
@@ -480,6 +481,21 @@ private:
 TEST(RuntimeModule, ModuleNameMatchesNamespace) {
     EXPECT_EQ(engine::runtime::module_name(), "runtime");
     EXPECT_STREQ(engine_runtime_module_name(), "runtime");
+}
+
+TEST(RuntimeModule, RuntimeHostRespectsDispatcherFactory) {
+    engine::runtime::RuntimeHostDependencies dependencies{};
+    bool factory_invoked = false;
+    dependencies.dispatcher_factory = [&]() -> std::unique_ptr<engine::compute::Dispatcher> {
+        factory_invoked = true;
+        return engine::compute::make_cpu_dispatcher();
+    };
+
+    engine::runtime::RuntimeHost host{std::move(dependencies)};
+    EXPECT_TRUE(factory_invoked);
+
+    ASSERT_NO_THROW(host.initialize());
+    host.shutdown();
 }
 
 TEST(RuntimeModule, ExecutesSimulationPipeline) {

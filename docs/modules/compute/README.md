@@ -279,7 +279,7 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   ```bash
   cmake --build --preset <preset> --target engine_compute_runtime_sample
   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-      --frames 1024 --dt 0.016 --workload heavy --queues 3 --baseline \
+      --frames 1024 --dt 0.016 --workload heavy --dispatcher-backend cpu --queues 3 --baseline \
       --jitter-budget-ms 0.5 \
       --queue-names primary,async-0,async-1 --queue-map physics=async-0 \
       --output telemetry/compute_dispatch.json --pretty
@@ -292,7 +292,10 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   latency regressions surface immediately.
   Categories that are not explicitly mapped use deterministic FNV-1a hashing to
   keep queue attribution stable across runs and toolchains, preserving the
-  comparability of telemetry captures. Supplying `--baseline` records a
+  comparability of telemetry captures. Select `--dispatcher-backend cuda` when
+  the CUDA dispatcher is enabled to compare CPU and GPU execution paths—the
+  telemetry metadata records the backend for both captures. Supplying
+  `--baseline` records a
   single-queue reference run; the report surfaces the achieved speed-up and
   flags regressions when the `1.5×` target is not met.
   The telemetry payload also publishes a `summary.memory` block and the CLI
