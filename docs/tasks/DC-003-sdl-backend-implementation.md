@@ -189,5 +189,6 @@ TEST(SdlWindowBackend, TranslatesKeyboardEventsDeterministically) {
 - Coordinate with the Tools/CI team to provision SDL packages on runners (follow-up ticket if automation is missing).
 - Capture telemetry schema updates in `design/TELEMETRY_SCHEMA.md` if new counters are introduced.
 - Sync with rendering team to validate swapchain handles against Vulkan scheduler tests.
+- 2025-10-27: Published [`DC-003.3`](DC-003.3-sdl-ci-telemetry.md) to wire SDL coverage into CI and extend telemetry/documentation, closing the remaining roadmap acceptance gaps.
 - 2025-10-26: With `DC-003.1` queued, published [`DC-003.2`](DC-003.2-sdl-swapchain-surface-export.md) to deliver swapchain surface
   export and backend fallback alignment so SDL parity work continues unblocked.
