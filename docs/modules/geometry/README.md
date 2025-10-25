@@ -75,6 +75,38 @@ LBS and other deformers live under `engine/geometry/deform/` and integrate with 
 
 Halfedge conversion and utilities live under `engine/geometry/mesh/` and `engine/geometry/topology/`.
 
+### Surface Topology Summary
+
+Use `AnalyzeSurfaceTopology` to extract boundary and crease annotations ahead of remeshing or atlas generation workflows:
+
+```cpp
+#include "engine/geometry/topology/surface_topology.hpp"
+
+engine::geometry::SurfaceMesh mesh = engine::geometry::load_surface_mesh("open_quad.obj");
+engine::geometry::SurfaceTopologySummary summary =
+    engine::geometry::AnalyzeSurfaceTopology(mesh, engine::math::radians(30.0F));
+
+for (const auto& edge : summary.edges)
+{
+    if (edge.is_boundary || edge.is_crease)
+    {
+        // Preserve boundary edges or sharp features during remeshing
+    }
+}
+
+for (std::size_t vertex = 0; vertex < summary.vertices.size(); ++vertex)
+{
+    if (summary.vertices[vertex].is_boundary)
+    {
+        // Mark boundary vertices to keep UV seams stable
+    }
+}
+```
+
+`SurfaceTopologySummary` reports per-edge dihedral angles, boundary classification, and non-manifold flags while also tagging
+vertices that sit on boundaries or detected features. These annotations form the foundation for the `GE-221+` remeshing
+milestones by supplying deterministic feature classification without requiring the halfedge representation at call sites.
+
 ## Geometric Computations
 
 ### Normals, Bounds, Centroid
