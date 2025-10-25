@@ -4,6 +4,8 @@
 ## Title
 SDL Backend Parity Implementation
 
+> **Status:** Deferred (backlog) – pending reprioritisation after GLFW headless automation landed in `DC-005`.
+
 ## Type
 - [x] Feature
 - [ ] Bug Fix
@@ -14,9 +16,9 @@ SDL Backend Parity Implementation
 
 ## Priority
 - [ ] Critical (P0)
-- [x] High (P1)
+- [ ] High (P1)
 - [ ] Medium (P2)
-- [ ] Low (P3)
+- [x] Low (P3)
 
 ## Estimated Effort
 3–4 weeks (multi-platform implementation, validation, and CI enablement)

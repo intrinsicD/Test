@@ -18,9 +18,9 @@ platform::WindowConfig config{
     .width = 1920,
     .height = 1080,
     .backend = platform::WindowBackend::Auto,  // Auto-select
-    .capabilities = {
-        .native_surface = true,
-        .headless_compatible = false
+    .capability_requirements = {
+        .require_native_surface = true,
+        .require_headless_safe = false
     }
 };
 
@@ -34,9 +34,13 @@ if (!window) {
 
 | Backend | Headless Safe | Native Surface | Platforms |
 | --- | --- | --- | --- |
-| **GLFW** | ❌ | ✅ | Windows, Linux, macOS |
+| **GLFW** | ✅ | ✅ | Windows, Linux, macOS |
 | **SDL** | ✅ | ✅ | Windows, Linux, macOS, mobile |
 | **Mock** | ✅ | ❌ | All (testing) |
+
+When `WindowConfig::CapabilityRequirements::require_headless_safe` is set, the GLFW backend automatically creates a hidden
+window so automation can render to off-screen targets without surfacing UI windows. Visibility requests are ignored for these
+instances, keeping behaviour consistent across CI and local runs.
 
 ### Runtime Override
 
