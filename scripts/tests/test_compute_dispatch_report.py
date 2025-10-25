@@ -198,3 +198,38 @@ def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[
     assert "Speed-up below performance target" in output
     assert "WARNING: Frame dispatch jitter exceeds budget" in output
     assert "WARNING: Baseline frame dispatch jitter" in output
+
+
+def test_run_to_run_variance_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    first = _write_payload(
+        tmp_path / "run_a.json",
+        [
+            _make_frame(0, {"animation.evaluate": 0.4, "physics.integrate": 0.8}),
+            _make_frame(1, {"animation.evaluate": 0.4, "physics.integrate": 0.8}),
+        ],
+    )
+    second = _write_payload(
+        tmp_path / "run_b.json",
+        [
+            _make_frame(0, {"animation.evaluate": 0.4, "physics.integrate": 1.2}),
+            _make_frame(1, {"animation.evaluate": 0.4, "physics.integrate": 1.2}),
+        ],
+    )
+
+    report.main(
+        [
+            "--input",
+            str(first),
+            str(second),
+            "--variance-threshold",
+            "1.0",
+            "--top",
+            "1",
+        ]
+    )
+    output = capsys.readouterr().out
+
+    assert "run_a.json" in output
+    assert "run_b.json" in output
+    assert "Run-to-run frame time variance" in output
+    assert "WARNING: Run-to-run variance" in output

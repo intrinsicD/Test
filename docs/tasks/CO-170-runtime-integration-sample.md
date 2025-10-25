@@ -126,7 +126,8 @@ Implement a standalone runtime integration sample that:
       dependency graphs, and queue ordering (extend
       `engine_integration_tests`).
 - [ ] Benchmarks captured by the sample show ≤2% variance between runs on
-      reference hardware.
+      reference hardware (variance reporting now available via
+      `compute_dispatch_report.py --variance-threshold`).
 - [ ] Coverage ≥85% on touched lines in compute/runtime modules.
 
 ### Documentation Requirements
@@ -197,7 +198,7 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
 - [x] Unit tests
 - [x] Integration tests
 - [ ] Benchmarks
-- [ ] API documentation
+- [x] API documentation
 - [x] Example code
 - [ ] PR opened and linked
 - [ ] All CI checks passing

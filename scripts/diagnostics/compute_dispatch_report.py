@@ -488,11 +488,57 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
     return "\n".join(lines)
 
 
+def _render_variance_summary(
+    payloads: Sequence[ReportPayload],
+    labels: Sequence[str],
+    variance_threshold: float,
+) -> Optional[str]:
+    if len(payloads) < 2:
+        return None
+
+    run_means: List[float] = []
+    lines: List[str] = ["Run-to-run frame time variance:"]
+
+    for label, payload in zip(labels, payloads):
+        stats = payload.summary.frame_totals
+        if stats.samples == 0:
+            lines.append(f"  - {label}: no frame samples captured")
+            continue
+
+        lines.append(
+            f"  - {label}: mean {stats.mean_ms:.3f} ms (σ {stats.stddev_ms:.3f} ms across {stats.samples} frames)"
+        )
+        run_means.append(stats.mean_ms)
+
+    if len(run_means) < 2:
+        return "\n".join(lines)
+
+    mean = statistics.fmean(run_means)
+    deviation = statistics.pstdev(run_means) if len(run_means) > 1 else 0.0
+    percent = (deviation / mean) * 100.0 if mean > 0.0 else 0.0
+
+    lines.append(
+        f"Aggregate mean {mean:.3f} ms, run-to-run σ {deviation:.3f} ms ({percent:.2f}%)"
+    )
+    if variance_threshold > 0.0 and percent > variance_threshold:
+        lines.append(
+            f"WARNING: Run-to-run variance {percent:.2f}% exceeds threshold {variance_threshold:.2f}%"
+        )
+
+    return "\n".join(lines)
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Summarise compute dispatcher telemetry captured by the runtime sample."
     )
-    parser.add_argument("--input", type=Path, required=True, help="Path to the JSON payload")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        nargs="+",
+        required=True,
+        help="Path(s) to JSON payloads captured by the runtime sample",
+    )
     parser.add_argument(
         "--top", type=int, default=5, help="Number of kernels to list when reporting averages"
     )
@@ -501,6 +547,15 @@ def build_arg_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help="Warn when jitter exceeds the specified percent (default: disabled)",
+    )
+    parser.add_argument(
+        "--variance-threshold",
+        type=float,
+        default=2.0,
+        help=(
+            "Warn when run-to-run frame time variance exceeds this percent; "
+            "set to 0 to disable the comparison"
+        ),
     )
     parser.add_argument(
         "--output",
@@ -515,8 +570,25 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
 
-    payload = load_report(args.input)
-    report = _render_summary(payload, top=max(args.top, 1), jitter_threshold=args.jitter_threshold)
+    payloads = [load_report(path) for path in args.input]
+    labels = [path.name for path in args.input]
+
+    sections: List[str] = []
+    for label, payload in zip(labels, payloads):
+        section = _render_summary(
+            payload,
+            top=max(args.top, 1),
+            jitter_threshold=args.jitter_threshold,
+        )
+        if len(payloads) > 1:
+            section = f"=== {label} ===\n" + section
+        sections.append(section)
+
+    variance_section = _render_variance_summary(payloads, labels, args.variance_threshold)
+    if variance_section:
+        sections.append(variance_section)
+
+    report = "\n\n".join(sections)
 
     print(report)
     if args.output:
