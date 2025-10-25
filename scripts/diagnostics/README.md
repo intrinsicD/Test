@@ -79,6 +79,28 @@ metrics gathered from the runtime thread pool and `AssetStreamingTelemetry`.
 Integrate the script into CI to monitor queue health and failure attribution once
 large streaming workloads are exercised.
 
+## `compute_dispatch_report.py`
+
+Summarise the JSON payload emitted by
+`engine_compute_runtime_sample` and flag jitter regressions in compute
+workloads.
+
+1. Generate telemetry using the runtime sample:
+   ```bash
+   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
+       --frames 512 --dt 0.016 --output telemetry/compute_dispatch.json --pretty
+   ```
+2. Render the summary:
+   ```bash
+   python scripts/diagnostics/compute_dispatch_report.py \
+       --input telemetry/compute_dispatch.json --top 5 --jitter-threshold 5
+   ```
+3. Inspect the console output for the hottest kernels, per-category totals, and
+   runtime stage timings. When `--jitter-threshold` is supplied the tool emits
+   warnings for kernels whose standard deviation exceeds the threshold.
+
+Use `--output` to persist the textual summary for dashboards or CI artefacts.
+
 ## `telemetry_viewer.py`
 
 The telemetry viewer provides the `CC-001` diagnostics shell MVP (`TL-101`). It

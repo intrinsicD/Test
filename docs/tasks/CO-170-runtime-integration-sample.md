@@ -226,3 +226,6 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
   scenarios in `AN-230`.
 - Capture any new dispatcher APIs in `docs/design/CO-170-runtime-integration-playbook.md`
   for future reference.
+- 2025-10-30: Runtime sample harness and Python report landed (JSON telemetry +
+  jitter analysis). Next steps include multi-queue scenarios and workload
+  expansion for animation GPU sampling.
