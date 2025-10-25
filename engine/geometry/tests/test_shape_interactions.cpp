@@ -12,7 +12,9 @@ namespace engine::geometry
         const Sphere separated{{1.8f, 0.0f, 0.0f}, 0.6f};
 
         EXPECT_TRUE(Intersects(cylinder, intersecting));
-        EXPECT_TRUE(!Intersects(cylinder, separated));
+        EXPECT_TRUE(Intersects(intersecting, cylinder));
+        EXPECT_FALSE(Intersects(cylinder, separated));
+        EXPECT_FALSE(Intersects(separated, cylinder));
     }
 
     TEST(ShapeInteractionsSphere, EllipsoidIntersection)
@@ -278,7 +280,9 @@ namespace engine::geometry
         const Ellipsoid separated{{5, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
 
         EXPECT_TRUE(Intersects(cyl, overlapping));
+        EXPECT_TRUE(Intersects(overlapping, cyl));
         EXPECT_FALSE(Intersects(cyl, separated));
+        EXPECT_FALSE(Intersects(separated, cyl));
     }
 
     TEST(CylinderIntersection, CylinderLine)
@@ -286,8 +290,18 @@ namespace engine::geometry
         const Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
         Result result;
 
-        EXPECT_TRUE(Intersects(cyl, Line{{0, 0, 0}, {1, 0, 0}}, &result));
-        EXPECT_FALSE(Intersects(cyl, Line{{3, 3, 0}, {1, 0, 0}}, nullptr));
+        const Line hit_line{{0, 0, 0}, {1, 0, 0}};
+        const Line miss_line{{3, 3, 0}, {1, 0, 0}};
+
+        EXPECT_TRUE(Intersects(cyl, hit_line, &result));
+
+        Result symmetric{};
+        EXPECT_TRUE(Intersects(hit_line, cyl, &symmetric));
+        EXPECT_NEAR(result.t_min, symmetric.t_min, 1e-5f);
+        EXPECT_NEAR(result.t_max, symmetric.t_max, 1e-5f);
+
+        EXPECT_FALSE(Intersects(cyl, miss_line, nullptr));
+        EXPECT_FALSE(Intersects(miss_line, cyl, nullptr));
     }
 
     TEST(CylinderIntersection, CylinderObb)
@@ -298,8 +312,11 @@ namespace engine::geometry
         const Cylinder separated_axial{{0, 0, 2}, {0, 0, 1}, 1.0f, 0.5f};
 
         EXPECT_TRUE(Intersects(cyl, centered_box));
+        EXPECT_TRUE(Intersects(centered_box, cyl));
         EXPECT_FALSE(Intersects(cyl, separated));
+        EXPECT_FALSE(Intersects(separated, cyl));
         EXPECT_FALSE(Intersects(separated_axial, centered_box));
+        EXPECT_FALSE(Intersects(centered_box, separated_axial));
     }
 
     TEST(CylinderIntersection, CylinderPlane)
@@ -309,7 +326,9 @@ namespace engine::geometry
         const Plane outside{{1, 0, 0}, -3};
 
         EXPECT_TRUE(Intersects(cyl, through));
+        EXPECT_TRUE(Intersects(through, cyl));
         EXPECT_FALSE(Intersects(cyl, outside));
+        EXPECT_FALSE(Intersects(outside, cyl));
     }
 
     TEST(CylinderIntersection, CylinderRay)
@@ -317,8 +336,19 @@ namespace engine::geometry
         const Cylinder cyl{{0, 0, 0}, {0, 0, 1}, 1.0f, 2.0f};
         Result result;
 
-        EXPECT_TRUE(Intersects(cyl, Ray{{-2, 0, 0}, {1, 0, 0}}, &result));
+        const Ray hit{{-2, 0, 0}, {1, 0, 0}};
+        const Ray miss{{0, 3, 0}, {1, 0, 0}};
+
+        EXPECT_TRUE(Intersects(cyl, hit, &result));
         EXPECT_GE(result.t_min, 0);
+
+        Result symmetric{};
+        EXPECT_TRUE(Intersects(hit, cyl, &symmetric));
+        EXPECT_NEAR(result.t_min, symmetric.t_min, 1e-5f);
+        EXPECT_NEAR(result.t_max, symmetric.t_max, 1e-5f);
+
+        EXPECT_FALSE(Intersects(cyl, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, cyl, nullptr));
     }
 
     TEST(CylinderIntersection, CylinderSegment)
@@ -328,7 +358,9 @@ namespace engine::geometry
         const Segment outside{{3, 3, 0}, {4, 4, 0}};
 
         EXPECT_TRUE(Intersects(cyl, through, nullptr));
+        EXPECT_TRUE(Intersects(through, cyl, nullptr));
         EXPECT_FALSE(Intersects(cyl, outside, nullptr));
+        EXPECT_FALSE(Intersects(outside, cyl, nullptr));
     }
 
     TEST(CylinderIntersection, CylinderSphere)
@@ -338,7 +370,9 @@ namespace engine::geometry
         const Sphere separated{{1.8f, 0, 0}, 0.6f};
 
         EXPECT_TRUE(Intersects(cyl, overlapping));
+        EXPECT_TRUE(Intersects(overlapping, cyl));
         EXPECT_FALSE(Intersects(cyl, separated));
+        EXPECT_FALSE(Intersects(separated, cyl));
     }
 
     TEST(CylinderIntersection, CylinderTriangle)
@@ -348,7 +382,9 @@ namespace engine::geometry
         const Triangle separated{{3, 3, 0}, {4, 3, 0}, {3.5f, 4, 0}};
 
         EXPECT_TRUE(Intersects(cyl, intersecting));
+        EXPECT_TRUE(Intersects(intersecting, cyl));
         EXPECT_FALSE(Intersects(cyl, separated));
+        EXPECT_FALSE(Intersects(separated, cyl));
     }
 
     // ============================================================================
