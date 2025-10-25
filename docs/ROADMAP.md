@@ -15,6 +15,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | ID | Intent | Dependencies | Next Milestone | Owning Groups |
 | --- | --- | --- | --- | --- |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO |
+| `CO-170` | Prototype runtime integration sample showing dispatcher orchestration. | `RU-307` (done) | Publish runtime/compute sample + telemetry report | Compute, Runtime |
 
 ### Active Task Details
 
@@ -29,6 +30,20 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `RT-006.3` | Author detection docs. | IO README explains detection workflow, failure handling, and fuzzing steps. | ✅ Done |
 
 **Blocker:** CI fuzzing infrastructure provisioning pending.
+
+---
+
+#### `CO-170` — Runtime Integration Sample (🟢 Active)
+
+| Task ID | Description | Exit Criteria | Status |
+| --- | --- | --- | --- |
+| `CO-170.1` | Author runtime/compute integration sample harness. | Sample executable (`engine_compute_runtime_sample`) builds on all presets, drives dispatcher queues, and emits telemetry snapshots. | ⏳ In Progress |
+| `CO-170.2` | Publish telemetry + analysis workflow. | `scripts/diagnostics/compute_dispatch_report.py` ingests sample output, dashboards updated, docs refreshed. | ⏳ In Progress |
+| `CO-170.3` | Document integration playbook and update module READMEs. | `docs/design/CO-170-runtime-integration-playbook.md` merged; compute/runtime READMEs include usage guide. | ⏳ In Progress |
+
+**Notes:** Unblocks `AN-230` GPU sampling benchmarks and provides dispatcher
+guidance for upcoming async workloads. Coordinate with animation team so sample
+scenarios align with their benchmark matrix.
 
 ---
 
@@ -60,8 +75,6 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - **PY-001** — Core bindings and `.pyi` stubs for Python integration *(loader
   module ships manual stub; extend coverage to compiled bindings next)*
 - **TL-120** — Advanced diagnostics dashboard with Chrome trace export
-- **CO-170** — Runtime integration sample showing dispatcher orchestration
-
 ### Long-term / Research
 
 - **AN-240** — Advanced state machine authoring (see `specs/AN-240-state-machine-authoring.md`)
@@ -253,4 +266,4 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 <!-- Anchor for TI-001 integration suites references -->
 <a id="ti-001-integration-suites"></a>
-**Last updated:** 2025-10-25 (Added `DC-003` SDL backend implementation to active work)
+**Last updated:** 2025-10-29 (Activated `CO-170` runtime integration sample and logged sub-tasks)

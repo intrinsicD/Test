@@ -11,10 +11,10 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 
 ## Current Focus
 
-- **`DC-003.1` — SDL Window Lifecycle and Event Pump Implementation**
-  - **Why now?** Roadmap initiative [`DC-003`](../ROADMAP.md) is the only active, unblocked item and requires `DC-003.1` to deliver a production SDL backend before follow-on swapchain (`DC-003.2`) and CI/telemetry (`DC-003.3`) work can start.
-  - **Value**: Unblocks SDL availability for runtime integrations, enabling downstream rendering and tooling tasks that currently depend on GLFW-only coverage.
-  - **Next Step**: Staff a Platform Engineer to begin implementation and coordinate with Tools/CI for SDL package provisioning per the parity checklist (`PL-215`).
+- **`CO-170` — Kernel Dispatcher Runtime Integration Sample**
+  - **Why now?** With `RT-006` blocked on CI infrastructure, activating [`CO-170`](../ROADMAP.md) provides the highest-leverage path to advance the roadmap by unblocking animation GPU benchmarking (`AN-230`) and demonstrating dispatcher orchestration.
+  - **Value**: Establishes a reproducible runtime ↔ compute sample that validates asynchronous queue behaviour, feeds telemetry dashboards, and derisks follow-on GPU workloads.
+  - **Next Step**: Stand up the integration harness, land telemetry analysis tooling, and publish the design playbook/documentation updates captured in [`docs/tasks/CO-170-runtime-integration-sample.md`](CO-170-runtime-integration-sample.md).
 
 ## Index
 
@@ -28,6 +28,7 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 - [`DC-003.1-sdl-window-lifecycle.md`](DC-003.1-sdl-window-lifecycle.md) – implement native SDL window lifecycle, deterministic event pumping, and telemetry to unblock `DC-003`.
 - [`DC-003.2-sdl-swapchain-surface-export.md`](DC-003.2-sdl-swapchain-surface-export.md) – deliver SDL swapchain surface export and fallback alignment so rendering/tests can execute without GLFW.
 - [`DC-003.3-sdl-ci-telemetry.md`](DC-003.3-sdl-ci-telemetry.md) – expand SDL CI coverage and telemetry instrumentation to close roadmap initiative `DC-003`.
+- [`CO-170-runtime-integration-sample.md`](CO-170-runtime-integration-sample.md) – activate the runtime ↔ compute sample, telemetry workflow, and documentation updates that unblock GPU sampling benchmarks.
 - [`T-0115-assets-async-streaming-mvp.md`](T-0115-assets-async-streaming-mvp.md) – complete the async streaming MVP for `AI-002`.
 - [`T-0116-rendering-vulkan-resource-translation.md`](T-0116-rendering-vulkan-resource-translation.md) – finish Vulkan backend deliverables for `RT-003`.
 - [`T-0119-rendering-command-encoder-implementation.md`](T-0119-rendering-command-encoder-implementation.md) – implement concrete command encoders for all graphics backends.
