@@ -154,10 +154,13 @@ SurfaceMesh mesh = /* populated elsewhere */;
 
 engine::geometry::RemeshRequest request{};
 request.input_mesh = &mesh;
-request.mode = engine::geometry::RemeshingMode::kUniform;
+request.mode = engine::geometry::RemeshingMode::kFeaturePreserving;
 request.targets.target_edge_length = 0.05f;
 request.parameterization.mode = engine::geometry::ParameterizationMode::kGenerateLscm;
 request.parameterization.target_texel_density = 512.0f;
+request.feature_preservation.lock_boundary_edges = true;
+request.feature_preservation.lock_feature_edges = true;
+request.feature_preservation.minimum_feature_angle_degrees = 30.0f;
 
 const engine::geometry::RemeshValidationResult validation =
     engine::geometry::ValidateRemeshRequest(request);
@@ -181,8 +184,9 @@ const auto remesh_result = engine::geometry::Remesh(request);
 if (remesh_result.has_value())
 {
     const engine::geometry::RemeshOutput& output = remesh_result.value();
-    // Uniform remeshing splits long edges, collapses short edges, and applies
-    // Laplacian relaxation to unlocked vertices.
+    // Feature-preserving remeshing refines the mesh while keeping crease and
+    // boundary vertices locked. Tangential smoothing keeps unlocked vertices on
+    // the surface without eroding sharp features.
     const auto iterations = output.statistics.iteration_count;
     const auto max_edge_length = output.statistics.max_edge_length;
     // Consume the statistics for telemetry or diagnostics reporting.
@@ -193,9 +197,9 @@ if (remesh_result.has_value())
 attribute transfer policies, and parameterisation preferences while
 `ValidateRemeshRequest` enforces the invariants published in the
 [`GE-212` remeshing RFP](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md).
-The Phase 1 uniform remeshing kernel consumes these structures directly,
-returning a new `SurfaceMesh` alongside iteration counts and edge statistics in
-`RemeshOutput`.
+Uniform and feature-preserving remeshing kernels consume these structures
+directly, returning a new `SurfaceMesh` alongside iteration counts and edge
+statistics in `RemeshOutput`.
 
 `RemeshStatistics::max_error` records the maximum absolute deviation between the
 resolved target edge length and the shortest/longest edges observed in the
@@ -205,9 +209,9 @@ the result strays from the requested budget.
 Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
 or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request
 and produces consistent absolute edge-length targets even when callers specify only
-a relative scale. Uniform remeshing currently supports triangle meshes and locks
-boundary/feature vertices according to the feature preservation policy so downstream
-steps can assume landmarks remain stable.
+a relative scale. Uniform remeshing currently supports triangle meshes, and the
+feature-preserving mode extends it with crease-aware edge protection and
+tangential smoothing so downstream steps can assume landmarks remain stable.
 
 ## IO Integration
 

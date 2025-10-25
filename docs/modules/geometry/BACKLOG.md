@@ -55,3 +55,6 @@ roadmap after each milestone.
   feed GE-221+ execution planning and telemetry baselines.
 - 2025-11-05 — Implemented uniform remeshing kernel executing split/collapse loops
   with Laplacian relaxation, producing `RemeshOutput` for GE-221+ Phase 1.
+- 2025-11-12 — Enabled feature-preserving remeshing with crease-aware edge
+  protection and tangential smoothing, extending `GE-221+` toward the adaptive
+  follow-up milestones.
