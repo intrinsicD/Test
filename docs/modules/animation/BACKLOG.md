@@ -1,6 +1,6 @@
 # Animation Module Roadmap
 
-_Last Updated: 2025-11-11_
+_Last Updated: 2025-11-16_
 
 ## Milestone Phases
 
@@ -22,7 +22,7 @@ _Last Updated: 2025-11-11_
 
 | Task ID | Description | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher` ([plan](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md)). | Animation + Compute | 2025-12-05 | 🟡 Planned |
+| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher` ([plan](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md)). | Animation + Compute | 2025-12-05 | 🟢 Active |
 
 ## Upcoming (Phase 3)
 
@@ -41,6 +41,7 @@ _Last Updated: 2025-11-11_
 
 - Record benchmark data in [`docs/tasks/T-0113-animation-runtime-skinning.md`](../../tasks/T-0113-animation-runtime-skinning.md).
 - Align telemetry hooks with the broader diagnostics initiative (`CC-001`).
+- 2025-11-16: `engine_animation_benchmark_driver` added to capture CPU baselines aligned with dispatcher telemetry (`AN-230.1`).
 - 2025-11-11: Activated `AN-230` benchmarking after `CO-170` completion; coordination with compute/runtime documented in the central roadmap.
 - 2025-03-24: Logged GPU sampling benchmark plan (`AN-230`) and state-machine
   authoring specification (`AN-240`) under `docs/design/` and `docs/specs/`.

@@ -37,7 +37,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `AN-230.1` | Stand up benchmarking harness and capture CPU baselines. | Harness builds under CMake presets, replays representative clips, and records telemetry aligned with `CO-170` dispatcher metrics. | 🟡 Planned |
+| `AN-230.1` | Stand up benchmarking harness and capture CPU baselines. | Harness builds under CMake presets, replays representative clips, and records telemetry aligned with `CO-170` dispatcher metrics. | 🟢 Active |
 | `AN-230.2` | Integrate GPU sampling kernels with telemetry validation. | GPU compute paths execute benchmark scenarios, emit queue occupancy/jitter data, and compare against CPU baselines. | 🟡 Planned |
 | `AN-230.3` | Publish analysis workflow and dashboard/report updates. | Diagnostics scripts summarise results, dashboards refreshed, and animation/compute READMEs document usage. | 🟡 Planned |
 
@@ -45,6 +45,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 - 2025-11-11: `CO-170` runtime dispatcher sample, telemetry workflow, and documentation merged; roadmap focus shifts to building the GPU benchmarking harness for `AN-230`.
 - 2025-11-15: Adaptive remeshing mode lands with surface/normal error budgets, advancing `GE-221+` Phase 2 execution planning.
+- 2025-11-16: `engine_animation_benchmark_driver` enables CPU baseline telemetry capture aligned with the dispatcher schema for `AN-230.1`.
 
 ---
 

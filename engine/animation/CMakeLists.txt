@@ -4,6 +4,7 @@ add_library(${target_name}
     src/api.cpp
     src/serialization.cpp
     src/deformation/linear_blend_skinning.cpp
+    src/benchmarking/statistics.cpp
 )
 
 engine_apply_module_defaults(${target_name}
@@ -24,3 +25,5 @@ target_compile_definitions(${target_name}
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
+
+add_subdirectory(tools)
