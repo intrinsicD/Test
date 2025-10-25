@@ -74,6 +74,9 @@ scenarios align with their benchmark matrix.
 - 2025-11-09: Runtime sample gains `--repeat`/`--output-dir`, emits
   per-capture metadata (`run_index`, `run_count`), and the diagnostics report
   surfaces active run context to simplify benchmark variance tracking.
+- 2025-11-10: Diagnostics script adds `--exit-on-warning` so CI automation can
+  fail when the runtime capture reports jitter, memory, or performance
+  regressions (`CO-170.2`).
 
 ---
 

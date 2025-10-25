@@ -240,3 +240,58 @@ def test_run_to_run_variance_summary(tmp_path: Path, capsys: pytest.CaptureFixtu
     assert "run_b.json" in output
     assert "Run-to-run frame time variance" in output
     assert "WARNING: Run-to-run variance" in output
+
+
+def test_exit_on_warning_triggers_non_zero_exit(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload_path = _write_payload(
+        tmp_path / "warn.json",
+        [
+            _make_frame(0, {"animation.evaluate": 0.4, "physics.integrate": 1.0}),
+            _make_frame(1, {"animation.evaluate": 0.4, "physics.integrate": 2.0}),
+        ],
+        baseline_speedup=1.2,
+        frame_jitter_ms=0.75,
+        jitter_budget_ms=0.5,
+        jitter_exceeds=True,
+        baseline_stddev_ms=0.72,
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        report.main(
+            [
+                "--input",
+                str(payload_path),
+                "--jitter-threshold",
+                "5.0",
+                "--top",
+                "1",
+                "--exit-on-warning",
+            ]
+        )
+
+    assert excinfo.value.code == 1
+    captured = capsys.readouterr()
+    assert "compute_dispatch_report" in captured.err
+    assert "failing due to --exit-on-warning" in captured.err
+
+
+def test_exit_on_warning_allows_clean_reports(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload_path = _write_payload(
+        tmp_path / "clean.json",
+        [
+            _make_frame(0, {"animation.evaluate": 0.4, "physics.integrate": 0.8}),
+            _make_frame(1, {"animation.evaluate": 0.4, "physics.integrate": 0.8}),
+        ],
+        frame_jitter_ms=0.2,
+        jitter_budget_ms=0.5,
+        jitter_exceeds=False,
+        baseline_stddev_ms=0.18,
+    )
+
+    report.main(["--input", str(payload_path), "--top", "2", "--exit-on-warning"])
+    captured = capsys.readouterr()
+    assert "WARNING" not in captured.err

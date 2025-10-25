@@ -265,3 +265,6 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
   emit multiple captures automatically. JSON metadata now records
   `run_index`/`run_count` and the diagnostics report surfaces the active run,
   streamlining benchmark variance analysis for `CO-170.2`.
+- 2025-11-10: Diagnostics reporter gains `--exit-on-warning` so CI jobs can
+  fail fast when jitter, memory, or performance regressions appear in the
+  runtime capture output.

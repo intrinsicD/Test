@@ -60,7 +60,9 @@ backend for both the multi-queue run and the single-queue baseline so reports
 remain self-describing.
 
 Combine the JSON output with `scripts/diagnostics/compute_dispatch_report.py`
-to render tabular summaries or enforce jitter thresholds in CI.
+to render tabular summaries or enforce jitter thresholds in CI. Pass
+`--exit-on-warning` when running the diagnostics script inside automation so the
+job fails whenever the report surfaces budget or performance regressions.
 
 When `--baseline` is supplied the sample performs an additional run using a
 single logical queue, records the baseline frame timing statistics, and compares

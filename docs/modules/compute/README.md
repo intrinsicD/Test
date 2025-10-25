@@ -354,6 +354,9 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   configured budget (default 0.5 ms); both the console summary and diagnostics
   report warn when the multi-queue capture or the baseline exceeds the budget so
   latency regressions surface immediately.
+  Run the diagnostics script with `--exit-on-warning` in CI to fail the job when
+  jitter, memory, or performance warnings are emitted, turning the telemetry
+  thresholds into gating criteria.
   Categories that are not explicitly mapped use deterministic FNV-1a hashing to
   keep queue attribution stable across runs and toolchains, preserving the
   comparability of telemetry captures. Select `--dispatcher-backend cuda` when
@@ -368,5 +371,5 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
 
 ## TODO / Next Steps
 
-- Finalise runtime integration sample telemetry gating and CI automation (`CO-170` follow-up); see ../../ROADMAP.md
+- Wire the runtime integration sample telemetry gating into CI pipelines (`CO-170` follow-up); see ../../ROADMAP.md
 - Evaluate compute-shader backend alignment with frame-graph scheduling (`AI-003` follow-up); see ../../ROADMAP.md
