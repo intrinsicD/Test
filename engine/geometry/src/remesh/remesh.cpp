@@ -43,6 +43,104 @@ namespace engine::geometry
         {
             return std::isfinite(value) && value >= 0.0f;
         }
+
+        [[nodiscard]] std::uint64_t make_edge_key(std::uint32_t a, std::uint32_t b) noexcept
+        {
+            if (a > b)
+            {
+                std::swap(a, b);
+            }
+            return (static_cast<std::uint64_t>(a) << 32U) | static_cast<std::uint64_t>(b);
+        }
+
+        [[nodiscard]] std::unordered_set<std::uint64_t> build_protected_edge_set(
+            const SurfaceTopologySummary& summary,
+            const RemeshRequest& request)
+        {
+            std::unordered_set<std::uint64_t> protected_edges{};
+
+            if (!request.feature_preservation.lock_boundary_edges &&
+                !request.feature_preservation.lock_feature_edges)
+            {
+                return protected_edges;
+            }
+
+            protected_edges.reserve(summary.edges.size());
+            for (const SurfaceEdgeTag& tag : summary.edges)
+            {
+                const bool protect_boundary = request.feature_preservation.lock_boundary_edges && tag.is_boundary;
+                const bool protect_feature = request.feature_preservation.lock_feature_edges &&
+                                             (tag.is_crease || tag.is_non_manifold);
+
+                if (protect_boundary || protect_feature)
+                {
+                    protected_edges.insert(make_edge_key(tag.v0, tag.v1));
+                }
+            }
+
+            return protected_edges;
+        }
+
+        [[nodiscard]] std::vector<math::vec3> compute_vertex_normals(const MeshInterface& interface)
+        {
+            std::vector<math::vec3> normals(interface.vertices_size(), math::vec3{0.0F});
+
+            for (auto face : interface.faces())
+            {
+                if (interface.is_deleted(face) || interface.is_boundary(face))
+                {
+                    continue;
+                }
+
+                const HalfedgeHandle h0 = interface.halfedge(face);
+                if (!h0.is_valid())
+                {
+                    continue;
+                }
+
+                const HalfedgeHandle h1 = interface.next_halfedge(h0);
+                const HalfedgeHandle h2 = interface.next_halfedge(h1);
+
+                const VertexHandle v0 = interface.to_vertex(h0);
+                const VertexHandle v1 = interface.to_vertex(h1);
+                const VertexHandle v2 = interface.to_vertex(h2);
+
+                const math::vec3& p0 = interface.position(v0);
+                const math::vec3& p1 = interface.position(v1);
+                const math::vec3& p2 = interface.position(v2);
+
+                const math::vec3 weighted_normal = math::cross(p1 - p0, p2 - p0);
+                if (math::dot(weighted_normal, weighted_normal) <= std::numeric_limits<float>::epsilon())
+                {
+                    continue;
+                }
+
+                normals[v0.index()] += weighted_normal;
+                normals[v1.index()] += weighted_normal;
+                normals[v2.index()] += weighted_normal;
+            }
+
+            for (auto vertex : interface.vertices())
+            {
+                if (interface.is_deleted(vertex))
+                {
+                    continue;
+                }
+
+                math::vec3& normal = normals[vertex.index()];
+                const float length_sq = math::dot(normal, normal);
+                if (length_sq > std::numeric_limits<float>::epsilon())
+                {
+                    normal /= std::sqrt(length_sq);
+                }
+                else
+                {
+                    normal = math::vec3{0.0F, 0.0F, 0.0F};
+                }
+            }
+
+            return normals;
+        }
     } // namespace
 
     RemeshValidationResult ValidateRemeshRequest(const RemeshRequest& request) noexcept
@@ -210,18 +308,6 @@ namespace engine::geometry
         return RemeshValidationResult{};
     }
 
-    namespace
-    {
-        [[nodiscard]] std::uint64_t make_edge_key(std::uint32_t a, std::uint32_t b) noexcept
-        {
-            if (a > b)
-            {
-                std::swap(a, b);
-            }
-            return (static_cast<std::uint64_t>(a) << 32U) | static_cast<std::uint64_t>(b);
-        }
-    } // namespace
-
     MeshEdgeStatistics ComputeMeshEdgeStatistics(const SurfaceMesh& mesh) noexcept
     {
         MeshEdgeStatistics statistics{};
@@ -356,14 +442,11 @@ namespace engine::geometry
         constexpr float kDefaultSplitThreshold = 4.0F / 3.0F;
         constexpr float kDefaultCollapseThreshold = 4.0F / 5.0F;
 
-        [[nodiscard]] std::vector<bool> initialise_locked_vertices(const SurfaceMesh& mesh,
+        [[nodiscard]] std::vector<bool> initialise_locked_vertices(const SurfaceTopologySummary& summary,
                                                                    MeshInterface& interface,
                                                                    const RemeshRequest& request)
         {
             std::vector<bool> locked(interface.vertices_size(), false);
-
-            const SurfaceTopologySummary summary = AnalyzeSurfaceTopology(
-                mesh, math::radians(request.feature_preservation.minimum_feature_angle_degrees));
 
             const bool lock_boundaries = request.feature_preservation.lock_boundary_edges;
             const bool lock_features = request.feature_preservation.lock_feature_edges;
@@ -400,7 +483,8 @@ namespace engine::geometry
 
         void laplacian_relaxation(MeshInterface& interface,
                                   const std::vector<bool>& locked,
-                                  float factor)
+                                  float factor,
+                                  const std::vector<math::vec3>* vertex_normals)
         {
             if (factor <= 0.0F)
             {
@@ -449,7 +533,19 @@ namespace engine::geometry
 
                 const math::vec3 current = interface.position(vertex);
                 const math::vec3 average = sum / static_cast<float>(count);
-                updated[vertex.index()] = current + factor * (average - current);
+                math::vec3 displacement = average - current;
+
+                if (vertex_normals != nullptr && vertex.index() < vertex_normals->size())
+                {
+                    const math::vec3& normal = (*vertex_normals)[vertex.index()];
+                    const float normal_length_sq = math::dot(normal, normal);
+                    if (normal_length_sq > std::numeric_limits<float>::epsilon())
+                    {
+                        displacement -= math::dot(displacement, normal) * normal;
+                    }
+                }
+
+                updated[vertex.index()] = current + factor * displacement;
                 has_update[vertex.index()] = true;
             }
 
@@ -476,7 +572,8 @@ namespace engine::geometry
                                EdgeHandle edge,
                                HalfedgeHandle& collapse_halfedge,
                                VertexHandle& keep_vertex,
-                               VertexHandle& remove_vertex)
+                               VertexHandle& remove_vertex,
+                               const std::unordered_set<std::uint64_t>* protected_edges)
         {
             if (interface.is_deleted(edge))
             {
@@ -494,12 +591,30 @@ namespace engine::geometry
             VertexHandle keep = interface.to_vertex(candidate);
             VertexHandle remove = interface.to_vertex(opposite);
 
+            if (protected_edges != nullptr)
+            {
+                const std::uint64_t key = make_edge_key(keep.index(), remove.index());
+                if (protected_edges->find(key) != protected_edges->end())
+                {
+                    return false;
+                }
+            }
+
             if (is_locked_vertex(locked, remove) && !is_locked_vertex(locked, keep))
             {
                 candidate = interface.halfedge(edge, 1);
                 opposite = interface.opposite_halfedge(candidate);
                 keep = interface.to_vertex(candidate);
                 remove = interface.to_vertex(opposite);
+
+                if (protected_edges != nullptr)
+                {
+                    const std::uint64_t key = make_edge_key(keep.index(), remove.index());
+                    if (protected_edges->find(key) != protected_edges->end())
+                    {
+                        return false;
+                    }
+                }
             }
 
             if (is_locked_vertex(locked, keep) || is_locked_vertex(locked, remove))
@@ -523,7 +638,9 @@ namespace engine::geometry
                                              std::vector<bool>& locked,
                                              float target_length,
                                              float split_threshold,
-                                             float collapse_threshold)
+                                             float collapse_threshold,
+                                             const std::unordered_set<std::uint64_t>* protected_edges,
+                                             bool tangential_smoothing)
         {
             std::uint32_t performed_iterations = 0U;
             const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
@@ -557,6 +674,15 @@ namespace engine::geometry
                     }
                     else if (length < target_length * collapse_threshold)
                     {
+                        if (protected_edges != nullptr)
+                        {
+                            const std::uint64_t key =
+                                make_edge_key(interface.to_vertex(h0).index(), interface.to_vertex(h1).index());
+                            if (protected_edges->find(key) != protected_edges->end())
+                            {
+                                continue;
+                            }
+                        }
                         edges_to_collapse.push_back(edge);
                     }
                 }
@@ -585,7 +711,14 @@ namespace engine::geometry
                     VertexHandle keep_vertex{};
                     VertexHandle remove_vertex{};
 
-                    if (!can_collapse_edge(request, locked, interface, edge, collapse_halfedge, keep_vertex, remove_vertex))
+                    if (!can_collapse_edge(request,
+                                           locked,
+                                           interface,
+                                           edge,
+                                           collapse_halfedge,
+                                           keep_vertex,
+                                           remove_vertex,
+                                           protected_edges))
                     {
                         continue;
                     }
@@ -646,7 +779,15 @@ namespace engine::geometry
                 }
 
                 ensure_vertex_capacity(locked, interface);
-                laplacian_relaxation(interface, locked, smoothing_factor);
+                const std::vector<math::vec3>* normals_ptr = nullptr;
+                std::vector<math::vec3> normals{};
+                if (tangential_smoothing && smoothing_factor > 0.0F)
+                {
+                    normals = compute_vertex_normals(interface);
+                    normals_ptr = &normals;
+                }
+
+                laplacian_relaxation(interface, locked, smoothing_factor, normals_ptr);
             }
 
             return performed_iterations;
@@ -663,8 +804,8 @@ namespace engine::geometry
         switch (request.mode)
         {
         case RemeshingMode::kUniform:
-            break;
         case RemeshingMode::kFeaturePreserving:
+            break;
         case RemeshingMode::kAdaptive:
             return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::unsupported_mode,
                                                                 "remeshing mode not yet implemented")};
@@ -680,8 +821,13 @@ namespace engine::geometry
         if (!resolved_targets.target_edge_length.has_value())
         {
             return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_target_configuration,
-                                                                "uniform remeshing requires a target edge length")};
+                                                                "remeshing requires a target edge length")};
         }
+
+        const SurfaceTopologySummary topology_summary = AnalyzeSurfaceTopology(
+            *request.input_mesh, math::radians(request.feature_preservation.minimum_feature_angle_degrees));
+        const std::unordered_set<std::uint64_t> protected_edges =
+            build_protected_edge_set(topology_summary, request);
 
         Mesh mesh{};
         try
@@ -699,7 +845,11 @@ namespace engine::geometry
                                                                 "uniform remeshing currently supports triangle meshes only")};
         }
 
-        std::vector<bool> locked = initialise_locked_vertices(*request.input_mesh, mesh.interface, request);
+        std::vector<bool> locked = initialise_locked_vertices(topology_summary, mesh.interface, request);
+
+        const bool use_tangential_smoothing = request.mode == RemeshingMode::kFeaturePreserving;
+        const std::unordered_set<std::uint64_t>* protected_edge_ptr =
+            (!protected_edges.empty() && use_tangential_smoothing) ? &protected_edges : nullptr;
 
         const float target_length = resolved_targets.target_edge_length.value();
         const std::uint32_t iterations = execute_uniform_remesh(request,
@@ -707,7 +857,9 @@ namespace engine::geometry
                                                                 locked,
                                                                 target_length,
                                                                 kDefaultSplitThreshold,
-                                                                kDefaultCollapseThreshold);
+                                                                kDefaultCollapseThreshold,
+                                                                protected_edge_ptr,
+                                                                use_tangential_smoothing);
 
         mesh.interface.garbage_collection();
 

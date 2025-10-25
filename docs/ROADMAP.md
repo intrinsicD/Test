@@ -56,8 +56,10 @@ with [`../README.md`](../README.md), module READMEs, and task files under
     `Remesh`, returning `RemeshOutput` statistics for downstream tooling.
   - 2025-11-03: Remesh request/validation scaffolding merged to capture
     configuration semantics ahead of kernel implementation.
-- 2025-11-02: Surface topology summary utilities landed (`AnalyzeSurfaceTopology`) to
-  provide deterministic boundary and crease classification for Phase 0 planning.
+  - 2025-11-02: Surface topology summary utilities landed (`AnalyzeSurfaceTopology`) to
+    provide deterministic boundary and crease classification for Phase 0 planning.
+  - 2025-11-12: Feature-preserving remeshing adds crease-aware edge protection and
+    tangential smoothing; next milestone targets adaptive error budgeting.
 - **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
 
 #### `DC-003` — SDL Backend Implementation (⏸ Deferred)
