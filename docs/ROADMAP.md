@@ -23,11 +23,12 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `DC-003.1` | Stand up native SDL window lifecycle and deterministic event pumping. | SDL backend creates native windows, translates input/events, and demotes to the mock backend when SDL is unavailable; unit smoke tests green. | 🟢 Todo |
+| `DC-003.1` | Stand up native SDL window lifecycle and deterministic event pumping. | SDL backend creates native windows, translates input/events, and demotes to the mock backend when SDL is unavailable; unit smoke tests green. | 🔄 In Progress |
 | `DC-003.2` | Integrate swapchain surface export and backend selection fallbacks. | Vulkan/OpenGL surfaces exposed through `SwapchainSurface`, build presets updated, runtime override respects fallback order. | 🟢 Todo |
 | `DC-003.3` | Expand validation, CI, and telemetry coverage. | Platform + runtime integration tests execute with SDL enabled in CI, diagnostics capture SDL errors, README/checklist updated. | 🟢 Todo |
 
 **Recent Updates:**
+- 2025-10-26: Task card [`DC-003.2`](tasks/DC-003.2-sdl-swapchain-surface-export.md) created and prioritised to follow `DC-003.1`, covering SDL swapchain surface export and fallback alignment.
 - 2025-10-25: Task card [`DC-003.1`](tasks/DC-003.1-sdl-window-lifecycle.md) published to deliver native SDL window lifecycle and deterministic event pumping.
 - 2025-10-24: `PL-215` published the SDL parity checklist; implementation work now tracked under `DC-003`.
 
