@@ -63,6 +63,8 @@ scenarios align with their benchmark matrix.
 
 - **AN-230** — GPU/parallel sampling benchmarks (blocked on `CO-170` compute queue extensions)
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
+- 2025-11-02: Surface topology summary utilities landed (`AnalyzeSurfaceTopology`) to
+  provide deterministic boundary and crease classification for Phase 0 planning.
 - **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
 
 #### `DC-003` — SDL Backend Implementation (⏸ Deferred)

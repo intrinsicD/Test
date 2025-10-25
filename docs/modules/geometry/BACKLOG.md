@@ -46,3 +46,6 @@ roadmap after each milestone.
 - 2025-05-09 — Defaulted `PointCloudIOFlags::Format::kAuto` to PLY when file
   extensions are missing or unrecognised, ensuring round-trip tooling for
   `T-0112` handles temporary exports without manual flag overrides.
+- 2025-11-02 — Added surface topology summary utilities (`AnalyzeSurfaceTopology`)
+  to classify boundary, crease, and non-manifold features ahead of the
+  `GE-221+` remeshing milestones.
