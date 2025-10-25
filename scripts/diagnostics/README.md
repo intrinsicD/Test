@@ -116,6 +116,31 @@ Provide `--baseline` to the runtime sample to capture a single-queue reference;
 the report surfaces the observed speed-up and warns when the capture fails to
 clear the 1.5× performance target.
 
+## `compute_dispatch_benchmark.py`
+
+Automate runtime sample captures and enforce the ≤2% run-to-run variance
+requirement defined in `CO-170`.
+
+1. Execute the helper to record three captures (and an optional baseline):
+   ```bash
+   python scripts/diagnostics/compute_dispatch_benchmark.py \
+       --sample ./out/build/linux-gcc-debug/engine/compute/engine_compute_runtime_sample \
+       --runs 3 --frames 1024 --workload balanced --queues 3 --baseline \
+       --jitter-budget-ms 0.5 --output-dir telemetry/dispatch_benchmark
+   ```
+2. Inspect the rendered report for run-to-run variance, jitter compliance, and
+   baseline speed-up summaries. The script reuses the telemetry emitted by the
+   runtime sample, so additional command-line switches (`--queue-map`,
+   `--dispatcher-backend`, etc.) are forwarded transparently.
+3. Pass `--exit-on-regression` (and optionally
+   `--variance-threshold=<percent>`) to make CI fail when variance exceeds the
+   allowed budget or when jitter/speed-up checks regress.
+
+Provide `--input capture-a.json capture-b.json` to analyse previously recorded
+payloads without re-running the executable. When `--report` is supplied the
+textual summary is persisted alongside the printed output, enabling archival in
+CI artefacts.
+
 ## `telemetry_viewer.py`
 
 The telemetry viewer provides the `CC-001` diagnostics shell MVP (`TL-101`). It

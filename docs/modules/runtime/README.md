@@ -234,6 +234,20 @@ ctest --preset linux-gcc-debug -R runtime
   back to deterministic FNV-1a hashing so workload categories without explicit
   overrides remain stable between runs.
 
+- Automate the ≤2% variance verification with
+  `scripts/diagnostics/compute_dispatch_benchmark.py`:
+  ```bash
+  python scripts/diagnostics/compute_dispatch_benchmark.py \
+      --sample ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
+      --runs 3 --frames 1024 --workload balanced --queues 3 --baseline \
+      --jitter-budget-ms 0.5 --variance-threshold 2.0 --exit-on-regression \
+      --output-dir telemetry/dispatch_benchmark
+  ```
+  The helper forwards queue overrides/backends, emits the same telemetry, and
+  warns when variance, jitter, or speed-up budgets regress. Supply `--input`
+  when benchmarking previously captured JSON payloads and `--report` to archive
+  the textual summary in CI artefacts.
+
 ## TODO / Next Steps
 
 - Extend async streaming diagnostics and ensure asset hot-reload callbacks are surfaced in tooling (`AI-002`); see ../../ROADMAP.md

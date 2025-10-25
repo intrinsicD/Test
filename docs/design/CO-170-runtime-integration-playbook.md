@@ -59,6 +59,19 @@ RuntimeHost::tick
    `--variance-threshold` (default 2%). This keeps the "≤2% variance" roadmap
    requirement actionable without manual spreadsheet analysis.
 
+4. **Enforce variance budgets**
+   ```bash
+   python scripts/diagnostics/compute_dispatch_benchmark.py \
+       --sample ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
+       --runs 3 --frames 1024 --workload balanced --queues 3 --baseline \
+       --jitter-budget-ms 0.5 --variance-threshold 2.0 --exit-on-regression
+   ```
+
+   The benchmark helper executes the runtime sample (or ingests existing
+   payloads), computes run-to-run variance, and exits non-zero when variance,
+   jitter, or baseline speed-up fall outside their targets—closing the remaining
+   `CO-170` acceptance criteria without manual spreadsheet work.
+
 ## Telemetry Payload
 
 The sample emits a JSON document with:

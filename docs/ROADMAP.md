@@ -77,6 +77,8 @@ scenarios align with their benchmark matrix.
 - 2025-11-10: Diagnostics script adds `--exit-on-warning` so CI automation can
   fail when the runtime capture reports jitter, memory, or performance
   regressions (`CO-170.2`).
+- 2025-11-11: Added `compute_dispatch_benchmark.py` to automate ≤2% variance
+  enforcement and surface jitter/speed-up regressions in CI (`CO-170.2`).
 
 ---
 
