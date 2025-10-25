@@ -1,5 +1,6 @@
 add_executable(engine_compute_tests
     test_module.cpp
+    test_runtime_dispatch_queue_assignment.cpp
 )
 
 target_link_libraries(engine_compute_tests
@@ -7,6 +8,11 @@ target_link_libraries(engine_compute_tests
         engine::project_options
         engine_compute
         GTest::gtest_main
+)
+
+target_include_directories(engine_compute_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../samples
 )
 
 add_test(NAME engine_compute_tests COMMAND engine_compute_tests)

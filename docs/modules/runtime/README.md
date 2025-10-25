@@ -218,6 +218,8 @@ ctest --preset linux-gcc-debug -R runtime
   The workflow exercises `RuntimeHost` end-to-end, records per-kernel timings,
   reports queue utilisation, enumerates cross-queue fences, and surfaces jitter
   warnings for `CO-170`.
+  Queue labels fall back to deterministic FNV-1a hashing so workload categories
+  without explicit overrides remain stable between runs.
 
 ## TODO / Next Steps
 

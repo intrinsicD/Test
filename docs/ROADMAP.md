@@ -54,6 +54,8 @@ scenarios align with their benchmark matrix.
 - 2025-11-01: Queue naming and per-category overrides added to the runtime
   sample; telemetry exports `queue_assignments` so diagnostics reflect queue
   affinity decisions (`CO-170.2`).
+- 2025-11-03: Queue attribution switched to deterministic FNV-1a hashing to
+  keep telemetry stable across toolchains and CI environments (`CO-170.2`).
 
 ---
 
