@@ -121,8 +121,9 @@ Implement a standalone runtime integration sample that:
 
 ### Testing Requirements
 - [ ] Unit tests cover workload adapters feeding the dispatcher.
-- [ ] Integration tests validate deterministic telemetry output and queue
-      ordering (extend `engine_integration_tests`).
+- [x] Integration tests validate deterministic telemetry output, dispatcher
+      dependency graphs, and queue ordering (extend
+      `engine_integration_tests`).
 - [ ] Benchmarks captured by the sample show ≤2% variance between runs on
       reference hardware.
 - [ ] Coverage ≥85% on touched lines in compute/runtime modules.
@@ -234,3 +235,6 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
   utilisation ahead of GPU sampling benchmarks.
 - 2025-11-01: CLI now supports queue naming and per-category overrides; JSON
   exports queue assignments for diagnostics and CI tooling.
+- 2025-11-02: Integration tests assert steady-clock telemetry, deterministic
+  dispatch ordering, and the dispatcher dependency graph to lock queue
+  affinity regressions.
