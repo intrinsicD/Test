@@ -1,6 +1,6 @@
 # Compute Module Roadmap
 
-_Last Updated: 2025-11-11_
+_Last Updated: 2025-11-18_
 
 ## Objectives
 
@@ -16,7 +16,7 @@ _Last Updated: 2025-11-11_
 | --- | --- | --- | --- | --- |
 | `CO-141` | Author dispatcher extension note covering registration and telemetry. | Compute team | 2025-03-07 | ✅ Complete |
 | `CO-150` | Implement kernel dependency cycle detection tooling. | Compute team | 2025-03-21 | ✅ Complete |
-| `AN-230` | Partner with animation to deliver GPU/parallel sampling benchmarks using dispatcher telemetry. | Animation & Compute | 2025-11-25 | 🟡 Planned |
+| `AN-230` | Partner with animation to deliver GPU/parallel sampling benchmarks using dispatcher telemetry. | Animation & Compute | 2025-11-25 | 🟢 Active |
 
 ## Upcoming Tasks
 
@@ -28,6 +28,10 @@ _Last Updated: 2025-11-11_
 
 - **Runtime module** — consumes dispatcher results, requires consistent API.
 - **Build presets** — defined under `scripts/build/` to expose CUDA optionality.
+
+## Notes
+
+- 2025-11-18: Dispatcher-backed GPU scenario landed in the animation benchmark driver, exercising CUDA availability probes and queue/category aggregation for `AN-230.2`.
 
 Log progress in relevant task records (`T-0114`, `T-0104`) to keep sprint boards
 accurate.

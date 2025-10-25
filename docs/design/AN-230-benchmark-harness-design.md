@@ -1,6 +1,6 @@
 # AN-230 Benchmark Harness Design
 
-**Status:** Implemented (CPU baseline harness merged)  
+**Status:** Implemented (CPU baseline + GPU telemetry scenarios merged)
 **Owner:** Animation/Compute Tech Lead  
 **Related Tasks:** `AN-230.1` (GPU sampling benchmarks – harness & CPU baselines)
 

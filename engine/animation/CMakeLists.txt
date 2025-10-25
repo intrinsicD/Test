@@ -5,6 +5,7 @@ add_library(${target_name}
     src/serialization.cpp
     src/deformation/linear_blend_skinning.cpp
     src/benchmarking/statistics.cpp
+    src/benchmarking/telemetry.cpp
 )
 
 engine_apply_module_defaults(${target_name}

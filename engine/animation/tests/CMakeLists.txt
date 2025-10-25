@@ -5,6 +5,7 @@ add_executable(engine_animation_tests
     test_rig_binding.cpp
     test_skinning.cpp
     test_benchmark_statistics.cpp
+    test_benchmark_telemetry.cpp
 )
 
 target_link_libraries(engine_animation_tests
