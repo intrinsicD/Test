@@ -24,6 +24,7 @@ class DispatchSample:
     name: str
     category: str
     duration_ms: float
+    queue: str
 
 
 @dataclass
@@ -36,6 +37,7 @@ class FrameSample:
     total_ms: float
     dispatches: List[DispatchSample]
     category_totals_ms: Dict[str, float]
+    queue_totals_ms: Dict[str, float]
 
 
 @dataclass
@@ -60,6 +62,7 @@ class SummaryStats:
 class ReportSummary:
     dispatches: Dict[str, SummaryStats]
     categories: Dict[str, SummaryStats]
+    queues: Dict[str, SummaryStats]
     frame_totals: SummaryStats
 
 
@@ -79,12 +82,17 @@ def _load_frames(payload: MutableMapping[str, object]) -> List[FrameSample]:
                 name=str(entry.get("name", "")),
                 category=str(entry.get("category", "")),
                 duration_ms=float(entry.get("duration_ms", 0.0)),
+                queue=str(entry.get("queue", "queue-0")),
             )
             for entry in frame.get("dispatches", [])
         ]
         category_totals = {
             str(entry.get("category", "")): float(entry.get("duration_ms", 0.0))
             for entry in frame.get("category_totals_ms", [])
+        }
+        queue_totals = {
+            str(entry.get("queue", "queue-0")): float(entry.get("duration_ms", 0.0))
+            for entry in frame.get("queue_totals_ms", [])
         }
         frames.append(
             FrameSample(
@@ -94,6 +102,7 @@ def _load_frames(payload: MutableMapping[str, object]) -> List[FrameSample]:
                 total_ms=float(frame.get("total_ms", 0.0)),
                 dispatches=dispatches,
                 category_totals_ms=category_totals,
+                queue_totals_ms=queue_totals,
             )
         )
     return frames
@@ -117,17 +126,25 @@ def _compute_stats(values: Sequence[float]) -> SummaryStats:
 def _compute_summary(frames: Sequence[FrameSample]) -> ReportSummary:
     dispatch_samples: Dict[str, List[float]] = {}
     category_samples: Dict[str, List[float]] = {}
+    queue_samples: Dict[str, List[float]] = {}
     frame_totals = [frame.total_ms for frame in frames]
 
     for frame in frames:
         for dispatch in frame.dispatches:
             dispatch_samples.setdefault(dispatch.name, []).append(dispatch.duration_ms)
             category_samples.setdefault(dispatch.category, []).append(dispatch.duration_ms)
+            queue_samples.setdefault(dispatch.queue, []).append(dispatch.duration_ms)
 
     dispatch_stats = {name: _compute_stats(values) for name, values in dispatch_samples.items()}
     category_stats = {name: _compute_stats(values) for name, values in category_samples.items()}
+    queue_stats = {name: _compute_stats(values) for name, values in queue_samples.items()}
     frame_stats = _compute_stats(frame_totals)
-    return ReportSummary(dispatches=dispatch_stats, categories=category_stats, frame_totals=frame_stats)
+    return ReportSummary(
+        dispatches=dispatch_stats,
+        categories=category_stats,
+        queues=queue_stats,
+        frame_totals=frame_stats,
+    )
 
 
 def load_report(path: Path) -> ReportPayload:
@@ -156,11 +173,36 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
     clock_name = clock.get("name", "steady_clock") if isinstance(clock, dict) else "steady_clock"
     clock_domain = clock.get("domain", "cpu") if isinstance(clock, dict) else "cpu"
     timestep = payload.metadata.get("timestep", payload.frames[0].timestep if payload.frames else 0.0)
+    requested_frames = int(payload.metadata.get("requested_frames", payload.summary.frame_totals.samples))
+    workload = str(payload.metadata.get("workload", "balanced"))
+    queue_names_raw = payload.metadata.get("queues", [])
+    queue_names = [str(name) for name in queue_names_raw] if isinstance(queue_names_raw, list) else []
+    queue_count_meta = payload.metadata.get("queue_count", None)
+    queue_count = int(queue_count_meta) if isinstance(queue_count_meta, (int, float)) else (
+        len(queue_names) if queue_names else max(len(payload.summary.queues), 1)
+    )
 
     lines.append("Compute Dispatcher Report")
     lines.append(f"Frames: {payload.summary.frame_totals.samples}")
+    lines.append(f"Requested frames: {requested_frames}")
     lines.append(f"Timestep: {timestep:.6f} s")
     lines.append(f"Clock: {clock_name} ({clock_domain})")
+    lines.append(f"Workload: {workload}")
+    if queue_names:
+        lines.append(f"Queues: {queue_count} ({', '.join(queue_names)})")
+    else:
+        lines.append(f"Queues: {queue_count}")
+    assignments_raw = payload.metadata.get("queue_assignments", [])
+    assignments: List[str] = []
+    if isinstance(assignments_raw, list):
+        for entry in assignments_raw:
+            if isinstance(entry, dict):
+                category = str(entry.get("category", "")).strip()
+                queue_name = str(entry.get("queue", "")).strip()
+                if category and queue_name:
+                    assignments.append(f"{category}→{queue_name}")
+    if assignments:
+        lines.append(f"Queue assignments: {', '.join(assignments)}")
     lines.append(f"Average frame dispatch time: {payload.summary.frame_totals.mean_ms:.3f} ms")
 
     if payload.summary.dispatches:
@@ -179,6 +221,18 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
         lines.append("Category totals:")
         for name, stats in sorted(
             payload.summary.categories.items(),
+            key=lambda item: item[1].total_ms,
+            reverse=True,
+        ):
+            lines.append(
+                f"  - {name}: total {stats.total_ms:.3f} ms across {stats.samples} samples"
+            )
+
+    if payload.summary.queues:
+        lines.append("")
+        lines.append("Queue totals:")
+        for name, stats in sorted(
+            payload.summary.queues.items(),
             key=lambda item: item[1].total_ms,
             reverse=True,
         ):

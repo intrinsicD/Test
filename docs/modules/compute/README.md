@@ -279,10 +279,12 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   ```bash
   cmake --build --preset <preset> --target engine_compute_runtime_sample
   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-      --frames 512 --dt 0.016 --output telemetry/compute_dispatch.json --pretty
+      --frames 1024 --dt 0.016 --workload heavy --queues 3 \
+      --queue-names primary,async-0,async-1 --queue-map physics=async-0 \
+      --output telemetry/compute_dispatch.json --pretty
   ```
   Analyse the JSON payload with `scripts/diagnostics/compute_dispatch_report.py`
-  to highlight the hottest kernels and jitter outliers.
+  to highlight the hottest kernels, queue saturation, and jitter outliers.
 
 ## TODO / Next Steps
 
