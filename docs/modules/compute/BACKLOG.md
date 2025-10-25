@@ -1,6 +1,6 @@
 # Compute Module Roadmap
 
-_Last Updated: 2025-10-21_
+_Last Updated: 2025-11-11_
 
 ## Objectives
 
@@ -8,7 +8,7 @@ _Last Updated: 2025-10-21_
 | --- | --- | --- |
 | Dispatcher maturity | Document extension points, add dependency validation, ensure telemetry coverage. | ✅ Complete |
 | CUDA optionality | Maintain feature flag parity across presets and CI. | ✅ Complete |
-| Runtime alignment | Coordinate with runtime job graph for future async execution. | 🟢 Planned |
+| Runtime alignment | Coordinate with runtime job graph for future async execution. | ✅ Complete |
 
 ## Active Tasks
 
@@ -16,12 +16,13 @@ _Last Updated: 2025-10-21_
 | --- | --- | --- | --- | --- |
 | `CO-141` | Author dispatcher extension note covering registration and telemetry. | Compute team | 2025-03-07 | ✅ Complete |
 | `CO-150` | Implement kernel dependency cycle detection tooling. | Compute team | 2025-03-21 | ✅ Complete |
+| `AN-230` | Partner with animation to deliver GPU/parallel sampling benchmarks using dispatcher telemetry. | Animation & Compute | 2025-11-25 | 🟡 Planned |
 
 ## Upcoming Tasks
 
 | Task ID | Description | Dependency |
 | --- | --- | --- |
-| `CO-170` | Prototype runtime integration sample showing dispatcher orchestration. | After `RU-307` complete |
+| TBD | Scope follow-on dispatcher enhancements informed by `AN-230` results. | Pending benchmarking outcomes |
 
 ## Dependencies
 

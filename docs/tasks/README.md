@@ -11,10 +11,10 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 
 ## Current Focus
 
-- **`CO-170` — Kernel Dispatcher Runtime Integration Sample**
-  - **Why now?** With `RT-006` blocked on CI infrastructure, activating [`CO-170`](../ROADMAP.md) provides the highest-leverage path to advance the roadmap by unblocking animation GPU benchmarking (`AN-230`) and demonstrating dispatcher orchestration.
-  - **Value**: Establishes a reproducible runtime ↔ compute sample that validates asynchronous queue behaviour, feeds telemetry dashboards, and derisks follow-on GPU workloads.
-  - **Next Step**: Stand up the integration harness, land telemetry analysis tooling, and publish the design playbook/documentation updates captured in [`docs/tasks/CO-170-runtime-integration-sample.md`](CO-170-runtime-integration-sample.md).
+- **`AN-230` — GPU Parallel Sampling Benchmarks**
+  - **Why now?** With [`CO-170`](../ROADMAP.md) complete, the animation and compute teams can execute the benchmark plan in [`docs/design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md`](../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md) to quantify GPU queue performance and unblock downstream animation work.
+  - **Value**: Produces reproducible CPU/GPU comparisons, validates dispatcher queue budgets under animation workloads, and seeds telemetry dashboards for future optimisation.
+  - **Next Step**: Build the benchmarking harness, capture baseline telemetry, and wire the diagnostics workflow described in [`CO-170-runtime-integration-sample.md`](CO-170-runtime-integration-sample.md) into the new GPU scenarios.
 
 ## Index
 
