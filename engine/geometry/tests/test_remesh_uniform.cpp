@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <cmath>
+
 #include <gtest/gtest.h>
 
 #include "engine/geometry/remesh/remesh.hpp"
@@ -46,6 +49,31 @@ namespace engine::geometry
         const MeshEdgeStatistics stats = ComputeMeshEdgeStatistics(output.mesh);
         EXPECT_LT(stats.max_edge_length, request.targets.target_edge_length.value() * 1.75F);
         EXPECT_GT(output.statistics.iteration_count, 0U);
+    }
+
+    TEST(RemeshUniform, ReportsMaxErrorAgainstTarget)
+    {
+        SurfaceMesh mesh = make_unit_square_mesh();
+
+        RemeshRequest request{};
+        request.input_mesh = &mesh;
+        request.mode = RemeshingMode::kUniform;
+        request.targets.target_edge_length = 0.4F;
+        request.max_iterations = 5U;
+        request.relaxation_factor = 0.5F;
+        request.tangential_smoothing_weight = 0.5F;
+
+        const RemeshResult<RemeshOutput> result = Remesh(request);
+        ASSERT_TRUE(result.has_value());
+
+        const RemeshOutput& output = result.value();
+        const MeshEdgeStatistics stats = ComputeMeshEdgeStatistics(output.mesh);
+        const float target = request.targets.target_edge_length.value();
+        const float expected = std::max(std::fabs(stats.max_edge_length - target),
+                                        std::fabs(stats.min_edge_length - target));
+
+        EXPECT_GE(output.statistics.max_error, 0.0F);
+        EXPECT_NEAR(output.statistics.max_error, expected, 1e-4F);
     }
 
     TEST(RemeshUniform, UnsupportedModeReportsError)
