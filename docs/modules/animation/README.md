@@ -185,6 +185,7 @@ See [`../runtime/README.md`](../runtime/README.md) for orchestration details.
 - **Cache-friendly layout**: Keyframes are stored sequentially per joint for optimal prefetching
 - **SIMD opportunities**: Transform math uses the math module's vectorized types
 - **GPU sampling (active)**: `AN-230` is executing GPU-parallel sampling benchmarks via compute shaders using dispatcher telemetry
+- **Benchmark harness**: `engine_animation_benchmark_driver` captures CPU baselines and emits dispatcher-compatible telemetry. Build it with `cmake --build --preset <preset> --target engine_animation_benchmark_driver` and run with `--output` to produce JSON payloads for `compute_dispatch_report.py`.
 
 Current benchmarks (from `T-0113`):
 - CPU LBS: ~0.8ms per frame for 1000-vertex mesh with 20 joints
