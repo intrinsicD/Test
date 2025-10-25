@@ -40,6 +40,7 @@ RuntimeHost::tick
    ```bash
    ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
        --frames 1024 --dt 0.016 --workload balanced --queues 3 --baseline \
+       --jitter-budget-ms 0.5 \
        --queue-names main,async-0,async-1 --queue-map physics=async-0 \
        --output telemetry/compute_dispatch.json --pretty
    ```
@@ -66,6 +67,10 @@ The sample emits a JSON document with:
 - `summary.memory` – per-frame GPU staging estimates (vertex data, normals, and
   skinning transforms) with the 256 MiB animation budget baked in to surface
   memory regressions directly in diagnostics.
+- `metadata.frame_jitter_*` – frame dispatch jitter σ (ms), the configured
+  jitter budget, and a boolean indicating whether the run exceeded the budget.
+  The baseline block mirrors these fields so CI can gate on latency regressions
+  without recomputing statistics.
 - `diagnostics` – top-level tick counters and average frame duration.
 - `baseline` – average/min/max frame duration, jitter, and achieved speed-up for
   the single-queue reference run recorded when `--baseline` is provided.
@@ -100,8 +105,10 @@ and emits a warning if it falls below the `1.5×` target.
 - ✅ Sample executes deterministically for seeded workloads (1024 frames @ 16 ms).
 - ✅ Telemetry payload parses with `compute_dispatch_report.py` and exposes
   category totals, queue aggregates, and top kernels.
-- ✅ Jitter warnings triggered for kernels whose σ/μ exceeds configurable
-  thresholds (default 5%).
+- ✅ Frame jitter budget honoured (default 0.5 ms σ). Console summary and
+  diagnostics JSON warn when either the optimised run or the baseline capture
+  exceeds the configured budget, and per-kernel jitter warnings remain available
+  through the diagnostics script (`--jitter-threshold`).
 - ✅ Baseline capture (`--baseline`) records a single-queue reference, reports
   speed-up, and warns when the observed acceleration drops below the 1.5×
   target.

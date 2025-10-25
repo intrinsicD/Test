@@ -53,7 +53,16 @@ def _make_frame(index: int, dispatches: Dict[str, float]) -> Dict[str, Any]:
     }
 
 
-def _write_payload(path: Path, frames: List[Dict[str, Any]], *, baseline_speedup: float = 1.6) -> Path:
+def _write_payload(
+    path: Path,
+    frames: List[Dict[str, Any]],
+    *,
+    baseline_speedup: float = 1.6,
+    frame_jitter_ms: float = 0.2,
+    jitter_budget_ms: float = 0.5,
+    jitter_exceeds: bool = False,
+    baseline_stddev_ms: float = 0.2,
+) -> Path:
     payload = {
         "metadata": {
             "timestep": 0.016,
@@ -67,6 +76,9 @@ def _write_payload(path: Path, frames: List[Dict[str, Any]], *, baseline_speedup
                 {"category": "physics", "queue": "queue-1"},
                 {"category": "geometry", "queue": "queue-2"},
             ],
+            "frame_jitter_ms": frame_jitter_ms,
+            "frame_jitter_budget_ms": jitter_budget_ms,
+            "frame_jitter_exceeds_budget": jitter_exceeds,
         },
         "frames": frames,
         "summary": {
@@ -107,8 +119,10 @@ def _write_payload(path: Path, frames: List[Dict[str, Any]], *, baseline_speedup
             "average_frame_ms": 3.2,
             "min_frame_ms": 3.0,
             "max_frame_ms": 3.4,
-            "stddev_frame_ms": 0.2,
-            "jitter_percent": (0.2 / 3.2) * 100.0,
+            "stddev_frame_ms": baseline_stddev_ms,
+            "jitter_percent": (baseline_stddev_ms / 3.2) * 100.0,
+            "jitter_budget_ms": jitter_budget_ms,
+            "jitter_exceeds_budget": jitter_exceeds if baseline_stddev_ms == frame_jitter_ms else baseline_stddev_ms > jitter_budget_ms,
             "speedup": baseline_speedup,
             "target_speedup": 1.5,
             "memory_total_bytes": 4096 * 24 + 60 * 64,
@@ -128,6 +142,10 @@ def test_render_summary_lists_top_kernels(tmp_path: Path, capsys: pytest.Capture
             _make_frame(0, {"animation.evaluate": 0.4, "physics.integrate": 0.8, "geometry.deform": 0.6}),
             _make_frame(1, {"animation.evaluate": 0.5, "physics.integrate": 0.9, "geometry.deform": 0.7}),
         ],
+        frame_jitter_ms=0.18,
+        jitter_budget_ms=0.5,
+        jitter_exceeds=False,
+        baseline_stddev_ms=0.22,
     )
 
     report.main(["--input", str(payload_path), "--top", "2"])
@@ -146,6 +164,9 @@ def test_render_summary_lists_top_kernels(tmp_path: Path, capsys: pytest.Capture
     assert "Speed-up vs baseline: 1.600x (target 1.50x)" in output
     assert "GPU staging estimate:" in output
     assert "Baseline GPU staging:" in output
+    assert "Frame dispatch jitter σ: 0.180 ms (budget 0.500 ms)" in output
+    assert "WARNING: Frame dispatch jitter exceeds budget" not in output
+    assert "WARNING: Baseline frame dispatch jitter" not in output
 
 
 def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -157,6 +178,10 @@ def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[
             _make_frame(2, {"animation.evaluate": 0.4, "physics.integrate": 0.5}),
         ],
         baseline_speedup=1.2,
+        frame_jitter_ms=0.75,
+        jitter_budget_ms=0.5,
+        jitter_exceeds=True,
+        baseline_stddev_ms=0.72,
     )
 
     report.main(["--input", str(payload_path), "--jitter-threshold", "5.0", "--top", "1"])
@@ -165,3 +190,5 @@ def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[
     assert "WARNING" in output
     assert "physics.integrate" in output
     assert "Speed-up below performance target" in output
+    assert "WARNING: Frame dispatch jitter exceeds budget" in output
+    assert "WARNING: Baseline frame dispatch jitter" in output

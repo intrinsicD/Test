@@ -62,6 +62,9 @@ scenarios align with their benchmark matrix.
 - 2025-11-05: Telemetry export now embeds GPU staging estimates and warns when
   the runtime sample exceeds the 256 MiB animation budget, satisfying the
   memory acceptance criteria for `CO-170`.
+- 2025-11-06: Runtime sample exposes `--jitter-budget-ms` and diagnostics warn
+  when frame dispatch jitter exceeds the 0.5 ms budget for both optimised and
+  baseline captures, meeting the latency acceptance criteria.
 
 ---
 

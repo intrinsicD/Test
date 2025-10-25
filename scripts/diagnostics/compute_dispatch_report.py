@@ -93,6 +93,9 @@ class ReportPayload:
     summary: ReportSummary
     stage_timings: List[MutableMapping[str, object]]
     baseline: Optional[BaselineStats]
+    frame_jitter_ms: float
+    frame_jitter_budget_ms: Optional[float]
+    frame_jitter_exceeds_budget: bool
 
 
 @dataclass
@@ -263,12 +266,34 @@ def load_report(path: Path) -> ReportPayload:
             memory_budget_mebibytes=float(baseline_payload.get("memory_budget_mebibytes", 0.0)),
             memory_exceeds_budget=bool(baseline_payload.get("memory_exceeds_budget", False)),
         )
+    jitter_budget_raw = metadata.get("frame_jitter_budget_ms")
+    jitter_budget: Optional[float]
+    if isinstance(jitter_budget_raw, (int, float)):
+        jitter_budget = float(jitter_budget_raw)
+    else:
+        jitter_budget = None
+    jitter_ms_raw = metadata.get("frame_jitter_ms")
+    if isinstance(jitter_ms_raw, (int, float)):
+        frame_jitter_ms = float(jitter_ms_raw)
+    else:
+        frame_jitter_ms = summary.frame_totals.stddev_ms
+    exceeds_raw = metadata.get("frame_jitter_exceeds_budget")
+    if isinstance(exceeds_raw, bool):
+        frame_jitter_exceeds_budget = exceeds_raw
+    elif jitter_budget is not None:
+        frame_jitter_exceeds_budget = frame_jitter_ms > jitter_budget
+    else:
+        frame_jitter_exceeds_budget = False
+
     return ReportPayload(
         metadata=metadata,
         frames=frames,
         summary=summary,
         stage_timings=stage_timings,
         baseline=baseline_stats,
+        frame_jitter_ms=frame_jitter_ms,
+        frame_jitter_budget_ms=jitter_budget,
+        frame_jitter_exceeds_budget=frame_jitter_exceeds_budget,
     )
 
 
@@ -320,6 +345,15 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
     if assignments:
         lines.append(f"Queue assignments: {', '.join(assignments)}")
     lines.append(f"Average frame dispatch time: {payload.summary.frame_totals.mean_ms:.3f} ms")
+    jitter_budget = payload.frame_jitter_budget_ms
+    if jitter_budget is not None:
+        lines.append(
+            f"Frame dispatch jitter σ: {payload.frame_jitter_ms:.3f} ms (budget {jitter_budget:.3f} ms)"
+        )
+        if payload.frame_jitter_exceeds_budget:
+            lines.append("WARNING: Frame dispatch jitter exceeds budget")
+    else:
+        lines.append(f"Frame dispatch jitter σ: {payload.frame_jitter_ms:.3f} ms")
 
     if payload.baseline is not None:
         baseline = payload.baseline
@@ -337,6 +371,11 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
         )
         if baseline.speedup < baseline.target_speedup:
             lines.append("WARNING: Speed-up below performance target")
+        if jitter_budget is not None and baseline.stddev_frame_ms > jitter_budget:
+            lines.append(
+                "WARNING: Baseline frame dispatch jitter "
+                f"{baseline.stddev_frame_ms:.3f} ms exceeds budget {jitter_budget:.3f} ms"
+            )
         if baseline.memory_total_bytes > 0:
             lines.append(
                 f"Baseline GPU staging: {baseline.memory_total_mebibytes:.3f} MiB (budget {baseline.memory_budget_mebibytes:.3f} MiB)"

@@ -48,6 +48,11 @@ namespace
         Heavy,
     };
 
+    constexpr double kBaselineSpeedupTarget = 1.5;
+    constexpr std::size_t kMemoryBudgetBytes = 256ULL * 1024ULL * 1024ULL;
+    constexpr double kBytesPerMebibyte = 1024.0 * 1024.0;
+    constexpr double kDefaultFrameJitterBudgetMs = 0.5;
+
     struct CommandLineOptions
     {
         bool show_help{false};
@@ -60,11 +65,8 @@ namespace
         std::map<std::string, std::string> queue_overrides{};
         std::optional<std::filesystem::path> output_path{};
         bool include_baseline{false};
+        double jitter_budget_ms{kDefaultFrameJitterBudgetMs};
     };
-
-    constexpr double kBaselineSpeedupTarget = 1.5;
-    constexpr std::size_t kMemoryBudgetBytes = 256ULL * 1024ULL * 1024ULL;
-    constexpr double kBytesPerMebibyte = 1024.0 * 1024.0;
 
     [[nodiscard]] std::string_view workload_to_string(WorkloadProfile workload) noexcept
     {
@@ -366,6 +368,7 @@ namespace
                << "  --queue-names LIST   Comma-separated queue names (implies --queues=LIST length)\n"
                << "  --queue-map category=queue   Override queue selection for a category\n"
                << "  --workload PROFILE  Workload intensity: light | balanced | heavy (default: balanced)\n"
+               << "  --jitter-budget-ms VALUE  Maximum allowed frame dispatch jitter σ in milliseconds (default: 0.5)\n"
                << "  --baseline   Capture a single-queue baseline run and report speed-up (target 1.5x)\n"
                << "  --output FILE Write JSON payload to FILE instead of stdout\n"
                << "  --pretty     Emit indented JSON when writing to FILE\n"
@@ -500,6 +503,15 @@ namespace
                 options.workload = parse_workload(argv[++index]);
                 continue;
             }
+            if (argument == "--jitter-budget-ms")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--jitter-budget-ms requires a value"};
+                }
+                options.jitter_budget_ms = parse_double(argv[++index]);
+                continue;
+            }
 
             std::ostringstream stream;
             stream << "Unknown argument: " << argument;
@@ -517,6 +529,10 @@ namespace
         if (options.queue_count == 0U)
         {
             throw std::invalid_argument{"--queues must be greater than zero"};
+        }
+        if (!(options.jitter_budget_ms >= 0.0))
+        {
+            throw std::invalid_argument{"--jitter-budget-ms must be non-negative"};
         }
 
         if (!options.queue_names.empty())
@@ -721,6 +737,7 @@ namespace
         std::map<std::string, std::string> queue_assignments{};
         compute::DependencyGraph dependency_graph{};
         MemoryUsageSummary memory{};
+        double jitter_budget_ms{kDefaultFrameJitterBudgetMs};
     };
 
     [[nodiscard]] MemoryUsageSummary compute_memory_usage(const runtime::RuntimeHost& host)
@@ -885,6 +902,7 @@ namespace
         RunResult result{};
         result.workload = options.workload;
         result.requested_frames = options.frames;
+        result.jitter_budget_ms = options.jitter_budget_ms;
         const std::size_t queue_count = std::max<std::size_t>(1U, options.queue_count);
         if (!options.queue_names.empty())
         {
@@ -1114,6 +1132,20 @@ namespace
             }
         }
 
+        const double frame_jitter_ms = result.summary.frame_totals.stddev_ms;
+        std::cout << '\n' << "Frame dispatch jitter σ: " << std::fixed << std::setprecision(3) << frame_jitter_ms
+                  << " ms (budget " << std::setprecision(3) << result.jitter_budget_ms << " ms)";
+        const bool frame_jitter_exceeded = frame_jitter_ms > result.jitter_budget_ms && result.jitter_budget_ms >= 0.0;
+        if (frame_jitter_exceeded)
+        {
+            std::cout << " ⚠";
+        }
+        std::cout << '\n';
+        if (frame_jitter_exceeded)
+        {
+            std::cout << "  WARNING: Frame dispatch jitter exceeds the configured budget." << '\n';
+        }
+
         if (!result.summary.queue_dependencies.empty())
         {
             std::cout << '\n' << "Cross-queue synchronization (fences):" << '\n';
@@ -1167,6 +1199,25 @@ namespace
                 std::cout << " (below " << std::setprecision(2) << kBaselineSpeedupTarget << "x target)";
             }
             std::cout << '\n';
+            const bool baseline_jitter_exceeded = result.jitter_budget_ms >= 0.0 && stats.stddev_ms > result.jitter_budget_ms;
+            if (frame_jitter_exceeded || baseline_jitter_exceeded)
+            {
+                std::cout << "Baseline jitter σ: " << std::fixed << std::setprecision(3) << stats.stddev_ms
+                          << " ms";
+                if (result.jitter_budget_ms >= 0.0)
+                {
+                    std::cout << " (budget " << std::setprecision(3) << result.jitter_budget_ms << " ms)";
+                    if (baseline_jitter_exceeded)
+                    {
+                        std::cout << " ⚠";
+                    }
+                }
+                std::cout << '\n';
+                if (baseline_jitter_exceeded)
+                {
+                    std::cout << "  WARNING: Baseline frame dispatch jitter exceeds the configured budget." << '\n';
+                }
+            }
         }
 
         std::cout << std::endl;
@@ -1408,6 +1459,41 @@ namespace
         {
             stream << '\n';
         }
+        const double frame_jitter_ms = result.summary.frame_totals.stddev_ms;
+        const bool frame_jitter_exceeded = frame_jitter_ms > result.jitter_budget_ms && result.jitter_budget_ms >= 0.0;
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "frame_jitter_ms" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << frame_jitter_ms << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "frame_jitter_budget_ms" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << result.jitter_budget_ms << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "frame_jitter_exceeds_budget" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << (frame_jitter_exceeded ? "true" : "false") << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
         write_indent(stream, 2U, pretty);
         stream << '"' << "clock" << '"' << ':';
         if (pretty)
@@ -1551,11 +1637,14 @@ namespace
                 stream << '\n';
             }
 
+            const bool baseline_jitter_exceeded = stats.stddev_ms > result.jitter_budget_ms && result.jitter_budget_ms >= 0.0;
             emit_number("average_frame_ms", stats.mean_ms, false);
             emit_number("min_frame_ms", stats.min_ms, false);
             emit_number("max_frame_ms", stats.max_ms, false);
             emit_number("stddev_frame_ms", stats.stddev_ms, false);
             emit_number("jitter_percent", stats.jitter_percent(), false);
+            emit_number("jitter_budget_ms", result.jitter_budget_ms, false);
+            emit_bool("jitter_exceeds_budget", baseline_jitter_exceeded, false);
             emit_number("speedup", baseline_speedup, false);
             emit_number("target_speedup", kBaselineSpeedupTarget, false);
             emit_size("memory_total_bytes", baseline->summary.memory.total_bytes, false);

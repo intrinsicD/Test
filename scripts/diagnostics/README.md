@@ -90,6 +90,7 @@ workloads.
    ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
        --frames 1024 --dt 0.016 --workload heavy --queues 3 \
        --queue-names main,async-0,async-1 --queue-map physics=async-0 \
+       --jitter-budget-ms 0.5 \
        --output telemetry/compute_dispatch.json --pretty
    ```
 2. Render the summary:
@@ -98,8 +99,10 @@ workloads.
        --input telemetry/compute_dispatch.json --top 5 --jitter-threshold 5
    ```
 3. Inspect the console output for the hottest kernels, per-category totals,
-   queue assignments, and runtime stage timings. When `--jitter-threshold` is supplied the tool emits
-   warnings for kernels whose standard deviation exceeds the threshold.
+   queue assignments, runtime stage timings, and frame dispatch jitter. The tool reads the
+   jitter budget recorded by the runtime sample (default 0.5 ms σ) and emits warnings when either the
+   optimised run or its single-queue baseline exceeds the configured budget. Supplying `--jitter-threshold`
+   still enables per-kernel jitter outlier detection for additional diagnostics.
 
 Use `--output` to persist the textual summary for dashboards or CI artefacts.
 Provide `--baseline` to the runtime sample to capture a single-queue reference;
