@@ -68,6 +68,8 @@ scenarios align with their benchmark matrix.
 
 - **AN-230** — GPU/parallel sampling benchmarks (blocked on `CO-170` compute queue extensions)
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
+  - 2025-11-05: Uniform remeshing baseline (split/collapse + relaxation) available via
+    `Remesh`, returning `RemeshOutput` statistics for downstream tooling.
   - 2025-11-03: Remesh request/validation scaffolding merged to capture
     configuration semantics ahead of kernel implementation.
 - 2025-11-02: Surface topology summary utilities landed (`AnalyzeSurfaceTopology`) to
