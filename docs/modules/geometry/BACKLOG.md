@@ -49,3 +49,5 @@ roadmap after each milestone.
 - 2025-11-02 — Added surface topology summary utilities (`AnalyzeSurfaceTopology`)
   to classify boundary, crease, and non-manifold features ahead of the
   `GE-221+` remeshing milestones.
+- 2025-11-03 — Introduced remeshing request/validation scaffolding aligning with
+  `GE-212` to unblock `GE-221+` execution work.
