@@ -45,6 +45,10 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 guidance for upcoming async workloads. Coordinate with animation team so sample
 scenarios align with their benchmark matrix.
 
+- 2025-10-30: Initial `engine_compute_runtime_sample` harness and
+  `compute_dispatch_report.py` landed to capture dispatcher telemetry and
+  support jitter analysis for `CO-170.1`.
+
 ---
 
 ## 📎 Backlog (Prioritized)

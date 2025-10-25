@@ -206,6 +206,15 @@ ctest --preset linux-gcc-debug -R runtime
 - Run runtime integration tests:
   - `ctest --preset linux-gcc-debug -R runtime`
 - See `engine/tests/integration/test_runtime_integration.cpp` and `scripts/diagnostics/` for telemetry scripts.
+- Capture dispatcher telemetry using the compute runtime sample:
+  ```bash
+  cmake --build --preset <preset> --target engine_compute_runtime_sample
+  ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
+      --frames 512 --dt 0.016 --output telemetry/compute_dispatch.json
+  python scripts/diagnostics/compute_dispatch_report.py --input telemetry/compute_dispatch.json --top 5
+  ```
+  The workflow exercises `RuntimeHost` end-to-end, records per-kernel timings,
+  and surfaces jitter warnings for `CO-170`.
 
 ## TODO / Next Steps
 

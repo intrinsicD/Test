@@ -31,6 +31,8 @@ if(TARGET engine_compute_cuda AND ENGINE_ENABLE_COMPUTE_CUDA)
     )
 endif()
 
+add_subdirectory(samples)
+
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
