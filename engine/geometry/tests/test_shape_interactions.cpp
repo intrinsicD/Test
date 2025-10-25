@@ -410,6 +410,21 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(ellipsoid, Line{{0, 3, 0}, {1, 0, 0}}, nullptr));
     }
 
+    TEST(EllipsoidIntersection, EllipsoidLineSymmetricResultParity)
+    {
+        const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Line line{{-3, 0, 0}, {1, 0, 0}};
+
+        Result forward{};
+        ASSERT_TRUE(Intersects(ellipsoid, line, &forward));
+
+        Result reverse{};
+        ASSERT_TRUE(Intersects(line, ellipsoid, &reverse));
+
+        EXPECT_NEAR(forward.t_min, reverse.t_min, 1e-5f);
+        EXPECT_NEAR(forward.t_max, reverse.t_max, 1e-5f);
+    }
+
     TEST(EllipsoidIntersection, EllipsoidObb)
     {
         const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
@@ -439,6 +454,21 @@ namespace engine::geometry
         EXPECT_GE(result.t_min, 0);
     }
 
+    TEST(EllipsoidIntersection, EllipsoidRaySymmetricResultParity)
+    {
+        const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Ray ray{{-4, 0, 0}, {1, 0, 0}};
+
+        Result forward{};
+        ASSERT_TRUE(Intersects(ellipsoid, ray, &forward));
+
+        Result reverse{};
+        ASSERT_TRUE(Intersects(ray, ellipsoid, &reverse));
+
+        EXPECT_NEAR(forward.t_min, reverse.t_min, 1e-5f);
+        EXPECT_NEAR(forward.t_max, reverse.t_max, 1e-5f);
+    }
+
     TEST(EllipsoidIntersection, EllipsoidSegment)
     {
         const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
@@ -447,6 +477,23 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(ellipsoid, through, nullptr));
         EXPECT_FALSE(Intersects(ellipsoid, outside, nullptr));
+    }
+
+    TEST(EllipsoidIntersection, EllipsoidSegmentSymmetricResultParity)
+    {
+        const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Segment segment{{-3, 0, 0}, {3, 0, 0}};
+
+        Result forward{};
+        ASSERT_TRUE(Intersects(ellipsoid, segment, &forward));
+
+        Result reverse{};
+        ASSERT_TRUE(Intersects(segment, ellipsoid, &reverse));
+
+        EXPECT_NEAR(forward.t_min, reverse.t_min, 1e-5f);
+        EXPECT_NEAR(forward.t_max, reverse.t_max, 1e-5f);
+        EXPECT_GE(forward.t_min, 0.0f);
+        EXPECT_LE(forward.t_max, 1.0f);
     }
 
     TEST(EllipsoidIntersection, EllipsoidSphere)
