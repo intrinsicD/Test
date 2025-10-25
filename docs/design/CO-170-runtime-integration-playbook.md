@@ -59,6 +59,10 @@ The sample emits a JSON document with:
   category totals, and aggregate frame time.
 - `summary.stage_timings[]` – runtime stage timing snapshot for correlation.
 - `summary.queues[]` – queue aggregates mirroring the per-category roll-up.
+- `summary.queue_dependencies[]` – aggregated cross-queue fences highlighting
+  where timeline synchronization occurs along with the consuming kernels.
+- `summary.queue_transitions[]` – edge list capturing every producer/consumer
+  pair crossing queue boundaries to help reconstruct fence sequencing.
 - `diagnostics` – top-level tick counters and average frame duration.
 
 `compute_dispatch_report.py` recomputes aggregate statistics, highlights
