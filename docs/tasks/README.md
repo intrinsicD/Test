@@ -19,6 +19,7 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 - [`T-0118-testing-framework-upgrade.md`](T-0118-testing-framework-upgrade.md) – restore fixture support in the Googletest dependency to unblock `TI-001`.
 - [`DC-003-sdl-backend-implementation.md`](DC-003-sdl-backend-implementation.md) – execute the SDL backend parity plan for `DC-003`.
 - [`DC-003.1-sdl-window-lifecycle.md`](DC-003.1-sdl-window-lifecycle.md) – implement native SDL window lifecycle, deterministic event pumping, and telemetry to unblock `DC-003`.
+- [`DC-003.2-sdl-swapchain-surface-export.md`](DC-003.2-sdl-swapchain-surface-export.md) – deliver SDL swapchain surface export and fallback alignment so rendering/tests can execute without GLFW.
 - [`T-0115-assets-async-streaming-mvp.md`](T-0115-assets-async-streaming-mvp.md) – complete the async streaming MVP for `AI-002`.
 - [`T-0116-rendering-vulkan-resource-translation.md`](T-0116-rendering-vulkan-resource-translation.md) – finish Vulkan backend deliverables for `RT-003`.
 - [`T-0119-rendering-command-encoder-implementation.md`](T-0119-rendering-command-encoder-implementation.md) – implement concrete command encoders for all graphics backends.
