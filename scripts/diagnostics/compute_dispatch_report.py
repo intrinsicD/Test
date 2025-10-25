@@ -12,9 +12,19 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, MutableMapping, Optional, Sequence
+
+
+def _extract_warnings(section: str) -> List[str]:
+    warnings: List[str] = []
+    for raw_line in section.splitlines():
+        line = raw_line.strip()
+        if line.startswith("WARNING"):
+            warnings.append(line)
+    return warnings
 
 
 @dataclass
@@ -569,6 +579,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional file to write the rendered report",
     )
+    parser.add_argument(
+        "--exit-on-warning",
+        action="store_true",
+        help="Return a non-zero exit status when warnings are emitted",
+    )
     return parser
 
 
@@ -595,10 +610,21 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         sections.append(variance_section)
 
     report = "\n\n".join(sections)
+    warnings: List[str] = []
+    for section in sections:
+        warnings.extend(_extract_warnings(section))
 
     print(report)
     if args.output:
         args.output.write_text(report + "\n", encoding="utf-8")
+
+    if args.exit_on_warning and warnings:
+        warning_count = len(warnings)
+        print(
+            f"compute_dispatch_report: {warning_count} warning(s) emitted; failing due to --exit-on-warning.",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
