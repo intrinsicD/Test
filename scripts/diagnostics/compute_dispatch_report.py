@@ -326,6 +326,10 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
     queue_count = int(queue_count_meta) if isinstance(queue_count_meta, (int, float)) else (
         len(queue_names) if queue_names else max(len(payload.summary.queues), 1)
     )
+    run_index_meta = payload.metadata.get("run_index")
+    run_count_meta = payload.metadata.get("run_count")
+    run_index = int(run_index_meta) if isinstance(run_index_meta, (int, float)) else None
+    run_count = int(run_count_meta) if isinstance(run_count_meta, (int, float)) else None
 
     lines.append("Compute Dispatcher Report")
     lines.append(f"Frames: {payload.summary.frame_totals.samples}")
@@ -334,6 +338,8 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
     lines.append(f"Clock: {clock_name} ({clock_domain})")
     lines.append(f"Workload: {workload}")
     lines.append(f"Dispatcher backend: {dispatcher_backend}")
+    if run_index is not None and run_count is not None and run_count > 1:
+        lines.append(f"Run: {run_index}/{run_count}")
     if queue_names:
         lines.append(f"Queues: {queue_count} ({', '.join(queue_names)})")
     else:

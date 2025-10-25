@@ -40,9 +40,9 @@ RuntimeHost::tick
    ```bash
    ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
        --frames 1024 --dt 0.016 --workload balanced --dispatcher-backend cpu --queues 3 --baseline \
-       --jitter-budget-ms 0.5 \
+       --repeat 3 --jitter-budget-ms 0.5 \
        --queue-names main,async-0,async-1 --queue-map physics=async-0 \
-       --output telemetry/compute_dispatch.json --pretty
+       --output telemetry/compute_dispatch.json --output-dir telemetry/runs --pretty
    ```
 3. **Analyse results**
    ```bash
@@ -51,19 +51,21 @@ RuntimeHost::tick
    ```
 
    Provide additional telemetry captures to the same command (`--input` accepts
-   multiple paths) when validating benchmark stability. The reporter prints a
-   run-to-run variance summary and warns when the aggregated standard deviation
-   exceeds the configurable `--variance-threshold` (default 2%). This keeps the
-   "≤2% variance" roadmap requirement actionable without manual spreadsheet
-   analysis.
+   multiple paths) when validating benchmark stability. The runtime sample can
+   now generate repeated captures automatically via `--repeat`; each run writes
+   a uniquely suffixed payload into `--output-dir` (defaulting to the parent of
+   `--output`). The reporter prints a run-to-run variance summary and warns when
+   the aggregated standard deviation exceeds the configurable
+   `--variance-threshold` (default 2%). This keeps the "≤2% variance" roadmap
+   requirement actionable without manual spreadsheet analysis.
 
 ## Telemetry Payload
 
 The sample emits a JSON document with:
 
 - `metadata` – timestep, dispatcher size, requested frame count, workload
-  profile, dispatcher backend, queue count/names, queue assignments, and clock
-  name/domain.
+  profile, dispatcher backend, queue count/names, queue assignments, clock
+  name/domain, and per-run identifiers (`run_index`, `run_count`).
 - `frames[]` – per-frame dispatch order, per-dispatch duration (ms), queue and
   category totals, and aggregate frame time.
 - `summary.stage_timings[]` – runtime stage timing snapshot for correlation.
@@ -88,7 +90,10 @@ categories and queues with the largest total contribution, and warns when the
 standard deviation-to-mean ratio (jitter) exceeds configurable thresholds.
 Persist the rendered report (`--output`) in CI to track regressions over time.
 When the baseline block is present the script also prints the observed speed-up
-and emits a warning if it falls below the `1.5×` target.
+and emits a warning if it falls below the `1.5×` target. When metadata includes
+`run_index`/`run_count`, the summary surfaces the current run alongside the
+variance section so benchmark automation can correlate per-run diagnostics with
+the repeated captures emitted by the sample.
 
 ## Extending Workloads
 

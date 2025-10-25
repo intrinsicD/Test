@@ -18,7 +18,7 @@ cmake --build --preset linux-gcc-debug --target engine_compute_runtime_sample
 ```bash
 ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
     --frames 1024 --dt 0.016 --workload balanced --dispatcher-backend cpu --queues 3 \
-    --output telemetry/compute_dispatch.json --pretty
+    --repeat 3 --baseline --output telemetry/compute_dispatch.json --pretty
 ```
 
 Options:
@@ -30,9 +30,11 @@ Options:
 - `--queues N` – logical compute queues to attribute telemetry to (default 1)
 - `--queue-names LIST` – comma-separated queue names (e.g. `async-a,async-b`); overrides the default `queue-N` labels
 - `--queue-map category=queue` – pin a category (e.g. `physics`) to a specific queue label
+- `--repeat COUNT` – execute the capture `COUNT` times sequentially; each run emits distinct output and embeds its index in metadata
 - `--jitter-budget-ms VALUE` – maximum allowed frame dispatch jitter σ in milliseconds before warnings are emitted (default 0.5)
 - `--baseline` – capture a single-queue baseline and report the achieved speed-up versus the optimised run (target 1.5×)
 - `--output FILE` – path to write the JSON telemetry payload
+- `--output-dir DIR` – directory for JSON payloads when repeating (defaults to the parent directory of `--output`)
 - `--pretty` – emit indented JSON when writing to `FILE`
 - `--help` – display the command reference
 
@@ -69,3 +71,11 @@ The runtime enforces the jitter budget by default (0.5 ms σ at 60 FPS): the
 console summary and JSON metadata flag both the optimised run and the baseline
 when dispatch-to-completion jitter exceeds the configured budget so CI captures
 latency regressions automatically.
+
+When `--repeat` is provided the executable replays the workload the requested
+number of times. Each capture writes a unique JSON payload whose filename is
+derived from `--output` (or `compute_dispatch-runXX.json` when only
+`--output-dir` is supplied). Metadata records `run_index`/`run_count` so
+`compute_dispatch_report.py` can surface run-to-run variance alongside the main
+summary, making it easier to build benchmark suites that track dispatcher
+stability over time.
