@@ -13,6 +13,7 @@ add_library(${target_name}
     src/topology/surface_topology.cpp
     src/point_cloud/point_cloud.cpp
     src/point_cloud/point_cloud_io.cpp
+    src/remesh/remesh.cpp
     src/shapes/aabb.cpp
     src/shapes/cylinder.cpp
     src/shapes/ellipsoid.cpp
@@ -36,6 +37,7 @@ engine_apply_module_defaults(${target_name}
 
 target_link_libraries(${target_name}
     PUBLIC
+        engine_core
         engine_animation
         engine_math
 )

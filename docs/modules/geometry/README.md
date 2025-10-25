@@ -141,6 +141,41 @@ The frustum is defined by 6 planes (left, right, bottom, top, near, far) with no
 - **Frustum-Sphere**: signed distance to all planes vs. radius
 - **Frustum-Point**: containment test against all planes
 
+### Remeshing Requests (GE-221+)
+
+The Phase 0 scaffolding for the remeshing roadmap introduces validated request
+and policy structures so upcoming kernels can share consistent configuration
+parsing and error handling:
+
+```cpp
+#include "engine/geometry/remesh/remesh.hpp"
+
+SurfaceMesh mesh = /* populated elsewhere */;
+
+engine::geometry::RemeshRequest request{};
+request.input_mesh = &mesh;
+request.mode = engine::geometry::RemeshingMode::kUniform;
+request.targets.target_edge_length = 0.05f;
+request.parameterization.mode = engine::geometry::ParameterizationMode::kGenerateLscm;
+request.parameterization.target_texel_density = 512.0f;
+
+const engine::geometry::RemeshValidationResult validation =
+    engine::geometry::ValidateRemeshRequest(request);
+if (!validation.has_value())
+{
+    const auto& error = validation.error();
+    // Surface useful diagnostics before executing expensive kernels.
+    // log_warning("Remesh request rejected: {}", error.message());
+}
+```
+
+`RemeshRequest` captures edge-length targets, feature preservation options,
+attribute transfer policies, and parameterisation preferences while
+`ValidateRemeshRequest` enforces the invariants published in the
+[`GE-212` remeshing RFP](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md).
+Future execution milestones (`GE-221+`) will consume these structures directly
+and emit `RemeshOutput` statistics once kernels land.
+
 ## IO Integration
 
 Load and save meshes via the module API:
