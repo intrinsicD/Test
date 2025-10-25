@@ -2,7 +2,7 @@
 
 **Status:** Draft (foundation complete)  
 **Owner:** Compute / Runtime Engineering  
-**Updated:** 2025-10-31
+**Updated:** 2025-11-08
 
 ## Purpose
 
@@ -38,9 +38,9 @@ RuntimeHost::tick
    ```
 2. **Capture telemetry**
    ```bash
-  ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-      --frames 1024 --dt 0.016 --workload balanced --dispatcher-backend cpu --queues 3 --baseline \
-      --jitter-budget-ms 0.5 \
+   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
+       --frames 1024 --dt 0.016 --workload balanced --dispatcher-backend cpu --queues 3 --baseline \
+       --jitter-budget-ms 0.5 \
        --queue-names main,async-0,async-1 --queue-map physics=async-0 \
        --output telemetry/compute_dispatch.json --pretty
    ```
@@ -120,3 +120,9 @@ and emits a warning if it falls below the `1.5×` target.
   dispatcher queue extensions land.
 - 🚧 Follow-up: feed captures into CI dashboards and baseline per-dispatch
   budgets for regression alerts.
+
+## Update Log
+
+- 2025-11-08: Documented dispatcher backend selection metadata and jitter/memory
+  budget warnings for both optimised and baseline captures; refreshed command
+  examples to highlight new flags.

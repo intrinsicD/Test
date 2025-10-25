@@ -170,6 +170,62 @@ float sum = compute::reduce_sum(values);
 float max_val = compute::reduce_max(values);
 ```
 
+## Runtime Integration Sample
+
+`engine_compute_runtime_sample` is the end-to-end harness delivered by
+[`CO-170`](../../tasks/CO-170-runtime-integration-sample.md). It advances
+`RuntimeHost`, schedules animation/physics/geometry kernels through the dispatcher,
+and records telemetry that mirrors production workloads.
+
+### Build
+
+```bash
+cmake --build --preset <preset> --target engine_compute_runtime_sample
+# Example
+cmake --build --preset linux-gcc-debug --target engine_compute_runtime_sample
+```
+
+### Capture Telemetry
+
+```bash
+./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
+    --frames 1024 --dt 0.016 --workload balanced --queues 3 \
+    --dispatcher-backend cpu --baseline --jitter-budget-ms 0.5 \
+    --queue-names main,async-0,async-1 --queue-map physics=async-0 \
+    --output telemetry/compute_dispatch.json --pretty
+```
+
+Key CLI options:
+
+- `--dispatcher-backend cpu|cuda` – select CPU or CUDA dispatchers (metadata
+  records both optimised and baseline backends).
+- `--baseline` – run a single-queue reference capture and emit the observed
+  speed-up; the diagnostics report warns when it drops below the 1.5× target.
+- `--jitter-budget-ms` – enforce the ≤0.5 ms dispatch jitter budget (both the
+  optimised run and the baseline emit warnings when exceeded).
+- `--queue-names` / `--queue-map` – label queues and pin categories to specific
+  queues. Unmapped categories fall back to deterministic FNV-1a hashing so
+  telemetry comparisons remain reproducible across platforms.
+
+The JSON payload embeds per-dispatch timings, per-queue/category aggregates,
+cross-queue fences, runtime stage timings, GPU staging estimates (256 MiB
+budget), and frame jitter statistics so CI dashboards can audit regressions.
+
+### Analyse Results
+
+Use the diagnostics helper to render a textual summary or gate CI thresholds:
+
+```bash
+python scripts/diagnostics/compute_dispatch_report.py \
+    --input telemetry/compute_dispatch.json --top 5 --jitter-threshold 5 \
+    --output telemetry/compute_dispatch.txt
+```
+
+The report lists top kernels, queue/category totals, jitter warnings, baseline
+speed-up, memory estimates, and cross-queue dependency summaries. See
+[`docs/design/CO-170-runtime-integration-playbook.md`](../../design/CO-170-runtime-integration-playbook.md)
+for a deeper walkthrough.
+
 ## Integration with Physics
 
 The physics module uses the dispatcher for simulation:
