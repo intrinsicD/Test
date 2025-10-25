@@ -167,6 +167,16 @@ if (!validation.has_value())
     // Surface useful diagnostics before executing expensive kernels.
     // log_warning("Remesh request rejected: {}", error.message());
 }
+
+const engine::geometry::RemeshResult<engine::geometry::ResolvedRemeshingTargets> resolved_targets =
+    engine::geometry::ResolveRemeshingTargets(request);
+if (resolved_targets.has_value())
+{
+    const engine::geometry::ResolvedRemeshingTargets& targets = resolved_targets.value();
+    const float target_length = targets.target_edge_length.value();
+    const float mean_length = targets.edge_statistics.mean_edge_length();
+    // Feed derived targets into remeshing kernels and telemetry reporting.
+}
 ```
 
 `RemeshRequest` captures edge-length targets, feature preservation options,
@@ -175,6 +185,11 @@ attribute transfer policies, and parameterisation preferences while
 [`GE-212` remeshing RFP](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md).
 Future execution milestones (`GE-221+`) will consume these structures directly
 and emit `RemeshOutput` statistics once kernels land.
+
+Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
+or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request and
+produces consistent absolute edge-length targets even when callers specify only a
+relative scale.
 
 ## IO Integration
 
