@@ -39,5 +39,12 @@ When `--output` is supplied the JSON payload captures every frame, per-dispatch 
 (milliseconds), queue and category roll-ups, and runtime stage timings
 harvested from `RuntimeHost::diagnostics()`.
 
+Cross-queue dependencies are recorded explicitly: the summary lists every
+logical fence where work crosses queue boundaries and the JSON payload exposes
+`queue_dependencies` (aggregated counts and consuming kernels) alongside the
+`queue_transitions` edge list. This instrumentation makes it possible to audit
+timeline semaphore sequencing and validate multi-queue orchestration in
+telemetry dashboards.
+
 Combine the JSON output with `scripts/diagnostics/compute_dispatch_report.py`
 to render tabular summaries or enforce jitter thresholds in CI.

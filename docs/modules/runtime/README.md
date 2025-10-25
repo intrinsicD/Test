@@ -216,7 +216,8 @@ ctest --preset linux-gcc-debug -R runtime
   python scripts/diagnostics/compute_dispatch_report.py --input telemetry/compute_dispatch.json --top 5
   ```
   The workflow exercises `RuntimeHost` end-to-end, records per-kernel timings,
-  reports queue utilisation, and surfaces jitter warnings for `CO-170`.
+  reports queue utilisation, enumerates cross-queue fences, and surfaces jitter
+  warnings for `CO-170`.
 
 ## TODO / Next Steps
 

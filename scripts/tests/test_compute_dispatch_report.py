@@ -74,7 +74,23 @@ def _write_payload(path: Path, frames: List[Dict[str, Any]]) -> Path:
         "summary": {
             "stage_timings": [
                 {"name": "animation.evaluate", "last_ms": 0.5, "average_ms": 0.45, "max_ms": 0.7, "samples": 8}
-            ]
+            ],
+            "queue_dependencies": [
+                {
+                    "from_queue": "queue-0",
+                    "to_queue": "queue-1",
+                    "edge_count": 2,
+                    "consumer_kernels": ["physics.integrate"],
+                }
+            ],
+            "queue_transitions": [
+                {
+                    "producer": "animation.evaluate",
+                    "consumer": "physics.integrate",
+                    "from_queue": "queue-0",
+                    "to_queue": "queue-1",
+                }
+            ],
         },
     }
     path.write_text(json.dumps(payload), encoding="utf-8")
@@ -100,6 +116,8 @@ def test_render_summary_lists_top_kernels(tmp_path: Path, capsys: pytest.Capture
     assert "Queues: 3" in output
     assert "Queue assignments: animation→queue-0" in output
     assert "Queue totals:" in output
+    assert "Cross-queue synchronization:" in output
+    assert "queue-0 -> queue-1" in output
 
 
 def test_jitter_threshold_warning(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

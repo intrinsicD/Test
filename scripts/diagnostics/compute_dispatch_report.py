@@ -64,6 +64,8 @@ class ReportSummary:
     categories: Dict[str, SummaryStats]
     queues: Dict[str, SummaryStats]
     frame_totals: SummaryStats
+    queue_dependencies: List[MutableMapping[str, object]]
+    queue_transitions: List[MutableMapping[str, object]]
 
 
 @dataclass
@@ -144,6 +146,8 @@ def _compute_summary(frames: Sequence[FrameSample]) -> ReportSummary:
         categories=category_stats,
         queues=queue_stats,
         frame_totals=frame_stats,
+        queue_dependencies=[],
+        queue_transitions=[],
     )
 
 
@@ -152,7 +156,34 @@ def load_report(path: Path) -> ReportPayload:
     metadata = dict(payload.get("metadata", {}))
     frames = _load_frames(payload)
     summary = _compute_summary(frames)
-    stage_timings = list(payload.get("summary", {}).get("stage_timings", []))
+    summary_payload = payload.get("summary", {})
+    stage_timings = list(summary_payload.get("stage_timings", []))
+    if isinstance(summary_payload.get("queue_dependencies"), list):
+        parsed_dependencies: List[MutableMapping[str, object]] = []
+        for entry in summary_payload.get("queue_dependencies", []):
+            if isinstance(entry, MutableMapping):
+                parsed_dependencies.append(
+                    {
+                        "from_queue": str(entry.get("from_queue", "")),
+                        "to_queue": str(entry.get("to_queue", "")),
+                        "edge_count": int(entry.get("edge_count", 0)),
+                        "consumer_kernels": [str(name) for name in entry.get("consumer_kernels", [])],
+                    }
+                )
+        summary.queue_dependencies = parsed_dependencies
+    if isinstance(summary_payload.get("queue_transitions"), list):
+        parsed_transitions: List[MutableMapping[str, object]] = []
+        for entry in summary_payload.get("queue_transitions", []):
+            if isinstance(entry, MutableMapping):
+                parsed_transitions.append(
+                    {
+                        "producer": str(entry.get("producer", "")),
+                        "consumer": str(entry.get("consumer", "")),
+                        "from_queue": str(entry.get("from_queue", "")),
+                        "to_queue": str(entry.get("to_queue", "")),
+                    }
+                )
+        summary.queue_transitions = parsed_transitions
     return ReportPayload(metadata=metadata, frames=frames, summary=summary, stage_timings=stage_timings)
 
 
@@ -238,6 +269,19 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
         ):
             lines.append(
                 f"  - {name}: total {stats.total_ms:.3f} ms across {stats.samples} samples"
+            )
+
+    if payload.summary.queue_dependencies:
+        lines.append("")
+        lines.append("Cross-queue synchronization:")
+        for entry in payload.summary.queue_dependencies:
+            from_queue = str(entry.get("from_queue", ""))
+            to_queue = str(entry.get("to_queue", ""))
+            edge_count = int(entry.get("edge_count", 0))
+            consumers = [str(name) for name in entry.get("consumer_kernels", [])]
+            consumer_text = f" (consumers: {', '.join(consumers)})" if consumers else ""
+            lines.append(
+                f"  - {from_queue} -> {to_queue}: {edge_count} dependencies{consumer_text}"
             )
 
     if payload.stage_timings:

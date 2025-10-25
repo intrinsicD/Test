@@ -626,6 +626,22 @@ namespace
         std::map<std::string, double> queue_totals{};
     };
 
+    struct QueueTransition
+    {
+        std::string producer{};
+        std::string consumer{};
+        std::string from_queue{};
+        std::string to_queue{};
+    };
+
+    struct QueueDependencySummary
+    {
+        std::string from_queue{};
+        std::string to_queue{};
+        std::size_t edge_count{0U};
+        std::vector<std::string> consumer_kernels{};
+    };
+
     struct SummaryStats
     {
         double mean_ms{0.0};
@@ -651,6 +667,8 @@ namespace
         std::map<std::string, SummaryStats> categories{};
         std::map<std::string, SummaryStats> queues{};
         SummaryStats frame_totals{};
+        std::vector<QueueTransition> queue_transitions{};
+        std::vector<QueueDependencySummary> queue_dependencies{};
     };
 
     struct RunResult
@@ -663,7 +681,98 @@ namespace
         std::vector<std::string> queue_names{};
         std::size_t requested_frames{0U};
         std::map<std::string, std::string> queue_assignments{};
+        compute::DependencyGraph dependency_graph{};
     };
+
+    [[nodiscard]] std::vector<QueueTransition> collect_queue_transitions(
+        const compute::DependencyGraph& graph,
+        const std::unordered_map<std::string, std::string>& queue_lookup)
+    {
+        std::vector<QueueTransition> transitions{};
+        for (const auto& node : graph.nodes)
+        {
+            const auto consumer_queue = queue_lookup.find(node.name);
+            if (consumer_queue == queue_lookup.end())
+            {
+                continue;
+            }
+
+            for (const auto dependency : node.dependencies)
+            {
+                if (dependency >= graph.nodes.size())
+                {
+                    continue;
+                }
+
+                const auto& producer_node = graph.nodes[dependency];
+                const auto producer_queue = queue_lookup.find(producer_node.name);
+                if (producer_queue == queue_lookup.end())
+                {
+                    continue;
+                }
+
+                if (producer_queue->second == consumer_queue->second)
+                {
+                    continue;
+                }
+
+                transitions.push_back(QueueTransition{
+                    .producer = producer_node.name,
+                    .consumer = node.name,
+                    .from_queue = producer_queue->second,
+                    .to_queue = consumer_queue->second,
+                });
+            }
+        }
+
+        return transitions;
+    }
+
+    [[nodiscard]] std::vector<QueueDependencySummary> summarize_queue_dependencies(
+        const std::vector<QueueTransition>& transitions)
+    {
+        std::map<std::pair<std::string, std::string>, QueueDependencySummary> aggregates{};
+        for (const auto& transition : transitions)
+        {
+            const auto key = std::make_pair(transition.from_queue, transition.to_queue);
+            auto& entry = aggregates[key];
+            entry.from_queue = transition.from_queue;
+            entry.to_queue = transition.to_queue;
+            entry.edge_count += 1U;
+            if (!transition.consumer.empty())
+            {
+                if (std::find(entry.consumer_kernels.begin(), entry.consumer_kernels.end(), transition.consumer)
+                    == entry.consumer_kernels.end())
+                {
+                    entry.consumer_kernels.push_back(transition.consumer);
+                }
+            }
+        }
+
+        std::vector<QueueDependencySummary> summaries{};
+        summaries.reserve(aggregates.size());
+        for (auto& [_, summary] : aggregates)
+        {
+            std::sort(summary.consumer_kernels.begin(), summary.consumer_kernels.end());
+            summaries.push_back(std::move(summary));
+        }
+        std::sort(
+            summaries.begin(),
+            summaries.end(),
+            [](const QueueDependencySummary& lhs, const QueueDependencySummary& rhs)
+            {
+                if (lhs.edge_count == rhs.edge_count)
+                {
+                    if (lhs.from_queue == rhs.from_queue)
+                    {
+                        return lhs.to_queue < rhs.to_queue;
+                    }
+                    return lhs.from_queue < rhs.from_queue;
+                }
+                return lhs.edge_count > rhs.edge_count;
+            });
+        return summaries;
+    }
 
     [[nodiscard]] SummaryStats compute_summary_stats(const std::vector<double>& values)
     {
@@ -743,6 +852,8 @@ namespace
         std::map<std::string, std::vector<double>> durations_by_dispatch{};
         std::map<std::string, std::vector<double>> durations_by_category{};
         std::map<std::string, std::vector<double>> durations_by_queue{};
+        std::unordered_map<std::string, std::string> queue_by_kernel{};
+        compute::DependencyGraph last_graph{};
         std::vector<double> frame_totals{};
         frame_totals.reserve(options.frames);
 
@@ -762,6 +873,7 @@ namespace
                 result.clock_name = report.clock_name;
                 result.clock_domain = report.clock_domain;
             }
+            last_graph = report.dependency_graph;
 
             const std::size_t dispatch_count = report.execution_order.size();
             frame.dispatches.reserve(dispatch_count);
@@ -777,12 +889,14 @@ namespace
                 const std::size_t queue_index = assign_queue(category, queue_count, override_indices);
                 const std::string& queue_name = result.queue_names[queue_index];
 
-                frame.dispatches.push_back(DispatchSample{
+                DispatchSample dispatch_sample{
                     .name = name,
                     .category = category,
                     .duration_ms = duration_ms,
                     .queue = queue_name,
-                });
+                };
+                frame.dispatches.push_back(dispatch_sample);
+                queue_by_kernel.insert_or_assign(name, queue_name);
 
                 frame.category_totals[category] += duration_ms;
                 frame.queue_totals[queue_name] += duration_ms;
@@ -810,6 +924,11 @@ namespace
         {
             result.summary.queues[queue_name] = compute_summary_stats(values);
         }
+
+        result.dependency_graph = std::move(last_graph);
+        const auto transitions = collect_queue_transitions(result.dependency_graph, queue_by_kernel);
+        result.summary.queue_transitions = transitions;
+        result.summary.queue_dependencies = summarize_queue_dependencies(transitions);
 
         return result;
     }
@@ -878,6 +997,30 @@ namespace
             {
                 std::cout << "  - " << queue_name << ": total " << std::fixed << std::setprecision(3)
                           << stats.total_ms << " ms across " << stats.samples << " samples\n";
+            }
+        }
+
+        if (!result.summary.queue_dependencies.empty())
+        {
+            std::cout << '\n' << "Cross-queue synchronization (fences):" << '\n';
+            for (const auto& entry : result.summary.queue_dependencies)
+            {
+                std::cout << "  - " << entry.from_queue << " -> " << entry.to_queue << ": " << entry.edge_count
+                          << " dependencies";
+                if (!entry.consumer_kernels.empty())
+                {
+                    std::cout << " (consumers: ";
+                    for (std::size_t index = 0; index < entry.consumer_kernels.size(); ++index)
+                    {
+                        if (index > 0U)
+                        {
+                            std::cout << ", ";
+                        }
+                        std::cout << entry.consumer_kernels[index];
+                    }
+                    std::cout << ')';
+                }
+                std::cout << '\n';
             }
         }
 
@@ -1627,6 +1770,190 @@ namespace
         }
         write_indent(stream, 2U, pretty);
         stream << "],";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "queue_dependencies" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << "[";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        for (std::size_t index = 0; index < result.summary.queue_dependencies.size(); ++index)
+        {
+            const auto& dependency = result.summary.queue_dependencies[index];
+            write_indent(stream, 3U, pretty);
+            stream << "{";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "from_queue" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(dependency.from_queue) << '"' << ',';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "to_queue" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(dependency.to_queue) << '"' << ',';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "edge_count" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << dependency.edge_count << ',';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "consumer_kernels" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << "[";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            for (std::size_t kernel_index = 0; kernel_index < dependency.consumer_kernels.size(); ++kernel_index)
+            {
+                write_indent(stream, 5U, pretty);
+                stream << '"' << escape_json(dependency.consumer_kernels[kernel_index]) << '"';
+                if (kernel_index + 1U < dependency.consumer_kernels.size())
+                {
+                    stream << ',';
+                }
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+            }
+            write_indent(stream, 4U, pretty);
+            stream << "]";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 3U, pretty);
+            stream << "}";
+            if (index + 1U < result.summary.queue_dependencies.size())
+            {
+                stream << ',';
+            }
+            if (pretty)
+            {
+                stream << '\n';
+            }
+        }
+        write_indent(stream, 2U, pretty);
+        stream << "],";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "queue_transitions" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << "[";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        for (std::size_t index = 0; index < result.summary.queue_transitions.size(); ++index)
+        {
+            const auto& transition = result.summary.queue_transitions[index];
+            write_indent(stream, 3U, pretty);
+            stream << "{";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "producer" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(transition.producer) << '"' << ',';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "consumer" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(transition.consumer) << '"' << ',';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "from_queue" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(transition.from_queue) << '"' << ',';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "to_queue" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(transition.to_queue) << '"';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 3U, pretty);
+            stream << "}";
+            if (index + 1U < result.summary.queue_transitions.size())
+            {
+                stream << ',';
+            }
+            if (pretty)
+            {
+                stream << '\n';
+            }
+        }
+        write_indent(stream, 2U, pretty);
+        stream << "]";
+        stream << ',';
         if (pretty)
         {
             stream << '\n';
