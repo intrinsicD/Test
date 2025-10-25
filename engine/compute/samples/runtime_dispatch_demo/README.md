@@ -29,6 +29,7 @@ Options:
 - `--queues N` – logical compute queues to attribute telemetry to (default 1)
 - `--queue-names LIST` – comma-separated queue names (e.g. `async-a,async-b`); overrides the default `queue-N` labels
 - `--queue-map category=queue` – pin a category (e.g. `physics`) to a specific queue label
+- `--jitter-budget-ms VALUE` – maximum allowed frame dispatch jitter σ in milliseconds before warnings are emitted (default 0.5)
 - `--baseline` – capture a single-queue baseline and report the achieved speed-up versus the optimised run (target 1.5×)
 - `--output FILE` – path to write the JSON telemetry payload
 - `--pretty` – emit indented JSON when writing to `FILE`
@@ -59,3 +60,7 @@ single logical queue, records the baseline frame timing statistics, and compares
 them against the multi-queue capture. The console summary and JSON payload list
 the baseline average/min/max frame times, jitter, and the observed speed-up with
 the `1.5×` target highlighted so regressions surface immediately in CI reports.
+The runtime enforces the jitter budget by default (0.5 ms σ at 60 FPS): the
+console summary and JSON metadata flag both the optimised run and the baseline
+when dispatch-to-completion jitter exceeds the configured budget so CI captures
+latency regressions automatically.

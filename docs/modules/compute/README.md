@@ -280,11 +280,16 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   cmake --build --preset <preset> --target engine_compute_runtime_sample
   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
       --frames 1024 --dt 0.016 --workload heavy --queues 3 --baseline \
+      --jitter-budget-ms 0.5 \
       --queue-names primary,async-0,async-1 --queue-map physics=async-0 \
       --output telemetry/compute_dispatch.json --pretty
   ```
   Analyse the JSON payload with `scripts/diagnostics/compute_dispatch_report.py`
-  to highlight the hottest kernels, queue saturation, and jitter outliers.
+  to highlight the hottest kernels, queue saturation, and jitter outliers. The
+  runtime sample records the frame dispatch jitter σ (ms) alongside the
+  configured budget (default 0.5 ms); both the console summary and diagnostics
+  report warn when the multi-queue capture or the baseline exceeds the budget so
+  latency regressions surface immediately.
   Categories that are not explicitly mapped use deterministic FNV-1a hashing to
   keep queue attribution stable across runs and toolchains, preserving the
   comparability of telemetry captures. Supplying `--baseline` records a
