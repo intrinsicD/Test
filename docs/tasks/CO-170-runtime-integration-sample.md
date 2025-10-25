@@ -121,7 +121,7 @@ Implement a standalone runtime integration sample that:
 - [x] Latency: Dispatch-to-completion jitter stays ≤0.5 ms at 60 FPS targets.
 
 ### Testing Requirements
-- [ ] Unit tests cover workload adapters feeding the dispatcher.
+- [x] Unit tests cover workload adapters feeding the dispatcher.
 - [x] Integration tests validate deterministic telemetry output, dispatcher
       dependency graphs, and queue ordering (extend
       `engine_integration_tests`).
@@ -183,12 +183,18 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
    sample**: Avoids new executable but limits discoverability and interactive
    experimentation.
 
+**Update Log:**
+- 2025-11-07: Added `workload_configuration.hpp` and
+  `test_runtime_dispatch_workload_configuration.cpp` to validate that workload
+  adapters provision mesh subdivisions and physics body counts consistently
+  across sample profiles.
+
 ---
 
 ## Deliverables
 
 - [ ] Code implementation
-- [ ] Unit tests
+- [x] Unit tests
 - [ ] Integration tests
 - [ ] Benchmarks
 - [ ] API documentation
