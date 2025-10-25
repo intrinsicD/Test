@@ -9,6 +9,13 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 3. **Update the checklist** as you complete deliverables. Keep benchmarks and metrics in the task file for future reference, and bubble materialised learnings back into the roadmap when they impact future priorities.
 4. **Link supporting specs** (ADR, RFP) so reviewers can trace intent. Add cross-references from [`ARCHITECTURE.md`](../ARCHITECTURE.md) when a decision introduces a new invariant.
 
+## Current Focus
+
+- **`DC-003.1` — SDL Window Lifecycle and Event Pump Implementation**
+  - **Why now?** Roadmap initiative [`DC-003`](../ROADMAP.md) is the only active, unblocked item and requires `DC-003.1` to deliver a production SDL backend before follow-on swapchain (`DC-003.2`) and CI/telemetry (`DC-003.3`) work can start.
+  - **Value**: Unblocks SDL availability for runtime integrations, enabling downstream rendering and tooling tasks that currently depend on GLFW-only coverage.
+  - **Next Step**: Staff a Platform Engineer to begin implementation and coordinate with Tools/CI for SDL package provisioning per the parity checklist (`PL-215`).
+
 ## Index
 
 - [`2025-02-17-sprint-06.md`](2025-02-17-sprint-06.md) – current sprint alignment.
