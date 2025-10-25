@@ -68,6 +68,9 @@ scenarios align with their benchmark matrix.
 - 2025-11-07: Shared workload configuration header and unit tests validate mesh
   subdivisions and physics body counts across sample profiles,
   strengthening dispatcher workload adapters (`CO-170.1`).
+- 2025-11-08: Documentation refreshed to highlight dispatcher backend selection
+  metadata, jitter/memory budgets, and diagnostics workflow for the runtime
+  sample (`CO-170.2`, `CO-170.3`).
 
 ---
 
