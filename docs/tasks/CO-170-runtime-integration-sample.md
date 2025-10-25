@@ -109,7 +109,7 @@ Implement a standalone runtime integration sample that:
       runs.
 - [ ] Dispatcher submissions cover multi-queue scheduling with timeline
       semaphore or fence callbacks recorded in telemetry.
-- [ ] CLI arguments allow configuring queue counts, workload mix, and telemetry
+- [x] CLI arguments allow configuring queue counts, workload mix, and telemetry
       output path for automation.
 
 ### Non-Functional Requirements
@@ -229,3 +229,8 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
 - 2025-10-30: Runtime sample harness and Python report landed (JSON telemetry +
   jitter analysis). Next steps include multi-queue scenarios and workload
   expansion for animation GPU sampling.
+- 2025-10-31: CLI exposes workload profiles and queue counts; telemetry and the
+  diagnostics report now include per-queue aggregates to validate dispatcher
+  utilisation ahead of GPU sampling benchmarks.
+- 2025-11-01: CLI now supports queue naming and per-category overrides; JSON
+  exports queue assignments for diagnostics and CI tooling.

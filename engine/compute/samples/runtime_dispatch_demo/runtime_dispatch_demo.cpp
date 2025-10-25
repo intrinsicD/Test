@@ -1,5 +1,10 @@
 #include "engine/runtime/api.hpp"
 
+#include "engine/animation/api.hpp"
+#include "engine/animation/rigging/rig_binding.hpp"
+#include "engine/geometry/api.hpp"
+#include "engine/physics/api.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -9,32 +14,320 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <numeric>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
+namespace animation = engine::animation;
 namespace compute = engine::compute;
+namespace geometry = engine::geometry;
+namespace math = engine::math;
+namespace physics = engine::physics;
 namespace runtime = engine::runtime;
 
 namespace
 {
+    enum class WorkloadProfile
+    {
+        Light,
+        Balanced,
+        Heavy,
+    };
+
     struct CommandLineOptions
     {
         bool show_help{false};
         bool pretty_json{false};
-        std::size_t frames{256U};
+        std::size_t frames{1024U};
         double timestep{1.0 / 60.0};
+        std::size_t queue_count{1U};
+        WorkloadProfile workload{WorkloadProfile::Balanced};
+        std::vector<std::string> queue_names{};
+        std::map<std::string, std::string> queue_overrides{};
         std::optional<std::filesystem::path> output_path{};
     };
+
+    [[nodiscard]] std::string_view workload_to_string(WorkloadProfile workload) noexcept
+    {
+        switch (workload)
+        {
+        case WorkloadProfile::Light:
+            return "light";
+        case WorkloadProfile::Balanced:
+            return "balanced";
+        case WorkloadProfile::Heavy:
+            return "heavy";
+        }
+        return "balanced";
+    }
+
+    [[nodiscard]] WorkloadProfile parse_workload(std::string_view value)
+    {
+        std::string lowered;
+        lowered.reserve(value.size());
+        for (const unsigned char ch : value)
+        {
+            lowered.push_back(static_cast<char>(std::tolower(ch)));
+        }
+
+        if (lowered == "light")
+        {
+            return WorkloadProfile::Light;
+        }
+        if (lowered == "balanced" || lowered == "default")
+        {
+            return WorkloadProfile::Balanced;
+        }
+        if (lowered == "heavy")
+        {
+            return WorkloadProfile::Heavy;
+        }
+
+        std::ostringstream stream;
+        stream << "Unknown workload profile: " << value;
+        throw std::invalid_argument(stream.str());
+    }
+
+    [[nodiscard]] std::string to_lower_ascii(std::string_view text)
+    {
+        std::string lowered;
+        lowered.reserve(text.size());
+        for (const unsigned char ch : text)
+        {
+            lowered.push_back(static_cast<char>(std::tolower(ch)));
+        }
+        return lowered;
+    }
+
+    [[nodiscard]] std::string trim_copy(std::string_view text)
+    {
+        std::size_t start = 0U;
+        std::size_t end = text.size();
+        while (start < end && std::isspace(static_cast<unsigned char>(text[start])) != 0)
+        {
+            ++start;
+        }
+        while (end > start && std::isspace(static_cast<unsigned char>(text[end - 1U])) != 0)
+        {
+            --end;
+        }
+        return std::string{text.substr(start, end - start)};
+    }
+
+    [[nodiscard]] std::vector<std::string> parse_queue_names(std::string_view value)
+    {
+        std::vector<std::string> names{};
+        std::size_t offset = 0U;
+        while (offset <= value.size())
+        {
+            const std::size_t delimiter = value.find(',', offset);
+            const std::size_t length = delimiter == std::string_view::npos ? value.size() - offset : delimiter - offset;
+            const std::string name = trim_copy(value.substr(offset, length));
+            if (!name.empty())
+            {
+                names.push_back(name);
+            }
+            if (delimiter == std::string_view::npos)
+            {
+                break;
+            }
+            offset = delimiter + 1U;
+        }
+        return names;
+    }
+
+    [[nodiscard]] geometry::SurfaceMesh make_grid_mesh(std::size_t subdivisions)
+    {
+        const std::size_t segments = std::max<std::size_t>(1U, subdivisions);
+        const std::size_t vertex_dim = segments + 1U;
+        const float step = 1.0F / static_cast<float>(segments);
+
+        geometry::SurfaceMesh mesh{};
+        mesh.rest_positions.reserve(vertex_dim * vertex_dim);
+        for (std::size_t z = 0; z < vertex_dim; ++z)
+        {
+            const float fz = static_cast<float>(z) * step - 0.5F;
+            for (std::size_t x = 0; x < vertex_dim; ++x)
+            {
+                const float fx = static_cast<float>(x) * step - 0.5F;
+                mesh.rest_positions.emplace_back(fx, 0.0F, fz);
+            }
+        }
+
+        mesh.positions = mesh.rest_positions;
+        mesh.normals.assign(mesh.positions.size(), math::vec3{0.0F, 1.0F, 0.0F});
+        mesh.indices.reserve(segments * segments * 6U);
+        for (std::size_t z = 0; z < segments; ++z)
+        {
+            for (std::size_t x = 0; x < segments; ++x)
+            {
+                const std::uint32_t top_left = static_cast<std::uint32_t>(z * vertex_dim + x);
+                const std::uint32_t top_right = top_left + 1U;
+                const std::uint32_t bottom_left = static_cast<std::uint32_t>((z + 1U) * vertex_dim + x);
+                const std::uint32_t bottom_right = bottom_left + 1U;
+                mesh.indices.insert(
+                    mesh.indices.end(),
+                    {top_left, top_right, bottom_right, top_left, bottom_right, bottom_left});
+            }
+        }
+
+        geometry::update_bounds(mesh);
+        return mesh;
+    }
+
+    [[nodiscard]] animation::RigBinding make_uniform_binding(std::size_t vertex_count)
+    {
+        animation::RigBinding binding{};
+        animation::RigJoint root{};
+        root.name = "root";
+        root.parent = animation::RigBinding::kInvalidIndex;
+        root.inverse_bind_pose = engine::math::Transform<float>::Identity();
+        binding.joints.push_back(root);
+        binding.resize_vertices(vertex_count);
+        for (auto& vertex : binding.vertices)
+        {
+            vertex.clear();
+            [[maybe_unused]] const bool added = vertex.add_influence(0U, 1.0F);
+            (void)added;
+            vertex.normalize_weights();
+        }
+        return binding;
+    }
+
+    [[nodiscard]] physics::PhysicsWorld make_physics_world(std::size_t body_count)
+    {
+        physics::PhysicsWorld world{};
+        world.linear_damping = 0.05F;
+        const std::size_t count = std::max<std::size_t>(1U, body_count);
+        const std::size_t grid = static_cast<std::size_t>(std::ceil(std::sqrt(static_cast<double>(count))));
+        const float spacing = 0.6F;
+
+        for (std::size_t index = 0; index < count; ++index)
+        {
+            physics::RigidBody body{};
+            body.mass = 2.0F;
+            body.inverse_mass = 1.0F / body.mass;
+            const std::size_t gx = index % grid;
+            const std::size_t gz = index / grid;
+            body.position = math::vec3{
+                (static_cast<float>(gx) - static_cast<float>(grid - 1U) * 0.5F) * spacing,
+                0.5F + static_cast<float>(gz) * spacing * 0.5F,
+                0.0F};
+            body.collider = physics::Collider::make_sphere(0.25F);
+            (void)physics::add_body(world, body);
+        }
+
+        physics::RigidBody ground{};
+        ground.mass = 0.0F;
+        ground.inverse_mass = 0.0F;
+        ground.position = math::vec3{0.0F, -0.5F, 0.0F};
+        ground.collider = physics::Collider::make_aabb(
+            geometry::Aabb{math::vec3{-5.0F, -0.1F, -5.0F}, math::vec3{5.0F, 0.1F, 5.0F}});
+        (void)physics::add_body(world, ground);
+
+        return world;
+    }
+
+    struct WorkloadProfileDefinition
+    {
+        WorkloadProfile profile{WorkloadProfile::Balanced};
+        std::size_t mesh_subdivisions{32U};
+        std::size_t physics_bodies{32U};
+    };
+
+    [[nodiscard]] WorkloadProfileDefinition workload_definition(WorkloadProfile profile) noexcept
+    {
+        switch (profile)
+        {
+        case WorkloadProfile::Light:
+            return WorkloadProfileDefinition{
+                .profile = WorkloadProfile::Light,
+                .mesh_subdivisions = 16U,
+                .physics_bodies = 16U,
+            };
+        case WorkloadProfile::Balanced:
+            return WorkloadProfileDefinition{
+                .profile = WorkloadProfile::Balanced,
+                .mesh_subdivisions = 32U,
+                .physics_bodies = 48U,
+            };
+        case WorkloadProfile::Heavy:
+        default:
+            return WorkloadProfileDefinition{
+                .profile = WorkloadProfile::Heavy,
+                .mesh_subdivisions = 64U,
+                .physics_bodies = 128U,
+            };
+        }
+    }
+
+    void configure_runtime_host(runtime::RuntimeHost& host, WorkloadProfile workload)
+    {
+        runtime::RuntimeHostDependencies dependencies{};
+        const auto definition = workload_definition(workload);
+        dependencies.scene_name = std::string{"runtime.scene."} + std::string{workload_to_string(workload)};
+        dependencies.mesh = make_grid_mesh(definition.mesh_subdivisions);
+        dependencies.binding = make_uniform_binding(dependencies.mesh.rest_positions.size());
+        dependencies.world = make_physics_world(definition.physics_bodies);
+        host.configure(std::move(dependencies));
+    }
+
+    [[nodiscard]] std::string make_queue_name(std::size_t index)
+    {
+        std::ostringstream stream;
+        stream << "queue-" << index;
+        return stream.str();
+    }
+
+    [[nodiscard]] std::size_t assign_queue(
+        std::string_view category,
+        std::size_t queue_count,
+        const std::unordered_map<std::string, std::size_t>& overrides)
+    {
+        if (queue_count <= 1U)
+        {
+            return 0U;
+        }
+
+        const std::string lowered = to_lower_ascii(category);
+
+        if (const auto override = overrides.find(lowered); override != overrides.end())
+        {
+            return override->second;
+        }
+
+        if (lowered == "animation")
+        {
+            return 0U;
+        }
+        if (lowered == "physics")
+        {
+            return std::min<std::size_t>(1U, queue_count - 1U);
+        }
+        if (lowered == "geometry")
+        {
+            if (queue_count <= 2U)
+            {
+                return queue_count - 1U;
+            }
+            return 2U;
+        }
+
+        const auto hash = std::hash<std::string>{}(lowered);
+        return hash % queue_count;
+    }
 
     [[nodiscard]] std::string_view timing_domain_to_string(compute::TimingDomain domain) noexcept
     {
@@ -56,11 +349,17 @@ namespace
                << "Capture dispatcher telemetry from RuntimeHost and write a JSON summary." << '\n'
                << '\n'
                << "Usage:\n"
-               << "  engine_compute_runtime_sample [--frames N] [--dt SECONDS] [--output FILE] [--pretty]\n"
+               << "  engine_compute_runtime_sample [--frames N] [--dt SECONDS] [--output FILE]\\\n"
+               << "      [--queues COUNT] [--queue-names LIST] [--queue-map category=queue]\\\n"
+               << "      [--workload PROFILE] [--pretty]\n"
                << '\n'
                << "Options:\n"
-               << "  --frames N   Number of ticks to execute (default: 256)\n"
+               << "  --frames N   Number of ticks to execute (default: 1024)\n"
                << "  --dt SECONDS Simulation timestep for each tick (default: 1/60)\n"
+               << "  --queues N   Number of logical compute queues recorded in telemetry (default: 1)\n"
+               << "  --queue-names LIST   Comma-separated queue names (implies --queues=LIST length)\n"
+               << "  --queue-map category=queue   Override queue selection for a category\n"
+               << "  --workload PROFILE  Workload intensity: light | balanced | heavy (default: balanced)\n"
                << "  --output FILE Write JSON payload to FILE instead of stdout\n"
                << "  --pretty     Emit indented JSON when writing to FILE\n"
                << "  --help       Show this message\n";
@@ -137,6 +436,58 @@ namespace
                 options.output_path = std::filesystem::path{argv[++index]};
                 continue;
             }
+            if (argument == "--queues" || argument == "--queue-count")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--queues requires a value"};
+                }
+                options.queue_count = parse_size(argv[++index]);
+                continue;
+            }
+            if (argument == "--queue-names")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--queue-names requires a comma-separated list"};
+                }
+                options.queue_names = parse_queue_names(argv[++index]);
+                if (options.queue_names.empty())
+                {
+                    throw std::invalid_argument{"--queue-names requires at least one entry"};
+                }
+                continue;
+            }
+            if (argument == "--queue-map")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--queue-map requires category=queue"};
+                }
+                const std::string_view mapping{argv[++index]};
+                const auto separator = mapping.find('=');
+                if (separator == std::string_view::npos)
+                {
+                    throw std::invalid_argument{"--queue-map expects category=queue"};
+                }
+                const std::string category = to_lower_ascii(trim_copy(mapping.substr(0, separator)));
+                const std::string queue = trim_copy(mapping.substr(separator + 1));
+                if (category.empty() || queue.empty())
+                {
+                    throw std::invalid_argument{"--queue-map entries cannot be empty"};
+                }
+                options.queue_overrides[category] = queue;
+                continue;
+            }
+            if (argument == "--workload")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--workload requires a profile"};
+                }
+                options.workload = parse_workload(argv[++index]);
+                continue;
+            }
 
             std::ostringstream stream;
             stream << "Unknown argument: " << argument;
@@ -150,6 +501,49 @@ namespace
         if (!(options.timestep > 0.0))
         {
             throw std::invalid_argument{"--dt must be positive"};
+        }
+        if (options.queue_count == 0U)
+        {
+            throw std::invalid_argument{"--queues must be greater than zero"};
+        }
+
+        if (!options.queue_names.empty())
+        {
+            if (options.queue_count == 1U)
+            {
+                options.queue_count = options.queue_names.size();
+            }
+            else if (options.queue_names.size() != options.queue_count)
+            {
+                throw std::invalid_argument{"--queue-names size must match --queues"};
+            }
+
+            std::set<std::string> unique(options.queue_names.begin(), options.queue_names.end());
+            if (unique.size() != options.queue_names.size())
+            {
+                throw std::invalid_argument{"--queue-names entries must be unique"};
+            }
+        }
+
+        std::vector<std::string> known_queues = options.queue_names;
+        if (known_queues.empty())
+        {
+            known_queues.reserve(options.queue_count);
+            for (std::size_t index = 0; index < options.queue_count; ++index)
+            {
+                known_queues.push_back(make_queue_name(index));
+            }
+        }
+
+        std::set<std::string> known_queue_set(known_queues.begin(), known_queues.end());
+        for (const auto& [category, queue] : options.queue_overrides)
+        {
+            if (!known_queue_set.contains(queue))
+            {
+                std::ostringstream stream;
+                stream << "--queue-map references unknown queue '" << queue << "'";
+                throw std::invalid_argument(stream.str());
+            }
         }
 
         return options;
@@ -218,6 +612,7 @@ namespace
         std::string name{};
         std::string category{};
         double duration_ms{0.0};
+        std::string queue{};
     };
 
     struct FrameSample
@@ -228,6 +623,7 @@ namespace
         double total_ms{0.0};
         std::vector<DispatchSample> dispatches{};
         std::map<std::string, double> category_totals{};
+        std::map<std::string, double> queue_totals{};
     };
 
     struct SummaryStats
@@ -253,6 +649,7 @@ namespace
     {
         std::map<std::string, SummaryStats> dispatches{};
         std::map<std::string, SummaryStats> categories{};
+        std::map<std::string, SummaryStats> queues{};
         SummaryStats frame_totals{};
     };
 
@@ -262,6 +659,10 @@ namespace
         RunSummary summary{};
         std::string clock_name{};
         compute::TimingDomain clock_domain{compute::TimingDomain::Unknown};
+        WorkloadProfile workload{WorkloadProfile::Balanced};
+        std::vector<std::string> queue_names{};
+        std::size_t requested_frames{0U};
+        std::map<std::string, std::string> queue_assignments{};
     };
 
     [[nodiscard]] SummaryStats compute_summary_stats(const std::vector<double>& values)
@@ -302,9 +703,46 @@ namespace
     [[nodiscard]] RunResult run_sample(const CommandLineOptions& options, runtime::RuntimeHost& host)
     {
         RunResult result{};
+        result.workload = options.workload;
+        result.requested_frames = options.frames;
+        const std::size_t queue_count = std::max<std::size_t>(1U, options.queue_count);
+        if (!options.queue_names.empty())
+        {
+            result.queue_names = options.queue_names;
+        }
+        else
+        {
+            result.queue_names.reserve(queue_count);
+            for (std::size_t index = 0; index < queue_count; ++index)
+            {
+                result.queue_names.push_back(make_queue_name(index));
+            }
+        }
+
+        std::unordered_map<std::string, std::size_t> queue_lookup{};
+        queue_lookup.reserve(result.queue_names.size());
+        for (std::size_t index = 0; index < result.queue_names.size(); ++index)
+        {
+            queue_lookup.emplace(result.queue_names[index], index);
+        }
+
+        std::unordered_map<std::string, std::size_t> override_indices{};
+        override_indices.reserve(options.queue_overrides.size());
+        for (const auto& [category_lowered, queue_name] : options.queue_overrides)
+        {
+            const auto lookup = queue_lookup.find(queue_name);
+            if (lookup == queue_lookup.end())
+            {
+                std::ostringstream stream;
+                stream << "Queue override references unknown queue: " << queue_name;
+                throw std::invalid_argument(stream.str());
+            }
+            override_indices.emplace(category_lowered, lookup->second);
+        }
 
         std::map<std::string, std::vector<double>> durations_by_dispatch{};
         std::map<std::string, std::vector<double>> durations_by_category{};
+        std::map<std::string, std::vector<double>> durations_by_queue{};
         std::vector<double> frame_totals{};
         frame_totals.reserve(options.frames);
 
@@ -336,17 +774,23 @@ namespace
                                                : 0.0;
                 const double duration_ms = duration_s * 1000.0;
                 const std::string category = dispatch_category(name);
+                const std::size_t queue_index = assign_queue(category, queue_count, override_indices);
+                const std::string& queue_name = result.queue_names[queue_index];
 
                 frame.dispatches.push_back(DispatchSample{
                     .name = name,
                     .category = category,
                     .duration_ms = duration_ms,
+                    .queue = queue_name,
                 });
 
                 frame.category_totals[category] += duration_ms;
+                frame.queue_totals[queue_name] += duration_ms;
                 frame.total_ms += duration_ms;
                 durations_by_dispatch[name].push_back(duration_ms);
                 durations_by_category[category].push_back(duration_ms);
+                durations_by_queue[queue_name].push_back(duration_ms);
+                result.queue_assignments[category] = queue_name;
             }
 
             frame_totals.push_back(frame.total_ms);
@@ -362,6 +806,10 @@ namespace
         {
             result.summary.categories[category] = compute_summary_stats(values);
         }
+        for (auto& [queue_name, values] : durations_by_queue)
+        {
+            result.summary.queues[queue_name] = compute_summary_stats(values);
+        }
 
         return result;
     }
@@ -370,10 +818,36 @@ namespace
     {
         std::cout << "=== Compute Dispatcher Runtime Sample ===\n";
         std::cout << "Frames: " << result.summary.frame_totals.samples << '\n';
+        std::cout << "Requested frames: " << result.requested_frames << '\n';
         std::cout << "Average frame dispatch time: " << std::fixed << std::setprecision(3)
                   << result.summary.frame_totals.mean_ms << " ms\n";
         std::cout << "Clock: " << result.clock_name << " ("
                   << timing_domain_to_string(result.clock_domain) << ")\n";
+        std::cout << "Workload: " << workload_to_string(result.workload) << '\n';
+        std::cout << "Queues: " << result.queue_names.size();
+        if (!result.queue_names.empty())
+        {
+            std::cout << " (";
+            for (std::size_t index = 0; index < result.queue_names.size(); ++index)
+            {
+                if (index > 0U)
+                {
+                    std::cout << ", ";
+                }
+                std::cout << result.queue_names[index];
+            }
+            std::cout << ")";
+        }
+        std::cout << '\n';
+
+        if (!result.queue_assignments.empty())
+        {
+            std::cout << "Queue assignments:" << '\n';
+            for (const auto& [category, queue_name] : result.queue_assignments)
+            {
+                std::cout << "  - " << category << " -> " << queue_name << '\n';
+            }
+        }
 
         std::vector<std::pair<std::string, SummaryStats>> top_dispatches{};
         top_dispatches.reserve(result.summary.dispatches.size());
@@ -394,6 +868,16 @@ namespace
                 std::cout << "  - " << name << ": " << std::fixed << std::setprecision(3)
                           << stats.mean_ms << " ms (jitter " << std::setprecision(2)
                           << stats.jitter_percent() << "%)\n";
+            }
+        }
+
+        if (!result.summary.queues.empty())
+        {
+            std::cout << '\n' << "Queue totals:" << '\n';
+            for (const auto& [queue_name, stats] : result.summary.queues)
+            {
+                std::cout << "  - " << queue_name << ": total " << std::fixed << std::setprecision(3)
+                          << stats.total_ms << " ms across " << stats.samples << " samples\n";
             }
         }
 
@@ -499,6 +983,17 @@ namespace
             stream << '\n';
         }
         write_indent(stream, 2U, pretty);
+        stream << '"' << "requested_frames" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << result.requested_frames << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
         stream << '"' << "timestep" << '"' << ':';
         if (pretty)
         {
@@ -518,6 +1013,117 @@ namespace
         }
         const std::size_t dispatcher_size = result.frames.empty() ? 0U : result.frames.front().dispatches.size();
         stream << dispatcher_size << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "workload" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << '"' << workload_to_string(result.workload) << '"' << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "queue_count" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << result.queue_names.size() << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "queues" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << "[";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        for (std::size_t queue_index = 0; queue_index < result.queue_names.size(); ++queue_index)
+        {
+            write_indent(stream, 3U, pretty);
+            stream << '"' << escape_json(result.queue_names[queue_index]) << '"';
+            if (queue_index + 1U < result.queue_names.size())
+            {
+                stream << ',';
+            }
+            if (pretty)
+            {
+                stream << '\n';
+            }
+        }
+        write_indent(stream, 2U, pretty);
+        stream << "],";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "queue_assignments" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << "[";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        std::size_t assignment_index = 0U;
+        for (const auto& [category, queue_name] : result.queue_assignments)
+        {
+            write_indent(stream, 3U, pretty);
+            stream << "{";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "category" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(category) << '"' << ',';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "queue" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(queue_name) << '"';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 3U, pretty);
+            stream << "}";
+            if (++assignment_index < result.queue_assignments.size())
+            {
+                stream << ',';
+            }
+            if (pretty)
+            {
+                stream << '\n';
+            }
+        }
+        write_indent(stream, 2U, pretty);
+        stream << "],";
         if (pretty)
         {
             stream << '\n';
@@ -677,7 +1283,18 @@ namespace
                 {
                     stream << ' ';
                 }
-                stream << dispatch.duration_ms << '\n';
+                stream << dispatch.duration_ms << ',';
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+                write_indent(stream, 5U, pretty);
+                stream << '"' << "queue" << '"' << ':';
+                if (pretty)
+                {
+                    stream << ' ';
+                }
+                stream << '"' << escape_json(dispatch.queue) << '"' << '\n';
                 write_indent(stream, 4U, pretty);
                 stream << "}";
                 if (dispatch_index + 1U < frame.dispatches.size())
@@ -736,6 +1353,61 @@ namespace
                 write_indent(stream, 4U, pretty);
                 stream << "}";
                 if (++category_index < frame.category_totals.size())
+                {
+                    stream << ',';
+                }
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+            }
+            write_indent(stream, 3U, pretty);
+            stream << "],";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 3U, pretty);
+            stream << '"' << "queue_totals_ms" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << "[";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            std::size_t queue_total_index = 0;
+            for (const auto& [queue_name, total] : frame.queue_totals)
+            {
+                write_indent(stream, 4U, pretty);
+                stream << "{";
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+                write_indent(stream, 5U, pretty);
+                stream << '"' << "queue" << '"' << ':';
+                if (pretty)
+                {
+                    stream << ' ';
+                }
+                stream << '"' << escape_json(queue_name) << '"' << ',';
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+                write_indent(stream, 5U, pretty);
+                stream << '"' << "duration_ms" << '"' << ':';
+                if (pretty)
+                {
+                    stream << ' ';
+                }
+                stream << total << '\n';
+                write_indent(stream, 4U, pretty);
+                stream << "}";
+                if (++queue_total_index < frame.queue_totals.size())
                 {
                     stream << ',';
                 }
@@ -884,6 +1556,67 @@ namespace
             write_indent(stream, 3U, pretty);
             stream << "}";
             if (++summary_category_index < result.summary.categories.size())
+            {
+                stream << ',';
+            }
+            if (pretty)
+            {
+                stream << '\n';
+            }
+        }
+        write_indent(stream, 2U, pretty);
+        stream << "],";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+
+        // Queue summary
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "queues" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << "[";
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        std::size_t summary_queue_index = 0;
+        for (const auto& [queue_name, stats] : result.summary.queues)
+        {
+            write_indent(stream, 3U, pretty);
+            stream << "{";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "name" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << '"' << escape_json(queue_name) << '"' << ',';
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 4U, pretty);
+            stream << '"' << "stats" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            write_summary_stats(stream, stats, 4U, pretty);
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            write_indent(stream, 3U, pretty);
+            stream << "}";
+            if (++summary_queue_index < result.summary.queues.size())
             {
                 stream << ',';
             }
@@ -1065,6 +1798,7 @@ int main(int argc, char* argv[])
         }
 
         runtime::RuntimeHost host{};
+        configure_runtime_host(host, options.workload);
         host.initialize();
 
         RunResult result = run_sample(options, host);

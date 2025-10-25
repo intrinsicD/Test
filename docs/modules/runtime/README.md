@@ -210,11 +210,13 @@ ctest --preset linux-gcc-debug -R runtime
   ```bash
   cmake --build --preset <preset> --target engine_compute_runtime_sample
   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-      --frames 512 --dt 0.016 --output telemetry/compute_dispatch.json
+      --frames 1024 --dt 0.016 --workload balanced --queues 3 \
+      --queue-names rt-main,rt-async,rt-deform --queue-map geometry=rt-deform \
+      --output telemetry/compute_dispatch.json
   python scripts/diagnostics/compute_dispatch_report.py --input telemetry/compute_dispatch.json --top 5
   ```
   The workflow exercises `RuntimeHost` end-to-end, records per-kernel timings,
-  and surfaces jitter warnings for `CO-170`.
+  reports queue utilisation, and surfaces jitter warnings for `CO-170`.
 
 ## TODO / Next Steps
 

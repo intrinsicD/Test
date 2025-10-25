@@ -48,6 +48,12 @@ scenarios align with their benchmark matrix.
 - 2025-10-30: Initial `engine_compute_runtime_sample` harness and
   `compute_dispatch_report.py` landed to capture dispatcher telemetry and
   support jitter analysis for `CO-170.1`.
+- 2025-10-31: Workload profiles and queue instrumentation added to the runtime
+  sample; telemetry now records per-queue aggregates and the analysis script
+  surfaces queue utilisation alongside jitter warnings (`CO-170.1`, `CO-170.2`).
+- 2025-11-01: Queue naming and per-category overrides added to the runtime
+  sample; telemetry exports `queue_assignments` so diagnostics reflect queue
+  affinity decisions (`CO-170.2`).
 
 ---
 

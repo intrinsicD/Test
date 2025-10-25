@@ -88,15 +88,17 @@ workloads.
 1. Generate telemetry using the runtime sample:
    ```bash
    ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-       --frames 512 --dt 0.016 --output telemetry/compute_dispatch.json --pretty
+       --frames 1024 --dt 0.016 --workload heavy --queues 3 \
+       --queue-names main,async-0,async-1 --queue-map physics=async-0 \
+       --output telemetry/compute_dispatch.json --pretty
    ```
 2. Render the summary:
    ```bash
    python scripts/diagnostics/compute_dispatch_report.py \
        --input telemetry/compute_dispatch.json --top 5 --jitter-threshold 5
    ```
-3. Inspect the console output for the hottest kernels, per-category totals, and
-   runtime stage timings. When `--jitter-threshold` is supplied the tool emits
+3. Inspect the console output for the hottest kernels, per-category totals,
+   queue assignments, and runtime stage timings. When `--jitter-threshold` is supplied the tool emits
    warnings for kernels whose standard deviation exceeds the threshold.
 
 Use `--output` to persist the textual summary for dashboards or CI artefacts.

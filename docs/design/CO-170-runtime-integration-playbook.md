@@ -2,7 +2,7 @@
 
 **Status:** Draft (foundation complete)  
 **Owner:** Compute / Runtime Engineering  
-**Updated:** 2025-10-30
+**Updated:** 2025-10-31
 
 ## Purpose
 
@@ -39,7 +39,9 @@ RuntimeHost::tick
 2. **Capture telemetry**
    ```bash
    ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-       --frames 512 --dt 0.016 --output telemetry/compute_dispatch.json --pretty
+       --frames 1024 --dt 0.016 --workload balanced --queues 3 \
+       --queue-names main,async-0,async-1 --queue-map physics=async-0 \
+       --output telemetry/compute_dispatch.json --pretty
    ```
 3. **Analyse results**
    ```bash
@@ -51,25 +53,29 @@ RuntimeHost::tick
 
 The sample emits a JSON document with:
 
-- `metadata` – timestep, dispatcher size, clock name/domain.
-- `frames[]` – per-frame dispatch order, per-dispatch duration (ms), category
-  totals, and aggregate frame time.
+- `metadata` – timestep, dispatcher size, requested frame count, workload
+  profile, queue count/names, queue assignments, and clock name/domain.
+- `frames[]` – per-frame dispatch order, per-dispatch duration (ms), queue and
+  category totals, and aggregate frame time.
 - `summary.stage_timings[]` – runtime stage timing snapshot for correlation.
+- `summary.queues[]` – queue aggregates mirroring the per-category roll-up.
 - `diagnostics` – top-level tick counters and average frame duration.
 
 `compute_dispatch_report.py` recomputes aggregate statistics, highlights
-categories with the largest total contribution, and warns when the standard
-deviation-to-mean ratio (jitter) exceeds configurable thresholds. Persist the
-rendered report (`--output`) in CI to track regressions over time.
+categories and queues with the largest total contribution, and warns when the
+standard deviation-to-mean ratio (jitter) exceeds configurable thresholds.
+Persist the rendered report (`--output`) in CI to track regressions over time.
 
 ## Extending Workloads
 
 - **New kernels:** register additional workloads inside `RuntimeHost::tick`
   before the final `geometry.finalize` kernel. Use the dispatcher dependency
   graph to maintain deterministic ordering.
-- **Multiple queues:** adapt the sample to split kernels across queues once the
-  runtime exposes asynchronous compute submission. Extend the JSON schema with a
-  `queue` identifier per dispatch.
+- **Multiple queues:** map workloads to logical queues via the `--queues`
+  command-line flag, rename queues with `--queue-names`, and override per-category
+  selection using `--queue-map`. The JSON payload captures both the queue name
+  recorded for each dispatch and the resolved `queue_assignments` summary so CI
+  reports and dashboards can highlight affinity decisions.
 - **GPU backends:** enable CUDA or upcoming compute shader backends via
   dispatcher factory selection to profile GPU execution. Update the playbook
   with backend-specific caveats (synchronisation, staging buffers, telemetry
@@ -77,9 +83,9 @@ rendered report (`--output`) in CI to track regressions over time.
 
 ## Validation Checklist
 
-- ✅ Sample executes deterministically for seeded workloads (512 frames @ 16 ms).
+- ✅ Sample executes deterministically for seeded workloads (1024 frames @ 16 ms).
 - ✅ Telemetry payload parses with `compute_dispatch_report.py` and exposes
-  category totals plus top kernels.
+  category totals, queue aggregates, and top kernels.
 - ✅ Jitter warnings triggered for kernels whose σ/μ exceeds configurable
   thresholds (default 5%).
 - 🚧 Follow-up: integrate workload adapters for animation GPU sampling once
