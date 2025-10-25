@@ -109,12 +109,14 @@ namespace
         bool show_help{false};
         bool pretty_json{false};
         std::size_t frames{1024U};
+        std::size_t repeat_count{1U};
         double timestep{1.0 / 60.0};
         std::size_t queue_count{1U};
         WorkloadProfile workload{WorkloadProfile::Balanced};
         DispatcherBackend dispatcher_backend{DispatcherBackend::Cpu};
         std::vector<std::string> queue_names{};
         std::map<std::string, std::string> queue_overrides{};
+        std::optional<std::filesystem::path> output_directory{};
         std::optional<std::filesystem::path> output_path{};
         bool include_baseline{false};
         double jitter_budget_ms{kDefaultFrameJitterBudgetMs};
@@ -263,11 +265,12 @@ namespace
                << "Usage:\n"
                << "  engine_compute_runtime_sample [--frames N] [--dt SECONDS] [--output FILE]\\\n"
                << "      [--queues COUNT] [--queue-names LIST] [--queue-map category=queue]\\\n"
-               << "      [--workload PROFILE] [--pretty]\n"
+               << "      [--workload PROFILE] [--repeat COUNT] [--output-dir DIR] [--pretty]\n"
                << '\n'
                << "Options:\n"
                << "  --frames N   Number of ticks to execute (default: 1024)\n"
                << "  --dt SECONDS Simulation timestep for each tick (default: 1/60)\n"
+               << "  --repeat COUNT Execute COUNT captures sequentially (default: 1)\n"
                << "  --queues N   Number of logical compute queues recorded in telemetry (default: 1)\n"
                << "  --queue-names LIST   Comma-separated queue names (implies --queues=LIST length)\n"
                << "  --queue-map category=queue   Override queue selection for a category\n"
@@ -276,6 +279,7 @@ namespace
                << "  --jitter-budget-ms VALUE  Maximum allowed frame dispatch jitter σ in milliseconds (default: 0.5)\n"
                << "  --baseline   Capture a single-queue baseline run and report speed-up (target 1.5x)\n"
                << "  --output FILE Write JSON payload to FILE instead of stdout\n"
+               << "  --output-dir DIR Directory for JSON payloads when repeating (default: parent of --output)\n"
                << "  --pretty     Emit indented JSON when writing to FILE\n"
                << "  --help       Show this message\n";
     }
@@ -338,6 +342,15 @@ namespace
                 options.frames = parse_size(argv[++index]);
                 continue;
             }
+            if (argument == "--repeat" || argument == "--runs")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--repeat requires a value"};
+                }
+                options.repeat_count = parse_size(argv[++index]);
+                continue;
+            }
             if (argument == "--dt")
             {
                 if (index + 1 >= argc)
@@ -354,6 +367,15 @@ namespace
                     throw std::invalid_argument{"--output requires a path"};
                 }
                 options.output_path = std::filesystem::path{argv[++index]};
+                continue;
+            }
+            if (argument == "--output-dir")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--output-dir requires a path"};
+                }
+                options.output_directory = std::filesystem::path{argv[++index]};
                 continue;
             }
             if (argument == "--queues" || argument == "--queue-count")
@@ -436,6 +458,10 @@ namespace
         {
             throw std::invalid_argument{"--frames must be greater than zero"};
         }
+        if (options.repeat_count == 0U)
+        {
+            throw std::invalid_argument{"--repeat must be greater than zero"};
+        }
         if (!(options.timestep > 0.0))
         {
             throw std::invalid_argument{"--dt must be positive"};
@@ -447,6 +473,11 @@ namespace
         if (!(options.jitter_budget_ms >= 0.0))
         {
             throw std::invalid_argument{"--jitter-budget-ms must be non-negative"};
+        }
+
+        if (options.output_directory && options.output_directory->empty())
+        {
+            throw std::invalid_argument{"--output-dir cannot be empty"};
         }
 
         if (options.dispatcher_backend == DispatcherBackend::Cuda && !compute::is_cuda_dispatcher_available())
@@ -552,6 +583,78 @@ namespace
         {
             stream << "  ";
         }
+    }
+
+    [[nodiscard]] std::size_t digit_count(std::size_t value) noexcept
+    {
+        std::size_t digits = 0U;
+        do
+        {
+            value /= 10U;
+            ++digits;
+        } while (value > 0U);
+        return digits;
+    }
+
+    [[nodiscard]] std::optional<std::filesystem::path> make_output_path(
+        const CommandLineOptions& options,
+        std::size_t run_index)
+    {
+        if (!options.output_path && !options.output_directory)
+        {
+            return std::nullopt;
+        }
+
+        std::filesystem::path directory{};
+        std::string prefix{};
+        std::string extension{};
+
+        if (options.output_directory)
+        {
+            directory = *options.output_directory;
+            if (options.output_path)
+            {
+                prefix = options.output_path->stem().string();
+                extension = options.output_path->extension().string();
+            }
+            else
+            {
+                prefix = "compute_dispatch";
+                extension = ".json";
+            }
+        }
+        else if (options.output_path)
+        {
+            directory = options.output_path->parent_path();
+            prefix = options.output_path->stem().string();
+            extension = options.output_path->extension().string();
+        }
+
+        if (extension.empty())
+        {
+            extension = ".json";
+        }
+        if (prefix.empty())
+        {
+            prefix = "compute_dispatch";
+        }
+
+        if (!options.output_directory && options.repeat_count <= 1U)
+        {
+            return options.output_path;
+        }
+
+        const std::size_t digits = digit_count(options.repeat_count);
+        std::ostringstream filename;
+        filename << prefix << "-run" << std::setw(static_cast<int>(digits)) << std::setfill('0')
+                 << (run_index + 1U);
+        if (!extension.empty())
+        {
+            filename << extension;
+        }
+
+        std::filesystem::path resolved = directory / filename.str();
+        return resolved;
     }
 
     struct DispatchSample
@@ -965,9 +1068,19 @@ namespace
         return outcome;
     }
 
-    void print_text_summary(const RunResult& result, const RunResult* baseline, double speedup)
+    void print_text_summary(
+        const RunResult& result,
+        const RunResult* baseline,
+        double speedup,
+        std::size_t run_index,
+        std::size_t run_count)
     {
-        std::cout << "=== Compute Dispatcher Runtime Sample ===\n";
+        std::cout << "=== Compute Dispatcher Runtime Sample";
+        if (run_count > 1U)
+        {
+            std::cout << " (run " << (run_index + 1U) << " of " << run_count << ")";
+        }
+        std::cout << " ===\n";
         std::cout << "Frames: " << result.summary.frame_totals.samples << '\n';
         std::cout << "Requested frames: " << result.requested_frames << '\n';
         std::cout << "Average frame dispatch time: " << std::fixed << std::setprecision(3)
@@ -1205,7 +1318,9 @@ namespace
                            const runtime::RuntimeDiagnostics& diagnostics,
                            const RunResult* baseline,
                            double baseline_speedup,
-                           std::ostream& stream)
+                           std::ostream& stream,
+                           std::size_t run_index,
+                           std::size_t run_count)
     {
         const bool pretty = options.pretty_json;
         stream << std::fixed << std::setprecision(6);
@@ -1234,6 +1349,28 @@ namespace
             stream << ' ';
         }
         stream << result.summary.frame_totals.samples << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "run_index" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << (run_index + 1U) << ',';
+        if (pretty)
+        {
+            stream << '\n';
+        }
+        write_indent(stream, 2U, pretty);
+        stream << '"' << "run_count" << '"' << ':';
+        if (pretty)
+        {
+            stream << ' ';
+        }
+        stream << run_count << ',';
         if (pretty)
         {
             stream << '\n';
@@ -2549,42 +2686,58 @@ int main(int argc, char* argv[])
             return 0;
         }
 
-        const ExecutionOutcome primary = execute_run(options);
-
-        std::optional<ExecutionOutcome> baseline{};
-        if (options.include_baseline)
+        for (std::size_t run_index = 0; run_index < options.repeat_count; ++run_index)
         {
-            CommandLineOptions baseline_options = options;
-            baseline_options.queue_count = 1U;
-            baseline_options.queue_names.clear();
-            baseline_options.queue_overrides.clear();
-            baseline_options.include_baseline = false;
-            baseline = execute_run(baseline_options);
-        }
+            const ExecutionOutcome primary = execute_run(options);
 
-        const RunResult* baseline_result = baseline ? &baseline->result : nullptr;
-        const double speedup = baseline_result != nullptr
-                                   ? compute_speedup(
-                                         baseline_result->summary.frame_totals.mean_ms,
-                                         primary.result.summary.frame_totals.mean_ms)
-                                   : 0.0;
-
-        print_text_summary(primary.result, baseline_result, speedup);
-
-        if (options.output_path)
-        {
-            const std::filesystem::path parent = options.output_path->parent_path();
-            if (!parent.empty())
+            std::optional<ExecutionOutcome> baseline{};
+            if (options.include_baseline)
             {
-                std::filesystem::create_directories(parent);
+                CommandLineOptions baseline_options = options;
+                baseline_options.queue_count = 1U;
+                baseline_options.queue_names.clear();
+                baseline_options.queue_overrides.clear();
+                baseline_options.include_baseline = false;
+                baseline = execute_run(baseline_options);
             }
-            std::ofstream file{*options.output_path, std::ios::binary};
-            if (!file)
+
+            const RunResult* baseline_result = baseline ? &baseline->result : nullptr;
+            const double speedup = baseline_result != nullptr
+                                       ? compute_speedup(
+                                             baseline_result->summary.frame_totals.mean_ms,
+                                             primary.result.summary.frame_totals.mean_ms)
+                                       : 0.0;
+
+            if (run_index > 0U)
             {
-                std::cerr << "Failed to open output file: " << options.output_path->string() << std::endl;
-                return 1;
+                std::cout << '\n';
             }
-            write_json_report(options, primary.result, primary.diagnostics, baseline_result, speedup, file);
+            print_text_summary(primary.result, baseline_result, speedup, run_index, options.repeat_count);
+
+            const auto output_path = make_output_path(options, run_index);
+            if (output_path)
+            {
+                const std::filesystem::path parent = output_path->parent_path();
+                if (!parent.empty())
+                {
+                    std::filesystem::create_directories(parent);
+                }
+                std::ofstream file{*output_path, std::ios::binary};
+                if (!file)
+                {
+                    std::cerr << "Failed to open output file: " << output_path->string() << std::endl;
+                    return 1;
+                }
+                write_json_report(
+                    options,
+                    primary.result,
+                    primary.diagnostics,
+                    baseline_result,
+                    speedup,
+                    file,
+                    run_index,
+                    options.repeat_count);
+            }
         }
 
         return 0;

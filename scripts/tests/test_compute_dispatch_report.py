@@ -62,6 +62,8 @@ def _write_payload(
     jitter_budget_ms: float = 0.5,
     jitter_exceeds: bool = False,
     baseline_stddev_ms: float = 0.2,
+    run_index: int = 1,
+    run_count: int = 1,
 ) -> Path:
     payload = {
         "metadata": {
@@ -80,6 +82,8 @@ def _write_payload(
             "frame_jitter_ms": frame_jitter_ms,
             "frame_jitter_budget_ms": jitter_budget_ms,
             "frame_jitter_exceeds_budget": jitter_exceeds,
+            "run_index": run_index,
+            "run_count": run_count,
         },
         "frames": frames,
         "summary": {
@@ -148,6 +152,8 @@ def test_render_summary_lists_top_kernels(tmp_path: Path, capsys: pytest.Capture
         jitter_budget_ms=0.5,
         jitter_exceeds=False,
         baseline_stddev_ms=0.22,
+        run_index=2,
+        run_count=3,
     )
 
     report.main(["--input", str(payload_path), "--top", "2"])
@@ -158,6 +164,7 @@ def test_render_summary_lists_top_kernels(tmp_path: Path, capsys: pytest.Capture
     assert "Runtime stage timings" in output
     assert "Workload: balanced" in output
     assert "Dispatcher backend: cpu" in output
+    assert "Run: 2/3" in output
     assert "Queues: 3" in output
     assert "Queue assignments: animation→queue-0" in output
     assert "Queue totals:" in output

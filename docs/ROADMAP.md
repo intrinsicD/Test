@@ -71,6 +71,9 @@ scenarios align with their benchmark matrix.
 - 2025-11-08: Documentation refreshed to highlight dispatcher backend selection
   metadata, jitter/memory budgets, and diagnostics workflow for the runtime
   sample (`CO-170.2`, `CO-170.3`).
+- 2025-11-09: Runtime sample gains `--repeat`/`--output-dir`, emits
+  per-capture metadata (`run_index`, `run_count`), and the diagnostics report
+  surfaces active run context to simplify benchmark variance tracking.
 
 ---
 

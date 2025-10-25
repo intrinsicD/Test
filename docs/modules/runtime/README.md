@@ -211,9 +211,9 @@ ctest --preset linux-gcc-debug -R runtime
   cmake --build --preset <preset> --target engine_compute_runtime_sample
   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
       --frames 1024 --dt 0.016 --workload balanced --dispatcher-backend cpu --queues 3 --baseline \
-      --jitter-budget-ms 0.5 \
+      --repeat 3 --jitter-budget-ms 0.5 \
       --queue-names rt-main,rt-async,rt-deform --queue-map geometry=rt-deform \
-      --output telemetry/compute_dispatch.json
+      --output telemetry/compute_dispatch.json --output-dir telemetry/runs
   python scripts/diagnostics/compute_dispatch_report.py --input telemetry/compute_dispatch.json --top 5
   ```
   The workflow exercises `RuntimeHost` end-to-end, records per-kernel timings,
@@ -227,9 +227,12 @@ ctest --preset linux-gcc-debug -R runtime
   runs breaching the 256 MiB animation budget are easy to diagnose. Provide
   `--dispatcher-backend cuda` when available to profile GPU dispatchers; the
   metadata records the backend for both the optimised run and the baseline so
-  diagnostics remain self-contained.
-  Queue labels fall back to deterministic FNV-1a hashing so workload categories
-  without explicit overrides remain stable between runs.
+  diagnostics remain self-contained. When `--repeat` is used the harness emits
+  multiple captures automatically, names them with a `-runXX` suffix, and embeds
+  `run_index`/`run_count` in metadata so diagnostics and CI dashboards can
+  correlate per-run summaries with run-to-run variance checks. Queue labels fall
+  back to deterministic FNV-1a hashing so workload categories without explicit
+  overrides remain stable between runs.
 
 ## TODO / Next Steps
 

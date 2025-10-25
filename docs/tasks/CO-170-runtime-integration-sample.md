@@ -261,3 +261,7 @@ occupancy, and jitter; compare against CPU baselines logged by the harness.
 - 2025-11-08: Added `--dispatcher-backend` to select CPU vs CUDA dispatchers,
   persisted the backend in telemetry/baseline metadata, and surfaced it in the
   diagnostics report to unblock GPU benchmarking comparisons.
+- 2025-11-09: Introduced `--repeat`/`--output-dir` so the runtime sample can
+  emit multiple captures automatically. JSON metadata now records
+  `run_index`/`run_count` and the diagnostics report surfaces the active run,
+  streamlining benchmark variance analysis for `CO-170.2`.

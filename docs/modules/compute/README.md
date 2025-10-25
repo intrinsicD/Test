@@ -190,9 +190,10 @@ cmake --build --preset linux-gcc-debug --target engine_compute_runtime_sample
 ```bash
 ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
     --frames 1024 --dt 0.016 --workload balanced --queues 3 \
-    --dispatcher-backend cpu --baseline --jitter-budget-ms 0.5 \
+    --dispatcher-backend cpu --baseline --repeat 3 --jitter-budget-ms 0.5 \
     --queue-names main,async-0,async-1 --queue-map physics=async-0 \
-    --output telemetry/compute_dispatch.json --pretty
+    --output telemetry/compute_dispatch.json --output-dir telemetry \
+    --pretty
 ```
 
 Key CLI options:
@@ -201,15 +202,22 @@ Key CLI options:
   records both optimised and baseline backends).
 - `--baseline` – run a single-queue reference capture and emit the observed
   speed-up; the diagnostics report warns when it drops below the 1.5× target.
+- `--repeat COUNT` – execute multiple captures sequentially; filenames pick up a
+  `-runXX` suffix and metadata records `run_index`/`run_count` for downstream
+  variance analysis.
 - `--jitter-budget-ms` – enforce the ≤0.5 ms dispatch jitter budget (both the
   optimised run and the baseline emit warnings when exceeded).
 - `--queue-names` / `--queue-map` – label queues and pin categories to specific
   queues. Unmapped categories fall back to deterministic FNV-1a hashing so
   telemetry comparisons remain reproducible across platforms.
+- `--output` / `--output-dir` – control where telemetry payloads are written;
+  when repeating, the directory defaults to the parent of `--output` unless
+  `--output-dir` is supplied explicitly.
 
 The JSON payload embeds per-dispatch timings, per-queue/category aggregates,
 cross-queue fences, runtime stage timings, GPU staging estimates (256 MiB
-budget), and frame jitter statistics so CI dashboards can audit regressions.
+budget), frame jitter statistics, and per-run identifiers so CI dashboards can
+audit regressions and track run-to-run variance.
 
 ### Analyse Results
 
