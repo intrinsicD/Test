@@ -5,6 +5,8 @@
 #include <cmath>
 #include <exception>
 #include <limits>
+#include <numbers>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -566,6 +568,79 @@ namespace engine::geometry
             }
         }
 
+        [[nodiscard]] float compute_edge_length(const MeshInterface& interface, EdgeHandle edge) noexcept
+        {
+            const HalfedgeHandle h0 = interface.halfedge(edge, 0);
+            const HalfedgeHandle h1 = interface.halfedge(edge, 1);
+            const math::vec3& p0 = interface.position(interface.to_vertex(h0));
+            const math::vec3& p1 = interface.position(interface.to_vertex(h1));
+            return math::length(p1 - p0);
+        }
+
+        [[nodiscard]] std::optional<math::vec3> compute_face_unit_normal(const MeshInterface& interface,
+                                                                         FaceHandle face) noexcept
+        {
+            if (!face.is_valid() || interface.is_deleted(face))
+            {
+                return std::nullopt;
+            }
+
+            auto vertices = interface.vertices(face);
+            if (!vertices)
+            {
+                return std::nullopt;
+            }
+
+            const auto start = vertices;
+            std::array<math::vec3, 3> points{};
+            std::size_t count = 0U;
+
+            do
+            {
+                const VertexHandle vertex = *vertices;
+                points[count++] = interface.position(vertex);
+            }
+            while (++vertices != start && count < points.size());
+
+            if (count < 3U)
+            {
+                return std::nullopt;
+            }
+
+            const math::vec3 e0 = points[1] - points[0];
+            const math::vec3 e1 = points[2] - points[0];
+            const math::vec3 normal = math::cross(e0, e1);
+            const float length_sq = math::dot(normal, normal);
+            if (length_sq <= std::numeric_limits<float>::epsilon())
+            {
+                return std::nullopt;
+            }
+
+            return normal / std::sqrt(length_sq);
+        }
+
+        [[nodiscard]] float compute_edge_dihedral_degrees(const MeshInterface& interface, EdgeHandle edge) noexcept
+        {
+            const HalfedgeHandle h0 = interface.halfedge(edge, 0);
+            const HalfedgeHandle h1 = interface.halfedge(edge, 1);
+
+            const FaceHandle f0 = interface.face(h0);
+            const FaceHandle f1 = interface.face(h1);
+
+            const std::optional<math::vec3> n0 = compute_face_unit_normal(interface, f0);
+            const std::optional<math::vec3> n1 = compute_face_unit_normal(interface, f1);
+
+            if (!n0.has_value() || !n1.has_value())
+            {
+                return 0.0F;
+            }
+
+            const float dot_value = math::dot(n0.value(), n1.value());
+            const float clamped = std::clamp(dot_value, -1.0F, 1.0F);
+            const float angle_radians = std::acos(clamped);
+            return angle_radians * (180.0F / std::numbers::pi_v<float>);
+        }
+
         bool can_collapse_edge(const RemeshRequest& request,
                                const std::vector<bool>& locked,
                                MeshInterface& interface,
@@ -792,6 +867,247 @@ namespace engine::geometry
 
             return performed_iterations;
         }
+
+        struct AdaptiveRemeshThresholds
+        {
+            float base_target_length{1.0F};
+            float split_length{1.0F};
+            float collapse_length{1.0F};
+            std::optional<float> max_normal_deviation_degrees{};
+            std::optional<float> max_surface_deviation{};
+        };
+
+        [[nodiscard]] AdaptiveRemeshThresholds make_adaptive_thresholds(const RemeshRequest& request,
+                                                                         const ResolvedRemeshingTargets& resolved)
+        {
+            AdaptiveRemeshThresholds thresholds{};
+
+            float base = resolved.target_edge_length.value_or(resolved.edge_statistics.mean_edge_length());
+            if (!std::isfinite(base) || base <= std::numeric_limits<float>::epsilon())
+            {
+                base = resolved.edge_statistics.max_edge_length;
+            }
+            if (!std::isfinite(base) || base <= std::numeric_limits<float>::epsilon())
+            {
+                base = 1.0F;
+            }
+
+            thresholds.base_target_length = base;
+            thresholds.split_length = base * kDefaultSplitThreshold;
+            thresholds.collapse_length = base * kDefaultCollapseThreshold;
+
+            if (resolved.maximum_surface_deviation.has_value())
+            {
+                const float deviation = std::max(0.0F, resolved.maximum_surface_deviation.value());
+                thresholds.max_surface_deviation = deviation;
+                thresholds.split_length = std::min(thresholds.split_length, base + deviation);
+            }
+
+            if (thresholds.split_length <= thresholds.collapse_length)
+            {
+                thresholds.split_length = thresholds.collapse_length + thresholds.base_target_length * 0.25F;
+            }
+
+            thresholds.max_normal_deviation_degrees = resolved.maximum_normal_deviation_degrees;
+
+            return thresholds;
+        }
+
+        [[nodiscard]] bool should_split_edge(const AdaptiveRemeshThresholds& thresholds,
+                                             float length,
+                                             float dihedral_degrees) noexcept
+        {
+            if (length > thresholds.split_length)
+            {
+                return true;
+            }
+
+            if (thresholds.max_surface_deviation.has_value())
+            {
+                const float deviation = thresholds.max_surface_deviation.value();
+                if (deviation > 0.0F && (length - thresholds.base_target_length) > deviation)
+                {
+                    return true;
+                }
+            }
+
+            if (thresholds.max_normal_deviation_degrees.has_value())
+            {
+                const float allowed = thresholds.max_normal_deviation_degrees.value();
+                if (allowed > 0.0F && dihedral_degrees > allowed && length > thresholds.base_target_length * 0.5F)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [[nodiscard]] bool should_collapse_edge(const AdaptiveRemeshThresholds& thresholds,
+                                                float length,
+                                                float dihedral_degrees) noexcept
+        {
+            bool collapse = length < thresholds.collapse_length;
+
+            if (!collapse && thresholds.max_surface_deviation.has_value())
+            {
+                const float deviation = thresholds.max_surface_deviation.value();
+                if (deviation > 0.0F && (thresholds.base_target_length - length) > deviation)
+                {
+                    collapse = true;
+                }
+            }
+
+            if (!collapse)
+            {
+                return false;
+            }
+
+            if (thresholds.max_normal_deviation_degrees.has_value())
+            {
+                const float allowed = thresholds.max_normal_deviation_degrees.value();
+                if (allowed > 0.0F && dihedral_degrees > allowed * 0.75F)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        std::uint32_t execute_adaptive_remesh(const RemeshRequest& request,
+                                              MeshInterface& interface,
+                                              std::vector<bool>& locked,
+                                              const AdaptiveRemeshThresholds& thresholds,
+                                              const std::unordered_set<std::uint64_t>* protected_edges)
+        {
+            std::uint32_t performed_iterations = 0U;
+            const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
+            const bool tangential_smoothing = request.tangential_smoothing_weight > 0.0F;
+
+            for (; performed_iterations < request.max_iterations; ++performed_iterations)
+            {
+                std::vector<EdgeHandle> edges_to_split;
+                std::vector<EdgeHandle> edges_to_collapse;
+
+                for (auto edge : interface.edges())
+                {
+                    if (interface.is_deleted(edge))
+                    {
+                        continue;
+                    }
+
+                    const float length = compute_edge_length(interface, edge);
+                    const float dihedral = compute_edge_dihedral_degrees(interface, edge);
+
+                    if (should_split_edge(thresholds, length, dihedral))
+                    {
+                        edges_to_split.push_back(edge);
+                        continue;
+                    }
+
+                    if (should_collapse_edge(thresholds, length, dihedral))
+                    {
+                        edges_to_collapse.push_back(edge);
+                    }
+                }
+
+                bool iteration_changed = false;
+
+                for (EdgeHandle edge : edges_to_collapse)
+                {
+                    HalfedgeHandle collapse_halfedge{};
+                    VertexHandle keep_vertex{};
+                    VertexHandle remove_vertex{};
+
+                    if (!can_collapse_edge(request,
+                                           locked,
+                                           interface,
+                                           edge,
+                                           collapse_halfedge,
+                                           keep_vertex,
+                                           remove_vertex,
+                                           protected_edges))
+                    {
+                        continue;
+                    }
+
+                    const math::vec3 blended =
+                        (interface.position(keep_vertex) + interface.position(remove_vertex)) * 0.5F;
+                    interface.position(keep_vertex) = blended;
+                    interface.collapse(collapse_halfedge);
+                    iteration_changed = true;
+                }
+
+                ensure_vertex_capacity(locked, interface);
+
+                for (EdgeHandle edge : edges_to_split)
+                {
+                    if (interface.is_deleted(edge))
+                    {
+                        continue;
+                    }
+
+                    const float length = compute_edge_length(interface, edge);
+                    const float dihedral = compute_edge_dihedral_degrees(interface, edge);
+                    if (!should_split_edge(thresholds, length, dihedral))
+                    {
+                        continue;
+                    }
+
+                    const HalfedgeHandle h0 = interface.halfedge(edge, 0);
+                    const HalfedgeHandle h1 = interface.halfedge(edge, 1);
+                    const math::vec3& p0 = interface.position(interface.to_vertex(h0));
+                    const math::vec3& p1 = interface.position(interface.to_vertex(h1));
+
+                    const std::size_t previous_vertices = interface.vertices_size();
+                    const auto new_halfedge = interface.split(edge, (p0 + p1) * 0.5F);
+                    (void)new_halfedge;
+                    ensure_vertex_capacity(locked, interface);
+
+                    if (interface.vertices_size() == previous_vertices + 1)
+                    {
+                        VertexHandle new_vertex(static_cast<std::uint32_t>(interface.vertices_size() - 1));
+                        bool lock_new = false;
+                        if (request.feature_preservation.lock_boundary_edges && interface.is_boundary(new_vertex))
+                        {
+                            lock_new = true;
+                        }
+                        if (!lock_new && request.feature_preservation.lock_feature_edges)
+                        {
+                            const bool v0_locked = is_locked_vertex(locked, interface.to_vertex(h0));
+                            const bool v1_locked = is_locked_vertex(locked, interface.to_vertex(h1));
+                            lock_new = v0_locked && v1_locked;
+                        }
+                        locked[new_vertex.index()] = lock_new;
+                    }
+
+                    iteration_changed = true;
+                }
+
+                if (!iteration_changed)
+                {
+                    break;
+                }
+
+                ensure_vertex_capacity(locked, interface);
+
+                if (smoothing_factor > 0.0F)
+                {
+                    if (tangential_smoothing)
+                    {
+                        std::vector<math::vec3> normals = compute_vertex_normals(interface);
+                        laplacian_relaxation(interface, locked, smoothing_factor, &normals);
+                    }
+                    else
+                    {
+                        laplacian_relaxation(interface, locked, smoothing_factor, nullptr);
+                    }
+                }
+            }
+
+            return performed_iterations;
+        }
     } // namespace
 
     RemeshResult<RemeshOutput> Remesh(const RemeshRequest& request) noexcept
@@ -801,16 +1117,6 @@ namespace engine::geometry
             return RemeshResult<RemeshOutput>{validation.error()};
         }
 
-        switch (request.mode)
-        {
-        case RemeshingMode::kUniform:
-        case RemeshingMode::kFeaturePreserving:
-            break;
-        case RemeshingMode::kAdaptive:
-            return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::unsupported_mode,
-                                                                "remeshing mode not yet implemented")};
-        }
-
         auto resolved_targets_result = ResolveRemeshingTargets(request);
         if (!resolved_targets_result.has_value())
         {
@@ -818,7 +1124,7 @@ namespace engine::geometry
         }
 
         const ResolvedRemeshingTargets& resolved_targets = resolved_targets_result.value();
-        if (!resolved_targets.target_edge_length.has_value())
+        if (request.mode != RemeshingMode::kAdaptive && !resolved_targets.target_edge_length.has_value())
         {
             return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_target_configuration,
                                                                 "remeshing requires a target edge length")};
@@ -847,19 +1153,43 @@ namespace engine::geometry
 
         std::vector<bool> locked = initialise_locked_vertices(topology_summary, mesh.interface, request);
 
-        const bool use_tangential_smoothing = request.mode == RemeshingMode::kFeaturePreserving;
+        const bool tangential_requested = request.tangential_smoothing_weight > 0.0F;
+        const bool use_tangential_smoothing =
+            (request.mode == RemeshingMode::kFeaturePreserving) ||
+            (request.mode == RemeshingMode::kAdaptive && tangential_requested);
         const std::unordered_set<std::uint64_t>* protected_edge_ptr =
             (!protected_edges.empty() && use_tangential_smoothing) ? &protected_edges : nullptr;
 
-        const float target_length = resolved_targets.target_edge_length.value();
-        const std::uint32_t iterations = execute_uniform_remesh(request,
-                                                                mesh.interface,
-                                                                locked,
-                                                                target_length,
-                                                                kDefaultSplitThreshold,
-                                                                kDefaultCollapseThreshold,
-                                                                protected_edge_ptr,
-                                                                use_tangential_smoothing);
+        std::uint32_t iterations = 0U;
+        std::optional<AdaptiveRemeshThresholds> adaptive_thresholds{};
+
+        switch (request.mode)
+        {
+        case RemeshingMode::kUniform:
+        case RemeshingMode::kFeaturePreserving:
+        {
+            const float target_length = resolved_targets.target_edge_length.value();
+            iterations = execute_uniform_remesh(request,
+                                                mesh.interface,
+                                                locked,
+                                                target_length,
+                                                kDefaultSplitThreshold,
+                                                kDefaultCollapseThreshold,
+                                                protected_edge_ptr,
+                                                use_tangential_smoothing);
+            break;
+        }
+        case RemeshingMode::kAdaptive:
+        {
+            adaptive_thresholds = make_adaptive_thresholds(request, resolved_targets);
+            iterations = execute_adaptive_remesh(request,
+                                                 mesh.interface,
+                                                 locked,
+                                                 adaptive_thresholds.value(),
+                                                 protected_edge_ptr);
+            break;
+        }
+        }
 
         mesh.interface.garbage_collection();
 
@@ -880,7 +1210,12 @@ namespace engine::geometry
 
         if (stats.edge_count > 0U)
         {
-            const float target = resolved_targets.target_edge_length.value();
+            float target = resolved_targets.target_edge_length.value_or(stats.mean_edge_length());
+            if (request.mode == RemeshingMode::kAdaptive && adaptive_thresholds.has_value())
+            {
+                target = adaptive_thresholds->base_target_length;
+            }
+
             const float max_over_target = math::utils::abs(stats.max_edge_length - target);
             const float max_under_target = math::utils::abs(stats.min_edge_length - target);
             output.statistics.max_error = std::max(max_over_target, max_under_target);

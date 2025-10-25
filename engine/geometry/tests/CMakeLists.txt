@@ -16,6 +16,7 @@ add_executable(engine_geometry_tests
         test_frustum.cpp
         test_remesh_request.cpp
         test_remesh_feature_preserving.cpp
+        test_remesh_adaptive.cpp
         test_remesh_uniform.cpp
 )
 

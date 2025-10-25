@@ -44,6 +44,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 **Notes:** Activation follows the completion of `CO-170`. Coordinate animation and compute teams to share datasets, queue budgets, and telemetry thresholds with the runtime sample. Align benchmarking cadence with the GPU hardware lab schedule referenced in the `AN-230` plan.
 
 - 2025-11-11: `CO-170` runtime dispatcher sample, telemetry workflow, and documentation merged; roadmap focus shifts to building the GPU benchmarking harness for `AN-230`.
+- 2025-11-15: Adaptive remeshing mode lands with surface/normal error budgets, advancing `GE-221+` Phase 2 execution planning.
 
 ---
 

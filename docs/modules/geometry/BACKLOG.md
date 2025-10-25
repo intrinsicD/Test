@@ -58,3 +58,6 @@ roadmap after each milestone.
 - 2025-11-12 — Enabled feature-preserving remeshing with crease-aware edge
   protection and tangential smoothing, extending `GE-221+` toward the adaptive
   follow-up milestones.
+- 2025-11-15 — Introduced adaptive remeshing driven by surface/normal budgets,
+  deriving edge targets when only error tolerances are provided to progress
+  `GE-221+` Phase 2.
