@@ -59,7 +59,10 @@ namespace
         std::vector<std::string> queue_names{};
         std::map<std::string, std::string> queue_overrides{};
         std::optional<std::filesystem::path> output_path{};
+        bool include_baseline{false};
     };
+
+    constexpr double kBaselineSpeedupTarget = 1.5;
 
     [[nodiscard]] std::string_view workload_to_string(WorkloadProfile workload) noexcept
     {
@@ -361,6 +364,7 @@ namespace
                << "  --queue-names LIST   Comma-separated queue names (implies --queues=LIST length)\n"
                << "  --queue-map category=queue   Override queue selection for a category\n"
                << "  --workload PROFILE  Workload intensity: light | balanced | heavy (default: balanced)\n"
+               << "  --baseline   Capture a single-queue baseline run and report speed-up (target 1.5x)\n"
                << "  --output FILE Write JSON payload to FILE instead of stdout\n"
                << "  --pretty     Emit indented JSON when writing to FILE\n"
                << "  --help       Show this message\n";
@@ -408,6 +412,11 @@ namespace
             if (argument == "--pretty")
             {
                 options.pretty_json = true;
+                continue;
+            }
+            if (argument == "--baseline")
+            {
+                options.include_baseline = true;
                 continue;
             }
             if (argument == "--frames")
@@ -685,6 +694,21 @@ namespace
         compute::DependencyGraph dependency_graph{};
     };
 
+    struct ExecutionOutcome
+    {
+        RunResult result{};
+        runtime::RuntimeDiagnostics diagnostics{};
+    };
+
+    [[nodiscard]] double compute_speedup(double baseline_ms, double optimized_ms) noexcept
+    {
+        if (!(baseline_ms > 0.0) || !(optimized_ms > 0.0))
+        {
+            return 0.0;
+        }
+        return baseline_ms / optimized_ms;
+    }
+
     [[nodiscard]] std::vector<QueueTransition> collect_queue_transitions(
         const compute::DependencyGraph& graph,
         const std::unordered_map<std::string, std::string>& queue_lookup)
@@ -934,7 +958,23 @@ namespace
         return result;
     }
 
-    void print_text_summary(const RunResult& result)
+    [[nodiscard]] ExecutionOutcome execute_run(const CommandLineOptions& options)
+    {
+        runtime::RuntimeHost host{};
+        configure_runtime_host(host, options.workload);
+        host.initialize();
+
+        RunResult result = run_sample(options, host);
+        const runtime::RuntimeDiagnostics diagnostics = host.diagnostics();
+        host.shutdown();
+
+        ExecutionOutcome outcome{};
+        outcome.result = std::move(result);
+        outcome.diagnostics = diagnostics;
+        return outcome;
+    }
+
+    void print_text_summary(const RunResult& result, const RunResult* baseline, double speedup)
     {
         std::cout << "=== Compute Dispatcher Runtime Sample ===\n";
         std::cout << "Frames: " << result.summary.frame_totals.samples << '\n';
@@ -1035,6 +1075,27 @@ namespace
             }
         }
 
+        if (baseline != nullptr)
+        {
+            const SummaryStats& stats = baseline->summary.frame_totals;
+            std::cout << '\n' << "Baseline (" << baseline->queue_names.size() << " queue";
+            if (baseline->queue_names.size() != 1U)
+            {
+                std::cout << 's';
+            }
+            std::cout << ") average frame dispatch: " << std::fixed << std::setprecision(3)
+                      << stats.mean_ms << " ms";
+            const double jitter = stats.jitter_percent();
+            std::cout << " (min " << std::setprecision(3) << stats.min_ms << ", max " << stats.max_ms
+                      << ", σ " << stats.stddev_ms << ", jitter " << std::setprecision(2) << jitter << "%)\n";
+            std::cout << "Speed-up vs baseline: " << std::fixed << std::setprecision(3) << speedup << 'x';
+            if (speedup < kBaselineSpeedupTarget)
+            {
+                std::cout << " (below " << std::setprecision(2) << kBaselineSpeedupTarget << "x target)";
+            }
+            std::cout << '\n';
+        }
+
         std::cout << std::endl;
     }
 
@@ -1093,6 +1154,8 @@ namespace
     void write_json_report(const CommandLineOptions& options,
                            const RunResult& result,
                            const runtime::RuntimeDiagnostics& diagnostics,
+                           const RunResult* baseline,
+                           double baseline_speedup,
                            std::ostream& stream)
     {
         const bool pretty = options.pretty_json;
@@ -1312,6 +1375,106 @@ namespace
         if (pretty)
         {
             stream << '\n';
+        }
+
+        if (baseline != nullptr)
+        {
+            const SummaryStats& stats = baseline->summary.frame_totals;
+            write_indent(stream, 1U, pretty);
+            stream << '"' << "baseline" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << "{";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+
+            auto emit_number = [&](std::string_view key, double value, bool last) {
+                write_indent(stream, 2U, pretty);
+                stream << '"' << key << '"' << ':';
+                if (pretty)
+                {
+                    stream << ' ';
+                }
+                stream << value;
+                if (!last)
+                {
+                    stream << ',';
+                }
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+            };
+            auto emit_size = [&](std::string_view key, std::size_t value, bool last) {
+                write_indent(stream, 2U, pretty);
+                stream << '"' << key << '"' << ':';
+                if (pretty)
+                {
+                    stream << ' ';
+                }
+                stream << value;
+                if (!last)
+                {
+                    stream << ',';
+                }
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+            };
+
+            emit_size("frames", stats.samples, false);
+            emit_size("queue_count", baseline->queue_names.size(), false);
+
+            write_indent(stream, 2U, pretty);
+            stream << '"' << "queue_names" << '"' << ':';
+            if (pretty)
+            {
+                stream << ' ';
+            }
+            stream << "[";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+            for (std::size_t index = 0; index < baseline->queue_names.size(); ++index)
+            {
+                write_indent(stream, 3U, pretty);
+                stream << '"' << escape_json(baseline->queue_names[index]) << '"';
+                if (index + 1U < baseline->queue_names.size())
+                {
+                    stream << ',';
+                }
+                if (pretty)
+                {
+                    stream << '\n';
+                }
+            }
+            write_indent(stream, 2U, pretty);
+            stream << "],";
+            if (pretty)
+            {
+                stream << '\n';
+            }
+
+            emit_number("average_frame_ms", stats.mean_ms, false);
+            emit_number("min_frame_ms", stats.min_ms, false);
+            emit_number("max_frame_ms", stats.max_ms, false);
+            emit_number("stddev_frame_ms", stats.stddev_ms, false);
+            emit_number("jitter_percent", stats.jitter_percent(), false);
+            emit_number("speedup", baseline_speedup, false);
+            emit_number("target_speedup", kBaselineSpeedupTarget, true);
+
+            write_indent(stream, 1U, pretty);
+            stream << "},";
+            if (pretty)
+            {
+                stream << '\n';
+            }
         }
 
         // Frames
@@ -2125,15 +2288,27 @@ int main(int argc, char* argv[])
             return 0;
         }
 
-        runtime::RuntimeHost host{};
-        configure_runtime_host(host, options.workload);
-        host.initialize();
+        const ExecutionOutcome primary = execute_run(options);
 
-        RunResult result = run_sample(options, host);
-        const runtime::RuntimeDiagnostics diagnostics = host.diagnostics();
-        host.shutdown();
+        std::optional<ExecutionOutcome> baseline{};
+        if (options.include_baseline)
+        {
+            CommandLineOptions baseline_options = options;
+            baseline_options.queue_count = 1U;
+            baseline_options.queue_names.clear();
+            baseline_options.queue_overrides.clear();
+            baseline_options.include_baseline = false;
+            baseline = execute_run(baseline_options);
+        }
 
-        print_text_summary(result);
+        const RunResult* baseline_result = baseline ? &baseline->result : nullptr;
+        const double speedup = baseline_result != nullptr
+                                   ? compute_speedup(
+                                         baseline_result->summary.frame_totals.mean_ms,
+                                         primary.result.summary.frame_totals.mean_ms)
+                                   : 0.0;
+
+        print_text_summary(primary.result, baseline_result, speedup);
 
         if (options.output_path)
         {
@@ -2148,7 +2323,7 @@ int main(int argc, char* argv[])
                 std::cerr << "Failed to open output file: " << options.output_path->string() << std::endl;
                 return 1;
             }
-            write_json_report(options, result, diagnostics, file);
+            write_json_report(options, primary.result, primary.diagnostics, baseline_result, speedup, file);
         }
 
         return 0;

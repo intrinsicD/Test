@@ -102,6 +102,9 @@ workloads.
    warnings for kernels whose standard deviation exceeds the threshold.
 
 Use `--output` to persist the textual summary for dashboards or CI artefacts.
+Provide `--baseline` to the runtime sample to capture a single-queue reference;
+the report surfaces the observed speed-up and warns when the capture fails to
+clear the 1.5× performance target.
 
 ## `telemetry_viewer.py`
 

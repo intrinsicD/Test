@@ -210,14 +210,16 @@ ctest --preset linux-gcc-debug -R runtime
   ```bash
   cmake --build --preset <preset> --target engine_compute_runtime_sample
   ./out/build/<preset>/engine/compute/engine_compute_runtime_sample \
-      --frames 1024 --dt 0.016 --workload balanced --queues 3 \
+      --frames 1024 --dt 0.016 --workload balanced --queues 3 --baseline \
       --queue-names rt-main,rt-async,rt-deform --queue-map geometry=rt-deform \
       --output telemetry/compute_dispatch.json
   python scripts/diagnostics/compute_dispatch_report.py --input telemetry/compute_dispatch.json --top 5
   ```
   The workflow exercises `RuntimeHost` end-to-end, records per-kernel timings,
   reports queue utilisation, enumerates cross-queue fences, and surfaces jitter
-  warnings for `CO-170`.
+  warnings for `CO-170`. With `--baseline`, the report also captures a
+  single-queue reference run and flags when the observed speed-up drops below
+  the `1.5×` target.
   Queue labels fall back to deterministic FNV-1a hashing so workload categories
   without explicit overrides remain stable between runs.
 
