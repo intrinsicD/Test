@@ -113,6 +113,8 @@ class GlfwWindow final : public HeadlessWindow {
 public:
     GlfwWindow(WindowConfig config, std::shared_ptr<EventQueue> queue)
         : HeadlessWindow("glfw", std::move(config), std::move(queue)) {
+        headless_ = this->config().requires_headless_safe();
+
         auto& library = GlfwLibrary::instance();
         library.retain();
 
@@ -134,6 +136,10 @@ public:
     }
 
     void show() override {
+        if (headless_) {
+            return;
+        }
+
         HeadlessWindow::show();
         if (window_ != nullptr) {
             glfwShowWindow(window_);
@@ -142,7 +148,7 @@ public:
 
     void hide() override {
         HeadlessWindow::hide();
-        if (window_ != nullptr) {
+        if (!headless_ && window_ != nullptr) {
             glfwHideWindow(window_);
         }
     }
@@ -186,9 +192,11 @@ private:
     void create_window() {
         const auto& cfg = config();
 
+        const int visibility_hint = headless_ ? GLFW_FALSE : (cfg.visible ? GLFW_TRUE : GLFW_FALSE);
+
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_VISIBLE, cfg.visible ? GLFW_TRUE : GLFW_FALSE);
+        glfwWindowHint(GLFW_VISIBLE, visibility_hint);
         glfwWindowHint(GLFW_RESIZABLE, cfg.resizable ? GLFW_TRUE : GLFW_FALSE);
 
         const auto width = static_cast<int>(std::min<std::uint32_t>(
@@ -207,8 +215,10 @@ private:
         glfwSetWindowUserPointer(window_, this);
         install_callbacks();
 
-        if (cfg.visible) {
+        if (cfg.visible && !headless_) {
             glfwShowWindow(window_);
+        } else {
+            HeadlessWindow::hide();
         }
     }
 
@@ -250,6 +260,7 @@ private:
     }
 
     GLFWwindow* window_{nullptr};
+    bool headless_{false};
 };
 
 }  // namespace

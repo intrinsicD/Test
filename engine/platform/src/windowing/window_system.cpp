@@ -98,7 +98,7 @@ namespace engine::platform
                 {
                     {WindowBackend::Mock, WindowBackendCapabilities{true, false}, windowing::create_mock_window},
 #if ENGINE_PLATFORM_HAS_GLFW
-                    {WindowBackend::GLFW, WindowBackendCapabilities{false, true}, windowing::create_glfw_window},
+                    {WindowBackend::GLFW, WindowBackendCapabilities{true, true}, windowing::create_glfw_window},
 #endif
 #if ENGINE_PLATFORM_HAS_SDL
                     {WindowBackend::SDL, WindowBackendCapabilities{true, true}, windowing::create_sdl_window},

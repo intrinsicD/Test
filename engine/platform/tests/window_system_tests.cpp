@@ -2,8 +2,13 @@
 
 #include <cstdlib>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
+
+#ifndef ENGINE_PLATFORM_HAS_GLFW
+#define ENGINE_PLATFORM_HAS_GLFW 0
+#endif
 
 #include <gtest/gtest.h>
 
@@ -103,3 +108,29 @@ TEST(WindowSystem, EnvironmentOverrideSelectsRequestedBackend) {
     ASSERT_NE(window, nullptr);
     EXPECT_EQ(window->backend_name(), "mock");
 }
+
+#if ENGINE_PLATFORM_HAS_GLFW
+TEST(WindowSystem, GlfwHeadlessCapabilityCreatesHiddenWindow) {
+    using namespace engine::platform;
+
+    WindowConfig config;
+    config.capability_requirements.require_headless_safe = true;
+    config.capability_requirements.require_native_surface = true;
+    config.visible = true;
+
+    std::shared_ptr<Window> window;
+    try {
+        window = create_window(config, WindowBackend::GLFW);
+    } catch (const std::runtime_error& error) {
+        GTEST_SKIP() << "GLFW unavailable: " << error.what();
+    }
+
+    ASSERT_NE(window, nullptr);
+    EXPECT_EQ(window->backend_name(), std::string_view{"glfw"});
+    EXPECT_FALSE(window->is_visible());
+
+    window->show();
+    EXPECT_FALSE(window->is_visible()) << "Headless GLFW windows remain hidden";
+}
+#endif  // ENGINE_PLATFORM_HAS_GLFW
+

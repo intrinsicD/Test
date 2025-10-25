@@ -23,5 +23,7 @@ abstraction and exports telemetry for diagnostics consumers.
 
 ## Notes
 
+- 2025-10-28: GLFW backend now satisfies headless automation via hidden-window support; SDL parity tasks tracked under `DC-003`
+  are deferred until the backlog reprioritises them.
 - 2025-10-23: CMake now disables `ENGINE_ENABLE_GLFW` when GLFW cannot be
   configured so presets fall back to the mock backend without breaking builds.

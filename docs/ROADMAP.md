@@ -14,24 +14,9 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | ID | Intent | Dependencies | Next Milestone | Owning Groups |
 | --- | --- | --- | --- | --- |
-| `DC-003` | Bring the SDL window backend to feature parity with GLFW, including telemetry and CI coverage. | `PL-215`, `CC-002` | Native window + event pump implementation (`DC-003.1`) | Platform |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO |
 
 ### Active Task Details
-
-#### `DC-003` — SDL Backend Implementation (🔄 In Progress)
-
-| Task ID | Description | Exit Criteria | Status |
-| --- | --- | --- | --- |
-| `DC-003.1` | Stand up native SDL window lifecycle and deterministic event pumping. | SDL backend creates native windows, translates input/events, and demotes to the mock backend when SDL is unavailable; unit smoke tests green. | 🔄 In Progress |
-| `DC-003.2` | Integrate swapchain surface export and backend selection fallbacks. | Vulkan/OpenGL surfaces exposed through `SwapchainSurface`, build presets updated, runtime override respects fallback order. | 🟢 Todo |
-| `DC-003.3` | Expand validation, CI, and telemetry coverage. | Platform + runtime integration tests execute with SDL enabled in CI, diagnostics capture SDL errors, README/checklist updated. | 🟢 Todo |
-
-**Recent Updates:**
-- 2025-10-27: Task card [`DC-003.3`](tasks/DC-003.3-sdl-ci-telemetry.md) published to enable SDL CI coverage and telemetry instrumentation, closing the remaining roadmap gap.
-- 2025-10-26: Task card [`DC-003.2`](tasks/DC-003.2-sdl-swapchain-surface-export.md) created and prioritised to follow `DC-003.1`, covering SDL swapchain surface export and fallback alignment.
-- 2025-10-25: Task card [`DC-003.1`](tasks/DC-003.1-sdl-window-lifecycle.md) published to deliver native SDL window lifecycle and deterministic event pumping.
-- 2025-10-24: `PL-215` published the SDL parity checklist; implementation work now tracked under `DC-003`.
 
 <!-- Anchor for RT-002 task references -->
 <a id="rt-002-physics-contact-manifolds"></a>
@@ -53,6 +38,22 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 - **AN-230** — GPU/parallel sampling benchmarks (blocked on `CO-170` compute queue extensions)
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
+- **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
+
+#### `DC-003` — SDL Backend Implementation (⏸ Deferred)
+
+| Task ID | Description | Exit Criteria | Status |
+| --- | --- | --- | --- |
+| `DC-003.1` | Stand up native SDL window lifecycle and deterministic event pumping. | SDL backend creates native windows, translates input/events, and demotes to the mock backend when SDL is unavailable; unit smoke tests green. | ⏸ Deferred |
+| `DC-003.2` | Integrate swapchain surface export and backend selection fallbacks. | Vulkan/OpenGL surfaces exposed through `SwapchainSurface`, build presets updated, runtime override respects fallback order. | ⏸ Deferred |
+| `DC-003.3` | Expand validation, CI, and telemetry coverage. | Platform + runtime integration tests execute with SDL enabled in CI, diagnostics capture SDL errors, README/checklist updated. | ⏸ Deferred |
+
+**Recent Updates:**
+- 2025-10-28: Moved `DC-003` to the backlog after GLFW gained headless automation support; SDL parity tasks remain staged for later execution.
+- 2025-10-27: Task card [`DC-003.3`](tasks/DC-003.3-sdl-ci-telemetry.md) published to enable SDL CI coverage and telemetry instrumentation, closing the remaining roadmap gap.
+- 2025-10-26: Task card [`DC-003.2`](tasks/DC-003.2-sdl-swapchain-surface-export.md) created and prioritised to follow `DC-003.1`, covering SDL swapchain surface export and fallback alignment.
+- 2025-10-25: Task card [`DC-003.1`](tasks/DC-003.1-sdl-window-lifecycle.md) published to deliver native SDL window lifecycle and deterministic event pumping.
+- 2025-10-24: `PL-215` published the SDL parity checklist; implementation work now tracked under `DC-003`.
 
 ### Mid-term (3-6 months)
 
@@ -73,6 +74,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 | ID | Intent | Completed | Key Deliverables |
 | --- | --- | --- | --- |
+| `DC-005` | Headless automation support for GLFW | 2025-10-28 | Hidden window creation for headless configs, updated capability matrix, roadmap/docs refresh |
 | `DC-004` | Standardise error handling on `engine::Result<T, Error>` | 2025-03-17 | `design/ERROR_HANDLING_MIGRATION.md`, IO migration |
 | `AI-001` | Handle-based lifetime management and validation hooks | 2025-04-30 | Debug validation, telemetry counters |
 | `AI-002` | Async asset streaming with telemetry and runtime integration | 2025-10-24 | IO thread pool, runtime futures, streaming diagnostics |
