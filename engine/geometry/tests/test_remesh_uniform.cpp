@@ -76,19 +76,5 @@ namespace engine::geometry
         EXPECT_NEAR(output.statistics.max_error, expected, 1e-4F);
     }
 
-    TEST(RemeshUniform, UnsupportedModeReportsError)
-    {
-        SurfaceMesh mesh = make_unit_square_mesh();
-
-        RemeshRequest request{};
-        request.input_mesh = &mesh;
-        request.mode = RemeshingMode::kAdaptive;
-        request.targets.maximum_surface_deviation = 0.1F;
-        request.targets.relative_edge_scale = 1.0F;
-
-        const RemeshResult<RemeshOutput> result = Remesh(request);
-        ASSERT_FALSE(result.has_value());
-        EXPECT_EQ(static_cast<int>(result.error().value()), static_cast<int>(RemeshError::unsupported_mode));
-    }
 } // namespace engine::geometry
 

@@ -199,12 +199,17 @@ attribute transfer policies, and parameterisation preferences while
 [`GE-212` remeshing RFP](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md).
 Uniform and feature-preserving remeshing kernels consume these structures
 directly, returning a new `SurfaceMesh` alongside iteration counts and edge
-statistics in `RemeshOutput`.
+statistics in `RemeshOutput`. The adaptive remeshing mode extends this pipeline
+with curvature- and surface-error budgets: it derives absolute edge-length
+thresholds when callers only supply Hausdorff/normal tolerances and executes the
+same split/collapse loops while respecting feature locks and tangential
+smoothing.
 
 `RemeshStatistics::max_error` records the maximum absolute deviation between the
-resolved target edge length and the shortest/longest edges observed in the
-output mesh, giving remeshing telemetry a single scalar that quantifies how far
-the result strays from the requested budget.
+resolved target edge length (or the derived adaptive baseline when no explicit
+target is provided) and the shortest/longest edges observed in the output mesh,
+giving remeshing telemetry a single scalar that quantifies how far the result
+strays from the requested budget.
 
 Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
 or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request
