@@ -3,7 +3,8 @@
 `engine_animation_benchmark_driver` replays animation clips and records CPU
 and GPU sampling telemetry for `AN-230`. The JSON payload mirrors the dispatcher
 report from `engine_compute_runtime_sample`, making it compatible with
-`scripts/diagnostics/compute_dispatch_report.py` and future dashboards.
+`scripts/diagnostics/compute_dispatch_report.py` and the dedicated
+`scripts/diagnostics/animation_sampling_report.py` dashboard generator.
 
 ## Build
 

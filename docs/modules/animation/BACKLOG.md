@@ -1,6 +1,6 @@
 # Animation Module Roadmap
 
-_Last Updated: 2025-11-16_
+_Last Updated: 2025-11-19_
 
 ## Milestone Phases
 
@@ -22,7 +22,7 @@ _Last Updated: 2025-11-16_
 
 | Task ID | Description | Owner | Due | Status |
 | --- | --- | --- | --- | --- |
-| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher` ([plan](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md)). | Animation + Compute | 2025-12-05 | 🟢 Active |
+| `AN-230` | Prototype GPU/parallel sampling and benchmark controller throughput with `compute::KernelDispatcher` ([plan](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md)). | Animation + Compute | 2025-12-05 | ✅ Done |
 
 ## Upcoming (Phase 3)
 
@@ -41,6 +41,7 @@ _Last Updated: 2025-11-16_
 
 - Record benchmark data in [`docs/tasks/T-0113-animation-runtime-skinning.md`](../../tasks/T-0113-animation-runtime-skinning.md).
 - Align telemetry hooks with the broader diagnostics initiative (`CC-001`).
+- 2025-11-19: Published `animation_sampling_report.py` to summarise CPU/GPU captures and closed `AN-230.3`, completing the benchmarking milestone.
 - 2025-11-18: Benchmark driver exposes `gpu_async` scenario via `compute::Dispatcher`, emitting queue/category telemetry compatible with the dispatcher schema (`AN-230.2`).
 - 2025-11-16: `engine_animation_benchmark_driver` added to capture CPU baselines aligned with dispatcher telemetry (`AN-230.1`).
 - 2025-11-11: Activated `AN-230` benchmarking after `CO-170` completion; coordination with compute/runtime documented in the central roadmap.
