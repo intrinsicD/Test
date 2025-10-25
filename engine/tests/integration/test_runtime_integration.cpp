@@ -18,6 +18,7 @@
 #include "engine/animation/rigging/rig_binding.hpp"
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/assets/validation.hpp"
+#include "engine/compute/api.hpp"
 #include "engine/geometry/api.hpp"
 #include "engine/geometry/deform/linear_blend_skinning.hpp"
 #include "engine/geometry/mesh/surface_mesh_conversion.hpp"
@@ -481,10 +482,39 @@ TEST(EngineIntegration, AnimationPhysicsRuntimePipeline)
         "geometry.deform",
         "geometry.finalize",
     };
-    ASSERT_EQ(frame.dispatch_report.execution_order.size(), expected_order.size());
+
+    const auto& report = frame.dispatch_report;
+    ASSERT_EQ(report.execution_order.size(), expected_order.size());
     for (std::size_t index = 0; index < expected_order.size(); ++index)
     {
-        EXPECT_EQ(frame.dispatch_report.execution_order[index], expected_order[index]);
+        EXPECT_EQ(report.execution_order[index], expected_order[index]);
+    }
+
+    ASSERT_EQ(report.kernel_durations.size(), expected_order.size());
+    for (double duration : report.kernel_durations)
+    {
+        EXPECT_GE(duration, 0.0);
+    }
+
+    EXPECT_EQ(report.clock_domain, engine::compute::TimingDomain::Cpu);
+    EXPECT_EQ(report.clock_name, "steady_clock");
+
+    const auto& graph = report.dependency_graph;
+    ASSERT_EQ(graph.nodes.size(), expected_order.size());
+    for (std::size_t index = 0; index < graph.nodes.size(); ++index)
+    {
+        const auto& node = graph.nodes[index];
+        EXPECT_EQ(node.name, expected_order[index]);
+        EXPECT_TRUE(node.unresolved_dependencies.empty());
+        if (index == 0U)
+        {
+            EXPECT_TRUE(node.dependencies.empty());
+        }
+        else
+        {
+            ASSERT_EQ(node.dependencies.size(), 1U);
+            EXPECT_EQ(node.dependencies.front(), index - 1U);
+        }
     }
 
     ASSERT_FALSE(frame.body_positions.empty());
@@ -498,6 +528,11 @@ TEST(EngineIntegration, AnimationPhysicsRuntimePipeline)
     EXPECT_GT(root_pose->translation[1], 0.0F);
 
     EXPECT_FALSE(frame.scene_nodes.empty());
+
+    const auto repeat_frame = host.tick(dt);
+    EXPECT_EQ(repeat_frame.dispatch_report.execution_order, report.execution_order);
+    EXPECT_EQ(repeat_frame.dispatch_report.kernel_durations.size(), report.kernel_durations.size());
+    EXPECT_EQ(repeat_frame.dispatch_report.dependency_graph.nodes.size(), graph.nodes.size());
 
     host.shutdown();
 }
