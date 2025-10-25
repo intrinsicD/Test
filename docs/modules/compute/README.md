@@ -290,6 +290,9 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   comparability of telemetry captures. Supplying `--baseline` records a
   single-queue reference run; the report surfaces the achieved speed-up and
   flags regressions when the `1.5×` target is not met.
+  The telemetry payload also publishes a `summary.memory` block and the CLI
+  report prints a GPU staging estimate so runs that exceed the 256 MiB animation
+  budget are flagged immediately.
 
 ## TODO / Next Steps
 

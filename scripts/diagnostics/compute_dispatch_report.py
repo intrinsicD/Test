@@ -66,6 +66,7 @@ class ReportSummary:
     frame_totals: SummaryStats
     queue_dependencies: List[MutableMapping[str, object]]
     queue_transitions: List[MutableMapping[str, object]]
+    memory: Optional["MemorySummary"]
 
 
 @dataclass
@@ -79,6 +80,10 @@ class BaselineStats:
     jitter_percent: float
     speedup: float
     target_speedup: float
+    memory_total_bytes: int
+    memory_total_mebibytes: float
+    memory_budget_mebibytes: float
+    memory_exceeds_budget: bool
 
 
 @dataclass
@@ -88,6 +93,26 @@ class ReportPayload:
     summary: ReportSummary
     stage_timings: List[MutableMapping[str, object]]
     baseline: Optional[BaselineStats]
+
+
+@dataclass
+class MemorySummary:
+    vertex_count: int
+    joint_count: int
+    position_bytes: int
+    normal_bytes: int
+    transform_bytes: int
+    total_bytes: int
+    budget_bytes: int
+    exceeds_budget: bool
+
+    @property
+    def total_mebibytes(self) -> float:
+        return self.total_bytes / (1024.0 * 1024.0)
+
+    @property
+    def budget_mebibytes(self) -> float:
+        return self.budget_bytes / (1024.0 * 1024.0)
 
 
 def _load_frames(payload: MutableMapping[str, object]) -> List[FrameSample]:
@@ -162,6 +187,7 @@ def _compute_summary(frames: Sequence[FrameSample]) -> ReportSummary:
         frame_totals=frame_stats,
         queue_dependencies=[],
         queue_transitions=[],
+        memory=None,
     )
 
 
@@ -198,6 +224,18 @@ def load_report(path: Path) -> ReportPayload:
                     }
                 )
         summary.queue_transitions = parsed_transitions
+    memory_payload = summary_payload.get("memory")
+    if isinstance(memory_payload, MutableMapping):
+        summary.memory = MemorySummary(
+            vertex_count=int(memory_payload.get("vertex_count", 0)),
+            joint_count=int(memory_payload.get("joint_count", 0)),
+            position_bytes=int(memory_payload.get("position_bytes", 0)),
+            normal_bytes=int(memory_payload.get("normal_bytes", 0)),
+            transform_bytes=int(memory_payload.get("transform_bytes", 0)),
+            total_bytes=int(memory_payload.get("total_bytes", 0)),
+            budget_bytes=int(memory_payload.get("budget_bytes", 0)),
+            exceeds_budget=bool(memory_payload.get("exceeds_budget", False)),
+        )
     baseline_payload = payload.get("baseline")
     baseline_stats: Optional[BaselineStats] = None
     if isinstance(baseline_payload, dict):
@@ -220,6 +258,10 @@ def load_report(path: Path) -> ReportPayload:
             jitter_percent=jitter_percent,
             speedup=speedup,
             target_speedup=target_speedup,
+            memory_total_bytes=int(baseline_payload.get("memory_total_bytes", 0)),
+            memory_total_mebibytes=float(baseline_payload.get("memory_total_mebibytes", 0.0)),
+            memory_budget_mebibytes=float(baseline_payload.get("memory_budget_mebibytes", 0.0)),
+            memory_exceeds_budget=bool(baseline_payload.get("memory_exceeds_budget", False)),
         )
     return ReportPayload(
         metadata=metadata,
@@ -295,6 +337,12 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
         )
         if baseline.speedup < baseline.target_speedup:
             lines.append("WARNING: Speed-up below performance target")
+        if baseline.memory_total_bytes > 0:
+            lines.append(
+                f"Baseline GPU staging: {baseline.memory_total_mebibytes:.3f} MiB (budget {baseline.memory_budget_mebibytes:.3f} MiB)"
+            )
+            if baseline.memory_exceeds_budget:
+                lines.append("WARNING: Baseline GPU staging exceeds memory budget")
 
     if payload.summary.dispatches:
         lines.append("")
@@ -356,6 +404,25 @@ def _render_summary(payload: ReportPayload, top: int, jitter_threshold: Optional
             lines.append(
                 f"  - {name}: last {last_ms:.3f} ms, avg {avg_ms:.3f} ms, max {max_ms:.3f} ms ({samples} samples)"
             )
+
+    if payload.summary.memory is not None:
+        memory = payload.summary.memory
+        lines.append("")
+        lines.append("GPU staging estimate:")
+        lines.append(
+            f"  - Total: {memory.total_mebibytes:.3f} MiB (budget {memory.budget_mebibytes:.3f} MiB)"
+        )
+        lines.append(
+            f"  - Positions: {memory.position_bytes / (1024.0 * 1024.0):.3f} MiB across {memory.vertex_count} vertices"
+        )
+        lines.append(
+            f"  - Normals: {memory.normal_bytes / (1024.0 * 1024.0):.3f} MiB"
+        )
+        lines.append(
+            f"  - Skinning transforms: {memory.transform_bytes / (1024.0 * 1024.0):.3f} MiB across {memory.joint_count} joints"
+        )
+        if memory.exceeds_budget:
+            lines.append("WARNING: GPU staging exceeds memory budget")
 
     if jitter_threshold is not None:
         exceeding = [
