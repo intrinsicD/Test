@@ -2,6 +2,7 @@ set(target_name engine_compute_runtime_sample)
 
 add_executable(${target_name}
     runtime_dispatch_demo.cpp
+    workload_configuration.cpp
 )
 
 target_link_libraries(${target_name}

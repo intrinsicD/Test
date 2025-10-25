@@ -301,5 +301,5 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
 
 ## TODO / Next Steps
 
-- Prototype runtime integration sample showing dispatcher orchestration (`CO-170`); see ../../ROADMAP.md
+- Finalise runtime integration sample telemetry gating and CI automation (`CO-170` follow-up); see ../../ROADMAP.md
 - Evaluate compute-shader backend alignment with frame-graph scheduling (`AI-003` follow-up); see ../../ROADMAP.md

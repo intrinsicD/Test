@@ -65,6 +65,9 @@ scenarios align with their benchmark matrix.
 - 2025-11-06: Runtime sample exposes `--jitter-budget-ms` and diagnostics warn
   when frame dispatch jitter exceeds the 0.5 ms budget for both optimised and
   baseline captures, meeting the latency acceptance criteria.
+- 2025-11-07: Shared workload configuration header and unit tests validate mesh
+  subdivisions and physics body counts across sample profiles,
+  strengthening dispatcher workload adapters (`CO-170.1`).
 
 ---
 
