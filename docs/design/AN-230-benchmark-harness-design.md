@@ -79,5 +79,6 @@ Rig metadata (CLI) ──┘                                 ▼
 
 - GPU kernel dispatch (`AN-230.2`), dispatcher wiring, and queue attribution.
 - Dataset manifest & asset ingestion (clip libraries, rig metadata).
-- Automation scripts turning harness output into dashboards (`AN-230.3`).
+- Automation scripts turning harness output into dashboards (`AN-230.3`) via
+  `scripts/diagnostics/animation_sampling_report.py`.
 

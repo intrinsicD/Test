@@ -71,8 +71,9 @@ looped) and across cold cache/warm cache cycles to capture stability.
    configuration.
 4. **Execution Protocol** — Run each scenario for 1,000 frames after warmup,
    repeating three times. Capture raw telemetry logs and aggregated reports.
-5. **Analysis** — Use `python/tools/analyze_animation_bench.py` to compute
-   averages, percentiles, and regressions relative to CPU baselines.
+5. **Analysis** — Use `scripts/diagnostics/animation_sampling_report.py` to
+   compute averages, percentiles, and regressions relative to CPU baselines, and
+   archive textual dashboards for CI.
 
 ## Deliverables
 

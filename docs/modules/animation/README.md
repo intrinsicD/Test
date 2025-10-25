@@ -184,8 +184,9 @@ See [`../runtime/README.md`](../runtime/README.md) for orchestration details.
 - **Deterministic sampling**: Clip evaluation is deterministic and suitable for parallel execution
 - **Cache-friendly layout**: Keyframes are stored sequentially per joint for optimal prefetching
 - **SIMD opportunities**: Transform math uses the math module's vectorized types
-- **GPU sampling (active)**: `AN-230` now includes a `gpu_async` benchmark scenario that exercises the compute dispatcher, emitting queue/category telemetry ahead of full CUDA kernel drops.
-- **Benchmark harness**: `engine_animation_benchmark_driver` captures CPU baselines and the GPU scenario, emitting dispatcher-compatible telemetry. Build it with `cmake --build --preset <preset> --target engine_animation_benchmark_driver` and run with `--scenario <cpu_baseline|gpu_async>` plus `--output` to produce JSON payloads for `compute_dispatch_report.py`.
+- **GPU sampling (complete)**: `AN-230` captured CPU and GPU scenarios using the dispatcher prototype. Keep the harness runs current while we stage follow-up GPU kernel work.
+- **Benchmark harness**: `engine_animation_benchmark_driver` captures CPU baselines and the GPU scenario, emitting dispatcher-compatible telemetry. Build it with `cmake --build --preset <preset> --target engine_animation_benchmark_driver` and run with `--scenario <cpu_baseline|gpu_async>` plus `--output` to produce JSON payloads for `scripts/diagnostics/animation_sampling_report.py`.
+- **Diagnostics**: `animation_sampling_report.py` summarises clip metadata, FPS, jitter compliance, and queue/category breakdowns while comparing GPU scenarios against CPU baselines. Pair it with `compute_dispatch_report.py` when cross-validating dispatcher metrics.
 
 Current benchmarks (from `T-0113`):
 - CPU LBS: ~0.8ms per frame for 1000-vertex mesh with 20 joints
@@ -233,5 +234,5 @@ ctest --preset linux-gcc-debug -R animation
 
 ## TODO / Next Steps
 
-- Track GPU/parallel sampling benchmarks (`AN-230`) as the current roadmap focus; see ../../ROADMAP.md
-- Coordinate with runtime for sampling telemetry and potential compute offload interfaces.
+- Kick off state-machine authoring (`AN-240`) now that GPU sampling benchmarks are published; see ../../ROADMAP.md
+- Coordinate with runtime for sampling telemetry follow-ups and potential compute offload interfaces.

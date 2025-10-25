@@ -11,10 +11,9 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 
 ## Current Focus
 
-- **`AN-230` — GPU Parallel Sampling Benchmarks**
-  - **Why now?** With [`CO-170`](../ROADMAP.md) complete, the animation and compute teams can execute the benchmark plan in [`docs/design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md`](../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md) to quantify GPU queue performance and unblock downstream animation work.
-  - **Value**: Produces reproducible CPU/GPU comparisons, validates dispatcher queue budgets under animation workloads, and seeds telemetry dashboards for future optimisation.
-  - **Next Step**: Automate GPU vs CPU report generation and surface dispatcher telemetry dashboards as scoped in [`CO-170-runtime-integration-sample.md`](CO-170-runtime-integration-sample.md).
+- **`AN-230` — GPU Parallel Sampling Benchmarks** (✅ Completed 2025-11-19)
+  - **Outcome**: Harness, GPU scenario, and diagnostics (`animation_sampling_report.py`) landed, enabling reproducible CPU/GPU comparisons and feeding dispatcher telemetry back into dashboards.
+  - **Follow-up**: Fold the findings into state-machine authoring (`AN-240`) and dispatcher enhancement proposals listed in the animation/compute backlogs.
 
 ## Index
 

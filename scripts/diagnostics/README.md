@@ -141,6 +141,37 @@ payloads without re-running the executable. When `--report` is supplied the
 textual summary is persisted alongside the printed output, enabling archival in
 CI artefacts.
 
+## `animation_sampling_report.py`
+
+Render summaries for the telemetry captured by
+`engine_animation_benchmark_driver` during `AN-230`. The JSON schema mirrors the
+dispatcher reports used by the compute diagnostics, so the reporter focuses on
+CPU vs GPU comparisons and queue/category utilisation.
+
+1. Produce telemetry with the benchmark driver:
+   ```bash
+   ./out/build/<preset>/engine/animation/engine_animation_benchmark_driver \
+       --scenario cpu_baseline --frames 2048 --dt 0.0166667 \
+       --output telemetry/animation_cpu.json --pretty
+   ./out/build/<preset>/engine/animation/engine_animation_benchmark_driver \
+       --scenario gpu_async --frames 2048 --dt 0.0166667 \
+       --output telemetry/animation_gpu.json --pretty
+   ```
+2. Generate the report:
+   ```bash
+   python scripts/diagnostics/animation_sampling_report.py \
+       --input telemetry/animation_cpu.json telemetry/animation_gpu.json \
+       --top 5 --output reports/animation_sampling.txt
+   ```
+3. Inspect the output for clip metadata, mean sample time, FPS, jitter
+   compliance, dispatch/category/queue breakdowns, CUDA availability, and the
+   computed speed-up vs the CPU baseline. CI jobs can store the textual summary
+   to watch for regressions once GPU kernels ship.
+
+Use `--top` to adjust how many dispatches, categories, and queues are listed.
+`--output` mirrors other diagnostics scripts, persisting the rendered summary
+alongside the console output.
+
 ## `telemetry_viewer.py`
 
 The telemetry viewer provides the `CC-001` diagnostics shell MVP (`TL-101`). It

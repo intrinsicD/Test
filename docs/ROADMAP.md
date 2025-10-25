@@ -15,7 +15,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | ID | Intent | Dependencies | Next Milestone | Owning Groups |
 | --- | --- | --- | --- | --- |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO |
-| `AN-230` | GPU/parallel sampling benchmarks leveraging compute dispatcher telemetry. | `CO-170` (done) | Publish GPU benchmarking harness + telemetry analysis workflow | Animation, Compute |
+| `AN-230` | GPU/parallel sampling benchmarks leveraging compute dispatcher telemetry. | `CO-170` (done) | ✅ Completed – harness, GPU scenario, and analysis workflow published | Animation, Compute |
 
 ### Active Task Details
 
@@ -33,13 +33,13 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 ---
 
-#### `AN-230` — GPU Parallel Sampling Benchmarks (🟢 Active)
+#### `AN-230` — GPU Parallel Sampling Benchmarks (✅ Completed)
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
 | `AN-230.1` | Stand up benchmarking harness and capture CPU baselines. | Harness builds under CMake presets, replays representative clips, and records telemetry aligned with `CO-170` dispatcher metrics. | ✅ Done |
 | `AN-230.2` | Integrate GPU sampling kernels with telemetry validation. | GPU compute paths execute benchmark scenarios, emit queue occupancy/jitter data, and compare against CPU baselines. | ✅ Done |
-| `AN-230.3` | Publish analysis workflow and dashboard/report updates. | Diagnostics scripts summarise results, dashboards refreshed, and animation/compute READMEs document usage. | 🟢 Active |
+| `AN-230.3` | Publish analysis workflow and dashboard/report updates. | Diagnostics scripts summarise results, dashboards refreshed, and animation/compute READMEs document usage. | ✅ Done |
 
 **Notes:** Activation follows the completion of `CO-170`. Coordinate animation and compute teams to share datasets, queue budgets, and telemetry thresholds with the runtime sample. Align benchmarking cadence with the GPU hardware lab schedule referenced in the `AN-230` plan.
 
@@ -47,6 +47,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-11-15: Adaptive remeshing mode lands with surface/normal error budgets, advancing `GE-221+` Phase 2 execution planning.
 - 2025-11-16: `engine_animation_benchmark_driver` enables CPU baseline telemetry capture aligned with the dispatcher schema for `AN-230.1`.
 - 2025-11-18: GPU scenario wiring added to the benchmark driver, emitting queue/category totals through dispatcher-compatible telemetry and recording CUDA availability metadata (`AN-230.2`).
+- 2025-11-19: `animation_sampling_report.py` summarises CPU/GPU captures and updates module docs, completing `AN-230.3`.
 
 ---
 
@@ -320,4 +321,4 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 <!-- Anchor for TI-001 integration suites references -->
 <a id="ti-001-integration-suites"></a>
-**Last updated:** 2025-11-11 (Marked `CO-170` complete and activated `AN-230` GPU benchmarking stream)
+**Last updated:** 2025-11-19 (Marked `AN-230` complete with animation sampling analysis workflow)

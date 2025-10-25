@@ -386,9 +386,12 @@ ctest --preset linux-gcc-debug-cuda -R compute_cuda
   flags regressions when the `1.5×` target is not met.
   The telemetry payload also publishes a `summary.memory` block and the CLI
   report prints a GPU staging estimate so runs that exceed the 256 MiB animation
-  budget are flagged immediately.
+  budget are flagged immediately. Pair these captures with
+  `scripts/diagnostics/animation_sampling_report.py` to highlight clip metadata,
+  jitter budgets, and CPU→GPU speed-ups emitted by the animation benchmark
+  driver.
 
 ## TODO / Next Steps
 
-- Integrate the runtime dispatcher sample telemetry gating into the `AN-230` benchmarking pipelines. The `gpu_async` scenario in `engine_animation_benchmark_driver` already emits queue/category telemetry via the dispatcher; see ../../ROADMAP.md for remaining report automation work.
+- Review the `AN-230` benchmark results and feed the findings into dispatcher enhancement proposals.
 - Evaluate compute-shader backend alignment with frame-graph scheduling (`AI-003` follow-up); see ../../ROADMAP.md
