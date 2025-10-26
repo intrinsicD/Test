@@ -159,3 +159,4 @@ Implement missing critical tests:
 - 2025-11-22: Added AABB line, ray, and segment symmetry tests to confirm shared interval computations remain identical regardless of argument order, preventing regressions in broad-phase culling routines.
 - 2025-11-23: Added OBB line, ray, and segment symmetry regression tests to lock identical interval outputs across both argument orders and guard oriented-box culling routines against parity regressions.
 - 2025-11-27: Added plane and sphere intersection symmetry regression tests covering line, ray, and segment overloads to ensure `Result` intervals remain consistent across argument orderings.
+- 2025-11-28: Added triangle line, ray, and segment symmetry regression tests to lock `Result` parameter parity across both invocation orders and extend coverage to the remaining ray/segment triangle overloads.
