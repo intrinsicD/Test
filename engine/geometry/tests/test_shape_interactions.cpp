@@ -1055,6 +1055,60 @@ namespace engine::geometry
     // TRIANGLE INTERSECTION TESTS
     // ============================================================================
 
+    TEST(TriangleIntersection, TriangleLineSymmetricResultParity)
+    {
+        const Triangle tri{{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
+        const Line line{{0.25f, 0.25f, -1.0f}, {0.0f, 0.0f, 1.0f}};
+
+        Result triangle_first{};
+        ASSERT_TRUE(Intersects(tri, line, &triangle_first));
+
+        Result line_first{};
+        ASSERT_TRUE(Intersects(line, tri, &line_first));
+
+        EXPECT_NEAR(triangle_first.t, line_first.t, 1e-5f);
+
+        const Line miss{{2.0f, 2.0f, -1.0f}, {0.0f, 0.0f, 1.0f}};
+        EXPECT_FALSE(Intersects(tri, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, tri, nullptr));
+    }
+
+    TEST(TriangleIntersection, TriangleRaySymmetricResultParity)
+    {
+        const Triangle tri{{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
+        const Ray ray{{0.25f, 0.25f, -1.0f}, {0.0f, 0.0f, 1.0f}};
+
+        Result triangle_first{};
+        ASSERT_TRUE(Intersects(tri, ray, &triangle_first));
+
+        Result ray_first{};
+        ASSERT_TRUE(Intersects(ray, tri, &ray_first));
+
+        EXPECT_NEAR(triangle_first.t, ray_first.t, 1e-5f);
+
+        const Ray miss{{2.0f, 2.0f, -1.0f}, {0.0f, 0.0f, 1.0f}};
+        EXPECT_FALSE(Intersects(tri, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, tri, nullptr));
+    }
+
+    TEST(TriangleIntersection, TriangleSegmentSymmetricResultParity)
+    {
+        const Triangle tri{{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
+        const Segment segment{{0.25f, 0.25f, -1.0f}, {0.25f, 0.25f, 1.0f}};
+
+        Result triangle_first{};
+        ASSERT_TRUE(Intersects(tri, segment, &triangle_first));
+
+        Result segment_first{};
+        ASSERT_TRUE(Intersects(segment, tri, &segment_first));
+
+        EXPECT_NEAR(triangle_first.t, segment_first.t, 1e-5f);
+
+        const Segment miss{{2.0f, 2.0f, -1.0f}, {2.0f, 2.0f, 1.0f}};
+        EXPECT_FALSE(Intersects(tri, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, tri, nullptr));
+    }
+
     TEST(TriangleIntersection, TriangleTriangle)
     {
         const Triangle a{{-1, -1, 0}, {1, -1, 0}, {0, 1, 0}};
