@@ -477,7 +477,25 @@ ctest --preset linux-gcc-debug -R math
 - Run math tests:
   - `ctest --preset linux-gcc-debug -R math`
 
+## Telemetry
+
+- Include `engine/math/telemetry/conversion_telemetry.hpp` to access the
+  recording helpers and snapshot APIs.
+- Conversion drift metrics record round-trip error statistics whenever
+  `engine::math::telemetry::RecordVectorRoundTrip` or
+  `RecordMatrixRoundTrip` is called. Metrics surface through runtime
+  diagnostics as `runtime.math.conversions.*` gauges and counters grouped
+  by vector dimension or matrix size.
+- Use `ConversionTelemetry::snapshot()` in tests or tooling to capture the
+  aggregated statistics; see
+  `engine/math/tests/test_conversion_telemetry.cpp` for examples.
+- Telemetry entries include sample counts plus maximum and mean absolute
+  and relative error, enabling dashboards to monitor drift when exporting
+  to external formats.
+
 ## TODO / Next Steps
 
-- Track external-format conversion metrics and drift monitoring (`MA-130`); see ../../ROADMAP.md
+- Monitor conversion telemetry adoption across geometry and IO pipelines;
+  add dashboards once runtime consumers integrate the new metrics (`MA-130`
+  follow-up).
 - Extend numeric stability guidance in solver docs and wire unit drift telemetry; see ../../ROADMAP.md

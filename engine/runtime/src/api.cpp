@@ -2,6 +2,7 @@
 #include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/errors.hpp"
 #include "engine/io/telemetry.hpp"
+#include "engine/math/telemetry/conversion_telemetry.hpp"
 
 #include <algorithm>
 #include <array>
@@ -932,6 +933,87 @@ namespace engine::runtime
                                    "Maximum result count observed for the spatial query operation",
                                    operation_metrics.max_results,
                                    op_index);
+            }
+
+            const auto make_dimension_labels = [](std::size_t dimension) {
+                std::vector<core::telemetry::Label> labels{};
+                labels.reserve(1);
+                core::telemetry::Label dimension_label{};
+                dimension_label.key = "dimension";
+                dimension_label.value = std::to_string(dimension);
+                labels.push_back(std::move(dimension_label));
+                return labels;
+            };
+
+            const auto make_matrix_labels = [](std::size_t rows, std::size_t columns) {
+                std::vector<core::telemetry::Label> labels{};
+                labels.reserve(2);
+                core::telemetry::Label row_label{};
+                row_label.key = "rows";
+                row_label.value = std::to_string(rows);
+                labels.push_back(std::move(row_label));
+                core::telemetry::Label column_label{};
+                column_label.key = "columns";
+                column_label.value = std::to_string(columns);
+                labels.push_back(std::move(column_label));
+                return labels;
+            };
+
+            const auto conversion_snapshot = math::telemetry::ConversionTelemetry::instance().snapshot();
+            for (const auto& entry : conversion_snapshot.vectors)
+            {
+                add_counter("runtime.math.conversions.vector.samples",
+                            "Vector conversion round-trip samples grouped by dimension",
+                            clamp_to_int(entry.sample_count),
+                            make_dimension_labels(entry.dimension));
+                add_gauge("runtime.math.conversions.vector.max_abs_error",
+                          "Maximum absolute error observed for vector conversion round-trips",
+                          entry.max_abs_error,
+                          core::telemetry::MetricUnit::None,
+                          make_dimension_labels(entry.dimension));
+                add_gauge("runtime.math.conversions.vector.max_relative_error",
+                          "Maximum relative error observed for vector conversion round-trips",
+                          entry.max_relative_error,
+                          core::telemetry::MetricUnit::None,
+                          make_dimension_labels(entry.dimension));
+                add_gauge("runtime.math.conversions.vector.mean_abs_error",
+                          "Mean absolute error observed for vector conversion round-trips",
+                          entry.mean_abs_error,
+                          core::telemetry::MetricUnit::None,
+                          make_dimension_labels(entry.dimension));
+                add_gauge("runtime.math.conversions.vector.mean_relative_error",
+                          "Mean relative error observed for vector conversion round-trips",
+                          entry.mean_relative_error,
+                          core::telemetry::MetricUnit::None,
+                          make_dimension_labels(entry.dimension));
+            }
+
+            for (const auto& entry : conversion_snapshot.matrices)
+            {
+                add_counter("runtime.math.conversions.matrix.samples",
+                            "Matrix conversion round-trip samples grouped by size",
+                            clamp_to_int(entry.sample_count),
+                            make_matrix_labels(entry.rows, entry.columns));
+                add_gauge("runtime.math.conversions.matrix.max_abs_error",
+                          "Maximum absolute error observed for matrix conversion round-trips",
+                          entry.max_abs_error,
+                          core::telemetry::MetricUnit::None,
+                          make_matrix_labels(entry.rows, entry.columns));
+                add_gauge("runtime.math.conversions.matrix.max_relative_error",
+                          "Maximum relative error observed for matrix conversion round-trips",
+                          entry.max_relative_error,
+                          core::telemetry::MetricUnit::None,
+                          make_matrix_labels(entry.rows, entry.columns));
+                add_gauge("runtime.math.conversions.matrix.mean_abs_error",
+                          "Mean absolute error observed for matrix conversion round-trips",
+                          entry.mean_abs_error,
+                          core::telemetry::MetricUnit::None,
+                          make_matrix_labels(entry.rows, entry.columns));
+                add_gauge("runtime.math.conversions.matrix.mean_relative_error",
+                          "Mean relative error observed for matrix conversion round-trips",
+                          entry.mean_relative_error,
+                          core::telemetry::MetricUnit::None,
+                          make_matrix_labels(entry.rows, entry.columns));
             }
 
             const auto error_codes = io::geometry_io_error_codes();

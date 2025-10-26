@@ -20,7 +20,6 @@ _Last Updated: 2025-05-16_
 
 | Task ID | Description | Dependency | Priority |
 | --- | --- | --- | --- |
-| `MA-130` | Identify metrics for conversion drift diagnostics. | After `MA-125` | Medium |
 | `MA-131` | Documentation alignment audit (T-0126). | None | Medium |
 | `MA-133` | Curve/spline utilities evaluation (T-0127). | Investigation phase | Optional |
 
@@ -28,6 +27,7 @@ _Last Updated: 2025-05-16_
 
 | Task ID | Description | Completed |
 | --- | --- | --- |
+| `MA-130` | Conversion drift telemetry instrumentation. | 2025-12-02 |
 | `MA-132` | Convenience rotation matrix builders (T-0125). | 2025-10-23 |
 
 ## Notes
@@ -40,8 +40,8 @@ _Last Updated: 2025-05-16_
   determinant thresholds, SVD tolerances, and operational guidance to close
   `MA-118` and unblock `MA-125` planning.
 - 2025-05-20: Authored [`FORMAT_CONVERSIONS.md`](FORMAT_CONVERSIONS.md) and
-  landed conversion helper tests to complete `MA-125`. Next step is defining
-  telemetry metrics for conversion drift analysis (`MA-130`).
+  landed conversion helper tests to complete `MA-125`, setting up the
+  conversion telemetry work delivered in `MA-130`.
 - 2025-05-30: Added vector component-wise arithmetic and comparison utilities
   to close documentation gaps around advanced vector helpers and unblock
   downstream consumers requiring deterministic clamp/min/max workflows.
@@ -59,7 +59,10 @@ _Last Updated: 2025-05-16_
   The rendering visibility system (T-0122) depends on T-0128.
 - 2025-10-24: Landed linear-system and polynomial solvers with stability
   guidance and regression tests to support physics/geometry intersection
-  workflows ahead of `MA-130` telemetry work.
+  workflows ahead of the conversion telemetry instrumentation completed in `MA-130`.
+- 2025-12-02: Implemented conversion telemetry aggregating vector and matrix
+  drift metrics and surfaced them through runtime diagnostics to complete
+  `MA-130`.
 
 Coordinate updates with consuming modules (animation, physics) to keep guidance
 consistent.
