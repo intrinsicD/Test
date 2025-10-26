@@ -127,6 +127,8 @@ TEST(PrototypeConfig, ValidSchemaLoads) {
 ### Design Considerations
 - Align schema naming with telemetry schema (`CC-001`) to reuse dashboards.
 - Provide version field and compatibility table to support future schema evolutions.
+- Publish dataset manifest validator in `python/engine3g/config_schema.py` so geometry tooling and dataset packaging pipelines
+  receive immediate feedback before broader schema adoption.
 
 ### Risks & Mitigations
 | Risk | Likelihood | Impact | Mitigation |
