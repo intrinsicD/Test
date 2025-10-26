@@ -33,32 +33,45 @@ Investigation needed to determine:
 ## Intersection Test Matrix
 
 ### Critical Priority (Physics & Rendering)
-- [x] AABB-AABB (likely implemented)
-- [x] AABB-Sphere (likely implemented)
-- [ ] AABB-Ray (needed for picking)
-- [ ] AABB-Plane (needed for frustum culling)
-- [x] Sphere-Sphere (likely implemented)
-- [ ] Sphere-Ray (needed for picking)
-- [ ] Triangle-Ray (critical for mesh picking)
-- [ ] OBB-OBB (complex, needed for accurate collision)
+- [x] AABB-AABB
+- [x] AABB-Sphere
+- [x] AABB-Ray (needed for picking)
+- [x] AABB-Plane (needed for frustum culling)
+- [x] Sphere-Sphere
+- [x] Sphere-Ray (needed for picking)
+- [x] Triangle-Ray (critical for mesh picking)
+- [x] OBB-OBB (complex, needed for accurate collision)
 
 ### High Priority (Tools & Physics)
-- [ ] Cylinder-Cylinder
-- [ ] Cylinder-Sphere
+- [x] Cylinder-Cylinder
+- [x] Cylinder-Sphere
 - [ ] Capsule-Capsule (if adding capsule shape)
-- [ ] Triangle-Triangle
-- [ ] Segment-Sphere
-- [ ] Segment-AABB
+- [x] Triangle-Triangle
+- [x] Segment-Sphere
+- [x] Segment-AABB
 
 ### Medium Priority (Specialized Cases)
-- [ ] Ellipsoid-Ellipsoid
-- [ ] Ellipsoid-Sphere
-- [ ] OBB-Sphere
-- [ ] Plane-Plane intersection (line result)
+- [x] Ellipsoid-Ellipsoid
+- [x] Ellipsoid-Sphere
+- [x] OBB-Sphere
+- [x] Plane-Plane intersection (line result)
 
 ### Low Priority (Rare Cases)
-- [ ] Line-Line (3D skew lines)
+- [x] Line-Line (3D skew lines)
 - [ ] Complex polyhedron tests
+
+## Audit Summary (2025-11-30)
+
+| Pair | Implementation | Regression Coverage | Notes |
+| --- | --- | --- | --- |
+| AABB ↔ Cylinder | ✅ | `AabbIntersection.CylinderSymmetricParity` | Locks boolean symmetry across overload order. |
+| AABB ↔ Ellipsoid | ✅ | `AabbIntersection.EllipsoidSymmetricParity` | Ensures both overloads agree on inside/outside classification. |
+| AABB ↔ OBB | ✅ | `AabbIntersection.ObbSymmetricParity` | Guards broad-phase classification parity for oriented boxes. |
+| AABB ↔ Plane | ✅ | `AabbIntersection.PlaneSymmetricParity` | Verifies plane clipping matches from either direction. |
+| AABB ↔ Sphere | ✅ | `AabbIntersection.SphereSymmetricParity` | Prevents regressions in bounding-sphere culling helpers. |
+| AABB ↔ Triangle | ✅ | `AabbIntersection.TriangleSymmetricParity` | Protects mesh picking routines relying on either call order. |
+
+All of the above pairs previously lacked explicit regression tests for the reversed overload. The new parity checks accompany the existing interval comparisons for line, ray, and segment queries to complete AABB coverage for critical physics/rendering paths.
 
 ## Work Breakdown
 
@@ -161,3 +174,4 @@ Implement missing critical tests:
 - 2025-11-27: Added plane and sphere intersection symmetry regression tests covering line, ray, and segment overloads to ensure `Result` intervals remain consistent across argument orderings.
 - 2025-11-28: Added triangle line, ray, and segment symmetry regression tests to lock `Result` parameter parity across both invocation orders and extend coverage to the remaining ray/segment triangle overloads.
 - 2025-11-29: Added line-ray, line-segment, and ray-segment symmetric regression tests comparing intersection points to ensure argument-order conversions remain consistent for mixed parameterizations.
+- 2025-11-30: Added boolean symmetry regression tests for AABB pairings (cylinder, ellipsoid, OBB, plane, sphere, triangle) to guarantee consistent broad-phase classifications regardless of overload order and updated the coverage matrix to reflect the completed audit.
