@@ -232,3 +232,4 @@ Once modularization is complete, the module will be re-enabled and integrated in
 
 - Execute `TL-210` (AI-004): deliver experiment sandbox UI with dataset/pipeline selectors, telemetry charts, and benchmark capture integrated with the prototyping harness.
 - Continue iterating on diagnostics viewer and telemetry exports to feed comparative benchmarking (`CC-310`) without duplicating charting pipelines.
+- Reference [`../../ROADMAP.md`](../../ROADMAP.md) to keep tooling milestones synchronized with `AI-004` dependencies across runtime, rendering, and dataset workstreams.

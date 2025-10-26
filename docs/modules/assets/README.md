@@ -264,3 +264,4 @@ ctest --preset linux-gcc-debug -R assets
 
 - Deliver `AS-330` (AI-004): curate reference dataset packages with manifests, ingestion scripts, provenance/licensing notes, and CI validation feeding the prototyping harness and sandbox UI.
 - Maintain hot-reload telemetry alignment and ensure dataset ingestion hooks integrate with existing streaming diagnostics (`CC-002`).
+- Track milestone scope and dependencies in [`../../ROADMAP.md`](../../ROADMAP.md) so dataset deliverables remain synchronized with the broader `AI-004` initiative timeline.
