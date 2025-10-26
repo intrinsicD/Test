@@ -1,5 +1,6 @@
 add_executable(engine_math_tests
     test_math.cpp
+    test_conversion_telemetry.cpp
     test_solvers.cpp
 )
 
