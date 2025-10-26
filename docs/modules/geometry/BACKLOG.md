@@ -65,3 +65,6 @@ roadmap after each milestone.
   Release (200k AABBs × 256 iterations) to close out `GE-230` performance
   validation while tracking a 203 ns/test Debug baseline for regression
   monitoring.
+- 2025-11-24 — `SurfaceMesh` retains per-vertex texture coordinates and halfedge
+  conversions round-trip them, establishing the data plumbing required for
+  `GE-221+` parameterisation work.

@@ -42,14 +42,37 @@ namespace engine::geometry::mesh
             throw std::runtime_error("SurfaceMesh indices are not a multiple of three; only triangles are supported");
         }
 
+        if (!surface.texture_coordinates.empty() &&
+            surface.texture_coordinates.size() != surface.positions.size())
+        {
+            throw std::runtime_error(
+                "SurfaceMesh texture coordinates must match the vertex count when provided");
+        }
+
         const std::size_t triangle_count = surface.indices.size() / 3U;
         mesh.reserve(surface.positions.size(), triangle_count * 3U, triangle_count);
 
         std::vector<VertexHandle> vertex_handles;
         vertex_handles.reserve(surface.positions.size());
+
+        VertexProperty<math::vec2> texture_coordinates;
+        const bool has_texture_coordinates = !surface.texture_coordinates.empty();
+        if (has_texture_coordinates)
+        {
+            texture_coordinates = mesh.vertex_property<math::vec2>("v:texcoord", math::vec2{0.0F, 0.0F});
+        }
+
         for (const auto& position : surface.positions)
         {
             vertex_handles.push_back(mesh.add_vertex(position));
+        }
+
+        if (has_texture_coordinates)
+        {
+            for (std::size_t index = 0; index < vertex_handles.size(); ++index)
+            {
+                texture_coordinates[vertex_handles[index]] = surface.texture_coordinates[index];
+            }
         }
 
         for (std::size_t triangle = 0; triangle < triangle_count; ++triangle)
@@ -87,8 +110,19 @@ namespace engine::geometry::mesh
         }
 
         SurfaceMesh surface;
+        VertexProperty<math::vec2> texture_coordinates;
+        const bool has_texture_coordinates = mesh.has_vertex_property("v:texcoord");
+        if (has_texture_coordinates)
+        {
+            texture_coordinates = mesh.get_vertex_property<math::vec2>("v:texcoord");
+        }
+
         surface.rest_positions.reserve(mesh.vertex_count());
         surface.positions.reserve(mesh.vertex_count());
+        if (has_texture_coordinates)
+        {
+            surface.texture_coordinates.reserve(mesh.vertex_count());
+        }
 
         if (mesh.vertex_count() == 0U)
         {
@@ -108,6 +142,10 @@ namespace engine::geometry::mesh
             const auto& position = mesh.position(vertex);
             surface.positions.push_back(position);
             surface.rest_positions.push_back(position);
+            if (has_texture_coordinates)
+            {
+                surface.texture_coordinates.push_back(texture_coordinates[vertex]);
+            }
         }
 
         std::vector<std::uint32_t> polygon;
