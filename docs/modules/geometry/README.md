@@ -222,6 +222,11 @@ them to honour the `target_texel_density` budget. `ParameterizationSummary`
 tracks the resulting texel density and stretch so telemetry surfaces reflect
 changes to the UV footprint alongside geometric error metrics.
 
+`ParameterizationSummary::chart_count` reports the number of UV islands detected
+in the generated atlas by counting connected components in the parameterisation
+graph, ensuring telemetry and diagnostics reflect multi-chart assets instead of
+assuming a single chart per mesh.
+
 `ParameterizationMode::kGenerateLscm` builds a least-squares conformal map for the
 output mesh. The implementation automatically selects a pair of anchor vertices
 (preferring boundary loops), solves the complex-valued system with partial
