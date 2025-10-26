@@ -77,3 +77,5 @@ roadmap after each milestone.
 - 2025-11-30 — Added remeshing telemetry aggregation (`RemeshTelemetry`) tracking
   per-mode invocation counts, iteration totals, split/collapse rates, and
   duration/job labels to close the observability gap for `GE-221+` diagnostics.
+- 2025-12-01 — `geometry_remesh` CLI ships for offline remeshing and UV
+  parameterisation, printing telemetry-aligned summaries for `GE-221+` runs.

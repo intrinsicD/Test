@@ -286,6 +286,41 @@ requested texel density, and deterministically falls back to the planar
 projection when inputs are degenerate so downstream tooling retains a usable
 atlas.
 
+### `geometry_remesh` CLI (GE-221+)
+
+The `geometry_remesh` executable ships with the module under
+`engine/geometry/tools/geometry_remesh`. It provides an offline entry point for
+remeshing and parameterisation workflows, mirroring the API used by the
+runtime:
+
+```bash
+geometry_remesh --input mesh.obj \
+    --mode feature \
+    --target-edge-length 0.05 \
+    --parameterization lscm \
+    --target-texel-density 512
+```
+
+Key options:
+
+- `--mode <uniform|feature|adaptive>` selects the remeshing kernel.
+- Supply `--target-edge-length` or `--relative-edge-scale` to define edge
+  targets; adaptive mode additionally accepts `--max-normal-deviation` or
+  `--max-surface-deviation` error budgets.
+- `--parameterization <none|reuse|lscm|abfpp>` enables atlas generation or reuse
+  with the same validation rules enforced by `ValidateRemeshRequest`.
+- `--job-label` records a label in telemetry snapshots and `--no-diagnostics`
+  disables telemetry when running offline experiments.
+- `--verbose` prints the resolved targets, budgets, and per-chart UV metadata.
+
+When no output path is provided the CLI writes
+`<input>_remeshed.obj` alongside the source asset. Successful runs print
+vertex/face counts, edge-length ranges, iteration counts, and (when enabled)
+parameterisation summaries so tooling or CI can ingest the results directly.
+
+Use the CLI in automation or diagnostics pipelines when a lightweight remeshing
+harness is required without embedding the geometry module in a separate host.
+
 Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
 or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request
 and produces consistent absolute edge-length targets even when callers specify only

@@ -48,6 +48,8 @@ target_compile_definitions(${target_name}
         ENGINE_GEOMETRY_EXPORTS
 )
 
+add_subdirectory(tools)
+
 if(BUILD_TESTING)
     add_subdirectory(tests)
     add_subdirectory(benchmarks)

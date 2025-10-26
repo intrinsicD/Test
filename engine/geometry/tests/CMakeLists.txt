@@ -20,6 +20,7 @@ add_executable(engine_geometry_tests
         test_remesh_uniform.cpp
         test_remesh_parameterization.cpp
         test_remesh_telemetry.cpp
+        test_remesh_cli.cpp
 )
 
 add_executable(engine_geometry_shape_interactions_tests
@@ -39,6 +40,7 @@ target_link_libraries(engine_geometry_tests
         PRIVATE
         engine::project_options
         engine_geometry
+        engine_geometry_remesh_cli
         engine_platform
         GTest::gtest_main
 )
