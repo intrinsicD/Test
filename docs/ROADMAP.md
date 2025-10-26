@@ -73,6 +73,9 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-11-30: Remesh telemetry instrumentation captures per-mode invocation counts,
   iteration totals, and split/collapse statistics with job labels to close the
   observability gap for `GE-221+` planning.
+- 2025-12-01: `geometry_remesh` CLI delivers offline remeshing execution with
+  telemetry-aligned summaries, enabling scripted `GE-221+` workflows without
+  embedding the geometry module.
 - **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
 
 #### `DC-003` — SDL Backend Implementation (⏸ Deferred)
