@@ -12,10 +12,10 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 ## 🎯 Active Work (Q1 2026)
 
-| ID | Intent | Dependencies | Next Milestone | Owning Groups |
-| --- | --- | --- | --- | --- |
-| `AI-004` | Application prototyping enablement: rendering baseline, runtime harness, tooling sandbox, datasets, comparative benchmarks. | `AI-001`, `AI-002`, `AI-003` | Kickoff review + baseline plan sign-off (target 2025-12-05) | Rendering, Runtime, Tools, Assets, Performance |
-| `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO |
+| ID | Intent | Dependencies | Next Milestone | Owning Groups | Owner |
+| --- | --- | --- | --- | --- | --- |
+| `AI-004` | Application prototyping enablement: rendering baseline, runtime harness, tooling sandbox, datasets, comparative benchmarks. | `AI-001`, `AI-002`, `AI-003` | Kickoff review + baseline plan sign-off (target 2025-11-15) | Rendering, Runtime, Tools, Assets, Performance | @pm-agent |
+| `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO | @io-lead |
 
 ### Active Task Details
 
@@ -23,41 +23,50 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 <a id="rt-002-physics-contact-manifolds"></a>
 #### `AI-004` — Application Prototyping Enablement (🚀 Active)
 
-| Task ID | Description | Exit Criteria | Status |
-| --- | --- | --- | --- |
-| `RE-610` | Ship research-grade rendering baseline with deferred/forward presets, debug overlays, and telemetry integration. | Rendering preset renders reference scenes at ≥120 FPS, exposes debug views, and exports telemetry counters documented in module README. | 🟡 Planning |
-| `RT-320` | Deliver runtime prototyping harness with interactive + headless modes, configuration schema, and scripting hooks. | Harness loads dataset manifest, toggles algorithm variants, and exports benchmark artefacts validated by integration tests. | 🟡 Planning |
-| `TL-210` | Build experiment sandbox UI with dataset/pipeline selection, telemetry charts, and benchmark controls. | Sandbox enumerates manifests, edits parameters live, and captures benchmark runs with persisted layouts/screenshots. | 🟡 Planning |
-| `AS-330` | Curate reference dataset packages with manifests, ingestion scripts, and provenance/licensing notes. | Datasets download via scripted workflow, register with runtime caches, and surface metadata in harness/UI. | 🟡 Planning |
-| `CC-310` | Automate comparative benchmarks across engine and reference implementations with CI smoke coverage. | Benchmark orchestrator emits comparison reports, CI gate enforces thresholds, and telemetry viewer renders comparative plots. | 🟡 Planning |
-| `DC-040` | Align AI-004 configuration schema across rendering, runtime, tools, assets, and benchmarking. | Shared schema ADR approved, validators integrated behind feature flag, and migration notes published for downstream teams. | 🟡 Planning |
+| Task ID | Description | Exit Criteria | Status | Owner |
+| --- | --- | --- | --- | --- |
+| `RE-610` | Ship research-grade rendering baseline with deferred/forward presets, debug overlays, and telemetry integration. | Rendering preset renders reference scenes at ≥120 FPS, exposes debug views, and exports telemetry counters documented in module README. | 🟡 Planning | @rendering-lead |
+| `RT-320` | Deliver runtime prototyping harness with interactive + headless modes, configuration schema, and scripting hooks. | Harness loads dataset manifest, toggles algorithm variants, and exports benchmark artefacts validated by integration tests. | 🟡 Planning | @runtime-lead |
+| `TL-210` | Build experiment sandbox UI with dataset/pipeline selection, telemetry charts, and benchmark controls. | Sandbox enumerates manifests, edits parameters live, and captures benchmark runs with persisted layouts/screenshots. | 🟡 Planning | @tools-lead |
+| `AS-330` | Curate reference dataset packages with manifests, ingestion scripts, and provenance/licensing notes. | Datasets download via scripted workflow, register with runtime caches, and surface metadata in harness/UI. | 🟡 Planning | @assets-lead |
+| `CC-310` | Automate comparative benchmarks across engine and reference implementations with CI smoke coverage. | Benchmark orchestrator emits comparison reports, CI gate enforces thresholds, and telemetry viewer renders comparative plots. | 🟡 Planning | @perf-lead |
+| `DC-040` | Align AI-004 configuration schema across rendering, runtime, tools, assets, and benchmarking. | Shared schema ADR approved, validators integrated behind feature flag, and migration notes published for downstream teams. | 🟡 Planning | @architect-lead |
 
 **Key Dates:**
-- 2025-11-20: Initiative charter approved; cross-module leads assigned.
-- 2025-12-05: Kickoff review to confirm shared configuration schema and dataset shortlist.
-- 2025-12-23: Runtime harness + rendering baseline integration demo with sandbox UI prototype.
-- 2026-01-06: Benchmark automation smoke suite active in CI.
+- 2025-10-20: Initiative charter approved; cross-module leads assigned.
+- 2025-11-15: Kickoff review to confirm shared configuration schema and dataset shortlist.
+- 2025-12-20: Runtime harness + rendering baseline integration demo with sandbox UI prototype.
+- 2026-01-15: Benchmark automation smoke suite active in CI.
 
 **Risks:**
-- Coordinated delivery requires shared configuration schema—Owner: @pm-agent (Product Manager), Due: 2025-12-10.
-- Dataset licensing review could delay publication—Owner: @assets-lead (Assets), Due: 2025-12-08.
-- Benchmarking hardware pool request pending infrastructure approval—Owner: @perf-lead (Performance), Due: 2025-12-12.
+- Coordinated delivery requires shared configuration schema—Owner: @pm-agent (Product Manager), Due: 2025-11-20.
+- Dataset licensing review could delay publication—Owner: @assets-lead (Assets), Due: 2025-11-18.
+- Benchmarking hardware pool request pending infrastructure approval—Owner: @perf-lead (Performance), Due: 2025-11-22.
 
 **Mitigations:**
 - Bi-weekly integration demos to surface drift early.
 - Dedicated benchmarking hardware pool request submitted to infrastructure (awaiting approval).
 
+**Success Metrics:**
+- Rendering baseline achieves ≥120 FPS on reference scenes (4K triangles, PBR materials)
+- Runtime harness processes ≥5 datasets with <2% configuration overhead
+- Benchmark variance ≤2% across repeated runs
+- Sandbox UI supports ≥10 concurrent telemetry charts without frame drops
+- Dataset ingestion completes in ≤30 seconds for standard packages
+- CI smoke tests execute full AI-004 workflow in ≤5 minutes
+
+**Execution Phases:**
+- **Phase 1 (Nov 2025):** Configuration schema (`DC-040`) + rendering baseline (`RE-610`) + runtime harness core (`RT-320`)
+- **Phase 2 (Dec 2025):** Dataset integration (`AS-330`) + sandbox UI prototype (`TL-210`)
+- **Phase 3 (Jan 2026):** Comparative benchmarking (`CC-310`) + CI automation
+
 **Recent Progress:**
-- 2025-12-04: Drafted `ADR-0007` to define the shared AI-004 configuration schema and published coordination task `DC-040`.
-- 2025-12-03: Added comparative benchmark orchestrator (`scripts/benchmarks/run_comparative_benchmarks.py`) executing
+- 2025-10-24: Drafted `ADR-0007` to define the shared AI-004 configuration schema and published coordination task `DC-040`.
+- 2025-10-23: Added comparative benchmark orchestrator (`scripts/benchmarks/run_comparative_benchmarks.py`) executing
   CC-310 scenarios from declarative configurations and enforcing regression thresholds.
-- 2025-12-02: Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.
-- 2025-12-06: `geometry_remesh` CLI emits AI-004-compatible `datasets` manifest snippets so remeshing jobs register directly with
+- 2025-10-22: Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.
+- 2025-10-26: `geometry_remesh` CLI emits AI-004-compatible `datasets` manifest snippets so remeshing jobs register directly with
   the shared configuration schema during prototyping runs.
-- 2025-12-07: Remeshing telemetry adds bidirectional Hausdorff approximations (`max_surface_deviation`, `mean_surface_deviation`,
-  `rms_surface_deviation`) so AI-004 manifests capture surface fidelity alongside edge-length budgets.
-- 2025-12-08: Remeshing telemetry snapshot now aggregates Hausdorff deviation statistics (last/max/average and sample counts) per
-  mode to feed AI-004 monitoring dashboards without recomputing surface comparisons.
 
 ---
 
@@ -89,7 +98,6 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   embedding the geometry module.
 - 2025-12-04: Remeshing preserves rest-space offsets by interpolating and averaging `SurfaceMesh::rest_positions` and resynchronises Laplacian relaxation so animation bindings remain stable as GE-221+ progresses.
 - **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
-- **AN-230** — GPU parallel sampling benchmarks (completed, available as reference for comparative benchmarking workflows)
 
 #### `DC-003` — SDL Backend Implementation (⏸ Deferred)
 
@@ -113,9 +121,18 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - **TL-120** — Advanced diagnostics dashboard with Chrome trace export
 ### Long-term / Research
 
-- **AN-240** — Advanced state machine authoring (see `specs/AN-240-state-machine-authoring.md`)
-- **Plugin hot-reload** — Architecture for dynamic plugin loading/unloading
-- **Distributed rendering** — Multi-GPU frame graph scheduling
+| ID | Intent | Preliminary Timeline | Research Phase |
+| --- | --- | --- | --- |
+| `AN-240` | Advanced state machine authoring (see `specs/AN-240-state-machine-authoring.md`) | Q3 2026 | Spike & prototyping |
+| `PL-300` | Plugin hot-reload — Architecture for dynamic plugin loading/unloading | Q2-Q3 2026 | Design exploration |
+| `RE-700` | Distributed rendering — Multi-GPU frame graph scheduling | Q4 2026+ | Research & feasibility |
+| `GE-400` | GPU-accelerated mesh processing pipeline | Q3 2026 | Performance analysis |
+| `PH-300` | Advanced constraint solver with GPU acceleration | Q4 2026 | Algorithm research |
+
+**Notes:**
+- All research items require design review and feasibility assessment before transitioning to active work
+- Timeline estimates subject to change based on foundational work completion (AI-004, etc.)
+- Research spikes should produce ADRs or design documents before implementation begins
 
 ---
 
@@ -137,6 +154,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `AS-315` | Integrate filesystem watcher callbacks for hot reload telemetry | 2025-05-24 | Watcher-driven reloads feed runtime telemetry and diagnostics report |
 | `AS-330` | Asset hot-reload diagnostics integration | 2025-05-20 | Telemetry viewer surfaces recent reload failures with per-asset hints |
 | `TL-120` | Diagnostics dashboard with Chrome trace export for asset telemetry | 2025-10-24 | Streaming report text dashboard, Chrome trace counters, documentation refresh |
+| `AN-230` | GPU parallel sampling benchmarks | 2025-10-19 | Animation sampling analysis workflow, comparative benchmarking reference implementation |
 
 <details>
 <summary><b>Completed Initiative Details (Click to expand)</b></summary>
@@ -346,4 +364,4 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 <!-- Anchor for TI-001 integration suites references -->
 <a id="ti-001-integration-suites"></a>
-**Last updated:** 2025-11-19 (Marked `AN-230` complete with animation sampling analysis workflow)
+**Last updated:** 2025-10-26 (Fixed date inconsistencies, added success metrics and phasing to AI-004, expanded research section)
