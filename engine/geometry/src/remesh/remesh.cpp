@@ -12,6 +12,7 @@
 #include <optional>
 #include <queue>
 #include <string>
+#include <utility>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -27,6 +28,7 @@ namespace engine::geometry
     namespace
     {
         constexpr float kEpsilon = 1e-6F;
+        constexpr std::uint32_t kInvalidIsland = std::numeric_limits<std::uint32_t>::max();
 
         struct RemeshOperationCounters
         {
@@ -66,6 +68,13 @@ namespace engine::geometry
                 std::swap(a, b);
             }
             return (static_cast<std::uint64_t>(a) << 32U) | static_cast<std::uint64_t>(b);
+        }
+
+        [[nodiscard]] std::pair<std::uint32_t, std::uint32_t> decode_edge_key(std::uint64_t key) noexcept
+        {
+            const std::uint32_t a = static_cast<std::uint32_t>(key >> 32U);
+            const std::uint32_t b = static_cast<std::uint32_t>(key & 0xFFFFFFFFU);
+            return {a, b};
         }
 
         [[nodiscard]] float triangle_area(const math::vec3& a, const math::vec3& b, const math::vec3& c) noexcept
@@ -447,9 +456,34 @@ namespace engine::geometry
             ParameterizationSummary summary{};
             summary.chart_count = static_cast<std::uint32_t>(islands.size());
 
-            if (mesh.texture_coordinates.empty() || mesh.indices.size() < 3U)
+            const std::size_t uv_count = mesh.texture_coordinates.size();
+            if (uv_count == 0U || mesh.indices.size() < 3U)
             {
                 return summary;
+            }
+
+            const std::size_t position_count = mesh.positions.size();
+            if (position_count == 0U)
+            {
+                return summary;
+            }
+
+            std::vector<std::uint32_t> vertex_to_island(uv_count, kInvalidIsland);
+            for (std::uint32_t island_index = 0; island_index < islands.size(); ++island_index)
+            {
+                for (const std::uint32_t vertex : islands[island_index].vertices)
+                {
+                    if (vertex < uv_count)
+                    {
+                        vertex_to_island[vertex] = island_index;
+                    }
+                }
+            }
+
+            std::vector<std::unordered_map<std::uint64_t, std::uint32_t>> island_edge_counts(islands.size());
+            for (auto& edge_counts : island_edge_counts)
+            {
+                edge_counts.reserve(32U);
             }
 
             float total_area = 0.0F;
@@ -462,7 +496,7 @@ namespace engine::geometry
                 const std::uint32_t i1 = mesh.indices[i + 1U];
                 const std::uint32_t i2 = mesh.indices[i + 2U];
 
-                if (i0 >= mesh.positions.size() || i1 >= mesh.positions.size() || i2 >= mesh.positions.size())
+                if (i0 >= position_count || i1 >= position_count || i2 >= position_count)
                 {
                     continue;
                 }
@@ -473,8 +507,7 @@ namespace engine::geometry
                     continue;
                 }
 
-                if (i0 >= mesh.texture_coordinates.size() || i1 >= mesh.texture_coordinates.size() ||
-                    i2 >= mesh.texture_coordinates.size())
+                if (i0 >= uv_count || i1 >= uv_count || i2 >= uv_count)
                 {
                     continue;
                 }
@@ -488,6 +521,30 @@ namespace engine::geometry
                 weighted_density += density * world_area;
                 total_area += world_area;
                 max_density = std::max(max_density, density);
+
+                const std::uint32_t island_index = vertex_to_island[i0];
+                if (island_index == kInvalidIsland || vertex_to_island[i1] != island_index ||
+                    vertex_to_island[i2] != island_index)
+                {
+                    continue;
+                }
+
+                auto& edge_counts = island_edge_counts[island_index];
+                const std::array<std::pair<std::uint32_t, std::uint32_t>, 3> edges{{
+                    {i0, i1},
+                    {i1, i2},
+                    {i2, i0},
+                }};
+
+                for (const auto& [a, b] : edges)
+                {
+                    if (a == b)
+                    {
+                        continue;
+                    }
+
+                    ++edge_counts[make_edge_key(a, b)];
+                }
             }
 
             if (total_area > kEpsilon)
@@ -499,8 +556,14 @@ namespace engine::geometry
             summary.max_stretch = max_density;
             summary.charts.reserve(islands.size());
 
-            for (const auto& island : islands)
+            math::vec2 atlas_min{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
+            math::vec2 atlas_max{std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest()};
+            float total_chart_area = 0.0F;
+            float total_seam_length = 0.0F;
+
+            for (std::size_t island_index = 0; island_index < islands.size(); ++island_index)
             {
+                const auto& island = islands[island_index];
                 const IslandBounds bounds = compute_island_bounds(mesh, island);
                 ParameterizationChart chart{};
                 chart.min_uv = bounds.min;
@@ -508,7 +571,54 @@ namespace engine::geometry
                 chart.translation = island.translation;
                 chart.scale = island.scale;
                 chart.area = std::max(bounds.width * bounds.height, 0.0F);
+
+                atlas_min[0] = std::min(atlas_min[0], bounds.min[0]);
+                atlas_min[1] = std::min(atlas_min[1], bounds.min[1]);
+                atlas_max[0] = std::max(atlas_max[0], bounds.max[0]);
+                atlas_max[1] = std::max(atlas_max[1], bounds.max[1]);
+
+                float island_seam_length = 0.0F;
+                if (island_index < island_edge_counts.size())
+                {
+                    const auto& edges = island_edge_counts[island_index];
+                    for (const auto& [key, count] : edges)
+                    {
+                        if (count != 1U)
+                        {
+                            continue;
+                        }
+
+                        const auto [u, v] = decode_edge_key(key);
+                        if (u >= uv_count || v >= uv_count)
+                        {
+                            continue;
+                        }
+
+                        island_seam_length += math::length(mesh.texture_coordinates[u] - mesh.texture_coordinates[v]);
+                    }
+                }
+
+                chart.boundary_length = island_seam_length;
+                total_chart_area += chart.area;
+                total_seam_length += island_seam_length;
+
                 summary.charts.push_back(chart);
+            }
+
+            summary.total_chart_area = total_chart_area;
+            summary.total_seam_length = total_seam_length;
+
+            if (std::isfinite(atlas_min[0]) && std::isfinite(atlas_min[1]) && std::isfinite(atlas_max[0]) &&
+                std::isfinite(atlas_max[1]))
+            {
+                const float atlas_width = std::max(atlas_max[0] - atlas_min[0], 0.0F);
+                const float atlas_height = std::max(atlas_max[1] - atlas_min[1], 0.0F);
+                summary.atlas_area = atlas_width * atlas_height;
+                if (summary.atlas_area > kEpsilon)
+                {
+                    const float ratio = total_chart_area / summary.atlas_area;
+                    summary.fill_ratio = std::clamp(ratio, 0.0F, 1.0F);
+                }
             }
 
             return summary;
