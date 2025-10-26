@@ -650,6 +650,9 @@ namespace engine::geometry::tools
         yaml << std::fixed << std::setprecision(4) << std::boolalpha;
         yaml << "datasets:\n";
         yaml << "  - id: " << dataset_id << "\n";
+        yaml << "    schema:\n";
+        yaml << "      id: ai-004.dataset\n";
+        yaml << "      version: 1\n";
         yaml << "    kind: geometry.remesh\n";
         if (options.job_label.has_value())
         {
@@ -657,6 +660,7 @@ namespace engine::geometry::tools
         }
         yaml << "    tags: [geometry, remesh]\n";
         yaml << "    source:\n";
+        yaml << "      generator: geometry_remesh\n";
         yaml << "      mesh: " << path_or_placeholder(options.input_path, "<unknown>") << "\n";
         yaml << "    outputs:\n";
         yaml << "      mesh: " << path_or_placeholder(options.output_path, "<unspecified>") << "\n";

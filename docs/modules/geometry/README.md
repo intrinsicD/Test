@@ -340,14 +340,21 @@ parameterisation summaries so tooling or CI can ingest the results directly.
 
 To align with the shared AI-004 configuration schema (`ADR-0007`/`DC-040`), the
 CLI now emits a ready-to-paste `datasets` manifest snippet summarising the job.
+The snippet carries the schema identifier/version and records `geometry_remesh`
+as the generator so downstream validators can assert compatibility without
+inspecting output assets.
 Automation can capture this block to register remeshed assets in prototyping
 manifests without re-deriving telemetry:
 
 ```yaml
 datasets:
   - id: remesh-sample
+    schema:
+      id: ai-004.dataset
+      version: 1
     kind: geometry.remesh
     source:
+      generator: geometry_remesh
       mesh: input.obj
     outputs:
       mesh: output.obj

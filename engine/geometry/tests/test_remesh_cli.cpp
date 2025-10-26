@@ -165,8 +165,11 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     const std::string manifest = tools::BuildDatasetManifestEntry(options, result);
 
     EXPECT_NE(manifest.find("datasets:"), std::string::npos);
+    EXPECT_NE(manifest.find("schema:\n      id: ai-004.dataset"), std::string::npos);
+    EXPECT_NE(manifest.find("version: 1"), std::string::npos);
     EXPECT_NE(manifest.find("id: remesh-sample"), std::string::npos);
     EXPECT_NE(manifest.find("job_label: \"Remesh Sample\""), std::string::npos);
+    EXPECT_NE(manifest.find("generator: geometry_remesh"), std::string::npos);
     EXPECT_NE(manifest.find("mode: uniform"), std::string::npos);
     EXPECT_NE(manifest.find("target_edge_length: 0.2500"), std::string::npos);
     EXPECT_NE(manifest.find("texel_density: 256.0000"), std::string::npos);
