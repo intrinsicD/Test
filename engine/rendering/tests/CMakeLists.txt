@@ -2,6 +2,7 @@ set(ENGINE_RENDERING_TEST_SOURCES
     test_module.cpp
     test_frame_graph.cpp
     test_forward_pipeline.cpp
+    test_research_baseline.cpp
     test_backend_adapters.cpp
     test_backend_validation.cpp
 )

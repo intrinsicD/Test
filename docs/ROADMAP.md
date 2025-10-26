@@ -67,6 +67,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-10-22: Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.
 - 2025-10-26: `geometry_remesh` CLI emits AI-004-compatible `datasets` manifest snippets so remeshing jobs register directly with
   the shared configuration schema during prototyping runs.
+- 2025-12-06: Introduced `rendering::configure_research_baseline` to scaffold the RE-610 preset with forward/deferred toggles
+  and overlay targets, unblocking runtime and tools integration work.
 
 ---
 
