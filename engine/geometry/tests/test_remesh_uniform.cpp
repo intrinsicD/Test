@@ -5,6 +5,7 @@
 
 #include "engine/geometry/remesh/remesh.hpp"
 #include "engine/geometry/api.hpp"
+#include "engine/math/utils/utils.hpp"
 
 namespace engine::geometry
 {
@@ -74,6 +75,35 @@ namespace engine::geometry
 
         EXPECT_GE(output.statistics.max_error, 0.0F);
         EXPECT_NEAR(output.statistics.max_error, expected, 1e-4F);
+    }
+
+    TEST(RemeshUniform, ReuseParameterizationScalesTexelDensity)
+    {
+        SurfaceMesh mesh = make_unit_square_mesh();
+        mesh.texture_coordinates = {
+            {0.0F, 0.0F},
+            {1.0F, 0.0F},
+            {0.0F, 1.0F},
+            {1.0F, 1.0F},
+        };
+
+        RemeshRequest request{};
+        request.input_mesh = &mesh;
+        request.mode = RemeshingMode::kUniform;
+        request.targets.target_edge_length = 1.2F;
+        request.parameterization.mode = ParameterizationMode::kReuseExisting;
+        request.parameterization.target_texel_density = 2.0F;
+
+        const RemeshResult<RemeshOutput> result = Remesh(request);
+        ASSERT_TRUE(result.has_value());
+
+        const RemeshOutput& output = result.value();
+        ASSERT_EQ(output.mesh.texture_coordinates.size(), output.mesh.positions.size());
+        EXPECT_EQ(output.parameterization.chart_count, 1U);
+        EXPECT_NEAR(output.parameterization.texel_density, 2.0F, 1e-3F);
+        ASSERT_GT(output.mesh.texture_coordinates.size(), 1U);
+        EXPECT_NEAR(output.mesh.texture_coordinates[1][0], 2.0F, 1e-3F);
+        EXPECT_NEAR(output.mesh.texture_coordinates[1][1], 0.0F, 1e-3F);
     }
 
 } // namespace engine::geometry

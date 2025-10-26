@@ -64,6 +64,9 @@ with [`../README.md`](../README.md), module READMEs, and task files under
     provide deterministic boundary and crease classification for Phase 0 planning.
   - 2025-11-12: Feature-preserving remeshing adds crease-aware edge protection and
     tangential smoothing; next milestone targets adaptive error budgeting.
+  - 2025-11-26: UV reuse in remeshing now interpolates/smooths coordinates, scales to
+    target texel density budgets, and records parameterisation summaries for
+    telemetry tracking.
 - **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
 
 #### `DC-003` — SDL Backend Implementation (⏸ Deferred)

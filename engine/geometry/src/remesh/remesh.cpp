@@ -21,6 +21,8 @@ namespace engine::geometry
 {
     namespace
     {
+        constexpr float kEpsilon = 1e-6F;
+
         [[nodiscard]] RemeshValidationResult make_target_error(std::string message)
         {
             return RemeshValidationResult{make_remesh_error(RemeshError::invalid_target_configuration, std::move(message))};
@@ -53,6 +55,22 @@ namespace engine::geometry
                 std::swap(a, b);
             }
             return (static_cast<std::uint64_t>(a) << 32U) | static_cast<std::uint64_t>(b);
+        }
+
+        [[nodiscard]] float triangle_area(const math::vec3& a, const math::vec3& b, const math::vec3& c) noexcept
+        {
+            return 0.5F * math::length(math::cross(b - a, c - a));
+        }
+
+        [[nodiscard]] float triangle_uv_area(const math::vec2& a, const math::vec2& b, const math::vec2& c) noexcept
+        {
+            const math::vec2 ab = b - a;
+            const math::vec2 ac = c - a;
+            const float ab_x = ab[0];
+            const float ab_y = ab[1];
+            const float ac_x = ac[0];
+            const float ac_y = ac[1];
+            return 0.5F * std::fabs(ab_x * ac_y - ab_y * ac_x);
         }
 
         [[nodiscard]] std::unordered_set<std::uint64_t> build_protected_edge_set(
@@ -142,6 +160,94 @@ namespace engine::geometry
             }
 
             return normals;
+        }
+
+        [[nodiscard]] ParameterizationSummary compute_parameterization_summary(const SurfaceMesh& mesh) noexcept
+        {
+            ParameterizationSummary summary{};
+
+            if (mesh.texture_coordinates.empty() || mesh.indices.size() < 3U)
+            {
+                return summary;
+            }
+
+            float total_area = 0.0F;
+            float weighted_density = 0.0F;
+            float max_density = 0.0F;
+
+            for (std::size_t i = 0; i + 2 < mesh.indices.size(); i += 3)
+            {
+                const std::uint32_t i0 = mesh.indices[i];
+                const std::uint32_t i1 = mesh.indices[i + 1U];
+                const std::uint32_t i2 = mesh.indices[i + 2U];
+
+                if (i0 >= mesh.positions.size() || i1 >= mesh.positions.size() || i2 >= mesh.positions.size())
+                {
+                    continue;
+                }
+
+                const float world_area = triangle_area(mesh.positions[i0], mesh.positions[i1], mesh.positions[i2]);
+                if (world_area <= kEpsilon)
+                {
+                    continue;
+                }
+
+                if (i0 >= mesh.texture_coordinates.size() || i1 >= mesh.texture_coordinates.size() ||
+                    i2 >= mesh.texture_coordinates.size())
+                {
+                    continue;
+                }
+
+                const float uv_area =
+                    triangle_uv_area(mesh.texture_coordinates[i0], mesh.texture_coordinates[i1],
+                                     mesh.texture_coordinates[i2]);
+
+                const float density = uv_area <= kEpsilon ? 0.0F : std::sqrt(std::max(uv_area / world_area, 0.0F));
+
+                weighted_density += density * world_area;
+                total_area += world_area;
+                max_density = std::max(max_density, density);
+            }
+
+            if (total_area > kEpsilon)
+            {
+                summary.average_stretch = weighted_density / total_area;
+                summary.texel_density = summary.average_stretch;
+            }
+
+            summary.max_stretch = max_density;
+            summary.chart_count = mesh.texture_coordinates.empty() ? 0U : 1U;
+            return summary;
+        }
+
+        void scale_texture_coordinates(SurfaceMesh& mesh, float scale) noexcept
+        {
+            if (!std::isfinite(scale) || std::abs(scale - 1.0F) <= kEpsilon)
+            {
+                return;
+            }
+
+            for (math::vec2& uv : mesh.texture_coordinates)
+            {
+                uv *= scale;
+            }
+        }
+
+        void assign_interpolated_uv(VertexProperty<math::vec2>& texture_coordinates,
+                                     VertexHandle target,
+                                     const math::vec2& a,
+                                     const math::vec2& b) noexcept
+        {
+            texture_coordinates[target] = (a + b) * 0.5F;
+        }
+
+        void update_collapse_uv(VertexProperty<math::vec2>& texture_coordinates,
+                                VertexHandle keep,
+                                VertexHandle remove) noexcept
+        {
+            const math::vec2& uv_keep = texture_coordinates[keep];
+            const math::vec2& uv_remove = texture_coordinates[remove];
+            texture_coordinates[keep] = (uv_keep + uv_remove) * 0.5F;
         }
     } // namespace
 
@@ -715,10 +821,14 @@ namespace engine::geometry
                                              float split_threshold,
                                              float collapse_threshold,
                                              const std::unordered_set<std::uint64_t>* protected_edges,
-                                             bool tangential_smoothing)
+                                             bool tangential_smoothing,
+                                             VertexProperty<math::vec2>* texture_coordinates,
+                                             AttributeTransferMode texture_mode)
         {
             std::uint32_t performed_iterations = 0U;
             const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
+            const bool resample_texture = texture_coordinates != nullptr &&
+                                          texture_mode != AttributeTransferMode::kDrop;
 
             for (; performed_iterations < request.max_iterations; ++performed_iterations)
             {
@@ -798,6 +908,11 @@ namespace engine::geometry
                         continue;
                     }
 
+                    if (resample_texture)
+                    {
+                        update_collapse_uv(*texture_coordinates, keep_vertex, remove_vertex);
+                    }
+
                     interface.position(keep_vertex) = (interface.position(keep_vertex) + interface.position(remove_vertex)) * 0.5F;
                     interface.collapse(collapse_halfedge);
                     iteration_changed = true;
@@ -843,6 +958,13 @@ namespace engine::geometry
                             lock_new = v0_locked && v1_locked;
                         }
                         locked[new_vertex.index()] = lock_new;
+
+                        if (resample_texture)
+                        {
+                            const math::vec2& uv0 = (*texture_coordinates)[interface.to_vertex(h0)];
+                            const math::vec2& uv1 = (*texture_coordinates)[interface.to_vertex(h1)];
+                            assign_interpolated_uv(*texture_coordinates, new_vertex, uv0, uv1);
+                        }
                     }
 
                     iteration_changed = true;
@@ -979,11 +1101,15 @@ namespace engine::geometry
                                               MeshInterface& interface,
                                               std::vector<bool>& locked,
                                               const AdaptiveRemeshThresholds& thresholds,
-                                              const std::unordered_set<std::uint64_t>* protected_edges)
+                                              const std::unordered_set<std::uint64_t>* protected_edges,
+                                              VertexProperty<math::vec2>* texture_coordinates,
+                                              AttributeTransferMode texture_mode)
         {
             std::uint32_t performed_iterations = 0U;
             const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
             const bool tangential_smoothing = request.tangential_smoothing_weight > 0.0F;
+            const bool resample_texture = texture_coordinates != nullptr &&
+                                          texture_mode != AttributeTransferMode::kDrop;
 
             for (; performed_iterations < request.max_iterations; ++performed_iterations)
             {
@@ -1035,6 +1161,12 @@ namespace engine::geometry
                     const math::vec3 blended =
                         (interface.position(keep_vertex) + interface.position(remove_vertex)) * 0.5F;
                     interface.position(keep_vertex) = blended;
+
+                    if (resample_texture)
+                    {
+                        update_collapse_uv(*texture_coordinates, keep_vertex, remove_vertex);
+                    }
+
                     interface.collapse(collapse_halfedge);
                     iteration_changed = true;
                 }
@@ -1080,6 +1212,13 @@ namespace engine::geometry
                             lock_new = v0_locked && v1_locked;
                         }
                         locked[new_vertex.index()] = lock_new;
+
+                        if (resample_texture)
+                        {
+                            const math::vec2& uv0 = (*texture_coordinates)[interface.to_vertex(h0)];
+                            const math::vec2& uv1 = (*texture_coordinates)[interface.to_vertex(h1)];
+                            assign_interpolated_uv(*texture_coordinates, new_vertex, uv0, uv1);
+                        }
                     }
 
                     iteration_changed = true;
@@ -1145,6 +1284,18 @@ namespace engine::geometry
             return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_input_mesh, error.what())};
         }
 
+        VertexProperty<math::vec2> texture_coordinates{};
+        const AttributeTransferMode texture_transfer_mode = request.attribute_policy.texture_coordinates;
+        if (mesh.interface.has_vertex_property("v:texcoord"))
+        {
+            texture_coordinates = mesh.interface.get_vertex_property<math::vec2>("v:texcoord");
+            if (texture_transfer_mode == AttributeTransferMode::kDrop)
+            {
+                mesh.interface.remove_vertex_property(texture_coordinates);
+                texture_coordinates.reset();
+            }
+        }
+
         if (!mesh.interface.is_triangle_mesh())
         {
             return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_input_mesh,
@@ -1176,7 +1327,9 @@ namespace engine::geometry
                                                 kDefaultSplitThreshold,
                                                 kDefaultCollapseThreshold,
                                                 protected_edge_ptr,
-                                                use_tangential_smoothing);
+                                                use_tangential_smoothing,
+                                                texture_coordinates ? &texture_coordinates : nullptr,
+                                                texture_transfer_mode);
             break;
         }
         case RemeshingMode::kAdaptive:
@@ -1186,7 +1339,9 @@ namespace engine::geometry
                                                  mesh.interface,
                                                  locked,
                                                  adaptive_thresholds.value(),
-                                                 protected_edge_ptr);
+                                                 protected_edge_ptr,
+                                                 texture_coordinates ? &texture_coordinates : nullptr,
+                                                 texture_transfer_mode);
             break;
         }
         }
@@ -1224,7 +1379,40 @@ namespace engine::geometry
         {
             output.statistics.max_error = 0.0F;
         }
-        output.parameterization = ParameterizationSummary{};
+        switch (request.parameterization.mode)
+        {
+        case ParameterizationMode::kNone:
+            output.parameterization = ParameterizationSummary{};
+            break;
+        case ParameterizationMode::kReuseExisting:
+        {
+            if (!output.mesh.texture_coordinates.empty())
+            {
+                ParameterizationSummary summary = compute_parameterization_summary(output.mesh);
+                if (request.parameterization.target_texel_density > kEpsilon &&
+                    summary.texel_density > kEpsilon)
+                {
+                    const float scale =
+                        request.parameterization.target_texel_density / summary.texel_density;
+                    scale_texture_coordinates(output.mesh, scale);
+                    summary.average_stretch *= scale;
+                    summary.max_stretch *= scale;
+                    summary.texel_density *= scale;
+                }
+                summary.chart_count = output.mesh.texture_coordinates.empty() ? 0U : 1U;
+                output.parameterization = summary;
+            }
+            else
+            {
+                output.parameterization = ParameterizationSummary{};
+            }
+            break;
+        }
+        case ParameterizationMode::kGenerateLscm:
+        case ParameterizationMode::kGenerateAbfpp:
+            output.parameterization = ParameterizationSummary{};
+            break;
+        }
 
         return RemeshResult<RemeshOutput>{output};
     }
