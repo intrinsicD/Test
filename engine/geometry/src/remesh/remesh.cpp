@@ -8,7 +8,9 @@
 #include <limits>
 #include <numbers>
 #include <optional>
+#include <queue>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -406,6 +408,60 @@ namespace engine::geometry
             return rhs;
         }
 
+        [[nodiscard]] double compute_corner_angle(const math::vec3& vertex,
+                                                  const math::vec3& adjacent0,
+                                                  const math::vec3& adjacent1) noexcept
+        {
+            const math::vec3 edge0 = adjacent0 - vertex;
+            const math::vec3 edge1 = adjacent1 - vertex;
+            const float length0 = math::length(edge0);
+            const float length1 = math::length(edge1);
+            if (length0 <= std::numeric_limits<float>::epsilon() ||
+                length1 <= std::numeric_limits<float>::epsilon())
+            {
+                return std::numbers::pi_v<double> / 3.0;
+            }
+
+            const float dot = math::dot(edge0 / length0, edge1 / length1);
+            const float clamped = std::clamp(dot, -1.0F, 1.0F);
+            return static_cast<double>(std::acos(clamped));
+        }
+
+        struct ConstraintRow
+        {
+            std::vector<std::pair<std::size_t, double>> entries{};
+            double target{0.0};
+        };
+
+        [[nodiscard]] double dot_rows(const ConstraintRow& a, const ConstraintRow& b) noexcept
+        {
+            double sum = 0.0;
+            std::size_t index_a = 0U;
+            std::size_t index_b = 0U;
+
+            while (index_a < a.entries.size() && index_b < b.entries.size())
+            {
+                const auto& entry_a = a.entries[index_a];
+                const auto& entry_b = b.entries[index_b];
+                if (entry_a.first == entry_b.first)
+                {
+                    sum += entry_a.second * entry_b.second;
+                    ++index_a;
+                    ++index_b;
+                }
+                else if (entry_a.first < entry_b.first)
+                {
+                    ++index_a;
+                }
+                else
+                {
+                    ++index_b;
+                }
+            }
+
+            return sum;
+        }
+
         [[nodiscard]] RemeshResult<ParameterizationSummary> generate_planar_parameterization(
             SurfaceMesh& mesh,
             const ParameterizationPolicy& policy) noexcept
@@ -630,6 +686,401 @@ namespace engine::geometry
                 const double v = solution.value()[index * 2U + 1U];
                 mesh.texture_coordinates[index] = math::vec2{static_cast<float>(u), static_cast<float>(v)};
             }
+
+            ParameterizationSummary summary = compute_parameterization_summary(mesh);
+            if (policy.target_texel_density > kEpsilon && summary.texel_density > kEpsilon)
+            {
+                const float scale = policy.target_texel_density / summary.texel_density;
+                scale_texture_coordinates(mesh, scale);
+                summary = compute_parameterization_summary(mesh);
+            }
+
+            return RemeshResult<ParameterizationSummary>{summary};
+        }
+
+        [[nodiscard]] RemeshResult<ParameterizationSummary> generate_abfpp_parameterization(
+            SurfaceMesh& mesh,
+            const ParameterizationPolicy& policy) noexcept
+        {
+            const std::size_t vertex_count = mesh.positions.size();
+            const std::size_t triangle_count = mesh.indices.size() / 3U;
+
+            if (vertex_count < 2U || triangle_count == 0U)
+            {
+                mesh.texture_coordinates.assign(vertex_count, math::vec2{0.0F, 0.0F});
+                return RemeshResult<ParameterizationSummary>{ParameterizationSummary{}};
+            }
+
+            const SurfaceTopologySummary topology_summary = AnalyzeSurfaceTopology(mesh);
+
+            std::vector<double> original_angles(triangle_count * 3U, std::numbers::pi_v<double> / 3.0);
+            std::vector<std::vector<std::size_t>> vertex_angle_indices(vertex_count);
+            std::unordered_map<std::uint64_t, std::vector<std::size_t>> edge_to_faces;
+            edge_to_faces.reserve(triangle_count * 3U);
+
+            std::size_t seed_face = triangle_count;
+            math::vec3 reference_normal{0.0F, 0.0F, 0.0F};
+
+            for (std::size_t face_index = 0U; face_index < triangle_count; ++face_index)
+            {
+                const std::uint32_t i0 = mesh.indices[face_index * 3U + 0U];
+                const std::uint32_t i1 = mesh.indices[face_index * 3U + 1U];
+                const std::uint32_t i2 = mesh.indices[face_index * 3U + 2U];
+
+                if (i0 >= vertex_count || i1 >= vertex_count || i2 >= vertex_count)
+                {
+                    return generate_planar_parameterization(mesh, policy);
+                }
+
+                const math::vec3& p0 = mesh.positions[i0];
+                const math::vec3& p1 = mesh.positions[i1];
+                const math::vec3& p2 = mesh.positions[i2];
+
+                const math::vec3 normal = math::cross(p1 - p0, p2 - p0);
+                const float normal_length_sq = math::dot(normal, normal);
+                if (seed_face == triangle_count && normal_length_sq > std::numeric_limits<float>::epsilon())
+                {
+                    seed_face = face_index;
+                    reference_normal = normal / std::sqrt(normal_length_sq);
+                }
+
+                const double angle0 = compute_corner_angle(p0, p1, p2);
+                const double angle1 = compute_corner_angle(p1, p2, p0);
+                const double angle2 = compute_corner_angle(p2, p0, p1);
+
+                original_angles[face_index * 3U + 0U] = angle0;
+                original_angles[face_index * 3U + 1U] = angle1;
+                original_angles[face_index * 3U + 2U] = angle2;
+
+                vertex_angle_indices[i0].push_back(face_index * 3U + 0U);
+                vertex_angle_indices[i1].push_back(face_index * 3U + 1U);
+                vertex_angle_indices[i2].push_back(face_index * 3U + 2U);
+
+                edge_to_faces[make_edge_key(i0, i1)].push_back(face_index);
+                edge_to_faces[make_edge_key(i1, i2)].push_back(face_index);
+                edge_to_faces[make_edge_key(i2, i0)].push_back(face_index);
+            }
+
+            if (seed_face == triangle_count)
+            {
+                return generate_planar_parameterization(mesh, policy);
+            }
+
+            std::vector<ConstraintRow> constraints;
+            constraints.reserve(triangle_count + vertex_count);
+            const double pi = std::numbers::pi_v<double>;
+
+            for (std::size_t face_index = 0U; face_index < triangle_count; ++face_index)
+            {
+                ConstraintRow row{};
+                row.entries.emplace_back(face_index * 3U + 0U, 1.0);
+                row.entries.emplace_back(face_index * 3U + 1U, 1.0);
+                row.entries.emplace_back(face_index * 3U + 2U, 1.0);
+                row.target = pi;
+                constraints.push_back(std::move(row));
+            }
+
+            for (std::size_t vertex = 0U; vertex < vertex_count; ++vertex)
+            {
+                const auto& angles = vertex_angle_indices[vertex];
+                if (angles.empty())
+                {
+                    continue;
+                }
+
+                ConstraintRow row{};
+                row.entries.reserve(angles.size());
+                for (const std::size_t index : angles)
+                {
+                    row.entries.emplace_back(index, 1.0);
+                }
+
+                const bool is_boundary = vertex < topology_summary.vertices.size() &&
+                                         topology_summary.vertices[vertex].is_boundary;
+                row.target = is_boundary ? pi : 2.0 * pi;
+                constraints.push_back(std::move(row));
+            }
+
+            for (ConstraintRow& row : constraints)
+            {
+                std::sort(row.entries.begin(), row.entries.end(),
+                          [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
+            }
+
+            const auto solve_constraints = [&](std::vector<ConstraintRow>& rows)
+                -> std::optional<std::vector<double>>
+            {
+                const std::size_t constraint_count = rows.size();
+                if (constraint_count == 0U)
+                {
+                    return std::vector<double>{};
+                }
+
+                std::vector<double> residual(constraint_count, 0.0);
+                for (std::size_t row_index = 0U; row_index < constraint_count; ++row_index)
+                {
+                    double sum = 0.0;
+                    for (const auto& entry : rows[row_index].entries)
+                    {
+                        sum += entry.second * original_angles[entry.first];
+                    }
+                    residual[row_index] = sum - rows[row_index].target;
+                }
+
+                std::vector<double> matrix(constraint_count * constraint_count, 0.0);
+                for (std::size_t row = 0U; row < constraint_count; ++row)
+                {
+                    for (std::size_t column = row; column < constraint_count; ++column)
+                    {
+                        const double value = dot_rows(rows[row], rows[column]);
+                        matrix[row * constraint_count + column] = value;
+                        if (row != column)
+                        {
+                            matrix[column * constraint_count + row] = value;
+                        }
+                    }
+                }
+
+                return solve_dense_linear_system(std::move(matrix), std::move(residual), constraint_count);
+            };
+
+            std::optional<std::vector<double>> lambda = solve_constraints(constraints);
+
+            if (!lambda.has_value() && constraints.size() > triangle_count)
+            {
+                constraints.erase(constraints.begin() + static_cast<std::ptrdiff_t>(triangle_count));
+                lambda = solve_constraints(constraints);
+            }
+
+            if (!lambda.has_value())
+            {
+                return generate_planar_parameterization(mesh, policy);
+            }
+
+            std::vector<double> adjusted_angles = original_angles;
+            const auto& multipliers = lambda.value();
+            for (std::size_t row_index = 0U; row_index < constraints.size(); ++row_index)
+            {
+                const double multiplier = multipliers[row_index];
+                if (multiplier == 0.0)
+                {
+                    continue;
+                }
+
+                for (const auto& entry : constraints[row_index].entries)
+                {
+                    adjusted_angles[entry.first] -= entry.second * multiplier;
+                }
+            }
+
+            for (double& angle : adjusted_angles)
+            {
+                if (!std::isfinite(angle))
+                {
+                    return generate_planar_parameterization(mesh, policy);
+                }
+                angle = std::clamp(angle, 1e-4, std::numbers::pi_v<double> - 1e-4);
+            }
+
+            std::vector<math::vec2> generated(vertex_count, math::vec2{0.0F, 0.0F});
+            std::vector<bool> assigned(vertex_count, false);
+            std::vector<char> face_processed(triangle_count, 0);
+            std::vector<char> face_enqueued(triangle_count, 0);
+            std::queue<std::size_t> queue;
+
+            const std::uint32_t seed_v0 = mesh.indices[seed_face * 3U + 0U];
+            const std::uint32_t seed_v1 = mesh.indices[seed_face * 3U + 1U];
+            const std::uint32_t seed_v2 = mesh.indices[seed_face * 3U + 2U];
+
+            const math::vec3& seed_p0 = mesh.positions[seed_v0];
+            const math::vec3& seed_p1 = mesh.positions[seed_v1];
+            const math::vec3& seed_p2 = mesh.positions[seed_v2];
+
+            const double seed_len01 = static_cast<double>(math::length(seed_p1 - seed_p0));
+            if (seed_len01 <= std::numeric_limits<double>::epsilon())
+            {
+                return generate_planar_parameterization(mesh, policy);
+            }
+
+            const double seed_angle0 = adjusted_angles[seed_face * 3U + 0U];
+            const double seed_angle1 = adjusted_angles[seed_face * 3U + 1U];
+            const double seed_angle2 = adjusted_angles[seed_face * 3U + 2U];
+            const double sin_seed_angle2 = std::sin(seed_angle2);
+            if (std::abs(sin_seed_angle2) <= 1e-8)
+            {
+                return generate_planar_parameterization(mesh, policy);
+            }
+
+            const double seed_scale = seed_len01 / sin_seed_angle2;
+            const double length_v0v2 = std::sin(seed_angle1) * seed_scale;
+
+            generated[seed_v0] = math::vec2{0.0F, 0.0F};
+            generated[seed_v1] = math::vec2{static_cast<float>(seed_len01), 0.0F};
+            generated[seed_v2] =
+                math::vec2{static_cast<float>(length_v0v2 * std::cos(seed_angle0)),
+                           static_cast<float>(length_v0v2 * std::sin(seed_angle0))};
+            assigned[seed_v0] = true;
+            assigned[seed_v1] = true;
+            assigned[seed_v2] = true;
+            face_processed[seed_face] = 1;
+
+            const auto enqueue_neighbors = [&](std::size_t face_index)
+            {
+                const std::array<std::uint32_t, 3U> vertices{
+                    mesh.indices[face_index * 3U + 0U],
+                    mesh.indices[face_index * 3U + 1U],
+                    mesh.indices[face_index * 3U + 2U],
+                };
+
+                for (std::size_t edge = 0U; edge < 3U; ++edge)
+                {
+                    const std::uint32_t a = vertices[edge];
+                    const std::uint32_t b = vertices[(edge + 1U) % 3U];
+                    const std::uint64_t key = make_edge_key(a, b);
+                    const auto it = edge_to_faces.find(key);
+                    if (it == edge_to_faces.end())
+                    {
+                        continue;
+                    }
+
+                    for (const std::size_t neighbor : it->second)
+                    {
+                        if (neighbor == face_index || face_processed[neighbor])
+                        {
+                            continue;
+                        }
+                        if (!face_enqueued[neighbor])
+                        {
+                            queue.push(neighbor);
+                            face_enqueued[neighbor] = 1;
+                        }
+                    }
+                }
+            };
+
+            enqueue_neighbors(seed_face);
+
+            std::size_t guard = 0U;
+            const std::size_t guard_limit = std::max<std::size_t>(triangle_count * 8U, 64U);
+
+            while (!queue.empty() && guard < guard_limit)
+            {
+                const std::size_t face_index = queue.front();
+                queue.pop();
+                face_enqueued[face_index] = 0;
+                ++guard;
+
+                if (face_processed[face_index])
+                {
+                    continue;
+                }
+
+                const std::array<std::uint32_t, 3U> vertices{
+                    mesh.indices[face_index * 3U + 0U],
+                    mesh.indices[face_index * 3U + 1U],
+                    mesh.indices[face_index * 3U + 2U],
+                };
+
+                std::array<bool, 3U> vertex_assigned{
+                    assigned[vertices[0]], assigned[vertices[1]], assigned[vertices[2]]};
+
+                const std::size_t assigned_count = static_cast<std::size_t>(vertex_assigned[0]) +
+                                                    static_cast<std::size_t>(vertex_assigned[1]) +
+                                                    static_cast<std::size_t>(vertex_assigned[2]);
+
+                if (assigned_count < 2U)
+                {
+                    queue.push(face_index);
+                    face_enqueued[face_index] = 1;
+                    continue;
+                }
+
+                if (assigned_count == 3U)
+                {
+                    face_processed[face_index] = 1;
+                    enqueue_neighbors(face_index);
+                    continue;
+                }
+
+                int unassigned_corner = -1;
+                for (int corner = 0; corner < 3; ++corner)
+                {
+                    if (!vertex_assigned[corner])
+                    {
+                        unassigned_corner = corner;
+                        break;
+                    }
+                }
+
+                if (unassigned_corner < 0)
+                {
+                    face_processed[face_index] = 1;
+                    enqueue_neighbors(face_index);
+                    continue;
+                }
+
+                const int corner_a = (unassigned_corner + 1) % 3;
+                const int corner_b = (unassigned_corner + 2) % 3;
+
+                const std::uint32_t vertex_u = vertices[static_cast<std::size_t>(unassigned_corner)];
+                const std::uint32_t vertex_a = vertices[static_cast<std::size_t>(corner_a)];
+                const std::uint32_t vertex_b = vertices[static_cast<std::size_t>(corner_b)];
+
+                const math::vec2& base_a = generated[vertex_a];
+                const math::vec2& base_b = generated[vertex_b];
+                const math::vec2 base_vector = base_b - base_a;
+                const double base_length = static_cast<double>(math::length(base_vector));
+                if (base_length <= std::numeric_limits<double>::epsilon())
+                {
+                    return generate_planar_parameterization(mesh, policy);
+                }
+
+                const double angle_u = adjusted_angles[face_index * 3U + static_cast<std::size_t>(unassigned_corner)];
+                const double angle_a = adjusted_angles[face_index * 3U + static_cast<std::size_t>(corner_a)];
+                const double angle_b = adjusted_angles[face_index * 3U + static_cast<std::size_t>(corner_b)];
+
+                const double sin_angle_u = std::sin(angle_u);
+                if (std::abs(sin_angle_u) <= 1e-8)
+                {
+                    return generate_planar_parameterization(mesh, policy);
+                }
+
+                const double scale = base_length / sin_angle_u;
+                const double radius_a = std::sin(angle_b) * scale;
+                const double radius_b = std::sin(angle_a) * scale;
+
+                math::vec2 dir_unit = base_vector / static_cast<float>(base_length);
+                math::vec2 perp_dir{-dir_unit[1], dir_unit[0]};
+
+                const math::vec3 normal = math::cross(mesh.positions[vertex_b] - mesh.positions[vertex_a],
+                                                       mesh.positions[vertex_u] - mesh.positions[vertex_a]);
+                const double orientation = static_cast<double>(math::dot(normal, reference_normal));
+                if (orientation < 0.0)
+                {
+                    perp_dir *= -1.0F;
+                }
+
+                const double d = base_length;
+                const double numerator = (radius_a * radius_a - radius_b * radius_b + d * d);
+                const double a = numerator / (2.0 * d);
+                const double h_sq = std::max(radius_a * radius_a - a * a, 0.0);
+                const double h = std::sqrt(h_sq);
+
+                const math::vec2 point2 = base_a + dir_unit * static_cast<float>(a);
+                const math::vec2 new_position = point2 + perp_dir * static_cast<float>(h);
+
+                generated[vertex_u] = new_position;
+                assigned[vertex_u] = true;
+                face_processed[face_index] = 1;
+                enqueue_neighbors(face_index);
+            }
+
+            if (!std::all_of(assigned.begin(), assigned.end(), [](bool value) { return value; }))
+            {
+                return generate_planar_parameterization(mesh, policy);
+            }
+
+            mesh.texture_coordinates = generated;
 
             ParameterizationSummary summary = compute_parameterization_summary(mesh);
             if (policy.target_texel_density > kEpsilon && summary.texel_density > kEpsilon)
@@ -1801,9 +2252,18 @@ namespace engine::geometry
             break;
         }
         case ParameterizationMode::kGenerateLscm:
-        case ParameterizationMode::kGenerateAbfpp:
         {
             auto parameterization_result = generate_lscm_parameterization(output.mesh, request.parameterization);
+            if (!parameterization_result.has_value())
+            {
+                return RemeshResult<RemeshOutput>{parameterization_result.error()};
+            }
+            output.parameterization = parameterization_result.value();
+            break;
+        }
+        case ParameterizationMode::kGenerateAbfpp:
+        {
+            auto parameterization_result = generate_abfpp_parameterization(output.mesh, request.parameterization);
             if (!parameterization_result.has_value())
             {
                 return RemeshResult<RemeshOutput>{parameterization_result.error()};
