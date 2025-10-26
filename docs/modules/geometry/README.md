@@ -338,6 +338,35 @@ When no output path is provided the CLI writes
 vertex/face counts, edge-length ranges, iteration counts, and (when enabled)
 parameterisation summaries so tooling or CI can ingest the results directly.
 
+To align with the shared AI-004 configuration schema (`ADR-0007`/`DC-040`), the
+CLI now emits a ready-to-paste `datasets` manifest snippet summarising the job.
+Automation can capture this block to register remeshed assets in prototyping
+manifests without re-deriving telemetry:
+
+```yaml
+datasets:
+  - id: remesh-sample
+    kind: geometry.remesh
+    source:
+      mesh: input.obj
+    outputs:
+      mesh: output.obj
+    remeshing:
+      mode: uniform
+      targets:
+        target_edge_length: 0.2500
+    metrics:
+      output:
+        vertices: 4
+        faces: 2
+    parameterization:
+      mode: generate_lscm
+      texel_density: 256.0000
+    statistics:
+      iterations: 8
+      max_error: 0.0025
+```
+
 Use the CLI in automation or diagnostics pipelines when a lightweight remeshing
 harness is required without embedding the geometry module in a separate host.
 

@@ -6,6 +6,7 @@
 #include <charconv>
 #include <cctype>
 #include <cstddef>
+#include <cmath>
 #include <exception>
 #include <filesystem>
 #include <iomanip>
@@ -94,6 +95,95 @@ namespace engine::geometry::tools
 
             recognised = false;
             return ParameterizationMode::kNone;
+        }
+
+        [[nodiscard]] std::string_view to_mode_string(RemeshingMode mode) noexcept
+        {
+            switch (mode)
+            {
+            case RemeshingMode::kUniform:
+                return "uniform";
+            case RemeshingMode::kFeaturePreserving:
+                return "feature_preserving";
+            case RemeshingMode::kAdaptive:
+                return "adaptive";
+            }
+            return "uniform";
+        }
+
+        [[nodiscard]] std::string_view to_parameterization_string(ParameterizationMode mode) noexcept
+        {
+            switch (mode)
+            {
+            case ParameterizationMode::kNone:
+                return "none";
+            case ParameterizationMode::kReuseExisting:
+                return "reuse_existing";
+            case ParameterizationMode::kGenerateLscm:
+                return "generate_lscm";
+            case ParameterizationMode::kGenerateAbfpp:
+                return "generate_abfpp";
+            }
+            return "none";
+        }
+
+        [[nodiscard]] std::string sanitize_identifier(std::string_view identifier)
+        {
+            std::string sanitized{};
+            sanitized.reserve(identifier.size());
+
+            const auto push_separator = [&]() {
+                if (!sanitized.empty() && sanitized.back() != '-')
+                {
+                    sanitized.push_back('-');
+                }
+            };
+
+            for (unsigned char ch : identifier)
+            {
+                if (std::isalnum(ch))
+                {
+                    sanitized.push_back(static_cast<char>(std::tolower(ch)));
+                    continue;
+                }
+
+                if (ch == '-' || ch == '_')
+                {
+                    sanitized.push_back('-');
+                    continue;
+                }
+
+                push_separator();
+            }
+
+            while (!sanitized.empty() && sanitized.back() == '-')
+            {
+                sanitized.pop_back();
+            }
+
+            if (sanitized.empty())
+            {
+                sanitized = "remesh-job";
+            }
+
+            return sanitized;
+        }
+
+        [[nodiscard]] std::string path_or_placeholder(const std::filesystem::path& path,
+                                                      std::string_view placeholder)
+        {
+            if (path.empty())
+            {
+                return std::string{placeholder};
+            }
+
+            const std::string value = path.generic_string();
+            return value.empty() ? std::string{placeholder} : value;
+        }
+
+        [[nodiscard]] float safe_value(float value) noexcept
+        {
+            return std::isfinite(value) ? value : 0.0F;
         }
 
         [[nodiscard]] std::filesystem::path default_output_path(const std::filesystem::path& input)
@@ -547,6 +637,128 @@ namespace engine::geometry::tools
         return RemeshCliExecution{summary};
     }
 
+    std::string BuildDatasetManifestEntry(const RemeshCliOptions& options,
+                                          const RemeshCliExecutionResult& result) noexcept
+    {
+        const MeshEdgeStatistics output_edges = ComputeMeshEdgeStatistics(result.output.mesh);
+        const RemeshStatistics& statistics = result.output.statistics;
+        const std::string dataset_id = options.job_label.has_value()
+                                           ? sanitize_identifier(options.job_label.value())
+                                           : sanitize_identifier(options.output_path.stem().string());
+
+        std::ostringstream yaml;
+        yaml << std::fixed << std::setprecision(4) << std::boolalpha;
+        yaml << "datasets:\n";
+        yaml << "  - id: " << dataset_id << "\n";
+        yaml << "    kind: geometry.remesh\n";
+        if (options.job_label.has_value())
+        {
+            yaml << "    job_label: \"" << options.job_label.value() << "\"\n";
+        }
+        yaml << "    tags: [geometry, remesh]\n";
+        yaml << "    source:\n";
+        yaml << "      mesh: " << path_or_placeholder(options.input_path, "<unknown>") << "\n";
+        yaml << "    outputs:\n";
+        yaml << "      mesh: " << path_or_placeholder(options.output_path, "<unspecified>") << "\n";
+        yaml << "    remeshing:\n";
+        yaml << "      mode: " << to_mode_string(options.mode) << "\n";
+
+        const bool has_targets = options.targets.target_edge_length.has_value() ||
+                                 options.targets.relative_edge_scale.has_value() ||
+                                 options.targets.maximum_normal_deviation_degrees.has_value() ||
+                                 options.targets.maximum_surface_deviation.has_value();
+        if (has_targets)
+        {
+            yaml << "      targets:\n";
+            if (options.targets.target_edge_length.has_value())
+            {
+                yaml << "        target_edge_length: " << safe_value(options.targets.target_edge_length.value()) << "\n";
+            }
+            if (options.targets.relative_edge_scale.has_value())
+            {
+                yaml << "        relative_edge_scale: " << safe_value(options.targets.relative_edge_scale.value()) << "\n";
+            }
+            if (options.targets.maximum_normal_deviation_degrees.has_value())
+            {
+                yaml << "        max_normal_deviation_degrees: "
+                     << safe_value(options.targets.maximum_normal_deviation_degrees.value()) << "\n";
+            }
+            if (options.targets.maximum_surface_deviation.has_value())
+            {
+                yaml << "        max_surface_deviation: "
+                     << safe_value(options.targets.maximum_surface_deviation.value()) << "\n";
+            }
+        }
+
+        yaml << "      feature_preservation:\n";
+        yaml << "        lock_boundary_edges: " << options.feature_preservation.lock_boundary_edges << "\n";
+        yaml << "        lock_feature_edges: " << options.feature_preservation.lock_feature_edges << "\n";
+        yaml << "        minimum_feature_angle_degrees: "
+             << safe_value(options.feature_preservation.minimum_feature_angle_degrees) << "\n";
+
+        yaml << "    metrics:\n";
+        yaml << "      input:\n";
+        yaml << "        vertices: " << result.input_vertex_count << "\n";
+        yaml << "        faces: " << result.input_face_count << "\n";
+        yaml << "        edge_length:\n";
+        yaml << "          min: " << safe_value(result.input_edge_statistics.min_edge_length) << "\n";
+        yaml << "          max: " << safe_value(result.input_edge_statistics.max_edge_length) << "\n";
+        yaml << "          mean: " << safe_value(result.input_edge_statistics.mean_edge_length()) << "\n";
+        yaml << "      output:\n";
+        yaml << "        vertices: " << result.output.mesh.positions.size() << "\n";
+        yaml << "        faces: " << (result.output.mesh.indices.size() / 3U) << "\n";
+        yaml << "        edge_length:\n";
+        yaml << "          min: " << safe_value(statistics.min_edge_length) << "\n";
+        yaml << "          max: " << safe_value(statistics.max_edge_length) << "\n";
+        yaml << "          mean: " << safe_value(output_edges.mean_edge_length()) << "\n";
+
+        if (options.parameterization.mode != ParameterizationMode::kNone)
+        {
+            const ParameterizationSummary& summary = result.output.parameterization;
+            yaml << "    parameterization:\n";
+            yaml << "      mode: " << to_parameterization_string(options.parameterization.mode) << "\n";
+            if (options.parameterization.target_texel_density > 0.0F)
+            {
+                yaml << "      target_texel_density: "
+                     << safe_value(options.parameterization.target_texel_density) << "\n";
+            }
+            yaml << "      texel_density: " << safe_value(summary.texel_density) << "\n";
+            yaml << "      chart_count: " << summary.chart_count << "\n";
+            yaml << "      average_stretch: " << safe_value(summary.average_stretch) << "\n";
+            yaml << "      max_stretch: " << safe_value(summary.max_stretch) << "\n";
+            yaml << "      fill_ratio: " << safe_value(summary.fill_ratio) << "\n";
+            yaml << "      total_seam_length: " << safe_value(summary.total_seam_length) << "\n";
+            yaml << "      atlas_area: " << safe_value(summary.atlas_area) << "\n";
+            yaml << "      total_chart_area: " << safe_value(summary.total_chart_area) << "\n";
+            if (!summary.charts.empty())
+            {
+                yaml << "      charts:\n";
+                for (std::size_t index = 0; index < summary.charts.size(); ++index)
+                {
+                    const ParameterizationChart& chart = summary.charts[index];
+                    yaml << "        - index: " << index << "\n";
+                    yaml << "          min_uv: [" << safe_value(chart.min_uv[0]) << ", "
+                         << safe_value(chart.min_uv[1]) << "]\n";
+                    yaml << "          max_uv: [" << safe_value(chart.max_uv[0]) << ", "
+                         << safe_value(chart.max_uv[1]) << "]\n";
+                    yaml << "          translation: [" << safe_value(chart.translation[0]) << ", "
+                         << safe_value(chart.translation[1]) << "]\n";
+                    yaml << "          scale: " << safe_value(chart.scale) << "\n";
+                    yaml << "          area: " << safe_value(chart.area) << "\n";
+                    yaml << "          boundary_length: " << safe_value(chart.boundary_length) << "\n";
+                }
+            }
+        }
+
+        yaml << "    statistics:\n";
+        yaml << "      iterations: " << statistics.iteration_count << "\n";
+        yaml << "      max_error: " << safe_value(statistics.max_error) << "\n";
+        yaml << "      min_edge_length: " << safe_value(statistics.min_edge_length) << "\n";
+        yaml << "      max_edge_length: " << safe_value(statistics.max_edge_length) << "\n";
+
+        return yaml.str();
+    }
+
     void PrintSummary(const RemeshCliOptions& options,
                       const RemeshCliExecutionResult& result,
                       std::ostream& stream) noexcept
@@ -628,6 +840,16 @@ namespace engine::geometry::tools
                            << " boundary_length=" << chart.boundary_length << "\n";
                 }
             }
+        }
+
+        stream << '\n';
+        stream << "  Dataset manifest snippet:\n";
+        const std::string manifest = BuildDatasetManifestEntry(options, result);
+        std::istringstream manifest_stream{manifest};
+        std::string line;
+        while (std::getline(manifest_stream, line))
+        {
+            stream << "    " << line << '\n';
         }
     }
 
