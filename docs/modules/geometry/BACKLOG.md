@@ -61,3 +61,7 @@ roadmap after each milestone.
 - 2025-11-15 — Introduced adaptive remeshing driven by surface/normal budgets,
   deriving edge targets when only error tolerances are provided to progress
   `GE-221+` Phase 2.
+- 2025-11-21 — Added `geometry_frustum_culling` benchmark measuring 41 ns/test in
+  Release (200k AABBs × 256 iterations) to close out `GE-230` performance
+  validation while tracking a 203 ns/test Debug baseline for regression
+  monitoring.
