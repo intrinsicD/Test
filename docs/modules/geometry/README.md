@@ -82,6 +82,14 @@ LBS and other deformers live under `engine/geometry/deform/` and integrate with 
 
 Halfedge conversion and utilities live under `engine/geometry/mesh/` and `engine/geometry/topology/`.
 
+## Integration with AI-004 Prototyping Harness
+
+The remeshing roadmap (`GE-221+`) now feeds directly into the `AI-004` prototyping workflow. Curated remesh outputs and UV reuse
+statistics populate the dataset manifests consumed by the runtime harness (`RT-320`) and sandbox UI (`TL-210`), ensuring
+geometry variants appear alongside rendering presets during experiment setup. Update remeshing jobs to emit `datasets` entries
+compatible with the shared configuration schema defined in [`ADR-0007`](../../specs/ADR-0007-ai-004-configuration-schema.md)
+and tracked by task [`DC-040`](../../tasks/DC-040-ai-004-configuration-schema-alignment.md).
+
 ### Surface Topology Summary
 
 Use `AnalyzeSurfaceTopology` to extract boundary and crease annotations ahead of remeshing or atlas generation workflows:
