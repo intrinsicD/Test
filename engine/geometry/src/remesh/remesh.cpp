@@ -29,6 +29,7 @@ namespace engine::geometry
     {
         constexpr float kEpsilon = 1e-6F;
         constexpr std::uint32_t kInvalidIsland = std::numeric_limits<std::uint32_t>::max();
+        constexpr char kRestPositionPropertyName[] = "v:rest_position";
 
         struct RemeshOperationCounters
         {
@@ -668,6 +669,23 @@ namespace engine::geometry
             const math::vec2& uv_keep = texture_coordinates[keep];
             const math::vec2& uv_remove = texture_coordinates[remove];
             texture_coordinates[keep] = (uv_keep + uv_remove) * 0.5F;
+        }
+
+        void assign_interpolated_rest_position(VertexProperty<math::vec3>& rest_positions,
+                                               VertexHandle target,
+                                               const math::vec3& a,
+                                               const math::vec3& b) noexcept
+        {
+            rest_positions[target] = (a + b) * 0.5F;
+        }
+
+        void update_collapse_rest_position(VertexProperty<math::vec3>& rest_positions,
+                                           VertexHandle keep,
+                                           VertexHandle remove) noexcept
+        {
+            const math::vec3& keep_rest = rest_positions[keep];
+            const math::vec3& remove_rest = rest_positions[remove];
+            rest_positions[keep] = (keep_rest + remove_rest) * 0.5F;
         }
 
         struct ParameterizationAnchors
@@ -1829,7 +1847,8 @@ namespace engine::geometry
         void laplacian_relaxation(MeshInterface& interface,
                                   const std::vector<bool>& locked,
                                   float factor,
-                                  const std::vector<math::vec3>* vertex_normals)
+                                  const std::vector<math::vec3>* vertex_normals,
+                                  VertexProperty<math::vec3>* rest_positions)
         {
             if (factor <= 0.0F)
             {
@@ -1890,7 +1909,9 @@ namespace engine::geometry
                     }
                 }
 
-                updated[vertex.index()] = current + factor * displacement;
+                const math::vec3 next_position = current + factor * displacement;
+                updated[vertex.index()] = next_position;
+                (void)rest_positions;
                 has_update[vertex.index()] = true;
             }
 
@@ -1908,6 +1929,10 @@ namespace engine::geometry
                 }
 
                 interface.position(vertex) = updated[index];
+                if (rest_positions != nullptr)
+                {
+                    (*rest_positions)[vertex] = updated[index];
+                }
             }
         }
 
@@ -2059,6 +2084,7 @@ namespace engine::geometry
                                              float collapse_threshold,
                                              const std::unordered_set<std::uint64_t>* protected_edges,
                                              bool tangential_smoothing,
+                                             VertexProperty<math::vec3>* rest_positions,
                                              VertexProperty<math::vec2>* texture_coordinates,
                                              AttributeTransferMode texture_mode,
                                              RemeshOperationCounters* counters)
@@ -2067,6 +2093,7 @@ namespace engine::geometry
             const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
             const bool resample_texture = texture_coordinates != nullptr &&
                                           texture_mode != AttributeTransferMode::kDrop;
+            const bool update_rest_positions = rest_positions != nullptr;
 
             for (; performed_iterations < request.max_iterations; ++performed_iterations)
             {
@@ -2146,6 +2173,11 @@ namespace engine::geometry
                         continue;
                     }
 
+                    if (update_rest_positions)
+                    {
+                        update_collapse_rest_position(*rest_positions, keep_vertex, remove_vertex);
+                    }
+
                     if (resample_texture)
                     {
                         update_collapse_uv(*texture_coordinates, keep_vertex, remove_vertex);
@@ -2201,6 +2233,13 @@ namespace engine::geometry
                         }
                         locked[new_vertex.index()] = lock_new;
 
+                        if (update_rest_positions)
+                        {
+                            const math::vec3& rest0 = (*rest_positions)[interface.to_vertex(h0)];
+                            const math::vec3& rest1 = (*rest_positions)[interface.to_vertex(h1)];
+                            assign_interpolated_rest_position(*rest_positions, new_vertex, rest0, rest1);
+                        }
+
                         if (resample_texture)
                         {
                             const math::vec2& uv0 = (*texture_coordinates)[interface.to_vertex(h0)];
@@ -2231,7 +2270,7 @@ namespace engine::geometry
                     normals_ptr = &normals;
                 }
 
-                laplacian_relaxation(interface, locked, smoothing_factor, normals_ptr);
+                laplacian_relaxation(interface, locked, smoothing_factor, normals_ptr, rest_positions);
             }
 
             return performed_iterations;
@@ -2349,6 +2388,7 @@ namespace engine::geometry
                                               std::vector<bool>& locked,
                                               const AdaptiveRemeshThresholds& thresholds,
                                               const std::unordered_set<std::uint64_t>* protected_edges,
+                                              VertexProperty<math::vec3>* rest_positions,
                                               VertexProperty<math::vec2>* texture_coordinates,
                                               AttributeTransferMode texture_mode,
                                               RemeshOperationCounters* counters)
@@ -2358,6 +2398,7 @@ namespace engine::geometry
             const bool tangential_smoothing = request.tangential_smoothing_weight > 0.0F;
             const bool resample_texture = texture_coordinates != nullptr &&
                                           texture_mode != AttributeTransferMode::kDrop;
+            const bool update_rest_positions = rest_positions != nullptr;
 
             for (; performed_iterations < request.max_iterations; ++performed_iterations)
             {
@@ -2409,6 +2450,11 @@ namespace engine::geometry
                     const math::vec3 blended =
                         (interface.position(keep_vertex) + interface.position(remove_vertex)) * 0.5F;
                     interface.position(keep_vertex) = blended;
+
+                    if (update_rest_positions)
+                    {
+                        update_collapse_rest_position(*rest_positions, keep_vertex, remove_vertex);
+                    }
 
                     if (resample_texture)
                     {
@@ -2465,6 +2511,13 @@ namespace engine::geometry
                         }
                         locked[new_vertex.index()] = lock_new;
 
+                        if (update_rest_positions)
+                        {
+                            const math::vec3& rest0 = (*rest_positions)[interface.to_vertex(h0)];
+                            const math::vec3& rest1 = (*rest_positions)[interface.to_vertex(h1)];
+                            assign_interpolated_rest_position(*rest_positions, new_vertex, rest0, rest1);
+                        }
+
                         if (resample_texture)
                         {
                             const math::vec2& uv0 = (*texture_coordinates)[interface.to_vertex(h0)];
@@ -2493,11 +2546,11 @@ namespace engine::geometry
                     if (tangential_smoothing)
                     {
                         std::vector<math::vec3> normals = compute_vertex_normals(interface);
-                        laplacian_relaxation(interface, locked, smoothing_factor, &normals);
+                        laplacian_relaxation(interface, locked, smoothing_factor, &normals, rest_positions);
                     }
                     else
                     {
-                        laplacian_relaxation(interface, locked, smoothing_factor, nullptr);
+                        laplacian_relaxation(interface, locked, smoothing_factor, nullptr, rest_positions);
                     }
                 }
             }
@@ -2543,15 +2596,26 @@ namespace engine::geometry
             return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_input_mesh, error.what())};
         }
 
+        VertexProperty<math::vec3> rest_positions{};
+        VertexProperty<math::vec3>* rest_positions_ptr = nullptr;
         VertexProperty<math::vec2> texture_coordinates{};
+        VertexProperty<math::vec2>* texture_coordinates_ptr = nullptr;
         const AttributeTransferMode texture_transfer_mode = request.attribute_policy.texture_coordinates;
+        if (mesh.interface.has_vertex_property(kRestPositionPropertyName))
+        {
+            rest_positions = mesh.interface.get_vertex_property<math::vec3>(kRestPositionPropertyName);
+            rest_positions_ptr = &rest_positions;
+        }
+
         if (mesh.interface.has_vertex_property("v:texcoord"))
         {
             texture_coordinates = mesh.interface.get_vertex_property<math::vec2>("v:texcoord");
+            texture_coordinates_ptr = &texture_coordinates;
             if (texture_transfer_mode == AttributeTransferMode::kDrop)
             {
                 mesh.interface.remove_vertex_property(texture_coordinates);
                 texture_coordinates.reset();
+                texture_coordinates_ptr = nullptr;
             }
         }
 
@@ -2588,7 +2652,8 @@ namespace engine::geometry
                                                 kDefaultCollapseThreshold,
                                                 protected_edge_ptr,
                                                 use_tangential_smoothing,
-                                                texture_coordinates ? &texture_coordinates : nullptr,
+                                                rest_positions_ptr,
+                                                texture_coordinates_ptr,
                                                 texture_transfer_mode,
                                                 &counters);
             break;
@@ -2601,11 +2666,25 @@ namespace engine::geometry
                                                  locked,
                                                  adaptive_thresholds.value(),
                                                  protected_edge_ptr,
-                                                 texture_coordinates ? &texture_coordinates : nullptr,
+                                                 rest_positions_ptr,
+                                                 texture_coordinates_ptr,
                                                  texture_transfer_mode,
                                                  &counters);
             break;
         }
+        }
+
+        if (rest_positions_ptr != nullptr)
+        {
+            for (auto vertex : mesh.interface.vertices())
+            {
+                if (mesh.interface.is_deleted(vertex))
+                {
+                    continue;
+                }
+
+                (*rest_positions_ptr)[vertex] = mesh.interface.position(vertex);
+            }
         }
 
         mesh.interface.garbage_collection();
