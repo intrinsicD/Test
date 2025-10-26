@@ -46,8 +46,10 @@ namespace engine::geometry
 
         const RemeshOutput& output = result.value();
         EXPECT_GE(output.mesh.positions.size(), mesh.positions.size());
-        EXPECT_LE(output.statistics.max_error,
+        EXPECT_LE(output.statistics.max_surface_deviation,
                   request.targets.maximum_surface_deviation.value() + 1e-3F);
+        EXPECT_GE(output.statistics.mean_surface_deviation, 0.0F);
+        EXPECT_GE(output.statistics.rms_surface_deviation, 0.0F);
 
         const MeshEdgeStatistics stats = ComputeMeshEdgeStatistics(output.mesh);
         ASSERT_GT(stats.edge_count, 0U);

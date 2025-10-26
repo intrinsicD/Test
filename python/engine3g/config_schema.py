@@ -270,6 +270,9 @@ class DatasetStatistics:
     max_error: float
     min_edge_length: float
     max_edge_length: float
+    max_surface_deviation: float
+    mean_surface_deviation: float
+    rms_surface_deviation: float
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, object], context: str) -> "DatasetStatistics":
@@ -278,6 +281,15 @@ class DatasetStatistics:
             max_error=_require_float(data.get("max_error"), _child(context, "max_error")),
             min_edge_length=_require_float(data.get("min_edge_length"), _child(context, "min_edge_length")),
             max_edge_length=_require_float(data.get("max_edge_length"), _child(context, "max_edge_length")),
+            max_surface_deviation=_require_float(
+                data.get("max_surface_deviation"), _child(context, "max_surface_deviation")
+            ),
+            mean_surface_deviation=_require_float(
+                data.get("mean_surface_deviation"), _child(context, "mean_surface_deviation")
+            ),
+            rms_surface_deviation=_require_float(
+                data.get("rms_surface_deviation"), _child(context, "rms_surface_deviation")
+            ),
         )
 
 

@@ -759,6 +759,9 @@ namespace engine::geometry::tools
         yaml << "      max_error: " << safe_value(statistics.max_error) << "\n";
         yaml << "      min_edge_length: " << safe_value(statistics.min_edge_length) << "\n";
         yaml << "      max_edge_length: " << safe_value(statistics.max_edge_length) << "\n";
+        yaml << "      max_surface_deviation: " << safe_value(statistics.max_surface_deviation) << "\n";
+        yaml << "      mean_surface_deviation: " << safe_value(statistics.mean_surface_deviation) << "\n";
+        yaml << "      rms_surface_deviation: " << safe_value(statistics.rms_surface_deviation) << "\n";
 
         return yaml.str();
     }
@@ -789,6 +792,9 @@ namespace engine::geometry::tools
         stream << "  Metrics: min_edge=" << statistics.min_edge_length
                << " max_edge=" << statistics.max_edge_length
                << " max_error=" << statistics.max_error << "\n";
+        stream << "  Surface deviation: max=" << statistics.max_surface_deviation
+               << " mean=" << statistics.mean_surface_deviation
+               << " rms=" << statistics.rms_surface_deviation << "\n";
 
         if (options.job_label.has_value())
         {

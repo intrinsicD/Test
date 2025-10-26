@@ -36,6 +36,16 @@ namespace engine::geometry
         std::uint64_t max_vertex_count{0};
         double last_duration_ms{0.0};
         double max_duration_ms{0.0};
+        std::uint64_t surface_deviation_invocations{0};
+        double last_max_surface_deviation{0.0};
+        double max_surface_deviation{0.0};
+        double average_max_surface_deviation{0.0};
+        double last_mean_surface_deviation{0.0};
+        double average_mean_surface_deviation{0.0};
+        double last_rms_surface_deviation{0.0};
+        double average_rms_surface_deviation{0.0};
+        std::uint64_t last_surface_deviation_sample_count{0};
+        std::uint64_t total_surface_deviation_sample_count{0};
         std::string last_job_label{};
     };
 
@@ -60,6 +70,8 @@ namespace engine::geometry
                                std::uint64_t collapse_count,
                                std::uint64_t vertex_count,
                                double duration_ms,
+                               const RemeshStatistics& statistics,
+                               std::uint64_t surface_deviation_sample_count,
                                const std::optional<std::string>& job_label) noexcept;
 
         [[nodiscard]] RemeshTelemetrySnapshot snapshot() const noexcept;
@@ -83,6 +95,16 @@ namespace engine::geometry
         CounterArray max_vertex_count_{};
         GaugeArray last_duration_ms_{};
         GaugeArray max_duration_ms_{};
+        CounterArray surface_deviation_invocations_{};
+        GaugeArray last_max_surface_deviation_{};
+        GaugeArray max_surface_deviation_{};
+        GaugeArray total_max_surface_deviation_{};
+        GaugeArray last_mean_surface_deviation_{};
+        GaugeArray total_weighted_mean_surface_deviation_{};
+        GaugeArray last_rms_surface_deviation_{};
+        GaugeArray total_weighted_squared_surface_deviation_{};
+        CounterArray last_surface_deviation_sample_count_{};
+        CounterArray total_surface_deviation_sample_count_{};
 
         mutable std::mutex job_label_mutex_{};
         std::array<std::string, remesh_telemetry_mode_count()> last_job_labels_{};

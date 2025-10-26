@@ -75,6 +75,9 @@ namespace engine::geometry
 
         EXPECT_GE(output.statistics.max_error, 0.0F);
         EXPECT_NEAR(output.statistics.max_error, expected, 1e-4F);
+        EXPECT_GE(output.statistics.max_surface_deviation, 0.0F);
+        EXPECT_GE(output.statistics.mean_surface_deviation, 0.0F);
+        EXPECT_GE(output.statistics.rms_surface_deviation, 0.0F);
     }
 
 

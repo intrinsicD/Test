@@ -13,6 +13,7 @@ add_library(${target_name}
     src/topology/surface_topology.cpp
     src/point_cloud/point_cloud.cpp
     src/point_cloud/point_cloud_io.cpp
+    src/remesh/deviation.cpp
     src/remesh/remesh.cpp
     src/remesh/telemetry.cpp
     src/shapes/aabb.cpp
