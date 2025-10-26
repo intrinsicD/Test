@@ -682,23 +682,59 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(box, outside));
     }
 
+    TEST(ObbIntersection, ObbLineSymmetricResultParity)
+    {
+        const Obb box{{0, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Line line{{-3, 0, 0}, {1, 0, 0}};
+
+        Result forward{};
+        ASSERT_TRUE(Intersects(box, line, &forward));
+
+        Result reverse{};
+        ASSERT_TRUE(Intersects(line, box, &reverse));
+        EXPECT_NEAR(forward.t_min, reverse.t_min, 1e-5f);
+        EXPECT_NEAR(forward.t_max, reverse.t_max, 1e-5f);
+
+        const Line miss{{0, 3, 0}, {1, 0, 0}};
+        EXPECT_FALSE(Intersects(box, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, box, nullptr));
+    }
+
     TEST(ObbIntersection, ObbRay)
     {
         const Obb box{{0, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
-        Result result;
+        const Ray hit{{-2, 0, 0}, {1, 0, 0}};
 
-        EXPECT_TRUE(Intersects(box, Ray{{-2, 0, 0}, {1, 0, 0}}, &result));
-        EXPECT_GE(result.t_min, 0);
+        Result forward{};
+        ASSERT_TRUE(Intersects(box, hit, &forward));
+        EXPECT_GE(forward.t_min, 0.0f);
+
+        Result reverse{};
+        ASSERT_TRUE(Intersects(hit, box, &reverse));
+        EXPECT_NEAR(forward.t_min, reverse.t_min, 1e-5f);
+        EXPECT_NEAR(forward.t_max, reverse.t_max, 1e-5f);
+
+        const Ray miss{{0, 3, 0}, {1, 0, 0}};
+        EXPECT_FALSE(Intersects(box, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, box, nullptr));
     }
 
     TEST(ObbIntersection, ObbSegment)
     {
         const Obb box{{0, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
         const Segment through{{-2, 0, 0}, {2, 0, 0}};
-        const Segment outside{{3, 3, 0}, {4, 4, 0}};
 
-        EXPECT_TRUE(Intersects(box, through, nullptr));
+        Result forward{};
+        ASSERT_TRUE(Intersects(box, through, &forward));
+
+        Result reverse{};
+        ASSERT_TRUE(Intersects(through, box, &reverse));
+        EXPECT_NEAR(forward.t_min, reverse.t_min, 1e-5f);
+        EXPECT_NEAR(forward.t_max, reverse.t_max, 1e-5f);
+
+        const Segment outside{{3, 3, 0}, {4, 4, 0}};
         EXPECT_FALSE(Intersects(box, outside, nullptr));
+        EXPECT_FALSE(Intersects(outside, box, nullptr));
     }
 
     TEST(ObbIntersection, ObbSphere)
