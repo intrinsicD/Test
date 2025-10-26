@@ -2,6 +2,7 @@
 
 #include "engine/geometry/shapes/frustum.hpp"
 #include "engine/geometry/shapes/aabb.hpp"
+#include "engine/geometry/shapes/obb.hpp"
 #include "engine/geometry/shapes/plane.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
@@ -268,6 +269,46 @@ TEST(FrustumTest, SphereTouchingFrustumPlane) {
     EXPECT_TRUE(Intersects(frustum, large_sphere)) << "Large sphere should intersect frustum";
 }
 
+TEST(FrustumTest, ObbFullyInsideFrustum) {
+    mat4 ortho{};
+    ortho[0][0] = 1.0f;
+    ortho[1][1] = 1.0f;
+    ortho[2][2] = -1.0f;
+    ortho[3][3] = 1.0f;
+
+    const Frustum frustum = ExtractFrustum(ortho);
+    const Obb obb{{0.0f, 0.0f, 0.0f}, {0.3f, 0.4f, 0.2f}, angle_axis(0.25f, vec3{0.0f, 0.0f, 1.0f})};
+
+    EXPECT_TRUE(Intersects(frustum, obb)) << "Rotated OBB fully inside should intersect";
+}
+
+TEST(FrustumTest, ObbFullyOutsideFrustum) {
+    mat4 ortho{};
+    ortho[0][0] = 1.0f;
+    ortho[1][1] = 1.0f;
+    ortho[2][2] = -1.0f;
+    ortho[3][3] = 1.0f;
+
+    const Frustum frustum = ExtractFrustum(ortho);
+    const Obb obb{{3.0f, 0.0f, 0.0f}, {0.5f, 0.3f, 0.4f}, angle_axis(0.5f, vec3{0.0f, 1.0f, 0.0f})};
+
+    EXPECT_FALSE(Intersects(frustum, obb)) << "OBB well outside frustum should not intersect";
+}
+
+TEST(FrustumTest, ObbPartiallyIntersectingFrustum) {
+    mat4 ortho{};
+    ortho[0][0] = 1.0f;
+    ortho[1][1] = 1.0f;
+    ortho[2][2] = -1.0f;
+    ortho[3][3] = 1.0f;
+
+    const Frustum frustum = ExtractFrustum(ortho);
+    const vec3 axis = normalize(vec3{0.0f, 1.0f, 1.0f});
+    const Obb obb{{0.9f, 0.0f, 0.0f}, {0.4f, 0.5f, 0.3f}, angle_axis(0.35f, axis)};
+
+    EXPECT_TRUE(Intersects(frustum, obb)) << "OBB crossing frustum boundary should intersect";
+}
+
 TEST(FrustumTest, SymmetricIntersectionAabb) {
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
@@ -286,6 +327,20 @@ TEST(FrustumTest, SymmetricIntersectionSphere) {
     // Test symmetric overloads
     EXPECT_EQ(Intersects(frustum, sphere), Intersects(sphere, frustum))
         << "Symmetric Sphere-Frustum intersection should match";
+}
+
+TEST(FrustumTest, SymmetricIntersectionObb) {
+    mat4 ortho{};
+    ortho[0][0] = 1.0f;
+    ortho[1][1] = 1.0f;
+    ortho[2][2] = -1.0f;
+    ortho[3][3] = 1.0f;
+
+    const Frustum frustum = ExtractFrustum(ortho);
+    const Obb obb{{0.2f, 0.1f, 0.0f}, {0.4f, 0.3f, 0.2f}, angle_axis(0.75f, vec3{0.0f, 0.0f, 1.0f})};
+
+    EXPECT_EQ(Intersects(frustum, obb), Intersects(obb, frustum))
+        << "Symmetric OBB-Frustum intersection should match";
 }
 
 TEST(FrustumTest, GetCornersReturnsEightPoints) {
