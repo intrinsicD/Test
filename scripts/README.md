@@ -9,6 +9,10 @@
   capture script that fulfils the sprint 06 telemetry requirement.
 - Error-handling lint (`lint/error_handling.py`) guards against reintroducing
   legacy exception patterns covered by `DC-004`.
+- Comparative benchmarking entry point lives in
+  [`benchmarks/run_comparative_benchmarks.py`](benchmarks/run_comparative_benchmarks.py);
+  it executes engine and reference workloads from a declarative configuration
+  and enforces regression thresholds for `CC-310`.
 
 ## Usage
 
