@@ -14,9 +14,11 @@ namespace engine::math::telemetry
 {
     namespace detail
     {
+        // Minimum magnitude used to avoid division by zero in relative error calculations.
+        inline constexpr double kMinimumMagnitude = 1e-12;
+
         [[nodiscard]] inline double safe_denominator(double value) noexcept
         {
-            constexpr double kMinimumMagnitude = 1e-12;
             const double magnitude = std::abs(value);
             return magnitude < kMinimumMagnitude ? kMinimumMagnitude : magnitude;
         }
@@ -214,6 +216,19 @@ namespace engine::math::telemetry
         double max_abs_error = 0.0;
         double max_relative_error = 0.0;
 
+        // For matrices, normalize relative error by the global maximum magnitude in the original matrix
+        // to avoid blowing up relative errors for zero-valued elements (e.g., off-diagonals in identity matrices).
+        double global_scale = 0.0;
+        for (std::size_t column = 0; column < Columns; ++column)
+        {
+            for (std::size_t row = 0; row < Rows; ++row)
+            {
+                const double original_value = static_cast<double>(original[row][column]);
+                global_scale = std::max(global_scale, std::abs(original_value));
+            }
+        }
+        const double denominator = std::max(global_scale, detail::kMinimumMagnitude);
+
         for (std::size_t column = 0; column < Columns; ++column)
         {
             for (std::size_t row = 0; row < Rows; ++row)
@@ -222,7 +237,6 @@ namespace engine::math::telemetry
                 const double converted_value = static_cast<double>(round_trip[row][column]);
                 const double absolute_error = std::abs(original_value - converted_value);
                 max_abs_error = std::max(max_abs_error, absolute_error);
-                const double denominator = detail::safe_denominator(original_value);
                 const double relative_error = absolute_error / denominator;
                 max_relative_error = std::max(max_relative_error, relative_error);
             }
@@ -231,4 +245,3 @@ namespace engine::math::telemetry
         ConversionTelemetry::instance().record_matrix(Rows, Columns, max_abs_error, max_relative_error);
     }
 } // namespace engine::math::telemetry
-
