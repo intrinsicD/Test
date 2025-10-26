@@ -1,6 +1,6 @@
 # AI-004 Configuration Schema Specification (Draft)
 
-**Status**: Draft – awaiting schema consolidation per `DC-040`
+**Status**: In progress – dataset manifest contract validated via `python/engine3g/config_schema.py`
 
 **Related Tasks**: `AI-004`, `DC-040`, `RE-610`, `RT-320`, `TL-210`, `AS-330`, `CC-310`
 
@@ -14,14 +14,14 @@ Capture the shared configuration contract required by `AI-004` deliverables so r
 
 ## Next Steps
 
-1. Inventory existing manifests from runtime, rendering presets, sandbox UI prototypes, and dataset packages.
+1. Inventory existing manifests from runtime, rendering presets, sandbox UI prototypes, and dataset packages. ✅ Dataset manifests captured via `geometry_remesh` output and regression tests in `python/tests/test_config_schema.py`.
 2. Draft schema sections covering:
    - `datasets`: identifiers, provenance, licensing metadata, scale units.
    - `rendering`: preset identifiers, debug overlay toggles, backend requirements.
    - `runtime`: scene graph selections, simulation cadence, hot reload policies.
    - `benchmarks`: scenario definitions, regression thresholds, telemetry exports.
    - `telemetry`: metric selection, sampling cadence, retention policies.
-3. Validate schema against representative configurations and record findings here.
+3. Validate schema against representative configurations and record findings here. ✅ Dataset manifests validated with strict slug rules, telemetry fields, and optional parameterisation metadata.
 4. Update this document with field tables, versioning strategy, and migration checklist prior to kickoff review.
 
 ---
@@ -89,6 +89,24 @@ datasets:
 Downstream consumers (runtime harness, sandbox UI, benchmark orchestrator) must
 reject entries whose `schema.id`/`schema.version` do not match the supported
 release so misconfigured manifests fail fast.
+
+---
+
+## Validation Helpers
+
+Dataset manifests now have an executable reference validator under
+[`python/engine3g/config_schema.py`](../../python/engine3g/config_schema.py).
+`load_dataset_manifest()` accepts YAML or JSON documents, enforces slug
+requirements (`[a-z0-9-]+`), validates remeshing targets, feature preservation
+flags, parameterisation summaries, and telemetry statistics, and returns
+dataclass-backed structures for downstream tooling. The accompanying regression
+suite (`python/tests/test_config_schema.py`) loads both YAML manifests generated
+by `geometry_remesh` and JSON fixtures without parameterisation data to ensure
+optional sections are handled gracefully.
+
+Callers should surface `ConfigurationSchemaError` messages directly to users so
+schema violations remain actionable during asset packaging or prototyping
+workflows.
 
 ---
 
