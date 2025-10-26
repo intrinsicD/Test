@@ -11,9 +11,9 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 
 ## Current Focus
 
-- **`AN-230` — GPU Parallel Sampling Benchmarks** (✅ Completed 2025-11-19)
-  - **Outcome**: Harness, GPU scenario, and diagnostics (`animation_sampling_report.py`) landed, enabling reproducible CPU/GPU comparisons and feeding dispatcher telemetry back into dashboards.
-  - **Follow-up**: Fold the findings into state-machine authoring (`AN-240`) and dispatcher enhancement proposals listed in the animation/compute backlogs.
+- **`AI-004` — Application Prototyping Enablement** (🚀 Active)
+  - **Intent**: Provide a turnkey research workflow by aligning rendering baseline (`RE-610`), runtime prototyping harness (`RT-320`), experiment sandbox UI (`TL-210`), reference dataset packages (`AS-330`), and comparative benchmark automation (`CC-310`).
+  - **Next Milestone**: Kickoff review (2025-12-05) confirming shared configuration schema and dataset shortlist; first integration demo targeted for 2025-12-23.
 
 ## Index
 
@@ -36,5 +36,11 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 - [`T-0122-rendering-visibility-culling-system.md`](T-0122-rendering-visibility-culling-system.md) – implement frustum culling, occlusion culling, and LOD systems.
 - [`T-0123-rendering-pipeline-state-management.md`](T-0123-rendering-pipeline-state-management.md) – implement PSO caching, shader management, and state tracking.
 - [`T-0124-rendering-lighting-system.md`](T-0124-rendering-lighting-system.md) – implement comprehensive lighting with PBR shading, shadows, and light culling.
+- [`AI-004-application-prototyping-enablement.md`](AI-004-application-prototyping-enablement.md) – cross-module initiative aligning rendering, runtime, tools, assets, and benchmarking deliverables.
+- [`RE-610-research-rendering-baseline.md`](RE-610-research-rendering-baseline.md) – deliver research-grade rendering preset with telemetry.
+- [`RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md) – build reusable harness with interactive/headless modes and scripting hooks.
+- [`TL-210-experiment-sandbox-ui.md`](TL-210-experiment-sandbox-ui.md) – ship ImGui sandbox for experiment configuration and telemetry capture.
+- [`AS-330-reference-dataset-packages.md`](AS-330-reference-dataset-packages.md) – curate datasets with manifests, ingestion scripts, and provenance.
+- [`CC-310-comparative-benchmark-automation.md`](CC-310-comparative-benchmark-automation.md) – automate comparative benchmarking and CI gates.
 
 Create new task files as work is planned. Archive completed tasks under a `done/` subdirectory if they remain valuable references.

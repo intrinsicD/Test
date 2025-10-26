@@ -262,4 +262,6 @@ ctest --preset linux-gcc-debug -R assets
 
 ## TODO / Next Steps
 
-- Coordinate the upcoming M3 authoring & hot-reload milestone with tooling ([BACKLOG.md#upcoming-m3](BACKLOG.md#upcoming-m3)) to extend `CC-002` follow-ups and keep roadmap alignment current (see [../../ROADMAP.md](../../ROADMAP.md))
+- Deliver `AS-330` (AI-004): curate reference dataset packages with manifests, ingestion scripts, provenance/licensing notes, and CI validation feeding the prototyping harness and sandbox UI.
+- Maintain hot-reload telemetry alignment and ensure dataset ingestion hooks integrate with existing streaming diagnostics (`CC-002`).
+- Track milestone scope and dependencies in [`../../ROADMAP.md`](../../ROADMAP.md) so dataset deliverables remain synchronized with the broader `AI-004` initiative timeline.
