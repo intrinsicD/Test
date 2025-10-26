@@ -165,6 +165,88 @@ namespace engine::geometry
             return normals;
         }
 
+        [[nodiscard]] std::uint32_t count_parameterization_charts(const SurfaceMesh& mesh) noexcept
+        {
+            if (mesh.texture_coordinates.empty() || mesh.indices.size() < 3U)
+            {
+                return 0U;
+            }
+
+            const std::size_t vertex_count = mesh.positions.size();
+            const std::size_t uv_count = mesh.texture_coordinates.size();
+            std::vector<std::vector<std::uint32_t>> adjacency(vertex_count);
+            std::vector<bool> used(vertex_count, false);
+
+            for (std::size_t triangle = 0U; triangle + 2U < mesh.indices.size(); triangle += 3U)
+            {
+                const std::uint32_t i0 = mesh.indices[triangle + 0U];
+                const std::uint32_t i1 = mesh.indices[triangle + 1U];
+                const std::uint32_t i2 = mesh.indices[triangle + 2U];
+
+                if (i0 >= vertex_count || i1 >= vertex_count || i2 >= vertex_count)
+                {
+                    continue;
+                }
+
+                if (i0 >= uv_count || i1 >= uv_count || i2 >= uv_count)
+                {
+                    continue;
+                }
+
+                used[i0] = true;
+                used[i1] = true;
+                used[i2] = true;
+
+                adjacency[i0].push_back(i1);
+                adjacency[i0].push_back(i2);
+                adjacency[i1].push_back(i0);
+                adjacency[i1].push_back(i2);
+                adjacency[i2].push_back(i0);
+                adjacency[i2].push_back(i1);
+            }
+
+            std::vector<bool> visited(vertex_count, false);
+            std::vector<std::uint32_t> stack;
+            stack.reserve(vertex_count);
+
+            std::uint32_t chart_count = 0U;
+            for (std::size_t vertex = 0U; vertex < vertex_count; ++vertex)
+            {
+                if (!used[vertex] || visited[vertex])
+                {
+                    continue;
+                }
+
+                ++chart_count;
+                stack.clear();
+                stack.push_back(static_cast<std::uint32_t>(vertex));
+                visited[vertex] = true;
+
+                while (!stack.empty())
+                {
+                    const std::uint32_t current = stack.back();
+                    stack.pop_back();
+
+                    for (const std::uint32_t neighbour : adjacency[current])
+                    {
+                        if (neighbour >= vertex_count)
+                        {
+                            continue;
+                        }
+                        if (!used[neighbour] || visited[neighbour])
+                        {
+                            continue;
+                        }
+
+                        visited[neighbour] = true;
+                        stack.push_back(neighbour);
+                    }
+                }
+            }
+
+            return chart_count;
+        }
+
         [[nodiscard]] ParameterizationSummary compute_parameterization_summary(const SurfaceMesh& mesh) noexcept
         {
             ParameterizationSummary summary{};
@@ -219,7 +301,7 @@ namespace engine::geometry
             }
 
             summary.max_stretch = max_density;
-            summary.chart_count = mesh.texture_coordinates.empty() ? 0U : 1U;
+            summary.chart_count = count_parameterization_charts(mesh);
             return summary;
         }
 
@@ -2242,7 +2324,6 @@ namespace engine::geometry
                     summary.max_stretch *= scale;
                     summary.texel_density *= scale;
                 }
-                summary.chart_count = output.mesh.texture_coordinates.empty() ? 0U : 1U;
                 output.parameterization = summary;
             }
             else

@@ -78,3 +78,46 @@ TEST(RemeshParameterizationTests, GeneratesAbfppParameterizationForQuad)
                 request.parameterization.target_texel_density,
                 0.05F);
 }
+
+TEST(RemeshParameterizationTests, ReuseExistingParameterizationCountsMultipleCharts)
+{
+    geo::SurfaceMesh mesh{};
+    mesh.positions = {
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{1.0F, 0.0F, 0.0F},
+        engine::math::vec3{1.0F, 0.0F, 1.0F},
+        engine::math::vec3{0.0F, 0.0F, 1.0F},
+        engine::math::vec3{0.0F, 0.0F, 3.0F},
+        engine::math::vec3{1.0F, 0.0F, 3.0F},
+        engine::math::vec3{1.0F, 0.0F, 4.0F},
+        engine::math::vec3{0.0F, 0.0F, 4.0F},
+    };
+    mesh.rest_positions = mesh.positions;
+    mesh.indices = {0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7};
+    mesh.normals.assign(mesh.positions.size(), engine::math::vec3{0.0F, 1.0F, 0.0F});
+    mesh.texture_coordinates = {
+        engine::math::vec2{0.0F, 0.0F},
+        engine::math::vec2{1.0F, 0.0F},
+        engine::math::vec2{1.0F, 1.0F},
+        engine::math::vec2{0.0F, 1.0F},
+        engine::math::vec2{2.0F, 0.0F},
+        engine::math::vec2{3.0F, 0.0F},
+        engine::math::vec2{3.0F, 1.0F},
+        engine::math::vec2{2.0F, 1.0F},
+    };
+    geo::update_bounds(mesh);
+
+    geo::RemeshRequest request{};
+    request.input_mesh = &mesh;
+    request.mode = geo::RemeshingMode::kUniform;
+    request.targets.target_edge_length = 1.0F;
+    request.parameterization.mode = geo::ParameterizationMode::kReuseExisting;
+    request.attribute_policy.texture_coordinates = geo::AttributeTransferMode::kPreserve;
+
+    const auto result = geo::Remesh(request);
+    ASSERT_TRUE(result.has_value()) << result.error().message();
+
+    const geo::RemeshOutput& output = result.value();
+    EXPECT_EQ(output.parameterization.chart_count, 2U);
+    EXPECT_FALSE(output.mesh.texture_coordinates.empty());
+}
