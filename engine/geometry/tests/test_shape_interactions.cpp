@@ -625,6 +625,29 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(line, parallel, nullptr));
     }
 
+    TEST(LineIntersection, LineRaySymmetricIntersectionPoint)
+    {
+        const Line line{{-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}};
+        const Ray ray{{1.0f, -2.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
+
+        Result line_first{};
+        ASSERT_TRUE(Intersects(line, ray, &line_first));
+
+        Result ray_first{};
+        ASSERT_TRUE(Intersects(ray, line, &ray_first));
+
+        const math::vec3 from_line = PointAt(line, line_first.t);
+        const math::vec3 from_ray = PointAt(ray, ray_first.t);
+
+        EXPECT_NEAR(from_line[0], from_ray[0], 1e-5f);
+        EXPECT_NEAR(from_line[1], from_ray[1], 1e-5f);
+        EXPECT_NEAR(from_line[2], from_ray[2], 1e-5f);
+
+        const Ray miss{{1.0f, -2.0f, 0.0f}, {0.0f, -1.0f, 0.0f}};
+        EXPECT_FALSE(Intersects(line, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, line, nullptr));
+    }
+
     TEST(LineIntersection, LineSegment)
     {
         const Line line{{0, 0, 0}, {1, 0, 0}};
@@ -633,6 +656,29 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(line, intersecting, nullptr));
         EXPECT_FALSE(Intersects(line, outside, nullptr));
+    }
+
+    TEST(LineIntersection, LineSegmentSymmetricIntersectionPoint)
+    {
+        const Line line{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+        const Segment segment{{1.0f, -2.0f, 0.0f}, {1.0f, 2.0f, 0.0f}};
+
+        Result line_first{};
+        ASSERT_TRUE(Intersects(line, segment, &line_first));
+
+        Result segment_first{};
+        ASSERT_TRUE(Intersects(segment, line, &segment_first));
+
+        const math::vec3 from_line = PointAt(line, line_first.t);
+        const math::vec3 from_segment = PointAt(segment, segment_first.t);
+
+        EXPECT_NEAR(from_line[0], from_segment[0], 1e-5f);
+        EXPECT_NEAR(from_line[1], from_segment[1], 1e-5f);
+        EXPECT_NEAR(from_line[2], from_segment[2], 1e-5f);
+
+        const Segment miss{{1.0f, 2.0f, 0.0f}, {1.0f, 3.0f, 0.0f}};
+        EXPECT_FALSE(Intersects(line, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, line, nullptr));
     }
 
     TEST(LineIntersection, LineSphere)
@@ -898,6 +944,29 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(ray, intersecting, nullptr));
         EXPECT_FALSE(Intersects(ray, behind, nullptr));
+    }
+
+    TEST(RayIntersection, RaySegmentSymmetricIntersectionPoint)
+    {
+        const Ray ray{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+        const Segment segment{{2.0f, -1.0f, 0.0f}, {2.0f, 1.0f, 0.0f}};
+
+        Result ray_first{};
+        ASSERT_TRUE(Intersects(ray, segment, &ray_first));
+
+        Result segment_first{};
+        ASSERT_TRUE(Intersects(segment, ray, &segment_first));
+
+        const math::vec3 from_ray = PointAt(ray, ray_first.t);
+        const math::vec3 from_segment = PointAt(segment, segment_first.t);
+
+        EXPECT_NEAR(from_ray[0], from_segment[0], 1e-5f);
+        EXPECT_NEAR(from_ray[1], from_segment[1], 1e-5f);
+        EXPECT_NEAR(from_ray[2], from_segment[2], 1e-5f);
+
+        const Segment miss{{-2.0f, -1.0f, 0.0f}, {-2.0f, 1.0f, 0.0f}};
+        EXPECT_FALSE(Intersects(ray, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, ray, nullptr));
     }
 
     TEST(RayIntersection, RaySphere)
