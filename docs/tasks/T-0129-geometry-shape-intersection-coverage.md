@@ -175,3 +175,4 @@ Implement missing critical tests:
 - 2025-11-28: Added triangle line, ray, and segment symmetry regression tests to lock `Result` parameter parity across both invocation orders and extend coverage to the remaining ray/segment triangle overloads.
 - 2025-11-29: Added line-ray, line-segment, and ray-segment symmetric regression tests comparing intersection points to ensure argument-order conversions remain consistent for mixed parameterizations.
 - 2025-11-30: Added boolean symmetry regression tests for AABB pairings (cylinder, ellipsoid, OBB, plane, sphere, triangle) to guarantee consistent broad-phase classifications regardless of overload order and updated the coverage matrix to reflect the completed audit.
+- 2025-12-02: Added plane intersection symmetry tests for cylinder, ellipsoid, OBB, sphere, and triangle pairings to lock boolean parity across overload orders and extend coverage to planform classifiers used by rendering and physics culling paths.

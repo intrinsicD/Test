@@ -891,6 +891,74 @@ namespace engine::geometry
         EXPECT_TRUE(Intersects(a, coincident));
     }
 
+    TEST(PlaneIntersection, PlaneCylinderSymmetricParity)
+    {
+        const Plane slicing{{1, 0, 0}, 0.0f};
+        const Plane separated{{1, 0, 0}, -3.0f};
+        const Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 1.0f, 1.0f};
+
+        const bool slice_plane_first = Intersects(slicing, cylinder);
+        const bool slice_cylinder_first = Intersects(cylinder, slicing);
+        EXPECT_TRUE(slice_plane_first);
+        EXPECT_EQ(slice_plane_first, slice_cylinder_first);
+
+        const bool separate_plane_first = Intersects(separated, cylinder);
+        const bool separate_cylinder_first = Intersects(cylinder, separated);
+        EXPECT_FALSE(separate_plane_first);
+        EXPECT_EQ(separate_plane_first, separate_cylinder_first);
+    }
+
+    TEST(PlaneIntersection, PlaneEllipsoidSymmetricParity)
+    {
+        const Plane slicing{{1, 0, 0}, 0.0f};
+        const Plane separated{{1, 0, 0}, -3.0f};
+        const Ellipsoid ellipsoid{{0, 0, 0}, {1.5f, 0.75f, 1.0f}, math::quat{1.0f, 0.0f, 0.0f, 0.0f}};
+
+        const bool slice_plane_first = Intersects(slicing, ellipsoid);
+        const bool slice_ellipsoid_first = Intersects(ellipsoid, slicing);
+        EXPECT_TRUE(slice_plane_first);
+        EXPECT_EQ(slice_plane_first, slice_ellipsoid_first);
+
+        const bool separate_plane_first = Intersects(separated, ellipsoid);
+        const bool separate_ellipsoid_first = Intersects(ellipsoid, separated);
+        EXPECT_FALSE(separate_plane_first);
+        EXPECT_EQ(separate_plane_first, separate_ellipsoid_first);
+    }
+
+    TEST(PlaneIntersection, PlaneObbSymmetricParity)
+    {
+        const Plane slicing{{0, 1, 0}, 0.0f};
+        const Plane separated{{0, 1, 0}, -4.0f};
+        const Obb obb{{0, 0, 0}, {1.0f, 1.5f, 0.75f}, math::quat{1.0f, 0.0f, 0.0f, 0.0f}};
+
+        const bool slice_plane_first = Intersects(slicing, obb);
+        const bool slice_obb_first = Intersects(obb, slicing);
+        EXPECT_TRUE(slice_plane_first);
+        EXPECT_EQ(slice_plane_first, slice_obb_first);
+
+        const bool separate_plane_first = Intersects(separated, obb);
+        const bool separate_obb_first = Intersects(obb, separated);
+        EXPECT_FALSE(separate_plane_first);
+        EXPECT_EQ(separate_plane_first, separate_obb_first);
+    }
+
+    TEST(PlaneIntersection, PlaneSphereSymmetricParity)
+    {
+        const Plane slicing{{0, 0, 1}, 0.0f};
+        const Plane separated{{0, 0, 1}, -4.0f};
+        const Sphere sphere{{0, 0, 0}, 1.0f};
+
+        const bool slice_plane_first = Intersects(slicing, sphere);
+        const bool slice_sphere_first = Intersects(sphere, slicing);
+        EXPECT_TRUE(slice_plane_first);
+        EXPECT_EQ(slice_plane_first, slice_sphere_first);
+
+        const bool separate_plane_first = Intersects(separated, sphere);
+        const bool separate_sphere_first = Intersects(sphere, separated);
+        EXPECT_FALSE(separate_plane_first);
+        EXPECT_EQ(separate_plane_first, separate_sphere_first);
+    }
+
     TEST(PlaneIntersection, PlaneLineSymmetricResultParity)
     {
         const Plane plane{{0, 0, 1}, 0};
@@ -985,6 +1053,29 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(plane, spanning));
         EXPECT_FALSE(Intersects(plane, above));
+    }
+
+    TEST(PlaneIntersection, PlaneTriangleSymmetricParity)
+    {
+        const Plane slicing{{1, 0, 0}, 0.0f};
+        const Plane separated{{1, 0, 0}, -4.0f};
+        const Triangle intersecting{{-1, -1, 0}, {1, -1, 0}, {0, 1, 0}};
+        const Triangle shifted{{5, -1, 0}, {7, -1, 0}, {6, 1, 0}};
+
+        const bool slice_plane_first = Intersects(slicing, intersecting);
+        const bool slice_triangle_first = Intersects(intersecting, slicing);
+        EXPECT_TRUE(slice_plane_first);
+        EXPECT_EQ(slice_plane_first, slice_triangle_first);
+
+        const bool separate_plane_first = Intersects(separated, intersecting);
+        const bool separate_triangle_first = Intersects(intersecting, separated);
+        EXPECT_FALSE(separate_plane_first);
+        EXPECT_EQ(separate_plane_first, separate_triangle_first);
+
+        const bool shifted_plane_first = Intersects(slicing, shifted);
+        const bool shifted_triangle_first = Intersects(shifted, slicing);
+        EXPECT_FALSE(shifted_plane_first);
+        EXPECT_EQ(shifted_plane_first, shifted_triangle_first);
     }
 
     // ============================================================================
