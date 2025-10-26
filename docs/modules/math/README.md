@@ -4,6 +4,12 @@
 
 The math module provides header-only vector, matrix, quaternion, and transform types optimized for graphics and physics applications. It serves as the foundation for all geometric computations across animation, physics, geometry, and rendering modules.
 
+## Module Boundaries
+
+- **Math** supplies numeric primitives (vectors, matrices, quaternions, transforms), projection helpers, and solver utilities. Everything is header-only under `engine/math/` so the module can be embedded in host applications and CUDA kernels.
+- **Geometry** owns spatial primitives (`Aabb`, `Sphere`, `Ray`, `Plane`, frustums, etc.) and their intersection/containment logic. Import them from the geometry module and see [`docs/modules/geometry/README.md`](../geometry/README.md) for usage examples.
+- **Animation/Physics/Rendering** consume the math types; keep documentation for those modules focused on behavioural details and reference this file for shared math helpers.
+
 ## Core Types
 
 ### Vectors
@@ -81,20 +87,29 @@ math::quat interpolated = math::slerp(q1, q2, 0.5f);
 ### Transforms
 
 ```cpp
-// Transform with translation, rotation, scale
-math::Transform<float> transform;
+#include "engine/math/transform.hpp"
+
+// Transform with translation, rotation, and scale
+math::Transform<float> transform{};
 transform.translation = {1.0f, 2.0f, 3.0f};
 transform.rotation = math::quat::from_euler(0.0f, math::radians(45.0f), 0.0f);
 transform.scale = {1.0f, 1.0f, 1.0f};
 
-// Convert to matrix
-math::mat4 matrix = transform.to_matrix();
+// Convert to a 4x4 matrix for pipeline uploads
+const math::mat4 matrix = math::to_matrix(transform);
 
-// Combine transforms (child relative to parent)
-math::Transform<float> world_transform = parent * child;
+// Apply to points or directions
+const math::vec3 point{0.0f, 0.0f, 1.0f};
+const math::vec3 transformed_point = math::transform_point(transform, point);
 
-// Inverse transform
-math::Transform<float> inv = math::inverse(transform);
+const math::vec3 direction{0.0f, 1.0f, 0.0f};
+const math::vec3 transformed_dir = math::transform_vector(transform, direction);
+
+// Combine child relative to parent and compute inverse
+const math::Transform<float> parent = math::Transform<float>::Identity();
+const math::Transform<float> child = transform;
+const math::Transform<float> world_transform = math::combine(parent, child);
+const math::Transform<float> inverse_transform = math::inverse(transform);
 ```
 
 ## Vector Operations
@@ -169,21 +184,28 @@ math::mat4 rotate_y_mat = math::utils::rotate_y(math::radians(90.0f));
 math::mat4 rotate_z_mat = math::utils::rotate_z(math::radians(30.0f));
 
 // General rotation from angle and axis
-math::vec3 axis{0.0f, 1.0f, 0.0f};
+const float angle = math::radians(45.0f);
+const math::vec3 axis{0.0f, 1.0f, 0.0f};
 math::mat4 rotation = math::utils::to_rotation_matrix(angle, axis);
 
 // Rotation from quaternion
-math::quat q = math::quat::from_euler(pitch, yaw, roll);
+const math::quat q = math::quat::from_euler(
+    math::radians(15.0f),
+    math::radians(30.0f),
+    math::radians(0.0f)
+);
 math::mat4 rotation_from_quat = math::utils::to_rotation_matrix(q);
 
 // Look-at matrix (view matrix)
-math::mat4 view = math::utils::look_at(
-    eye_position,
-    target_position,
-    up_vector
-);
+const math::vec3 eye{0.0f, 0.0f, -5.0f};
+const math::vec3 target{0.0f, 0.0f, 0.0f};
+const math::vec3 up{0.0f, 1.0f, 0.0f};
+math::mat4 view = math::utils::look_at(eye, target, up);
 
 // Perspective projection
+const float aspect_ratio = 16.0f / 9.0f;
+const float near_plane = 0.1f;
+const float far_plane = 1000.0f;
 math::mat4 proj = math::utils::perspective(
     math::radians(60.0f),  // FOV
     aspect_ratio,
@@ -192,7 +214,11 @@ math::mat4 proj = math::utils::perspective(
 );
 
 // Orthographic projection
-math::mat4 ortho = math::utils::orthographic(left, right, bottom, top, near, far);
+const float left = -10.0f;
+const float right = 10.0f;
+const float bottom = -10.0f;
+const float top = 10.0f;
+math::mat4 ortho = math::utils::orthographic(left, right, bottom, top, near_plane, far_plane);
 ```
 
 ### Operations
@@ -207,13 +233,19 @@ math::mat4 inverted = math::inverse(m);
 // Determinant
 float det = math::determinant(m);
 
-// Transform point (w=1)
-math::vec3 point{1.0f, 2.0f, 3.0f};
-math::vec3 transformed = math::transform_point(m, point);
+// Transform point (homogeneous w = 1)
+const math::vec3 point{1.0f, 2.0f, 3.0f};
+const math::vec4 point4 = m * math::vec4{point[0], point[1], point[2], 1.0f};
+const math::vec3 transformed{
+    point4[0] / point4[3],
+    point4[1] / point4[3],
+    point4[2] / point4[3]
+};
 
-// Transform direction (w=0)
-math::vec3 direction{0.0f, 1.0f, 0.0f};
-math::vec3 transformed_dir = math::transform_direction(m, direction);
+// Transform direction (homogeneous w = 0)
+const math::vec3 direction{0.0f, 1.0f, 0.0f};
+const math::vec4 dir4 = m * math::vec4{direction[0], direction[1], direction[2], 0.0f};
+const math::vec3 transformed_dir{dir4[0], dir4[1], dir4[2]};
 ```
 
 ## Quaternion Operations
@@ -238,14 +270,22 @@ auto [pitch, yaw, roll] = math::to_euler(quat);
 ### Interpolation
 
 ```cpp
-// Linear interpolation (not recommended for rotations)
-math::quat lerp_result = math::lerp(q1, q2, t);
+#include <cmath>
 
-// Spherical linear interpolation (preferred)
+// Spherical linear interpolation (exact great-circle interpolation)
 math::quat slerp_result = math::slerp(q1, q2, t);
 
-// Normalized lerp (faster approximation)
-math::quat nlerp_result = math::nlerp(q1, q2, t);
+// Squad for smooth orientation curves across keyframes
+math::quat squad_result = math::squad(q_prev, q1, q2, q_next, t);
+
+// Normalised linear interpolation helper (manual)
+const math::quat linear{
+    std::lerp(q1.w, q2.w, t),
+    std::lerp(q1.x, q2.x, t),
+    std::lerp(q1.y, q2.y, t),
+    std::lerp(q1.z, q2.z, t)
+};
+const math::quat nlerp_result = math::normalize(linear);
 ```
 
 ## Rotation Utilities
@@ -312,15 +352,19 @@ math::quat interpolated = math::slerp(start_quat, end_quat, 0.5f);
 ### Angles
 
 ```cpp
-// Degree/radian conversion
-float radians = math::radians(180.0f);  // π
-float degrees = math::degrees(math::pi);  // 180.0f
+#include <numbers>
 
-// Constants
-constexpr float pi = math::pi;
-constexpr float two_pi = math::two_pi;
-constexpr float half_pi = math::half_pi;
+// Degree/radian conversion helpers
+float radians = math::radians(180.0f);  // π
+float degrees = math::utils::degrees(std::numbers::pi_v<float>);  // 180.0f
+
+// Constants via <numbers>
+constexpr float pi = std::numbers::pi_v<float>;
+constexpr float two_pi = std::numbers::pi_v<float> * 2.0f;
+constexpr float half_pi = std::numbers::pi_v<float> * 0.5f;
 ```
+
+`math::utils::degrees` and other camera helpers live in `engine/math/utils/utils_camera.hpp`.
 
 ### Comparison
 
@@ -336,31 +380,11 @@ bool any_greater = math::any(math::greater_than(a, b));
 
 ### Bounds & Geometry
 
-```cpp
-// AABB
-struct Aabb {
-    math::vec3 min;
-    math::vec3 max;
-};
-
-// Sphere
-struct Sphere {
-    math::vec3 center;
-    float radius;
-};
-
-// Ray
-struct Ray {
-    math::vec3 origin;
-    math::vec3 direction;
-};
-
-// Plane
-struct Plane {
-    math::vec3 normal;
-    float distance;
-};
-```
+Shape primitives (AABBs, spheres, rays, planes, frustums, capsules, …) and all
+intersection/containment helpers live in the geometry module. Import them from
+`engine/geometry/shapes.hpp` and consult
+[`docs/modules/geometry/README.md`](../geometry/README.md) for dedicated usage
+examples and parity tests.
 
 ## Solver Utilities
 
@@ -404,6 +428,40 @@ const std::size_t cubic_count = math::solvers::solve_cubic(1.0, -6.0, 11.0, -6.0
 - The polynomial solvers internally promote to long double, clamp discriminants
   with the same `1e-6`/`1e-12` thresholds, and gracefully fall back to lower-
   degree problems when the leading coefficient vanishes.
+
+## Sparse Matrices
+
+`SparseMatrix<T>` (column-major CSC) lives in `engine/math/sparse_matrix.hpp`.
+Use it when you need dynamic, editable sparse storage without depending on
+external libraries.
+
+```cpp
+#include "engine/math/sparse_matrix.hpp"
+
+using Sparse = math::SparseMatrix<float>;
+
+// Assemble from triplets (duplicates summed by default)
+std::vector<Sparse::Triplet> triplets{
+    {0, 0, 2.0f},
+    {1, 0, -1.0f},
+    {1, 2, 4.0f}
+};
+Sparse matrix = Sparse::from_triplets(3, 3, std::move(triplets));
+matrix.add_to(0, 1, 1.5f);   // Increment existing entry
+matrix.set(2, 2, 5.0f);      // Insert or overwrite
+
+// Traverse non-zero entries in deterministic order
+matrix.for_each_nz([](Sparse::size_type row, Sparse::size_type col, float value)
+{
+    // Export to CSR, assemble normal equations, etc.
+});
+
+// Query optional entry (binary search per column)
+const std::optional<float> maybe = matrix.try_get(1, 2);
+```
+
+Call `reserve` before streaming inserts to avoid reallocations and reuse
+existing storage via `clear()` when batching solves.
 
 ## Orthonormal Basis
 
