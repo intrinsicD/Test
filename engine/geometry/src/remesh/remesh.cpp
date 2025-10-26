@@ -165,15 +165,38 @@ namespace engine::geometry
             return normals;
         }
 
-        [[nodiscard]] std::uint32_t count_parameterization_charts(const SurfaceMesh& mesh) noexcept
+        struct ParameterizationIsland
         {
+            std::vector<std::uint32_t> vertices{};
+            math::vec2 translation{0.0F, 0.0F};
+            float scale{1.0F};
+        };
+
+        struct IslandBounds
+        {
+            math::vec2 min{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
+            math::vec2 max{std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest()};
+            float width{0.0F};
+            float height{0.0F};
+        };
+
+        [[nodiscard]] std::vector<ParameterizationIsland> collect_parameterization_islands(
+            const SurfaceMesh& mesh) noexcept
+        {
+            std::vector<ParameterizationIsland> islands{};
+
             if (mesh.texture_coordinates.empty() || mesh.indices.size() < 3U)
             {
-                return 0U;
+                return islands;
             }
 
             const std::size_t vertex_count = mesh.positions.size();
             const std::size_t uv_count = mesh.texture_coordinates.size();
+            if (vertex_count == 0U || uv_count == 0U)
+            {
+                return islands;
+            }
+
             std::vector<std::vector<std::uint32_t>> adjacency(vertex_count);
             std::vector<bool> used(vertex_count, false);
 
@@ -209,7 +232,6 @@ namespace engine::geometry
             std::vector<std::uint32_t> stack;
             stack.reserve(vertex_count);
 
-            std::uint32_t chart_count = 0U;
             for (std::size_t vertex = 0U; vertex < vertex_count; ++vertex)
             {
                 if (!used[vertex] || visited[vertex])
@@ -217,7 +239,7 @@ namespace engine::geometry
                     continue;
                 }
 
-                ++chart_count;
+                ParameterizationIsland island{};
                 stack.clear();
                 stack.push_back(static_cast<std::uint32_t>(vertex));
                 visited[vertex] = true;
@@ -226,6 +248,8 @@ namespace engine::geometry
                 {
                     const std::uint32_t current = stack.back();
                     stack.pop_back();
+
+                    island.vertices.push_back(current);
 
                     for (const std::uint32_t neighbour : adjacency[current])
                     {
@@ -242,14 +266,178 @@ namespace engine::geometry
                         stack.push_back(neighbour);
                     }
                 }
+
+                islands.push_back(std::move(island));
             }
 
-            return chart_count;
+            return islands;
         }
 
-        [[nodiscard]] ParameterizationSummary compute_parameterization_summary(const SurfaceMesh& mesh) noexcept
+        [[nodiscard]] IslandBounds compute_island_bounds(const SurfaceMesh& mesh,
+                                                         const ParameterizationIsland& island) noexcept
+        {
+            IslandBounds bounds{};
+            const std::size_t uv_count = mesh.texture_coordinates.size();
+
+            for (const std::uint32_t vertex : island.vertices)
+            {
+                if (vertex >= uv_count)
+                {
+                    continue;
+                }
+
+                const math::vec2& uv = mesh.texture_coordinates[vertex];
+                bounds.min[0] = std::min(bounds.min[0], uv[0]);
+                bounds.min[1] = std::min(bounds.min[1], uv[1]);
+                bounds.max[0] = std::max(bounds.max[0], uv[0]);
+                bounds.max[1] = std::max(bounds.max[1], uv[1]);
+            }
+
+            if (!std::isfinite(bounds.min[0]))
+            {
+                bounds.min = math::vec2{0.0F, 0.0F};
+                bounds.max = math::vec2{0.0F, 0.0F};
+            }
+
+            bounds.width = std::max(bounds.max[0] - bounds.min[0], 0.0F);
+            bounds.height = std::max(bounds.max[1] - bounds.min[1], 0.0F);
+            return bounds;
+        }
+
+        void scale_texture_coordinates(SurfaceMesh& mesh, float scale) noexcept
+        {
+            if (!std::isfinite(scale) || std::abs(scale - 1.0F) <= kEpsilon)
+            {
+                return;
+            }
+
+            for (math::vec2& uv : mesh.texture_coordinates)
+            {
+                uv *= scale;
+            }
+        }
+
+        void apply_global_scale(SurfaceMesh& mesh,
+                                std::vector<ParameterizationIsland>& islands,
+                                float scale) noexcept
+        {
+            if (!std::isfinite(scale) || std::abs(scale - 1.0F) <= kEpsilon)
+            {
+                return;
+            }
+
+            scale_texture_coordinates(mesh, scale);
+            for (auto& island : islands)
+            {
+                island.translation *= scale;
+                island.scale *= scale;
+            }
+        }
+
+        void repack_parameterization_islands(SurfaceMesh& mesh,
+                                             float gutter_width,
+                                             std::vector<ParameterizationIsland>& islands) noexcept
+        {
+            if (islands.empty())
+            {
+                return;
+            }
+
+            struct PackingInfo
+            {
+                std::size_t island_index{0U};
+                IslandBounds bounds{};
+                float padded_width{0.0F};
+                float padded_height{0.0F};
+            };
+
+            std::vector<PackingInfo> packing;
+            packing.reserve(islands.size());
+
+            const float gutter = std::max(gutter_width, 0.0F);
+            const float half_gutter = gutter * 0.5F;
+
+            float total_area = 0.0F;
+            float max_width = 0.0F;
+
+            for (std::size_t index = 0U; index < islands.size(); ++index)
+            {
+                const IslandBounds bounds = compute_island_bounds(mesh, islands[index]);
+                PackingInfo info{};
+                info.island_index = index;
+                info.bounds = bounds;
+                info.padded_width = bounds.width + gutter;
+                info.padded_height = bounds.height + gutter;
+                packing.push_back(info);
+
+                total_area += info.padded_width * info.padded_height;
+                max_width = std::max(max_width, info.padded_width);
+            }
+
+            if (total_area <= kEpsilon)
+            {
+                return;
+            }
+
+            std::sort(packing.begin(), packing.end(), [](const PackingInfo& a, const PackingInfo& b) {
+                return a.padded_height > b.padded_height;
+            });
+
+            const float shelf_limit = std::max(std::sqrt(total_area), max_width);
+            float current_x = 0.0F;
+            float current_y = 0.0F;
+            float shelf_height = 0.0F;
+            float pack_width = 0.0F;
+
+            for (const PackingInfo& info : packing)
+            {
+                if (current_x > 0.0F && current_x + info.padded_width > shelf_limit)
+                {
+                    current_y += shelf_height;
+                    current_x = 0.0F;
+                    shelf_height = 0.0F;
+                }
+
+                const float offset_x = current_x + half_gutter - info.bounds.min[0];
+                const float offset_y = current_y + half_gutter - info.bounds.min[1];
+
+                ParameterizationIsland& island = islands[info.island_index];
+                for (const std::uint32_t vertex : island.vertices)
+                {
+                    if (vertex >= mesh.texture_coordinates.size())
+                    {
+                        continue;
+                    }
+
+                    math::vec2& uv = mesh.texture_coordinates[vertex];
+                    uv[0] += offset_x;
+                    uv[1] += offset_y;
+                }
+
+                island.translation += math::vec2{offset_x, offset_y};
+
+                current_x += info.padded_width;
+                shelf_height = std::max(shelf_height, info.padded_height);
+                pack_width = std::max(pack_width, current_x);
+            }
+
+            const float pack_height = current_y + shelf_height;
+            const float max_extent = std::max(pack_width, pack_height);
+            if (max_extent <= std::numeric_limits<float>::epsilon())
+            {
+                return;
+            }
+
+            const float normalization_scale = 1.0F / max_extent;
+            apply_global_scale(mesh, islands, normalization_scale);
+        }
+
+        [[nodiscard]] ParameterizationSummary compute_parameterization_summary(
+            const SurfaceMesh& mesh,
+            const std::vector<ParameterizationIsland>& islands) noexcept
         {
             ParameterizationSummary summary{};
+            summary.chart_count = static_cast<std::uint32_t>(islands.size());
 
             if (mesh.texture_coordinates.empty() || mesh.indices.size() < 3U)
             {
@@ -301,21 +489,50 @@ namespace engine::geometry
             }
 
             summary.max_stretch = max_density;
-            summary.chart_count = count_parameterization_charts(mesh);
+            summary.charts.reserve(islands.size());
+
+            for (const auto& island : islands)
+            {
+                const IslandBounds bounds = compute_island_bounds(mesh, island);
+                ParameterizationChart chart{};
+                chart.min_uv = bounds.min;
+                chart.max_uv = bounds.max;
+                chart.translation = island.translation;
+                chart.scale = island.scale;
+                chart.area = std::max(bounds.width * bounds.height, 0.0F);
+                summary.charts.push_back(chart);
+            }
+
             return summary;
         }
 
-        void scale_texture_coordinates(SurfaceMesh& mesh, float scale) noexcept
+        [[nodiscard]] ParameterizationSummary finalize_parameterization(
+            SurfaceMesh& mesh,
+            const ParameterizationPolicy& policy) noexcept
         {
-            if (!std::isfinite(scale) || std::abs(scale - 1.0F) <= kEpsilon)
+            std::vector<ParameterizationIsland> islands = collect_parameterization_islands(mesh);
+            if (islands.empty())
             {
-                return;
+                return ParameterizationSummary{};
             }
 
-            for (math::vec2& uv : mesh.texture_coordinates)
+            const bool force_repack =
+                (policy.mode == ParameterizationMode::kReuseExisting) && !policy.allow_chart_reuse;
+            if (policy.repack_islands || force_repack)
             {
-                uv *= scale;
+                repack_parameterization_islands(mesh, policy.gutter_width, islands);
             }
+
+            ParameterizationSummary summary = compute_parameterization_summary(mesh, islands);
+
+            if (policy.target_texel_density > kEpsilon && summary.texel_density > kEpsilon)
+            {
+                const float target_scale = policy.target_texel_density / summary.texel_density;
+                apply_global_scale(mesh, islands, target_scale);
+                summary = compute_parameterization_summary(mesh, islands);
+            }
+
+            return summary;
         }
 
         void assign_interpolated_uv(VertexProperty<math::vec2>& texture_coordinates,
@@ -597,14 +814,7 @@ namespace engine::geometry
                 mesh.texture_coordinates[index] = math::vec2{math::dot(relative, axis_x), math::dot(relative, axis_y)};
             }
 
-            ParameterizationSummary summary = compute_parameterization_summary(mesh);
-            if (policy.target_texel_density > kEpsilon && summary.texel_density > kEpsilon)
-            {
-                const float scale = policy.target_texel_density / summary.texel_density;
-                scale_texture_coordinates(mesh, scale);
-                summary = compute_parameterization_summary(mesh);
-            }
-
+            const ParameterizationSummary summary = finalize_parameterization(mesh, policy);
             return RemeshResult<ParameterizationSummary>{summary};
         }
 
@@ -769,15 +979,7 @@ namespace engine::geometry
                 mesh.texture_coordinates[index] = math::vec2{static_cast<float>(u), static_cast<float>(v)};
             }
 
-            ParameterizationSummary summary = compute_parameterization_summary(mesh);
-            if (policy.target_texel_density > kEpsilon && summary.texel_density > kEpsilon)
-            {
-                const float scale = policy.target_texel_density / summary.texel_density;
-                scale_texture_coordinates(mesh, scale);
-                summary = compute_parameterization_summary(mesh);
-            }
-
-            return RemeshResult<ParameterizationSummary>{summary};
+            return RemeshResult<ParameterizationSummary>{finalize_parameterization(mesh, policy)};
         }
 
         [[nodiscard]] RemeshResult<ParameterizationSummary> generate_abfpp_parameterization(
@@ -1164,15 +1366,7 @@ namespace engine::geometry
 
             mesh.texture_coordinates = generated;
 
-            ParameterizationSummary summary = compute_parameterization_summary(mesh);
-            if (policy.target_texel_density > kEpsilon && summary.texel_density > kEpsilon)
-            {
-                const float scale = policy.target_texel_density / summary.texel_density;
-                scale_texture_coordinates(mesh, scale);
-                summary = compute_parameterization_summary(mesh);
-            }
-
-            return RemeshResult<ParameterizationSummary>{summary};
+            return RemeshResult<ParameterizationSummary>{finalize_parameterization(mesh, policy)};
         }
     } // namespace
 
@@ -2311,25 +2505,13 @@ namespace engine::geometry
             break;
         case ParameterizationMode::kReuseExisting:
         {
-            if (!output.mesh.texture_coordinates.empty())
-            {
-                ParameterizationSummary summary = compute_parameterization_summary(output.mesh);
-                if (request.parameterization.target_texel_density > kEpsilon &&
-                    summary.texel_density > kEpsilon)
-                {
-                    const float scale =
-                        request.parameterization.target_texel_density / summary.texel_density;
-                    scale_texture_coordinates(output.mesh, scale);
-                    summary.average_stretch *= scale;
-                    summary.max_stretch *= scale;
-                    summary.texel_density *= scale;
-                }
-                output.parameterization = summary;
-            }
-            else
+            if (output.mesh.texture_coordinates.empty())
             {
                 output.parameterization = ParameterizationSummary{};
+                break;
             }
+
+            output.parameterization = finalize_parameterization(output.mesh, request.parameterization);
             break;
         }
         case ParameterizationMode::kGenerateLscm:
