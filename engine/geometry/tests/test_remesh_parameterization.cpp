@@ -50,6 +50,12 @@ TEST(RemeshParameterizationTests, GeneratesLscmParameterizationForQuad)
     EXPECT_GT(output.parameterization.charts.front().area, 0.0F);
     EXPECT_GT(output.parameterization.charts.front().scale, 0.0F);
     EXPECT_GT(output.parameterization.texel_density, 0.0F);
+    EXPECT_GT(output.parameterization.total_chart_area, 0.0F);
+    EXPECT_GT(output.parameterization.atlas_area, 0.0F);
+    EXPECT_NEAR(output.parameterization.fill_ratio, 1.0F, 1e-3F);
+    EXPECT_NEAR(output.parameterization.total_chart_area, output.parameterization.atlas_area, 1e-3F);
+    EXPECT_NEAR(output.parameterization.total_seam_length, 8.0F, 1e-3F);
+    EXPECT_NEAR(output.parameterization.charts.front().boundary_length, 8.0F, 1e-3F);
     EXPECT_GT(range(output.mesh.texture_coordinates, 0U), 0.5F);
     EXPECT_GE(range(output.mesh.texture_coordinates, 1U), 0.0F);
     EXPECT_NEAR(output.parameterization.texel_density,
@@ -80,6 +86,12 @@ TEST(RemeshParameterizationTests, GeneratesAbfppParameterizationForQuad)
     EXPECT_GT(output.parameterization.charts.front().area, 0.0F);
     EXPECT_GT(output.parameterization.charts.front().scale, 0.0F);
     EXPECT_GT(output.parameterization.texel_density, 0.0F);
+    EXPECT_GT(output.parameterization.total_chart_area, 0.0F);
+    EXPECT_GT(output.parameterization.atlas_area, 0.0F);
+    EXPECT_NEAR(output.parameterization.fill_ratio, 1.0F, 1e-3F);
+    EXPECT_NEAR(output.parameterization.total_chart_area, output.parameterization.atlas_area, 1e-3F);
+    EXPECT_GT(output.parameterization.total_seam_length, 0.0F);
+    EXPECT_GT(output.parameterization.charts.front().boundary_length, 0.0F);
     EXPECT_GT(range(output.mesh.texture_coordinates, 0U), 0.5F);
     EXPECT_GT(range(output.mesh.texture_coordinates, 1U), 0.05F);
     EXPECT_NEAR(output.parameterization.texel_density,
@@ -129,6 +141,18 @@ TEST(RemeshParameterizationTests, ReuseExistingParameterizationCountsMultipleCha
     EXPECT_EQ(output.parameterization.chart_count, 2U);
     ASSERT_EQ(output.parameterization.charts.size(), 2U);
     EXPECT_FALSE(output.mesh.texture_coordinates.empty());
+    EXPECT_GT(output.parameterization.total_seam_length, 0.0F);
+    EXPECT_GT(output.parameterization.total_chart_area, 0.0F);
+    EXPECT_GT(output.parameterization.atlas_area, 0.0F);
+    EXPECT_GE(output.parameterization.fill_ratio, 0.0F);
+    EXPECT_LE(output.parameterization.fill_ratio, 1.0F);
+    float accumulated_boundary = 0.0F;
+    for (const auto& chart : output.parameterization.charts)
+    {
+        EXPECT_GT(chart.boundary_length, 0.0F);
+        accumulated_boundary += chart.boundary_length;
+    }
+    EXPECT_NEAR(accumulated_boundary, output.parameterization.total_seam_length, 1e-3F);
 }
 
 TEST(RemeshParameterizationTests, RepackExistingParameterizationNormalizesIslands)
@@ -173,6 +197,11 @@ TEST(RemeshParameterizationTests, RepackExistingParameterizationNormalizesIsland
 
     const geo::RemeshOutput& output = result.value();
     ASSERT_EQ(output.parameterization.charts.size(), 2U);
+    EXPECT_GT(output.parameterization.total_seam_length, 0.0F);
+    EXPECT_GT(output.parameterization.total_chart_area, 0.0F);
+    EXPECT_GT(output.parameterization.atlas_area, 0.0F);
+    EXPECT_GE(output.parameterization.fill_ratio, 0.0F);
+    EXPECT_LE(output.parameterization.fill_ratio, 1.0F + 1e-4F);
 
     float min_u = std::numeric_limits<float>::max();
     float max_u = std::numeric_limits<float>::lowest();
@@ -192,15 +221,19 @@ TEST(RemeshParameterizationTests, RepackExistingParameterizationNormalizesIsland
     EXPECT_LE(max_v, 1.0F + 1e-4F);
 
     const auto& charts = output.parameterization.charts;
+    float seam_sum = 0.0F;
     bool translated = false;
     for (const auto& chart : charts)
     {
+        EXPECT_GT(chart.boundary_length, 0.0F);
+        seam_sum += chart.boundary_length;
         if (std::abs(chart.translation[0]) > 1e-4F || std::abs(chart.translation[1]) > 1e-4F)
         {
             translated = true;
         }
     }
     EXPECT_TRUE(translated);
+    EXPECT_NEAR(seam_sum, output.parameterization.total_seam_length, 1e-3F);
 
     for (std::size_t i = 0; i < charts.size(); ++i)
     {
@@ -258,7 +291,13 @@ TEST(RemeshParameterizationTests, DisallowingReuseForcesRepack)
 
     const geo::RemeshOutput& output = result.value();
     ASSERT_EQ(output.parameterization.charts.size(), 2U);
+    EXPECT_GT(output.parameterization.total_seam_length, 0.0F);
+    EXPECT_GT(output.parameterization.total_chart_area, 0.0F);
+    EXPECT_GT(output.parameterization.atlas_area, 0.0F);
+    EXPECT_GE(output.parameterization.fill_ratio, 0.0F);
+    EXPECT_LE(output.parameterization.fill_ratio, 1.0F + 1e-4F);
     const auto& charts = output.parameterization.charts;
+    float seam_sum = 0.0F;
     bool moved = false;
     for (const auto& chart : charts)
     {
@@ -266,12 +305,15 @@ TEST(RemeshParameterizationTests, DisallowingReuseForcesRepack)
         EXPECT_GE(chart.min_uv[1], -1e-4F);
         EXPECT_LE(chart.max_uv[0], 1.0F + 1e-4F);
         EXPECT_LE(chart.max_uv[1], 1.0F + 1e-4F);
+        EXPECT_GT(chart.boundary_length, 0.0F);
+        seam_sum += chart.boundary_length;
         if (std::abs(chart.translation[0]) > 1e-4F || std::abs(chart.translation[1]) > 1e-4F)
         {
             moved = true;
         }
     }
     EXPECT_TRUE(moved);
+    EXPECT_NEAR(seam_sum, output.parameterization.total_seam_length, 1e-3F);
     const float translation_delta = std::abs(charts[0].translation[0] - charts[1].translation[0]) +
                                     std::abs(charts[0].translation[1] - charts[1].translation[1]);
     EXPECT_GT(translation_delta, 1e-4F);

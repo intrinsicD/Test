@@ -76,6 +76,7 @@ namespace engine::geometry
         math::vec2 translation{0.0F, 0.0F};
         float scale{1.0F};
         float area{0.0F};
+        float boundary_length{0.0F};
     };
 
     struct ENGINE_GEOMETRY_API RemeshRequest
@@ -107,6 +108,10 @@ namespace engine::geometry
         float average_stretch{0.0f};
         float max_stretch{0.0f};
         float texel_density{0.0f};
+        float total_chart_area{0.0f};
+        float atlas_area{0.0f};
+        float fill_ratio{0.0f};
+        float total_seam_length{0.0f};
         std::vector<ParameterizationChart> charts{};
     };
 

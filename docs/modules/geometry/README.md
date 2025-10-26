@@ -251,8 +251,9 @@ query telemetry.
 When parameterisation reuse is requested, remeshing now interpolates texture
 coordinates for generated vertices, averages UVs across collapses, and scales
 them to honour the `target_texel_density` budget. `ParameterizationSummary`
-tracks the resulting texel density and stretch so telemetry surfaces reflect
-changes to the UV footprint alongside geometric error metrics.
+tracks the resulting texel density, stretch, aggregate chart/atlas area, fill
+ratio, and total seam length so telemetry surfaces reflect changes to the UV
+footprint alongside geometric error metrics.
 
 `ParameterizationSummary::chart_count` reports the number of UV islands detected
 in the generated atlas by counting connected components in the parameterisation
@@ -262,13 +263,14 @@ assuming a single chart per mesh.
 `ParameterizationSummary::charts` exposes per-island metadata after
 post-processing. Each entry captures the final UV bounding box, the total area
 occupied in UV space, the translation applied while packing the island into the
-atlas, and the cumulative scale used to satisfy packing and texel density
-constraints. When `ParameterizationPolicy::repack_islands` is enabled (or when
-`allow_chart_reuse` is disabled while reusing existing UVs) islands are
-normalised into a unit atlas with the configured `gutter_width` spacing before
-texel density adjustments are applied. This keeps atlases deterministic and
-provides downstream tooling with the data required to reason about packed
-layouts.
+atlas, the cumulative scale used to satisfy packing and texel density
+constraints, and the boundary length contributed to the atlas seam budget. When
+`ParameterizationPolicy::repack_islands` is enabled (or when `allow_chart_reuse`
+is disabled while reusing existing UVs) islands are normalised into a unit
+atlas with the configured `gutter_width` spacing before texel density
+adjustments are applied. This keeps atlases deterministic and provides
+downstream tooling with the data required to reason about packed layouts and
+seam budgets.
 
 `ParameterizationMode::kGenerateLscm` builds a least-squares conformal map for the
 output mesh. The implementation automatically selects a pair of anchor vertices

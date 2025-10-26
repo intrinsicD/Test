@@ -606,10 +606,16 @@ namespace engine::geometry::tools
             stream << "  Parameterization: charts=" << summary.chart_count
                    << " texel_density=" << summary.texel_density
                    << " avg_stretch=" << summary.average_stretch
-                   << " max_stretch=" << summary.max_stretch << "\n";
+                   << " max_stretch=" << summary.max_stretch
+                   << " fill_ratio=" << summary.fill_ratio
+                   << " seam_length=" << summary.total_seam_length << "\n";
 
             if (options.verbose)
             {
+                stream << "    Atlas: area=" << summary.atlas_area
+                       << " charts_area=" << summary.total_chart_area
+                       << " fill_ratio=" << summary.fill_ratio << "\n";
+
                 for (std::size_t chart_index = 0; chart_index < summary.charts.size(); ++chart_index)
                 {
                     const ParameterizationChart& chart = summary.charts[chart_index];
@@ -618,7 +624,8 @@ namespace engine::geometry::tools
                            << " max_uv=(" << chart.max_uv[0] << ", " << chart.max_uv[1] << ")"
                            << " translation=(" << chart.translation[0] << ", " << chart.translation[1] << ")"
                            << " scale=" << chart.scale
-                           << " area=" << chart.area << "\n";
+                           << " area=" << chart.area
+                           << " boundary_length=" << chart.boundary_length << "\n";
                 }
             }
         }
