@@ -82,6 +82,39 @@ builder.add_pass("pass_b").reads(texture);
 // No manual synchronization required
 ```
 
+## Research Baseline Preset
+
+The research initiative behind `RE-610` introduces a reusable frame-graph preset
+that mirrors the lighting and debugging requirements for prototyping work. Use
+`rendering::configure_research_baseline` to populate a `FrameGraph` with a
+forward or deferred pipeline and optional debug overlays:
+
+```cpp
+#include "engine/rendering/frame_graph.hpp"
+#include "engine/rendering/pipeline/research_baseline.hpp"
+
+rendering::FrameGraph graph;
+rendering::ResearchBaselineOptions options{};
+options.shading_mode = rendering::ResearchShadingMode::Deferred;
+options.enable_normals_overlay = true;
+
+const auto resources = rendering::configure_research_baseline(graph, options);
+graph.compile();
+```
+
+The helper creates the following passes in order:
+
+| Stage | Pass Name | Description |
+|-------|-----------|-------------|
+| Geometry | `Research.ForwardGeometry` / `Research.GBuffer` | Populates the primary color target or deferred G-Buffer attachments. |
+| Lighting | `Research.LightingComposite` | Deferred-only lighting resolve into `Research.FinalColor`. |
+| Debug Overlays | `Research.Debug.*` | Optional passes writing normals/UV/material/light-volume overlays when enabled. |
+
+Resource handles returned from the helper expose the final color target, depth
+buffer, G-Buffer attachments, and overlay outputs so the runtime harness can
+bind them to presentation or telemetry capture paths. Default dimensions are
+1920×1080, but callers can override them through `ResearchBaselineOptions`.
+
 ## Backend Support
 
 ### Vulkan Backend

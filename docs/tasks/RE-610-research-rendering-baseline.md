@@ -80,7 +80,7 @@ Create a curated frame graph preset that includes deferred and forward shading v
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] Frame graph preset with configurable forward and deferred shading paths.
+- [x] Frame graph preset with configurable forward and deferred shading paths.
 - [ ] Shader hot reload supported for baseline pipeline with validation messages.
 - [ ] Debug overlays for normals, UV density, material parameters, and light volumes.
 - [ ] Telemetry counters for draw calls, GPU time per pass, and shading variant selection exported via diagnostics.
@@ -179,3 +179,5 @@ TEST(RenderingResearchBaseline, CreatesDeferredPreset) {
 ## Notes
 - Coordinate with tools team for UI toggles.
 - Provide fallback lighting configuration for laptops with limited GPU capacity.
+- 2025-12-06: `rendering::configure_research_baseline` seeds the preset with forward/deferred geometry stages and overlay targets;
+  follow-up work will layer material/lighting shaders, telemetry, and documentation deliverables.
