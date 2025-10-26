@@ -3198,10 +3198,34 @@ namespace engine::geometry
 
     bool Intersects(const Frustum& frustum, const Obb& obb) noexcept
     {
-        // Conservative test: check if OBB's bounding sphere intersects frustum
-        // For more accuracy, would need SAT test with all OBB axes and frustum edges
-        const Sphere bounding = BoundingSphere(obb);
-        return Intersects(frustum, bounding);
+        // Use plane classifications against oriented extents instead of a
+        // conservative bounding sphere so tight-fitting boxes are not falsely kept.
+        const math::mat3 rotation = math::utils::to_rotation_matrix(obb.orientation);
+        const math::vec3 half_sizes = obb.half_sizes;
+
+        // Columns of the rotation matrix correspond to the local box axes.
+        const math::vec3 axis_x{rotation[0][0], rotation[1][0], rotation[2][0]};
+        const math::vec3 axis_y{rotation[0][1], rotation[1][1], rotation[2][1]};
+        const math::vec3 axis_z{rotation[0][2], rotation[1][2], rotation[2][2]};
+
+        for (const auto& plane : frustum.planes)
+        {
+            const float center_distance = SignedDistance(plane, obb.center);
+
+            // Project the oriented extents onto the plane normal to compute the
+            // radius of the OBB along that direction (same approach as SAT).
+            const float radius =
+                math::utils::abs(math::dot(plane.normal, axis_x)) * half_sizes[0] +
+                math::utils::abs(math::dot(plane.normal, axis_y)) * half_sizes[1] +
+                math::utils::abs(math::dot(plane.normal, axis_z)) * half_sizes[2];
+
+            if (center_distance + radius < 0.0f)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // Symmetric overloads

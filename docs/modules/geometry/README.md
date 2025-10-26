@@ -146,6 +146,7 @@ auto corners = engine::geometry::GetCorners(frustum);
 The frustum is defined by 6 planes (left, right, bottom, top, near, far) with normals pointing inward. Intersection tests use optimized algorithms:
 - **Frustum-AABB**: p-vertex/n-vertex test for early rejection
 - **Frustum-Sphere**: signed distance to all planes vs. radius
+- **Frustum-OBB**: oriented extents projected onto plane normals for tight classification
 - **Frustum-Point**: containment test against all planes
 
 ### Remeshing Requests (GE-221+)
