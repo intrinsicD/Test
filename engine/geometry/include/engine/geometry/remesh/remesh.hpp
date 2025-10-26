@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <limits>
+#include <vector>
 
 namespace engine::geometry
 {
@@ -68,6 +69,15 @@ namespace engine::geometry
         bool allow_chart_reuse{true};
     };
 
+    struct ENGINE_GEOMETRY_API ParameterizationChart
+    {
+        math::vec2 min_uv{0.0F, 0.0F};
+        math::vec2 max_uv{0.0F, 0.0F};
+        math::vec2 translation{0.0F, 0.0F};
+        float scale{1.0F};
+        float area{0.0F};
+    };
+
     struct ENGINE_GEOMETRY_API RemeshRequest
     {
         const SurfaceMesh* input_mesh{nullptr};
@@ -97,6 +107,7 @@ namespace engine::geometry
         float average_stretch{0.0f};
         float max_stretch{0.0f};
         float texel_density{0.0f};
+        std::vector<ParameterizationChart> charts{};
     };
 
     struct ENGINE_GEOMETRY_API RemeshOutput

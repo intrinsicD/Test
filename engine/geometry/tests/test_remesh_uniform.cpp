@@ -93,6 +93,7 @@ namespace engine::geometry
         request.targets.target_edge_length = 1.2F;
         request.parameterization.mode = ParameterizationMode::kReuseExisting;
         request.parameterization.target_texel_density = 2.0F;
+        request.parameterization.gutter_width = 0.0F;
 
         const RemeshResult<RemeshOutput> result = Remesh(request);
         ASSERT_TRUE(result.has_value());
