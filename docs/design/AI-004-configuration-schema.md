@@ -84,7 +84,15 @@ datasets:
     statistics:
       iterations: 12
       max_error: 0.0015
+      max_surface_deviation: 0.0150
+      mean_surface_deviation: 0.0100
+      rms_surface_deviation: 0.0120
 ```
+
+The `statistics` block records both the edge-length deviation budget (`max_error`) and
+approximate Hausdorff metrics gathered from bidirectional sampling between the
+input mesh and remeshed output (`max_surface_deviation`, `mean_surface_deviation`,
+`rms_surface_deviation`).
 
 Downstream consumers (runtime harness, sandbox UI, benchmark orchestrator) must
 reject entries whose `schema.id`/`schema.version` do not match the supported

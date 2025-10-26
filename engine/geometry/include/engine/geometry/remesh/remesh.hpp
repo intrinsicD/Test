@@ -100,6 +100,9 @@ namespace engine::geometry
         float max_edge_length{0.0f};
         float min_edge_length{0.0f};
         float max_error{0.0f};
+        float max_surface_deviation{0.0f};
+        float mean_surface_deviation{0.0f};
+        float rms_surface_deviation{0.0f};
     };
 
     struct ENGINE_GEOMETRY_API ParameterizationSummary

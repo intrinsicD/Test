@@ -256,14 +256,21 @@ mesh.
 `RemeshStatistics::max_error` records the maximum absolute deviation between the
 resolved target edge length (or the derived adaptive baseline when no explicit
 target is provided) and the shortest/longest edges observed in the output mesh,
-giving remeshing telemetry a single scalar that quantifies how far the result
-strays from the requested budget.
+giving remeshing telemetry a scalar that quantifies how far the result strays
+from the requested edge-length budget. The statistics struct also reports
+approximate Hausdorff metrics derived from bidirectional sampling between the
+input mesh and the remeshed surface: `max_surface_deviation`,
+`mean_surface_deviation`, and `rms_surface_deviation`.
 
 `RemeshTelemetry` captures per-mode invocation counts, aggregate iteration
 totals, and gauges describing the most recent job (iterations, split/collapse
-counts, vertex count, duration, and job label). Use the snapshot to surface
-remeshing workload health in diagnostics tooling alongside existing spatial
-query telemetry.
+counts, vertex count, duration, and job label). It now aggregates the
+Hausdorff-style deviation metrics exposed through `RemeshStatistics`: each mode
+records the last observed deviation sample count, the number of invocations that
+reported deviation data, and running averages for maximum, mean, and RMS surface
+deviation magnitudes. Use the snapshot to surface remeshing workload health and
+surface-fidelity drift in diagnostics tooling alongside existing spatial query
+telemetry.
 
 When parameterisation reuse is requested, remeshing now interpolates texture
 coordinates for generated vertices, averages UVs across collapses, and scales
@@ -372,6 +379,9 @@ datasets:
     statistics:
       iterations: 8
       max_error: 0.0025
+      max_surface_deviation: 0.0150
+      mean_surface_deviation: 0.0100
+      rms_surface_deviation: 0.0120
 ```
 
 Use the CLI in automation or diagnostics pipelines when a lightweight remeshing

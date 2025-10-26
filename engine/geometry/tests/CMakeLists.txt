@@ -18,6 +18,7 @@ add_executable(engine_geometry_tests
         test_remesh_feature_preserving.cpp
         test_remesh_adaptive.cpp
         test_remesh_uniform.cpp
+        test_surface_deviation.cpp
         test_remesh_parameterization.cpp
         test_remesh_telemetry.cpp
         test_remesh_cli.cpp

@@ -1,4 +1,5 @@
 #include "engine/geometry/remesh/remesh.hpp"
+#include "engine/geometry/remesh/deviation.hpp"
 #include "engine/geometry/remesh/telemetry.hpp"
 
 #include <algorithm>
@@ -2720,6 +2721,24 @@ namespace engine::geometry
         {
             output.statistics.max_error = 0.0F;
         }
+
+        std::uint64_t surface_deviation_sample_count = 0U;
+
+        if (request.input_mesh != nullptr)
+        {
+            const SurfaceDeviationMetrics deviation_metrics =
+                ComputeSurfaceDeviationMetrics(*request.input_mesh, output.mesh);
+            output.statistics.max_surface_deviation = deviation_metrics.max_distance;
+            output.statistics.mean_surface_deviation = deviation_metrics.mean_distance;
+            output.statistics.rms_surface_deviation = deviation_metrics.rms_distance;
+            surface_deviation_sample_count = static_cast<std::uint64_t>(deviation_metrics.sample_count);
+        }
+        else
+        {
+            output.statistics.max_surface_deviation = 0.0F;
+            output.statistics.mean_surface_deviation = 0.0F;
+            output.statistics.rms_surface_deviation = 0.0F;
+        }
         switch (request.parameterization.mode)
         {
         case ParameterizationMode::kNone:
@@ -2768,6 +2787,8 @@ namespace engine::geometry
                                                       counters.collapse_count,
                                                       static_cast<std::uint64_t>(output.mesh.positions.size()),
                                                       duration_ms,
+                                                      output.statistics,
+                                                      surface_deviation_sample_count,
                                                       request.job_label);
 
         return RemeshResult<RemeshOutput>{output};
