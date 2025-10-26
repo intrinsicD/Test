@@ -95,6 +95,7 @@ Build an ImGui-powered sandbox application embedded within the prototyping harne
 - [ ] Integration test verifies sandbox ↔ runtime communication.
 - [ ] Golden screenshot tests guard UI regressions (where feasible).
 - [ ] Coverage ≥ 85% on new tooling code.
+- [ ] Telemetry load benchmark simulates ≥5 concurrent comparative runs with no more than 5% frame time regression while charts stream live metrics.
 
 ### Documentation Requirements
 - [ ] Update tools README with sandbox usage and screenshots.
@@ -122,6 +123,7 @@ TEST(ExperimentSandbox, PersistsLayoutPreferences) {
 
 ### Performance Tests
 - Profile UI update loop using Tracy zones to ensure ≤1 ms/frame overhead.
+- Execute telemetry load test while recording benchmark runs; verify streaming buffers avoid dropped samples and stay within target latency.
 
 ---
 

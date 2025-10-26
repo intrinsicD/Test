@@ -30,6 +30,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `TL-210` | Build experiment sandbox UI with dataset/pipeline selection, telemetry charts, and benchmark controls. | Sandbox enumerates manifests, edits parameters live, and captures benchmark runs with persisted layouts/screenshots. | 🟡 Planning |
 | `AS-330` | Curate reference dataset packages with manifests, ingestion scripts, and provenance/licensing notes. | Datasets download via scripted workflow, register with runtime caches, and surface metadata in harness/UI. | 🟡 Planning |
 | `CC-310` | Automate comparative benchmarks across engine and reference implementations with CI smoke coverage. | Benchmark orchestrator emits comparison reports, CI gate enforces thresholds, and telemetry viewer renders comparative plots. | 🟡 Planning |
+| `DC-040` | Align AI-004 configuration schema across rendering, runtime, tools, assets, and benchmarking. | Shared schema ADR approved, validators integrated behind feature flag, and migration notes published for downstream teams. | 🟡 Planning |
 
 **Key Dates:**
 - 2025-11-20: Initiative charter approved; cross-module leads assigned.
@@ -38,16 +39,19 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2026-01-06: Benchmark automation smoke suite active in CI.
 
 **Risks:**
-- Coordinated delivery requires shared configuration schema—lock format before implementation begins.
-- Dataset licensing review could delay publication—front-load legal review during planning sprint.
+- Coordinated delivery requires shared configuration schema—Owner: @pm-agent (Product Manager), Due: 2025-12-10.
+- Dataset licensing review could delay publication—Owner: @assets-lead (Assets), Due: 2025-12-08.
+- Benchmarking hardware pool request pending infrastructure approval—Owner: @perf-lead (Performance), Due: 2025-12-12.
 
 **Mitigations:**
 - Bi-weekly integration demos to surface drift early.
 - Dedicated benchmarking hardware pool request submitted to infrastructure (awaiting approval).
 
 **Recent Progress:**
+- 2025-12-04: Drafted `ADR-0007` to define the shared AI-004 configuration schema and published coordination task `DC-040`.
 - 2025-12-03: Added comparative benchmark orchestrator (`scripts/benchmarks/run_comparative_benchmarks.py`) executing
   CC-310 scenarios from declarative configurations and enforcing regression thresholds.
+- 2025-12-02: Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.
 
 ---
 

@@ -128,6 +128,12 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 
 Reconcile this table with the roadmap whenever priorities change. Update both documents in the same change to prevent drift.
 
+### AI-004 Risk Register Snapshot
+
+- Coordinated configuration schema delivery — **Owner:** @pm-agent — **Due:** 2025-12-10.
+- Dataset licensing approval for curated packages — **Owner:** @assets-lead — **Due:** 2025-12-08.
+- Benchmarking hardware allocation for comparative runs — **Owner:** @perf-lead — **Due:** 2025-12-12.
+
 ## Build & Test Workflow
 
 ### Prerequisites

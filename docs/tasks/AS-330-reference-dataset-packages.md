@@ -179,3 +179,6 @@ TEST(DatasetManifest, ParsesMetadata) {
 ## Notes
 - Coordinate with dataset providers for redistribution approval when necessary.
 - Provide automated cleanup script to reclaim disk space.
+
+## Progress Log
+- 2025-12-04: Licensing packet (assets + legal) submitted for primary geometry datasets; awaiting legal approval by 2025-12-08 to unblock harness manifests.

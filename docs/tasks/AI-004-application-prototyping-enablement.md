@@ -69,6 +69,7 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 **Depends On:**
 - Completion of `AI-001` handle validation (ensures hot reload safety)
 - Stable telemetry schema (`CC-001`)
+- Schema alignment task `DC-040` and ADR-0007 sign-off
 
 **Blocks:**
 - `RE-610` Research Rendering Baseline
@@ -89,6 +90,7 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 ### Functional Requirements
 - [ ] Coordinated roadmap published with milestones for `RE-610`, `RT-320`, `TL-210`, `AS-330`, `CC-310`.
 - [ ] Shared configuration schema defined and reviewed by rendering/runtime/tools leads.
+- [ ] Roadmap risk register lists owners and due dates for kickoff blockers.
 - [ ] Prototype workflow validated on two research case studies (e.g., geometry processing algorithm and rendering technique).
 - [ ] Benchmark automation produces side-by-side telemetry and plots for engine vs. reference implementations.
 
@@ -155,6 +157,7 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
 - [ ] Roadmap + module README updates
 - [ ] Updated tasks for each sub-workstream
 - [ ] Shared configuration schema & documentation
+- [ ] Risk register entries reflecting owners/due dates for outstanding blockers
 - [ ] Dataset manifest and ingestion scripts
 - [ ] Benchmark automation scripts + CI integration
 - [ ] Demo recordings/screenshots for research workflow
