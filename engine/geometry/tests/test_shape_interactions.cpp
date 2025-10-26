@@ -773,6 +773,60 @@ namespace engine::geometry
         EXPECT_TRUE(Intersects(a, coincident));
     }
 
+    TEST(PlaneIntersection, PlaneLineSymmetricResultParity)
+    {
+        const Plane plane{{0, 0, 1}, 0};
+        const Line line{{0, 0, -1}, {0, 0, 1}};
+
+        Result plane_first{};
+        ASSERT_TRUE(Intersects(plane, line, &plane_first));
+
+        Result line_first{};
+        ASSERT_TRUE(Intersects(line, plane, &line_first));
+
+        EXPECT_NEAR(plane_first.t, line_first.t, 1e-5f);
+
+        const Line parallel{{0, 0, 1}, {1, 0, 0}};
+        EXPECT_FALSE(Intersects(plane, parallel, nullptr));
+        EXPECT_FALSE(Intersects(parallel, plane, nullptr));
+    }
+
+    TEST(PlaneIntersection, PlaneRaySymmetricResultParity)
+    {
+        const Plane plane{{0, 0, 1}, 0};
+        const Ray ray{{0, 0, -1}, {0, 0, 1}};
+
+        Result plane_first{};
+        ASSERT_TRUE(Intersects(plane, ray, &plane_first));
+
+        Result ray_first{};
+        ASSERT_TRUE(Intersects(ray, plane, &ray_first));
+
+        EXPECT_NEAR(plane_first.t, ray_first.t, 1e-5f);
+
+        const Ray parallel{{0, 0, 1}, {1, 0, 0}};
+        EXPECT_FALSE(Intersects(plane, parallel, nullptr));
+        EXPECT_FALSE(Intersects(parallel, plane, nullptr));
+    }
+
+    TEST(PlaneIntersection, PlaneSegmentSymmetricResultParity)
+    {
+        const Plane plane{{0, 0, 1}, 0};
+        const Segment segment{{0, 0, -1}, {0, 0, 1}};
+
+        Result plane_first{};
+        ASSERT_TRUE(Intersects(plane, segment, &plane_first));
+
+        Result segment_first{};
+        ASSERT_TRUE(Intersects(segment, plane, &segment_first));
+
+        EXPECT_NEAR(plane_first.t, segment_first.t, 1e-5f);
+
+        const Segment parallel{{0, 0, 1}, {0, 0, 2}};
+        EXPECT_FALSE(Intersects(plane, parallel, nullptr));
+        EXPECT_FALSE(Intersects(parallel, plane, nullptr));
+    }
+
     TEST(PlaneIntersection, PlaneRay)
     {
         const Plane plane{{0, 0, 1}, 0};
@@ -938,6 +992,63 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(sphere, intersecting));
         EXPECT_FALSE(Intersects(sphere, separated));
+    }
+
+    TEST(SphereIntersection, SphereLineSymmetricResultParity)
+    {
+        const Sphere sphere{{0, 0, 0}, 1.0f};
+        const Line line{{-2, 0, 0}, {1, 0, 0}};
+
+        Result sphere_first{};
+        ASSERT_TRUE(Intersects(sphere, line, &sphere_first));
+
+        Result line_first{};
+        ASSERT_TRUE(Intersects(line, sphere, &line_first));
+
+        EXPECT_NEAR(sphere_first.t_min, line_first.t_min, 1e-5f);
+        EXPECT_NEAR(sphere_first.t_max, line_first.t_max, 1e-5f);
+
+        const Line miss{{0, 2, 0}, {1, 0, 0}};
+        EXPECT_FALSE(Intersects(sphere, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, sphere, nullptr));
+    }
+
+    TEST(SphereIntersection, SphereRaySymmetricResultParity)
+    {
+        const Sphere sphere{{0, 0, 0}, 1.0f};
+        const Ray ray{{-2, 0, 0}, {1, 0, 0}};
+
+        Result sphere_first{};
+        ASSERT_TRUE(Intersects(sphere, ray, &sphere_first));
+
+        Result ray_first{};
+        ASSERT_TRUE(Intersects(ray, sphere, &ray_first));
+
+        EXPECT_NEAR(sphere_first.t_min, ray_first.t_min, 1e-5f);
+        EXPECT_NEAR(sphere_first.t_max, ray_first.t_max, 1e-5f);
+
+        const Ray miss{{-2, 0, 0}, {-1, 0, 0}};
+        EXPECT_FALSE(Intersects(sphere, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, sphere, nullptr));
+    }
+
+    TEST(SphereIntersection, SphereSegmentSymmetricResultParity)
+    {
+        const Sphere sphere{{0, 0, 0}, 1.0f};
+        const Segment segment{{-2, 0, 0}, {2, 0, 0}};
+
+        Result sphere_first{};
+        ASSERT_TRUE(Intersects(sphere, segment, &sphere_first));
+
+        Result segment_first{};
+        ASSERT_TRUE(Intersects(segment, sphere, &segment_first));
+
+        EXPECT_NEAR(sphere_first.t_min, segment_first.t_min, 1e-5f);
+        EXPECT_NEAR(sphere_first.t_max, segment_first.t_max, 1e-5f);
+
+        const Segment miss{{2, 2, 0}, {3, 2, 0}};
+        EXPECT_FALSE(Intersects(sphere, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, sphere, nullptr));
     }
 
     // ============================================================================
