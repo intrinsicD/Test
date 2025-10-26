@@ -32,6 +32,13 @@ TEST(SurfaceMeshConversion, RoundTripPreservesTopology)
 
     EXPECT_FALSE(rebuilt.normals.empty());
     EXPECT_FLOAT_EQ(rebuilt.normals.front()[1], 1.0F);
+
+    ASSERT_EQ(rebuilt.texture_coordinates.size(), original.texture_coordinates.size());
+    for (std::size_t i = 0; i < original.texture_coordinates.size(); ++i)
+    {
+        EXPECT_FLOAT_EQ(rebuilt.texture_coordinates[i][0], original.texture_coordinates[i][0]);
+        EXPECT_FLOAT_EQ(rebuilt.texture_coordinates[i][1], original.texture_coordinates[i][1]);
+    }
 }
 
 TEST(SurfaceMeshConversion, RejectsMalformedIndices)
@@ -41,6 +48,15 @@ TEST(SurfaceMeshConversion, RejectsMalformedIndices)
                          engine::math::vec3{1.0F, 0.0F, 0.0F},
                          engine::math::vec3{0.0F, 1.0F, 0.0F}};
     surface.indices = {0U, 1U};
+
+    geo::Mesh container;
+    EXPECT_THROW(geo::mesh::build_halfedge_from_surface_mesh(surface, container.interface), std::runtime_error);
+}
+
+TEST(SurfaceMeshConversion, RejectsMismatchedTextureCoordinateCount)
+{
+    geo::SurfaceMesh surface = geo::make_unit_quad();
+    surface.texture_coordinates.pop_back();
 
     geo::Mesh container;
     EXPECT_THROW(geo::mesh::build_halfedge_from_surface_mesh(surface, container.interface), std::runtime_error);

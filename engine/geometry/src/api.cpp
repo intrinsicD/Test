@@ -36,6 +36,12 @@ SurfaceMesh make_unit_quad() {
     mesh.positions = mesh.rest_positions;
     mesh.indices = {0, 1, 2, 0, 2, 3};
     mesh.normals.assign(mesh.positions.size(), math::vec3{0.0F, 1.0F, 0.0F});
+    mesh.texture_coordinates = {
+        math::vec2{0.0F, 0.0F},
+        math::vec2{1.0F, 0.0F},
+        math::vec2{1.0F, 1.0F},
+        math::vec2{0.0F, 1.0F},
+    };
     update_bounds(mesh);
     return mesh;
 }

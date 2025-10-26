@@ -24,6 +24,7 @@ struct SurfaceMesh {
     std::vector<math::vec3> positions;
     std::vector<math::vec3> normals;
     std::vector<std::uint32_t> indices;
+    std::vector<math::vec2> texture_coordinates;
     Aabb bounds{};
 };
 

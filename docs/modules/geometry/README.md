@@ -8,7 +8,8 @@ The geometry module provides geometric data structures (meshes, point clouds, gr
 
 ### Surface Meshes
 
-`SurfaceMesh` represents an indexed triangle mesh with positions, optional normals, and a cached AABB:
+`SurfaceMesh` represents an indexed triangle mesh with positions, optional normals, optional texture
+coordinates, and a cached AABB:
 
 ```cpp
 #include "engine/geometry/api.hpp"
@@ -16,6 +17,7 @@ The geometry module provides geometric data structures (meshes, point clouds, gr
 engine::geometry::SurfaceMesh mesh;
 mesh.positions = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
 mesh.indices = {0, 1, 2};
+mesh.texture_coordinates = {{0, 0}, {1, 0}, {0, 1}};
 
 // Compute derived data explicitly
 engine::geometry::recompute_vertex_normals(mesh);
@@ -23,9 +25,11 @@ engine::geometry::update_bounds(mesh);
 const auto c = engine::geometry::centroid(mesh);
 ```
 
-Notes:
-- Call `recompute_vertex_normals(mesh)` after you change positions.
-- Call `update_bounds(mesh)` after you change positions or topology.
+- Notes:
+  - Call `recompute_vertex_normals(mesh)` after you change positions.
+  - Call `update_bounds(mesh)` after you change positions or topology.
+  - Texture coordinates (if present) are preserved when converting between `SurfaceMesh` and the
+    halfedge representation; mismatched counts are rejected early.
 
 ### Point Clouds
 
