@@ -74,3 +74,6 @@ roadmap after each milestone.
 - 2025-11-27 — ABF++ parameterisation (`ParameterizationMode::kGenerateAbfpp`) now
   solves constrained angle optimisation and reconstructs UVs from the derived
   edge-length system, fulfilling the conformal generation milestone for `GE-221+`.
+- 2025-11-30 — Added remeshing telemetry aggregation (`RemeshTelemetry`) tracking
+  per-mode invocation counts, iteration totals, split/collapse rates, and
+  duration/job labels to close the observability gap for `GE-221+` diagnostics.

@@ -202,6 +202,22 @@ if (remesh_result.has_value())
 }
 ```
 
+After executing one or more jobs you can query module-level telemetry to feed
+diagnostics overlays or CI dashboards:
+
+```cpp
+#include "engine/geometry/remesh/telemetry.hpp"
+
+const auto snapshot = engine::geometry::RemeshTelemetry::instance().snapshot();
+const auto& uniform_metrics = snapshot.operation(engine::geometry::RemeshingMode::kUniform);
+spdlog::info("remesh job={} iter={} splits={} collapses={} duration_ms={}",
+             uniform_metrics.last_job_label,
+             uniform_metrics.last_iterations,
+             uniform_metrics.last_splits,
+             uniform_metrics.last_collapses,
+             uniform_metrics.last_duration_ms);
+```
+
 Enable `repack_islands` to normalise generated or reused UV charts into a unit
 atlas before applying texel density scaling. When reusing existing
 parameterisation data, set `allow_chart_reuse` to `false` to enforce the same
@@ -224,6 +240,12 @@ resolved target edge length (or the derived adaptive baseline when no explicit
 target is provided) and the shortest/longest edges observed in the output mesh,
 giving remeshing telemetry a single scalar that quantifies how far the result
 strays from the requested budget.
+
+`RemeshTelemetry` captures per-mode invocation counts, aggregate iteration
+totals, and gauges describing the most recent job (iterations, split/collapse
+counts, vertex count, duration, and job label). Use the snapshot to surface
+remeshing workload health in diagnostics tooling alongside existing spatial
+query telemetry.
 
 When parameterisation reuse is requested, remeshing now interpolates texture
 coordinates for generated vertices, averages UVs across collapses, and scales

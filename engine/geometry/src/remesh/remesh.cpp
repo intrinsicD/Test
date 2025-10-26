@@ -1,7 +1,9 @@
 #include "engine/geometry/remesh/remesh.hpp"
+#include "engine/geometry/remesh/telemetry.hpp"
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <complex>
 #include <exception>
@@ -25,6 +27,12 @@ namespace engine::geometry
     namespace
     {
         constexpr float kEpsilon = 1e-6F;
+
+        struct RemeshOperationCounters
+        {
+            std::uint64_t split_count{0};
+            std::uint64_t collapse_count{0};
+        };
 
         [[nodiscard]] RemeshValidationResult make_target_error(std::string message)
         {
@@ -1942,7 +1950,8 @@ namespace engine::geometry
                                              const std::unordered_set<std::uint64_t>* protected_edges,
                                              bool tangential_smoothing,
                                              VertexProperty<math::vec2>* texture_coordinates,
-                                             AttributeTransferMode texture_mode)
+                                             AttributeTransferMode texture_mode,
+                                             RemeshOperationCounters* counters)
         {
             std::uint32_t performed_iterations = 0U;
             const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
@@ -2034,6 +2043,10 @@ namespace engine::geometry
 
                     interface.position(keep_vertex) = (interface.position(keep_vertex) + interface.position(remove_vertex)) * 0.5F;
                     interface.collapse(collapse_halfedge);
+                    if (counters != nullptr)
+                    {
+                        counters->collapse_count += 1U;
+                    }
                     iteration_changed = true;
                 }
 
@@ -2083,6 +2096,11 @@ namespace engine::geometry
                             const math::vec2& uv0 = (*texture_coordinates)[interface.to_vertex(h0)];
                             const math::vec2& uv1 = (*texture_coordinates)[interface.to_vertex(h1)];
                             assign_interpolated_uv(*texture_coordinates, new_vertex, uv0, uv1);
+                        }
+
+                        if (counters != nullptr)
+                        {
+                            counters->split_count += 1U;
                         }
                     }
 
@@ -2222,7 +2240,8 @@ namespace engine::geometry
                                               const AdaptiveRemeshThresholds& thresholds,
                                               const std::unordered_set<std::uint64_t>* protected_edges,
                                               VertexProperty<math::vec2>* texture_coordinates,
-                                              AttributeTransferMode texture_mode)
+                                              AttributeTransferMode texture_mode,
+                                              RemeshOperationCounters* counters)
         {
             std::uint32_t performed_iterations = 0U;
             const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
@@ -2287,6 +2306,10 @@ namespace engine::geometry
                     }
 
                     interface.collapse(collapse_halfedge);
+                    if (counters != nullptr)
+                    {
+                        counters->collapse_count += 1U;
+                    }
                     iteration_changed = true;
                 }
 
@@ -2338,6 +2361,11 @@ namespace engine::geometry
                             const math::vec2& uv1 = (*texture_coordinates)[interface.to_vertex(h1)];
                             assign_interpolated_uv(*texture_coordinates, new_vertex, uv0, uv1);
                         }
+
+                        if (counters != nullptr)
+                        {
+                            counters->split_count += 1U;
+                        }
                     }
 
                     iteration_changed = true;
@@ -2374,6 +2402,8 @@ namespace engine::geometry
         {
             return RemeshResult<RemeshOutput>{validation.error()};
         }
+
+        const auto start_time = std::chrono::steady_clock::now();
 
         auto resolved_targets_result = ResolveRemeshingTargets(request);
         if (!resolved_targets_result.has_value())
@@ -2431,6 +2461,7 @@ namespace engine::geometry
             (!protected_edges.empty() && use_tangential_smoothing) ? &protected_edges : nullptr;
 
         std::uint32_t iterations = 0U;
+        RemeshOperationCounters counters{};
         std::optional<AdaptiveRemeshThresholds> adaptive_thresholds{};
 
         switch (request.mode)
@@ -2448,7 +2479,8 @@ namespace engine::geometry
                                                 protected_edge_ptr,
                                                 use_tangential_smoothing,
                                                 texture_coordinates ? &texture_coordinates : nullptr,
-                                                texture_transfer_mode);
+                                                texture_transfer_mode,
+                                                &counters);
             break;
         }
         case RemeshingMode::kAdaptive:
@@ -2460,7 +2492,8 @@ namespace engine::geometry
                                                  adaptive_thresholds.value(),
                                                  protected_edge_ptr,
                                                  texture_coordinates ? &texture_coordinates : nullptr,
-                                                 texture_transfer_mode);
+                                                 texture_transfer_mode,
+                                                 &counters);
             break;
         }
         }
@@ -2535,6 +2568,18 @@ namespace engine::geometry
             break;
         }
         }
+
+        const double duration_ms = std::chrono::duration<double, std::milli>(
+                                        std::chrono::steady_clock::now() - start_time)
+                                        .count();
+
+        RemeshTelemetry::instance().record_invocation(request.mode,
+                                                      iterations,
+                                                      counters.split_count,
+                                                      counters.collapse_count,
+                                                      static_cast<std::uint64_t>(output.mesh.positions.size()),
+                                                      duration_ms,
+                                                      request.job_label);
 
         return RemeshResult<RemeshOutput>{output};
     }
