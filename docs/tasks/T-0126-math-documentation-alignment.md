@@ -38,14 +38,14 @@ Align math module documentation with actual implementation by removing aspiratio
 - Updated quick reference table showing what's in math vs. other modules
 
 ## Checklist
-- [ ] Audit all code examples in README for compilation
-- [ ] Replace non-existent functions with actual equivalents
-- [ ] Document existing Transform API properly
-- [ ] Add section clarifying module boundaries (math vs. geometry vs. animation)
-- [ ] Update camera utility examples to show actual usage
-- [ ] Document sparse matrix capabilities
-- [ ] Add note about using `std::numbers` for constants
-- [ ] Cross-reference geometry module for shape types
+- [x] Audit all code examples in README for compilation
+- [x] Replace non-existent functions with actual equivalents
+- [x] Document existing Transform API properly
+- [x] Add section clarifying module boundaries (math vs. geometry vs. animation)
+- [x] Update camera utility examples to show actual usage
+- [x] Document sparse matrix capabilities
+- [x] Add note about using `std::numbers` for constants
+- [x] Cross-reference geometry module for shape types
 
 ## Work Breakdown
 1. **Audit** (2 hours)
@@ -69,11 +69,11 @@ Align math module documentation with actual implementation by removing aspiratio
    - Ensure consistency with SOLVER_STABILITY.md and FORMAT_CONVERSIONS.md
 
 ## Acceptance Criteria
-- [ ] All code examples in documentation compile without modification
-- [ ] No references to non-existent functions without clear notes
-- [ ] Users can distinguish what's in math module vs. other modules
-- [ ] Transform API is clearly documented with examples
-- [ ] Camera utilities and sparse matrices have usage examples
+- [x] All code examples in documentation compile without modification
+- [x] No references to non-existent functions without clear notes
+- [x] Users can distinguish what's in math module vs. other modules
+- [x] Transform API is clearly documented with examples
+- [x] Camera utilities and sparse matrices have usage examples
 
 ## Priority
 **Medium** - Documentation accuracy is important for usability, but the implementation itself is solid and functional.
@@ -84,6 +84,9 @@ Align math module documentation with actual implementation by removing aspiratio
 ## Related Tasks
 - `T-0125`: Implement missing convenience functions (optional - can document workarounds instead)
 - `MA-130`: Conversion drift diagnostics (ensure docs stay in sync with telemetry work)
+
+## Status
+- 2025-12-04: Updated math README to document actual transform helpers, camera utilities, sparse matrix API, and module boundaries. Replaced aspirational constants and interpolation snippets with working examples and cross-linked the geometry module.
 
 ## Notes
 - Should coordinate with geometry module documentation to clarify boundaries
