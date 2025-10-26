@@ -45,6 +45,10 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - Bi-weekly integration demos to surface drift early.
 - Dedicated benchmarking hardware pool request submitted to infrastructure (awaiting approval).
 
+**Recent Progress:**
+- 2025-12-03: Added comparative benchmark orchestrator (`scripts/benchmarks/run_comparative_benchmarks.py`) executing
+  CC-310 scenarios from declarative configurations and enforcing regression thresholds.
+
 ---
 
 ## 📎 Backlog (Prioritized)
