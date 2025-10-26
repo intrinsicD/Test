@@ -262,6 +262,13 @@ approximate Hausdorff metrics derived from bidirectional sampling between the
 input mesh and the remeshed surface: `max_surface_deviation`,
 `mean_surface_deviation`, and `rms_surface_deviation`.
 
+`RemeshStatistics` now exposes the raw operation counts recorded during a job –
+`split_count`, `collapse_count`, and the wall-clock duration in milliseconds –
+so offline integrations can consume the same data as the telemetry bridge even
+when diagnostics are disabled. CLI summaries and dataset manifest snippets use
+these fields directly, and in-memory consumers can forward them into bespoke
+telemetry pipelines without depending on the singleton recorder.
+
 `RemeshTelemetry` captures per-mode invocation counts, aggregate iteration
 totals, and gauges describing the most recent job (iterations, split/collapse
 counts, vertex count, duration, and job label). It now aggregates the
@@ -378,6 +385,9 @@ datasets:
       texel_density: 256.0000
     statistics:
       iterations: 8
+      splits: 12
+      collapses: 3
+      duration_ms: 12.5000
       max_error: 0.0025
       max_surface_deviation: 0.0150
       mean_surface_deviation: 0.0100

@@ -44,20 +44,24 @@ namespace engine::geometry
 
         const RemeshResult<RemeshOutput> result = Remesh(request);
         ASSERT_TRUE(result.has_value()) << result.error().message();
+        const RemeshOutput& output = result.value();
 
         const RemeshTelemetrySnapshot snapshot = telemetry.snapshot();
         const RemeshTelemetryOperationSnapshot& metrics = snapshot.operation(RemeshingMode::kUniform);
 
         EXPECT_EQ(metrics.invocations, 1U);
         EXPECT_EQ(metrics.total_iterations, metrics.last_iterations);
-        EXPECT_EQ(metrics.last_iterations, result.value().statistics.iteration_count);
-        EXPECT_EQ(metrics.last_vertex_count, result.value().mesh.positions.size());
+        EXPECT_EQ(metrics.last_iterations, output.statistics.iteration_count);
+        EXPECT_EQ(metrics.last_vertex_count, output.mesh.positions.size());
         EXPECT_GE(metrics.total_splits, metrics.last_splits);
         EXPECT_GT(metrics.last_splits, 0U);
+        EXPECT_EQ(metrics.last_splits, output.statistics.split_count);
         EXPECT_GE(metrics.total_collapses, metrics.last_collapses);
+        EXPECT_EQ(metrics.last_collapses, output.statistics.collapse_count);
         EXPECT_FALSE(metrics.last_job_label.empty());
         EXPECT_EQ(metrics.last_job_label, "unit-square");
         EXPECT_GE(metrics.last_duration_ms, 0.0);
+        EXPECT_NEAR(metrics.last_duration_ms, output.statistics.duration_ms, 1e-6);
         EXPECT_GE(metrics.max_duration_ms, metrics.last_duration_ms);
         EXPECT_GE(metrics.max_vertex_count, metrics.last_vertex_count);
         EXPECT_EQ(metrics.surface_deviation_invocations, 1U);
@@ -65,25 +69,25 @@ namespace engine::geometry
         EXPECT_EQ(metrics.total_surface_deviation_sample_count,
                   metrics.last_surface_deviation_sample_count);
         EXPECT_NEAR(metrics.last_max_surface_deviation,
-                    static_cast<double>(result.value().statistics.max_surface_deviation),
+                    static_cast<double>(output.statistics.max_surface_deviation),
                     1e-6);
         EXPECT_NEAR(metrics.max_surface_deviation,
-                    static_cast<double>(result.value().statistics.max_surface_deviation),
+                    static_cast<double>(output.statistics.max_surface_deviation),
                     1e-6);
         EXPECT_NEAR(metrics.average_max_surface_deviation,
-                    static_cast<double>(result.value().statistics.max_surface_deviation),
+                    static_cast<double>(output.statistics.max_surface_deviation),
                     1e-6);
         EXPECT_NEAR(metrics.last_mean_surface_deviation,
-                    static_cast<double>(result.value().statistics.mean_surface_deviation),
+                    static_cast<double>(output.statistics.mean_surface_deviation),
                     1e-6);
         EXPECT_NEAR(metrics.average_mean_surface_deviation,
-                    static_cast<double>(result.value().statistics.mean_surface_deviation),
+                    static_cast<double>(output.statistics.mean_surface_deviation),
                     1e-6);
         EXPECT_NEAR(metrics.last_rms_surface_deviation,
-                    static_cast<double>(result.value().statistics.rms_surface_deviation),
+                    static_cast<double>(output.statistics.rms_surface_deviation),
                     1e-6);
         EXPECT_NEAR(metrics.average_rms_surface_deviation,
-                    static_cast<double>(result.value().statistics.rms_surface_deviation),
+                    static_cast<double>(output.statistics.rms_surface_deviation),
                     1e-6);
     }
 

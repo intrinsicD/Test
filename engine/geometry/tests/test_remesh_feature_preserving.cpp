@@ -50,6 +50,7 @@ namespace engine::geometry
 
         const RemeshOutput& output = result.value();
         EXPECT_GE(output.statistics.iteration_count, 1U);
+        EXPECT_GE(output.statistics.duration_ms, 0.0);
 
         const SurfaceTopologySummary summary = AnalyzeSurfaceTopology(
             output.mesh, math::radians(request.feature_preservation.minimum_feature_angle_degrees));

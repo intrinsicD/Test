@@ -50,6 +50,8 @@ namespace engine::geometry
         const MeshEdgeStatistics stats = ComputeMeshEdgeStatistics(output.mesh);
         EXPECT_LT(stats.max_edge_length, request.targets.target_edge_length.value() * 1.75F);
         EXPECT_GT(output.statistics.iteration_count, 0U);
+        EXPECT_GT(output.statistics.split_count, 0U);
+        EXPECT_GE(output.statistics.duration_ms, 0.0);
     }
 
     TEST(RemeshUniform, ReportsMaxErrorAgainstTarget)
@@ -78,6 +80,7 @@ namespace engine::geometry
         EXPECT_GE(output.statistics.max_surface_deviation, 0.0F);
         EXPECT_GE(output.statistics.mean_surface_deviation, 0.0F);
         EXPECT_GE(output.statistics.rms_surface_deviation, 0.0F);
+        EXPECT_GE(output.statistics.duration_ms, 0.0);
     }
 
 
