@@ -196,6 +196,31 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(box, Line{{2, 2, 2}, {1, 0, 0}}, nullptr));
     }
 
+    TEST(AabbIntersection, LineIntervalSymmetry)
+    {
+        const Aabb box{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}};
+
+        const Line forward_line{{-2.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+        Result forward_aabb{};
+        Result forward_line_result{};
+        ASSERT_TRUE(Intersects(box, forward_line, &forward_aabb));
+        ASSERT_TRUE(Intersects(forward_line, box, &forward_line_result));
+        EXPECT_FLOAT_EQ(1.0f, forward_aabb.t_min);
+        EXPECT_FLOAT_EQ(3.0f, forward_aabb.t_max);
+        EXPECT_FLOAT_EQ(forward_aabb.t_min, forward_line_result.t_min);
+        EXPECT_FLOAT_EQ(forward_aabb.t_max, forward_line_result.t_max);
+
+        const Line reverse_line{{2.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}};
+        Result reverse_aabb{};
+        Result reverse_line_result{};
+        ASSERT_TRUE(Intersects(box, reverse_line, &reverse_aabb));
+        ASSERT_TRUE(Intersects(reverse_line, box, &reverse_line_result));
+        EXPECT_FLOAT_EQ(1.0f, reverse_aabb.t_min);
+        EXPECT_FLOAT_EQ(3.0f, reverse_aabb.t_max);
+        EXPECT_FLOAT_EQ(reverse_aabb.t_min, reverse_line_result.t_min);
+        EXPECT_FLOAT_EQ(reverse_aabb.t_max, reverse_line_result.t_max);
+    }
+
     TEST(AabbIntersection, AabbObb)
     {
         const Aabb aabb{{-1, -1, -1}, {1, 1, 1}};
@@ -229,6 +254,31 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(box, Ray{{-1, 0.5f, 0.5f}, {-1, 0, 0}}, nullptr));
     }
 
+    TEST(AabbIntersection, RayIntervalSymmetry)
+    {
+        const Aabb box{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}};
+
+        const Ray exiting{{-2.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+        Result forward_aabb{};
+        Result forward_ray{};
+        ASSERT_TRUE(Intersects(box, exiting, &forward_aabb));
+        ASSERT_TRUE(Intersects(exiting, box, &forward_ray));
+        EXPECT_FLOAT_EQ(1.0f, forward_aabb.t_min);
+        EXPECT_FLOAT_EQ(3.0f, forward_aabb.t_max);
+        EXPECT_FLOAT_EQ(forward_aabb.t_min, forward_ray.t_min);
+        EXPECT_FLOAT_EQ(forward_aabb.t_max, forward_ray.t_max);
+
+        const Ray inside{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+        Result inside_aabb{};
+        Result inside_ray{};
+        ASSERT_TRUE(Intersects(box, inside, &inside_aabb));
+        ASSERT_TRUE(Intersects(inside, box, &inside_ray));
+        EXPECT_FLOAT_EQ(0.0f, inside_aabb.t_min);
+        EXPECT_FLOAT_EQ(1.0f, inside_aabb.t_max);
+        EXPECT_FLOAT_EQ(inside_aabb.t_min, inside_ray.t_min);
+        EXPECT_FLOAT_EQ(inside_aabb.t_max, inside_ray.t_max);
+    }
+
     TEST(AabbIntersection, AabbSegment)
     {
         const Aabb box{{0, 0, 0}, {1, 1, 1}};
@@ -237,6 +287,21 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(box, through, nullptr));
         EXPECT_FALSE(Intersects(box, outside, nullptr));
+    }
+
+    TEST(AabbIntersection, SegmentIntervalSymmetry)
+    {
+        const Aabb box{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}};
+        const Segment segment{{-2.0f, 0.0f, 0.0f}, {2.0f, 0.0f, 0.0f}};
+
+        Result forward_aabb{};
+        Result forward_segment{};
+        ASSERT_TRUE(Intersects(box, segment, &forward_aabb));
+        ASSERT_TRUE(Intersects(segment, box, &forward_segment));
+        EXPECT_FLOAT_EQ(0.25f, forward_aabb.t_min);
+        EXPECT_FLOAT_EQ(0.75f, forward_aabb.t_max);
+        EXPECT_FLOAT_EQ(forward_aabb.t_min, forward_segment.t_min);
+        EXPECT_FLOAT_EQ(forward_aabb.t_max, forward_segment.t_max);
     }
 
     TEST(AabbIntersection, AabbSphere)
