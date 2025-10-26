@@ -77,6 +77,72 @@ namespace engine::geometry
         EXPECT_NEAR(output.statistics.max_error, expected, 1e-4F);
     }
 
+
+    TEST(RemeshUniform, RestPositionsMatchPositionsAfterRemesh)
+    {
+        SurfaceMesh mesh = make_unit_square_mesh();
+
+        RemeshRequest request{};
+        request.input_mesh = &mesh;
+        request.mode = RemeshingMode::kUniform;
+        request.targets.target_edge_length = 0.25F;
+        request.max_iterations = 6U;
+        request.relaxation_factor = 0.5F;
+        request.tangential_smoothing_weight = 0.5F;
+
+        const RemeshResult<RemeshOutput> result = Remesh(request);
+        ASSERT_TRUE(result.has_value());
+
+        const RemeshOutput& output = result.value();
+        ASSERT_EQ(output.mesh.positions.size(), output.mesh.rest_positions.size());
+        ASSERT_GT(output.mesh.positions.size(), mesh.positions.size());
+        for (std::size_t index = 0; index < output.mesh.positions.size(); ++index)
+        {
+            EXPECT_NEAR(output.mesh.rest_positions[index][0], output.mesh.positions[index][0], 1e-5F);
+            EXPECT_NEAR(output.mesh.rest_positions[index][1], output.mesh.positions[index][1], 1e-5F);
+            EXPECT_NEAR(output.mesh.rest_positions[index][2], output.mesh.positions[index][2], 1e-5F);
+        }
+    }
+
+    TEST(RemeshUniform, RestPositionsMatchPositionsAfterCollapses)
+    {
+        SurfaceMesh mesh{};
+        mesh.positions = {
+            {0.0F, 0.0F, 0.0F},
+            {1.0F, 0.0F, 0.0F},
+            {0.0F, 1.0F, 0.0F},
+            {1.0F, 1.0F, 0.0F},
+            {0.5F, 0.5F, 0.0F},
+        };
+        mesh.rest_positions = mesh.positions;
+        mesh.indices = {
+            0U, 1U, 4U,
+            1U, 3U, 4U,
+            3U, 2U, 4U,
+            2U, 0U, 4U,
+        };
+
+        RemeshRequest request{};
+        request.input_mesh = &mesh;
+        request.mode = RemeshingMode::kUniform;
+        request.targets.target_edge_length = 2.0F;
+        request.max_iterations = 6U;
+        request.relaxation_factor = 0.5F;
+        request.tangential_smoothing_weight = 0.5F;
+
+        const RemeshResult<RemeshOutput> result = Remesh(request);
+        ASSERT_TRUE(result.has_value());
+
+        const RemeshOutput& output = result.value();
+        ASSERT_EQ(output.mesh.positions.size(), output.mesh.rest_positions.size());
+        EXPECT_LE(output.mesh.positions.size(), mesh.positions.size());
+        for (std::size_t index = 0; index < output.mesh.positions.size(); ++index)
+        {
+            EXPECT_NEAR(output.mesh.rest_positions[index][0], output.mesh.positions[index][0], 1e-5F);
+            EXPECT_NEAR(output.mesh.rest_positions[index][1], output.mesh.positions[index][1], 1e-5F);
+            EXPECT_NEAR(output.mesh.rest_positions[index][2], output.mesh.positions[index][2], 1e-5F);
+        }
+    }
     TEST(RemeshUniform, ReuseParameterizationScalesTexelDensity)
     {
         SurfaceMesh mesh = make_unit_square_mesh();

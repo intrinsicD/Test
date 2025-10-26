@@ -236,6 +236,15 @@ thresholds when callers only supply Hausdorff/normal tolerances and executes the
 same split/collapse loops while respecting feature locks and tangential
 smoothing.
 
+Remeshing preserves per-vertex rest-space offsets by interpolating
+`SurfaceMesh::rest_positions` for generated vertices and averaging values across
+collapses. Laplacian relaxation now writes rest-space properties back to the
+updated runtime positions, so smoothing iterations no longer leave stale
+offsets behind. Animation pipelines depending on rest-space deformation data
+retain stable bindings even after topology changes, and downstream tooling can
+continue treating rest positions as a deterministic offset from the runtime
+mesh.
+
 `RemeshStatistics::max_error` records the maximum absolute deviation between the
 resolved target edge length (or the derived adaptive baseline when no explicit
 target is provided) and the shortest/longest edges observed in the output mesh,

@@ -8,6 +8,7 @@ namespace engine::geometry::mesh
 {
     namespace
     {
+        constexpr char kRestPositionPropertyName[] = "v:rest_position";
         [[nodiscard]] bool is_valid_triangle(const SurfaceMesh& surface, std::size_t base_index)
         {
             const auto i0 = surface.indices[base_index];
@@ -62,6 +63,18 @@ namespace engine::geometry::mesh
             texture_coordinates = mesh.vertex_property<math::vec2>("v:texcoord", math::vec2{0.0F, 0.0F});
         }
 
+        const bool has_rest_positions = !surface.rest_positions.empty();
+        if (has_rest_positions && surface.rest_positions.size() != surface.positions.size())
+        {
+            throw std::runtime_error("SurfaceMesh rest positions must match the vertex count when provided");
+        }
+
+        VertexProperty<math::vec3> rest_positions;
+        if (has_rest_positions)
+        {
+            rest_positions = mesh.vertex_property<math::vec3>(kRestPositionPropertyName, math::vec3{0.0F, 0.0F, 0.0F});
+        }
+
         for (const auto& position : surface.positions)
         {
             vertex_handles.push_back(mesh.add_vertex(position));
@@ -72,6 +85,14 @@ namespace engine::geometry::mesh
             for (std::size_t index = 0; index < vertex_handles.size(); ++index)
             {
                 texture_coordinates[vertex_handles[index]] = surface.texture_coordinates[index];
+            }
+        }
+
+        if (has_rest_positions)
+        {
+            for (std::size_t index = 0; index < vertex_handles.size(); ++index)
+            {
+                rest_positions[vertex_handles[index]] = surface.rest_positions[index];
             }
         }
 
@@ -117,6 +138,13 @@ namespace engine::geometry::mesh
             texture_coordinates = mesh.get_vertex_property<math::vec2>("v:texcoord");
         }
 
+        VertexProperty<math::vec3> rest_positions_property;
+        const bool has_rest_position_property = mesh.has_vertex_property(kRestPositionPropertyName);
+        if (has_rest_position_property)
+        {
+            rest_positions_property = mesh.get_vertex_property<math::vec3>(kRestPositionPropertyName);
+        }
+
         surface.rest_positions.reserve(mesh.vertex_count());
         surface.positions.reserve(mesh.vertex_count());
         if (has_texture_coordinates)
@@ -141,7 +169,14 @@ namespace engine::geometry::mesh
             index_map[vertex.index()] = mapped_index;
             const auto& position = mesh.position(vertex);
             surface.positions.push_back(position);
-            surface.rest_positions.push_back(position);
+            if (has_rest_position_property)
+            {
+                surface.rest_positions.push_back(rest_positions_property[vertex]);
+            }
+            else
+            {
+                surface.rest_positions.push_back(position);
+            }
             if (has_texture_coordinates)
             {
                 surface.texture_coordinates.push_back(texture_coordinates[vertex]);

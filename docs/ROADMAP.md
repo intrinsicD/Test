@@ -77,6 +77,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-12-01: `geometry_remesh` CLI delivers offline remeshing execution with
   telemetry-aligned summaries, enabling scripted `GE-221+` workflows without
   embedding the geometry module.
+- 2025-12-04: Remeshing preserves rest-space offsets by interpolating and averaging `SurfaceMesh::rest_positions` and resynchronises Laplacian relaxation so animation bindings remain stable as GE-221+ progresses.
 - **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
 - **AN-230** — GPU parallel sampling benchmarks (completed, available as reference for comparative benchmarking workflows)
 

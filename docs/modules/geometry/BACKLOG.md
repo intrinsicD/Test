@@ -78,4 +78,7 @@ roadmap after each milestone.
   per-mode invocation counts, iteration totals, split/collapse rates, and
   duration/job labels to close the observability gap for `GE-221+` diagnostics.
 - 2025-12-01 — `geometry_remesh` CLI ships for offline remeshing and UV
+- 2025-12-04 — Remeshing attribute transfer now interpolates rest-space positions during splits, averages them during
+  collapses, and resynchronises Laplacian relaxation updates so animation bindings retain deterministic offsets after topology
+  changes, progressing GE-221+ execution.
   parameterisation, printing telemetry-aligned summaries for `GE-221+` runs.
