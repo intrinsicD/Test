@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <complex>
 #include <exception>
 #include <limits>
 #include <numbers>
@@ -248,6 +249,397 @@ namespace engine::geometry
             const math::vec2& uv_keep = texture_coordinates[keep];
             const math::vec2& uv_remove = texture_coordinates[remove];
             texture_coordinates[keep] = (uv_keep + uv_remove) * 0.5F;
+        }
+
+        struct ParameterizationAnchors
+        {
+            std::uint32_t primary{0U};
+            std::uint32_t secondary{1U};
+        };
+
+        [[nodiscard]] std::optional<ParameterizationAnchors> select_parameterization_anchors(
+            const SurfaceMesh& mesh,
+            const SurfaceTopologySummary& topology_summary) noexcept
+        {
+            const std::size_t vertex_count = mesh.positions.size();
+            if (vertex_count < 2U)
+            {
+                return std::nullopt;
+            }
+
+            const auto squared_distance = [&](std::uint32_t a, std::uint32_t b) noexcept
+            {
+                const math::vec3 delta = mesh.positions[b] - mesh.positions[a];
+                return math::dot(delta, delta);
+            };
+
+            std::vector<std::uint32_t> boundary_indices{};
+            boundary_indices.reserve(topology_summary.vertices.size());
+            for (std::uint32_t index = 0U; index < topology_summary.vertices.size() && index < vertex_count; ++index)
+            {
+                if (topology_summary.vertices[index].is_boundary)
+                {
+                    boundary_indices.push_back(index);
+                }
+            }
+
+            ParameterizationAnchors anchors{};
+            if (!boundary_indices.empty())
+            {
+                anchors.primary = boundary_indices.front();
+            }
+            else
+            {
+                anchors.primary = 0U;
+            }
+
+            float best_distance = -1.0F;
+            auto consider_candidate = [&](std::uint32_t candidate)
+            {
+                if (candidate >= vertex_count || candidate == anchors.primary)
+                {
+                    return;
+                }
+                const float distance = squared_distance(anchors.primary, candidate);
+                if (distance > best_distance)
+                {
+                    best_distance = distance;
+                    anchors.secondary = candidate;
+                }
+            };
+
+            for (std::uint32_t candidate : boundary_indices)
+            {
+                consider_candidate(candidate);
+            }
+
+            if (best_distance <= 0.0F)
+            {
+                for (std::uint32_t candidate = 0U; candidate < vertex_count; ++candidate)
+                {
+                    consider_candidate(candidate);
+                }
+            }
+
+            if (anchors.secondary == anchors.primary)
+            {
+                if (vertex_count < 2U)
+                {
+                    return std::nullopt;
+                }
+                anchors.secondary = (anchors.primary + 1U) % static_cast<std::uint32_t>(vertex_count);
+            }
+
+            if (anchors.secondary == anchors.primary || anchors.secondary >= vertex_count)
+            {
+                return std::nullopt;
+            }
+
+            return anchors;
+        }
+
+        [[nodiscard]] std::optional<std::vector<double>> solve_dense_linear_system(std::vector<double> matrix,
+                                                                                   std::vector<double> rhs,
+                                                                                   std::size_t order) noexcept
+        {
+            if (order == 0U || matrix.size() != order * order || rhs.size() != order)
+            {
+                return std::nullopt;
+            }
+
+            for (std::size_t pivot = 0U; pivot < order; ++pivot)
+            {
+                std::size_t best_row = pivot;
+                double best_value = std::abs(matrix[pivot * order + pivot]);
+                for (std::size_t candidate = pivot + 1U; candidate < order; ++candidate)
+                {
+                    const double value = std::abs(matrix[candidate * order + pivot]);
+                    if (value > best_value)
+                    {
+                        best_value = value;
+                        best_row = candidate;
+                    }
+                }
+
+                if (best_value <= 1e-12)
+                {
+                    return std::nullopt;
+                }
+
+                if (best_row != pivot)
+                {
+                    for (std::size_t column = 0U; column < order; ++column)
+                    {
+                        std::swap(matrix[pivot * order + column], matrix[best_row * order + column]);
+                    }
+                    std::swap(rhs[pivot], rhs[best_row]);
+                }
+
+                const double pivot_value = matrix[pivot * order + pivot];
+                for (std::size_t column = pivot; column < order; ++column)
+                {
+                    matrix[pivot * order + column] /= pivot_value;
+                }
+                rhs[pivot] /= pivot_value;
+
+                for (std::size_t row = 0U; row < order; ++row)
+                {
+                    if (row == pivot)
+                    {
+                        continue;
+                    }
+
+                    const double factor = matrix[row * order + pivot];
+                    if (std::abs(factor) <= 1e-12)
+                    {
+                        continue;
+                    }
+
+                    for (std::size_t column = pivot; column < order; ++column)
+                    {
+                        matrix[row * order + column] -= factor * matrix[pivot * order + column];
+                    }
+                    rhs[row] -= factor * rhs[pivot];
+                }
+            }
+
+            return rhs;
+        }
+
+        [[nodiscard]] RemeshResult<ParameterizationSummary> generate_planar_parameterization(
+            SurfaceMesh& mesh,
+            const ParameterizationPolicy& policy) noexcept
+        {
+            const std::size_t vertex_count = mesh.positions.size();
+            mesh.texture_coordinates.assign(vertex_count, math::vec2{0.0F, 0.0F});
+
+            if (vertex_count == 0U)
+            {
+                return RemeshResult<ParameterizationSummary>{ParameterizationSummary{}};
+            }
+
+            const math::vec3 origin = mesh.positions.front();
+            math::vec3 axis_x{1.0F, 0.0F, 0.0F};
+            for (std::size_t index = 1U; index < vertex_count; ++index)
+            {
+                axis_x = mesh.positions[index] - origin;
+                const float length_sq = math::dot(axis_x, axis_x);
+                if (length_sq > std::numeric_limits<float>::epsilon())
+                {
+                    axis_x /= std::sqrt(length_sq);
+                    break;
+                }
+            }
+
+            math::vec3 normal{0.0F, 1.0F, 0.0F};
+            for (std::size_t index = 2U; index < vertex_count; ++index)
+            {
+                const math::vec3 candidate = math::cross(axis_x, mesh.positions[index] - origin);
+                const float length_sq = math::dot(candidate, candidate);
+                if (length_sq > std::numeric_limits<float>::epsilon())
+                {
+                    normal = candidate / std::sqrt(length_sq);
+                    break;
+                }
+            }
+
+            math::vec3 axis_y = math::cross(normal, axis_x);
+            const float axis_y_length_sq = math::dot(axis_y, axis_y);
+            if (axis_y_length_sq > std::numeric_limits<float>::epsilon())
+            {
+                axis_y /= std::sqrt(axis_y_length_sq);
+            }
+            else
+            {
+                axis_y = math::vec3{0.0F, 0.0F, 1.0F};
+            }
+            for (std::size_t index = 0U; index < vertex_count; ++index)
+            {
+                const math::vec3 relative = mesh.positions[index] - origin;
+                mesh.texture_coordinates[index] = math::vec2{math::dot(relative, axis_x), math::dot(relative, axis_y)};
+            }
+
+            ParameterizationSummary summary = compute_parameterization_summary(mesh);
+            if (policy.target_texel_density > kEpsilon && summary.texel_density > kEpsilon)
+            {
+                const float scale = policy.target_texel_density / summary.texel_density;
+                scale_texture_coordinates(mesh, scale);
+                summary = compute_parameterization_summary(mesh);
+            }
+
+            return RemeshResult<ParameterizationSummary>{summary};
+        }
+
+        [[nodiscard]] RemeshResult<ParameterizationSummary> generate_lscm_parameterization(
+            SurfaceMesh& mesh,
+            const ParameterizationPolicy& policy) noexcept
+        {
+            const std::size_t vertex_count = mesh.positions.size();
+            if (vertex_count < 2U || mesh.indices.size() < 3U)
+            {
+                mesh.texture_coordinates.assign(vertex_count, math::vec2{0.0F, 0.0F});
+                return RemeshResult<ParameterizationSummary>{ParameterizationSummary{}};
+            }
+
+            const SurfaceTopologySummary topology_summary = AnalyzeSurfaceTopology(mesh);
+            const std::optional<ParameterizationAnchors> anchors =
+                select_parameterization_anchors(mesh, topology_summary);
+            if (!anchors.has_value())
+            {
+                return generate_planar_parameterization(mesh, policy);
+            }
+
+            std::vector<std::complex<double>> complex_matrix(vertex_count * vertex_count, std::complex<double>{0.0, 0.0});
+
+            const auto accumulate_entry = [&](std::uint32_t a,
+                                              std::uint32_t b,
+                                              const std::complex<double>& contribution)
+            {
+                complex_matrix[static_cast<std::size_t>(a) * vertex_count + b] += contribution;
+            };
+
+            for (std::size_t triangle = 0U; triangle + 2U < mesh.indices.size(); triangle += 3U)
+            {
+                const std::uint32_t i0 = mesh.indices[triangle + 0U];
+                const std::uint32_t i1 = mesh.indices[triangle + 1U];
+                const std::uint32_t i2 = mesh.indices[triangle + 2U];
+
+                if (i0 >= vertex_count || i1 >= vertex_count || i2 >= vertex_count)
+                {
+                    continue;
+                }
+
+                const math::vec3& p0 = mesh.positions[i0];
+                const math::vec3& p1 = mesh.positions[i1];
+                const math::vec3& p2 = mesh.positions[i2];
+
+                const math::vec3 e1 = p1 - p0;
+                const math::vec3 e2 = p2 - p0;
+                const math::vec3 normal = math::cross(e1, e2);
+                const float normal_length_sq = math::dot(normal, normal);
+                if (normal_length_sq <= std::numeric_limits<float>::epsilon())
+                {
+                    continue;
+                }
+
+                math::vec3 x_axis = e1;
+                const float e1_length_sq = math::dot(x_axis, x_axis);
+                if (e1_length_sq <= std::numeric_limits<float>::epsilon())
+                {
+                    continue;
+                }
+                x_axis /= std::sqrt(e1_length_sq);
+                const math::vec3 z_axis = normal / std::sqrt(normal_length_sq);
+                const math::vec3 y_axis = math::normalize(math::cross(z_axis, x_axis));
+
+                const std::complex<double> z0{0.0, 0.0};
+                const std::complex<double> z1{math::dot(e1, x_axis), math::dot(e1, y_axis)};
+                const std::complex<double> z2{math::dot(e2, x_axis), math::dot(e2, y_axis)};
+
+                const std::complex<double> z10 = z1 - z0;
+                const std::complex<double> z20 = z2 - z0;
+                const double area = 0.5 * std::imag(std::conj(z10) * z20);
+                if (area <= std::numeric_limits<double>::epsilon())
+                {
+                    continue;
+                }
+
+                const double inv_area = 1.0 / (2.0 * area);
+                const std::complex<double> c0 = (z1 - z2) * inv_area;
+                const std::complex<double> c1 = (z2 - z0) * inv_area;
+                const std::complex<double> c2 = (z0 - z1) * inv_area;
+
+                const std::array<std::uint32_t, 3U> indices{i0, i1, i2};
+                const std::array<std::complex<double>, 3U> coefficients{c0, c1, c2};
+
+                for (std::size_t a = 0U; a < coefficients.size(); ++a)
+                {
+                    for (std::size_t b = 0U; b < coefficients.size(); ++b)
+                    {
+                        const std::complex<double> contribution = area * coefficients[a] * std::conj(coefficients[b]);
+                        accumulate_entry(indices[a], indices[b], contribution);
+                    }
+                }
+            }
+
+            const std::size_t order = vertex_count * 2U;
+            std::vector<double> matrix(order * order, 0.0);
+            std::vector<double> rhs(order, 0.0);
+
+            for (std::size_t row = 0U; row < vertex_count; ++row)
+            {
+                for (std::size_t column = 0U; column < vertex_count; ++column)
+                {
+                    const std::complex<double>& value = complex_matrix[row * vertex_count + column];
+                    const double real = value.real();
+                    const double imag = value.imag();
+
+                    const std::size_t u_row = row * 2U;
+                    const std::size_t v_row = u_row + 1U;
+                    const std::size_t u_col = column * 2U;
+                    const std::size_t v_col = u_col + 1U;
+
+                    matrix[u_row * order + u_col] += real;
+                    matrix[u_row * order + v_col] -= imag;
+                    matrix[v_row * order + u_col] += imag;
+                    matrix[v_row * order + v_col] += real;
+                }
+            }
+
+            const auto apply_anchor = [&](std::uint32_t vertex, double u_value, double v_value)
+            {
+                const std::size_t u_index = static_cast<std::size_t>(vertex) * 2U;
+                const std::size_t v_index = u_index + 1U;
+
+                for (std::size_t row_index = 0U; row_index < order; ++row_index)
+                {
+                    rhs[row_index] -= matrix[row_index * order + u_index] * u_value;
+                    rhs[row_index] -= matrix[row_index * order + v_index] * v_value;
+                }
+
+                for (std::size_t column = 0U; column < order; ++column)
+                {
+                    matrix[u_index * order + column] = 0.0;
+                    matrix[v_index * order + column] = 0.0;
+                }
+                for (std::size_t row_index = 0U; row_index < order; ++row_index)
+                {
+                    matrix[row_index * order + u_index] = 0.0;
+                    matrix[row_index * order + v_index] = 0.0;
+                }
+
+                matrix[u_index * order + u_index] = 1.0;
+                matrix[v_index * order + v_index] = 1.0;
+                rhs[u_index] = u_value;
+                rhs[v_index] = v_value;
+            };
+
+            apply_anchor(anchors->primary, 0.0, 0.0);
+            apply_anchor(anchors->secondary, 1.0, 0.0);
+
+            const std::optional<std::vector<double>> solution = solve_dense_linear_system(matrix, rhs, order);
+            if (!solution.has_value())
+            {
+                return generate_planar_parameterization(mesh, policy);
+            }
+
+            mesh.texture_coordinates.resize(vertex_count, math::vec2{0.0F, 0.0F});
+            for (std::size_t index = 0U; index < vertex_count; ++index)
+            {
+                const double u = solution.value()[index * 2U + 0U];
+                const double v = solution.value()[index * 2U + 1U];
+                mesh.texture_coordinates[index] = math::vec2{static_cast<float>(u), static_cast<float>(v)};
+            }
+
+            ParameterizationSummary summary = compute_parameterization_summary(mesh);
+            if (policy.target_texel_density > kEpsilon && summary.texel_density > kEpsilon)
+            {
+                const float scale = policy.target_texel_density / summary.texel_density;
+                scale_texture_coordinates(mesh, scale);
+                summary = compute_parameterization_summary(mesh);
+            }
+
+            return RemeshResult<ParameterizationSummary>{summary};
         }
     } // namespace
 
@@ -1410,8 +1802,15 @@ namespace engine::geometry
         }
         case ParameterizationMode::kGenerateLscm:
         case ParameterizationMode::kGenerateAbfpp:
-            output.parameterization = ParameterizationSummary{};
+        {
+            auto parameterization_result = generate_lscm_parameterization(output.mesh, request.parameterization);
+            if (!parameterization_result.has_value())
+            {
+                return RemeshResult<RemeshOutput>{parameterization_result.error()};
+            }
+            output.parameterization = parameterization_result.value();
             break;
+        }
         }
 
         return RemeshResult<RemeshOutput>{output};

@@ -18,6 +18,7 @@ add_executable(engine_geometry_tests
         test_remesh_feature_preserving.cpp
         test_remesh_adaptive.cpp
         test_remesh_uniform.cpp
+        test_remesh_parameterization.cpp
 )
 
 add_executable(engine_geometry_shape_interactions_tests
