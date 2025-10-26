@@ -48,6 +48,9 @@ Connectivity utilities live under `engine/geometry/graph/`.
 ## Procedural Primitives
 
 Basic shapes and utilities live under `engine/geometry/shapes/` with pairwise intersection queries under `engine/geometry/utils/shape_interactions.hpp`.
+The intersection library now carries symmetry regression tests across all AABB pairings (cylinder, ellipsoid, OBB, plane, sphere,
+triangle) plus the existing interval parity checks for line/ray/segment queries, guaranteeing that overload order never changes
+classification results (`T-0129`).
 
 ## Spatial Acceleration
 

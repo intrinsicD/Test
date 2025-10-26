@@ -173,6 +173,18 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(box, separated));
     }
 
+    TEST(AabbIntersection, CylinderSymmetricParity)
+    {
+        const Aabb box{{-1, -1, -1}, {1, 1, 1}};
+        const Cylinder intersecting{{0, 0, 0}, {0, 0, 1}, 0.5f, 0.8f};
+        const Cylinder separated{{3, 0, 0}, {0, 0, 1}, 0.5f, 0.5f};
+
+        EXPECT_TRUE(Intersects(box, intersecting));
+        EXPECT_TRUE(Intersects(intersecting, box));
+        EXPECT_FALSE(Intersects(box, separated));
+        EXPECT_FALSE(Intersects(separated, box));
+    }
+
     TEST(AabbIntersection, AabbEllipsoid)
     {
         const Aabb box{{-2, -2, -2}, {2, 2, 2}};
@@ -181,6 +193,18 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(box, inside));
         EXPECT_FALSE(Intersects(box, outside));
+    }
+
+    TEST(AabbIntersection, EllipsoidSymmetricParity)
+    {
+        const Aabb box{{-2, -2, -2}, {2, 2, 2}};
+        const Ellipsoid inside{{0, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Ellipsoid outside{{5, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
+
+        EXPECT_TRUE(Intersects(box, inside));
+        EXPECT_TRUE(Intersects(inside, box));
+        EXPECT_FALSE(Intersects(box, outside));
+        EXPECT_FALSE(Intersects(outside, box));
     }
 
     TEST(AabbIntersection, AabbLine)
@@ -231,6 +255,18 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(aabb, separated));
     }
 
+    TEST(AabbIntersection, ObbSymmetricParity)
+    {
+        const Aabb aabb{{-1, -1, -1}, {1, 1, 1}};
+        const Obb overlapping{{0, 0, 0}, {0.5f, 0.5f, 0.5f}, math::quat{1, 0, 0, 0}};
+        const Obb separated{{5, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
+
+        EXPECT_TRUE(Intersects(aabb, overlapping));
+        EXPECT_TRUE(Intersects(overlapping, aabb));
+        EXPECT_FALSE(Intersects(aabb, separated));
+        EXPECT_FALSE(Intersects(separated, aabb));
+    }
+
     TEST(AabbIntersection, AabbPlane)
     {
         const Aabb box{{-1, -1, -1}, {1, 1, 1}};
@@ -239,6 +275,18 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(box, through));
         EXPECT_FALSE(Intersects(box, above));
+    }
+
+    TEST(AabbIntersection, PlaneSymmetricParity)
+    {
+        const Aabb box{{-1, -1, -1}, {1, 1, 1}};
+        const Plane through{{0, 0, 1}, 0};
+        const Plane above{{0, 0, 1}, -2};
+
+        EXPECT_TRUE(Intersects(box, through));
+        EXPECT_TRUE(Intersects(through, box));
+        EXPECT_FALSE(Intersects(box, above));
+        EXPECT_FALSE(Intersects(above, box));
     }
 
     TEST(AabbIntersection, AabbRay)
@@ -314,6 +362,18 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(box, separated));
     }
 
+    TEST(AabbIntersection, SphereSymmetricParity)
+    {
+        const Aabb box{{0, 0, 0}, {1, 1, 1}};
+        const Sphere overlapping{{1.5f, 0.5f, 0.5f}, 0.6f};
+        const Sphere separated{{3, 0, 0}, 0.5f};
+
+        EXPECT_TRUE(Intersects(box, overlapping));
+        EXPECT_TRUE(Intersects(overlapping, box));
+        EXPECT_FALSE(Intersects(box, separated));
+        EXPECT_FALSE(Intersects(separated, box));
+    }
+
     TEST(AabbIntersection, AabbTriangle)
     {
         const Aabb box{{-1, -1, -1}, {1, 1, 1}};
@@ -322,6 +382,18 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(box, inside));
         EXPECT_FALSE(Intersects(box, outside));
+    }
+
+    TEST(AabbIntersection, TriangleSymmetricParity)
+    {
+        const Aabb box{{-1, -1, -1}, {1, 1, 1}};
+        const Triangle inside{{-0.5f, -0.5f, 0}, {0.5f, -0.5f, 0}, {0, 0.5f, 0}};
+        const Triangle outside{{2, 2, 2}, {3, 2, 2}, {2.5f, 3, 2}};
+
+        EXPECT_TRUE(Intersects(box, inside));
+        EXPECT_TRUE(Intersects(inside, box));
+        EXPECT_FALSE(Intersects(box, outside));
+        EXPECT_FALSE(Intersects(outside, box));
     }
 
     // ============================================================================
