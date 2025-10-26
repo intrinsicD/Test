@@ -48,5 +48,8 @@ namespace engine::geometry::tools
                       std::ostream& stream) noexcept;
 
     void PrintHelp(std::ostream& stream) noexcept;
+
+    [[nodiscard]] std::string BuildDatasetManifestEntry(const RemeshCliOptions& options,
+                                                        const RemeshCliExecutionResult& result) noexcept;
 }
 

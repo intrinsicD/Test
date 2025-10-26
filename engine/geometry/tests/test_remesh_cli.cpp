@@ -116,3 +116,62 @@ TEST(RemeshCliExecution, ProducesRemeshedMesh)
     EXPECT_EQ(remeshed.indices.size() % 3U, 0U);
 }
 
+TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
+{
+    tools::RemeshCliOptions options{};
+    options.input_path = std::filesystem::path{"input.obj"};
+    options.output_path = std::filesystem::path{"output.obj"};
+    options.mode = geo::RemeshingMode::kUniform;
+    options.targets.target_edge_length = 0.25F;
+    options.targets.maximum_normal_deviation_degrees = 12.5F;
+    options.parameterization.mode = geo::ParameterizationMode::kGenerateLscm;
+    options.parameterization.target_texel_density = 256.0F;
+    options.parameterization.gutter_width = 4.0F;
+    options.parameterization.repack_islands = true;
+    options.parameterization.allow_chart_reuse = false;
+    options.job_label = std::string{"Remesh Sample"};
+
+    tools::RemeshCliExecutionResult result{};
+    result.input_vertex_count = 4U;
+    result.input_face_count = 2U;
+    result.output.mesh = geo::make_unit_quad();
+    result.input_edge_statistics = geo::ComputeMeshEdgeStatistics(result.output.mesh);
+
+    const geo::MeshEdgeStatistics output_edges = geo::ComputeMeshEdgeStatistics(result.output.mesh);
+    result.output.statistics.iteration_count = 8U;
+    result.output.statistics.min_edge_length = output_edges.min_edge_length;
+    result.output.statistics.max_edge_length = output_edges.max_edge_length;
+    result.output.statistics.max_error = 0.0025F;
+
+    geo::ParameterizationSummary parameterization{};
+    parameterization.chart_count = 1U;
+    parameterization.texel_density = 256.0F;
+    parameterization.average_stretch = 1.015F;
+    parameterization.max_stretch = 1.125F;
+    parameterization.fill_ratio = 0.875F;
+    parameterization.total_seam_length = 4.0F;
+    parameterization.atlas_area = 1.0F;
+    parameterization.total_chart_area = 0.88F;
+    geo::ParameterizationChart chart{};
+    chart.min_uv = engine::math::vec2{0.0F, 0.0F};
+    chart.max_uv = engine::math::vec2{1.0F, 1.0F};
+    chart.translation = engine::math::vec2{0.0F, 0.0F};
+    chart.scale = 1.0F;
+    chart.area = 1.0F;
+    chart.boundary_length = 4.0F;
+    parameterization.charts.push_back(chart);
+    result.output.parameterization = parameterization;
+
+    const std::string manifest = tools::BuildDatasetManifestEntry(options, result);
+
+    EXPECT_NE(manifest.find("datasets:"), std::string::npos);
+    EXPECT_NE(manifest.find("id: remesh-sample"), std::string::npos);
+    EXPECT_NE(manifest.find("job_label: \"Remesh Sample\""), std::string::npos);
+    EXPECT_NE(manifest.find("mode: uniform"), std::string::npos);
+    EXPECT_NE(manifest.find("target_edge_length: 0.2500"), std::string::npos);
+    EXPECT_NE(manifest.find("texel_density: 256.0000"), std::string::npos);
+    EXPECT_NE(manifest.find("chart_count: 1"), std::string::npos);
+    EXPECT_NE(manifest.find("iterations: 8"), std::string::npos);
+    EXPECT_NE(manifest.find("max_error: 0.0025"), std::string::npos);
+}
+

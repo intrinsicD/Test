@@ -52,6 +52,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-12-03: Added comparative benchmark orchestrator (`scripts/benchmarks/run_comparative_benchmarks.py`) executing
   CC-310 scenarios from declarative configurations and enforcing regression thresholds.
 - 2025-12-02: Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.
+- 2025-12-06: `geometry_remesh` CLI emits AI-004-compatible `datasets` manifest snippets so remeshing jobs register directly with
+  the shared configuration schema during prototyping runs.
 
 ---
 
