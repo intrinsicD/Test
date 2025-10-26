@@ -10,44 +10,40 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 ---
 
-## 🎯 Active Work (Q4 2025)
+## 🎯 Active Work (Q1 2026)
 
 | ID | Intent | Dependencies | Next Milestone | Owning Groups |
 | --- | --- | --- | --- | --- |
+| `AI-004` | Application prototyping enablement: rendering baseline, runtime harness, tooling sandbox, datasets, comparative benchmarks. | `AI-001`, `AI-002`, `AI-003` | Kickoff review + baseline plan sign-off (target 2025-12-05) | Rendering, Runtime, Tools, Assets, Performance |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO |
-| `AN-230` | GPU/parallel sampling benchmarks leveraging compute dispatcher telemetry. | `CO-170` (done) | ✅ Completed – harness, GPU scenario, and analysis workflow published | Animation, Compute |
 
 ### Active Task Details
 
 <!-- Anchor for RT-002 task references -->
 <a id="rt-002-physics-contact-manifolds"></a>
-#### `RT-006` — IO Signature Hardening (🟠 Blocked)
+#### `AI-004` — Application Prototyping Enablement (🚀 Active)
 
 | Task ID | Description | Exit Criteria | Status |
 | --- | --- | --- | --- |
-| `RT-006.1` | Build signature database. | Curated signature set committed with provenance notes; fuzz harness consumes it. | ✅ Done |
-| `RT-006.2` | Integrate libFuzzer harness. | Harness built with curated corpus; CI automation tracked separately. | ✅ Done |
-| `RT-006.3` | Author detection docs. | IO README explains detection workflow, failure handling, and fuzzing steps. | ✅ Done |
+| `RE-610` | Ship research-grade rendering baseline with deferred/forward presets, debug overlays, and telemetry integration. | Rendering preset renders reference scenes at ≥120 FPS, exposes debug views, and exports telemetry counters documented in module README. | 🟡 Planning |
+| `RT-320` | Deliver runtime prototyping harness with interactive + headless modes, configuration schema, and scripting hooks. | Harness loads dataset manifest, toggles algorithm variants, and exports benchmark artefacts validated by integration tests. | 🟡 Planning |
+| `TL-210` | Build experiment sandbox UI with dataset/pipeline selection, telemetry charts, and benchmark controls. | Sandbox enumerates manifests, edits parameters live, and captures benchmark runs with persisted layouts/screenshots. | 🟡 Planning |
+| `AS-330` | Curate reference dataset packages with manifests, ingestion scripts, and provenance/licensing notes. | Datasets download via scripted workflow, register with runtime caches, and surface metadata in harness/UI. | 🟡 Planning |
+| `CC-310` | Automate comparative benchmarks across engine and reference implementations with CI smoke coverage. | Benchmark orchestrator emits comparison reports, CI gate enforces thresholds, and telemetry viewer renders comparative plots. | 🟡 Planning |
 
-**Blocker:** CI fuzzing infrastructure provisioning pending.
+**Key Dates:**
+- 2025-11-20: Initiative charter approved; cross-module leads assigned.
+- 2025-12-05: Kickoff review to confirm shared configuration schema and dataset shortlist.
+- 2025-12-23: Runtime harness + rendering baseline integration demo with sandbox UI prototype.
+- 2026-01-06: Benchmark automation smoke suite active in CI.
 
----
+**Risks:**
+- Coordinated delivery requires shared configuration schema—lock format before implementation begins.
+- Dataset licensing review could delay publication—front-load legal review during planning sprint.
 
-#### `AN-230` — GPU Parallel Sampling Benchmarks (✅ Completed)
-
-| Task ID | Description | Exit Criteria | Status |
-| --- | --- | --- | --- |
-| `AN-230.1` | Stand up benchmarking harness and capture CPU baselines. | Harness builds under CMake presets, replays representative clips, and records telemetry aligned with `CO-170` dispatcher metrics. | ✅ Done |
-| `AN-230.2` | Integrate GPU sampling kernels with telemetry validation. | GPU compute paths execute benchmark scenarios, emit queue occupancy/jitter data, and compare against CPU baselines. | ✅ Done |
-| `AN-230.3` | Publish analysis workflow and dashboard/report updates. | Diagnostics scripts summarise results, dashboards refreshed, and animation/compute READMEs document usage. | ✅ Done |
-
-**Notes:** Activation follows the completion of `CO-170`. Coordinate animation and compute teams to share datasets, queue budgets, and telemetry thresholds with the runtime sample. Align benchmarking cadence with the GPU hardware lab schedule referenced in the `AN-230` plan.
-
-- 2025-11-11: `CO-170` runtime dispatcher sample, telemetry workflow, and documentation merged; roadmap focus shifts to building the GPU benchmarking harness for `AN-230`.
-- 2025-11-15: Adaptive remeshing mode lands with surface/normal error budgets, advancing `GE-221+` Phase 2 execution planning.
-- 2025-11-16: `engine_animation_benchmark_driver` enables CPU baseline telemetry capture aligned with the dispatcher schema for `AN-230.1`.
-- 2025-11-18: GPU scenario wiring added to the benchmark driver, emitting queue/category totals through dispatcher-compatible telemetry and recording CUDA availability metadata (`AN-230.2`).
-- 2025-11-19: `animation_sampling_report.py` summarises CPU/GPU captures and updates module docs, completing `AN-230.3`.
+**Mitigations:**
+- Bi-weekly integration demos to surface drift early.
+- Dedicated benchmarking hardware pool request submitted to infrastructure (awaiting approval).
 
 ---
 
@@ -55,6 +51,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 ### Immediate Next (Ready for Sprint Planning)
 
+- **RT-006** — IO signature hardening remains blocked on CI infrastructure provisioning. Monitor infra updates and reprioritise when capacity restored.
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
   - 2025-11-05: Uniform remeshing baseline (split/collapse + relaxation) available via
     `Remesh`, returning `RemeshOutput` statistics for downstream tooling.
@@ -77,6 +74,7 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   telemetry-aligned summaries, enabling scripted `GE-221+` workflows without
   embedding the geometry module.
 - **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
+- **AN-230** — GPU parallel sampling benchmarks (completed, available as reference for comparative benchmarking workflows)
 
 #### `DC-003` — SDL Backend Implementation (⏸ Deferred)
 

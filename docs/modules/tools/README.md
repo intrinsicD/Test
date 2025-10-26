@@ -230,5 +230,5 @@ Once modularization is complete, the module will be re-enabled and integrated in
 
 ## TODO / Next Steps
 
-- Expand diagnostics viewer iterations based on operator feedback once new telemetry lands (`CC-001`; coordinate with [../../ROADMAP.md](../../ROADMAP.md) and [BACKLOG.md](BACKLOG.md)).
-- Assist assets/runtime teams with the M3 hot-reload milestone by integrating dashboard outputs into CI (`CC-002`, [../assets/BACKLOG.md#upcoming-m3](../assets/BACKLOG.md#upcoming-m3), see [../../ROADMAP.md](../../ROADMAP.md)).
+- Execute `TL-210` (AI-004): deliver experiment sandbox UI with dataset/pipeline selectors, telemetry charts, and benchmark capture integrated with the prototyping harness.
+- Continue iterating on diagnostics viewer and telemetry exports to feed comparative benchmarking (`CC-310`) without duplicating charting pipelines.

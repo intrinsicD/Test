@@ -439,5 +439,6 @@ ctest --preset linux-gcc-debug -R rendering
 
 ## TODO / Next Steps
 
-- Sync the next rendering milestone in [`docs/ROADMAP.md`](../../ROADMAP.md) once the `RE-541` telemetry dashboards are promoted to the runtime diagnostics suite.
+- Execute `RE-610` (AI-004): finalise research rendering baseline presets with debug overlays, shader hot reload, and telemetry exports documented above.
+- Partner with runtime/tools leads on `RT-320`/`TL-210` integration demos so the prototyping harness and sandbox UI can toggle presets and capture telemetry without manual wiring.
 - Continue monitoring backend parity telemetry and extend the backend checklist/metadata schema alignment as Vulkan/DX12 coverage expands; see ../../ROADMAP.md for cross-module scheduling dependencies.
