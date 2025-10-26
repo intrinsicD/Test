@@ -68,3 +68,6 @@ roadmap after each milestone.
 - 2025-11-24 — `SurfaceMesh` retains per-vertex texture coordinates and halfedge
   conversions round-trip them, establishing the data plumbing required for
   `GE-221+` parameterisation work.
+- 2025-11-26 — Remeshing UV reuse now interpolates/smooths coordinates, scales to
+  requested texel density, and reports parameterisation metrics to advance
+  `GE-221+` telemetry objectives.

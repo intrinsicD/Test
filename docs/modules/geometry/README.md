@@ -194,6 +194,7 @@ if (remesh_result.has_value())
     const auto iterations = output.statistics.iteration_count;
     const auto max_edge_length = output.statistics.max_edge_length;
     // Consume the statistics for telemetry or diagnostics reporting.
+    const auto texel_density = output.parameterization.texel_density;
 }
 ```
 
@@ -214,6 +215,12 @@ resolved target edge length (or the derived adaptive baseline when no explicit
 target is provided) and the shortest/longest edges observed in the output mesh,
 giving remeshing telemetry a single scalar that quantifies how far the result
 strays from the requested budget.
+
+When parameterisation reuse is requested, remeshing now interpolates texture
+coordinates for generated vertices, averages UVs across collapses, and scales
+them to honour the `target_texel_density` budget. `ParameterizationSummary`
+tracks the resulting texel density and stretch so telemetry surfaces reflect
+changes to the UV footprint alongside geometric error metrics.
 
 Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
 or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request
