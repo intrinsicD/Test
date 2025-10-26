@@ -142,6 +142,9 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     result.output.statistics.min_edge_length = output_edges.min_edge_length;
     result.output.statistics.max_edge_length = output_edges.max_edge_length;
     result.output.statistics.max_error = 0.0025F;
+    result.output.statistics.max_surface_deviation = 0.015F;
+    result.output.statistics.mean_surface_deviation = 0.010F;
+    result.output.statistics.rms_surface_deviation = 0.012F;
 
     geo::ParameterizationSummary parameterization{};
     parameterization.chart_count = 1U;
@@ -176,5 +179,8 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     EXPECT_NE(manifest.find("chart_count: 1"), std::string::npos);
     EXPECT_NE(manifest.find("iterations: 8"), std::string::npos);
     EXPECT_NE(manifest.find("max_error: 0.0025"), std::string::npos);
+    EXPECT_NE(manifest.find("max_surface_deviation: 0.0150"), std::string::npos);
+    EXPECT_NE(manifest.find("mean_surface_deviation: 0.0100"), std::string::npos);
+    EXPECT_NE(manifest.find("rms_surface_deviation: 0.0120"), std::string::npos);
 }
 

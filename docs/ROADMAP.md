@@ -54,6 +54,10 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-12-02: Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.
 - 2025-12-06: `geometry_remesh` CLI emits AI-004-compatible `datasets` manifest snippets so remeshing jobs register directly with
   the shared configuration schema during prototyping runs.
+- 2025-12-07: Remeshing telemetry adds bidirectional Hausdorff approximations (`max_surface_deviation`, `mean_surface_deviation`,
+  `rms_surface_deviation`) so AI-004 manifests capture surface fidelity alongside edge-length budgets.
+- 2025-12-08: Remeshing telemetry snapshot now aggregates Hausdorff deviation statistics (last/max/average and sample counts) per
+  mode to feed AI-004 monitoring dashboards without recomputing surface comparisons.
 
 ---
 

@@ -86,6 +86,9 @@ BASE_ENTRY = {
         "max_error": 0.0025,
         "min_edge_length": 0.2,
         "max_edge_length": 1.0,
+        "max_surface_deviation": 0.015,
+        "mean_surface_deviation": 0.010,
+        "rms_surface_deviation": 0.012,
     },
     "job_label": "Remesh Sample",
 }
@@ -108,6 +111,9 @@ def test_load_dataset_manifest_from_yaml(tmp_path: Path) -> None:
     assert dataset.parameterization.chart_count == 1
     assert dataset.remeshing_targets is not None
     assert pytest.approx(dataset.remeshing_targets.target_edge_length, rel=1e-6) == 0.25
+    assert pytest.approx(dataset.statistics.max_surface_deviation, rel=1e-6) == 0.015
+    assert pytest.approx(dataset.statistics.mean_surface_deviation, rel=1e-6) == 0.010
+    assert pytest.approx(dataset.statistics.rms_surface_deviation, rel=1e-6) == 0.012
 
 
 def test_load_dataset_manifest_from_json_without_parameterization(tmp_path: Path) -> None:

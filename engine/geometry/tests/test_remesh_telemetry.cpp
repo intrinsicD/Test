@@ -60,6 +60,31 @@ namespace engine::geometry
         EXPECT_GE(metrics.last_duration_ms, 0.0);
         EXPECT_GE(metrics.max_duration_ms, metrics.last_duration_ms);
         EXPECT_GE(metrics.max_vertex_count, metrics.last_vertex_count);
+        EXPECT_EQ(metrics.surface_deviation_invocations, 1U);
+        EXPECT_GT(metrics.last_surface_deviation_sample_count, 0U);
+        EXPECT_EQ(metrics.total_surface_deviation_sample_count,
+                  metrics.last_surface_deviation_sample_count);
+        EXPECT_NEAR(metrics.last_max_surface_deviation,
+                    static_cast<double>(result.value().statistics.max_surface_deviation),
+                    1e-6);
+        EXPECT_NEAR(metrics.max_surface_deviation,
+                    static_cast<double>(result.value().statistics.max_surface_deviation),
+                    1e-6);
+        EXPECT_NEAR(metrics.average_max_surface_deviation,
+                    static_cast<double>(result.value().statistics.max_surface_deviation),
+                    1e-6);
+        EXPECT_NEAR(metrics.last_mean_surface_deviation,
+                    static_cast<double>(result.value().statistics.mean_surface_deviation),
+                    1e-6);
+        EXPECT_NEAR(metrics.average_mean_surface_deviation,
+                    static_cast<double>(result.value().statistics.mean_surface_deviation),
+                    1e-6);
+        EXPECT_NEAR(metrics.last_rms_surface_deviation,
+                    static_cast<double>(result.value().statistics.rms_surface_deviation),
+                    1e-6);
+        EXPECT_NEAR(metrics.average_rms_surface_deviation,
+                    static_cast<double>(result.value().statistics.rms_surface_deviation),
+                    1e-6);
     }
 
     TEST(RemeshTelemetry, ResetClearsMetrics)
@@ -81,6 +106,16 @@ namespace engine::geometry
         EXPECT_EQ(metrics.max_vertex_count, 0U);
         EXPECT_EQ(metrics.last_duration_ms, 0.0);
         EXPECT_EQ(metrics.max_duration_ms, 0.0);
+        EXPECT_EQ(metrics.surface_deviation_invocations, 0U);
+        EXPECT_EQ(metrics.last_max_surface_deviation, 0.0);
+        EXPECT_EQ(metrics.max_surface_deviation, 0.0);
+        EXPECT_EQ(metrics.average_max_surface_deviation, 0.0);
+        EXPECT_EQ(metrics.last_mean_surface_deviation, 0.0);
+        EXPECT_EQ(metrics.average_mean_surface_deviation, 0.0);
+        EXPECT_EQ(metrics.last_rms_surface_deviation, 0.0);
+        EXPECT_EQ(metrics.average_rms_surface_deviation, 0.0);
+        EXPECT_EQ(metrics.last_surface_deviation_sample_count, 0U);
+        EXPECT_EQ(metrics.total_surface_deviation_sample_count, 0U);
         EXPECT_TRUE(metrics.last_job_label.empty());
     }
 } // namespace engine::geometry
