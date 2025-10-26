@@ -222,14 +222,22 @@ them to honour the `target_texel_density` budget. `ParameterizationSummary`
 tracks the resulting texel density and stretch so telemetry surfaces reflect
 changes to the UV footprint alongside geometric error metrics.
 
-`ParameterizationMode::kGenerateLscm` (and the current `kGenerateAbfpp` shim)
-builds a least-squares conformal map for the output mesh. The implementation
-automatically selects a pair of anchor vertices (preferring boundary loops),
-solves the complex-valued system with partial pivoting, and normalises the
-result to the requested texel density. Degenerate meshes fall back to a
-deterministic planar projection so tools always receive a usable UV atlas,
-and the `ParameterizationSummary` mirrors the generated coordinates for
-telemetry and diagnostics consumers.
+`ParameterizationMode::kGenerateLscm` builds a least-squares conformal map for the
+output mesh. The implementation automatically selects a pair of anchor vertices
+(preferring boundary loops), solves the complex-valued system with partial
+pivoting, and normalises the result to the requested texel density.
+Degenerate meshes fall back to a deterministic planar projection so tools always
+receive a usable UV atlas, and the `ParameterizationSummary` mirrors the
+generated coordinates for telemetry and diagnostics consumers.
+
+`ParameterizationMode::kGenerateAbfpp` executes an angle-based flattening (ABF++)
+solver. It constructs a constrained least-squares system over per-corner angles,
+enforces triangle and vertex angle sums, and then reconstructs texture
+coordinates by traversing the mesh, intersecting the induced edge-length
+cylinders for each adjacent face. The solver emits a single chart, honours the
+requested texel density, and deterministically falls back to the planar
+projection when inputs are degenerate so downstream tooling retains a usable
+atlas.
 
 Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
 or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request

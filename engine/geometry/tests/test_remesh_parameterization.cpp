@@ -51,3 +51,30 @@ TEST(RemeshParameterizationTests, GeneratesLscmParameterizationForQuad)
                 request.parameterization.target_texel_density,
                 0.05F);
 }
+
+TEST(RemeshParameterizationTests, GeneratesAbfppParameterizationForQuad)
+{
+    geo::SurfaceMesh mesh = geo::make_unit_quad();
+    mesh.texture_coordinates.clear();
+
+    geo::RemeshRequest request{};
+    request.input_mesh = &mesh;
+    request.mode = geo::RemeshingMode::kUniform;
+    request.targets.target_edge_length = 1.0F;
+    request.attribute_policy.texture_coordinates = geo::AttributeTransferMode::kDrop;
+    request.parameterization.mode = geo::ParameterizationMode::kGenerateAbfpp;
+    request.parameterization.target_texel_density = 2.0F;
+
+    const auto result = geo::Remesh(request);
+    ASSERT_TRUE(result.has_value()) << result.error().message();
+
+    const geo::RemeshOutput& output = result.value();
+    ASSERT_EQ(output.mesh.texture_coordinates.size(), output.mesh.positions.size());
+    EXPECT_EQ(output.parameterization.chart_count, 1U);
+    EXPECT_GT(output.parameterization.texel_density, 0.0F);
+    EXPECT_GT(range(output.mesh.texture_coordinates, 0U), 0.5F);
+    EXPECT_GT(range(output.mesh.texture_coordinates, 1U), 0.05F);
+    EXPECT_NEAR(output.parameterization.texel_density,
+                request.parameterization.target_texel_density,
+                0.05F);
+}

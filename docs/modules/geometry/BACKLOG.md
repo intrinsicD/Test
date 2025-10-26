@@ -71,3 +71,6 @@ roadmap after each milestone.
 - 2025-11-26 — Remeshing UV reuse now interpolates/smooths coordinates, scales to
   requested texel density, and reports parameterisation metrics to advance
   `GE-221+` telemetry objectives.
+- 2025-11-27 — ABF++ parameterisation (`ParameterizationMode::kGenerateAbfpp`) now
+  solves constrained angle optimisation and reconstructs UVs from the derived
+  edge-length system, fulfilling the conformal generation milestone for `GE-221+`.
