@@ -2701,6 +2701,8 @@ namespace engine::geometry
         }
 
         output.statistics.iteration_count = iterations;
+        output.statistics.split_count = counters.split_count;
+        output.statistics.collapse_count = counters.collapse_count;
         const MeshEdgeStatistics stats = ComputeMeshEdgeStatistics(output.mesh);
         output.statistics.max_edge_length = stats.max_edge_length;
         output.statistics.min_edge_length = stats.min_edge_length;
@@ -2780,6 +2782,7 @@ namespace engine::geometry
         const double duration_ms = std::chrono::duration<double, std::milli>(
                                         std::chrono::steady_clock::now() - start_time)
                                         .count();
+        output.statistics.duration_ms = duration_ms;
 
         RemeshTelemetry::instance().record_invocation(request.mode,
                                                       iterations,

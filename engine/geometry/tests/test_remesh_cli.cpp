@@ -145,6 +145,9 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     result.output.statistics.max_surface_deviation = 0.015F;
     result.output.statistics.mean_surface_deviation = 0.010F;
     result.output.statistics.rms_surface_deviation = 0.012F;
+    result.output.statistics.split_count = 12U;
+    result.output.statistics.collapse_count = 3U;
+    result.output.statistics.duration_ms = 12.5;
 
     geo::ParameterizationSummary parameterization{};
     parameterization.chart_count = 1U;
@@ -178,6 +181,9 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     EXPECT_NE(manifest.find("texel_density: 256.0000"), std::string::npos);
     EXPECT_NE(manifest.find("chart_count: 1"), std::string::npos);
     EXPECT_NE(manifest.find("iterations: 8"), std::string::npos);
+    EXPECT_NE(manifest.find("splits: 12"), std::string::npos);
+    EXPECT_NE(manifest.find("collapses: 3"), std::string::npos);
+    EXPECT_NE(manifest.find("duration_ms: 12.5000"), std::string::npos);
     EXPECT_NE(manifest.find("max_error: 0.0025"), std::string::npos);
     EXPECT_NE(manifest.find("max_surface_deviation: 0.0150"), std::string::npos);
     EXPECT_NE(manifest.find("mean_surface_deviation: 0.0100"), std::string::npos);

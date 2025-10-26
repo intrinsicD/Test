@@ -15,6 +15,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <type_traits>
 
 namespace engine::geometry::tools
 {
@@ -181,9 +182,17 @@ namespace engine::geometry::tools
             return value.empty() ? std::string{placeholder} : value;
         }
 
-        [[nodiscard]] float safe_value(float value) noexcept
+        template <typename T>
+        [[nodiscard]] T safe_value(T value) noexcept
         {
-            return std::isfinite(value) ? value : 0.0F;
+            if constexpr (std::is_floating_point_v<T>)
+            {
+                return std::isfinite(value) ? value : T{0};
+            }
+            else
+            {
+                return value;
+            }
         }
 
         [[nodiscard]] std::filesystem::path default_output_path(const std::filesystem::path& input)
@@ -756,6 +765,9 @@ namespace engine::geometry::tools
 
         yaml << "    statistics:\n";
         yaml << "      iterations: " << statistics.iteration_count << "\n";
+        yaml << "      splits: " << statistics.split_count << "\n";
+        yaml << "      collapses: " << statistics.collapse_count << "\n";
+        yaml << "      duration_ms: " << safe_value(statistics.duration_ms) << "\n";
         yaml << "      max_error: " << safe_value(statistics.max_error) << "\n";
         yaml << "      min_edge_length: " << safe_value(statistics.min_edge_length) << "\n";
         yaml << "      max_edge_length: " << safe_value(statistics.max_edge_length) << "\n";
@@ -788,7 +800,9 @@ namespace engine::geometry::tools
 
         const RemeshStatistics& statistics = result.output.statistics;
         stream << "  Iterations=" << statistics.iteration_count
-               << " splits/collapses recorded in telemetry" << "\n";
+               << " splits=" << statistics.split_count
+               << " collapses=" << statistics.collapse_count << "\n";
+        stream << "  Duration(ms)=" << statistics.duration_ms << "\n";
         stream << "  Metrics: min_edge=" << statistics.min_edge_length
                << " max_edge=" << statistics.max_edge_length
                << " max_error=" << statistics.max_error << "\n";
