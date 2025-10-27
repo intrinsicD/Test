@@ -125,6 +125,12 @@ dashboards whenever the preset is configured or executed:
   `forward` or `deferred`.
 - `rendering.research.shading_mode.active` (gauge) — reports the currently
   active shading mode as `0` for forward and `1` for deferred pipelines.
+- `rendering.research.overlay.selection` (counter) — increments whenever a debug
+  overlay is enabled during configuration. Label `overlay` is one of
+  `normals`, `uv`, `material`, or `light_volume`.
+- `rendering.research.overlay.enabled` (gauge) — reports the active state of
+  each overlay as `1` when enabled and `0` when disabled. Shares the `overlay`
+  label values listed above.
 - `rendering.research.pass.draw_calls_total` (counter) — cumulative draw calls
   submitted by each pass. Labels: `pass` and `phase` (frame-graph phase).
 - `rendering.research.pass.last_draw_calls` (gauge, unit Count) — draw calls

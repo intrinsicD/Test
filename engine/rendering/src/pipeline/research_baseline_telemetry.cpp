@@ -22,12 +22,45 @@ namespace engine::rendering
         return mode == ResearchShadingMode::Deferred ? kDeferredIndex : kForwardIndex;
     }
 
+    std::size_t ResearchBaselineTelemetry::overlay_index(ResearchOverlay overlay) noexcept
+    {
+        return static_cast<std::size_t>(overlay);
+    }
+
+    void ResearchBaselineTelemetry::update_overlay(
+        std::array<bool, static_cast<std::size_t>(ResearchOverlay::Count)>& overlays,
+        std::array<std::uint64_t, static_cast<std::size_t>(ResearchOverlay::Count)>& counts,
+        ResearchOverlay overlay,
+        bool enabled) noexcept
+    {
+        const auto index = overlay_index(overlay);
+        overlays[index] = enabled;
+        if (enabled)
+        {
+            ++counts[index];
+        }
+    }
+
     void ResearchBaselineTelemetry::set_shading_mode(ResearchShadingMode mode) noexcept
     {
         std::scoped_lock lock{mutex_};
         active_mode_ = mode;
         const auto index = shading_mode_index(mode);
         ++mode_selection_counts_[index];
+    }
+
+    void ResearchBaselineTelemetry::set_overlays(const ResearchBaselineOptions& options) noexcept
+    {
+        std::scoped_lock lock{mutex_};
+        overlays_enabled_.fill(false);
+        update_overlay(overlays_enabled_, overlay_selection_counts_, ResearchOverlay::Normals,
+                       options.enable_normals_overlay);
+        update_overlay(overlays_enabled_, overlay_selection_counts_, ResearchOverlay::Uv,
+                       options.enable_uv_overlay);
+        update_overlay(overlays_enabled_, overlay_selection_counts_, ResearchOverlay::Material,
+                       options.enable_material_overlay);
+        update_overlay(overlays_enabled_, overlay_selection_counts_, ResearchOverlay::LightVolume,
+                       options.enable_light_volume_overlay);
     }
 
     void ResearchBaselineTelemetry::record_pass(std::string_view name,
@@ -55,6 +88,8 @@ namespace engine::rendering
         ResearchBaselineTelemetrySnapshot snapshot{};
         snapshot.active_mode = active_mode_;
         snapshot.mode_selection_counts = mode_selection_counts_;
+        snapshot.overlays_enabled = overlays_enabled_;
+        snapshot.overlay_selection_counts = overlay_selection_counts_;
         snapshot.passes.reserve(passes_.size());
         for (const auto& [name, telemetry] : passes_)
         {
@@ -69,6 +104,8 @@ namespace engine::rendering
         std::scoped_lock lock{mutex_};
         active_mode_ = ResearchShadingMode::Deferred;
         mode_selection_counts_.fill(0U);
+        overlays_enabled_.fill(false);
+        overlay_selection_counts_.fill(0U);
         passes_.clear();
     }
 }

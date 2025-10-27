@@ -289,6 +289,7 @@ namespace engine::rendering
         geometry_outputs.depth = resources.depth;
 
         ResearchBaselineTelemetry::instance().set_shading_mode(options.shading_mode);
+        ResearchBaselineTelemetry::instance().set_overlays(options);
 
         if (deferred)
         {
