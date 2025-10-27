@@ -1,0 +1,81 @@
+#pragma once
+
+#include <functional>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include "engine/assets/handles.hpp"
+#include "engine/geometry/api.hpp"
+#include "engine/math/vector.hpp"
+#include "engine/rendering/render_pass.hpp"
+
+namespace engine::rendering::backend::opengl
+{
+    /**
+     * \brief Materialises geometry resources for the OpenGL backend.
+     *
+     * The provider bridges render graph recording with runtime asset handles by
+     * resolving meshes into CPU-resident buffers and, when available, uploading
+     * them to GPU vertex/index buffers.  It implements the generic
+     * RenderResourceProvider interface so render passes can demand residency of
+     * assets before recording draw calls.
+     */
+    class OpenGLRenderResourceProvider final : public RenderResourceProvider
+    {
+    public:
+        using MeshResolver = std::function<std::optional<geometry::SurfaceMesh>(
+            const assets::MeshHandle& handle)>;
+
+        struct MeshRecord
+        {
+            assets::MeshHandle handle{};
+            std::vector<math::vec3> positions;
+            std::vector<math::vec3> normals;
+            std::vector<math::vec2> texture_coordinates;
+            std::vector<std::uint32_t> indices;
+            geometry::Aabb bounds{};
+#if ENGINE_RENDERING_HAS_GLAD
+            unsigned int vertex_array{0};
+            unsigned int position_buffer{0};
+            unsigned int normal_buffer{0};
+            unsigned int texcoord_buffer{0};
+            unsigned int index_buffer{0};
+            bool gpu_uploaded{false};
+#else
+            bool gpu_uploaded{false};
+#endif
+        };
+
+        explicit OpenGLRenderResourceProvider(MeshResolver mesh_resolver);
+        ~OpenGLRenderResourceProvider() override;
+
+        void require_mesh(const assets::MeshHandle& handle) override;
+        void require_graph(const assets::GraphHandle& handle) override;
+        void require_point_cloud(const assets::PointCloudHandle& handle) override;
+        void require_material(const assets::MaterialHandle& handle) override;
+        void require_shader(const assets::ShaderHandle& handle) override;
+
+        [[nodiscard]] const MeshRecord* mesh(const assets::MeshHandle& handle) const noexcept;
+        [[nodiscard]] std::size_t loaded_mesh_count() const noexcept;
+        [[nodiscard]] std::size_t mesh_gpu_upload_count() const noexcept;
+
+    private:
+        MeshResolver mesh_resolver_;
+        std::unordered_map<std::string, MeshRecord> meshes_{};
+        std::unordered_set<std::string> graphs_{};
+        std::unordered_set<std::string> point_clouds_{};
+        std::unordered_set<std::string> materials_{};
+        std::unordered_set<std::string> shaders_{};
+        std::size_t mesh_gpu_uploads_{0};
+
+        void ensure_mesh_loaded(const assets::MeshHandle& handle);
+        [[nodiscard]] static geometry::SurfaceMesh
+        prepare_surface_mesh(geometry::SurfaceMesh mesh);
+        void upload_mesh_to_gpu(MeshRecord& record);
+        static void destroy_gpu_resources(MeshRecord& record) noexcept;
+    };
+}
