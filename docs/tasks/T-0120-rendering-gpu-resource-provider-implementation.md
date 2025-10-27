@@ -162,4 +162,6 @@ Implement concrete `IGpuResourceProvider` backends that create, manage, and trac
   behaviour.
 - 2025-12-08: Added an OpenGL-focused provider that issues native queue/command buffer handles backed by reusable command
   buffers and stub fence/timeline tracking to unblock command encoder integration.
+- 2025-12-10: OpenGL provider now allocates transient buffer objects, reuses them when descriptors match, and exposes
+  buffer records for scheduler integration. Added regression tests covering buffer allocation, resizing, and release paths.
 
