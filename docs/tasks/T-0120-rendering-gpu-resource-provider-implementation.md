@@ -164,4 +164,6 @@ Implement concrete `IGpuResourceProvider` backends that create, manage, and trac
   buffers and stub fence/timeline tracking to unblock command encoder integration.
 - 2025-12-10: OpenGL provider now allocates transient buffer objects, reuses them when descriptors match, and exposes
   buffer records for scheduler integration. Added regression tests covering buffer allocation, resizing, and release paths.
+- 2025-12-11: Introduced an `OpenGLRenderResourceProvider` that resolves mesh handles into CPU-side buffers and uploads them to
+  GPU vertex/index buffers when GL is available, with unit coverage for caching, failure handling, and normal generation.
 
