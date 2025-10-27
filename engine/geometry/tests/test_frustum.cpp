@@ -15,39 +15,45 @@
 using namespace engine::geometry;
 using namespace engine::math;
 
-namespace {
+namespace
+{
     constexpr float kEpsilon = 1e-5f;
 
-    bool ApproxEqual(float a, float b, float epsilon = kEpsilon) {
+    bool ApproxEqual(float a, float b, float epsilon = kEpsilon)
+    {
         return std::abs(a - b) < epsilon;
     }
 
-    bool ApproxEqual(const vec3& a, const vec3& b, float epsilon = kEpsilon) {
+    bool ApproxEqual(const vec3& a, const vec3& b, float epsilon = kEpsilon)
+    {
         return ApproxEqual(a[0], b[0], epsilon) &&
-               ApproxEqual(a[1], b[1], epsilon) &&
-               ApproxEqual(a[2], b[2], epsilon);
+            ApproxEqual(a[1], b[1], epsilon) &&
+            ApproxEqual(a[2], b[2], epsilon);
     }
 }
 
-TEST(FrustumTest, ExtractFrustumFromIdentity) {
+TEST(FrustumTest, ExtractFrustumFromIdentity)
+{
     // Simple orthographic projection as a basic test
     // Create a simple orthographic matrix: maps [-1,1] cube to clip space
     mat4 ortho{};
-    ortho[0][0] = 1.0f;  // x scale
-    ortho[1][1] = 1.0f;  // y scale
+    ortho[0][0] = 1.0f; // x scale
+    ortho[1][1] = 1.0f; // y scale
     ortho[2][2] = -1.0f; // z scale (flip for right-handed)
-    ortho[3][3] = 1.0f;  // w
+    ortho[3][3] = 1.0f; // w
 
     const Frustum frustum = ExtractFrustum(ortho);
 
     // All planes should be normalized
-    for (const auto& plane : frustum.planes) {
+    for (const auto& plane : frustum.planes)
+    {
         const float len = length(plane.normal);
         EXPECT_NEAR(len, 1.0f, kEpsilon) << "Plane normal should be normalized";
     }
 }
 
-TEST(FrustumTest, ExtractFrustumFromPerspective) {
+TEST(FrustumTest, ExtractFrustumFromPerspective)
+{
     // Create a simple perspective projection matrix
     // Using manual construction for clarity
     const float fov = 3.14159f / 4.0f; // 45 degrees
@@ -69,7 +75,8 @@ TEST(FrustumTest, ExtractFrustumFromPerspective) {
     const Frustum frustum = ExtractFrustum(proj);
 
     // All planes should be normalized
-    for (size_t i = 0; i < 6; ++i) {
+    for (size_t i = 0; i < 6; ++i)
+    {
         const float len = length(frustum.planes[i].normal);
         EXPECT_NEAR(len, 1.0f, kEpsilon) << "Plane " << i << " normal should be normalized";
     }
@@ -79,7 +86,8 @@ TEST(FrustumTest, ExtractFrustumFromPerspective) {
     EXPECT_GT(frustum.planes[Frustum::kFar].normal[2], 0.0f) << "Far plane should point forward";
 }
 
-TEST(FrustumTest, PerspectiveNearFarContainment) {
+TEST(FrustumTest, PerspectiveNearFarContainment)
+{
     const float fov = 3.14159f / 4.0f;
     const float aspect = 1.0f;
     const float near = 0.1f;
@@ -122,7 +130,8 @@ TEST(FrustumTest, PerspectiveNearFarContainment) {
     EXPECT_FALSE(Intersects(frustum, outside_far)) << "Point beyond the far plane should be culled";
 }
 
-TEST(FrustumTest, ExtractFrustumFromOrthographic) {
+TEST(FrustumTest, ExtractFrustumFromOrthographic)
+{
     // Create an orthographic projection matrix
     const float left = -10.0f, right = 10.0f;
     const float bottom = -10.0f, top = 10.0f;
@@ -140,13 +149,15 @@ TEST(FrustumTest, ExtractFrustumFromOrthographic) {
     const Frustum frustum = ExtractFrustum(ortho);
 
     // All planes should be normalized
-    for (const auto& plane : frustum.planes) {
+    for (const auto& plane : frustum.planes)
+    {
         const float len = length(plane.normal);
         EXPECT_NEAR(len, 1.0f, kEpsilon) << "Plane normal should be normalized";
     }
 }
 
-TEST(FrustumTest, PointInsideFrustum) {
+TEST(FrustumTest, PointInsideFrustum)
+{
     // Simple frustum: identity matrix
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
@@ -156,7 +167,8 @@ TEST(FrustumTest, PointInsideFrustum) {
     EXPECT_TRUE(Intersects(frustum, origin)) << "Origin should be inside frustum";
 }
 
-TEST(FrustumTest, PointOutsideFrustum) {
+TEST(FrustumTest, PointOutsideFrustum)
+{
     // Create a frustum with known bounds
     const float fov = 3.14159f / 4.0f;
     const float aspect = 1.0f;
@@ -181,7 +193,8 @@ TEST(FrustumTest, PointOutsideFrustum) {
     EXPECT_FALSE(Intersects(frustum, far_point)) << "Far point should be outside frustum";
 }
 
-TEST(FrustumTest, AabbFullyInsideFrustum) {
+TEST(FrustumTest, AabbFullyInsideFrustum)
+{
     // Simple frustum
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
@@ -191,7 +204,8 @@ TEST(FrustumTest, AabbFullyInsideFrustum) {
     EXPECT_TRUE(Intersects(frustum, small_box)) << "Small box at origin should intersect frustum";
 }
 
-TEST(FrustumTest, AabbFullyOutsideFrustum) {
+TEST(FrustumTest, AabbFullyOutsideFrustum)
+{
     // Create perspective frustum
     const float fov = 3.14159f / 4.0f;
     const float aspect = 1.0f;
@@ -216,7 +230,8 @@ TEST(FrustumTest, AabbFullyOutsideFrustum) {
     EXPECT_FALSE(Intersects(frustum, far_box)) << "Far box should be outside frustum";
 }
 
-TEST(FrustumTest, AabbPartiallyIntersectingFrustum) {
+TEST(FrustumTest, AabbPartiallyIntersectingFrustum)
+{
     // Simple frustum
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
@@ -226,7 +241,8 @@ TEST(FrustumTest, AabbPartiallyIntersectingFrustum) {
     EXPECT_TRUE(Intersects(frustum, large_box)) << "Large box should intersect frustum";
 }
 
-TEST(FrustumTest, SphereFullyInsideFrustum) {
+TEST(FrustumTest, SphereFullyInsideFrustum)
+{
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
 
@@ -235,7 +251,8 @@ TEST(FrustumTest, SphereFullyInsideFrustum) {
     EXPECT_TRUE(Intersects(frustum, small_sphere)) << "Small sphere at origin should intersect frustum";
 }
 
-TEST(FrustumTest, SphereFullyOutsideFrustum) {
+TEST(FrustumTest, SphereFullyOutsideFrustum)
+{
     // Create perspective frustum
     const float fov = 3.14159f / 4.0f;
     const float aspect = 1.0f;
@@ -260,7 +277,8 @@ TEST(FrustumTest, SphereFullyOutsideFrustum) {
     EXPECT_FALSE(Intersects(frustum, far_sphere)) << "Far sphere should be outside frustum";
 }
 
-TEST(FrustumTest, SphereTouchingFrustumPlane) {
+TEST(FrustumTest, SphereTouchingFrustumPlane)
+{
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
 
@@ -269,7 +287,8 @@ TEST(FrustumTest, SphereTouchingFrustumPlane) {
     EXPECT_TRUE(Intersects(frustum, large_sphere)) << "Large sphere should intersect frustum";
 }
 
-TEST(FrustumTest, ObbFullyInsideFrustum) {
+TEST(FrustumTest, ObbFullyInsideFrustum)
+{
     mat4 ortho{};
     ortho[0][0] = 1.0f;
     ortho[1][1] = 1.0f;
@@ -282,7 +301,8 @@ TEST(FrustumTest, ObbFullyInsideFrustum) {
     EXPECT_TRUE(Intersects(frustum, obb)) << "Rotated OBB fully inside should intersect";
 }
 
-TEST(FrustumTest, ObbFullyOutsideFrustum) {
+TEST(FrustumTest, ObbFullyOutsideFrustum)
+{
     mat4 ortho{};
     ortho[0][0] = 1.0f;
     ortho[1][1] = 1.0f;
@@ -295,7 +315,8 @@ TEST(FrustumTest, ObbFullyOutsideFrustum) {
     EXPECT_FALSE(Intersects(frustum, obb)) << "OBB well outside frustum should not intersect";
 }
 
-TEST(FrustumTest, ObbPartiallyIntersectingFrustum) {
+TEST(FrustumTest, ObbPartiallyIntersectingFrustum)
+{
     mat4 ortho{};
     ortho[0][0] = 1.0f;
     ortho[1][1] = 1.0f;
@@ -309,7 +330,8 @@ TEST(FrustumTest, ObbPartiallyIntersectingFrustum) {
     EXPECT_TRUE(Intersects(frustum, obb)) << "OBB crossing frustum boundary should intersect";
 }
 
-TEST(FrustumTest, SymmetricIntersectionAabb) {
+TEST(FrustumTest, SymmetricIntersectionAabb)
+{
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
     const Aabb box{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}};
@@ -319,7 +341,8 @@ TEST(FrustumTest, SymmetricIntersectionAabb) {
         << "Symmetric AABB-Frustum intersection should match";
 }
 
-TEST(FrustumTest, SymmetricIntersectionSphere) {
+TEST(FrustumTest, SymmetricIntersectionSphere)
+{
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
     const Sphere sphere{{0.0f, 0.0f, 0.0f}, 1.0f};
@@ -329,7 +352,8 @@ TEST(FrustumTest, SymmetricIntersectionSphere) {
         << "Symmetric Sphere-Frustum intersection should match";
 }
 
-TEST(FrustumTest, SymmetricIntersectionObb) {
+TEST(FrustumTest, SymmetricIntersectionObb)
+{
     mat4 ortho{};
     ortho[0][0] = 1.0f;
     ortho[1][1] = 1.0f;
@@ -343,7 +367,8 @@ TEST(FrustumTest, SymmetricIntersectionObb) {
         << "Symmetric OBB-Frustum intersection should match";
 }
 
-TEST(FrustumTest, GetCornersReturnsEightPoints) {
+TEST(FrustumTest, GetCornersReturnsEightPoints)
+{
     // Simple orthographic projection
     mat4 ortho{};
     ortho[0][0] = 1.0f;
@@ -358,8 +383,10 @@ TEST(FrustumTest, GetCornersReturnsEightPoints) {
 
     // Check that corners are not all at origin (would indicate failure)
     bool has_non_zero = false;
-    for (const auto& corner : corners) {
-        if (length(corner) > kEpsilon) {
+    for (const auto& corner : corners)
+    {
+        if (length(corner) > kEpsilon)
+        {
             has_non_zero = true;
             break;
         }
@@ -367,7 +394,8 @@ TEST(FrustumTest, GetCornersReturnsEightPoints) {
     EXPECT_TRUE(has_non_zero) << "At least some corners should be non-zero";
 }
 
-TEST(FrustumTest, DegenerateAabbZeroSize) {
+TEST(FrustumTest, DegenerateAabbZeroSize)
+{
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
 
@@ -380,7 +408,8 @@ TEST(FrustumTest, DegenerateAabbZeroSize) {
     EXPECT_EQ(intersects, point_inside) << "Zero-size AABB should behave like point test";
 }
 
-TEST(FrustumTest, DegenerateSphereZeroRadius) {
+TEST(FrustumTest, DegenerateSphereZeroRadius)
+{
     const mat4 identity{};
     const Frustum frustum = ExtractFrustum(identity);
 
@@ -393,7 +422,8 @@ TEST(FrustumTest, DegenerateSphereZeroRadius) {
     EXPECT_EQ(intersects, point_inside) << "Zero-radius sphere should behave like point test";
 }
 
-TEST(FrustumTest, ExtractFrustumHandlesTranslatedViewMatrix) {
+TEST(FrustumTest, ExtractFrustumHandlesTranslatedViewMatrix)
+{
     const float fov = utils::radians(60.0f);
     const float aspect = 16.0f / 9.0f;
     const float near = 0.1f;
@@ -441,4 +471,3 @@ TEST(FrustumTest, ExtractFrustumHandlesTranslatedViewMatrix) {
     EXPECT_TRUE(Intersects(frustum, inside_far)) << "Point just before the far plane should remain inside";
     EXPECT_FALSE(Intersects(frustum, beyond_far)) << "Point past the far plane should be culled";
 }
-

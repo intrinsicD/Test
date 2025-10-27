@@ -21,89 +21,95 @@
 
 #define MAYBE_UNUSED_CONST_AUTO [[maybe_unused]] const auto
 
-namespace engine::compute {
+namespace engine::compute
+{
+    using kernel_id = std::size_t;
+    using kernel_callback = std::function<void()>;
 
-using kernel_id = std::size_t;
-using kernel_callback = std::function<void()>;
-
-enum class TimingDomain {
-    Unknown,
-    Cpu,
-    Gpu,
-};
-
-struct ClockConfiguration {
-    std::string name;
-    TimingDomain domain{TimingDomain::Unknown};
-    std::function<double(const kernel_callback&)> measure;
-};
-
-struct DependencyGraph {
-    struct Node {
-        std::string name;
-        std::vector<kernel_id> dependencies;
-        std::vector<kernel_id> unresolved_dependencies;
+    enum class TimingDomain
+    {
+        Unknown,
+        Cpu,
+        Gpu,
     };
 
-    std::vector<Node> nodes;
+    struct ClockConfiguration
+    {
+        std::string name;
+        TimingDomain domain{TimingDomain::Unknown};
+        std::function<double(const kernel_callback&)> measure;
+    };
 
-    [[nodiscard]] ENGINE_COMPUTE_API std::string to_dot() const;
-};
+    struct DependencyGraph
+    {
+        struct Node
+        {
+            std::string name;
+            std::vector<kernel_id> dependencies;
+            std::vector<kernel_id> unresolved_dependencies;
+        };
 
-struct ExecutionReport {
-    std::vector<std::string> execution_order;
-    std::vector<double> kernel_durations;
-    TimingDomain clock_domain{TimingDomain::Unknown};
-    std::string clock_name;
-    DependencyGraph dependency_graph;
-};
+        std::vector<Node> nodes;
 
-struct DispatcherCapabilities {
-    bool cpu_available{false};
-    bool cuda_available{false};
-};
+        [[nodiscard]] ENGINE_COMPUTE_API std::string to_dot() const;
+    };
 
-class ENGINE_COMPUTE_API Dispatcher {
-public:
-    using kernel_id = engine::compute::kernel_id;
-    using kernel_type = kernel_callback;
+    struct ExecutionReport
+    {
+        std::vector<std::string> execution_order;
+        std::vector<double> kernel_durations;
+        TimingDomain clock_domain{TimingDomain::Unknown};
+        std::string clock_name;
+        DependencyGraph dependency_graph;
+    };
 
-    virtual ~Dispatcher() = default;
+    struct DispatcherCapabilities
+    {
+        bool cpu_available{false};
+        bool cuda_available{false};
+    };
 
-    [[nodiscard]] virtual kernel_id add_kernel(
-        std::string name,
-        kernel_type kernel,
-        std::vector<kernel_id> dependencies = {}) = 0;
+    class ENGINE_COMPUTE_API Dispatcher
+    {
+    public:
+        using kernel_id = engine::compute::kernel_id;
+        using kernel_type = kernel_callback;
 
-    virtual void clear() noexcept = 0;
+        virtual ~Dispatcher() = default;
 
-    [[nodiscard]] virtual ExecutionReport dispatch() = 0;
+        [[nodiscard]] virtual kernel_id add_kernel(
+            std::string name,
+            kernel_type kernel,
+            std::vector<kernel_id> dependencies = {}) = 0;
 
-    [[nodiscard]] virtual std::size_t size() const noexcept = 0;
+        virtual void clear() noexcept = 0;
 
-    [[nodiscard]] virtual DependencyGraph dependency_graph() const = 0;
+        [[nodiscard]] virtual ExecutionReport dispatch() = 0;
 
-    virtual void set_clock(ClockConfiguration configuration) = 0;
+        [[nodiscard]] virtual std::size_t size() const noexcept = 0;
 
-    [[nodiscard]] virtual const ClockConfiguration& clock_configuration() const noexcept = 0;
-};
+        [[nodiscard]] virtual DependencyGraph dependency_graph() const = 0;
 
-[[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cpu_dispatcher();
+        virtual void set_clock(ClockConfiguration configuration) = 0;
 
-[[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cuda_dispatcher();
+        [[nodiscard]] virtual const ClockConfiguration& clock_configuration() const noexcept = 0;
+    };
 
-[[nodiscard]] ENGINE_COMPUTE_API bool is_cpu_dispatcher_available() noexcept;
+    [[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cpu_dispatcher();
 
-[[nodiscard]] ENGINE_COMPUTE_API bool is_cuda_dispatcher_available() noexcept;
+    [[nodiscard]] ENGINE_COMPUTE_API std::unique_ptr<Dispatcher> make_cuda_dispatcher();
 
-[[nodiscard]] ENGINE_COMPUTE_API DispatcherCapabilities dispatcher_capabilities() noexcept;
+    [[nodiscard]] ENGINE_COMPUTE_API bool is_cpu_dispatcher_available() noexcept;
 
-[[nodiscard]] ENGINE_COMPUTE_API ClockConfiguration make_steady_clock_configuration();
+    [[nodiscard]] ENGINE_COMPUTE_API bool is_cuda_dispatcher_available() noexcept;
 
-[[nodiscard]] ENGINE_COMPUTE_API std::string_view module_name() noexcept;
+    [[nodiscard]] ENGINE_COMPUTE_API DispatcherCapabilities dispatcher_capabilities() noexcept;
 
-[[nodiscard]] ENGINE_COMPUTE_API math::mat4 identity_transform() noexcept;
+    [[nodiscard]] ENGINE_COMPUTE_API ClockConfiguration make_steady_clock_configuration();
 
-}  // namespace engine::compute
+    [[nodiscard]] ENGINE_COMPUTE_API std::string_view module_name() noexcept;
+
+    [[nodiscard]] ENGINE_COMPUTE_API math::mat4 identity_transform() noexcept;
+} // namespace engine::compute
 
 extern "C" ENGINE_COMPUTE_API const char* engine_compute_module_name() noexcept;

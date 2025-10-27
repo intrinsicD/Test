@@ -15,9 +15,13 @@ namespace engine::rendering::backend::opengl
         class DefaultCommandStream final : public CommandStream
         {
         public:
-            void begin_submission(const OpenGLSubmission&) override {}
+            void begin_submission(const OpenGLSubmission&) override
+            {
+            }
 
-            void wait_timeline(const OpenGLTimelineSubmit&) override {}
+            void wait_timeline(const OpenGLTimelineSubmit&) override
+            {
+            }
 
             void issue_memory_barrier(std::uint32_t mask) override
             {
@@ -31,11 +35,17 @@ namespace engine::rendering::backend::opengl
 #endif
             }
 
-            void execute_command_buffer(const OpenGLCommandEncoderSubmit&) override {}
+            void execute_command_buffer(const OpenGLCommandEncoderSubmit&) override
+            {
+            }
 
-            void signal_timeline(const OpenGLTimelineSubmit&) override {}
+            void signal_timeline(const OpenGLTimelineSubmit&) override
+            {
+            }
 
-            void signal_fence(resources::FenceNativeHandle, std::uint64_t) override {}
+            void signal_fence(resources::FenceNativeHandle, std::uint64_t) override
+            {
+            }
 
             void end_submission(const OpenGLSubmission&) override
             {
@@ -47,7 +57,7 @@ namespace engine::rendering::backend::opengl
 #endif
             }
         };
-    }  // namespace
+    } // namespace
 
     CommandStream& default_command_stream() noexcept
     {

@@ -11,51 +11,54 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine::assets {
-
-struct MaterialAssetDescriptor {
-    MaterialHandle handle;
-    std::string name;
-    ShaderHandle vertex_shader;
-    ShaderHandle fragment_shader;
-    std::vector<TextureHandle> textures;
-
-    [[nodiscard]] static MaterialAssetDescriptor from_handles(const MaterialHandle& handle,
-                                                              std::string name,
-                                                              ShaderHandle vertex,
-                                                              ShaderHandle fragment,
-                                                              std::vector<TextureHandle> textures = {})
+namespace engine::assets
+{
+    struct MaterialAssetDescriptor
     {
-        return MaterialAssetDescriptor{handle,
-                                       std::move(name),
-                                       std::move(vertex),
-                                       std::move(fragment),
-                                       std::move(textures)};
-    }
-};
+        MaterialHandle handle;
+        std::string name;
+        ShaderHandle vertex_shader;
+        ShaderHandle fragment_shader;
+        std::vector<TextureHandle> textures;
 
-struct MaterialAsset {
-    MaterialAssetDescriptor descriptor{};
-};
+        [[nodiscard]] static MaterialAssetDescriptor from_handles(const MaterialHandle& handle,
+                                                                  std::string name,
+                                                                  ShaderHandle vertex,
+                                                                  ShaderHandle fragment,
+                                                                  std::vector<TextureHandle> textures = {})
+        {
+            return MaterialAssetDescriptor{
+                handle,
+                std::move(name),
+                std::move(vertex),
+                std::move(fragment),
+                std::move(textures)
+            };
+        }
+    };
 
-class MaterialCache {
-public:
-    MaterialCache();
+    struct MaterialAsset
+    {
+        MaterialAssetDescriptor descriptor{};
+    };
 
-    [[nodiscard]] const MaterialAsset& load(const MaterialAssetDescriptor& descriptor);
-    [[nodiscard]] bool contains(const MaterialHandle& handle) const;
-    [[nodiscard]] const MaterialAsset& get(const MaterialHandle& handle) const;
+    class MaterialCache
+    {
+    public:
+        MaterialCache();
 
-    void unload(const MaterialHandle& handle);
+        [[nodiscard]] const MaterialAsset& load(const MaterialAssetDescriptor& descriptor);
+        [[nodiscard]] bool contains(const MaterialHandle& handle) const;
+        [[nodiscard]] const MaterialAsset& get(const MaterialHandle& handle) const;
 
-private:
-    using Pool = core::memory::ResourcePool<MaterialAsset, MaterialHandleTag>;
-    using RawHandle = typename Pool::handle_type;
+        void unload(const MaterialHandle& handle);
 
-    Pool assets_{};
-    std::unordered_map<std::string, RawHandle> bindings_{};
-    std::shared_ptr<void> handle_validator_registration_{};
-};
+    private:
+        using Pool = core::memory::ResourcePool<MaterialAsset, MaterialHandleTag>;
+        using RawHandle = typename Pool::handle_type;
 
-}  // namespace engine::assets
-
+        Pool assets_{};
+        std::unordered_map<std::string, RawHandle> bindings_{};
+        std::shared_ptr<void> handle_validator_registration_{};
+    };
+} // namespace engine::assets

@@ -84,7 +84,7 @@ namespace engine::geometry
             }
 
             [[nodiscard]] float closest_distance(const math::vec3& point,
-                                                  std::vector<std::size_t>& candidates) const noexcept
+                                                 std::vector<std::size_t>& candidates) const noexcept
             {
                 if (triangles_.empty())
                 {
@@ -232,4 +232,3 @@ namespace engine::geometry
         return metrics;
     }
 } // namespace engine::geometry
-

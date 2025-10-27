@@ -111,7 +111,7 @@ TEST(PointCloud, AutoFormatInfersFromExtension)
     intensity[v1] = -4.0F;
 
     const auto file = std::filesystem::temp_directory_path() /
-                      "engine_geometry_point_cloud_auto_infer.PLY"; // Intentional upper-case.
+        "engine_geometry_point_cloud_auto_infer.PLY"; // Intentional upper-case.
 
     geo::PointCloudIOFlags flags;
     flags.format = geo::PointCloudIOFlags::Format::kAuto;
@@ -158,7 +158,7 @@ TEST(PointCloud, SkipsDeletedVerticesDuringRoundTrip)
     EXPECT_EQ(cloud.interface.vertex_count(), 2U);
 
     const auto file = std::filesystem::temp_directory_path() /
-                      "engine_geometry_point_cloud_deleted_filtered.ply";
+        "engine_geometry_point_cloud_deleted_filtered.ply";
 
     geo::PointCloudIOFlags flags;
     flags.format = geo::PointCloudIOFlags::Format::kPLY;
@@ -197,7 +197,7 @@ TEST(PointCloud, AutoFormatDefaultsWithoutExtension)
     normals[v0] = engine::math::vec3{0.0F, -1.0F, 0.0F};
 
     const auto file = std::filesystem::temp_directory_path() /
-                      "engine_geometry_point_cloud_auto_default"; // No extension on purpose.
+        "engine_geometry_point_cloud_auto_default"; // No extension on purpose.
 
     geo::PointCloudIOFlags flags;
     flags.format = geo::PointCloudIOFlags::Format::kAuto;
@@ -279,4 +279,3 @@ TEST(PointCloud, RoundTripsBinaryPLY)
 
     std::filesystem::remove(file);
 }
-

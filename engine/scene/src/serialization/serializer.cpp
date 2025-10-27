@@ -26,14 +26,15 @@ namespace engine::scene::serialization
             std::vector<entity_type> entities;
 
             auto& registry = const_cast<Scene::registry_type&>(scene.registry());
-            auto view = registry.view<entt::entity>();
+            auto view = registry.view < entt::entity > ();
             entities.reserve(scene.size());
             for (auto entity : view)
             {
                 entities.push_back(entity);
             }
 
-            std::sort(entities.begin(), entities.end(), [](entity_type lhs, entity_type rhs) {
+            std::sort(entities.begin(), entities.end(), [](entity_type lhs, entity_type rhs)
+            {
                 return static_cast<underlying_type>(lhs) < static_cast<underlying_type>(rhs);
             });
 
@@ -143,7 +144,8 @@ namespace engine::scene::serialization
         std::unordered_map<underlying_type, entity_type> id_map;
         id_map.reserve(entity_count);
 
-        const auto expect_token = [&](const std::string& expected) {
+        const auto expect_token = [&](const std::string& expected)
+        {
             std::string actual;
             if (!(input >> actual) || actual != expected)
             {
@@ -213,7 +215,8 @@ namespace engine::scene::serialization
 
         for (const auto& pending_entry : pending)
         {
-            const auto resolver = [&](components::serialization::HierarchyRecord::entity_type value) {
+            const auto resolver = [&](components::serialization::HierarchyRecord::entity_type value)
+            {
                 if (value == components::serialization::HierarchyRecord::null_value())
                 {
                     return entt::entity(entt::null);

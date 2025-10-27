@@ -33,16 +33,20 @@ namespace engine::rendering::tests
 
         std::unique_ptr<CommandEncoder> begin_encoder(const CommandEncoderDescriptor& descriptor) override
         {
-            begin_records.push_back(DescriptorRecord{std::string{descriptor.pass_name}, descriptor.queue,
-                                                     descriptor.command_buffer});
+            begin_records.push_back(DescriptorRecord{
+                std::string{descriptor.pass_name}, descriptor.queue,
+                descriptor.command_buffer
+            });
             return std::make_unique<RecordingCommandEncoder>();
         }
 
         void end_encoder(const CommandEncoderDescriptor& descriptor,
-                          std::unique_ptr<CommandEncoder> encoder) override
+                         std::unique_ptr<CommandEncoder> encoder) override
         {
-            end_records.push_back(DescriptorRecord{std::string{descriptor.pass_name}, descriptor.queue,
-                                                   descriptor.command_buffer});
+            end_records.push_back(DescriptorRecord{
+                std::string{descriptor.pass_name}, descriptor.queue,
+                descriptor.command_buffer
+            });
             auto* recording = dynamic_cast<RecordingCommandEncoder*>(encoder.release());
             if (recording != nullptr)
             {
@@ -59,7 +63,9 @@ namespace engine::rendering::tests
     class NullCommandEncoder final : public CommandEncoder
     {
     public:
-        void draw_geometry(const GeometryDrawCommand&) override {}
+        void draw_geometry(const GeometryDrawCommand&) override
+        {
+        }
     };
 
     /// Provider that dispenses no-op encoders.
@@ -71,6 +77,8 @@ namespace engine::rendering::tests
             return std::make_unique<NullCommandEncoder>();
         }
 
-        void end_encoder(const CommandEncoderDescriptor&, std::unique_ptr<CommandEncoder>) override {}
+        void end_encoder(const CommandEncoderDescriptor&, std::unique_ptr<CommandEncoder>) override
+        {
+        }
     };
 }

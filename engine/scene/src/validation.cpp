@@ -68,9 +68,9 @@ namespace engine::scene::validation
             const auto& rotation = transform.rotation;
             const auto& translation = transform.translation;
             return std::isfinite(scale[0]) && std::isfinite(scale[1]) && std::isfinite(scale[2]) &&
-                   std::isfinite(rotation.w) && std::isfinite(rotation.x) && std::isfinite(rotation.y) &&
-                   std::isfinite(rotation.z) &&
-                   std::isfinite(translation[0]) && std::isfinite(translation[1]) && std::isfinite(translation[2]);
+                std::isfinite(rotation.w) && std::isfinite(rotation.x) && std::isfinite(rotation.y) &&
+                std::isfinite(rotation.z) &&
+                std::isfinite(translation[0]) && std::isfinite(translation[1]) && std::isfinite(translation[2]);
         }
 
         [[nodiscard]] float max_transform_delta(const math::Transform<float>& lhs,
@@ -179,7 +179,8 @@ namespace engine::scene::validation
         void validate_hierarchy_links(const entt::registry& registry, HierarchyValidationReport& report)
         {
             std::unordered_set<entity_type> processed{};
-            auto view = registry.view<const components::Hierarchy>();
+            auto view = registry.view < const
+            components::Hierarchy > ();
 
             for (auto entity : view)
             {
@@ -211,7 +212,7 @@ namespace engine::scene::validation
                     {
                         std::ostringstream message;
                         message << "Entity " << format_entity(child)
-                                << " references invalid parent " << format_entity(current);
+                            << " references invalid parent " << format_entity(current);
                         record_issue(report, child, current, HierarchyIssueType::DanglingParent, message.str());
                         break;
                     }
@@ -220,8 +221,8 @@ namespace engine::scene::validation
                     {
                         std::ostringstream message;
                         message << "Entity " << format_entity(child)
-                                << " references parent " << format_entity(current)
-                                << " that is missing a Hierarchy component";
+                            << " references parent " << format_entity(current)
+                            << " that is missing a Hierarchy component";
                         record_issue(report,
                                      child,
                                      current,
@@ -234,7 +235,7 @@ namespace engine::scene::validation
                     {
                         std::ostringstream message;
                         message << "Cycle detected when traversing parent chain for entity "
-                                << format_entity(child) << " via parent " << format_entity(current);
+                            << format_entity(child) << " via parent " << format_entity(current);
                         record_issue(report,
                                      child,
                                      current,
@@ -255,7 +256,8 @@ namespace engine::scene::validation
         {
             TransformCache cache{};
             RecursionSet recursion_guard{};
-            auto view = registry.view<const components::LocalTransform>();
+            auto view = registry.view < const
+            components::LocalTransform > ();
 
             for (auto entity : view)
             {
@@ -269,7 +271,7 @@ namespace engine::scene::validation
                 {
                     std::ostringstream message;
                     message << "Entity " << format_entity(entity)
-                            << " has non-finite values in its LocalTransform";
+                        << " has non-finite values in its LocalTransform";
                     record_issue(report,
                                  entity,
                                  entt::null,
@@ -282,7 +284,7 @@ namespace engine::scene::validation
                 {
                     std::ostringstream message;
                     message << "Entity " << format_entity(entity)
-                            << " has non-finite values in its WorldTransform";
+                        << " has non-finite values in its WorldTransform";
                     record_issue(report,
                                  entity,
                                  entt::null,
@@ -312,7 +314,7 @@ namespace engine::scene::validation
                 {
                     std::ostringstream message;
                     message << "World transform mismatch for entity " << format_entity(entity)
-                            << " exceeds tolerance (" << delta << ")";
+                        << " exceeds tolerance (" << delta << ")";
                     record_issue(report,
                                  entity,
                                  entt::null,
@@ -323,14 +325,14 @@ namespace engine::scene::validation
         }
     } // namespace
 
-        HierarchyValidationReport validate_hierarchy(const entt::registry& registry,
-                                                     const HierarchyValidationOptions& options)
-        {
-            HierarchyValidationReport report{};
-            validate_hierarchy_links(registry, report);
-            validate_transforms(registry, options, report);
-            return report;
-        }
+    HierarchyValidationReport validate_hierarchy(const entt::registry& registry,
+                                                 const HierarchyValidationOptions& options)
+    {
+        HierarchyValidationReport report{};
+        validate_hierarchy_links(registry, report);
+        validate_transforms(registry, options, report);
+        return report;
+    }
 
     HierarchyValidationReport validate_hierarchy(const Scene& scene,
                                                  const HierarchyValidationOptions& options)

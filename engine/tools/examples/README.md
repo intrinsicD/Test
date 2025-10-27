@@ -2,11 +2,13 @@
 
 ## Overview
 
-The `geometry_viewer` example demonstrates how to use the Test Engine's rendering system to set up geometry rendering with the research baseline preset.
+The `geometry_viewer` example demonstrates how to use the Test Engine's rendering system to set up geometry rendering
+with the research baseline preset.
 
 ## Purpose
 
 This example shows developers how to:
+
 - Initialize the OpenGL rendering backend
 - Create a scene with renderable geometry entities
 - Configure the research baseline rendering preset (forward/deferred shading)
@@ -31,21 +33,25 @@ cmake --build . --target geometry_viewer
 ## What It Demonstrates
 
 ### 1. Rendering Backend Initialization
+
 - Creates a recording GPU resource provider for OpenGL
 - Initializes the OpenGL GPU scheduler
 
 ### 2. Scene Setup
+
 - Creates an ECS scene using EnTT
 - Adds entities with transform and render geometry components
 - Demonstrates the factory pattern for creating geometry components
 
 ### 3. Research Baseline Preset
+
 - Configures the research rendering baseline (RE-610)
 - Sets up forward shading mode
 - Configures viewport resolution
 - Optional debug overlays (normals, UVs, materials, light volumes)
 
 ### 4. Frame Graph
+
 - Creates and configures the frame graph
 - Compiles rendering passes
 - Shows available render targets (color, depth, G-buffers)
@@ -71,5 +77,6 @@ To create a fully functional geometry rendering application, you would:
 
 ✅ **Complete** - Example builds and runs successfully, demonstrating the research baseline rendering preset (RE-610).
 
-The next priority is to implement actual window creation and frame graph execution to achieve real-time geometry rendering.
+The next priority is to implement actual window creation and frame graph execution to achieve real-time geometry
+rendering.
 

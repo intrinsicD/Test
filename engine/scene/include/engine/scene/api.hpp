@@ -12,10 +12,9 @@
 #  define ENGINE_SCENE_API
 #endif
 
-namespace engine::scene {
-
-[[nodiscard]] std::string_view module_name() noexcept;
-
-}  // namespace engine::scene
+namespace engine::scene
+{
+    [[nodiscard]] std::string_view module_name() noexcept;
+} // namespace engine::scene
 
 extern "C" ENGINE_SCENE_API const char* engine_scene_module_name() noexcept;

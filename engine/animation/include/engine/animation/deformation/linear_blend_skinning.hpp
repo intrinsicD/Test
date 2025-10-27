@@ -19,4 +19,3 @@ namespace engine::animation::skinning
                                    std::span<const math::Transform<float>> global_transforms,
                                    std::span<math::Transform<float>> out_skinning);
 }
-

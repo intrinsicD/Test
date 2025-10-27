@@ -38,7 +38,8 @@ namespace engine::rendering
         ResearchShadingMode active_mode{ResearchShadingMode::Deferred};
         std::array<std::uint64_t, 2> mode_selection_counts{0, 0};
         std::array<bool, static_cast<std::size_t>(ResearchOverlay::Count)> overlays_enabled{};
-        std::array<std::uint64_t, static_cast<std::size_t>(ResearchOverlay::Count)> overlay_selection_counts{0, 0, 0, 0};
+        std::array<std::uint64_t, static_cast<std::size_t>(ResearchOverlay::Count)> overlay_selection_counts
+            {0, 0, 0, 0};
         std::vector<ResearchBaselinePassTelemetry> passes{};
     };
 
@@ -72,8 +73,9 @@ namespace engine::rendering
         ResearchShadingMode active_mode_{ResearchShadingMode::Deferred};
         std::array<std::uint64_t, 2> mode_selection_counts_{0, 0};
         std::array<bool, static_cast<std::size_t>(ResearchOverlay::Count)> overlays_enabled_{};
-        std::array<std::uint64_t, static_cast<std::size_t>(ResearchOverlay::Count)> overlay_selection_counts_{0, 0, 0, 0};
+        std::array<std::uint64_t, static_cast<std::size_t>(ResearchOverlay::Count)> overlay_selection_counts_{
+            0, 0, 0, 0
+        };
         PassMap passes_{};
     };
 }
-

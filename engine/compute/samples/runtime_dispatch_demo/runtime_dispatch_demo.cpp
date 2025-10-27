@@ -260,28 +260,28 @@ namespace
     void print_usage(std::ostream& stream)
     {
         stream << "engine_compute_runtime_sample\n"
-               << "Capture dispatcher telemetry from RuntimeHost and write a JSON summary." << '\n'
-               << '\n'
-               << "Usage:\n"
-               << "  engine_compute_runtime_sample [--frames N] [--dt SECONDS] [--output FILE]\\\n"
-               << "      [--queues COUNT] [--queue-names LIST] [--queue-map category=queue]\\\n"
-               << "      [--workload PROFILE] [--repeat COUNT] [--output-dir DIR] [--pretty]\n"
-               << '\n'
-               << "Options:\n"
-               << "  --frames N   Number of ticks to execute (default: 1024)\n"
-               << "  --dt SECONDS Simulation timestep for each tick (default: 1/60)\n"
-               << "  --repeat COUNT Execute COUNT captures sequentially (default: 1)\n"
-               << "  --queues N   Number of logical compute queues recorded in telemetry (default: 1)\n"
-               << "  --queue-names LIST   Comma-separated queue names (implies --queues=LIST length)\n"
-               << "  --queue-map category=queue   Override queue selection for a category\n"
-               << "  --workload PROFILE  Workload intensity: light | balanced | heavy (default: balanced)\n"
-               << "  --dispatcher-backend BACKEND  Dispatcher backend: cpu | cuda (default: cpu)\n"
-               << "  --jitter-budget-ms VALUE  Maximum allowed frame dispatch jitter σ in milliseconds (default: 0.5)\n"
-               << "  --baseline   Capture a single-queue baseline run and report speed-up (target 1.5x)\n"
-               << "  --output FILE Write JSON payload to FILE instead of stdout\n"
-               << "  --output-dir DIR Directory for JSON payloads when repeating (default: parent of --output)\n"
-               << "  --pretty     Emit indented JSON when writing to FILE\n"
-               << "  --help       Show this message\n";
+            << "Capture dispatcher telemetry from RuntimeHost and write a JSON summary." << '\n'
+            << '\n'
+            << "Usage:\n"
+            << "  engine_compute_runtime_sample [--frames N] [--dt SECONDS] [--output FILE]\\\n"
+            << "      [--queues COUNT] [--queue-names LIST] [--queue-map category=queue]\\\n"
+            << "      [--workload PROFILE] [--repeat COUNT] [--output-dir DIR] [--pretty]\n"
+            << '\n'
+            << "Options:\n"
+            << "  --frames N   Number of ticks to execute (default: 1024)\n"
+            << "  --dt SECONDS Simulation timestep for each tick (default: 1/60)\n"
+            << "  --repeat COUNT Execute COUNT captures sequentially (default: 1)\n"
+            << "  --queues N   Number of logical compute queues recorded in telemetry (default: 1)\n"
+            << "  --queue-names LIST   Comma-separated queue names (implies --queues=LIST length)\n"
+            << "  --queue-map category=queue   Override queue selection for a category\n"
+            << "  --workload PROFILE  Workload intensity: light | balanced | heavy (default: balanced)\n"
+            << "  --dispatcher-backend BACKEND  Dispatcher backend: cpu | cuda (default: cpu)\n"
+            << "  --jitter-budget-ms VALUE  Maximum allowed frame dispatch jitter σ in milliseconds (default: 0.5)\n"
+            << "  --baseline   Capture a single-queue baseline run and report speed-up (target 1.5x)\n"
+            << "  --output FILE Write JSON payload to FILE instead of stdout\n"
+            << "  --output-dir DIR Directory for JSON payloads when repeating (default: parent of --output)\n"
+            << "  --pretty     Emit indented JSON when writing to FILE\n"
+            << "  --help       Show this message\n";
     }
 
     [[nodiscard]] double parse_double(std::string_view value)
@@ -300,7 +300,7 @@ namespace
     {
         std::string buffer{value};
         char* end = nullptr;
-        const unsigned long long parsed = std::strtoull(buffer.c_str(), &end, 10);  // NOLINT
+        const unsigned long long parsed = std::strtoull(buffer.c_str(), &end, 10); // NOLINT
         if (end == buffer.c_str())
         {
             throw std::invalid_argument{"Expected positive integer"};
@@ -592,7 +592,8 @@ namespace
         {
             value /= 10U;
             ++digits;
-        } while (value > 0U);
+        }
+        while (value > 0U);
         return digits;
     }
 
@@ -647,7 +648,7 @@ namespace
         const std::size_t digits = digit_count(options.repeat_count);
         std::ostringstream filename;
         filename << prefix << "-run" << std::setw(static_cast<int>(digits)) << std::setfill('0')
-                 << (run_index + 1U);
+            << (run_index + 1U);
         if (!extension.empty())
         {
             filename << extension;
@@ -995,8 +996,8 @@ namespace
             {
                 const std::string& name = report.execution_order[dispatch_index];
                 const double duration_s = report.kernel_durations.size() > dispatch_index
-                                               ? report.kernel_durations[dispatch_index]
-                                               : 0.0;
+                                              ? report.kernel_durations[dispatch_index]
+                                              : 0.0;
                 const double duration_ms = duration_s * 1000.0;
                 const std::string category = dispatch_category(name);
                 const std::size_t queue_index = assign_queue(category, queue_count, override_indices);
@@ -1084,9 +1085,9 @@ namespace
         std::cout << "Frames: " << result.summary.frame_totals.samples << '\n';
         std::cout << "Requested frames: " << result.requested_frames << '\n';
         std::cout << "Average frame dispatch time: " << std::fixed << std::setprecision(3)
-                  << result.summary.frame_totals.mean_ms << " ms\n";
+            << result.summary.frame_totals.mean_ms << " ms\n";
         std::cout << "Clock: " << result.clock_name << " ("
-                  << timing_domain_to_string(result.clock_domain) << ")\n";
+            << timing_domain_to_string(result.clock_domain) << ")\n";
         std::cout << "Workload: " << samples::workload_to_string(result.workload) << '\n';
         std::cout << "Dispatcher backend: " << dispatcher_backend_to_string(result.dispatcher_backend) << '\n';
         std::cout << "Queues: " << result.queue_names.size();
@@ -1117,22 +1118,22 @@ namespace
         const MemoryUsageSummary& memory = result.summary.memory;
         std::cout << '\n' << "GPU staging estimate:" << '\n';
         std::cout << "  - Total: " << std::fixed << std::setprecision(3)
-                  << memory.total_mebibytes() << " MiB (budget "
-                  << std::setprecision(3) << memory.budget_mebibytes() << " MiB)";
+            << memory.total_mebibytes() << " MiB (budget "
+            << std::setprecision(3) << memory.budget_mebibytes() << " MiB)";
         if (memory.exceeds_budget())
         {
             std::cout << " ⚠";
         }
         std::cout << '\n';
         std::cout << "  - Positions: " << std::setprecision(3)
-                  << static_cast<double>(memory.position_bytes) / kBytesPerMebibyte
-                  << " MiB across " << memory.vertex_count << " vertices\n";
+            << static_cast<double>(memory.position_bytes) / kBytesPerMebibyte
+            << " MiB across " << memory.vertex_count << " vertices\n";
         std::cout << "  - Normals: " << std::setprecision(3)
-                  << static_cast<double>(memory.normal_bytes) / kBytesPerMebibyte
-                  << " MiB\n";
+            << static_cast<double>(memory.normal_bytes) / kBytesPerMebibyte
+            << " MiB\n";
         std::cout << "  - Skinning transforms: " << std::setprecision(3)
-                  << static_cast<double>(memory.transform_bytes) / kBytesPerMebibyte
-                  << " MiB across " << memory.joint_count << " joints\n";
+            << static_cast<double>(memory.transform_bytes) / kBytesPerMebibyte
+            << " MiB across " << memory.joint_count << " joints\n";
         if (memory.exceeds_budget())
         {
             std::cout << "  WARNING: Estimated GPU staging exceeds the 256 MiB budget." << '\n';
@@ -1144,7 +1145,8 @@ namespace
         {
             top_dispatches.emplace_back(name, stats);
         }
-        std::sort(top_dispatches.begin(), top_dispatches.end(), [](const auto& lhs, const auto& rhs) {
+        std::sort(top_dispatches.begin(), top_dispatches.end(), [](const auto& lhs, const auto& rhs)
+        {
             return lhs.second.mean_ms > rhs.second.mean_ms;
         });
         const std::size_t count = std::min<std::size_t>(top_dispatches.size(), 5U);
@@ -1155,8 +1157,8 @@ namespace
             {
                 const auto& [name, stats] = top_dispatches[index];
                 std::cout << "  - " << name << ": " << std::fixed << std::setprecision(3)
-                          << stats.mean_ms << " ms (jitter " << std::setprecision(2)
-                          << stats.jitter_percent() << "%)\n";
+                    << stats.mean_ms << " ms (jitter " << std::setprecision(2)
+                    << stats.jitter_percent() << "%)\n";
             }
         }
 
@@ -1166,13 +1168,13 @@ namespace
             for (const auto& [queue_name, stats] : result.summary.queues)
             {
                 std::cout << "  - " << queue_name << ": total " << std::fixed << std::setprecision(3)
-                          << stats.total_ms << " ms across " << stats.samples << " samples\n";
+                    << stats.total_ms << " ms across " << stats.samples << " samples\n";
             }
         }
 
         const double frame_jitter_ms = result.summary.frame_totals.stddev_ms;
         std::cout << '\n' << "Frame dispatch jitter σ: " << std::fixed << std::setprecision(3) << frame_jitter_ms
-                  << " ms (budget " << std::setprecision(3) << result.jitter_budget_ms << " ms)";
+            << " ms (budget " << std::setprecision(3) << result.jitter_budget_ms << " ms)";
         const bool frame_jitter_exceeded = frame_jitter_ms > result.jitter_budget_ms && result.jitter_budget_ms >= 0.0;
         if (frame_jitter_exceeded)
         {
@@ -1190,7 +1192,7 @@ namespace
             for (const auto& entry : result.summary.queue_dependencies)
             {
                 std::cout << "  - " << entry.from_queue << " -> " << entry.to_queue << ": " << entry.edge_count
-                          << " dependencies";
+                    << " dependencies";
                 if (!entry.consumer_kernels.empty())
                 {
                     std::cout << " (consumers: ";
@@ -1214,7 +1216,7 @@ namespace
             for (const auto& [category, stats] : result.summary.categories)
             {
                 std::cout << "  - " << category << ": total " << std::fixed << std::setprecision(3)
-                          << stats.total_ms << " ms across " << stats.samples << " samples\n";
+                    << stats.total_ms << " ms across " << stats.samples << " samples\n";
             }
         }
 
@@ -1227,21 +1229,22 @@ namespace
                 std::cout << 's';
             }
             std::cout << ") average frame dispatch: " << std::fixed << std::setprecision(3)
-                      << stats.mean_ms << " ms";
+                << stats.mean_ms << " ms";
             const double jitter = stats.jitter_percent();
             std::cout << " (min " << std::setprecision(3) << stats.min_ms << ", max " << stats.max_ms
-                      << ", σ " << stats.stddev_ms << ", jitter " << std::setprecision(2) << jitter << "%)\n";
+                << ", σ " << stats.stddev_ms << ", jitter " << std::setprecision(2) << jitter << "%)\n";
             std::cout << "Speed-up vs baseline: " << std::fixed << std::setprecision(3) << speedup << 'x';
             if (speedup < kBaselineSpeedupTarget)
             {
                 std::cout << " (below " << std::setprecision(2) << kBaselineSpeedupTarget << "x target)";
             }
             std::cout << '\n';
-            const bool baseline_jitter_exceeded = result.jitter_budget_ms >= 0.0 && stats.stddev_ms > result.jitter_budget_ms;
+            const bool baseline_jitter_exceeded = result.jitter_budget_ms >= 0.0 && stats.stddev_ms > result.
+                jitter_budget_ms;
             if (frame_jitter_exceeded || baseline_jitter_exceeded)
             {
                 std::cout << "Baseline jitter σ: " << std::fixed << std::setprecision(3) << stats.stddev_ms
-                          << " ms";
+                    << " ms";
                 if (result.jitter_budget_ms >= 0.0)
                 {
                     std::cout << " (budget " << std::setprecision(3) << result.jitter_budget_ms << " ms)";
@@ -1273,7 +1276,8 @@ namespace
             stream << '\n';
         }
 
-        auto emit_field = [&](std::string_view key, double value, bool last) {
+        auto emit_field = [&](std::string_view key, double value, bool last)
+        {
             write_indent(stream, indent_level + 1U, pretty);
             stream << '"' << key << '"' << ':';
             if (pretty)
@@ -1624,7 +1628,8 @@ namespace
                 stream << '\n';
             }
 
-            auto emit_number = [&](std::string_view key, double value, bool last) {
+            auto emit_number = [&](std::string_view key, double value, bool last)
+            {
                 write_indent(stream, 2U, pretty);
                 stream << '"' << key << '"' << ':';
                 if (pretty)
@@ -1641,7 +1646,8 @@ namespace
                     stream << '\n';
                 }
             };
-            auto emit_size = [&](std::string_view key, std::size_t value, bool last) {
+            auto emit_size = [&](std::string_view key, std::size_t value, bool last)
+            {
                 write_indent(stream, 2U, pretty);
                 stream << '"' << key << '"' << ':';
                 if (pretty)
@@ -1658,7 +1664,8 @@ namespace
                     stream << '\n';
                 }
             };
-            auto emit_bool = [&](std::string_view key, bool value, bool last) {
+            auto emit_bool = [&](std::string_view key, bool value, bool last)
+            {
                 write_indent(stream, 2U, pretty);
                 stream << '"' << key << '"' << ':';
                 if (pretty)
@@ -1722,7 +1729,8 @@ namespace
                 stream << '\n';
             }
 
-            const bool baseline_jitter_exceeded = stats.stddev_ms > result.jitter_budget_ms && result.jitter_budget_ms >= 0.0;
+            const bool baseline_jitter_exceeded = stats.stddev_ms > result.jitter_budget_ms && result.jitter_budget_ms
+                >= 0.0;
             emit_number("average_frame_ms", stats.mean_ms, false);
             emit_number("min_frame_ms", stats.min_ms, false);
             emit_number("max_frame_ms", stats.max_ms, false);
@@ -2673,7 +2681,7 @@ namespace
         }
         stream << "}" << std::endl;
     }
-}  // namespace
+} // namespace
 
 int main(int argc, char* argv[])
 {
@@ -2704,8 +2712,8 @@ int main(int argc, char* argv[])
             const RunResult* baseline_result = baseline ? &baseline->result : nullptr;
             const double speedup = baseline_result != nullptr
                                        ? compute_speedup(
-                                             baseline_result->summary.frame_totals.mean_ms,
-                                             primary.result.summary.frame_totals.mean_ms)
+                                           baseline_result->summary.frame_totals.mean_ms,
+                                           primary.result.summary.frame_totals.mean_ms)
                                        : 0.0;
 
             if (run_index > 0U)

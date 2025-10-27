@@ -20,7 +20,8 @@ namespace engine::geometry::graph
     {
         [[nodiscard]] std::string to_lower(std::string value)
         {
-            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c)
+            {
                 return static_cast<char>(std::tolower(c));
             });
             return value;
@@ -57,10 +58,10 @@ namespace engine::geometry::graph
         const IOFlags::Format format = resolve_format(IOFlags::Format::kAuto, path);
         switch (format)
         {
-            case IOFlags::Format::kEdgeList:
-                break;
-            default:
-                throw std::runtime_error("Unsupported graph format for file \"" + path.string() + "\"");
+        case IOFlags::Format::kEdgeList:
+            break;
+        default:
+            throw std::runtime_error("Unsupported graph format for file \"" + path.string() + "\"");
         }
 
         std::ifstream stream(path);
@@ -110,7 +111,7 @@ namespace engine::geometry::graph
                 if (!(line_stream >> declared_vertices >> declared_edges))
                 {
                     throw std::runtime_error("Malformed graph header on line " + std::to_string(line_number) +
-                                             " of \"" + path.string() + "\"");
+                        " of \"" + path.string() + "\"");
                 }
                 continue;
             }
@@ -123,7 +124,7 @@ namespace engine::geometry::graph
                 if (!(line_stream >> x >> y >> z))
                 {
                     throw std::runtime_error("Invalid vertex specification on line " + std::to_string(line_number) +
-                                             " of \"" + path.string() + "\"");
+                        " of \"" + path.string() + "\"");
                 }
 
                 positions.emplace_back(x, y, z);
@@ -136,7 +137,7 @@ namespace engine::geometry::graph
                 if (!(line_stream >> edge.start >> edge.end))
                 {
                     throw std::runtime_error("Invalid edge specification on line " + std::to_string(line_number) +
-                                             " of \"" + path.string() + "\"");
+                        " of \"" + path.string() + "\"");
                 }
 
                 edges.emplace_back(edge);
@@ -144,21 +145,21 @@ namespace engine::geometry::graph
             }
 
             throw std::runtime_error("Unknown directive \"" + token + "\" on line " + std::to_string(line_number) +
-                                     " of \"" + path.string() + "\"");
+                " of \"" + path.string() + "\"");
         }
 
         if (declared_vertices != 0 && declared_vertices != positions.size())
         {
             throw std::runtime_error("Graph file \"" + path.string() + "\" declares " +
-                                     std::to_string(declared_vertices) + " vertices but provides " +
-                                     std::to_string(positions.size()));
+                std::to_string(declared_vertices) + " vertices but provides " +
+                std::to_string(positions.size()));
         }
 
         if (declared_edges != 0 && declared_edges != edges.size())
         {
             throw std::runtime_error("Graph file \"" + path.string() + "\" declares " +
-                                     std::to_string(declared_edges) + " edges but provides " +
-                                     std::to_string(edges.size()));
+                std::to_string(declared_edges) + " edges but provides " +
+                std::to_string(edges.size()));
         }
 
         graph.clear();
@@ -180,7 +181,8 @@ namespace engine::geometry::graph
 
             if (edge.start >= vertex_handles.size() || edge.end >= vertex_handles.size())
             {
-                throw std::runtime_error("Edge in graph file \"" + path.string() + "\" references vertex outside range");
+                throw std::runtime_error(
+                    "Edge in graph file \"" + path.string() + "\" references vertex outside range");
             }
 
             const auto halfedge = graph.add_edge(vertex_handles[edge.start], vertex_handles[edge.end]);

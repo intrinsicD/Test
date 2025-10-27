@@ -70,7 +70,7 @@ namespace
         {
             const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
             path = std::filesystem::temp_directory_path() /
-                   ("engine-io-" + std::to_string(timestamp));
+                ("engine-io-" + std::to_string(timestamp));
             std::filesystem::create_directories(path);
         }
 
@@ -97,7 +97,7 @@ namespace
         std::ofstream stream{path, std::ios::binary};
         ASSERT_TRUE(stream.good());
 
-        std::array<char, 80U> header{};
+        std::array < char, 80U > header{};
         const std::string name = "binary stl";
         std::copy(name.begin(), name.end(), header.begin());
         stream.write(header.data(), static_cast<std::streamsize>(header.size()));
@@ -109,7 +109,7 @@ namespace
             0.0F, 0.0F, 1.0F, // normal
             0.0F, 0.0F, 0.0F, // vertex 0
             1.0F, 0.0F, 0.0F, // vertex 1
-            0.0F, 1.0F, 0.0F  // vertex 2
+            0.0F, 1.0F, 0.0F // vertex 2
         };
         for (float value : values)
         {
@@ -163,9 +163,9 @@ TEST(GeometryDetection, DetectsObjMesh)
     TempDirectory temp;
     const auto path = temp.path / "triangle.obj";
     write_file(path, "v 0 0 0\n"
-                    "v 1 0 0\n"
-                    "v 0 1 0\n"
-                    "f 1 2 3\n");
+               "v 1 0 0\n"
+               "v 0 1 0\n"
+               "f 1 2 3\n");
 
     const auto detection = engine::io::detect_geometry_file(path);
     ASSERT_TRUE(detection);
@@ -376,9 +376,9 @@ TEST(GeometryIO, ReadAndWriteMesh)
     TempDirectory temp;
     const auto path = temp.path / "triangle.obj";
     write_file(path, "v 0 0 0\n"
-                    "v 1 0 0\n"
-                    "v 0 1 0\n"
-                    "f 1 2 3\n");
+               "v 1 0 0\n"
+               "v 0 1 0\n"
+               "f 1 2 3\n");
 
     engine::geometry::Mesh mesh;
     ASSERT_TRUE(engine::io::read_mesh(path, mesh.interface, engine::io::MeshFileFormat::obj));
@@ -485,7 +485,7 @@ TEST(GeometryIO, ReadMeshWithoutGeometryReturnsInvalidArgument)
     EXPECT_EQ(result.error().code(), engine::io::GeometryIoError::invalid_argument);
     const auto& message = result.error().message();
     EXPECT_TRUE(message.find("does not define any vertices") != std::string::npos ||
-                message.find("does not define any faces") != std::string::npos);
+        message.find("does not define any faces") != std::string::npos);
 }
 
 TEST(GeometryIO, WriteMeshWithInvalidParentReturnsIoFailure)
@@ -502,7 +502,7 @@ TEST(GeometryIO, WriteMeshWithInvalidParentReturnsIoFailure)
     ASSERT_TRUE(mesh.interface.add_face(face));
 
     const auto result = engine::io::write_mesh(blocker / "triangle.obj", mesh.interface,
-                                              engine::io::MeshFileFormat::obj);
+                                               engine::io::MeshFileFormat::obj);
     ASSERT_FALSE(result);
     EXPECT_EQ(result.error().code(), engine::io::GeometryIoError::io_failure);
 }
@@ -512,9 +512,9 @@ TEST(GeometryIO, LoadMeshRejectsMissingPointer)
     TempDirectory temp;
     const auto path = temp.path / "triangle.obj";
     write_file(path, "v 0 0 0\n"
-                    "v 1 0 0\n"
-                    "v 0 1 0\n"
-                    "f 1 2 3\n");
+               "v 1 0 0\n"
+               "v 0 1 0\n"
+               "f 1 2 3\n");
 
     engine::geometry::Mesh mesh;
     const auto result = engine::io::load_geometry(path, nullptr, nullptr, nullptr);
@@ -532,9 +532,9 @@ TEST(GeometryIO, AutoRoutingLoadAndSave)
 
     const auto mesh_path = temp.path / "mesh.obj";
     write_file(mesh_path, "v 0 0 0\n"
-                             "v 1 0 0\n"
-                             "v 0 1 0\n"
-                             "f 1 2 3\n");
+               "v 1 0 0\n"
+               "v 0 1 0\n"
+               "f 1 2 3\n");
 
     const auto cloud_path = temp.path / "cloud.ply";
     write_file(cloud_path,

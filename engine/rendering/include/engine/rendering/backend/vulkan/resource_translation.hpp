@@ -32,7 +32,7 @@ namespace engine::rendering::backend::vulkan
     };
 
     using VulkanResourceDescription =
-        std::variant<VulkanImageResourceDescription, VulkanBufferResourceDescription>;
+    std::variant<VulkanImageResourceDescription, VulkanBufferResourceDescription>;
 
     VulkanResourceDescription translate_resource(const FrameGraphResourceInfo& info);
 

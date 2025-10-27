@@ -28,8 +28,8 @@
 
 #include "engine/core/threading/io_thread_pool.hpp"
 
-namespace engine::assets {
-
+namespace engine::assets
+{
     enum class AssetType : int
     {
         unknown = 0,
@@ -280,7 +280,8 @@ namespace engine::assets {
     {
     public:
         explicit AssetLoadException(AssetLoadError error)
-            : std::runtime_error([&error]() {
+            : std::runtime_error([&error]()
+              {
                   const auto message = error.message();
                   if (!message.empty())
                   {
@@ -338,7 +339,8 @@ namespace engine::assets {
     template <typename Handle>
     class AssetLoadFuture;
 
-    namespace detail {
+    namespace detail
+    {
         template <typename Handle>
         struct AssetLoadSharedState
         {
@@ -425,7 +427,8 @@ namespace engine::assets {
             }
 
             std::unique_lock lock{state_->mutex};
-            state_->condition.wait(lock, [this]() {
+            state_->condition.wait(lock, [this]()
+            {
                 return is_terminal_state_unlocked();
             });
         }
@@ -434,8 +437,10 @@ namespace engine::assets {
         {
             if (!state_)
             {
-                return result_type{make_asset_load_error(AssetLoadErrorCategory::ValidationError,
-                                                         "invalid future")};
+                return result_type{
+                    make_asset_load_error(AssetLoadErrorCategory::ValidationError,
+                                          "invalid future")
+                };
             }
 
             wait();
@@ -443,8 +448,10 @@ namespace engine::assets {
             std::scoped_lock lock{state_->mutex};
             if (!state_->outcome.has_value())
             {
-                return result_type{make_asset_load_error(AssetLoadErrorCategory::ValidationError,
-                                                         "missing outcome")};
+                return result_type{
+                    make_asset_load_error(AssetLoadErrorCategory::ValidationError,
+                                          "missing outcome")
+                };
             }
 
             return state_->outcome.value();
@@ -468,7 +475,7 @@ namespace engine::assets {
                 return;
             }
 
-            std::function<void()> callback;
+            std::function < void() > callback;
             {
                 std::lock_guard lock{state_->mutex};
                 if (state_->cancellation_requested)
@@ -510,13 +517,14 @@ namespace engine::assets {
         [[nodiscard]] bool is_terminal_state_unlocked() const noexcept
         {
             return state_->state == AssetLoadState::Ready || state_->state == AssetLoadState::Failed ||
-                   state_->state == AssetLoadState::Cancelled;
+                state_->state == AssetLoadState::Cancelled;
         }
 
         std::shared_ptr<detail::AssetLoadSharedState<Handle>> state_{};
     };
 
-    namespace detail {
+    namespace detail
+    {
         template <typename Handle>
         class AssetLoadPromise
         {
@@ -567,7 +575,7 @@ namespace engine::assets {
             }
 
             void set_cancelled(AssetLoadError error =
-                                   make_asset_load_error(AssetLoadErrorCategory::Cancelled))
+                make_asset_load_error(AssetLoadErrorCategory::Cancelled))
             {
                 set_result(result_type{std::move(error)}, AssetLoadState::Cancelled);
             }
@@ -688,16 +696,16 @@ namespace engine::assets {
             increment_state(to);
 
             switch (to)
-                {
-                case AssetLoadState::Ready:
-                    total_completed_.fetch_add(1, std::memory_order_relaxed);
-                    break;
-                case AssetLoadState::Failed:
-                    total_failed_.fetch_add(1, std::memory_order_relaxed);
-                    break;
-                case AssetLoadState::Cancelled:
-                    total_cancelled_.fetch_add(1, std::memory_order_relaxed);
-                    break;
+            {
+            case AssetLoadState::Ready:
+                total_completed_.fetch_add(1, std::memory_order_relaxed);
+                break;
+            case AssetLoadState::Failed:
+                total_failed_.fetch_add(1, std::memory_order_relaxed);
+                break;
+            case AssetLoadState::Cancelled:
+                total_cancelled_.fetch_add(1, std::memory_order_relaxed);
+                break;
             default:
                 break;
             }
@@ -829,8 +837,8 @@ namespace engine::assets {
         }
 
         void record_failure(const AssetLoadError& error,
-                             std::string_view identifier = {},
-                             std::string_view hint_override = {})
+                            std::string_view identifier = {},
+                            std::string_view hint_override = {})
         {
             failure_count_.fetch_add(1, std::memory_order_relaxed);
             std::lock_guard lock{mutex_};
@@ -935,7 +943,7 @@ namespace engine::assets {
     inline bool is_terminal_state(AssetLoadState state) noexcept
     {
         return state == AssetLoadState::Ready || state == AssetLoadState::Failed ||
-               state == AssetLoadState::Cancelled;
+            state == AssetLoadState::Cancelled;
     }
 
     inline core::threading::IoTaskPriority to_io_task_priority(AssetLoadPriority priority) noexcept
@@ -989,78 +997,81 @@ namespace engine::assets {
             auto task_ptr = std::make_shared<Task>(std::move(task));
 
             auto state_ptr = ensure_state();
-            auto runner = std::make_shared<std::function<void()>>([state_ptr, identifier, promise_ptr, task_ptr]() mutable {
-                auto& promise_ref = *promise_ptr;
-
-                if (promise_ref.cancellation_requested())
+            auto runner = std::make_shared<std::function<void()>>(
+                [state_ptr, identifier, promise_ptr, task_ptr]() mutable
                 {
-                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
-                    promise_ref.set_cancelled();
-                    AssetHotReloadTelemetry::instance().record_cancelled();
-                    return;
-                }
+                    auto& promise_ref = *promise_ptr;
 
-                promise_ref.set_loading();
-                transition(state_ptr, identifier, AssetLoadState::Loading);
+                    if (promise_ref.cancellation_requested())
+                    {
+                        transition(state_ptr, identifier, AssetLoadState::Cancelled);
+                        promise_ref.set_cancelled();
+                        AssetHotReloadTelemetry::instance().record_cancelled();
+                        return;
+                    }
 
-                if (promise_ref.cancellation_requested())
-                {
-                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
-                    promise_ref.set_cancelled();
-                    AssetHotReloadTelemetry::instance().record_cancelled();
-                    return;
-                }
+                    promise_ref.set_loading();
+                    transition(state_ptr, identifier, AssetLoadState::Loading);
 
-                auto result = (*task_ptr)(promise_ref);
+                    if (promise_ref.cancellation_requested())
+                    {
+                        transition(state_ptr, identifier, AssetLoadState::Cancelled);
+                        promise_ref.set_cancelled();
+                        AssetHotReloadTelemetry::instance().record_cancelled();
+                        return;
+                    }
 
-                if (promise_ref.state() == AssetLoadState::Cancelled)
-                {
-                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
-                    AssetHotReloadTelemetry::instance().record_cancelled();
-                    return;
-                }
+                    auto result = (*task_ptr)(promise_ref);
 
-                if (!result.has_value())
-                {
-                    promise_ref.set_failed(result.error());
-                    AssetStreamingTelemetry::instance().on_failure(result.error());
-                    transition(state_ptr, identifier, AssetLoadState::Failed);
-                    AssetHotReloadTelemetry::instance().record_failure(result.error(), identifier);
-                    return;
-                }
+                    if (promise_ref.state() == AssetLoadState::Cancelled)
+                    {
+                        transition(state_ptr, identifier, AssetLoadState::Cancelled);
+                        AssetHotReloadTelemetry::instance().record_cancelled();
+                        return;
+                    }
 
-                if (promise_ref.cancellation_requested())
-                {
-                    promise_ref.set_cancelled();
-                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
-                    AssetHotReloadTelemetry::instance().record_cancelled();
-                    return;
-                }
+                    if (!result.has_value())
+                    {
+                        promise_ref.set_failed(result.error());
+                        AssetStreamingTelemetry::instance().on_failure(result.error());
+                        transition(state_ptr, identifier, AssetLoadState::Failed);
+                        AssetHotReloadTelemetry::instance().record_failure(result.error(), identifier);
+                        return;
+                    }
 
-                promise_ref.set_ready(result.value());
-                transition(state_ptr, identifier, AssetLoadState::Ready);
-            });
+                    if (promise_ref.cancellation_requested())
+                    {
+                        promise_ref.set_cancelled();
+                        transition(state_ptr, identifier, AssetLoadState::Cancelled);
+                        AssetHotReloadTelemetry::instance().record_cancelled();
+                        return;
+                    }
+
+                    promise_ref.set_ready(result.value());
+                    transition(state_ptr, identifier, AssetLoadState::Ready);
+                });
 
             promise_ptr->set_cancellation_callback([weak_runner = std::weak_ptr<std::function<void()>>(runner),
-                                                    weak_promise = std::weak_ptr<detail::AssetLoadPromise<Handle>>(promise_ptr),
-                                                    identifier,
-                                                    state_ptr]() {
-                if (auto locked_promise = weak_promise.lock())
+                    weak_promise = std::weak_ptr<detail::AssetLoadPromise<Handle>>(promise_ptr),
+                    identifier,
+                    state_ptr]()
                 {
-                    std::string message{"request cancelled before dispatch: "};
-                    message += identifier;
-                    locked_promise->set_cancelled(
-                        make_asset_load_error(AssetLoadErrorCategory::Cancelled, std::move(message)));
-                    AssetHotReloadTelemetry::instance().record_cancelled();
-                }
+                    if (auto locked_promise = weak_promise.lock())
+                    {
+                        std::string message{"request cancelled before dispatch: "};
+                        message += identifier;
+                        locked_promise->set_cancelled(
+                            make_asset_load_error(AssetLoadErrorCategory::Cancelled, std::move(message)));
+                        AssetHotReloadTelemetry::instance().record_cancelled();
+                    }
 
-                if (auto locked = weak_runner.lock())
-                {
-                    (void)locked;
-                }
+                    if (auto locked = weak_runner.lock())
+                    {
+                        (void)locked;
+                    }
 
-                transition(state_ptr, identifier, AssetLoadState::Cancelled);
-            });
+                    transition(state_ptr, identifier, AssetLoadState::Cancelled);
+                });
 
             const auto io_priority = to_io_task_priority(priority);
             if (!pool.enqueue(io_priority, [runner]() { (*runner)(); }))
@@ -1168,6 +1179,4 @@ namespace engine::assets {
 
         std::shared_ptr<SharedState> state_{std::make_shared<SharedState>()};
     };
-
 } // namespace engine::assets
-

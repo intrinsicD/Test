@@ -113,4 +113,3 @@ TEST_P(BackendValidationTest, RecordingProviderPassesAllChecks)
 INSTANTIATE_TEST_SUITE_P(AllBackends, BackendValidationTest,
                          ::testing::Values(GraphicsApi::Vulkan, GraphicsApi::DirectX12, GraphicsApi::Metal,
                                            GraphicsApi::OpenGL));
-

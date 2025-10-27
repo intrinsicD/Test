@@ -76,7 +76,7 @@ TEST(SurfaceMeshIO, RoundTripFatPrismPreservesBounds)
         0U, 4U, 5U, 0U, 5U, 1U, // front
         1U, 5U, 6U, 1U, 6U, 2U, // right
         2U, 6U, 7U, 2U, 7U, 3U, // back
-        3U, 7U, 4U, 3U, 4U, 0U  // left
+        3U, 7U, 4U, 3U, 4U, 0U // left
     };
 
     geo::update_bounds(prism);
@@ -84,7 +84,7 @@ TEST(SurfaceMeshIO, RoundTripFatPrismPreservesBounds)
     const auto original_centroid = geo::centroid(prism);
 
     const auto directory = std::filesystem::temp_directory_path() /
-                           ("geo-fat-surface-" + fs::generate_random_suffix());
+        ("geo-fat-surface-" + fs::generate_random_suffix());
     const auto path = directory / "fat_prism.obj";
 
     std::filesystem::create_directories(directory);
@@ -126,12 +126,15 @@ TEST(SurfaceMeshIO, RoundTripFatPrismPreservesBounds)
 TEST(SurfaceMeshIO, RejectsDegenerateSurfaceOnSave)
 {
     geo::SurfaceMesh surface;
-    surface.positions = {engine::math::vec3{0.0F, 0.0F, 0.0F},
-                         engine::math::vec3{0.0F, 0.0F, 0.0F},
-                         engine::math::vec3{1.0F, 0.0F, 0.0F}};
+    surface.positions = {
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{1.0F, 0.0F, 0.0F}
+    };
     surface.indices = {0U, 1U, 2U};
 
-    const auto directory = std::filesystem::temp_directory_path() / ("geo-surface-io-invalid-" + fs::generate_random_suffix());
+    const auto directory = std::filesystem::temp_directory_path() / ("geo-surface-io-invalid-" +
+        fs::generate_random_suffix());
     const auto path = directory / "surface.obj";
 
     std::filesystem::create_directories(directory);
@@ -140,4 +143,3 @@ TEST(SurfaceMeshIO, RejectsDegenerateSurfaceOnSave)
 
     cleanup_directory(directory);
 }
-

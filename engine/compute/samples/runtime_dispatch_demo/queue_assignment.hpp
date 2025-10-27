@@ -7,7 +7,6 @@
 
 namespace engine::compute::samples
 {
-
     [[nodiscard]] inline std::size_t deterministic_queue_index(
         std::string_view category,
         std::size_t queue_count) noexcept
@@ -31,6 +30,4 @@ namespace engine::compute::samples
         const std::uint64_t modulus = static_cast<std::uint64_t>(queue_count);
         return static_cast<std::size_t>(hash % modulus);
     }
-
-}  // namespace engine::compute::samples
-
+} // namespace engine::compute::samples

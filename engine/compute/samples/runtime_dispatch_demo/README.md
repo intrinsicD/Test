@@ -30,8 +30,10 @@ Options:
 - `--queues N` – logical compute queues to attribute telemetry to (default 1)
 - `--queue-names LIST` – comma-separated queue names (e.g. `async-a,async-b`); overrides the default `queue-N` labels
 - `--queue-map category=queue` – pin a category (e.g. `physics`) to a specific queue label
-- `--repeat COUNT` – execute the capture `COUNT` times sequentially; each run emits distinct output and embeds its index in metadata
-- `--jitter-budget-ms VALUE` – maximum allowed frame dispatch jitter σ in milliseconds before warnings are emitted (default 0.5)
+- `--repeat COUNT` – execute the capture `COUNT` times sequentially; each run emits distinct output and embeds its index
+  in metadata
+- `--jitter-budget-ms VALUE` – maximum allowed frame dispatch jitter σ in milliseconds before warnings are emitted (
+  default 0.5)
 - `--baseline` – capture a single-queue baseline and report the achieved speed-up versus the optimised run (target 1.5×)
 - `--output FILE` – path to write the JSON telemetry payload
 - `--output-dir DIR` – directory for JSON payloads when repeating (defaults to the parent directory of `--output`)

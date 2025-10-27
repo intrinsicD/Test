@@ -148,4 +148,3 @@ namespace engine::io
         return registry;
     }
 } // namespace engine::io
-

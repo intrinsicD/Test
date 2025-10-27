@@ -1,13 +1,13 @@
 add_executable(engine_core_tests
-    test_module.cpp
-    ecs_registry_tests.cpp
-    io_thread_pool_tests.cpp
-    resource_pool_tests.cpp
-    telemetry_schema_tests.cpp
+        test_module.cpp
+        ecs_registry_tests.cpp
+        io_thread_pool_tests.cpp
+        resource_pool_tests.cpp
+        telemetry_schema_tests.cpp
 )
 
 target_link_libraries(engine_core_tests
-    PRIVATE
+        PRIVATE
         engine::project_options
         engine_core
         GTest::gtest_main

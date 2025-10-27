@@ -23,15 +23,15 @@ namespace
 TEST(SurfaceTopology, DetectsBoundaryEdges)
 {
     auto mesh = MakeMesh({
-                              {0.0F, 0.0F, 0.0F},
-                              {1.0F, 0.0F, 0.0F},
-                              {1.0F, 1.0F, 0.0F},
-                              {0.0F, 1.0F, 0.0F},
-                          },
-                          {
-                              0, 1, 2,
-                              0, 2, 3,
-                          });
+                             {0.0F, 0.0F, 0.0F},
+                             {1.0F, 0.0F, 0.0F},
+                             {1.0F, 1.0F, 0.0F},
+                             {0.0F, 1.0F, 0.0F},
+                         },
+                         {
+                             0, 1, 2,
+                             0, 2, 3,
+                         });
 
     const auto summary = engine::geometry::AnalyzeSurfaceTopology(mesh, engine::math::radians(30.0F));
 
@@ -39,7 +39,8 @@ TEST(SurfaceTopology, DetectsBoundaryEdges)
     EXPECT_EQ(summary.edges.size(), 5U);
 
     const auto boundary_edges = std::count_if(
-        summary.edges.begin(), summary.edges.end(), [](const engine::geometry::SurfaceEdgeTag& edge) {
+        summary.edges.begin(), summary.edges.end(), [](const engine::geometry::SurfaceEdgeTag& edge)
+        {
             return edge.is_boundary;
         });
     EXPECT_EQ(boundary_edges, 4);
@@ -54,17 +55,17 @@ TEST(SurfaceTopology, DetectsBoundaryEdges)
 TEST(SurfaceTopology, DetectsCreaseEdges)
 {
     auto mesh = MakeMesh({
-                              {0.0F, 0.0F, 0.0F},
-                              {1.0F, 0.0F, 0.0F},
-                              {0.0F, 1.0F, 0.0F},
-                              {0.0F, 0.0F, 1.0F},
-                          },
-                          {
-                              0, 1, 2,
-                              0, 1, 3,
-                              0, 2, 3,
-                              1, 2, 3,
-                          });
+                             {0.0F, 0.0F, 0.0F},
+                             {1.0F, 0.0F, 0.0F},
+                             {0.0F, 1.0F, 0.0F},
+                             {0.0F, 0.0F, 1.0F},
+                         },
+                         {
+                             0, 1, 2,
+                             0, 1, 3,
+                             0, 2, 3,
+                             1, 2, 3,
+                         });
 
     const auto summary = engine::geometry::AnalyzeSurfaceTopology(mesh, engine::math::radians(30.0F));
 
@@ -87,22 +88,23 @@ TEST(SurfaceTopology, DetectsCreaseEdges)
 TEST(SurfaceTopology, FlagsNonManifoldEdges)
 {
     auto mesh = MakeMesh({
-                              {0.0F, 0.0F, 0.0F},
-                              {1.0F, 0.0F, 0.0F},
-                              {0.0F, 1.0F, 0.0F},
-                              {0.0F, 0.0F, 1.0F},
-                              {0.0F, 0.0F, -1.0F},
-                          },
-                          {
-                              0, 1, 2,
-                              0, 1, 3,
-                              0, 1, 4,
-                          });
+                             {0.0F, 0.0F, 0.0F},
+                             {1.0F, 0.0F, 0.0F},
+                             {0.0F, 1.0F, 0.0F},
+                             {0.0F, 0.0F, 1.0F},
+                             {0.0F, 0.0F, -1.0F},
+                         },
+                         {
+                             0, 1, 2,
+                             0, 1, 3,
+                             0, 1, 4,
+                         });
 
     const auto summary = engine::geometry::AnalyzeSurfaceTopology(mesh, engine::math::radians(45.0F));
 
     const auto non_manifold_edge = std::find_if(
-        summary.edges.begin(), summary.edges.end(), [](const engine::geometry::SurfaceEdgeTag& edge) {
+        summary.edges.begin(), summary.edges.end(), [](const engine::geometry::SurfaceEdgeTag& edge)
+        {
             return edge.is_non_manifold;
         });
     ASSERT_NE(non_manifold_edge, summary.edges.end());

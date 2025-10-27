@@ -7,12 +7,14 @@
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
 
-TEST(PhysicsModule, ModuleNameMatchesNamespace) {
+TEST(PhysicsModule, ModuleNameMatchesNamespace)
+{
     EXPECT_EQ(engine::physics::module_name(), "physics");
     EXPECT_STREQ(engine_physics_module_name(), "physics");
 }
 
-TEST(PhysicsModule, NegativeMassClampsToStaticBody) {
+TEST(PhysicsModule, NegativeMassClampsToStaticBody)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody body;
@@ -30,7 +32,8 @@ TEST(PhysicsModule, NegativeMassClampsToStaticBody) {
     EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), stored.accumulated_force);
 }
 
-TEST(PhysicsModule, IntegratesBodiesUnderForce) {
+TEST(PhysicsModule, IntegratesBodiesUnderForce)
+{
     engine::physics::PhysicsWorld world;
     world.gravity = engine::math::vec3{0.0F, 0.0F, 0.0F};
 
@@ -48,7 +51,8 @@ TEST(PhysicsModule, IntegratesBodiesUnderForce) {
     EXPECT_NEAR(simulated.position[0], 1.0F, 1e-4F);
 }
 
-TEST(PhysicsModule, StaticBodiesIgnoreForcesAndGravity) {
+TEST(PhysicsModule, StaticBodiesIgnoreForcesAndGravity)
+{
     engine::physics::PhysicsWorld world;
     world.gravity = engine::math::vec3{0.0F, -9.81F, 0.0F};
 
@@ -66,7 +70,8 @@ TEST(PhysicsModule, StaticBodiesIgnoreForcesAndGravity) {
     EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), simulated.accumulated_force);
 }
 
-TEST(PhysicsWorld, ClearForcesResetsAccumulatedForce) {
+TEST(PhysicsWorld, ClearForcesResetsAccumulatedForce)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody body_a;
@@ -95,7 +100,8 @@ TEST(PhysicsWorld, ClearForcesResetsAccumulatedForce) {
     EXPECT_EQ(zero_force, cleared_b.accumulated_force);
 }
 
-TEST(PhysicsWorld, ApplyForceOutOfRangeDoesNotMutateWorld) {
+TEST(PhysicsWorld, ApplyForceOutOfRangeDoesNotMutateWorld)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody body;
@@ -112,7 +118,8 @@ TEST(PhysicsWorld, ApplyForceOutOfRangeDoesNotMutateWorld) {
     engine::physics::apply_force(world, engine::physics::body_count(world), engine::math::vec3{5.0F, 0.0F, 0.0F});
 
     ASSERT_EQ(snapshot.bodies.size(), world.bodies.size());
-    for (std::size_t i = 0; i < world.bodies.size(); ++i) {
+    for (std::size_t i = 0; i < world.bodies.size(); ++i)
+    {
         const auto& before = snapshot.bodies[i];
         const auto& after = world.bodies[i];
         EXPECT_EQ(before.mass, after.mass);
@@ -123,7 +130,8 @@ TEST(PhysicsWorld, ApplyForceOutOfRangeDoesNotMutateWorld) {
     }
 }
 
-TEST(PhysicsWorld, BodyAtThrowsWhenIndexIsOutOfRange) {
+TEST(PhysicsWorld, BodyAtThrowsWhenIndexIsOutOfRange)
+{
     engine::physics::PhysicsWorld world;
     engine::physics::RigidBody body;
     const auto body_index = engine::physics::add_body(world, body);
@@ -137,7 +145,8 @@ TEST(PhysicsWorld, BodyAtThrowsWhenIndexIsOutOfRange) {
     EXPECT_THROW(engine::physics::body_at(const_world, invalid_index), std::out_of_range);
 }
 
-TEST(PhysicsWorldColliders, SetAndQueryColliderState) {
+TEST(PhysicsWorldColliders, SetAndQueryColliderState)
+{
     engine::physics::PhysicsWorld world;
     engine::physics::RigidBody body;
     const auto index = engine::physics::add_body(world, body);
@@ -160,7 +169,8 @@ TEST(PhysicsWorldColliders, SetAndQueryColliderState) {
     EXPECT_EQ(nullptr, engine::physics::collider_at(world, index));
 }
 
-TEST(PhysicsWorldColliders, DetectsSphereSphereCollision) {
+TEST(PhysicsWorldColliders, DetectsSphereSphereCollision)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody first;
@@ -179,7 +189,8 @@ TEST(PhysicsWorldColliders, DetectsSphereSphereCollision) {
     EXPECT_EQ(second_index, collisions[0].second);
 }
 
-TEST(PhysicsWorldColliders, DetectsSphereAabbCollisionAndIgnoresSeparatedBodies) {
+TEST(PhysicsWorldColliders, DetectsSphereAabbCollisionAndIgnoresSeparatedBodies)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody sphere_body;
@@ -190,7 +201,8 @@ TEST(PhysicsWorldColliders, DetectsSphereAabbCollisionAndIgnoresSeparatedBodies)
     engine::physics::RigidBody box_body;
     box_body.position = engine::math::vec3{0.75F, 0.0F, 0.0F};
     const auto box_index = engine::physics::add_body(world, box_body);
-    const engine::geometry::Aabb local_box = engine::geometry::MakeAabbFromCenterExtent({0.0F, 0.0F, 0.0F}, {0.5F, 0.5F, 0.5F});
+    const engine::geometry::Aabb local_box = engine::geometry::MakeAabbFromCenterExtent(
+        {0.0F, 0.0F, 0.0F}, {0.5F, 0.5F, 0.5F});
     engine::physics::set_collider(world, box_index, engine::physics::Collider::make_aabb(local_box));
 
     engine::physics::RigidBody distant_body;
@@ -207,7 +219,8 @@ TEST(PhysicsWorldColliders, DetectsSphereAabbCollisionAndIgnoresSeparatedBodies)
     EXPECT_EQ(nullptr, engine::physics::collider_at(world, static_cast<std::size_t>(42U)));
 }
 
-TEST(PhysicsWorld, SubsteppingAndDampingStabiliseIntegration) {
+TEST(PhysicsWorld, SubsteppingAndDampingStabiliseIntegration)
+{
     engine::physics::PhysicsWorld world;
     world.gravity = engine::math::vec3{0.0F, 0.0F, 0.0F};
     engine::physics::set_linear_damping(world, 2.0F);
@@ -229,7 +242,8 @@ TEST(PhysicsWorld, SubsteppingAndDampingStabiliseIntegration) {
     EXPECT_EQ((engine::math::vec3{0.0F, 0.0F, 0.0F}), simulated.accumulated_force);
 }
 
-TEST(PhysicsWorldColliders, CapsuleIntersectionsAreDetected) {
+TEST(PhysicsWorldColliders, CapsuleIntersectionsAreDetected)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody capsule_body;
@@ -250,7 +264,7 @@ TEST(PhysicsWorldColliders, CapsuleIntersectionsAreDetected) {
     ASSERT_EQ(1U, collisions.size());
     const auto first_pair = collisions[0];
     EXPECT_TRUE((first_pair.first == capsule_index && first_pair.second == sphere_index) ||
-                (first_pair.first == sphere_index && first_pair.second == capsule_index));
+        (first_pair.first == sphere_index && first_pair.second == capsule_index));
 
     engine::physics::RigidBody second_capsule_body;
     second_capsule_body.position = engine::math::vec3{0.0F, 2.0F, 0.0F};
@@ -261,10 +275,11 @@ TEST(PhysicsWorldColliders, CapsuleIntersectionsAreDetected) {
     ASSERT_EQ(1U, collisions.size());
     const auto second_pair = collisions[0];
     EXPECT_TRUE((second_pair.first == capsule_index && second_pair.second == sphere_index) ||
-                (second_pair.first == sphere_index && second_pair.second == capsule_index));
+        (second_pair.first == sphere_index && second_pair.second == capsule_index));
 }
 
-TEST(PhysicsWorldContacts, GeneratesPersistentSphereSphereManifold) {
+TEST(PhysicsWorldContacts, GeneratesPersistentSphereSphereManifold)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody first;
@@ -310,7 +325,8 @@ TEST(PhysicsWorldContacts, GeneratesPersistentSphereSphereManifold) {
     EXPECT_FLOAT_EQ(0.0F, cleared.max_penetration);
 }
 
-TEST(PhysicsWorldContacts, ManifoldSamplingProducesStableBasis) {
+TEST(PhysicsWorldContacts, ManifoldSamplingProducesStableBasis)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody first;
@@ -355,7 +371,8 @@ TEST(PhysicsWorldContacts, ManifoldSamplingProducesStableBasis) {
     EXPECT_NEAR(engine::math::dot(sample.normal, aggregated[0].normal), 1.0F, 1e-4F);
 }
 
-TEST(PhysicsWorldContacts, ConstraintCallbacksReceiveManifolds) {
+TEST(PhysicsWorldContacts, ConstraintCallbacksReceiveManifolds)
+{
     engine::physics::PhysicsWorld world;
 
     engine::physics::RigidBody box;
@@ -373,16 +390,20 @@ TEST(PhysicsWorldContacts, ConstraintCallbacksReceiveManifolds) {
     capsule_shape.radius = 0.25F;
     engine::physics::set_collider(world, capsule_index, engine::physics::Collider::make_capsule(capsule_shape));
 
-    struct CallbackState {
+    struct CallbackState
+    {
         std::size_t count{0U};
         float last_penetration{0.0F};
     } state;
 
     engine::physics::ConstraintSolverCallbacks callbacks{};
-    callbacks.on_manifold = [](engine::physics::PhysicsWorld&, const engine::physics::ContactManifold& manifold, void* user) {
+    callbacks.on_manifold = [](engine::physics::PhysicsWorld&, const engine::physics::ContactManifold& manifold,
+                               void* user)
+    {
         auto* state = static_cast<CallbackState*>(user);
         ++state->count;
-        if (manifold.contact_count > 0U) {
+        if (manifold.contact_count > 0U)
+        {
             state->last_penetration = manifold.contacts[0].penetration;
         }
     };
@@ -395,7 +416,8 @@ TEST(PhysicsWorldContacts, ConstraintCallbacksReceiveManifolds) {
     EXPECT_GT(state.last_penetration, 0.0F);
 }
 
-TEST(PhysicsWorldContacts, SequentialImpulseSolverAppliesResolutionAndTelemetry) {
+TEST(PhysicsWorldContacts, SequentialImpulseSolverAppliesResolutionAndTelemetry)
+{
     engine::physics::PhysicsWorld world;
     world.gravity = engine::math::vec3{0.0F, 0.0F, 0.0F};
 

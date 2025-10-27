@@ -11,108 +11,133 @@
 #include "engine/platform/api.hpp"
 #include "engine/platform/windowing/window.hpp"
 
-namespace {
-
-class ScopedEnvironmentVariable {
-public:
-    ScopedEnvironmentVariable(std::string name, std::string value)
-        : name_{std::move(name)}, has_previous_{capture_previous()}, previous_value_{previous_raw_ == nullptr ? std::string{} : previous_raw_} {
-        set(value.c_str());
-    }
-
-    ScopedEnvironmentVariable(const ScopedEnvironmentVariable&) = delete;
-    ScopedEnvironmentVariable& operator=(const ScopedEnvironmentVariable&) = delete;
-
-    ScopedEnvironmentVariable(ScopedEnvironmentVariable&&) = delete;
-    ScopedEnvironmentVariable& operator=(ScopedEnvironmentVariable&&) = delete;
-
-    ~ScopedEnvironmentVariable() {
-        restore();
-    }
-
-    void restore() {
-        if (restored_) {
-            return;
+namespace
+{
+    class ScopedEnvironmentVariable
+    {
+    public:
+        ScopedEnvironmentVariable(std::string name, std::string value)
+            : name_{std::move(name)}, has_previous_{capture_previous()},
+              previous_value_{previous_raw_ == nullptr ? std::string{} : previous_raw_}
+        {
+            set(value.c_str());
         }
-        if (has_previous_) {
-            set(previous_value_.c_str());
-        } else {
-            set(nullptr);
+
+        ScopedEnvironmentVariable(const ScopedEnvironmentVariable&) = delete;
+        ScopedEnvironmentVariable& operator=(const ScopedEnvironmentVariable&) = delete;
+
+        ScopedEnvironmentVariable(ScopedEnvironmentVariable&&) = delete;
+        ScopedEnvironmentVariable& operator=(ScopedEnvironmentVariable&&) = delete;
+
+        ~ScopedEnvironmentVariable()
+        {
+            restore();
         }
-        restored_ = true;
-    }
 
-private:
-    [[nodiscard]] bool capture_previous() {
-        previous_raw_ = std::getenv(name_.c_str());
-        return previous_raw_ != nullptr;
-    }
+        void restore()
+        {
+            if (restored_)
+            {
+                return;
+            }
+            if (has_previous_)
+            {
+                set(previous_value_.c_str());
+            }
+            else
+            {
+                set(nullptr);
+            }
+            restored_ = true;
+        }
 
-    void set(const char* value) {
+    private:
+        [[nodiscard]] bool capture_previous()
+        {
+            previous_raw_ = std::getenv(name_.c_str());
+            return previous_raw_ != nullptr;
+        }
+
+        void set(const char* value)
+        {
 #if defined(_WIN32)
-        if (value != nullptr) {
-            _putenv_s(name_.c_str(), value);
-        } else {
-            _putenv_s(name_.c_str(), "");
-        }
+            if (value != nullptr)
+            {
+                _putenv_s(name_.c_str(), value);
+            }
+            else
+            {
+                _putenv_s(name_.c_str(), "");
+            }
 #else
-        if (value != nullptr) {
-            setenv(name_.c_str(), value, 1);
-        } else {
-            unsetenv(name_.c_str());
-        }
+            if (value != nullptr)
+            {
+                setenv(name_.c_str(), value, 1);
+            }
+            else
+            {
+                unsetenv(name_.c_str());
+            }
 #endif
-    }
+        }
 
-    std::string name_{};
-    const char* previous_raw_{nullptr};
-    bool has_previous_{false};
-    std::string previous_value_{};
-    bool restored_{false};
-};
+        std::string name_{};
+        const char* previous_raw_{nullptr};
+        bool has_previous_{false};
+        std::string previous_value_{};
+        bool restored_{false};
+    };
 
-class HookedSurface final : public engine::platform::SwapchainSurface {
-public:
-    HookedSurface(std::string renderer_backend,
-                  std::string window_backend,
-                  void* native_surface,
-                  void* user_data)
-        : renderer_backend_(std::move(renderer_backend)),
-          window_backend_(std::move(window_backend)),
-          native_surface_(native_surface),
-          user_data_(user_data) {}
+    class HookedSurface final : public engine::platform::SwapchainSurface
+    {
+    public:
+        HookedSurface(std::string renderer_backend,
+                      std::string window_backend,
+                      void* native_surface,
+                      void* user_data)
+            : renderer_backend_(std::move(renderer_backend)),
+              window_backend_(std::move(window_backend)),
+              native_surface_(native_surface),
+              user_data_(user_data)
+        {
+        }
 
-    [[nodiscard]] std::string_view renderer_backend() const noexcept override {
-        return renderer_backend_;
-    }
+        [[nodiscard]] std::string_view renderer_backend() const noexcept override
+        {
+            return renderer_backend_;
+        }
 
-    [[nodiscard]] std::string_view window_backend() const noexcept override {
-        return window_backend_;
-    }
+        [[nodiscard]] std::string_view window_backend() const noexcept override
+        {
+            return window_backend_;
+        }
 
-    [[nodiscard]] void* native_surface() const noexcept override {
-        return native_surface_;
-    }
+        [[nodiscard]] void* native_surface() const noexcept override
+        {
+            return native_surface_;
+        }
 
-    [[nodiscard]] void* user_data() const noexcept override {
-        return user_data_;
-    }
+        [[nodiscard]] void* user_data() const noexcept override
+        {
+            return user_data_;
+        }
 
-private:
-    std::string renderer_backend_;
-    std::string window_backend_;
-    void* native_surface_;
-    void* user_data_;
-};
+    private:
+        std::string renderer_backend_;
+        std::string window_backend_;
+        void* native_surface_;
+        void* user_data_;
+    };
+} // namespace
 
-}  // namespace
-
-TEST(PlatformModule, ModuleNameMatchesNamespace) {
+TEST(PlatformModule, ModuleNameMatchesNamespace)
+{
     EXPECT_EQ(engine::platform::module_name(), "platform");
     EXPECT_STREQ(engine_platform_module_name(), "platform");
 }
 
-TEST(PlatformWindowing, MockWindowLifecycle) {
+TEST(PlatformWindowing, MockWindowLifecycle)
+{
     using namespace engine::platform;
 
     WindowConfig config;
@@ -142,7 +167,8 @@ TEST(PlatformWindowing, MockWindowLifecycle) {
     EXPECT_TRUE(window->event_queue().empty());
 }
 
-TEST(PlatformWindowing, AutoBackendUsesEnvironmentOverride) {
+TEST(PlatformWindowing, AutoBackendUsesEnvironmentOverride)
+{
     using namespace engine::platform;
 
     ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "mock"};
@@ -151,7 +177,8 @@ TEST(PlatformWindowing, AutoBackendUsesEnvironmentOverride) {
     EXPECT_EQ(window->backend_name(), "mock");
 }
 
-TEST(PlatformWindowing, AutoBackendIgnoresInvalidOverride) {
+TEST(PlatformWindowing, AutoBackendIgnoresInvalidOverride)
+{
     using namespace engine::platform;
 
     ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "invalid"};
@@ -160,7 +187,8 @@ TEST(PlatformWindowing, AutoBackendIgnoresInvalidOverride) {
     EXPECT_EQ(window->backend_name(), "mock");
 }
 
-TEST(PlatformWindowing, AutoBackendFallsBackWhenOverrideFails) {
+TEST(PlatformWindowing, AutoBackendFallsBackWhenOverrideFails)
+{
     using namespace engine::platform;
 
     ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "glfw"};
@@ -170,7 +198,8 @@ TEST(PlatformWindowing, AutoBackendFallsBackWhenOverrideFails) {
     EXPECT_TRUE(backend_name == "glfw" || backend_name == "mock");
 }
 
-TEST(PlatformWindowing, AutoBackendIgnoresWhitespaceOnlyOverride) {
+TEST(PlatformWindowing, AutoBackendIgnoresWhitespaceOnlyOverride)
+{
     using namespace engine::platform;
 
     ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "   \t  "};
@@ -181,7 +210,8 @@ TEST(PlatformWindowing, AutoBackendIgnoresWhitespaceOnlyOverride) {
 #endif
 }
 
-TEST(PlatformWindowing, EventDispatchFlow) {
+TEST(PlatformWindowing, EventDispatchFlow)
+{
     using namespace engine::platform;
 
     auto window = create_window(WindowConfig{}, WindowBackend::Mock);
@@ -212,7 +242,8 @@ TEST(PlatformWindowing, EventDispatchFlow) {
     EXPECT_FALSE(window->event_queue().poll(event));
 }
 
-TEST(PlatformWindowing, SwapchainHookIsInvoked) {
+TEST(PlatformWindowing, SwapchainHookIsInvoked)
+{
     using namespace engine::platform;
 
     auto window = create_window(WindowConfig{}, WindowBackend::Mock);
@@ -224,7 +255,8 @@ TEST(PlatformWindowing, SwapchainHookIsInvoked) {
     SwapchainSurfaceRequest request{};
     request.renderer_backend = "test-renderer";
     request.user_data = reinterpret_cast<void*>(0x1234);
-    request.hook = [&](const SwapchainSurfaceRequest& req, void* native_handle) {
+    request.hook = [&](const SwapchainSurfaceRequest& req, void* native_handle)
+    {
         hook_called = true;
         hook_native = native_handle;
         return std::make_unique<HookedSurface>(
@@ -243,7 +275,8 @@ TEST(PlatformWindowing, SwapchainHookIsInvoked) {
     EXPECT_EQ(surface->user_data(), request.user_data);
 }
 
-TEST(PlatformWindowing, SwapchainFallbackWhenHookFails) {
+TEST(PlatformWindowing, SwapchainFallbackWhenHookFails)
+{
     using namespace engine::platform;
 
     auto window = create_window(WindowConfig{}, WindowBackend::Mock);
@@ -251,7 +284,8 @@ TEST(PlatformWindowing, SwapchainFallbackWhenHookFails) {
 
     SwapchainSurfaceRequest request{};
     request.renderer_backend = "fallback";
-    request.hook = [](const SwapchainSurfaceRequest&, void*) -> std::unique_ptr<SwapchainSurface> {
+    request.hook = [](const SwapchainSurfaceRequest&, void*) -> std::unique_ptr<SwapchainSurface>
+    {
         return nullptr;
     };
 
@@ -263,7 +297,8 @@ TEST(PlatformWindowing, SwapchainFallbackWhenHookFails) {
     EXPECT_EQ(surface->user_data(), request.user_data);
 }
 
-TEST(PlatformWindowing, GlfwBackendLifecycle) {
+TEST(PlatformWindowing, GlfwBackendLifecycle)
+{
     using namespace engine::platform;
 
     WindowConfig config;
@@ -271,9 +306,12 @@ TEST(PlatformWindowing, GlfwBackendLifecycle) {
     config.visible = false;
 
     std::shared_ptr<Window> window;
-    try {
+    try
+    {
         window = create_window(config, WindowBackend::GLFW);
-    } catch (const std::exception& error) {
+    }
+    catch (const std::exception& error)
+    {
 #if defined(GTEST_SKIP)
         GTEST_SKIP() << "GLFW backend unavailable: " << error.what();
 #else

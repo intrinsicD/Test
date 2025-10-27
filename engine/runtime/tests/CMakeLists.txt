@@ -1,16 +1,16 @@
 add_executable(engine_runtime_tests
-    test_module.cpp
+        test_module.cpp
 )
 
 target_link_libraries(engine_runtime_tests
-    PRIVATE
+        PRIVATE
         engine::project_options
         engine_runtime
         GTest::gtest_main
 )
 
 target_compile_definitions(engine_runtime_tests
-    PRIVATE
+        PRIVATE
         ENGINE_RUNTIME_ENABLE_TEST_API=1
 )
 

@@ -85,7 +85,8 @@ namespace engine::rendering::backend
         [[nodiscard]] const EncoderRecord* encoder_for(CommandBufferHandle handle) const noexcept
         {
             const auto it = std::find_if(encoders_.begin(), encoders_.end(),
-                                         [handle](const EncoderRecord& record) {
+                                         [handle](const EncoderRecord& record)
+                                         {
                                              return record.handle == handle;
                                          });
             if (it != encoders_.end())

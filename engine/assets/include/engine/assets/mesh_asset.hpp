@@ -17,65 +17,67 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine::assets {
-
-struct MeshAssetDescriptor {
-    MeshHandle handle;
-    std::filesystem::path source;
-    io::MeshFileFormat format_hint{io::MeshFileFormat::unknown};
-
-    [[nodiscard]] static MeshAssetDescriptor from_file(const std::filesystem::path& path,
-                                                       io::MeshFileFormat hint = io::MeshFileFormat::unknown)
+namespace engine::assets
+{
+    struct MeshAssetDescriptor
     {
-        return MeshAssetDescriptor{MeshHandle{path}, path, hint};
-    }
-};
+        MeshHandle handle;
+        std::filesystem::path source;
+        io::MeshFileFormat format_hint{io::MeshFileFormat::unknown};
 
-struct MeshAsset {
-    MeshAssetDescriptor descriptor{};
-    geometry::Mesh mesh{};
-    io::GeometryDetectionResult detection{};
-    std::filesystem::file_time_type last_write{};
-};
+        [[nodiscard]] static MeshAssetDescriptor from_file(const std::filesystem::path& path,
+                                                           io::MeshFileFormat hint = io::MeshFileFormat::unknown)
+        {
+            return MeshAssetDescriptor{MeshHandle{path}, path, hint};
+        }
+    };
 
-class MeshCache {
-public:
-    MeshCache();
+    struct MeshAsset
+    {
+        MeshAssetDescriptor descriptor{};
+        geometry::Mesh mesh{};
+        io::GeometryDetectionResult detection{};
+        std::filesystem::file_time_type last_write{};
+    };
 
-    using HotReloadCallback = std::function<void(const MeshAsset&)>;
+    class MeshCache
+    {
+    public:
+        MeshCache();
 
-    [[nodiscard]] const MeshAsset& load(const MeshAssetDescriptor& descriptor);
-    [[nodiscard]] bool contains(const MeshHandle& handle) const;
-    [[nodiscard]] const MeshAsset& get(const MeshHandle& handle) const;
+        using HotReloadCallback = std::function<void(const MeshAsset&)>;
 
-    [[nodiscard]] AssetLoadFuture<MeshHandle> load_async(
-        const AssetLoadRequest& request,
-        core::threading::IoThreadPool& pool);
-    [[nodiscard]] AssetLoadState async_state(std::string_view identifier) const;
+        [[nodiscard]] const MeshAsset& load(const MeshAssetDescriptor& descriptor);
+        [[nodiscard]] bool contains(const MeshHandle& handle) const;
+        [[nodiscard]] const MeshAsset& get(const MeshHandle& handle) const;
 
-    void unload(const MeshHandle& handle);
-    void register_hot_reload_callback(const MeshHandle& handle, HotReloadCallback callback);
-    void poll();
+        [[nodiscard]] AssetLoadFuture<MeshHandle> load_async(
+            const AssetLoadRequest& request,
+            core::threading::IoThreadPool& pool);
+        [[nodiscard]] AssetLoadState async_state(std::string_view identifier) const;
 
-private:
-    using Pool = core::memory::ResourcePool<MeshAsset, MeshHandleTag>;
-    using RawHandle = typename Pool::handle_type;
-    using HandleHasher = typename Pool::handle_hasher;
+        void unload(const MeshHandle& handle);
+        void register_hot_reload_callback(const MeshHandle& handle, HotReloadCallback callback);
+        void poll();
 
-    engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, MeshAsset& asset, bool notify);
-    void register_watch_locked(const RawHandle& handle, MeshAsset& asset);
-    void unregister_watch_locked(const RawHandle& handle);
+    private:
+        using Pool = core::memory::ResourcePool<MeshAsset, MeshHandleTag>;
+        using RawHandle = typename Pool::handle_type;
+        using HandleHasher = typename Pool::handle_hasher;
 
-    Pool assets_{};
-    std::unordered_map<std::string, RawHandle> bindings_{};
-    std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
-    std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
-    std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_{};
-    platform::filesystem::FilesystemWatcher watcher_{};
-    mutable std::mutex mutex_{};
-    AssetAsyncQueue<MeshHandle> async_queue_{};
-    std::shared_ptr<void> handle_validator_registration_{};
-};
+        engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, MeshAsset& asset, bool notify);
+        void register_watch_locked(const RawHandle& handle, MeshAsset& asset);
+        void unregister_watch_locked(const RawHandle& handle);
 
-}  // namespace engine::assets
-
+        Pool assets_{};
+        std::unordered_map<std::string, RawHandle> bindings_{};
+        std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
+        std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
+        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_
+            {};
+        platform::filesystem::FilesystemWatcher watcher_{};
+        mutable std::mutex mutex_{};
+        AssetAsyncQueue<MeshHandle> async_queue_{};
+        std::shared_ptr<void> handle_validator_registration_{};
+    };
+} // namespace engine::assets

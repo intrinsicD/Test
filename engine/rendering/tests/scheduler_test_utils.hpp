@@ -38,8 +38,10 @@ namespace engine::rendering::tests
 
         QueueType select_queue(const RenderPass& pass, QueueType preferred) override
         {
-            pass_metadata.push_back(PassMetadata{std::string{pass.name()}, preferred, pass.phase(),
-                                                 pass.validation_severity()});
+            pass_metadata.push_back(PassMetadata{
+                std::string{pass.name()}, preferred, pass.phase(),
+                pass.validation_severity()
+            });
             return preferred;
         }
 
@@ -81,7 +83,9 @@ namespace engine::rendering::tests
             }
         }
 
-        void recycle(CommandBufferHandle) override {}
+        void recycle(CommandBufferHandle) override
+        {
+        }
 
         std::vector<Submission> submissions;
         std::vector<PassMetadata> pass_metadata;
@@ -90,4 +94,3 @@ namespace engine::rendering::tests
         std::size_t next_command_buffer_{0};
     };
 }
-

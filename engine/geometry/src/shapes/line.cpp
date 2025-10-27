@@ -4,14 +4,18 @@
 
 #include "engine/geometry/shapes/plane.hpp"
 
-namespace engine::geometry {
-    math::vec3 PointAt(const Line &l, float t) noexcept {
+namespace engine::geometry
+{
+    math::vec3 PointAt(const Line& l, float t) noexcept
+    {
         return l.point + l.direction * t;
     }
 
-    math::vec3 ClosestPoint(const Line &l, const math::vec3 &point) noexcept {
+    math::vec3 ClosestPoint(const Line& l, const math::vec3& point) noexcept
+    {
         const float denom = math::length_squared(l.direction);
-        if (denom == 0.0f) {
+        if (denom == 0.0f)
+        {
             return l.point;
         }
         const math::vec3 offset = point - l.point;
@@ -19,9 +23,11 @@ namespace engine::geometry {
         return PointAt(l, t);
     }
 
-    double SquaredDistance(const Line &line, const math::vec3 &point) noexcept {
+    double SquaredDistance(const Line& line, const math::vec3& point) noexcept
+    {
         const float denom = math::length_squared(line.direction);
-        if (denom == 0.0f) {
+        if (denom == 0.0f)
+        {
             return math::length_squared(point - line.point);
         }
 

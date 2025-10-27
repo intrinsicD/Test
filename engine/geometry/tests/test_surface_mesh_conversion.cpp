@@ -44,9 +44,11 @@ TEST(SurfaceMeshConversion, RoundTripPreservesTopology)
 TEST(SurfaceMeshConversion, RejectsMalformedIndices)
 {
     geo::SurfaceMesh surface;
-    surface.positions = {engine::math::vec3{0.0F, 0.0F, 0.0F},
-                         engine::math::vec3{1.0F, 0.0F, 0.0F},
-                         engine::math::vec3{0.0F, 1.0F, 0.0F}};
+    surface.positions = {
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{1.0F, 0.0F, 0.0F},
+        engine::math::vec3{0.0F, 1.0F, 0.0F}
+    };
     surface.indices = {0U, 1U};
 
     geo::Mesh container;
@@ -65,9 +67,11 @@ TEST(SurfaceMeshConversion, RejectsMismatchedTextureCoordinateCount)
 TEST(SurfaceMeshConversion, RejectsDegenerateTriangles)
 {
     geo::SurfaceMesh surface;
-    surface.positions = {engine::math::vec3{0.0F, 0.0F, 0.0F},
-                         engine::math::vec3{1.0F, 0.0F, 0.0F},
-                         engine::math::vec3{0.0F, 1.0F, 0.0F}};
+    surface.positions = {
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{1.0F, 0.0F, 0.0F},
+        engine::math::vec3{0.0F, 1.0F, 0.0F}
+    };
     surface.indices = {0U, 0U, 1U};
 
     geo::Mesh container;
@@ -86,6 +90,6 @@ TEST(SurfaceMeshConversion, ThrowsWhenHalfedgeReferencesDeletedVertex)
 
     container.interface.delete_vertex(v1);
 
-    EXPECT_THROW(static_cast<void>(geo::mesh::build_surface_mesh_from_halfedge(container.interface)), std::runtime_error);
+    EXPECT_THROW(static_cast<void>(geo::mesh::build_surface_mesh_from_halfedge(container.interface)),
+                 std::runtime_error);
 }
-

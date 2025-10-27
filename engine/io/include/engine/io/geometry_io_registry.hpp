@@ -105,8 +105,10 @@ namespace engine::io
         std::unordered_map<MeshFileFormat, std::unique_ptr<MeshImporter>, EnumClassHash> mesh_importers_;
         std::unordered_map<MeshFileFormat, std::unique_ptr<MeshExporter>, EnumClassHash> mesh_exporters_;
 
-        std::unordered_map<PointCloudFileFormat, std::unique_ptr<PointCloudImporter>, EnumClassHash> point_cloud_importers_;
-        std::unordered_map<PointCloudFileFormat, std::unique_ptr<PointCloudExporter>, EnumClassHash> point_cloud_exporters_;
+        std::unordered_map<PointCloudFileFormat, std::unique_ptr<PointCloudImporter>, EnumClassHash>
+        point_cloud_importers_;
+        std::unordered_map<PointCloudFileFormat, std::unique_ptr<PointCloudExporter>, EnumClassHash>
+        point_cloud_exporters_;
 
         std::unordered_map<GraphFileFormat, std::unique_ptr<GraphImporter>, EnumClassHash> graph_importers_;
         std::unordered_map<GraphFileFormat, std::unique_ptr<GraphExporter>, EnumClassHash> graph_exporters_;
@@ -116,4 +118,3 @@ namespace engine::io
 
     ENGINE_IO_API void register_default_geometry_io_plugins(GeometryIORegistry& registry);
 } // namespace engine::io
-

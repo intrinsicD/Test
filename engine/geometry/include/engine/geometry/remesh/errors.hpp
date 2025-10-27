@@ -71,4 +71,3 @@ namespace engine::geometry
 
     using RemeshValidationResult = engine::Result<void, RemeshErrorCode>;
 } // namespace engine::geometry
-

@@ -82,7 +82,8 @@ namespace engine::geometry::point_cloud
 
         [[nodiscard]] std::string to_lower(std::string value)
         {
-            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c)
+            {
                 return static_cast<char>(std::tolower(c));
             });
             return value;
@@ -180,22 +181,22 @@ namespace engine::geometry::point_cloud
         {
             switch (type)
             {
-                case PlyScalarType::kInt8:
-                    return static_cast<double>(read_binary_scalar<std::int8_t>(stream, format));
-                case PlyScalarType::kUInt8:
-                    return static_cast<double>(read_binary_scalar<std::uint8_t>(stream, format));
-                case PlyScalarType::kInt16:
-                    return static_cast<double>(read_binary_scalar<std::int16_t>(stream, format));
-                case PlyScalarType::kUInt16:
-                    return static_cast<double>(read_binary_scalar<std::uint16_t>(stream, format));
-                case PlyScalarType::kInt32:
-                    return static_cast<double>(read_binary_scalar<std::int32_t>(stream, format));
-                case PlyScalarType::kUInt32:
-                    return static_cast<double>(read_binary_scalar<std::uint32_t>(stream, format));
-                case PlyScalarType::kFloat32:
-                    return static_cast<double>(read_binary_scalar<float>(stream, format));
-                case PlyScalarType::kFloat64:
-                    return read_binary_scalar<double>(stream, format);
+            case PlyScalarType::kInt8:
+                return static_cast<double>(read_binary_scalar<std::int8_t>(stream, format));
+            case PlyScalarType::kUInt8:
+                return static_cast<double>(read_binary_scalar<std::uint8_t>(stream, format));
+            case PlyScalarType::kInt16:
+                return static_cast<double>(read_binary_scalar<std::int16_t>(stream, format));
+            case PlyScalarType::kUInt16:
+                return static_cast<double>(read_binary_scalar<std::uint16_t>(stream, format));
+            case PlyScalarType::kInt32:
+                return static_cast<double>(read_binary_scalar<std::int32_t>(stream, format));
+            case PlyScalarType::kUInt32:
+                return static_cast<double>(read_binary_scalar<std::uint32_t>(stream, format));
+            case PlyScalarType::kFloat32:
+                return static_cast<double>(read_binary_scalar<float>(stream, format));
+            case PlyScalarType::kFloat64:
+                return read_binary_scalar<double>(stream, format);
             }
 
             return 0.0;
@@ -378,8 +379,11 @@ namespace engine::geometry::point_cloud
         [[nodiscard]] std::string sanitise_property_name(std::string_view name)
         {
             const auto colon = name.find(':');
-            std::string cleaned = colon == std::string_view::npos ? std::string{name} : std::string{name.substr(colon + 1U)};
-            std::transform(cleaned.begin(), cleaned.end(), cleaned.begin(), [](unsigned char c) {
+            std::string cleaned = colon == std::string_view::npos
+                                      ? std::string{name}
+                                      : std::string{name.substr(colon + 1U)};
+            std::transform(cleaned.begin(), cleaned.end(), cleaned.begin(), [](unsigned char c)
+            {
                 if (std::isspace(c) != 0 || c == ':' || c == '/' || c == '\\')
                 {
                     return '_';
@@ -425,7 +429,8 @@ namespace engine::geometry::point_cloud
 
             std::vector<float> scalar_values(header.scalar_names.size(), 0.0F);
 
-            auto process_vertices = [&](auto&& read_value) {
+            auto process_vertices = [&](auto&& read_value)
+            {
                 for (std::size_t i = 0; i < header.vertex_count; ++i)
                 {
                     math::vec3 position{0.0F, 0.0F, 0.0F};
@@ -444,42 +449,42 @@ namespace engine::geometry::point_cloud
 
                         switch (property.semantic)
                         {
-                            case PlyPropertySemantic::kPositionX:
-                                position[0] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kPositionY:
-                                position[1] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kPositionZ:
-                                position[2] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kNormalX:
-                                normal[0] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kNormalY:
-                                normal[1] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kNormalZ:
-                                normal[2] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kColorR:
-                                colour[0] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kColorG:
-                                colour[1] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kColorB:
-                                colour[2] = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kAlpha:
-                                alpha = static_cast<float>(value);
-                                break;
-                            case PlyPropertySemantic::kScalar:
-                                if (property.scalar_index < scalar_values.size())
-                                {
-                                    scalar_values[property.scalar_index] = static_cast<float>(value);
-                                }
-                                break;
+                        case PlyPropertySemantic::kPositionX:
+                            position[0] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kPositionY:
+                            position[1] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kPositionZ:
+                            position[2] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kNormalX:
+                            normal[0] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kNormalY:
+                            normal[1] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kNormalZ:
+                            normal[2] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kColorR:
+                            colour[0] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kColorG:
+                            colour[1] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kColorB:
+                            colour[2] = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kAlpha:
+                            alpha = static_cast<float>(value);
+                            break;
+                        case PlyPropertySemantic::kScalar:
+                            if (property.scalar_index < scalar_values.size())
+                            {
+                                scalar_values[property.scalar_index] = static_cast<float>(value);
+                            }
+                            break;
                         }
                     }
 
@@ -508,23 +513,25 @@ namespace engine::geometry::point_cloud
 
             switch (header.format)
             {
-                case PlyFormat::kAscii:
-                    process_vertices([&](const PlyProperty&) {
-                        double value = 0.0;
-                        stream >> value;
-                        if (!stream)
-                        {
-                            throw std::runtime_error("Unexpected end of PLY vertex data");
-                        }
-                        return value;
-                    });
-                    break;
-                case PlyFormat::kBinaryLittleEndian:
-                case PlyFormat::kBinaryBigEndian:
-                    process_vertices([&](const PlyProperty& property) {
-                        return read_binary_value(stream, property.type, header.format);
-                    });
-                    break;
+            case PlyFormat::kAscii:
+                process_vertices([&](const PlyProperty&)
+                {
+                    double value = 0.0;
+                    stream >> value;
+                    if (!stream)
+                    {
+                        throw std::runtime_error("Unexpected end of PLY vertex data");
+                    }
+                    return value;
+                });
+                break;
+            case PlyFormat::kBinaryLittleEndian:
+            case PlyFormat::kBinaryBigEndian:
+                process_vertices([&](const PlyProperty& property)
+                {
+                    return read_binary_value(stream, property.type, header.format);
+                });
+                break;
             }
         }
 
@@ -741,12 +748,12 @@ namespace engine::geometry::point_cloud
     {
         switch (const auto format = resolve_format(flags, path))
         {
-            case IOFlags::Format::kPLY:
-            case IOFlags::Format::kAuto:
-                write_ply(cloud, path, flags);
-                break;
-            default:
-                throw std::runtime_error("Unsupported point cloud output format");
+        case IOFlags::Format::kPLY:
+        case IOFlags::Format::kAuto:
+            write_ply(cloud, path, flags);
+            break;
+        default:
+            throw std::runtime_error("Unsupported point cloud output format");
         }
     }
 } // namespace engine::geometry::point_cloud

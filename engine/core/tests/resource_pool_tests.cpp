@@ -2,11 +2,12 @@
 
 #include <gtest/gtest.h>
 
-namespace {
-
-struct IntTag {};
-
-}  // namespace
+namespace
+{
+    struct IntTag
+    {
+    };
+} // namespace
 
 TEST(ResourcePool, ReusesSlotsWithGeneration)
 {
@@ -40,7 +41,8 @@ TEST(ResourcePool, ForEachVisitsActiveEntries)
 
     int sum = 0;
     pool.for_each([&](const engine::core::memory::ResourcePool<int, IntTag>::handle_type& handle,
-                      int& value) {
+                      int& value)
+    {
         (void)handle;
         sum += value;
     });

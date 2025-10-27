@@ -41,6 +41,4 @@ namespace engine::compute::samples
         engine::runtime::RuntimeHost& host,
         WorkloadProfile workload,
         DispatcherFactory dispatcher_factory = {});
-
-}  // namespace engine::compute::samples
-
+} // namespace engine::compute::samples

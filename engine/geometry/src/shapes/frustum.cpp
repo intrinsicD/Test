@@ -5,8 +5,8 @@
 #include <cmath>
 #include <limits>
 
-namespace engine::geometry {
-
+namespace engine::geometry
+{
     namespace
     {
         using CornerArray = std::array<math::vec3, 8>;
@@ -97,7 +97,8 @@ namespace engine::geometry {
         }
         center *= 1.0f / static_cast<float>(corners.size());
 
-        const auto plane_from_indices = [&](std::size_t i0, std::size_t i1, std::size_t i2) {
+        const auto plane_from_indices = [&](std::size_t i0, std::size_t i1, std::size_t i2)
+        {
             return MakePlane(corners[i0], corners[i1], corners[i2], center);
         };
 
@@ -112,16 +113,19 @@ namespace engine::geometry {
         return frustum;
     }
 
-    std::array<math::vec3, 8> GetCorners(const Frustum& frustum) noexcept {
+    std::array<math::vec3, 8> GetCorners(const Frustum& frustum) noexcept
+    {
         std::array<math::vec3, 8> corners;
 
         // Compute frustum corners by intersecting plane triplets
-        auto intersect_three_planes = [](const Plane& p1, const Plane& p2, const Plane& p3) -> math::vec3 {
+        auto intersect_three_planes = [](const Plane& p1, const Plane& p2, const Plane& p3) -> math::vec3
+        {
             // Solve: n1·x + d1 = 0, n2·x + d2 = 0, n3·x + d3 = 0
             const math::vec3 n1xn2 = math::cross(p1.normal, p2.normal);
             const float det = math::dot(n1xn2, p3.normal);
 
-            if (std::abs(det) < std::numeric_limits<float>::epsilon()) {
+            if (std::abs(det) < std::numeric_limits<float>::epsilon())
+            {
                 return math::vec3{0.0f, 0.0f, 0.0f};
             }
 
@@ -152,6 +156,4 @@ namespace engine::geometry {
 
         return corners;
     }
-
 } // namespace engine::geometry
-

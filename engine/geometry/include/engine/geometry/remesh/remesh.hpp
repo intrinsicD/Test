@@ -39,10 +39,10 @@ namespace engine::geometry
 
     struct ENGINE_GEOMETRY_API RemeshingTargets
     {
-        std::optional<float> target_edge_length{};            ///< Absolute edge length in world units.
-        std::optional<float> relative_edge_scale{};           ///< Edge length multiplier relative to input mean.
+        std::optional<float> target_edge_length{}; ///< Absolute edge length in world units.
+        std::optional<float> relative_edge_scale{}; ///< Edge length multiplier relative to input mean.
         std::optional<float> maximum_normal_deviation_degrees{}; ///< Maximum allowed deviation in degrees.
-        std::optional<float> maximum_surface_deviation{};     ///< Allowed Hausdorff-style deviation in world units.
+        std::optional<float> maximum_surface_deviation{}; ///< Allowed Hausdorff-style deviation in world units.
     };
 
     struct ENGINE_GEOMETRY_API FeaturePreservationOptions
@@ -149,7 +149,8 @@ namespace engine::geometry
         std::optional<float> maximum_surface_deviation{};
     };
 
-    [[nodiscard]] ENGINE_GEOMETRY_API RemeshValidationResult ValidateRemeshRequest(const RemeshRequest& request) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API RemeshValidationResult ValidateRemeshRequest(
+        const RemeshRequest& request) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API MeshEdgeStatistics ComputeMeshEdgeStatistics(const SurfaceMesh& mesh) noexcept;
 
@@ -158,4 +159,3 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API RemeshResult<RemeshOutput> Remesh(const RemeshRequest& request) noexcept;
 }
-

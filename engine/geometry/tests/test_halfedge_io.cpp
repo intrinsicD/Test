@@ -13,8 +13,8 @@ namespace
     [[nodiscard]] std::filesystem::path make_temporary_obj_path(const std::string& stem)
     {
         return std::filesystem::temp_directory_path() / (stem + fs::generate_random_suffix() + ".obj");
-       // const auto pattern = stem + "-%%%%-%%%%-%%%%-%%%%.obj";
-       // return std::filesystem::temp_directory_path() / std::filesystem::unique_path(pattern);
+        // const auto pattern = stem + "-%%%%-%%%%-%%%%-%%%%.obj";
+        // return std::filesystem::temp_directory_path() / std::filesystem::unique_path(pattern);
     }
 
     void remove_if_exists(const std::filesystem::path& path)

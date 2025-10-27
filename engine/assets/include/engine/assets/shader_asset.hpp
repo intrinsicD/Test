@@ -17,81 +17,87 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine::assets {
-
-enum class ShaderStage : std::uint8_t {
-    vertex = 0,
-    fragment,
-    compute
-};
-
-struct ShaderCompilationOptions {
-    bool optimize{false};
-};
-
-struct ShaderBinary {
-    std::vector<std::uint32_t> spirv;
-};
-
-struct ShaderAssetDescriptor {
-    ShaderHandle handle;
-    std::filesystem::path source;
-    ShaderStage stage{ShaderStage::vertex};
-    ShaderCompilationOptions options{};
-
-    [[nodiscard]] static ShaderAssetDescriptor from_file(const std::filesystem::path& path,
-                                                         ShaderStage stage = ShaderStage::vertex,
-                                                         ShaderCompilationOptions options = {})
+namespace engine::assets
+{
+    enum class ShaderStage : std::uint8_t
     {
-        return ShaderAssetDescriptor{ShaderHandle{path}, path, stage, options};
-    }
-};
+        vertex = 0,
+        fragment,
+        compute
+    };
 
-struct ShaderAsset {
-    ShaderAssetDescriptor descriptor{};
-    ShaderBinary binary{};
-    std::string source{};
-    std::filesystem::file_time_type last_write{};
-};
+    struct ShaderCompilationOptions
+    {
+        bool optimize{false};
+    };
 
-class ShaderCompiler {
-public:
-    [[nodiscard]] static ShaderBinary compile_glsl_to_spirv(std::string_view source,
-                                                            const ShaderCompilationOptions& options);
-};
+    struct ShaderBinary
+    {
+        std::vector<std::uint32_t> spirv;
+    };
 
-class ShaderCache {
-public:
-    ShaderCache();
+    struct ShaderAssetDescriptor
+    {
+        ShaderHandle handle;
+        std::filesystem::path source;
+        ShaderStage stage{ShaderStage::vertex};
+        ShaderCompilationOptions options{};
 
-    using HotReloadCallback = std::function<void(const ShaderAsset&)>;
+        [[nodiscard]] static ShaderAssetDescriptor from_file(const std::filesystem::path& path,
+                                                             ShaderStage stage = ShaderStage::vertex,
+                                                             ShaderCompilationOptions options = {})
+        {
+            return ShaderAssetDescriptor{ShaderHandle{path}, path, stage, options};
+        }
+    };
 
-    [[nodiscard]] const ShaderAsset& load(const ShaderAssetDescriptor& descriptor);
-    [[nodiscard]] bool contains(const ShaderHandle& handle) const;
-    [[nodiscard]] const ShaderAsset& get(const ShaderHandle& handle) const;
+    struct ShaderAsset
+    {
+        ShaderAssetDescriptor descriptor{};
+        ShaderBinary binary{};
+        std::string source{};
+        std::filesystem::file_time_type last_write{};
+    };
 
-    void unload(const ShaderHandle& handle);
-    void register_hot_reload_callback(const ShaderHandle& handle, HotReloadCallback callback);
-    void poll();
+    class ShaderCompiler
+    {
+    public:
+        [[nodiscard]] static ShaderBinary compile_glsl_to_spirv(std::string_view source,
+                                                                const ShaderCompilationOptions& options);
+    };
 
-private:
-    using Pool = core::memory::ResourcePool<ShaderAsset, ShaderHandleTag>;
-    using RawHandle = typename Pool::handle_type;
-    using HandleHasher = typename Pool::handle_hasher;
+    class ShaderCache
+    {
+    public:
+        ShaderCache();
 
-    engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, ShaderAsset& asset, bool notify);
-    void register_watch_locked(const RawHandle& handle, ShaderAsset& asset);
-    void unregister_watch_locked(const RawHandle& handle);
+        using HotReloadCallback = std::function<void(const ShaderAsset&)>;
 
-    Pool assets_{};
-    std::unordered_map<std::string, RawHandle> bindings_{};
-    std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
-    std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
-    std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_{};
-    platform::filesystem::FilesystemWatcher watcher_{};
-    mutable std::mutex mutex_{};
-    std::shared_ptr<void> handle_validator_registration_{};
-};
+        [[nodiscard]] const ShaderAsset& load(const ShaderAssetDescriptor& descriptor);
+        [[nodiscard]] bool contains(const ShaderHandle& handle) const;
+        [[nodiscard]] const ShaderAsset& get(const ShaderHandle& handle) const;
 
-}  // namespace engine::assets
+        void unload(const ShaderHandle& handle);
+        void register_hot_reload_callback(const ShaderHandle& handle, HotReloadCallback callback);
+        void poll();
 
+    private:
+        using Pool = core::memory::ResourcePool<ShaderAsset, ShaderHandleTag>;
+        using RawHandle = typename Pool::handle_type;
+        using HandleHasher = typename Pool::handle_hasher;
+
+        engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, ShaderAsset& asset, bool notify);
+        void register_watch_locked(const RawHandle& handle, ShaderAsset& asset);
+        void unregister_watch_locked(const RawHandle& handle);
+
+        Pool assets_{};
+        std::unordered_map<std::string, RawHandle> bindings_{};
+        std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
+        std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
+        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_
+            {};
+        platform::filesystem::FilesystemWatcher watcher_{};
+        mutable std::mutex mutex_{};
+        std::shared_ptr<void> handle_validator_registration_{};
+    };
+} // namespace engine::assets

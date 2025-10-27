@@ -59,7 +59,8 @@ namespace engine::math::solvers
         }
 
         template <typename T>
-        using promoted_t = std::conditional_t<std::is_same_v<std::remove_cv_t<T>, long double>, long double, long double>;
+        using promoted_t = std::conditional_t<std::is_same_v<std::remove_cv_t<T>, long double>, long double, long
+                                              double>;
 
         template <typename T>
         ENGINE_MATH_INLINE promoted_t<T> abs(promoted_t<T> value) noexcept
@@ -233,7 +234,8 @@ namespace engine::math::solvers
         if (detail::abs<T>(da) <= eps)
         {
             std::array<T, 2> quadratic_roots{};
-            const std::size_t count = solve_quadratic(static_cast<T>(b), static_cast<T>(c), static_cast<T>(d), quadratic_roots, tolerance);
+            const std::size_t count = solve_quadratic(static_cast<T>(b), static_cast<T>(c), static_cast<T>(d),
+                                                      quadratic_roots, tolerance);
             for (std::size_t i = 0; i < count; ++i)
             {
                 roots[i] = quadratic_roots[i];
@@ -281,14 +283,16 @@ namespace engine::math::solvers
             return 2;
         }
 
-        const Scalar cos_argument = detail::clamp<T>(-half_q / std::sqrt(-(p_third * p_third * p_third)), Scalar(-1), Scalar(1));
+        const Scalar cos_argument = detail::clamp<T>(-half_q / std::sqrt(-(p_third * p_third * p_third)), Scalar(-1),
+                                                     Scalar(1));
         const Scalar phi = std::acos(cos_argument);
         const Scalar two_sqrt = Scalar(2) * std::sqrt(-p_third);
 
         std::array<Scalar, 3> cubic_roots{
             two_sqrt * std::cos(phi * third) - shift,
             two_sqrt * std::cos((phi + Scalar(2) * std::numbers::pi_v<Scalar>) * third) - shift,
-            two_sqrt * std::cos((phi + Scalar(4) * std::numbers::pi_v<Scalar>) * third) - shift};
+            two_sqrt * std::cos((phi + Scalar(4) * std::numbers::pi_v<Scalar>) * third) - shift
+        };
 
         std::sort(cubic_roots.begin(), cubic_roots.end());
         for (std::size_t i = 0; i < 3; ++i)

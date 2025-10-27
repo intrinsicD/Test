@@ -37,4 +37,3 @@ int main(int argc, char** argv)
     PrintSummary(options, execution.value(), std::cout);
     return 0;
 }
-

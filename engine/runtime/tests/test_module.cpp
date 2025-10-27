@@ -57,439 +57,464 @@ namespace engine::runtime::detail
                                              double wall_seconds) noexcept;
 }
 
-namespace {
-
-std::vector<std::string_view> expected_default_modules()
+namespace
 {
-    std::vector<std::string_view> modules{};
+    std::vector<std::string_view> expected_default_modules()
+    {
+        std::vector<std::string_view> modules{};
 #if ENGINE_ENABLE_ANIMATION
-    modules.emplace_back("animation");
+        modules.emplace_back("animation");
 #endif
 #if ENGINE_ENABLE_ASSETS
-    modules.emplace_back("assets");
+        modules.emplace_back("assets");
 #endif
 #if ENGINE_ENABLE_COMPUTE
-    modules.emplace_back("compute");
+        modules.emplace_back("compute");
 #endif
 #if ENGINE_ENABLE_COMPUTE && ENGINE_ENABLE_COMPUTE_CUDA
-    modules.emplace_back("compute.cuda");
+        modules.emplace_back("compute.cuda");
 #endif
 #if ENGINE_ENABLE_CORE
-    modules.emplace_back("core");
+        modules.emplace_back("core");
 #endif
 #if ENGINE_ENABLE_GEOMETRY
-    modules.emplace_back("geometry");
+        modules.emplace_back("geometry");
 #endif
 #if ENGINE_ENABLE_IO
-    modules.emplace_back("io");
+        modules.emplace_back("io");
 #endif
 #if ENGINE_ENABLE_PHYSICS
-    modules.emplace_back("physics");
+        modules.emplace_back("physics");
 #endif
 #if ENGINE_ENABLE_PLATFORM
-    modules.emplace_back("platform");
+        modules.emplace_back("platform");
 #endif
 #if ENGINE_ENABLE_RENDERING
-    modules.emplace_back("rendering");
+        modules.emplace_back("rendering");
 #endif
 #if ENGINE_ENABLE_SCENE
-    modules.emplace_back("scene");
+        modules.emplace_back("scene");
 #endif
-    return modules;
-}
+        return modules;
+    }
 
-std::optional<std::size_t> find_metric_index(const engine::core::telemetry::MetricSet& metrics,
-                                             std::string_view name,
-                                             std::optional<std::pair<std::string_view, std::string_view>> label = std::nullopt)
-{
-    for (std::size_t index = 0; index < metrics.descriptors.size(); ++index)
+    std::optional<std::size_t> find_metric_index(const engine::core::telemetry::MetricSet& metrics,
+                                                 std::string_view name,
+                                                 std::optional<std::pair<std::string_view, std::string_view>> label =
+                                                     std::nullopt)
     {
-        const auto& descriptor = metrics.descriptors[index];
-        if (descriptor.name != name)
+        for (std::size_t index = 0; index < metrics.descriptors.size(); ++index)
         {
-            continue;
-        }
-        if (!label.has_value())
-        {
-            return index;
-        }
-        for (const auto& entry : descriptor.labels)
-        {
-            if (entry.key == label->first && entry.value == label->second)
+            const auto& descriptor = metrics.descriptors[index];
+            if (descriptor.name != name)
+            {
+                continue;
+            }
+            if (!label.has_value())
             {
                 return index;
             }
+            for (const auto& entry : descriptor.labels)
+            {
+                if (entry.key == label->first && entry.value == label->second)
+                {
+                    return index;
+                }
+            }
         }
+
+        return std::nullopt;
     }
 
-    return std::nullopt;
-}
-
-std::filesystem::path geometry_fixture_path(const char* name)
-{
-    auto source_dir = std::filesystem::path{__FILE__}.parent_path();
-    auto base = std::filesystem::absolute(source_dir / "../../io/tests/corpus/geometry_detection");
-    return base / name;
-}
-
-class TestSubsystem final : public engine::core::plugin::ISubsystemInterface {
-public:
-    TestSubsystem(std::string name, std::vector<std::string> dependencies)
-        : name_(std::move(name)), dependencies_storage_(std::move(dependencies))
+    std::filesystem::path geometry_fixture_path(const char* name)
     {
-        dependency_views_.reserve(dependencies_storage_.size());
-        for (const auto& dependency : dependencies_storage_)
+        auto source_dir = std::filesystem::path{__FILE__}.parent_path();
+        auto base = std::filesystem::absolute(source_dir / "../../io/tests/corpus/geometry_detection");
+        return base / name;
+    }
+
+    class TestSubsystem final : public engine::core::plugin::ISubsystemInterface
+    {
+    public:
+        TestSubsystem(std::string name, std::vector<std::string> dependencies)
+            : name_(std::move(name)), dependencies_storage_(std::move(dependencies))
         {
-            dependency_views_.push_back(dependency);
+            dependency_views_.reserve(dependencies_storage_.size());
+            for (const auto& dependency : dependencies_storage_)
+            {
+                dependency_views_.push_back(dependency);
+            }
         }
-    }
 
-    [[nodiscard]] std::string_view name() const noexcept override
-    {
-        return name_;
-    }
-
-    [[nodiscard]] std::span<const std::string_view> dependencies() const noexcept override
-    {
-        return dependency_views_;
-    }
-
-    void initialize(const engine::core::plugin::SubsystemLifecycleContext&) override {}
-
-    void shutdown(const engine::core::plugin::SubsystemLifecycleContext&) noexcept override {}
-
-    void tick(const engine::core::plugin::SubsystemUpdateContext&) override {}
-
-private:
-    std::string name_{};
-    std::vector<std::string> dependencies_storage_{};
-    std::vector<std::string_view> dependency_views_{};
-};
-
-std::shared_ptr<engine::core::plugin::ISubsystemInterface> make_test_subsystem(
-    std::string name,
-    std::vector<std::string> dependencies = {})
-{
-    return std::make_shared<TestSubsystem>(std::move(name), std::move(dependencies));
-}
-
-class RecordingLifecycleSubsystem final : public engine::core::plugin::ISubsystemInterface
-{
-public:
-    explicit RecordingLifecycleSubsystem(std::string name, std::vector<std::string> dependencies = {})
-        : name_(std::move(name)), dependencies_storage_(std::move(dependencies))
-    {
-        dependency_views_.reserve(dependencies_storage_.size());
-        for (const auto& dependency : dependencies_storage_)
+        [[nodiscard]] std::string_view name() const noexcept override
         {
-            dependency_views_.push_back(dependency);
+            return name_;
         }
-    }
 
-    [[nodiscard]] std::string_view name() const noexcept override
-    {
-        return name_;
-    }
-
-    [[nodiscard]] std::span<const std::string_view> dependencies() const noexcept override
-    {
-        return dependency_views_;
-    }
-
-    void initialize(const engine::core::plugin::SubsystemLifecycleContext& context) override
-    {
-        initialize_calls += 1U;
-        initialize_contexts.emplace_back(context.runtime_name);
-        if (remaining_failures > 0U)
+        [[nodiscard]] std::span<const std::string_view> dependencies() const noexcept override
         {
-            --remaining_failures;
-            throw std::runtime_error("RecordingLifecycleSubsystem forced failure");
+            return dependency_views_;
         }
-    }
 
-    void shutdown(const engine::core::plugin::SubsystemLifecycleContext& context) noexcept override
-    {
-        shutdown_calls += 1U;
-        shutdown_contexts.emplace_back(context.runtime_name);
-    }
+        void initialize(const engine::core::plugin::SubsystemLifecycleContext&) override
+        {
+        }
 
-    void tick(const engine::core::plugin::SubsystemUpdateContext&) override {}
+        void shutdown(const engine::core::plugin::SubsystemLifecycleContext&) noexcept override
+        {
+        }
 
-    void fail_initialization(std::size_t count = 1U) noexcept
-    {
-        remaining_failures = count;
-    }
+        void tick(const engine::core::plugin::SubsystemUpdateContext&) override
+        {
+        }
 
-    void clear_failures() noexcept
-    {
-        remaining_failures = 0U;
-    }
-
-    std::string name_{};
-    std::vector<std::string> dependencies_storage_{};
-    std::vector<std::string_view> dependency_views_{};
-    std::size_t initialize_calls{0U};
-    std::size_t shutdown_calls{0U};
-    std::vector<std::string> initialize_contexts{};
-    std::vector<std::string> shutdown_contexts{};
-    std::size_t remaining_failures{0U};
-};
-
-std::shared_ptr<RecordingLifecycleSubsystem> make_recording_subsystem(
-    std::string name,
-    std::vector<std::string> dependencies = {})
-{
-    return std::make_shared<RecordingLifecycleSubsystem>(std::move(name), std::move(dependencies));
-}
-
-struct ScopedHandleValidators
-{
-    ScopedHandleValidators()
-    {
-        auto& registry = engine::assets::HandleValidatorRegistry::instance();
-        mesh = registry.register_mesh_validator([](const engine::assets::MeshHandle&) { return true; });
-        graph = registry.register_graph_validator([](const engine::assets::GraphHandle&) { return true; });
-        cloud = registry.register_point_cloud_validator([](const engine::assets::PointCloudHandle&) { return true; });
-        material = registry.register_material_validator([](const engine::assets::MaterialHandle&) { return true; });
-        shader = registry.register_shader_validator([](const engine::assets::ShaderHandle&) { return true; });
-    }
-
-    [[maybe_unused]] std::shared_ptr<void> mesh{};
-    [[maybe_unused]] std::shared_ptr<void> graph{};
-    [[maybe_unused]] std::shared_ptr<void> cloud{};
-    [[maybe_unused]] std::shared_ptr<void> material{};
-    [[maybe_unused]] std::shared_ptr<void> shader{};
-};
-
-class RecordingRenderResourceProvider final : public engine::rendering::RenderResourceProvider
-{
-public:
-    void require_mesh(const engine::assets::MeshHandle& handle) override
-    {
-        meshes.push_back(handle);
-    }
-
-    void require_graph(const engine::assets::GraphHandle& handle) override
-    {
-        graphs.push_back(handle);
-    }
-
-    void require_point_cloud(const engine::assets::PointCloudHandle& handle) override
-    {
-        point_clouds.push_back(handle);
-    }
-
-    void require_material(const engine::assets::MaterialHandle& handle) override
-    {
-        materials.push_back(handle);
-    }
-
-    void require_shader(const engine::assets::ShaderHandle& handle) override
-    {
-        shaders.push_back(handle);
-    }
-
-    std::vector<engine::assets::MeshHandle> meshes;
-    std::vector<engine::assets::GraphHandle> graphs;
-    std::vector<engine::assets::PointCloudHandle> point_clouds;
-    std::vector<engine::assets::MaterialHandle> materials;
-    std::vector<engine::assets::ShaderHandle> shaders;
-};
-
-class RecordingCommandEncoder final : public engine::rendering::CommandEncoder
-{
-public:
-    void draw_geometry(const engine::rendering::GeometryDrawCommand& command) override
-    {
-        draws.push_back(command);
-    }
-
-    std::vector<engine::rendering::GeometryDrawCommand> draws;
-};
-
-class RecordingCommandEncoderProvider final : public engine::rendering::CommandEncoderProvider
-{
-public:
-    struct DescriptorRecord
-    {
-        std::string pass_name;
-        engine::rendering::QueueType queue{engine::rendering::QueueType::Graphics};
-        engine::rendering::CommandBufferHandle command_buffer{};
+    private:
+        std::string name_{};
+        std::vector<std::string> dependencies_storage_{};
+        std::vector<std::string_view> dependency_views_{};
     };
 
-    std::unique_ptr<engine::rendering::CommandEncoder> begin_encoder(
-        const engine::rendering::CommandEncoderDescriptor& descriptor) override
+    std::shared_ptr<engine::core::plugin::ISubsystemInterface> make_test_subsystem(
+        std::string name,
+        std::vector<std::string> dependencies = {})
     {
-        begin_records.push_back(DescriptorRecord{std::string{descriptor.pass_name}, descriptor.queue,
-                                                 descriptor.command_buffer});
-        return std::make_unique<RecordingCommandEncoder>();
+        return std::make_shared<TestSubsystem>(std::move(name), std::move(dependencies));
     }
 
-    void end_encoder(const engine::rendering::CommandEncoderDescriptor& descriptor,
-                     std::unique_ptr<engine::rendering::CommandEncoder> encoder) override
+    class RecordingLifecycleSubsystem final : public engine::core::plugin::ISubsystemInterface
     {
-        end_records.push_back(DescriptorRecord{std::string{descriptor.pass_name}, descriptor.queue,
-                                               descriptor.command_buffer});
-        auto* recording = dynamic_cast<RecordingCommandEncoder*>(encoder.release());
-        if (recording != nullptr)
+    public:
+        explicit RecordingLifecycleSubsystem(std::string name, std::vector<std::string> dependencies = {})
+            : name_(std::move(name)), dependencies_storage_(std::move(dependencies))
         {
-            completed_encoders.emplace_back(recording);
-        }
-    }
-
-    std::vector<DescriptorRecord> begin_records;
-    std::vector<DescriptorRecord> end_records;
-    std::vector<std::unique_ptr<RecordingCommandEncoder>> completed_encoders;
-};
-
-class QueueNormalisationPipeline final : public engine::rendering::ForwardPipeline
-{
-public:
-    void render(engine::scene::Scene& scene, engine::rendering::RuntimeSubmissionContext& submission) override
-    {
-        auto& graph = submission.frame_graph;
-        graph.reset();
-
-        engine::rendering::FrameGraphResourceDescriptor compute_buffer{};
-        compute_buffer.name = "ComputeBuffer";
-        compute_buffer.dimension = engine::rendering::ResourceDimension::Buffer;
-        compute_buffer.usage = engine::rendering::ResourceUsage::ShaderRead
-                                | engine::rendering::ResourceUsage::ShaderWrite
-                                | engine::rendering::ResourceUsage::TransferSource
-                                | engine::rendering::ResourceUsage::TransferDestination;
-        compute_buffer.initial_state = engine::rendering::ResourceState::ShaderRead;
-        compute_buffer.final_state = engine::rendering::ResourceState::ShaderRead;
-        compute_buffer.size_bytes = 4096U;
-        const auto compute_handle = graph.create_resource(std::move(compute_buffer));
-
-        engine::rendering::FrameGraphResourceDescriptor staging_buffer{};
-        staging_buffer.name = "StagingBuffer";
-        staging_buffer.dimension = engine::rendering::ResourceDimension::Buffer;
-        staging_buffer.usage = engine::rendering::ResourceUsage::TransferDestination
-                               | engine::rendering::ResourceUsage::TransferSource
-                               | engine::rendering::ResourceUsage::ShaderRead;
-        staging_buffer.initial_state = engine::rendering::ResourceState::CopyDestination;
-        staging_buffer.final_state = engine::rendering::ResourceState::ShaderRead;
-        staging_buffer.size_bytes = 4096U;
-        const auto staging_handle = graph.create_resource(std::move(staging_buffer));
-
-        engine::rendering::FrameGraphResourceDescriptor color_target{};
-        color_target.name = "ColorTarget";
-        color_target.dimension = engine::rendering::ResourceDimension::Texture2D;
-        color_target.format = engine::rendering::ResourceFormat::Rgba8Unorm;
-        color_target.usage = engine::rendering::ResourceUsage::ColorAttachment
-                              | engine::rendering::ResourceUsage::ShaderRead;
-        color_target.initial_state = engine::rendering::ResourceState::ColorAttachment;
-        color_target.final_state = engine::rendering::ResourceState::ShaderRead;
-        color_target.width = 64U;
-        color_target.height = 64U;
-        color_target.depth = 1U;
-        color_target.array_layers = 1U;
-        color_target.mip_levels = 1U;
-        color_target.sample_count = engine::rendering::ResourceSampleCount::Count1;
-        const auto color_handle = graph.create_resource(std::move(color_target));
-
-        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
-            "ComputeNormalize",
-            [compute_handle](engine::rendering::FrameGraphPassBuilder& builder) {
-                builder.write(compute_handle);
-            },
-            [](engine::rendering::FrameGraphPassExecutionContext& context) {
-                static_cast<void>(context.command_encoder());
-            },
-            engine::rendering::QueueType::Compute,
-            engine::rendering::PassPhase::Compute,
-            engine::rendering::ValidationSeverity::Warning));
-
-        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
-            "TransferNormalize",
-            [compute_handle, staging_handle](engine::rendering::FrameGraphPassBuilder& builder) {
-                builder.read(compute_handle);
-                builder.write(staging_handle);
-            },
-            [](engine::rendering::FrameGraphPassExecutionContext& context) {
-                static_cast<void>(context.command_encoder());
-            },
-            engine::rendering::QueueType::Transfer,
-            engine::rendering::PassPhase::Transfer,
-            engine::rendering::ValidationSeverity::Warning));
-
-        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
-            "GraphicsConsume",
-            [staging_handle, color_handle](engine::rendering::FrameGraphPassBuilder& builder) {
-                builder.read(staging_handle);
-                builder.write(color_handle);
-            },
-            [](engine::rendering::FrameGraphPassExecutionContext& context) {
-                static_cast<void>(context.command_encoder());
-            },
-            engine::rendering::QueueType::Graphics,
-            engine::rendering::PassPhase::Geometry,
-            engine::rendering::ValidationSeverity::Error));
-
-        graph.compile();
-        auto execution_context = submission.make_execution_context(scene);
-        graph.execute(execution_context);
-    }
-};
-
-class LocalRecordingScheduler final : public engine::rendering::IGpuScheduler
-{
-public:
-    engine::rendering::QueueType select_queue(const engine::rendering::RenderPass&,
-                                              engine::rendering::QueueType preferred) override
-    {
-        return preferred;
-    }
-
-    engine::rendering::CommandBufferHandle request_command_buffer(engine::rendering::QueueType,
-                                                                  std::string_view) override
-    {
-        return engine::rendering::CommandBufferHandle{++next_command_buffer_};
-    }
-
-    void submit(const engine::rendering::GpuSubmitInfo& info) override
-    {
-        submissions.push_back(info);
-        if (info.fence != nullptr)
-        {
-            info.fence->signal(info.fence_value);
-        }
-        for (const auto& wait : info.waits)
-        {
-            if (wait.semaphore != nullptr)
+            dependency_views_.reserve(dependencies_storage_.size());
+            for (const auto& dependency : dependencies_storage_)
             {
-                wait.semaphore->wait(wait.value);
+                dependency_views_.push_back(dependency);
             }
         }
-        for (const auto& signal : info.signals)
+
+        [[nodiscard]] std::string_view name() const noexcept override
         {
-            if (signal.semaphore != nullptr)
+            return name_;
+        }
+
+        [[nodiscard]] std::span<const std::string_view> dependencies() const noexcept override
+        {
+            return dependency_views_;
+        }
+
+        void initialize(const engine::core::plugin::SubsystemLifecycleContext& context) override
+        {
+            initialize_calls += 1U;
+            initialize_contexts.emplace_back(context.runtime_name);
+            if (remaining_failures > 0U)
             {
-                signal.semaphore->signal(signal.value);
+                --remaining_failures;
+                throw std::runtime_error("RecordingLifecycleSubsystem forced failure");
             }
         }
+
+        void shutdown(const engine::core::plugin::SubsystemLifecycleContext& context) noexcept override
+        {
+            shutdown_calls += 1U;
+            shutdown_contexts.emplace_back(context.runtime_name);
+        }
+
+        void tick(const engine::core::plugin::SubsystemUpdateContext&) override
+        {
+        }
+
+        void fail_initialization(std::size_t count = 1U) noexcept
+        {
+            remaining_failures = count;
+        }
+
+        void clear_failures() noexcept
+        {
+            remaining_failures = 0U;
+        }
+
+        std::string name_{};
+        std::vector<std::string> dependencies_storage_{};
+        std::vector<std::string_view> dependency_views_{};
+        std::size_t initialize_calls{0U};
+        std::size_t shutdown_calls{0U};
+        std::vector<std::string> initialize_contexts{};
+        std::vector<std::string> shutdown_contexts{};
+        std::size_t remaining_failures{0U};
+    };
+
+    std::shared_ptr<RecordingLifecycleSubsystem> make_recording_subsystem(
+        std::string name,
+        std::vector<std::string> dependencies = {})
+    {
+        return std::make_shared<RecordingLifecycleSubsystem>(std::move(name), std::move(dependencies));
     }
 
-    void recycle(engine::rendering::CommandBufferHandle) override {}
+    struct ScopedHandleValidators
+    {
+        ScopedHandleValidators()
+        {
+            auto& registry = engine::assets::HandleValidatorRegistry::instance();
+            mesh = registry.register_mesh_validator([](const engine::assets::MeshHandle&) { return true; });
+            graph = registry.register_graph_validator([](const engine::assets::GraphHandle&) { return true; });
+            cloud = registry.register_point_cloud_validator(
+                [](const engine::assets::PointCloudHandle&) { return true; });
+            material = registry.register_material_validator([](const engine::assets::MaterialHandle&) { return true; });
+            shader = registry.register_shader_validator([](const engine::assets::ShaderHandle&) { return true; });
+        }
 
-    std::vector<engine::rendering::GpuSubmitInfo> submissions;
+        [[maybe_unused]] std::shared_ptr<void> mesh{};
+        [[maybe_unused]] std::shared_ptr<void> graph{};
+        [[maybe_unused]] std::shared_ptr<void> cloud{};
+        [[maybe_unused]] std::shared_ptr<void> material{};
+        [[maybe_unused]] std::shared_ptr<void> shader{};
+    };
 
-private:
-    std::size_t next_command_buffer_{0};
-};
+    class RecordingRenderResourceProvider final : public engine::rendering::RenderResourceProvider
+    {
+    public:
+        void require_mesh(const engine::assets::MeshHandle& handle) override
+        {
+            meshes.push_back(handle);
+        }
 
-}  // namespace
+        void require_graph(const engine::assets::GraphHandle& handle) override
+        {
+            graphs.push_back(handle);
+        }
 
-TEST(RuntimeModule, ModuleNameMatchesNamespace) {
+        void require_point_cloud(const engine::assets::PointCloudHandle& handle) override
+        {
+            point_clouds.push_back(handle);
+        }
+
+        void require_material(const engine::assets::MaterialHandle& handle) override
+        {
+            materials.push_back(handle);
+        }
+
+        void require_shader(const engine::assets::ShaderHandle& handle) override
+        {
+            shaders.push_back(handle);
+        }
+
+        std::vector<engine::assets::MeshHandle> meshes;
+        std::vector<engine::assets::GraphHandle> graphs;
+        std::vector<engine::assets::PointCloudHandle> point_clouds;
+        std::vector<engine::assets::MaterialHandle> materials;
+        std::vector<engine::assets::ShaderHandle> shaders;
+    };
+
+    class RecordingCommandEncoder final : public engine::rendering::CommandEncoder
+    {
+    public:
+        void draw_geometry(const engine::rendering::GeometryDrawCommand& command) override
+        {
+            draws.push_back(command);
+        }
+
+        std::vector<engine::rendering::GeometryDrawCommand> draws;
+    };
+
+    class RecordingCommandEncoderProvider final : public engine::rendering::CommandEncoderProvider
+    {
+    public:
+        struct DescriptorRecord
+        {
+            std::string pass_name;
+            engine::rendering::QueueType queue{engine::rendering::QueueType::Graphics};
+            engine::rendering::CommandBufferHandle command_buffer{};
+        };
+
+        std::unique_ptr<engine::rendering::CommandEncoder> begin_encoder(
+            const engine::rendering::CommandEncoderDescriptor& descriptor) override
+        {
+            begin_records.push_back(DescriptorRecord{
+                std::string{descriptor.pass_name}, descriptor.queue,
+                descriptor.command_buffer
+            });
+            return std::make_unique<RecordingCommandEncoder>();
+        }
+
+        void end_encoder(const engine::rendering::CommandEncoderDescriptor& descriptor,
+                         std::unique_ptr<engine::rendering::CommandEncoder> encoder) override
+        {
+            end_records.push_back(DescriptorRecord{
+                std::string{descriptor.pass_name}, descriptor.queue,
+                descriptor.command_buffer
+            });
+            auto* recording = dynamic_cast<RecordingCommandEncoder*>(encoder.release());
+            if (recording != nullptr)
+            {
+                completed_encoders.emplace_back(recording);
+            }
+        }
+
+        std::vector<DescriptorRecord> begin_records;
+        std::vector<DescriptorRecord> end_records;
+        std::vector<std::unique_ptr<RecordingCommandEncoder>> completed_encoders;
+    };
+
+    class QueueNormalisationPipeline final : public engine::rendering::ForwardPipeline
+    {
+    public:
+        void render(engine::scene::Scene& scene, engine::rendering::RuntimeSubmissionContext& submission) override
+        {
+            auto& graph = submission.frame_graph;
+            graph.reset();
+
+            engine::rendering::FrameGraphResourceDescriptor compute_buffer{};
+            compute_buffer.name = "ComputeBuffer";
+            compute_buffer.dimension = engine::rendering::ResourceDimension::Buffer;
+            compute_buffer.usage = engine::rendering::ResourceUsage::ShaderRead
+                | engine::rendering::ResourceUsage::ShaderWrite
+                | engine::rendering::ResourceUsage::TransferSource
+                | engine::rendering::ResourceUsage::TransferDestination;
+            compute_buffer.initial_state = engine::rendering::ResourceState::ShaderRead;
+            compute_buffer.final_state = engine::rendering::ResourceState::ShaderRead;
+            compute_buffer.size_bytes = 4096U;
+            const auto compute_handle = graph.create_resource(std::move(compute_buffer));
+
+            engine::rendering::FrameGraphResourceDescriptor staging_buffer{};
+            staging_buffer.name = "StagingBuffer";
+            staging_buffer.dimension = engine::rendering::ResourceDimension::Buffer;
+            staging_buffer.usage = engine::rendering::ResourceUsage::TransferDestination
+                | engine::rendering::ResourceUsage::TransferSource
+                | engine::rendering::ResourceUsage::ShaderRead;
+            staging_buffer.initial_state = engine::rendering::ResourceState::CopyDestination;
+            staging_buffer.final_state = engine::rendering::ResourceState::ShaderRead;
+            staging_buffer.size_bytes = 4096U;
+            const auto staging_handle = graph.create_resource(std::move(staging_buffer));
+
+            engine::rendering::FrameGraphResourceDescriptor color_target{};
+            color_target.name = "ColorTarget";
+            color_target.dimension = engine::rendering::ResourceDimension::Texture2D;
+            color_target.format = engine::rendering::ResourceFormat::Rgba8Unorm;
+            color_target.usage = engine::rendering::ResourceUsage::ColorAttachment
+                | engine::rendering::ResourceUsage::ShaderRead;
+            color_target.initial_state = engine::rendering::ResourceState::ColorAttachment;
+            color_target.final_state = engine::rendering::ResourceState::ShaderRead;
+            color_target.width = 64U;
+            color_target.height = 64U;
+            color_target.depth = 1U;
+            color_target.array_layers = 1U;
+            color_target.mip_levels = 1U;
+            color_target.sample_count = engine::rendering::ResourceSampleCount::Count1;
+            const auto color_handle = graph.create_resource(std::move(color_target));
+
+            graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+                "ComputeNormalize",
+                [compute_handle](engine::rendering::FrameGraphPassBuilder& builder)
+                {
+                    builder.write(compute_handle);
+                },
+                [](engine::rendering::FrameGraphPassExecutionContext& context)
+                {
+                    static_cast<void>(context.command_encoder());
+                },
+                engine::rendering::QueueType::Compute,
+                engine::rendering::PassPhase::Compute,
+                engine::rendering::ValidationSeverity::Warning));
+
+            graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+                "TransferNormalize",
+                [compute_handle, staging_handle](engine::rendering::FrameGraphPassBuilder& builder)
+                {
+                    builder.read(compute_handle);
+                    builder.write(staging_handle);
+                },
+                [](engine::rendering::FrameGraphPassExecutionContext& context)
+                {
+                    static_cast<void>(context.command_encoder());
+                },
+                engine::rendering::QueueType::Transfer,
+                engine::rendering::PassPhase::Transfer,
+                engine::rendering::ValidationSeverity::Warning));
+
+            graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+                "GraphicsConsume",
+                [staging_handle, color_handle](engine::rendering::FrameGraphPassBuilder& builder)
+                {
+                    builder.read(staging_handle);
+                    builder.write(color_handle);
+                },
+                [](engine::rendering::FrameGraphPassExecutionContext& context)
+                {
+                    static_cast<void>(context.command_encoder());
+                },
+                engine::rendering::QueueType::Graphics,
+                engine::rendering::PassPhase::Geometry,
+                engine::rendering::ValidationSeverity::Error));
+
+            graph.compile();
+            auto execution_context = submission.make_execution_context(scene);
+            graph.execute(execution_context);
+        }
+    };
+
+    class LocalRecordingScheduler final : public engine::rendering::IGpuScheduler
+    {
+    public:
+        engine::rendering::QueueType select_queue(const engine::rendering::RenderPass&,
+                                                  engine::rendering::QueueType preferred) override
+        {
+            return preferred;
+        }
+
+        engine::rendering::CommandBufferHandle request_command_buffer(engine::rendering::QueueType,
+                                                                      std::string_view) override
+        {
+            return engine::rendering::CommandBufferHandle{++next_command_buffer_};
+        }
+
+        void submit(const engine::rendering::GpuSubmitInfo& info) override
+        {
+            submissions.push_back(info);
+            if (info.fence != nullptr)
+            {
+                info.fence->signal(info.fence_value);
+            }
+            for (const auto& wait : info.waits)
+            {
+                if (wait.semaphore != nullptr)
+                {
+                    wait.semaphore->wait(wait.value);
+                }
+            }
+            for (const auto& signal : info.signals)
+            {
+                if (signal.semaphore != nullptr)
+                {
+                    signal.semaphore->signal(signal.value);
+                }
+            }
+        }
+
+        void recycle(engine::rendering::CommandBufferHandle) override
+        {
+        }
+
+        std::vector<engine::rendering::GpuSubmitInfo> submissions;
+
+    private:
+        std::size_t next_command_buffer_{0};
+    };
+} // namespace
+
+TEST(RuntimeModule, ModuleNameMatchesNamespace)
+{
     EXPECT_EQ(engine::runtime::module_name(), "runtime");
     EXPECT_STREQ(engine_runtime_module_name(), "runtime");
 }
 
-TEST(RuntimeModule, RuntimeHostRespectsDispatcherFactory) {
+TEST(RuntimeModule, RuntimeHostRespectsDispatcherFactory)
+{
     engine::runtime::RuntimeHostDependencies dependencies{};
     bool factory_invoked = false;
-    dependencies.dispatcher_factory = [&]() -> std::unique_ptr<engine::compute::Dispatcher> {
+    dependencies.dispatcher_factory = [&]() -> std::unique_ptr<engine::compute::Dispatcher>
+    {
         factory_invoked = true;
         return engine::compute::make_cpu_dispatcher();
     };
@@ -501,7 +526,8 @@ TEST(RuntimeModule, RuntimeHostRespectsDispatcherFactory) {
     host.shutdown();
 }
 
-TEST(RuntimeModule, ExecutesSimulationPipeline) {
+TEST(RuntimeModule, ExecutesSimulationPipeline)
+{
     engine::runtime::shutdown();
     engine::runtime::initialize();
 
@@ -545,7 +571,8 @@ TEST(RuntimeModule, ExecutesSimulationPipeline) {
     engine::runtime::shutdown();
 }
 
-TEST(RuntimeHost, EnforcesLifecycleSemantics) {
+TEST(RuntimeHost, EnforcesLifecycleSemantics)
+{
     engine::runtime::RuntimeHost host{};
     EXPECT_FALSE(host.is_initialized());
     EXPECT_THROW(host.tick(0.016), std::runtime_error);
@@ -567,7 +594,8 @@ TEST(RuntimeHost, EnforcesLifecycleSemantics) {
     EXPECT_FALSE(host.is_initialized());
 }
 
-TEST(RuntimeHost, AcceptsInjectedDependencies) {
+TEST(RuntimeHost, AcceptsInjectedDependencies)
+{
     engine::animation::AnimationClip clip{};
     clip.name = "custom";
     clip.duration = 1.0;
@@ -603,7 +631,8 @@ TEST(RuntimeHost, AcceptsInjectedDependencies) {
     host.shutdown();
 }
 
-TEST(RuntimeHost, AppliesLinearBlendSkinning) {
+TEST(RuntimeHost, AppliesLinearBlendSkinning)
+{
     engine::animation::AnimationClip clip{};
     clip.name = "skinning";
     clip.duration = 1.0;
@@ -612,19 +641,25 @@ TEST(RuntimeHost, AppliesLinearBlendSkinning) {
     root_track.joint_name = "root";
     root_track.keyframes.push_back(engine::animation::Keyframe{
         0.0,
-        engine::animation::JointPose{engine::math::vec3{0.0F, 0.0F, 0.0F},
-                                     engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
-                                     engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+        engine::animation::JointPose{
+            engine::math::vec3{0.0F, 0.0F, 0.0F},
+            engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
+            engine::math::vec3{1.0F, 1.0F, 1.0F}
+        }
+    });
     root_track.keyframes.push_back(root_track.keyframes.front());
 
     engine::animation::JointTrack child_track{};
     child_track.joint_name = "child";
     child_track.keyframes.push_back(engine::animation::Keyframe{
         0.0,
-        engine::animation::JointPose{engine::math::vec3{0.0F, 2.0F, 0.0F},
-                                     engine::math::normalize(engine::math::angle_axis(
-                                         engine::math::radians(90.0F), engine::math::vec3{0.0F, 0.0F, 1.0F})),
-                                     engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+        engine::animation::JointPose{
+            engine::math::vec3{0.0F, 2.0F, 0.0F},
+            engine::math::normalize(engine::math::angle_axis(
+                engine::math::radians(90.0F), engine::math::vec3{0.0F, 0.0F, 1.0F})),
+            engine::math::vec3{1.0F, 1.0F, 1.0F}
+        }
+    });
     child_track.keyframes.push_back(child_track.keyframes.front());
 
     clip.tracks.push_back(root_track);
@@ -679,7 +714,7 @@ TEST(RuntimeHost, AppliesLinearBlendSkinning) {
     engine::runtime::RuntimeHost host{deps};
     host.initialize();
     const auto frame = host.tick(0.0);
-    ASSERT_FALSE(frame.scene_nodes.empty());  // NOLINT
+    ASSERT_FALSE(frame.scene_nodes.empty()); // NOLINT
 
     const auto& skinned_mesh = host.current_mesh();
     ASSERT_EQ(skinned_mesh.positions.size(), 3U);
@@ -692,7 +727,8 @@ TEST(RuntimeHost, AppliesLinearBlendSkinning) {
 }
 
 #if ENGINE_RENDERING_HAS_VULKAN
-TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
+TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler)
+{
     ScopedHandleValidators handle_validators;
     engine::runtime::RuntimeHostDependencies deps{};
     engine::assets::MeshHandle mesh_handle{std::string{"runtime.mesh"}};
@@ -713,7 +749,7 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     engine::runtime::RuntimeHost host{deps};
     host.initialize();
     const auto frame = host.tick(0.016);
-    ASSERT_FALSE(frame.scene_nodes.empty());  // NOLINT
+    ASSERT_FALSE(frame.scene_nodes.empty()); // NOLINT
 
     engine::rendering::MaterialSystem materials;
     engine::assets::ShaderHandle shader_handle{std::string{"runtime.shader"}};
@@ -746,7 +782,7 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     host.submit_render_graph(context);
 
     const auto& acquired_resources = device_provider.acquired();
-    ASSERT_EQ(acquired_resources.size(), 2U);  // NOLINT
+    ASSERT_EQ(acquired_resources.size(), 2U); // NOLINT
     for (const auto& record : acquired_resources)
     {
         const auto& info = record.info;
@@ -789,7 +825,7 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     }
 
     const auto& released_resources = device_provider.released();
-    ASSERT_EQ(released_resources.size(), acquired_resources.size());  // NOLINT
+    ASSERT_EQ(released_resources.size(), acquired_resources.size()); // NOLINT
     for (std::size_t index = 0; index < released_resources.size(); ++index)
     {
         EXPECT_EQ(released_resources[index].info.name, acquired_resources[index].info.name);
@@ -816,12 +852,12 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
         EXPECT_EQ(event.pass_name, "ForwardGeometry");
     }
 
-    ASSERT_EQ(scheduler.submissions().size(), 1U);  // NOLINT
+    ASSERT_EQ(scheduler.submissions().size(), 1U); // NOLINT
     const auto& submission = scheduler.submissions().front();
     EXPECT_EQ(submission.pass_name, "ForwardGeometry");
     EXPECT_EQ(submission.command_buffer.queue.api, engine::rendering::resources::GraphicsApi::Vulkan);
 
-    ASSERT_EQ(submission.begin_barriers.size(), acquired_resources.size());  // NOLINT
+    ASSERT_EQ(submission.begin_barriers.size(), acquired_resources.size()); // NOLINT
     for (const auto& barrier : submission.begin_barriers)
     {
         const auto info = graph.resource_info(barrier.resource);
@@ -833,7 +869,7 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
         EXPECT_TRUE(info.name == "ForwardColor" || info.name == "ForwardDepth");
     }
 
-    ASSERT_EQ(submission.end_barriers.size(), acquired_resources.size());  // NOLINT
+    ASSERT_EQ(submission.end_barriers.size(), acquired_resources.size()); // NOLINT
     for (const auto& barrier : submission.end_barriers)
     {
         const auto info = graph.resource_info(barrier.resource);
@@ -845,11 +881,11 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
         EXPECT_TRUE(info.name == "ForwardColor" || info.name == "ForwardDepth");
     }
 
-    ASSERT_EQ(command_encoders.completed_encoders.size(), 1U);  // NOLINT
+    ASSERT_EQ(command_encoders.completed_encoders.size(), 1U); // NOLINT
     const auto& encoder = *command_encoders.completed_encoders.front();
-    ASSERT_EQ(encoder.draws.size(), 1U);  // NOLINT
+    ASSERT_EQ(encoder.draws.size(), 1U); // NOLINT
     const auto& draw = encoder.draws.front();
-    ASSERT_TRUE(std::holds_alternative<engine::assets::MeshHandle>(draw.geometry));  // NOLINT
+    ASSERT_TRUE(std::holds_alternative<engine::assets::MeshHandle>(draw.geometry)); // NOLINT
     EXPECT_EQ(std::get<engine::assets::MeshHandle>(draw.geometry).id(), std::string{"runtime.mesh"});
     EXPECT_EQ(draw.material.id(), std::string{"runtime.material"});
 
@@ -863,9 +899,9 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     const auto& renderable_node = *renderable_node_ptr;
     EXPECT_EQ(renderable_node.transform.translation, draw.transform.translation);
 
-    ASSERT_EQ(render_resources.meshes.size(), 1U);  // NOLINT
+    ASSERT_EQ(render_resources.meshes.size(), 1U); // NOLINT
     EXPECT_EQ(render_resources.meshes.front().id(), std::string{"runtime.mesh"});
-    ASSERT_EQ(render_resources.materials.size(), 1U);  // NOLINT
+    ASSERT_EQ(render_resources.materials.size(), 1U); // NOLINT
     EXPECT_EQ(render_resources.materials.front().id(), std::string{"runtime.material"});
     EXPECT_EQ(device_provider.frames_begun(), 1U);
     EXPECT_EQ(device_provider.frames_completed(), 1U);
@@ -902,12 +938,14 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
     host.shutdown();
 }
 #else
-TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler) {
+TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler)
+{
     GTEST_SKIP() << "Vulkan SDK not available; Vulkan submission path not exercised.";
 }
 #endif
 
-TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler) {
+TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler)
+{
     using engine::rendering::backend::opengl::buffer_update_barrier_bit;
     using engine::rendering::backend::opengl::command_barrier_bit;
     using engine::rendering::backend::opengl::framebuffer_barrier_bit;
@@ -935,7 +973,7 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler) {
     engine::runtime::RuntimeHost host{deps};
     host.initialize();
     const auto frame = host.tick(0.016);
-    ASSERT_FALSE(frame.scene_nodes.empty());  // NOLINT
+    ASSERT_FALSE(frame.scene_nodes.empty()); // NOLINT
 
     engine::rendering::MaterialSystem materials;
     engine::assets::ShaderHandle shader_handle{std::string{"runtime.shader"}};
@@ -969,30 +1007,30 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler) {
     host.submit_render_graph(context);
 
     const auto expected_mask = command_barrier_bit | uniform_barrier_bit | texture_fetch_barrier_bit
-                               | framebuffer_barrier_bit | texture_update_barrier_bit
-                               | buffer_update_barrier_bit;
+        | framebuffer_barrier_bit | texture_update_barrier_bit
+        | buffer_update_barrier_bit;
 
-    ASSERT_EQ(scheduler.submissions().size(), 3U);  // NOLINT
+    ASSERT_EQ(scheduler.submissions().size(), 3U); // NOLINT
     const auto& compute_submission = scheduler.submissions()[0];
     EXPECT_EQ(compute_submission.pass_name, "ComputeNormalize");
     EXPECT_EQ(compute_submission.command_buffer.queue.api,
               engine::rendering::resources::GraphicsApi::OpenGL);
     EXPECT_EQ(compute_submission.command_buffer.queue.queue, engine::rendering::QueueType::Graphics);
-    ASSERT_FALSE(compute_submission.begin_barriers.empty());  // NOLINT
+    ASSERT_FALSE(compute_submission.begin_barriers.empty()); // NOLINT
     EXPECT_EQ(compute_submission.begin_barriers.front().memory_barrier_mask, expected_mask);
-    ASSERT_FALSE(compute_submission.end_barriers.empty());  // NOLINT
+    ASSERT_FALSE(compute_submission.end_barriers.empty()); // NOLINT
     EXPECT_EQ(compute_submission.end_barriers.front().memory_barrier_mask, expected_mask);
 
     const auto& transfer_submission = scheduler.submissions()[1];
     EXPECT_EQ(transfer_submission.pass_name, "TransferNormalize");
     EXPECT_EQ(transfer_submission.command_buffer.queue.queue, engine::rendering::QueueType::Graphics);
-    ASSERT_FALSE(transfer_submission.begin_barriers.empty());  // NOLINT
+    ASSERT_FALSE(transfer_submission.begin_barriers.empty()); // NOLINT
     EXPECT_EQ(transfer_submission.begin_barriers.front().memory_barrier_mask, expected_mask);
 
     const auto& graphics_submission = scheduler.submissions()[2];
     EXPECT_EQ(graphics_submission.pass_name, "GraphicsConsume");
     EXPECT_EQ(graphics_submission.command_buffer.queue.queue, engine::rendering::QueueType::Graphics);
-    ASSERT_FALSE(graphics_submission.begin_barriers.empty());  // NOLINT
+    ASSERT_FALSE(graphics_submission.begin_barriers.empty()); // NOLINT
     EXPECT_EQ(graphics_submission.begin_barriers.front().memory_barrier_mask, expected_mask);
 
     EXPECT_EQ(device_provider.frames_begun(), 1U);
@@ -1013,28 +1051,31 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler) {
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"queue\": \"Compute\""), std::string::npos);
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"queue\": \"Transfer\""), std::string::npos);
 
-    ASSERT_EQ(diagnostics.frame_graph_events.size(), 6U);  // NOLINT
+    ASSERT_EQ(diagnostics.frame_graph_events.size(), 6U); // NOLINT
     for (const auto& event : diagnostics.frame_graph_events)
     {
         EXPECT_TRUE(event.pass_name == "ComputeNormalize" || event.pass_name == "TransferNormalize"
-                    || event.pass_name == "GraphicsConsume");
+            || event.pass_name == "GraphicsConsume");
     }
 
     host.shutdown();
 }
 
-TEST(RuntimeHost, LoadsSubsystemsFromRegistrySelection) {
+TEST(RuntimeHost, LoadsSubsystemsFromRegistrySelection)
+{
     auto registry = std::make_shared<engine::runtime::SubsystemRegistry>();
     registry->register_subsystem(engine::runtime::SubsystemDescriptor{
         "alpha",
         {},
         []() { return make_test_subsystem("alpha"); },
-        false});
+        false
+    });
     registry->register_subsystem(engine::runtime::SubsystemDescriptor{
         "beta",
         {"alpha"},
         []() { return make_test_subsystem("beta", {"alpha"}); },
-        false});
+        false
+    });
 
     engine::runtime::RuntimeHostDependencies deps{};
     deps.subsystem_registry = registry;
@@ -1056,12 +1097,14 @@ TEST(SubsystemRegistry, LoadsDependenciesBeforeDependentsRegardlessOfRegistratio
         "beta",
         {"alpha"},
         []() { return make_test_subsystem("beta", {"alpha"}); },
-        false});
+        false
+    });
     registry.register_subsystem(engine::runtime::SubsystemDescriptor{
         "alpha",
         {},
         []() { return make_test_subsystem("alpha"); },
-        false});
+        false
+    });
 
     const std::array<std::string_view, 1> requested{std::string_view{"beta"}};
     const auto plugins = registry.load(requested);
@@ -1078,7 +1121,8 @@ TEST(SubsystemRegistry, RejectsDependencyCycles)
         "alpha",
         {"beta"},
         []() { return make_test_subsystem("alpha", {"beta"}); },
-        false});
+        false
+    });
 
     try
     {
@@ -1086,7 +1130,8 @@ TEST(SubsystemRegistry, RejectsDependencyCycles)
             "beta",
             {"alpha"},
             []() { return make_test_subsystem("beta", {"alpha"}); },
-            false});
+            false
+        });
         FAIL() << "Expected cycle detection to throw";
     }
     catch (const std::invalid_argument& error)
@@ -1539,8 +1584,10 @@ TEST(RuntimeHost, DiagnosticsIncludePhysicsTelemetry)
     engine::physics::RigidBody ground{};
     ground.mass = 0.0F;
     ground.collider = engine::physics::Collider::make_aabb(
-        engine::geometry::Aabb{engine::math::vec3{-2.0F, -0.25F, -2.0F},
-                               engine::math::vec3{2.0F, 0.0F, 2.0F}});
+        engine::geometry::Aabb{
+            engine::math::vec3{-2.0F, -0.25F, -2.0F},
+            engine::math::vec3{2.0F, 0.0F, 2.0F}
+        });
     MAYBE_UNUSED_CONST_AUTO ground_id = engine::physics::add_body(deps.world, ground);
     (void)ground_id;
 
@@ -1847,14 +1894,20 @@ TEST(RuntimeHost, ReconfiguringDependenciesResetsState)
     track.joint_name = "hip";
     track.keyframes.push_back(engine::animation::Keyframe{
         0.0,
-        engine::animation::JointPose{engine::math::vec3{0.0F, 0.0F, 0.0F},
-                                     engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
-                                     engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+        engine::animation::JointPose{
+            engine::math::vec3{0.0F, 0.0F, 0.0F},
+            engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
+            engine::math::vec3{1.0F, 1.0F, 1.0F}
+        }
+    });
     track.keyframes.push_back(engine::animation::Keyframe{
         0.5,
-        engine::animation::JointPose{engine::math::vec3{0.0F, 1.0F, 0.0F},
-                                     engine::math::normalize(engine::math::quat{0.9238795F, 0.0F, 0.3826834F, 0.0F}),
-                                     engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+        engine::animation::JointPose{
+            engine::math::vec3{0.0F, 1.0F, 0.0F},
+            engine::math::normalize(engine::math::quat{0.9238795F, 0.0F, 0.3826834F, 0.0F}),
+            engine::math::vec3{1.0F, 1.0F, 1.0F}
+        }
+    });
     clip.tracks.push_back(track);
     deps.controller = engine::animation::make_linear_controller(std::move(clip));
 
@@ -1914,7 +1967,8 @@ TEST(RuntimeHost, ExposesLifecycleDiagnostics)
     EXPECT_GE(after_shutdown.last_shutdown_ms, 0.0);
 }
 
-TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection) {
+TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection)
+{
     engine::runtime::shutdown();
 
     auto registry = std::make_shared<engine::runtime::SubsystemRegistry>();
@@ -1922,12 +1976,14 @@ TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection) {
         "alpha",
         {},
         []() { return make_test_subsystem("alpha"); },
-        false});
+        false
+    });
     registry->register_subsystem(engine::runtime::SubsystemDescriptor{
         "beta",
         {"alpha"},
         []() { return make_test_subsystem("beta", {"alpha"}); },
-        false});
+        false
+    });
 
     engine::runtime::RuntimeHostDependencies deps{};
     deps.subsystem_registry = registry;
@@ -1955,13 +2011,15 @@ TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection) {
     ASSERT_EQ(engine::runtime::module_count(), expected.size());
 }
 
-TEST(RuntimeModule, EnumeratesAllEngineModules) {
+TEST(RuntimeModule, EnumeratesAllEngineModules)
+{
     const auto expected = expected_default_modules();
 
     ASSERT_EQ(engine::runtime::module_count(), expected.size());
     EXPECT_EQ(engine_runtime_module_count(), expected.size());
 
-    for (std::size_t index = 0; index < expected.size(); ++index) {
+    for (std::size_t index = 0; index < expected.size(); ++index)
+    {
         EXPECT_EQ(engine::runtime::module_name_at(index), expected[index]);
         EXPECT_STREQ(engine_runtime_module_at(index), expected[index].data());
     }
@@ -1970,16 +2028,19 @@ TEST(RuntimeModule, EnumeratesAllEngineModules) {
     EXPECT_EQ(engine_runtime_module_at(expected.size()), nullptr);
 }
 
-TEST(RuntimeModule, ReportsDefaultSubsystemNames) {
+TEST(RuntimeModule, ReportsDefaultSubsystemNames)
+{
     const auto names = engine::runtime::default_subsystem_names();
     const auto expected = expected_default_modules();
     ASSERT_EQ(names.size(), expected.size());
-    for (std::size_t index = 0; index < expected.size(); ++index) {
+    for (std::size_t index = 0; index < expected.size(); ++index)
+    {
         EXPECT_EQ(names[index], expected[index]);
     }
 }
 
-TEST(RuntimeModule, ConfigureWithDefaultSubsystemHelper) {
+TEST(RuntimeModule, ConfigureWithDefaultSubsystemHelper)
+{
     engine::runtime::shutdown();
     engine::runtime::configure_with_default_subsystems();
     EXPECT_EQ(engine::runtime::module_count(), expected_default_modules().size());
@@ -2002,7 +2063,8 @@ TEST(RuntimeDiagnosticsBridge, DispatchesHierarchyCallbacks)
 
     bool invoked = false;
     const auto callback_id = bridge.register_hierarchy_callback(
-        [&](const engine::scene::validation::HierarchyValidationReport& published, double time) {
+        [&](const engine::scene::validation::HierarchyValidationReport& published, double time)
+        {
             invoked = true;
             EXPECT_EQ(published.metrics.issue_count, 1U);
             EXPECT_DOUBLE_EQ(time, 1.5);
@@ -2056,7 +2118,8 @@ TEST(RuntimeDiagnosticsBridge, ExposesSceneIssuesThroughCAPI)
 }
 
 #if ENGINE_ENABLE_ANIMATION && ENGINE_ENABLE_SCENE
-TEST(RuntimeModule, ConfigureSubsetViaHelpers) {
+TEST(RuntimeModule, ConfigureSubsetViaHelpers)
+{
     engine::runtime::shutdown();
     const std::array selections{
         std::string_view{"animation"},
@@ -2068,7 +2131,8 @@ TEST(RuntimeModule, ConfigureSubsetViaHelpers) {
     EXPECT_EQ(engine::runtime::module_name_at(1), selections[1]);
 }
 
-TEST(RuntimeModule, ConfigureSubsetViaCInterface) {
+TEST(RuntimeModule, ConfigureSubsetViaCInterface)
+{
     engine::runtime::shutdown();
     const char* modules[] = {"animation", "scene"};
     engine_runtime_configure_with_modules(modules, std::size(modules));

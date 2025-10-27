@@ -97,7 +97,8 @@ namespace
             body.position = engine::math::vec3{
                 (static_cast<float>(gx) - static_cast<float>(grid - 1U) * 0.5F) * spacing,
                 0.5F + static_cast<float>(gz) * spacing * 0.5F,
-                0.0F};
+                0.0F
+            };
             body.collider = engine::physics::Collider::make_sphere(0.25F);
             (void)engine::physics::add_body(world, body);
         }
@@ -116,7 +117,6 @@ namespace
 
 namespace engine::compute::samples
 {
-
     std::string_view workload_to_string(WorkloadProfile workload) noexcept
     {
         switch (workload)
@@ -174,6 +174,4 @@ namespace engine::compute::samples
         }
         host.configure(std::move(dependencies));
     }
-
-}  // namespace engine::compute::samples
-
+} // namespace engine::compute::samples

@@ -14,4 +14,3 @@ namespace engine::geometry::mesh
     [[nodiscard]] ENGINE_GEOMETRY_API SurfaceMesh build_surface_mesh_from_halfedge(
         const HalfedgeMeshInterface& mesh);
 }
-

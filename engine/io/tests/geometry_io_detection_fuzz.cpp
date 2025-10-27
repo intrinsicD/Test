@@ -38,23 +38,23 @@ namespace
             switch (info.kind)
             {
             case engine::io::GeometryKind::mesh:
-            {
-                engine::geometry::Mesh mesh;
-                (void)engine::io::read_mesh(path, mesh.interface, info.mesh_format);
-                break;
-            }
+                {
+                    engine::geometry::Mesh mesh;
+                    (void)engine::io::read_mesh(path, mesh.interface, info.mesh_format);
+                    break;
+                }
             case engine::io::GeometryKind::point_cloud:
-            {
-                engine::geometry::PointCloud point_cloud;
-                (void)engine::io::read_point_cloud(path, point_cloud.interface, info.point_cloud_format);
-                break;
-            }
+                {
+                    engine::geometry::PointCloud point_cloud;
+                    (void)engine::io::read_point_cloud(path, point_cloud.interface, info.point_cloud_format);
+                    break;
+                }
             case engine::io::GeometryKind::graph:
-            {
-                engine::geometry::Graph graph;
-                (void)engine::io::read_graph(path, graph.interface, info.graph_format);
-                break;
-            }
+                {
+                    engine::geometry::Graph graph;
+                    (void)engine::io::read_graph(path, graph.interface, info.graph_format);
+                    break;
+                }
             case engine::io::GeometryKind::unknown:
                 break;
             }

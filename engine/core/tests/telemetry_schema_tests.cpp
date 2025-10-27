@@ -35,4 +35,3 @@ TEST(TelemetrySchema, MetricValueConversions)
     EXPECT_EQ(3, telemetry::as_int(floating));
     EXPECT_DOUBLE_EQ(3.5, telemetry::as_double(floating));
 }
-

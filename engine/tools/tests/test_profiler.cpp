@@ -6,7 +6,8 @@
 
 using namespace engine::tools::profiling;
 
-TEST(Profiler, BasicProfiling) {
+TEST(Profiler, BasicProfiling)
+{
     Profiler profiler;
 
     profiler.begin("test_operation");
@@ -18,13 +19,15 @@ TEST(Profiler, BasicProfiling) {
     ASSERT_EQ(report.entries.size(), 1);
     EXPECT_EQ(report.entries[0].name, "test_operation");
     EXPECT_EQ(report.entries[0].call_count, 1);
-    EXPECT_GT(report.entries[0].duration_ms, 9.0);  // At least 10ms
+    EXPECT_GT(report.entries[0].duration_ms, 9.0); // At least 10ms
 }
 
-TEST(Profiler, MultipleCalls) {
+TEST(Profiler, MultipleCalls)
+{
     Profiler profiler;
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; ++i)
+    {
         profiler.begin("repeated_op");
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         profiler.end("repeated_op");
@@ -37,7 +40,8 @@ TEST(Profiler, MultipleCalls) {
     EXPECT_GT(report.entries[0].average_ms, 0.0);
 }
 
-TEST(Profiler, ScopedProfiling) {
+TEST(Profiler, ScopedProfiling)
+{
     Profiler profiler;
 
     {
@@ -52,7 +56,8 @@ TEST(Profiler, ScopedProfiling) {
     EXPECT_EQ(report.entries[0].call_count, 1);
 }
 
-TEST(Profiler, Reset) {
+TEST(Profiler, Reset)
+{
     Profiler profiler;
 
     profiler.begin("test");
@@ -67,7 +72,8 @@ TEST(Profiler, Reset) {
     EXPECT_EQ(report2.entries.size(), 0);
 }
 
-TEST(Profiler, GlobalProfilerAccess) {
+TEST(Profiler, GlobalProfilerAccess)
+{
     auto& profiler = global_profiler();
 
     // Should return the same instance
@@ -75,16 +81,15 @@ TEST(Profiler, GlobalProfilerAccess) {
 
     EXPECT_EQ(&profiler, &profiler2);
 }
+
 add_executable(test_tools_module
-    test_module.cpp
-    test_profiler.cpp
-)
+               test_module.cpp
+               test_profiler.cpp)
 
 target_link_libraries(test_tools_module
-    PRIVATE
-        engine_tools
-        gtest_main
+                      PRIVATE
+                      engine_tools
+                      gtest_main
 )
 
 add_test(NAME test_tools_module COMMAND test_tools_module)
-

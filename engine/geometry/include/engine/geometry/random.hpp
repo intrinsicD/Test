@@ -2,6 +2,7 @@
 
 #include <random>
 
-namespace engine::geometry {
+namespace engine::geometry
+{
     using RandomEngine = std::mt19937;
 }

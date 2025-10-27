@@ -149,6 +149,7 @@ namespace engine::geometry
             EXPECT_NEAR(output.mesh.rest_positions[index][2], output.mesh.positions[index][2], 1e-5F);
         }
     }
+
     TEST(RemeshUniform, ReuseParameterizationScalesTexelDensity)
     {
         SurfaceMesh mesh = make_unit_square_mesh();
@@ -178,6 +179,4 @@ namespace engine::geometry
         EXPECT_NEAR(output.mesh.texture_coordinates[1][0], 2.0F, 1e-3F);
         EXPECT_NEAR(output.mesh.texture_coordinates[1][1], 0.0F, 1e-3F);
     }
-
 } // namespace engine::geometry
-

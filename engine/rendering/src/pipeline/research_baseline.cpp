@@ -49,9 +49,9 @@ namespace engine::rendering
         public:
             ResearchGeometryPass(GeometryMode mode, GeometryOutputs outputs)
                 : RenderPass(mode == GeometryMode::Deferred ? "Research.GBuffer" : "Research.ForwardGeometry",
-                              QueueType::Graphics,
-                              PassPhase::Geometry,
-                              ValidationSeverity::Error),
+                             QueueType::Graphics,
+                             PassPhase::Geometry,
+                             ValidationSeverity::Error),
                   outputs_(outputs)
             {
             }
@@ -80,7 +80,9 @@ namespace engine::rendering
                 using engine::rendering::components::RenderGeometry;
                 using engine::scene::components::WorldTransform;
 
-                auto view = registry.view<WorldTransform, RenderGeometry>();
+                auto view = registry.view < WorldTransform, RenderGeometry
+                >
+                ();
                 draw_commands_.clear();
 
                 for (auto [entity, world, geometry] : view.each())
@@ -103,7 +105,7 @@ namespace engine::rendering
                         context.render.resources.require_graph(*graph);
                     }
                     else if (const auto* point_cloud = geometry.point_cloud();
-                             point_cloud != nullptr && !point_cloud->empty())
+                        point_cloud != nullptr && !point_cloud->empty())
                     {
                         if (!engine::assets::validate_handle(*point_cloud, "ResearchGeometryPass::require_point_cloud"))
                         {
@@ -150,9 +152,9 @@ namespace engine::rendering
                                  std::optional<FrameGraphResourceHandle> material,
                                  FrameGraphResourceHandle depth)
                 : RenderPass("Research.LightingComposite",
-                              QueueType::Graphics,
-                              PassPhase::Lighting,
-                              ValidationSeverity::Info),
+                             QueueType::Graphics,
+                             PassPhase::Lighting,
+                             ValidationSeverity::Info),
                   lighting_output_(lighting_output),
                   albedo_(albedo),
                   normals_(normals),
@@ -229,10 +231,10 @@ namespace engine::rendering
         };
 
         FrameGraphResourceDescriptor make_color_descriptor(std::string name,
-                                                            const ResearchBaselineOptions& options,
-                                                            ResourceFormat format,
-                                                            ResourceUsage usage,
-                                                            ResourceState final_state)
+                                                           const ResearchBaselineOptions& options,
+                                                           ResourceFormat format,
+                                                           ResourceUsage usage,
+                                                           ResourceState final_state)
         {
             FrameGraphResourceDescriptor descriptor{};
             descriptor.name = std::move(name);
@@ -251,7 +253,7 @@ namespace engine::rendering
         }
 
         FrameGraphResourceDescriptor make_depth_descriptor(std::string name,
-                                                            const ResearchBaselineOptions& options)
+                                                           const ResearchBaselineOptions& options)
         {
             FrameGraphResourceDescriptor descriptor{};
             descriptor.name = std::move(name);
@@ -271,16 +273,16 @@ namespace engine::rendering
     } // namespace
 
     ResearchBaselineResources configure_research_baseline(FrameGraph& graph,
-                                                           const ResearchBaselineOptions& options)
+                                                          const ResearchBaselineOptions& options)
     {
         graph.reset();
 
         ResearchBaselineResources resources{};
         resources.lighting_output = graph.create_resource(
             make_color_descriptor(std::string{kFinalColorName}, options,
-                                   ResourceFormat::Rgba16f,
-                                   ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
-                                   ResourceState::ShaderRead));
+                                  ResourceFormat::Rgba16f,
+                                  ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
+                                  ResourceState::ShaderRead));
         resources.depth = graph.create_resource(
             make_depth_descriptor(std::string{kDepthName}, options));
 
@@ -295,23 +297,23 @@ namespace engine::rendering
         {
             geometry_outputs.primary = graph.create_resource(
                 make_color_descriptor(std::string{kGBufferAlbedoName}, options,
-                                       ResourceFormat::Rgba16f,
-                                       ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
-                                       ResourceState::ShaderRead));
+                                      ResourceFormat::Rgba16f,
+                                      ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
+                                      ResourceState::ShaderRead));
             resources.gbuffer_albedo = geometry_outputs.primary;
 
             geometry_outputs.normals = graph.create_resource(
                 make_color_descriptor(std::string{kGBufferNormalName}, options,
-                                       ResourceFormat::Rgba16f,
-                                       ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
-                                       ResourceState::ShaderRead));
+                                      ResourceFormat::Rgba16f,
+                                      ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
+                                      ResourceState::ShaderRead));
             resources.gbuffer_normals = geometry_outputs.normals;
 
             geometry_outputs.material = graph.create_resource(
                 make_color_descriptor(std::string{kGBufferMaterialName}, options,
-                                       ResourceFormat::Rgba8Unorm,
-                                       ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
-                                       ResourceState::ShaderRead));
+                                      ResourceFormat::Rgba8Unorm,
+                                      ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
+                                      ResourceState::ShaderRead));
             resources.gbuffer_material = geometry_outputs.material;
         }
         else
@@ -335,16 +337,17 @@ namespace engine::rendering
         }
 
         const auto add_overlay = [&](bool enabled, std::string_view name,
-                                     std::optional<FrameGraphResourceHandle>& handle_slot) {
+                                     std::optional<FrameGraphResourceHandle>& handle_slot)
+        {
             if (!enabled)
             {
                 return;
             }
 
             auto descriptor = make_color_descriptor(std::string{name}, options,
-                                                     ResourceFormat::Rgba16f,
-                                                     ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
-                                                     ResourceState::ShaderRead);
+                                                    ResourceFormat::Rgba16f,
+                                                    ResourceUsage::ColorAttachment | ResourceUsage::ShaderRead,
+                                                    ResourceState::ShaderRead);
             auto handle = graph.create_resource(std::move(descriptor));
             handle_slot = handle;
 

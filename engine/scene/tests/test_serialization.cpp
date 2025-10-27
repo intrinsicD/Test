@@ -23,9 +23,15 @@ namespace engine::scene::tests
                                                                     const std::array<float, 3>& translation)
         {
             engine::math::Transform<float> transform{};
-            transform.scale = engine::math::Vector<float, 3>{scale[0], scale[1], scale[2]};
+            transform.scale = engine::math::Vector < float, 3 >
+            {
+                scale[0], scale[1], scale[2]
+            };
             transform.rotation = engine::math::Quaternion<float>{rotation[0], rotation[1], rotation[2], rotation[3]};
-            transform.translation = engine::math::Vector<float, 3>{translation[0], translation[1], translation[2]};
+            transform.translation = engine::math::Vector < float, 3 >
+            {
+                translation[0], translation[1], translation[2]
+            };
             return transform;
         }
     } // namespace
@@ -81,7 +87,7 @@ namespace engine::scene::tests
         auto name_view = restored.registry().view<Name>();
         for (auto entity : name_view)
         {
-            const auto &name = name_view.get<Name>(entity);
+            const auto& name = name_view.get<Name>(entity);
             entities_by_name.emplace(name.value, entity);
         }
 

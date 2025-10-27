@@ -110,4 +110,3 @@ namespace engine::assets::detail
         AssetHotReloadTelemetry::instance().record_rejected();
     }
 } // namespace engine::assets::detail
-

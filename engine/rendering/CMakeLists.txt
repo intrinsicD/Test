@@ -1,97 +1,97 @@
 set(target_name engine_rendering)
 
 add_library(${target_name}
-    src/api.cpp
-    src/backend/validation.cpp
-    src/backend/opengl/command_encoder.cpp
-    src/backend/opengl/command_stream.cpp
-    src/backend/opengl/resource_provider.cpp
-    src/frame_graph.cpp
-    src/forward_pipeline.cpp
-    src/pipeline/research_baseline_telemetry.cpp
-    src/pipeline/research_baseline.cpp
-    src/material_system.cpp
-    src/resources/recording_gpu_resource_provider.cpp
+        src/api.cpp
+        src/backend/validation.cpp
+        src/backend/opengl/command_encoder.cpp
+        src/backend/opengl/command_stream.cpp
+        src/backend/opengl/resource_provider.cpp
+        src/frame_graph.cpp
+        src/forward_pipeline.cpp
+        src/pipeline/research_baseline_telemetry.cpp
+        src/pipeline/research_baseline.cpp
+        src/material_system.cpp
+        src/resources/recording_gpu_resource_provider.cpp
 )
 
 engine_apply_module_defaults(${target_name}
-    PUBLIC_INCLUDE_DIRS
+        PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-    PRIVATE_INCLUDE_DIRS
+        PRIVATE_INCLUDE_DIRS
         ${CMAKE_SOURCE_DIR}
 )
 
 target_compile_definitions(${target_name}
-    PRIVATE
+        PRIVATE
         ENGINE_RENDERING_EXPORTS
 )
 
 find_package(Vulkan QUIET)
 
-if(Vulkan_FOUND)
+if (Vulkan_FOUND)
     target_sources(${target_name}
-        PRIVATE
+            PRIVATE
             src/backend/vulkan/resource_translation.cpp
     )
 
-    if(TARGET Vulkan::Vulkan)
+    if (TARGET Vulkan::Vulkan)
         target_link_libraries(${target_name}
-            PUBLIC
+                PUBLIC
                 Vulkan::Vulkan
         )
-    elseif(Vulkan_LIBRARIES)
+    elseif (Vulkan_LIBRARIES)
         target_link_libraries(${target_name}
-            PUBLIC
+                PUBLIC
                 ${Vulkan_LIBRARIES}
         )
-    endif()
+    endif ()
 
-    if(Vulkan_INCLUDE_DIRS)
+    if (Vulkan_INCLUDE_DIRS)
         target_include_directories(${target_name}
-            PRIVATE
+                PRIVATE
                 ${Vulkan_INCLUDE_DIRS}
         )
-    endif()
+    endif ()
 
     target_compile_definitions(${target_name}
-        PUBLIC
+            PUBLIC
             ENGINE_RENDERING_HAS_VULKAN=1
     )
-else()
+else ()
     message(STATUS "Vulkan SDK not found; Vulkan backend translation helpers will be disabled.")
     target_compile_definitions(${target_name}
-        PUBLIC
+            PUBLIC
             ENGINE_RENDERING_HAS_VULKAN=0
     )
-endif()
+endif ()
 
 set(ENGINE_RENDERING_VULKAN_AVAILABLE ${Vulkan_FOUND})
 
 # Rendering depends on core platform layers.
 target_link_libraries(${target_name}
-    PUBLIC
+        PUBLIC
         engine_core
         engine_assets
         engine_platform
         engine_scene
 )
 
-if(TARGET glad::gl_core)
+if (TARGET glad::gl_core)
     target_link_libraries(${target_name}
-        PUBLIC
+            PUBLIC
             glad::gl_core
     )
     target_compile_definitions(${target_name}
-        PRIVATE
+            PRIVATE
             ENGINE_RENDERING_HAS_GLAD=1
     )
-else()
+else ()
     target_compile_definitions(${target_name}
-        PRIVATE
+            PRIVATE
             ENGINE_RENDERING_HAS_GLAD=0
     )
-endif()
+endif ()
 
-if(BUILD_TESTING)
+if (BUILD_TESTING)
     add_subdirectory(tests)
-endif()
+endif ()

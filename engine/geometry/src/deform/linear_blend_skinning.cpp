@@ -69,4 +69,3 @@ namespace engine::geometry::deform
         update_bounds(mesh);
     }
 } // namespace engine::geometry::deform
-

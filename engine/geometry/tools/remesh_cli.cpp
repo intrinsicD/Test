@@ -24,7 +24,8 @@ namespace engine::geometry::tools
         [[nodiscard]] std::string to_lower(std::string_view value) noexcept
         {
             std::string lowered{value};
-            std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char ch) {
+            std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char ch)
+            {
                 return static_cast<char>(std::tolower(ch));
             });
             return lowered;
@@ -133,7 +134,8 @@ namespace engine::geometry::tools
             std::string sanitized{};
             sanitized.reserve(identifier.size());
 
-            const auto push_separator = [&]() {
+            const auto push_separator = [&]()
+            {
                 if (!sanitized.empty() && sanitized.back() != '-')
                 {
                     sanitized.push_back('-');
@@ -570,19 +572,21 @@ namespace engine::geometry::tools
             !options.targets.target_edge_length.has_value() && !options.targets.relative_edge_scale.has_value())
         {
             return RemeshCliOptionsResult{
-                "Uniform and feature-preserving remeshing require --target-edge-length or --relative-edge-scale"};
+                "Uniform and feature-preserving remeshing require --target-edge-length or --relative-edge-scale"
+            };
         }
 
         if (options.mode == RemeshingMode::kAdaptive)
         {
             const bool has_primary = options.targets.target_edge_length.has_value() ||
-                                     options.targets.relative_edge_scale.has_value();
+                options.targets.relative_edge_scale.has_value();
             const bool has_budget = options.targets.maximum_normal_deviation_degrees.has_value() ||
-                                    options.targets.maximum_surface_deviation.has_value();
+                options.targets.maximum_surface_deviation.has_value();
             if (!has_budget)
             {
                 return RemeshCliOptionsResult{
-                    "Adaptive remeshing requires an error budget (--max-normal-deviation or --max-surface-deviation)"};
+                    "Adaptive remeshing requires an error budget (--max-normal-deviation or --max-surface-deviation)"
+                };
             }
             if (!has_primary)
             {
@@ -677,29 +681,31 @@ namespace engine::geometry::tools
         yaml << "      mode: " << to_mode_string(options.mode) << "\n";
 
         const bool has_targets = options.targets.target_edge_length.has_value() ||
-                                 options.targets.relative_edge_scale.has_value() ||
-                                 options.targets.maximum_normal_deviation_degrees.has_value() ||
-                                 options.targets.maximum_surface_deviation.has_value();
+            options.targets.relative_edge_scale.has_value() ||
+            options.targets.maximum_normal_deviation_degrees.has_value() ||
+            options.targets.maximum_surface_deviation.has_value();
         if (has_targets)
         {
             yaml << "      targets:\n";
             if (options.targets.target_edge_length.has_value())
             {
-                yaml << "        target_edge_length: " << safe_value(options.targets.target_edge_length.value()) << "\n";
+                yaml << "        target_edge_length: " << safe_value(options.targets.target_edge_length.value()) <<
+                    "\n";
             }
             if (options.targets.relative_edge_scale.has_value())
             {
-                yaml << "        relative_edge_scale: " << safe_value(options.targets.relative_edge_scale.value()) << "\n";
+                yaml << "        relative_edge_scale: " << safe_value(options.targets.relative_edge_scale.value()) <<
+                    "\n";
             }
             if (options.targets.maximum_normal_deviation_degrees.has_value())
             {
                 yaml << "        max_normal_deviation_degrees: "
-                     << safe_value(options.targets.maximum_normal_deviation_degrees.value()) << "\n";
+                    << safe_value(options.targets.maximum_normal_deviation_degrees.value()) << "\n";
             }
             if (options.targets.maximum_surface_deviation.has_value())
             {
                 yaml << "        max_surface_deviation: "
-                     << safe_value(options.targets.maximum_surface_deviation.value()) << "\n";
+                    << safe_value(options.targets.maximum_surface_deviation.value()) << "\n";
             }
         }
 
@@ -707,7 +713,7 @@ namespace engine::geometry::tools
         yaml << "        lock_boundary_edges: " << options.feature_preservation.lock_boundary_edges << "\n";
         yaml << "        lock_feature_edges: " << options.feature_preservation.lock_feature_edges << "\n";
         yaml << "        minimum_feature_angle_degrees: "
-             << safe_value(options.feature_preservation.minimum_feature_angle_degrees) << "\n";
+            << safe_value(options.feature_preservation.minimum_feature_angle_degrees) << "\n";
 
         yaml << "    metrics:\n";
         yaml << "      input:\n";
@@ -733,7 +739,7 @@ namespace engine::geometry::tools
             if (options.parameterization.target_texel_density > 0.0F)
             {
                 yaml << "      target_texel_density: "
-                     << safe_value(options.parameterization.target_texel_density) << "\n";
+                    << safe_value(options.parameterization.target_texel_density) << "\n";
             }
             yaml << "      texel_density: " << safe_value(summary.texel_density) << "\n";
             yaml << "      chart_count: " << summary.chart_count << "\n";
@@ -751,11 +757,11 @@ namespace engine::geometry::tools
                     const ParameterizationChart& chart = summary.charts[index];
                     yaml << "        - index: " << index << "\n";
                     yaml << "          min_uv: [" << safe_value(chart.min_uv[0]) << ", "
-                         << safe_value(chart.min_uv[1]) << "]\n";
+                        << safe_value(chart.min_uv[1]) << "]\n";
                     yaml << "          max_uv: [" << safe_value(chart.max_uv[0]) << ", "
-                         << safe_value(chart.max_uv[1]) << "]\n";
+                        << safe_value(chart.max_uv[1]) << "]\n";
                     yaml << "          translation: [" << safe_value(chart.translation[0]) << ", "
-                         << safe_value(chart.translation[1]) << "]\n";
+                        << safe_value(chart.translation[1]) << "]\n";
                     yaml << "          scale: " << safe_value(chart.scale) << "\n";
                     yaml << "          area: " << safe_value(chart.area) << "\n";
                     yaml << "          boundary_length: " << safe_value(chart.boundary_length) << "\n";
@@ -792,23 +798,23 @@ namespace engine::geometry::tools
 
         stream << std::fixed << std::setprecision(4);
         stream << "  Edge length (input):  min=" << result.input_edge_statistics.min_edge_length
-               << " max=" << result.input_edge_statistics.max_edge_length
-               << " mean=" << result.input_edge_statistics.mean_edge_length() << "\n";
+            << " max=" << result.input_edge_statistics.max_edge_length
+            << " mean=" << result.input_edge_statistics.mean_edge_length() << "\n";
         stream << "  Edge length (output): min=" << output_edge_statistics.min_edge_length
-               << " max=" << output_edge_statistics.max_edge_length
-               << " mean=" << output_edge_statistics.mean_edge_length() << "\n";
+            << " max=" << output_edge_statistics.max_edge_length
+            << " mean=" << output_edge_statistics.mean_edge_length() << "\n";
 
         const RemeshStatistics& statistics = result.output.statistics;
         stream << "  Iterations=" << statistics.iteration_count
-               << " splits=" << statistics.split_count
-               << " collapses=" << statistics.collapse_count << "\n";
+            << " splits=" << statistics.split_count
+            << " collapses=" << statistics.collapse_count << "\n";
         stream << "  Duration(ms)=" << statistics.duration_ms << "\n";
         stream << "  Metrics: min_edge=" << statistics.min_edge_length
-               << " max_edge=" << statistics.max_edge_length
-               << " max_error=" << statistics.max_error << "\n";
+            << " max_edge=" << statistics.max_edge_length
+            << " max_error=" << statistics.max_error << "\n";
         stream << "  Surface deviation: max=" << statistics.max_surface_deviation
-               << " mean=" << statistics.mean_surface_deviation
-               << " rms=" << statistics.rms_surface_deviation << "\n";
+            << " mean=" << statistics.mean_surface_deviation
+            << " rms=" << statistics.rms_surface_deviation << "\n";
 
         if (options.job_label.has_value())
         {
@@ -828,7 +834,7 @@ namespace engine::geometry::tools
             if (options.targets.maximum_normal_deviation_degrees.has_value())
             {
                 stream << "  Max normal deviation: "
-                       << options.targets.maximum_normal_deviation_degrees.value() << " deg\n";
+                    << options.targets.maximum_normal_deviation_degrees.value() << " deg\n";
             }
             if (options.targets.maximum_surface_deviation.has_value())
             {
@@ -840,28 +846,28 @@ namespace engine::geometry::tools
         {
             const ParameterizationSummary& summary = result.output.parameterization;
             stream << "  Parameterization: charts=" << summary.chart_count
-                   << " texel_density=" << summary.texel_density
-                   << " avg_stretch=" << summary.average_stretch
-                   << " max_stretch=" << summary.max_stretch
-                   << " fill_ratio=" << summary.fill_ratio
-                   << " seam_length=" << summary.total_seam_length << "\n";
+                << " texel_density=" << summary.texel_density
+                << " avg_stretch=" << summary.average_stretch
+                << " max_stretch=" << summary.max_stretch
+                << " fill_ratio=" << summary.fill_ratio
+                << " seam_length=" << summary.total_seam_length << "\n";
 
             if (options.verbose)
             {
                 stream << "    Atlas: area=" << summary.atlas_area
-                       << " charts_area=" << summary.total_chart_area
-                       << " fill_ratio=" << summary.fill_ratio << "\n";
+                    << " charts_area=" << summary.total_chart_area
+                    << " fill_ratio=" << summary.fill_ratio << "\n";
 
                 for (std::size_t chart_index = 0; chart_index < summary.charts.size(); ++chart_index)
                 {
                     const ParameterizationChart& chart = summary.charts[chart_index];
                     stream << "    Chart " << chart_index
-                           << ": min_uv=(" << chart.min_uv[0] << ", " << chart.min_uv[1] << ")"
-                           << " max_uv=(" << chart.max_uv[0] << ", " << chart.max_uv[1] << ")"
-                           << " translation=(" << chart.translation[0] << ", " << chart.translation[1] << ")"
-                           << " scale=" << chart.scale
-                           << " area=" << chart.area
-                           << " boundary_length=" << chart.boundary_length << "\n";
+                        << ": min_uv=(" << chart.min_uv[0] << ", " << chart.min_uv[1] << ")"
+                        << " max_uv=(" << chart.max_uv[0] << ", " << chart.max_uv[1] << ")"
+                        << " translation=(" << chart.translation[0] << ", " << chart.translation[1] << ")"
+                        << " scale=" << chart.scale
+                        << " area=" << chart.area
+                        << " boundary_length=" << chart.boundary_length << "\n";
                 }
             }
         }
@@ -911,4 +917,3 @@ namespace engine::geometry::tools
         stream << "  --help                          Display this message.\n";
     }
 }
-

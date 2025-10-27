@@ -6,35 +6,35 @@ namespace geo = engine::geometry;
 
 namespace
 {
-struct TriangleMeshFixture
-{
-    geo::Mesh mesh;
-    geo::VertexHandle v0;
-    geo::VertexHandle v1;
-    geo::VertexHandle v2;
-    geo::FaceHandle f0;
-};
-
-TriangleMeshFixture MakeTriangleMesh()
-{
-    TriangleMeshFixture fixture;
-
-    const engine::math::vec3 p0{0.0F, 0.0F, 0.0F};
-    const engine::math::vec3 p1{1.0F, 0.0F, 0.0F};
-    const engine::math::vec3 p2{0.0F, 1.0F, 0.0F};
-
-    fixture.v0 = fixture.mesh.interface.add_vertex(p0);
-    fixture.v1 = fixture.mesh.interface.add_vertex(p1);
-    fixture.v2 = fixture.mesh.interface.add_vertex(p2);
-
-    const auto face = fixture.mesh.interface.add_triangle(fixture.v0, fixture.v1, fixture.v2);
-    if (face)
+    struct TriangleMeshFixture
     {
-        fixture.f0 = *face;
-    }
+        geo::Mesh mesh;
+        geo::VertexHandle v0;
+        geo::VertexHandle v1;
+        geo::VertexHandle v2;
+        geo::FaceHandle f0;
+    };
 
-    return fixture;
-}
+    TriangleMeshFixture MakeTriangleMesh()
+    {
+        TriangleMeshFixture fixture;
+
+        const engine::math::vec3 p0{0.0F, 0.0F, 0.0F};
+        const engine::math::vec3 p1{1.0F, 0.0F, 0.0F};
+        const engine::math::vec3 p2{0.0F, 1.0F, 0.0F};
+
+        fixture.v0 = fixture.mesh.interface.add_vertex(p0);
+        fixture.v1 = fixture.mesh.interface.add_vertex(p1);
+        fixture.v2 = fixture.mesh.interface.add_vertex(p2);
+
+        const auto face = fixture.mesh.interface.add_triangle(fixture.v0, fixture.v1, fixture.v2);
+        if (face)
+        {
+            fixture.f0 = *face;
+        }
+
+        return fixture;
+    }
 } // namespace
 
 TEST(HalfedgeMesh, AddTriangleBuildsConnectivity)

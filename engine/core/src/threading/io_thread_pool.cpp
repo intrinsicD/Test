@@ -1,8 +1,9 @@
 #include "engine/core/threading/io_thread_pool.hpp"
 
-namespace engine::core::threading {
-
-    namespace {
+namespace engine::core::threading
+{
+    namespace
+    {
         [[nodiscard]] std::size_t priority_index(IoTaskPriority priority) noexcept
         {
             switch (priority)
@@ -99,17 +100,22 @@ namespace engine::core::threading {
         workers_.reserve(config_.worker_count);
         for (std::size_t index = 0; index < config_.worker_count; ++index)
         {
-            workers_.emplace_back([this]() {
+            workers_.emplace_back([this]()
+            {
                 for (;;)
                 {
-                    std::function<void()> task;
+                    std::function < void() > task;
                     {
                         std::unique_lock lock{mutex_};
-                        condition_.wait(lock, [this]() {
+                        condition_.wait(lock, [this]()
+                        {
                             return stopping_ || !queues_[0].empty() || !queues_[1].empty() || !queues_[2].empty();
                         });
 
-                        if (stopping_ && queues_[0].empty() && queues_[1].empty() && queues_[2].empty())
+                        if (stopping_&& queues_[0]
+                        .
+                        empty() && queues_[1].empty() && queues_[2].empty()
+                        )
                         {
                             return;
                         }
@@ -190,5 +196,4 @@ namespace engine::core::threading {
         }
         return std::nullopt;
     }
-
-}  // namespace engine::core::threading
+} // namespace engine::core::threading

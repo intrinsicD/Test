@@ -63,7 +63,7 @@ namespace engine::rendering::backend::vulkan
         }
 
         [[nodiscard]] VulkanSubmission build_submission(const GpuSubmitInfo& info,
-                                                         const typename Base::EncoderRecord& encoder)
+                                                        const typename Base::EncoderRecord& encoder)
         {
             VulkanSubmission submission{};
             submission.pass_name = std::string{info.pass_name};

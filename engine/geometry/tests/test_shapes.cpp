@@ -329,7 +329,8 @@ TEST(Obb, ClosestPointAndDistance)
 
     expect_vec3_eq(engine::geometry::ClosestPoint(box, point), expected);
     EXPECT_TRUE(engine::math::utils::nearly_equal(engine::geometry::SquaredDistance(box, point),
-        static_cast<double>(engine::math::length_squared(point - expected)), 1e-5));
+                                                  static_cast<double>(engine::math::length_squared(point - expected)),
+                                                  1e-5));
 }
 
 TEST(Obb, BoundingObbWithTransform)
@@ -582,7 +583,8 @@ TEST(Triangle, IntersectionsWithShapes)
 
     const engine::geometry::Aabb intersecting_box = engine::geometry::MakeAabbFromCenterExtent(
         vec3{0.25f, 0.25f, 0.0f}, vec3{0.3f, 0.3f, 0.1f});
-    const engine::geometry::Aabb far_box = engine::geometry::MakeAabbFromCenterExtent(vec3{0.0f, 0.0f, 1.5f}, vec3{0.2f});
+    const engine::geometry::Aabb far_box = engine::geometry::MakeAabbFromCenterExtent(
+        vec3{0.0f, 0.0f, 1.5f}, vec3{0.2f});
     EXPECT_TRUE(engine::geometry::Intersects(triangle, intersecting_box));
     EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_box));
 
@@ -624,8 +626,12 @@ TEST(Triangle, IntersectionsWithShapes)
     EXPECT_TRUE(engine::geometry::Intersects(triangle, segment));
     EXPECT_TRUE(!engine::geometry::Intersects(triangle, miss_segment));
 
-    const engine::geometry::Triangle other{vec3{0.25f, 0.25f, 0.0f}, vec3{0.75f, 0.25f, 0.0f}, vec3{0.25f, 0.75f, 0.0f}};
-    const engine::geometry::Triangle far_triangle{vec3{0.0f, 0.0f, 1.0f}, vec3{0.5f, 0.0f, 1.0f}, vec3{0.0f, 0.5f, 1.0f}};
+    const engine::geometry::Triangle other{
+        vec3{0.25f, 0.25f, 0.0f}, vec3{0.75f, 0.25f, 0.0f}, vec3{0.25f, 0.75f, 0.0f}
+    };
+    const engine::geometry::Triangle far_triangle{
+        vec3{0.0f, 0.0f, 1.0f}, vec3{0.5f, 0.0f, 1.0f}, vec3{0.0f, 0.5f, 1.0f}
+    };
     EXPECT_TRUE(engine::geometry::Intersects(triangle, other));
     EXPECT_TRUE(!engine::geometry::Intersects(triangle, far_triangle));
 }

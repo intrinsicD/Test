@@ -38,5 +38,5 @@ namespace engine::rendering
     };
 
     ResearchBaselineResources configure_research_baseline(FrameGraph& graph,
-                                                           const ResearchBaselineOptions& options);
+                                                          const ResearchBaselineOptions& options);
 }

@@ -6,9 +6,16 @@
       "mesh_format": "off",
       "match": {
         "type": "line_prefix",
-        "patterns": ["OFF", "COFF", "NOFF", "CNOFF"],
+        "patterns": [
+          "OFF",
+          "COFF",
+          "NOFF",
+          "CNOFF"
+        ],
         "case_sensitive": false,
-        "comment_prefixes": ["#"]
+        "comment_prefixes": [
+          "#"
+        ]
       },
       "format_hint": ".off"
     },
@@ -18,7 +25,9 @@
       "mesh_format": "stl",
       "match": {
         "type": "line_prefix",
-        "patterns": ["solid"],
+        "patterns": [
+          "solid"
+        ],
         "case_sensitive": false
       },
       "format_hint": ".stl"
@@ -29,7 +38,11 @@
       "point_cloud_format": "pcd",
       "match": {
         "type": "contains_all",
-        "patterns": ["FIELDS", "POINTS", "DATA"],
+        "patterns": [
+          "FIELDS",
+          "POINTS",
+          "DATA"
+        ],
         "case_sensitive": false,
         "max_scan_bytes": 2048
       },
@@ -41,7 +54,10 @@
       "mesh_format": "obj",
       "match": {
         "type": "contains_all",
-        "patterns": ["v ", "f "],
+        "patterns": [
+          "v ",
+          "f "
+        ],
         "case_sensitive": false,
         "max_scan_bytes": 4096
       },

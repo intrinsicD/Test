@@ -65,7 +65,7 @@ namespace engine::rendering::backend::directx12
         }
 
         [[nodiscard]] DirectX12Submission build_submission(const GpuSubmitInfo& info,
-                                                            const typename Base::EncoderRecord& encoder)
+                                                           const typename Base::EncoderRecord& encoder)
         {
             DirectX12Submission submission{};
             submission.pass_name = std::string{info.pass_name};

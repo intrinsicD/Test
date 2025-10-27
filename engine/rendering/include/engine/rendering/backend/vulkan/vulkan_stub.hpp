@@ -45,6 +45,7 @@ enum VkSampleCountFlagBits
     VK_SAMPLE_COUNT_8_BIT = 0x00000008,
     VK_SAMPLE_COUNT_16_BIT = 0x00000010,
 };
+
 using VkSampleCountFlags = VkFlags;
 
 enum VkImageUsageFlagBits
@@ -56,6 +57,7 @@ enum VkImageUsageFlagBits
     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT = 0x00000010,
     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT = 0x00000020,
 };
+
 using VkImageUsageFlags = VkFlags;
 
 enum VkBufferUsageFlagBits
@@ -67,6 +69,7 @@ enum VkBufferUsageFlagBits
     VK_BUFFER_USAGE_INDEX_BUFFER_BIT = 0x00000040,
     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT = 0x00000080,
 };
+
 using VkBufferUsageFlags = VkFlags;
 
 enum VkImageTiling
@@ -101,6 +104,7 @@ enum VkImageAspectFlagBits
     VK_IMAGE_ASPECT_DEPTH_BIT = 0x00000002,
     VK_IMAGE_ASPECT_STENCIL_BIT = 0x00000004,
 };
+
 using VkImageAspectFlags = VkFlags;
 
 enum VkImageViewType
@@ -200,6 +204,7 @@ enum VkPipelineStageFlagBits
     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT = 0x00000800,
     VK_PIPELINE_STAGE_TRANSFER_BIT = 0x00001000,
 };
+
 using VkPipelineStageFlags = VkFlags;
 
 enum VkAccessFlagBits
@@ -207,6 +212,7 @@ enum VkAccessFlagBits
     VK_ACCESS_MEMORY_READ_BIT = 0x00000020,
     VK_ACCESS_MEMORY_WRITE_BIT = 0x00000040,
 };
+
 using VkAccessFlags = VkFlags;
 
 #endif // VULKAN_CORE_H_

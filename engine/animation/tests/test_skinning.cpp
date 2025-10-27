@@ -10,8 +10,10 @@ namespace engine::animation
     TEST(LinearBlendSkinning, BuildsGlobalAndSkinningTransforms)
     {
         RigBinding binding{};
-        binding.joints.push_back(RigJoint{"root", RigBinding::kInvalidIndex,
-                                          math::Transform<float>::Identity()});
+        binding.joints.push_back(RigJoint{
+            "root", RigBinding::kInvalidIndex,
+            math::Transform<float>::Identity()
+        });
         RigJoint child{};
         child.name = "child";
         child.parent = 0U;
@@ -29,14 +31,18 @@ namespace engine::animation
 
         AnimationRigPose pose{};
         pose.joints.emplace_back("root",
-                                 JointPose{math::vec3{0.0F, 0.0F, 0.0F},
-                                           math::quat{1.0F, 0.0F, 0.0F, 0.0F},
-                                           math::vec3{1.0F, 1.0F, 1.0F}});
+                                 JointPose{
+                                     math::vec3{0.0F, 0.0F, 0.0F},
+                                     math::quat{1.0F, 0.0F, 0.0F, 0.0F},
+                                     math::vec3{1.0F, 1.0F, 1.0F}
+                                 });
         pose.joints.emplace_back("child",
-                                 JointPose{math::vec3{0.0F, 2.0F, 0.0F},
-                                           math::normalize(math::angle_axis(math::radians(90.0F),
-                                                                            math::vec3{0.0F, 0.0F, 1.0F})),
-                                           math::vec3{1.0F, 1.0F, 1.0F}});
+                                 JointPose{
+                                     math::vec3{0.0F, 2.0F, 0.0F},
+                                     math::normalize(math::angle_axis(math::radians(90.0F),
+                                                                      math::vec3{0.0F, 0.0F, 1.0F})),
+                                     math::vec3{1.0F, 1.0F, 1.0F}
+                                 });
 
         std::vector<math::Transform<float>> globals(binding.joints.size());
         std::vector<math::Transform<float>> skin(binding.joints.size());
@@ -58,4 +64,3 @@ namespace engine::animation
         EXPECT_NEAR(child_point[2], 0.0F, 1.0e-4F);
     }
 }
-

@@ -261,15 +261,16 @@ namespace
             {
                 DrawSnapshot draw_snapshot{};
                 draw_snapshot.geometry_id = std::visit(
-                    [](const auto& value) -> std::string {
+                    [](const auto& value) -> std::string
+                    {
                         using ValueType = std::decay_t<decltype(value)>;
                         if constexpr (std::is_same_v<ValueType, std::monostate>)
                         {
                             return std::string{"<empty>"};
                         }
                         else if constexpr (std::is_same_v<ValueType, engine::assets::MeshHandle> ||
-                                           std::is_same_v<ValueType, engine::assets::GraphHandle> ||
-                                           std::is_same_v<ValueType, engine::assets::PointCloudHandle>)
+                            std::is_same_v<ValueType, engine::assets::GraphHandle> ||
+                            std::is_same_v<ValueType, engine::assets::PointCloudHandle>)
                         {
                             return value.id();
                         }
@@ -296,7 +297,8 @@ namespace
             snapshot.required_materials.push_back(handle.id());
         }
 
-        const auto capture_resource_records = [](const auto& records) {
+        const auto capture_resource_records = [](const auto& records)
+        {
             std::vector<ResourceInfoSnapshot> snapshot_records{};
             snapshot_records.reserve(records.size());
             for (const auto& record : records)
@@ -409,14 +411,16 @@ namespace
             EXPECT_EQ(actual_submission.command_buffer.index, expected_submission.command_buffer.index);
 
             ASSERT_EQ(actual_submission.begin_barriers.size(), expected_submission.begin_barriers.size());
-            for (std::size_t barrier_index = 0; barrier_index < expected_submission.begin_barriers.size(); ++barrier_index)
+            for (std::size_t barrier_index = 0; barrier_index < expected_submission.begin_barriers.size(); ++
+                 barrier_index)
             {
                 expect_equal_barrier(expected_submission.begin_barriers[barrier_index],
                                      actual_submission.begin_barriers[barrier_index]);
             }
 
             ASSERT_EQ(actual_submission.end_barriers.size(), expected_submission.end_barriers.size());
-            for (std::size_t barrier_index = 0; barrier_index < expected_submission.end_barriers.size(); ++barrier_index)
+            for (std::size_t barrier_index = 0; barrier_index < expected_submission.end_barriers.size(); ++
+                 barrier_index)
             {
                 expect_equal_barrier(expected_submission.end_barriers[barrier_index],
                                      actual_submission.end_barriers[barrier_index]);
@@ -612,7 +616,8 @@ TEST(EngineIntegration, RuntimeSubmitsFrameGraphThroughVulkanScheduler)
     engine::rendering::MaterialSystem materials;
     materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
         make_bound_handle<engine::assets::MaterialHandle>("integration.runtime.material"),
-        make_bound_handle<engine::assets::ShaderHandle>("integration.runtime.shader")});
+        make_bound_handle<engine::assets::ShaderHandle>("integration.runtime.shader")
+    });
 
     RecordingRenderResourceProvider resources;
     engine::rendering::resources::RecordingGpuResourceProvider device(
@@ -673,7 +678,8 @@ TEST(EngineIntegration, RuntimeSubmissionRemainsDeterministicAcrossInvocations)
     engine::rendering::MaterialSystem materials;
     materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
         make_bound_handle<engine::assets::MaterialHandle>("integration.runtime.deterministic.material"),
-        make_bound_handle<engine::assets::ShaderHandle>("integration.runtime.deterministic.shader")});
+        make_bound_handle<engine::assets::ShaderHandle>("integration.runtime.deterministic.shader")
+    });
 
     constexpr int iteration_count = 3;
     std::vector<SubmissionSnapshot> snapshots{};

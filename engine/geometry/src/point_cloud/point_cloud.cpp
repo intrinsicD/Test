@@ -3,25 +3,31 @@
 #include <string>
 #include <string_view>
 
-namespace engine::geometry::point_cloud {
-    PointCloudInterface::PointCloudInterface(Vertices &vertex_props) : vertex_props_(vertex_props){
+namespace engine::geometry::point_cloud
+{
+    PointCloudInterface::PointCloudInterface(Vertices& vertex_props) : vertex_props_(vertex_props)
+    {
         ensure_properties();
     }
 
-    void PointCloudInterface::ensure_properties() {
+    void PointCloudInterface::ensure_properties()
+    {
         vertex_points_ = vertex_property<math::vec3>("v:point");
 
         vertex_deleted_ = vertex_property<bool>("v:deleted", false);
     }
 
-    PointCloudInterface::PointCloudInterface(const PointCloudInterface &rhs) : vertex_props_(rhs.vertex_props_) {
+    PointCloudInterface::PointCloudInterface(const PointCloudInterface& rhs) : vertex_props_(rhs.vertex_props_)
+    {
         operator=(rhs);
     }
 
     PointCloudInterface::~PointCloudInterface() = default;
 
-    PointCloudInterface &PointCloudInterface::operator=(const PointCloudInterface &rhs) {
-        if (this == &rhs) {
+    PointCloudInterface& PointCloudInterface::operator=(const PointCloudInterface& rhs)
+    {
+        if (this == &rhs)
+        {
             return *this;
         }
 
@@ -35,8 +41,10 @@ namespace engine::geometry::point_cloud {
         return *this;
     }
 
-    PointCloudInterface &PointCloudInterface::assign(const PointCloudInterface &rhs) {
-        if (this == &rhs) {
+    PointCloudInterface& PointCloudInterface::assign(const PointCloudInterface& rhs)
+    {
+        if (this == &rhs)
+        {
             return *this;
         }
 
@@ -56,7 +64,8 @@ namespace engine::geometry::point_cloud {
         return *this;
     }
 
-    void PointCloudInterface::clear() {
+    void PointCloudInterface::clear()
+    {
         vertex_props_.clear();
 
         free_memory();
@@ -66,75 +75,94 @@ namespace engine::geometry::point_cloud {
         has_garbage_ = false;
     }
 
-    void PointCloudInterface::free_memory() {
+    void PointCloudInterface::free_memory()
+    {
         vertex_props_.shrink_to_fit();
     }
 
-    void PointCloudInterface::reserve(std::size_t nvertices) {
+    void PointCloudInterface::reserve(std::size_t nvertices)
+    {
         vertex_props_.reserve(nvertices);
     }
 
-    PointCloudInterface::VertexIterator PointCloudInterface::vertices_begin() const {
+    PointCloudInterface::VertexIterator PointCloudInterface::vertices_begin() const
+    {
         return VertexIterator(VertexHandle(0), this);
     }
 
-    PointCloudInterface::VertexIterator PointCloudInterface::vertices_end() const {
+    PointCloudInterface::VertexIterator PointCloudInterface::vertices_end() const
+    {
         return VertexIterator(VertexHandle(static_cast<PropertyIndex>(vertices_size())), this);
     }
 
-    VertexHandle PointCloudInterface::add_vertex(const math::vec3 &p) {
+    VertexHandle PointCloudInterface::add_vertex(const math::vec3& p)
+    {
         VertexHandle v = new_vertex();
-        if (v.is_valid()) {
+        if (v.is_valid())
+        {
             vertex_points_[v] = p;
         }
         return v;
     }
 
-    void PointCloudInterface::delete_vertex(VertexHandle v) {
-        if (is_deleted(v)) {
+    void PointCloudInterface::delete_vertex(VertexHandle v)
+    {
+        if (is_deleted(v))
+        {
             return;
         }
-        
-        if (!vertex_deleted_[v]) {
+
+        if (!vertex_deleted_[v])
+        {
             vertex_deleted_[v] = true;
             ++deleted_vertices_;
             has_garbage_ = true;
         }
     }
 
-    VertexHandle PointCloudInterface::new_vertex() {
-        if (vertices_size() >= kInvalidPropertyIndex) {
+    VertexHandle PointCloudInterface::new_vertex()
+    {
+        if (vertices_size() >= kInvalidPropertyIndex)
+        {
             return VertexHandle();
         }
         vertex_props_.push_back();
         return VertexHandle(static_cast<PropertyIndex>(vertices_size() - 1));
     }
 
-    
-    void PointCloudInterface::garbage_collection() {
-        if (!has_garbage_) {
+
+    void PointCloudInterface::garbage_collection()
+    {
+        if (!has_garbage_)
+        {
             return;
         }
 
         auto nv = vertices_size();
 
         VertexProperty<VertexHandle> vmap = add_vertex_property<VertexHandle>("v:garbage-collection");
-        for (std::size_t i = 0; i < nv; ++i) {
+        for (std::size_t i = 0; i < nv; ++i)
+        {
             vmap[VertexHandle(static_cast<PropertyIndex>(i))] = VertexHandle(static_cast<PropertyIndex>(i));
         }
 
-        if (nv > 0) {
+        if (nv > 0)
+        {
             std::size_t i0 = 0;
             std::size_t i1 = nv - 1;
 
-            while (true) {
-                while (!vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i0))] && i0 < i1) {
+            while (true)
+            {
+                while (!vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i0))] && i0 < i1)
+                {
                     ++i0;
                 }
-                while (vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i1))] && i0 < i1) {
+                while (vertex_deleted_[VertexHandle(static_cast<PropertyIndex>(i1))] && i0 < i1)
+                {
                     --i1;
                 }
-                if (i0 >= i1) {
+                if (i0 >= i1)
+                {
                     break;
                 }
 

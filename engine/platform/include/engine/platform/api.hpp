@@ -12,10 +12,9 @@
 #  define ENGINE_PLATFORM_API
 #endif
 
-namespace engine::platform {
-
-[[nodiscard]] std::string_view module_name() noexcept;
-
-}  // namespace engine::platform
+namespace engine::platform
+{
+    [[nodiscard]] std::string_view module_name() noexcept;
+} // namespace engine::platform
 
 extern "C" ENGINE_PLATFORM_API const char* engine_platform_module_name() noexcept;

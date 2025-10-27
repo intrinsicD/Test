@@ -54,6 +54,4 @@ namespace engine::animation::benchmarking
         summary.stddev_ms = compute_stddev(frame_durations_ms, summary.mean_ms);
         return summary;
     }
-
 } // namespace engine::animation::benchmarking
-

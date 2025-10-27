@@ -16,7 +16,8 @@ namespace engine::rendering
         return materials_.find(handle) != materials_.end();
     }
 
-    std::optional<MaterialSystem::MaterialRecord> MaterialSystem::find(const engine::assets::MaterialHandle& handle) const
+    std::optional<MaterialSystem::MaterialRecord> MaterialSystem::find(
+        const engine::assets::MaterialHandle& handle) const
     {
         if (auto it = materials_.find(handle); it != materials_.end())
         {

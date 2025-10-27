@@ -199,10 +199,12 @@ TEST(GeometryIORegistry, RejectsUnknownFormats)
 {
     engine::io::GeometryIORegistry registry;
 
-    EXPECT_THROW(registry.register_mesh_importer(std::make_unique<DummyMeshImporter>(engine::io::MeshFileFormat::unknown)),
-                 std::invalid_argument);
-    EXPECT_THROW(registry.register_mesh_exporter(std::make_unique<DummyMeshExporter>(engine::io::MeshFileFormat::unknown)),
-                 std::invalid_argument);
+    EXPECT_THROW(
+        registry.register_mesh_importer(std::make_unique<DummyMeshImporter>(engine::io::MeshFileFormat::unknown)),
+        std::invalid_argument);
+    EXPECT_THROW(
+        registry.register_mesh_exporter(std::make_unique<DummyMeshExporter>(engine::io::MeshFileFormat::unknown)),
+        std::invalid_argument);
 
     EXPECT_THROW(registry.register_point_cloud_importer(
                      std::make_unique<DummyPointCloudImporter>(engine::io::PointCloudFileFormat::unknown)),
@@ -211,10 +213,12 @@ TEST(GeometryIORegistry, RejectsUnknownFormats)
                      std::make_unique<DummyPointCloudExporter>(engine::io::PointCloudFileFormat::unknown)),
                  std::invalid_argument);
 
-    EXPECT_THROW(registry.register_graph_importer(std::make_unique<DummyGraphImporter>(engine::io::GraphFileFormat::unknown)),
-                 std::invalid_argument);
-    EXPECT_THROW(registry.register_graph_exporter(std::make_unique<DummyGraphExporter>(engine::io::GraphFileFormat::unknown)),
-                 std::invalid_argument);
+    EXPECT_THROW(
+        registry.register_graph_importer(std::make_unique<DummyGraphImporter>(engine::io::GraphFileFormat::unknown)),
+        std::invalid_argument);
+    EXPECT_THROW(
+        registry.register_graph_exporter(std::make_unique<DummyGraphExporter>(engine::io::GraphFileFormat::unknown)),
+        std::invalid_argument);
 }
 
 TEST(GeometryIORegistry, GlobalRegistryProvidesDefaultPlugins)

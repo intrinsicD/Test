@@ -19,18 +19,26 @@ namespace
             last_draw_count = submission.draw_commands.size();
         }
 
-        void wait_timeline(const engine::rendering::backend::opengl::OpenGLTimelineSubmit&) override {}
+        void wait_timeline(const engine::rendering::backend::opengl::OpenGLTimelineSubmit&) override
+        {
+        }
 
-        void issue_memory_barrier(std::uint32_t) override {}
+        void issue_memory_barrier(std::uint32_t) override
+        {
+        }
 
         void execute_command_buffer(const engine::rendering::backend::opengl::OpenGLCommandEncoderSubmit&) override
         {
             ++execute_count;
         }
 
-        void signal_timeline(const engine::rendering::backend::opengl::OpenGLTimelineSubmit&) override {}
+        void signal_timeline(const engine::rendering::backend::opengl::OpenGLTimelineSubmit&) override
+        {
+        }
 
-        void signal_fence(engine::rendering::resources::FenceNativeHandle, std::uint64_t) override {}
+        void signal_fence(engine::rendering::resources::FenceNativeHandle, std::uint64_t) override
+        {
+        }
 
         void end_submission(const engine::rendering::backend::opengl::OpenGLSubmission&) override
         {
@@ -77,7 +85,7 @@ TEST(OpenGLCommandEncoder, RecordsDrawCommands)
     scheduler.submit(submit);
     scheduler.recycle(command_buffer);
 
-    ASSERT_EQ(scheduler.submissions().size(), 1U);  // NOLINT
+    ASSERT_EQ(scheduler.submissions().size(), 1U); // NOLINT
     const auto& submission = scheduler.submissions().front();
     EXPECT_EQ(submission.draw_commands.size(), 1U);
     EXPECT_EQ(submission.draw_commands.front().material.id(), std::string{"material.handle"});
@@ -89,4 +97,3 @@ TEST(OpenGLCommandEncoder, RecordsDrawCommands)
     EXPECT_EQ(stream.last_pass, "EncodePass");
     EXPECT_EQ(stream.last_draw_count, 1U);
 }
-

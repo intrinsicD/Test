@@ -33,7 +33,7 @@ namespace engine::rendering::backend::opengl
             resources::CommandBufferNativeHandle native{};
             native.api = resources::GraphicsApi::OpenGL;
             native.queue = queue;
-            native.value = reinterpret_cast<std::uintptr_t>(&buffer);  // NOLINT
+            native.value = reinterpret_cast<std::uintptr_t>(&buffer); // NOLINT
             native.label = std::string{buffer.label()};
             native.index = handle.index;
             if (native.label.empty())
@@ -46,7 +46,7 @@ namespace engine::rendering::backend::opengl
             }
             return native;
         }
-    }  // namespace
+    } // namespace
 
     namespace
     {
@@ -64,9 +64,9 @@ namespace engine::rendering::backend::opengl
         [[nodiscard]] bool is_texture_resource(const FrameGraphResourceInfo& info) noexcept
         {
             return info.dimension == ResourceDimension::Texture2D
-                   || info.dimension == ResourceDimension::Texture3D
-                   || info.dimension == ResourceDimension::Texture1D
-                   || info.dimension == ResourceDimension::CubeMap;
+                || info.dimension == ResourceDimension::Texture3D
+                || info.dimension == ResourceDimension::Texture1D
+                || info.dimension == ResourceDimension::CubeMap;
         }
 
 #if ENGINE_RENDERING_HAS_GLAD
@@ -147,7 +147,8 @@ namespace engine::rendering::backend::opengl
                 return 0;
             }
 
-            const auto guard = [&]() {
+            const auto guard = [&]()
+            {
                 if (glad_glBindTexture != nullptr)
                 {
                     glad_glBindTexture(format.target, name);
@@ -161,7 +162,7 @@ namespace engine::rendering::backend::opengl
                 if (glad_glTexImage1D != nullptr)
                 {
                     glad_glTexImage1D(GL_TEXTURE_1D, 0, static_cast<GLint>(format.internal_format),
-                                       static_cast<GLsizei>(info.width), 0, format.format, format.type, nullptr);
+                                      static_cast<GLsizei>(info.width), 0, format.format, format.type, nullptr);
                 }
             }
             else if (format.target == GL_TEXTURE_3D)
@@ -169,8 +170,8 @@ namespace engine::rendering::backend::opengl
                 if (glad_glTexImage3D != nullptr)
                 {
                     glad_glTexImage3D(GL_TEXTURE_3D, 0, static_cast<GLint>(format.internal_format),
-                                       static_cast<GLsizei>(info.width), static_cast<GLsizei>(info.height),
-                                       static_cast<GLsizei>(info.depth), 0, format.format, format.type, nullptr);
+                                      static_cast<GLsizei>(info.width), static_cast<GLsizei>(info.height),
+                                      static_cast<GLsizei>(info.depth), 0, format.format, format.type, nullptr);
                 }
             }
             else
@@ -178,8 +179,8 @@ namespace engine::rendering::backend::opengl
                 if (glad_glTexImage2D != nullptr)
                 {
                     glad_glTexImage2D(format.target, 0, static_cast<GLint>(format.internal_format),
-                                       static_cast<GLsizei>(info.width), static_cast<GLsizei>(info.height), 0,
-                                       format.format, format.type, nullptr);
+                                      static_cast<GLsizei>(info.width), static_cast<GLsizei>(info.height), 0,
+                                      format.format, format.type, nullptr);
                 }
             }
 
@@ -207,7 +208,7 @@ namespace engine::rendering::backend::opengl
             }
         }
 #endif  // ENGINE_RENDERING_HAS_GLAD
-    }  // namespace
+    } // namespace
 
     OpenGLGpuResourceProvider::OpenGLGpuResourceProvider() = default;
 
@@ -231,7 +232,9 @@ namespace engine::rendering::backend::opengl
         released_.clear();
     }
 
-    void OpenGLGpuResourceProvider::end_frame() {}
+    void OpenGLGpuResourceProvider::end_frame()
+    {
+    }
 
     resources::QueueNativeHandle OpenGLGpuResourceProvider::queue_handle(QueueType queue) const
     {
@@ -300,7 +303,7 @@ namespace engine::rendering::backend::opengl
     }
 
     void OpenGLGpuResourceProvider::on_transient_acquire(FrameGraphResourceHandle handle,
-                                                          const FrameGraphResourceInfo& info)
+                                                         const FrameGraphResourceInfo& info)
     {
         if (!handle.valid())
         {
@@ -334,7 +337,7 @@ namespace engine::rendering::backend::opengl
     }
 
     void OpenGLGpuResourceProvider::on_transient_release(FrameGraphResourceHandle handle,
-                                                          const FrameGraphResourceInfo& info)
+                                                         const FrameGraphResourceInfo& info)
     {
         if (!handle.valid())
         {
@@ -436,19 +439,18 @@ namespace engine::rendering::backend::opengl
             record.handle = next_texture_id_++;
             record.native_allocation = false;
             record.depth_attachment = info.format == ResourceFormat::Depth24Stencil8
-                                      || info.format == ResourceFormat::Depth32f;
+                || info.format == ResourceFormat::Depth32f;
         }
 
         textures_.insert_or_assign(index, record);
     }
 
     bool OpenGLGpuResourceProvider::texture_descriptor_matches(const TextureRecord& record,
-                                                                const FrameGraphResourceInfo& info) const noexcept
+                                                               const FrameGraphResourceInfo& info) const noexcept
     {
         return record.format == info.format && record.usage == info.usage && record.dimension == info.dimension
-               && record.sample_count == info.sample_count && record.width == info.width
-               && record.height == info.height && record.depth == info.depth
-               && record.array_layers == info.array_layers && record.mip_levels == info.mip_levels;
+            && record.sample_count == info.sample_count && record.width == info.width
+            && record.height == info.height && record.depth == info.depth
+            && record.array_layers == info.array_layers && record.mip_levels == info.mip_levels;
     }
 }
-

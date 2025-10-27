@@ -48,7 +48,7 @@ namespace engine::rendering::resources
         [[nodiscard]] const std::vector<ResourceEventRecord>& acquired() const noexcept;
         [[nodiscard]] const std::vector<ResourceEventRecord>& released() const noexcept;
         [[nodiscard]] const std::unordered_map<std::size_t, CommandBufferNativeHandle>&
-            command_buffers() const noexcept;
+        command_buffers() const noexcept;
 
     private:
         GraphicsApi api_{GraphicsApi::Unknown};

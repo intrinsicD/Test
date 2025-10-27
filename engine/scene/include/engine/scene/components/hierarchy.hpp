@@ -46,9 +46,9 @@ namespace engine::scene::components
         inline void encode(std::ostream& output, const Hierarchy& hierarchy)
         {
             output << static_cast<HierarchyRecord::entity_type>(hierarchy.parent) << ' '
-                   << static_cast<HierarchyRecord::entity_type>(hierarchy.first_child) << ' '
-                   << static_cast<HierarchyRecord::entity_type>(hierarchy.next_sibling) << ' '
-                   << static_cast<HierarchyRecord::entity_type>(hierarchy.previous_sibling);
+                << static_cast<HierarchyRecord::entity_type>(hierarchy.first_child) << ' '
+                << static_cast<HierarchyRecord::entity_type>(hierarchy.next_sibling) << ' '
+                << static_cast<HierarchyRecord::entity_type>(hierarchy.previous_sibling);
         }
 
         inline HierarchyRecord decode_hierarchy(std::istream& input)
@@ -61,7 +61,8 @@ namespace engine::scene::components
         template <typename Resolver>
         [[nodiscard]] inline Hierarchy instantiate(const HierarchyRecord& record, Resolver&& resolver)
         {
-            const auto resolve = [&](HierarchyRecord::entity_type value) {
+            const auto resolve = [&](HierarchyRecord::entity_type value)
+            {
                 if (value == HierarchyRecord::null_value())
                 {
                     return entt::entity(entt::null);

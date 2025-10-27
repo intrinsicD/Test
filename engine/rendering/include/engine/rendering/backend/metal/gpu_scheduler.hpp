@@ -63,7 +63,7 @@ namespace engine::rendering::backend::metal
         }
 
         [[nodiscard]] MetalSubmission build_submission(const GpuSubmitInfo& info,
-                                                        const typename Base::EncoderRecord& encoder)
+                                                       const typename Base::EncoderRecord& encoder)
         {
             MetalSubmission submission{};
             submission.pass_name = std::string{info.pass_name};

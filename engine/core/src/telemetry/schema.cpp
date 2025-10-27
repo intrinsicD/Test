@@ -1,7 +1,7 @@
 #include "engine/core/telemetry/schema.hpp"
 
-namespace engine::core::telemetry {
-
+namespace engine::core::telemetry
+{
     std::string_view to_string(MetricKind kind) noexcept
     {
         switch (kind)
@@ -60,6 +60,4 @@ namespace engine::core::telemetry {
         }
         return static_cast<std::int64_t>(std::get<double>(value));
     }
-
-}  // namespace engine::core::telemetry
-
+} // namespace engine::core::telemetry

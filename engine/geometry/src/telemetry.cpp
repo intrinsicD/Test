@@ -8,7 +8,8 @@ namespace engine::geometry
         return telemetry;
     }
 
-    void GeometrySpatialTelemetry::record_invocation(GeometrySpatialQueryOperation operation, std::uint64_t result_count) noexcept
+    void GeometrySpatialTelemetry::record_invocation(GeometrySpatialQueryOperation operation,
+                                                     std::uint64_t result_count) noexcept
     {
         const auto index = geometry_spatial_query_operation_index(operation);
 
@@ -17,11 +18,11 @@ namespace engine::geometry
         last_results_[index].store(result_count, std::memory_order_relaxed);
         auto observed = max_results_[index].load(std::memory_order_relaxed);
         while (observed < result_count &&
-               !max_results_[index].compare_exchange_weak(
-                   observed,
-                   result_count,
-                   std::memory_order_relaxed,
-                   std::memory_order_relaxed))
+            !max_results_[index].compare_exchange_weak(
+                observed,
+                result_count,
+                std::memory_order_relaxed,
+                std::memory_order_relaxed))
         {
         }
     }
@@ -53,4 +54,3 @@ namespace engine::geometry
         }
     }
 } // namespace engine::geometry
-

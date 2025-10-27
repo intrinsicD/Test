@@ -71,9 +71,9 @@ namespace engine::rendering::backend::opengl
         [[nodiscard]] constexpr std::uint32_t barrier_mask(const resources::Barrier& barrier) noexcept
         {
             return stage_access_mask(barrier.source_stage, barrier.source_access)
-                   | stage_access_mask(barrier.destination_stage, barrier.destination_access);
+                | stage_access_mask(barrier.destination_stage, barrier.destination_access);
         }
-    }  // namespace detail
+    } // namespace detail
 
     struct OpenGLBarrier
     {
@@ -141,7 +141,7 @@ namespace engine::rendering::backend::opengl
 
         explicit OpenGLGpuScheduler(resources::IGpuResourceProvider& provider, CommandStream* stream = nullptr)
             : Base(provider)
-            , command_stream_{stream != nullptr ? stream : &default_command_stream()}
+              , command_stream_{stream != nullptr ? stream : &default_command_stream()}
         {
             if (provider.api() != resources::GraphicsApi::OpenGL)
             {
@@ -224,7 +224,7 @@ namespace engine::rendering::backend::opengl
         }
 
         [[nodiscard]] OpenGLSubmission build_submission(const GpuSubmitInfo& info,
-                                                         const typename Base::EncoderRecord& encoder)
+                                                        const typename Base::EncoderRecord& encoder)
         {
             OpenGLSubmission submission{};
             submission.pass_name = std::string{info.pass_name};
@@ -275,9 +275,11 @@ namespace engine::rendering::backend::opengl
                 submission.signals.push_back(submit);
             }
 
-            if (auto* opengl_provider = dynamic_cast<OpenGLGpuResourceProvider*>(&provider_); opengl_provider != nullptr)
+            if (auto* opengl_provider = dynamic_cast<OpenGLGpuResourceProvider*>(&provider_); opengl_provider !=
+                nullptr)
             {
-                if (const auto* recorded_buffer = opengl_provider->command_buffer(encoder.handle); recorded_buffer != nullptr)
+                if (const auto* recorded_buffer = opengl_provider->command_buffer(encoder.handle); recorded_buffer !=
+                    nullptr)
                 {
                     submission.draw_commands = recorded_buffer->draws;
                 }

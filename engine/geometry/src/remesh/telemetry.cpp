@@ -12,11 +12,11 @@ namespace engine::geometry
         {
             T observed = target.load(std::memory_order_relaxed);
             while (observed < value &&
-                   !target.compare_exchange_weak(
-                       observed,
-                       value,
-                       std::memory_order_relaxed,
-                       std::memory_order_relaxed))
+                !target.compare_exchange_weak(
+                    observed,
+                    value,
+                    std::memory_order_relaxed,
+                    std::memory_order_relaxed))
             {
             }
         }
@@ -60,7 +60,8 @@ namespace engine::geometry
         last_surface_deviation_sample_count_[index].store(surface_deviation_sample_count, std::memory_order_relaxed);
         if (surface_deviation_sample_count > 0U)
         {
-            const auto sanitize = [](float value) -> double {
+            const auto sanitize = [](float value) -> double
+            {
                 if (!std::isfinite(value))
                 {
                     return 0.0;
@@ -219,4 +220,3 @@ namespace engine::geometry
         }
     }
 } // namespace engine::geometry
-

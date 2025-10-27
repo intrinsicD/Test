@@ -88,7 +88,8 @@ TEST(RemeshCliParsing, ParsesFeatureModeConfiguration)
 TEST(RemeshCliExecution, ProducesRemeshedMesh)
 {
     DirectoryGuard guard{
-        std::filesystem::temp_directory_path() / ("geometry-remesh-cli-" + fs::generate_random_suffix())};
+        std::filesystem::temp_directory_path() / ("geometry-remesh-cli-" + fs::generate_random_suffix())
+    };
     std::filesystem::create_directories(guard.path());
 
     const std::filesystem::path input_path = guard.path() / "input.obj";
@@ -189,4 +190,3 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     EXPECT_NE(manifest.find("mean_surface_deviation: 0.0100"), std::string::npos);
     EXPECT_NE(manifest.find("rms_surface_deviation: 0.0120"), std::string::npos);
 }
-

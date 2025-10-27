@@ -20,7 +20,8 @@ namespace engine::geometry
         count
     };
 
-    [[nodiscard]] constexpr std::size_t geometry_spatial_query_operation_index(GeometrySpatialQueryOperation operation) noexcept
+    [[nodiscard]] constexpr std::size_t geometry_spatial_query_operation_index(
+        GeometrySpatialQueryOperation operation) noexcept
     {
         return static_cast<std::size_t>(operation);
     }
@@ -42,7 +43,8 @@ namespace engine::geometry
     {
         std::array<GeometrySpatialQueryOperationSnapshot, geometry_spatial_query_operation_count()> operations{};
 
-        [[nodiscard]] const GeometrySpatialQueryOperationSnapshot& operation(GeometrySpatialQueryOperation op) const noexcept
+        [[nodiscard]] const GeometrySpatialQueryOperationSnapshot& operation(
+            GeometrySpatialQueryOperation op) const noexcept
         {
             return operations[geometry_spatial_query_operation_index(op)];
         }
@@ -70,4 +72,3 @@ namespace engine::geometry
         MetricArray max_results_{};
     };
 } // namespace engine::geometry
-

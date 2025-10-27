@@ -88,4 +88,3 @@ INSTANTIATE_TEST_SUITE_P(
         WorkloadExpectation{samples::WorkloadProfile::Light, 16U, 16U},
         WorkloadExpectation{samples::WorkloadProfile::Balanced, 32U, 48U},
         WorkloadExpectation{samples::WorkloadProfile::Heavy, 64U, 128U}));
-

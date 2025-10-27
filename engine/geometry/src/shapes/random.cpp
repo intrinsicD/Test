@@ -15,11 +15,13 @@ namespace engine::geometry
 
         RandomEngine& default_engine() noexcept
         {
-            thread_local RandomEngine engine{[]
-            {
-                std::random_device device;
-                return RandomEngine{device()};
-            }()};
+            thread_local RandomEngine engine{
+                []
+                {
+                    std::random_device device;
+                    return RandomEngine{device()};
+                }()
+            };
             return engine;
         }
 
@@ -31,9 +33,11 @@ namespace engine::geometry
 
         math::vec3 uniform_vec3(RandomEngine& rng, float min_value, float max_value) noexcept
         {
-            return math::vec3{uniform(rng, min_value, max_value),
-                               uniform(rng, min_value, max_value),
-                               uniform(rng, min_value, max_value)};
+            return math::vec3{
+                uniform(rng, min_value, max_value),
+                uniform(rng, min_value, max_value),
+                uniform(rng, min_value, max_value)
+            };
         }
 
         math::vec3 random_unit_vector(RandomEngine& rng) noexcept
@@ -43,7 +47,8 @@ namespace engine::geometry
             do
             {
                 candidate = math::vec3{normal_dist(rng), normal_dist(rng), normal_dist(rng)};
-            } while (math::length_squared(candidate) <= std::numeric_limits<float>::epsilon());
+            }
+            while (math::length_squared(candidate) <= std::numeric_limits<float>::epsilon());
             return math::normalize(candidate);
         }
 

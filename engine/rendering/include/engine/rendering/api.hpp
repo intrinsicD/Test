@@ -12,10 +12,9 @@
 #  define ENGINE_RENDERING_API
 #endif
 
-namespace engine::rendering {
-
-[[nodiscard]] std::string_view module_name() noexcept;
-
-}  // namespace engine::rendering
+namespace engine::rendering
+{
+    [[nodiscard]] std::string_view module_name() noexcept;
+} // namespace engine::rendering
 
 extern "C" ENGINE_RENDERING_API const char* engine_rendering_module_name() noexcept;

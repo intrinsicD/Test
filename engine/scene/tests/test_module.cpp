@@ -7,23 +7,25 @@
 #include "engine/scene/scene.hpp"
 #include "engine/scene/systems.hpp"
 
-TEST(SceneModule, ModuleNameMatchesNamespace) {
+TEST(SceneModule, ModuleNameMatchesNamespace)
+{
     EXPECT_EQ(engine::scene::module_name(), "scene");
     EXPECT_STREQ(engine_scene_module_name(), "scene");
 }
 
-namespace {
+namespace
+{
+    struct Position
+    {
+        float x{};
+        float y{};
+        float z{};
+    };
+} // namespace
 
-struct Position {
-    float x{};
-    float y{};
-    float z{};
-};
 
-}  // namespace
-
-
-TEST(Scene, CreateAndManipulateEntity) {
+TEST(Scene, CreateAndManipulateEntity)
+{
     engine::scene::Scene scene{"test"};
     EXPECT_EQ(scene.name(), "test");
 
@@ -41,11 +43,12 @@ TEST(Scene, CreateAndManipulateEntity) {
 
     EXPECT_TRUE(entity.has<Position>());
 
-    auto view = scene.view<Position>();
+    auto view = scene.view < Position > ();
     ASSERT_EQ(view.size(), 1);
 
     std::size_t count = 0;
-    for (auto [id, pos] : view.each()) {
+    for (auto [id, pos] : view.each())
+    {
         EXPECT_EQ(id, entity.id());
         EXPECT_FLOAT_EQ(pos.y, 2.0F);
         ++count;
@@ -59,7 +62,8 @@ TEST(Scene, CreateAndManipulateEntity) {
     EXPECT_FALSE(entity.valid());
 }
 
-TEST(Scene, CreateNamedEntityAndUpdateHierarchy) {
+TEST(Scene, CreateNamedEntityAndUpdateHierarchy)
+{
     engine::scene::Scene scene;
 
     auto parent = scene.create_entity("parent");
@@ -70,9 +74,15 @@ TEST(Scene, CreateNamedEntityAndUpdateHierarchy) {
 
     auto& registry = scene.registry();
     auto& parent_local = registry.emplace<engine::scene::components::LocalTransform>(parent.id());
-    parent_local.value.translation = engine::math::Vector<float, 3>{1.0F, 0.0F, 0.0F};
+    parent_local.value.translation = engine::math::Vector < float, 3 >
+    {
+        1.0F, 0.0F, 0.0F
+    };
     auto& child_local = registry.emplace<engine::scene::components::LocalTransform>(child.id());
-    child_local.value.translation = engine::math::Vector<float, 3>{0.0F, 1.0F, 0.0F};
+    child_local.value.translation = engine::math::Vector < float, 3 >
+    {
+        0.0F, 1.0F, 0.0F
+    };
 
     engine::scene::systems::mark_transform_dirty(registry, parent.id());
     engine::scene::systems::mark_transform_dirty(registry, child.id());

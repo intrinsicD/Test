@@ -6,17 +6,22 @@
 #include <numbers>
 #include <cstddef>
 
-namespace engine::geometry {
-    float Volume(const Ellipsoid &ellipsoid) noexcept {
+namespace engine::geometry
+{
+    float Volume(const Ellipsoid& ellipsoid) noexcept
+    {
         return static_cast<float>(4.0 / 3.0) * std::numbers::pi_v<float> *
-               ellipsoid.radii[0] *
-               ellipsoid.radii[1] *
-               ellipsoid.radii[2];
+            ellipsoid.radii[0] *
+            ellipsoid.radii[1] *
+            ellipsoid.radii[2];
     }
 
-    math::vec3 ClosestPoint(const Ellipsoid &ellipsoid, const math::vec3 &point) noexcept {
-        const float min_radius = math::utils::min(ellipsoid.radii[0], math::utils::min(ellipsoid.radii[1], ellipsoid.radii[2]));
-        if (min_radius <= 0.0f) {
+    math::vec3 ClosestPoint(const Ellipsoid& ellipsoid, const math::vec3& point) noexcept
+    {
+        const float min_radius = math::utils::min(ellipsoid.radii[0],
+                                                  math::utils::min(ellipsoid.radii[1], ellipsoid.radii[2]));
+        if (min_radius <= 0.0f)
+        {
             return ellipsoid.center;
         }
 
@@ -37,12 +42,14 @@ namespace engine::geometry {
         const double inv_radii_sq_y = ly * ly / (ry * ry);
         const double inv_radii_sq_z = lz * lz / (rz * rz);
         const double value = inv_radii_sq_x + inv_radii_sq_y + inv_radii_sq_z;
-        if (value <= 1.0) {
+        if (value <= 1.0)
+        {
             return point;
         }
 
         double lambda = 0.0;
-        for (int iteration = 0; iteration < 32; ++iteration) {
+        for (int iteration = 0; iteration < 32; ++iteration)
+        {
             const double denom_x = rx * rx + lambda;
             const double denom_y = ry * ry + lambda;
             const double denom_z = rz * rz + lambda;
@@ -52,24 +59,28 @@ namespace engine::geometry {
             const double term_z = lz * lz * rz * rz / (denom_z * denom_z);
 
             const double function = term_x + term_y + term_z - 1.0;
-            if (std::fabs(function) <= 1e-7) {
+            if (std::fabs(function) <= 1e-7)
+            {
                 break;
             }
 
             const double derivative = -2.0 * (lx * lx * rx * rx / (denom_x * denom_x * denom_x) +
-                                              ly * ly * ry * ry / (denom_y * denom_y * denom_y) +
-                                              lz * lz * rz * rz / (denom_z * denom_z * denom_z));
+                ly * ly * ry * ry / (denom_y * denom_y * denom_y) +
+                lz * lz * rz * rz / (denom_z * denom_z * denom_z));
 
-            if (derivative == 0.0) {
+            if (derivative == 0.0)
+            {
                 break;
             }
 
             const double step = function / derivative;
             lambda -= step;
-            if (lambda < 0.0) {
+            if (lambda < 0.0)
+            {
                 lambda = 0.0;
             }
-            if (std::fabs(step) <= 1e-7) {
+            if (std::fabs(step) <= 1e-7)
+            {
                 break;
             }
         }
@@ -96,7 +107,8 @@ namespace engine::geometry {
         return ellipsoid.center + rotated;
     }
 
-    double SquaredDistance(const Ellipsoid &ellipsoid, const math::vec3 &point) noexcept {
+    double SquaredDistance(const Ellipsoid& ellipsoid, const math::vec3& point) noexcept
+    {
         const math::vec3 closest = ClosestPoint(ellipsoid, point);
         const math::vec3 diff = point - closest;
         return static_cast<double>(math::dot(diff, diff));

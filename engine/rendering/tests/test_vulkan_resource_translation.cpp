@@ -16,8 +16,8 @@ namespace
         info.format = engine::rendering::ResourceFormat::Rgba16f;
         info.dimension = engine::rendering::ResourceDimension::Texture2D;
         info.usage = engine::rendering::ResourceUsage::ColorAttachment |
-                     engine::rendering::ResourceUsage::ShaderRead |
-                     engine::rendering::ResourceUsage::TransferSource;
+            engine::rendering::ResourceUsage::ShaderRead |
+            engine::rendering::ResourceUsage::TransferSource;
         info.initial_state = engine::rendering::ResourceState::ColorAttachment;
         info.final_state = engine::rendering::ResourceState::ShaderRead;
         info.width = 1024;
@@ -35,7 +35,7 @@ TEST(VulkanTranslation, TranslatesColorTextureDescriptor)
     const auto info = make_color_texture_info();
     const auto description = engine::rendering::backend::vulkan::translate_resource(info);
     ASSERT_TRUE(std::holds_alternative<engine::rendering::backend::vulkan::VulkanImageResourceDescription>(
-        description));  // NOLINT
+        description)); // NOLINT
     const auto& image = std::get<engine::rendering::backend::vulkan::VulkanImageResourceDescription>(description);
     EXPECT_EQ(image.image.imageType, VK_IMAGE_TYPE_2D);
     EXPECT_EQ(image.image.format, VK_FORMAT_R16G16B16A16_SFLOAT);
@@ -75,12 +75,12 @@ TEST(VulkanTranslation, TranslatesBufferDescriptor)
     info.dimension = engine::rendering::ResourceDimension::Buffer;
     info.size_bytes = 4096;
     info.usage = engine::rendering::ResourceUsage::TransferDestination |
-                 engine::rendering::ResourceUsage::ShaderRead |
-                 engine::rendering::ResourceUsage::ShaderWrite;
+        engine::rendering::ResourceUsage::ShaderRead |
+        engine::rendering::ResourceUsage::ShaderWrite;
 
     const auto description = engine::rendering::backend::vulkan::translate_resource(info);
     ASSERT_TRUE(std::holds_alternative<engine::rendering::backend::vulkan::VulkanBufferResourceDescription>(
-        description));  // NOLINT
+        description)); // NOLINT
     const auto& buffer = std::get<engine::rendering::backend::vulkan::VulkanBufferResourceDescription>(description);
     EXPECT_EQ(buffer.buffer.size, 4096U);
     EXPECT_TRUE((buffer.buffer.usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) != 0U);

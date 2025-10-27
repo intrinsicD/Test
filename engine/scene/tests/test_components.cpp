@@ -6,14 +6,16 @@
 
 #include <entt/entt.hpp>
 
-TEST(SceneComponents, NameStoresText) {
+TEST(SceneComponents, NameStoresText)
+{
     engine::scene::components::Name name{.value = "example"};
     EXPECT_EQ(engine::scene::components::view(name), "example");
     EXPECT_TRUE(name == "example");
     EXPECT_TRUE("example" == name);
 }
 
-TEST(SceneComponents, HierarchyParentChildRelationships) {
+TEST(SceneComponents, HierarchyParentChildRelationships)
+{
     engine::scene::Scene scene;
 
     auto parent = scene.create_entity();

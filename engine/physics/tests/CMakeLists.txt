@@ -1,9 +1,9 @@
 add_executable(engine_physics_tests
-    test_module.cpp
+        test_module.cpp
 )
 
 target_link_libraries(engine_physics_tests
-    PRIVATE
+        PRIVATE
         engine::project_options
         engine_physics
         GTest::gtest_main

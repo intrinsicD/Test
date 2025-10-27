@@ -2,25 +2,31 @@
 #include "engine/geometry/shapes/plane.hpp"
 #include "engine/math/utils/utils.hpp"
 
-namespace engine::geometry {
-    math::vec3 Direction(const Segment &segment) noexcept {
+namespace engine::geometry
+{
+    math::vec3 Direction(const Segment& segment) noexcept
+    {
         return segment.end - segment.start;
     }
 
-    float Length(const Segment &segment) noexcept {
+    float Length(const Segment& segment) noexcept
+    {
         return math::length(Direction(segment));
     }
 
-    math::vec3 PointAt(const Segment &segment, float t) noexcept {
+    math::vec3 PointAt(const Segment& segment, float t) noexcept
+    {
         return segment.start + Direction(segment) * t;
     }
 
-    math::vec3 ClosestPoint(const Segment &segment,
-                            const math::vec3 &point,
-                            double &t_result) noexcept {
+    math::vec3 ClosestPoint(const Segment& segment,
+                            const math::vec3& point,
+                            double& t_result) noexcept
+    {
         const math::vec3 direction = Direction(segment);
         const float length_sq = math::length_squared(direction);
-        if (length_sq == 0.0f) {
+        if (length_sq == 0.0f)
+        {
             t_result = 0.0;
             return segment.start;
         }
@@ -32,10 +38,12 @@ namespace engine::geometry {
         return segment.start + direction * clamped_t;
     }
 
-    double SquaredDistance(const Segment &segment, const math::vec3 &point) noexcept {
+    double SquaredDistance(const Segment& segment, const math::vec3& point) noexcept
+    {
         const math::vec3 direction = segment.end - segment.start;
         const float length_sq = math::length_squared(direction);
-        if (length_sq == 0.0f) {
+        if (length_sq == 0.0f)
+        {
             return math::length_squared(point - segment.start);
         }
 

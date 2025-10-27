@@ -19,11 +19,25 @@ namespace
     class NullProvider final : public engine::rendering::RenderResourceProvider
     {
     public:
-        void require_mesh(const engine::assets::MeshHandle&) override {}
-        void require_graph(const engine::assets::GraphHandle&) override {}
-        void require_point_cloud(const engine::assets::PointCloudHandle&) override {}
-        void require_material(const engine::assets::MaterialHandle&) override {}
-        void require_shader(const engine::assets::ShaderHandle&) override {}
+        void require_mesh(const engine::assets::MeshHandle&) override
+        {
+        }
+
+        void require_graph(const engine::assets::GraphHandle&) override
+        {
+        }
+
+        void require_point_cloud(const engine::assets::PointCloudHandle&) override
+        {
+        }
+
+        void require_material(const engine::assets::MaterialHandle&) override
+        {
+        }
+
+        void require_shader(const engine::assets::ShaderHandle&) override
+        {
+        }
     };
 
     engine::rendering::FrameGraphResourceDescriptor make_color_resource(std::string name)
@@ -33,8 +47,8 @@ namespace
         descriptor.format = engine::rendering::ResourceFormat::Rgba8Unorm;
         descriptor.dimension = engine::rendering::ResourceDimension::Texture2D;
         descriptor.usage = engine::rendering::ResourceUsage::ColorAttachment |
-                           engine::rendering::ResourceUsage::ShaderRead |
-                           engine::rendering::ResourceUsage::ShaderWrite;
+            engine::rendering::ResourceUsage::ShaderRead |
+            engine::rendering::ResourceUsage::ShaderWrite;
         descriptor.initial_state = engine::rendering::ResourceState::ColorAttachment;
         descriptor.final_state = engine::rendering::ResourceState::ShaderRead;
         descriptor.width = 1920;
@@ -53,7 +67,7 @@ namespace
         descriptor.format = engine::rendering::ResourceFormat::Depth24Stencil8;
         descriptor.dimension = engine::rendering::ResourceDimension::Texture2D;
         descriptor.usage = engine::rendering::ResourceUsage::DepthStencilAttachment |
-                           engine::rendering::ResourceUsage::ShaderRead;
+            engine::rendering::ResourceUsage::ShaderRead;
         descriptor.initial_state = engine::rendering::ResourceState::DepthStencilAttachment;
         descriptor.final_state = engine::rendering::ResourceState::DepthStencilAttachment;
         descriptor.width = 1920;
@@ -71,7 +85,7 @@ namespace
         descriptor.name = std::move(name);
         descriptor.dimension = engine::rendering::ResourceDimension::Buffer;
         descriptor.usage = engine::rendering::ResourceUsage::ShaderRead |
-                           engine::rendering::ResourceUsage::ShaderWrite;
+            engine::rendering::ResourceUsage::ShaderWrite;
         descriptor.initial_state = engine::rendering::ResourceState::ShaderRead;
         descriptor.final_state = engine::rendering::ResourceState::ShaderWrite;
         descriptor.size_bytes = 1024;
@@ -84,7 +98,7 @@ namespace
         descriptor.name = std::move(name);
         descriptor.dimension = engine::rendering::ResourceDimension::Buffer;
         descriptor.usage = engine::rendering::ResourceUsage::TransferSource |
-                           engine::rendering::ResourceUsage::TransferDestination;
+            engine::rendering::ResourceUsage::TransferDestination;
         descriptor.initial_state = engine::rendering::ResourceState::CopyDestination;
         descriptor.final_state = engine::rendering::ResourceState::CopySource;
         descriptor.size_bytes = 4096;
@@ -103,7 +117,8 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "DepthPrepass",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(depth); },
-        [&](engine::rendering::FrameGraphPassExecutionContext& context) {
+        [&](engine::rendering::FrameGraphPassExecutionContext& context)
+        {
             order.emplace_back(context.pass_name());
             EXPECT_EQ(context.pass_phase(), engine::rendering::PassPhase::Setup);
             EXPECT_EQ(context.validation_severity(), engine::rendering::ValidationSeverity::Warning);
@@ -114,11 +129,13 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "GBuffer",
-        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+        [=](engine::rendering::FrameGraphPassBuilder& builder)
+        {
             builder.read(depth);
             builder.write(color);
         },
-        [&](engine::rendering::FrameGraphPassExecutionContext& context) {
+        [&](engine::rendering::FrameGraphPassExecutionContext& context)
+        {
             order.emplace_back(context.pass_name());
             EXPECT_EQ(context.pass_phase(), engine::rendering::PassPhase::Geometry);
             EXPECT_EQ(context.validation_severity(), engine::rendering::ValidationSeverity::Error);
@@ -130,7 +147,8 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "Lighting",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
-        [&](engine::rendering::FrameGraphPassExecutionContext& context) {
+        [&](engine::rendering::FrameGraphPassExecutionContext& context)
+        {
             order.emplace_back(context.pass_name());
             EXPECT_EQ(context.pass_phase(), engine::rendering::PassPhase::Lighting);
             EXPECT_EQ(context.validation_severity(), engine::rendering::ValidationSeverity::Info);
@@ -147,11 +165,13 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
     engine::rendering::tests::NullCommandEncoderProvider command_encoders;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
-                                                     scheduler, device_provider, command_encoders};
+    engine::rendering::RenderExecutionContext context{
+        provider, materials, engine::rendering::RenderView{scene},
+        scheduler, device_provider, command_encoders
+    };
     graph.execute(context);
 
-    ASSERT_EQ(order.size(), 3);  // NOLINT
+    ASSERT_EQ(order.size(), 3); // NOLINT
     EXPECT_EQ(order[0], "DepthPrepass");
     EXPECT_EQ(order[1], "GBuffer");
     EXPECT_EQ(order[2], "Lighting");
@@ -166,20 +186,27 @@ TEST(FrameGraph, TracksResourceLifetimes)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "DepthPrepass",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(depth); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "GBuffer",
-        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+        [=](engine::rendering::FrameGraphPassBuilder& builder)
+        {
             builder.read(depth);
             builder.write(color);
         },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "Lighting",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     graph.compile();
 
@@ -189,17 +216,19 @@ TEST(FrameGraph, TracksResourceLifetimes)
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
     engine::rendering::tests::NullCommandEncoderProvider command_encoders;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
-                                                     scheduler, device_provider, command_encoders};
+    engine::rendering::RenderExecutionContext context{
+        provider, materials, engine::rendering::RenderView{scene},
+        scheduler, device_provider, command_encoders
+    };
     graph.execute(context);
 
     const auto& events = graph.resource_events();
-    ASSERT_EQ(events.size(), 4);  // NOLINT
+    ASSERT_EQ(events.size(), 4); // NOLINT
 
     EXPECT_EQ(device_provider.frames_begun(), 1U);
     EXPECT_EQ(device_provider.frames_completed(), 1U);
-    ASSERT_EQ(device_provider.acquired().size(), 2);  // NOLINT
-    ASSERT_EQ(device_provider.released().size(), 2);  // NOLINT
+    ASSERT_EQ(device_provider.acquired().size(), 2); // NOLINT
+    ASSERT_EQ(device_provider.released().size(), 2); // NOLINT
 
     const auto& acquired_depth = device_provider.acquired().front().info;
     EXPECT_EQ(acquired_depth.name, "Depth");
@@ -259,20 +288,27 @@ TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "DepthPrepass",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(depth); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "GBuffer",
-        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+        [=](engine::rendering::FrameGraphPassBuilder& builder)
+        {
             builder.read(depth);
             builder.write(color);
         },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "Lighting",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     graph.compile();
 
@@ -282,12 +318,14 @@ TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
     engine::rendering::tests::NullCommandEncoderProvider command_encoders;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
-                                                     scheduler, device_provider, command_encoders};
+    engine::rendering::RenderExecutionContext context{
+        provider, materials, engine::rendering::RenderView{scene},
+        scheduler, device_provider, command_encoders
+    };
     graph.execute(context);
 
     const auto& submissions = scheduler.submissions;
-    ASSERT_EQ(submissions.size(), 3);  // NOLINT
+    ASSERT_EQ(submissions.size(), 3); // NOLINT
 
     EXPECT_EQ(device_provider.frames_begun(), 1U);
     EXPECT_EQ(device_provider.frames_completed(), 1U);
@@ -295,27 +333,27 @@ TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
     const auto& depth_submission = submissions[0];
     EXPECT_EQ(depth_submission.pass_name, "DepthPrepass");
     EXPECT_TRUE(depth_submission.waits.empty());
-    ASSERT_EQ(depth_submission.begin_barriers.size(), 1);  // NOLINT
+    ASSERT_EQ(depth_submission.begin_barriers.size(), 1); // NOLINT
     const auto depth_info = graph.resource_info(depth_submission.begin_barriers.front().resource);
     EXPECT_EQ(depth_info.name, "Depth");
     EXPECT_EQ(depth_submission.begin_barriers.front().source_access,
               engine::rendering::resources::Access::Read);
     EXPECT_EQ(depth_submission.begin_barriers.front().destination_access,
               engine::rendering::resources::Access::Write);
-    ASSERT_EQ(depth_submission.end_barriers.size(), 1);  // NOLINT
+    ASSERT_EQ(depth_submission.end_barriers.size(), 1); // NOLINT
     EXPECT_EQ(depth_submission.end_barriers.front().source_access,
               engine::rendering::resources::Access::Write);
     EXPECT_EQ(depth_submission.end_barriers.front().destination_access,
               engine::rendering::resources::Access::Read);
-    ASSERT_EQ(depth_submission.signals.size(), 1);  // NOLINT
+    ASSERT_EQ(depth_submission.signals.size(), 1); // NOLINT
     EXPECT_EQ(depth_submission.signals.front().value, 1U);
     EXPECT_EQ(depth_submission.fence_value, 1U);
 
     const auto& gbuffer_submission = submissions[1];
     EXPECT_EQ(gbuffer_submission.pass_name, "GBuffer");
-    ASSERT_EQ(gbuffer_submission.waits.size(), 1);  // NOLINT
+    ASSERT_EQ(gbuffer_submission.waits.size(), 1); // NOLINT
     EXPECT_EQ(gbuffer_submission.waits.front().value, 1U);
-    ASSERT_EQ(gbuffer_submission.begin_barriers.size(), 2);  // NOLINT
+    ASSERT_EQ(gbuffer_submission.begin_barriers.size(), 2); // NOLINT
     const auto& gbuffer_read = gbuffer_submission.begin_barriers[0];
     EXPECT_EQ(graph.resource_info(gbuffer_read.resource).name, "Depth");
     EXPECT_EQ(gbuffer_read.source_access, engine::rendering::resources::Access::Write);
@@ -324,28 +362,28 @@ TEST(FrameGraph, EmitsSchedulerSubmissionsWithOrderedBarriers)
     EXPECT_EQ(graph.resource_info(gbuffer_write.resource).name, "Color");
     EXPECT_EQ(gbuffer_write.source_access, engine::rendering::resources::Access::Read);
     EXPECT_EQ(gbuffer_write.destination_access, engine::rendering::resources::Access::Write);
-    ASSERT_EQ(gbuffer_submission.end_barriers.size(), 1);  // NOLINT
+    ASSERT_EQ(gbuffer_submission.end_barriers.size(), 1); // NOLINT
     EXPECT_EQ(graph.resource_info(gbuffer_submission.end_barriers.front().resource).name, "Color");
     EXPECT_EQ(gbuffer_submission.end_barriers.front().source_access,
               engine::rendering::resources::Access::Write);
     EXPECT_EQ(gbuffer_submission.end_barriers.front().destination_access,
               engine::rendering::resources::Access::Read);
-    ASSERT_EQ(gbuffer_submission.signals.size(), 1);  // NOLINT
+    ASSERT_EQ(gbuffer_submission.signals.size(), 1); // NOLINT
     EXPECT_EQ(gbuffer_submission.signals.front().value, 2U);
     EXPECT_EQ(gbuffer_submission.fence_value, 2U);
 
     const auto& lighting_submission = submissions[2];
     EXPECT_EQ(lighting_submission.pass_name, "Lighting");
-    ASSERT_EQ(lighting_submission.waits.size(), 1);  // NOLINT
+    ASSERT_EQ(lighting_submission.waits.size(), 1); // NOLINT
     EXPECT_EQ(lighting_submission.waits.front().value, 2U);
-    ASSERT_EQ(lighting_submission.begin_barriers.size(), 1);  // NOLINT
+    ASSERT_EQ(lighting_submission.begin_barriers.size(), 1); // NOLINT
     EXPECT_EQ(graph.resource_info(lighting_submission.begin_barriers.front().resource).name, "Color");
     EXPECT_EQ(lighting_submission.begin_barriers.front().source_access,
               engine::rendering::resources::Access::Write);
     EXPECT_EQ(lighting_submission.begin_barriers.front().destination_access,
               engine::rendering::resources::Access::Read);
     EXPECT_TRUE(lighting_submission.end_barriers.empty());
-    ASSERT_EQ(lighting_submission.signals.size(), 1);  // NOLINT
+    ASSERT_EQ(lighting_submission.signals.size(), 1); // NOLINT
     EXPECT_EQ(lighting_submission.signals.front().value, 3U);
     EXPECT_EQ(lighting_submission.fence_value, 3U);
 }
@@ -358,7 +396,9 @@ TEST(FrameGraph, PassHonorsQueuePreference)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "ComputePass",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Compute));
 
     graph.compile();
@@ -369,11 +409,13 @@ TEST(FrameGraph, PassHonorsQueuePreference)
     engine::rendering::resources::RecordingGpuResourceProvider device_provider;
     engine::rendering::tests::RecordingScheduler scheduler;
     engine::rendering::tests::NullCommandEncoderProvider command_encoders;
-    engine::rendering::RenderExecutionContext context{provider, materials, engine::rendering::RenderView{scene},
-                                                     scheduler, device_provider, command_encoders};
+    engine::rendering::RenderExecutionContext context{
+        provider, materials, engine::rendering::RenderView{scene},
+        scheduler, device_provider, command_encoders
+    };
     graph.execute(context);
 
-    ASSERT_EQ(scheduler.submissions.size(), 1);  // NOLINT
+    ASSERT_EQ(scheduler.submissions.size(), 1); // NOLINT
     EXPECT_EQ(scheduler.submissions.front().queue, engine::rendering::QueueType::Compute);
 }
 
@@ -398,7 +440,9 @@ TEST(FrameGraph, RejectsIncompatibleQueueWriteUsage)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "ComputeWrite",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Compute));
 
     EXPECT_THROW(graph.compile(), std::logic_error);
@@ -412,7 +456,9 @@ TEST(FrameGraph, RejectsIncompatibleQueueReadUsage)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "TransferRead",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Transfer));
 
     EXPECT_THROW(graph.compile(), std::logic_error);
@@ -426,13 +472,17 @@ TEST(FrameGraph, AllowsCompatibleComputeQueueUsage)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "ComputeWrite",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(storage); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Compute));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "ComputeRead",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(storage); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Compute));
 
     EXPECT_NO_THROW(graph.compile());
@@ -446,19 +496,25 @@ TEST(FrameGraph, AllowsTransferQueueUsageWithCopyFlags)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "TransferWrite",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(staging); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Transfer));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "GraphicsRead",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(staging); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Graphics));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "TransferRead",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(staging); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Transfer));
 
     EXPECT_NO_THROW(graph.compile());
@@ -468,19 +524,24 @@ TEST(FrameGraph, BuilderRejectsInvalidHandles)
 {
     engine::rendering::FrameGraph graph;
 
-    auto make_pass = [](auto setup) {
+    auto make_pass = [](auto setup)
+    {
         return std::make_unique<engine::rendering::CallbackRenderPass>(
-            "Invalid", std::move(setup), [](engine::rendering::FrameGraphPassExecutionContext&) {});
+            "Invalid", std::move(setup), [](engine::rendering::FrameGraphPassExecutionContext&)
+            {
+            });
     };
 
     EXPECT_THROW(
-        graph.add_pass(make_pass([](engine::rendering::FrameGraphPassBuilder& builder) {
+        graph.add_pass(make_pass([](engine::rendering::FrameGraphPassBuilder& builder)
+        {
             builder.read(engine::rendering::FrameGraphResourceHandle{});
         })),
         std::out_of_range);
 
     EXPECT_THROW(
-        graph.add_pass(make_pass([](engine::rendering::FrameGraphPassBuilder& builder) {
+        graph.add_pass(make_pass([](engine::rendering::FrameGraphPassBuilder& builder)
+        {
             builder.write(engine::rendering::FrameGraphResourceHandle{});
         })),
         std::out_of_range);
@@ -495,7 +556,9 @@ TEST(FrameGraph, RejectsMissingResourceMetadata)
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "Writer", [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(handle); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     EXPECT_THROW(graph.compile(), std::logic_error);
 }
@@ -529,13 +592,17 @@ TEST(FrameGraph, PreventsMultipleWritersForResource)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "WriterA",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(handle); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     EXPECT_THROW(
         graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
             "WriterB",
             [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(handle); },
-            [](engine::rendering::FrameGraphPassExecutionContext&) {})),
+            [](engine::rendering::FrameGraphPassExecutionContext&)
+            {
+            })),
         std::logic_error);
 }
 
@@ -547,19 +614,25 @@ TEST(FrameGraph, DetectsCyclesDuringCompile)
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "PassA",
-        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+        [=](engine::rendering::FrameGraphPassBuilder& builder)
+        {
             builder.write(a);
             builder.read(b);
         },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "PassB",
-        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+        [=](engine::rendering::FrameGraphPassBuilder& builder)
+        {
             builder.write(b);
             builder.read(a);
         },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {}));
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
 
     EXPECT_THROW(graph.compile(), std::logic_error);
 }
@@ -573,18 +646,23 @@ TEST(FrameGraph, SerializesDeterministically)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "DepthPrepass",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(depth); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Graphics,
         engine::rendering::PassPhase::Setup,
         engine::rendering::ValidationSeverity::Warning));
 
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "GBuffer",
-        [=](engine::rendering::FrameGraphPassBuilder& builder) {
+        [=](engine::rendering::FrameGraphPassBuilder& builder)
+        {
             builder.read(depth);
             builder.write(color);
         },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Compute,
         engine::rendering::PassPhase::Geometry,
         engine::rendering::ValidationSeverity::Error));
@@ -592,7 +670,9 @@ TEST(FrameGraph, SerializesDeterministically)
     graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
         "Lighting",
         [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
-        [](engine::rendering::FrameGraphPassExecutionContext&) {},
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        },
         engine::rendering::QueueType::Graphics,
         engine::rendering::PassPhase::Lighting,
         engine::rendering::ValidationSeverity::Info));

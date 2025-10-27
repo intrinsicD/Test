@@ -19,7 +19,7 @@ namespace entt
         return os << static_cast<underlying>(e);
     }
 
-    inline std::ostream& operator<<(std::ostream& os, const null_t &)
+    inline std::ostream& operator<<(std::ostream& os, const null_t&)
     {
         return os << "null";
     }

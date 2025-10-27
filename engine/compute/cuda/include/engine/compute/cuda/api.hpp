@@ -14,14 +14,13 @@
 #  define ENGINE_COMPUTE_CUDA_API
 #endif
 
-namespace engine::compute::cuda {
+namespace engine::compute::cuda
+{
+    [[nodiscard]] std::string_view module_name() noexcept;
 
-[[nodiscard]] std::string_view module_name() noexcept;
+    [[nodiscard]] ENGINE_COMPUTE_CUDA_API math::vec3 default_device_axis() noexcept;
 
-[[nodiscard]] ENGINE_COMPUTE_CUDA_API math::vec3 default_device_axis() noexcept;
-
-[[nodiscard]] ENGINE_COMPUTE_CUDA_API math::mat4 default_device_transform() noexcept;
-
-}  // namespace engine::compute::cuda
+    [[nodiscard]] ENGINE_COMPUTE_CUDA_API math::mat4 default_device_transform() noexcept;
+} // namespace engine::compute::cuda
 
 extern "C" ENGINE_COMPUTE_CUDA_API const char* engine_compute_cuda_module_name() noexcept;

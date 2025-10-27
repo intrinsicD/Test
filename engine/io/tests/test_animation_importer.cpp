@@ -9,12 +9,12 @@
 
 namespace
 {
-std::filesystem::path make_temporary_path(const std::string& stem)
-{
-    auto path = std::filesystem::temp_directory_path() / stem;
-    std::filesystem::create_directories(path.parent_path());
-    return path;
-}
+    std::filesystem::path make_temporary_path(const std::string& stem)
+    {
+        auto path = std::filesystem::temp_directory_path() / stem;
+        std::filesystem::create_directories(path.parent_path());
+        return path;
+    }
 } // namespace
 
 TEST(AnimationImporter, DetectsJsonClipsByExtension)

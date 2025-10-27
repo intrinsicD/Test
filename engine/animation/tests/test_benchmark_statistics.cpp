@@ -34,4 +34,3 @@ TEST(AnimationBenchmarkStatistics, ComputesAggregateValues)
     EXPECT_DOUBLE_EQ(summary.mean_ms, 2.5);
     EXPECT_NEAR(summary.stddev_ms, 1.11803398875, 1e-9);
 }
-

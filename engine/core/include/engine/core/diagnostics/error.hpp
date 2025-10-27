@@ -60,7 +60,7 @@ namespace engine
         friend bool operator==(const ErrorCode& lhs, const ErrorCode& rhs) noexcept
         {
             return lhs.domain_ == rhs.domain_ && lhs.value_ == rhs.value_ &&
-                   lhs.identifier_ == rhs.identifier_ && lhs.message_ == rhs.message_;
+                lhs.identifier_ == rhs.identifier_ && lhs.message_ == rhs.message_;
         }
 
         friend bool operator!=(const ErrorCode& lhs, const ErrorCode& rhs) noexcept
@@ -130,4 +130,3 @@ namespace engine
         Enum code_{};
     };
 } // namespace engine
-

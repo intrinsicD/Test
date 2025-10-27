@@ -8,4 +8,3 @@
 #include "transform.hpp"
 #include "conversions.hpp"
 #include "solvers.hpp"
-

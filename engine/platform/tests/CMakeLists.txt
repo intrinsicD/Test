@@ -1,14 +1,14 @@
 add_executable(engine_platform_tests
-    test_module.cpp
-    window_console_tests.cpp
-    window_system_tests.cpp
-    input_state_tests.cpp
-    filesystem_tests.cpp
-    filesystem_watcher_tests.cpp
+        test_module.cpp
+        window_console_tests.cpp
+        window_system_tests.cpp
+        input_state_tests.cpp
+        filesystem_tests.cpp
+        filesystem_watcher_tests.cpp
 )
 
 target_link_libraries(engine_platform_tests
-    PRIVATE
+        PRIVATE
         engine::project_options
         engine_platform
         GTest::gtest_main
@@ -17,11 +17,11 @@ target_link_libraries(engine_platform_tests
 add_test(NAME engine_platform_tests COMMAND engine_platform_tests)
 
 add_executable(engine_platform_window_app
-    window_test_app.cpp
+        window_test_app.cpp
 )
 
 target_link_libraries(engine_platform_window_app
-    PRIVATE
+        PRIVATE
         engine::project_options
         engine_platform
 )

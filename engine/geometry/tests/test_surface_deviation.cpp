@@ -50,4 +50,3 @@ namespace engine::geometry
         EXPECT_GT(metrics.sample_count, 0U);
     }
 } // namespace engine::geometry
-

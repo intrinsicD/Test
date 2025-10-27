@@ -16,7 +16,7 @@ namespace engine::math::utils
 
     template <typename T, std::size_t Rows, std::size_t Cols>
     ENGINE_MATH_INLINE SVDResult<T, Rows, Cols> svd_one_sided_jacobi(const Matrix<T, Rows, Cols>& A,
-                                                           std::size_t max_iterations = 100) noexcept
+                                                                     std::size_t max_iterations = 100) noexcept
     {
         constexpr std::size_t MinDim = (Rows < Cols) ? Rows : Cols;
         constexpr T epsilon = T(1e-15);

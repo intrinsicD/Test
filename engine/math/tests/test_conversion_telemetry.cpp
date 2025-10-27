@@ -12,8 +12,8 @@ TEST(ConversionTelemetry, RecordsVectorMetrics)
     auto& telemetry_system = telemetry::ConversionTelemetry::instance();
     telemetry_system.reset_for_testing();
 
-    math::Vector<double, 3> original{1.0, 2.0, -4.0};
-    math::Vector<double, 3> converted = original;
+    math::Vector < double, 3 > original{1.0, 2.0, -4.0};
+    math::Vector < double, 3 > converted = original;
     converted[1] = 2.0005; // 5e-4 absolute error on component 1.
 
     telemetry::RecordVectorRoundTrip(original, converted);
@@ -37,13 +37,13 @@ TEST(ConversionTelemetry, AggregatesVectorSamples)
     auto& telemetry_system = telemetry::ConversionTelemetry::instance();
     telemetry_system.reset_for_testing();
 
-    math::Vector<float, 2> original{1.0F, -3.0F};
+    math::Vector < float, 2 > original{1.0F, -3.0F};
 
-    math::Vector<float, 2> converted_first = original;
+    math::Vector < float, 2 > converted_first = original;
     converted_first[0] = 1.05F; // 0.05 absolute, relative 0.05
     telemetry::RecordVectorRoundTrip(original, converted_first);
 
-    math::Vector<float, 2> converted_second = original;
+    math::Vector < float, 2 > converted_second = original;
     converted_second[1] = -2.4F; // 0.6 absolute, relative 0.2
     telemetry::RecordVectorRoundTrip(original, converted_second);
 
@@ -65,8 +65,8 @@ TEST(ConversionTelemetry, RecordsMatrixMetrics)
     auto& telemetry_system = telemetry::ConversionTelemetry::instance();
     telemetry_system.reset_for_testing();
 
-    math::Matrix<double, 3, 3> original = math::identity_matrix<double, 3>();
-    math::Matrix<double, 3, 3> converted = original;
+    math::Matrix < double, 3, 3 > original = math::identity_matrix<double, 3>();
+    math::Matrix < double, 3, 3 > converted = original;
     converted[0][0] = 0.9; // 0.1 absolute error relative to 1.0.
 
     telemetry::RecordMatrixRoundTrip(original, converted);
@@ -91,13 +91,13 @@ TEST(ConversionTelemetry, MatrixAggregationMaintainsMax)
     auto& telemetry_system = telemetry::ConversionTelemetry::instance();
     telemetry_system.reset_for_testing();
 
-    math::Matrix<float, 2, 2> original = math::identity_matrix<float, 2>();
+    math::Matrix < float, 2, 2 > original = math::identity_matrix<float, 2>();
 
-    math::Matrix<float, 2, 2> converted_first = original;
+    math::Matrix < float, 2, 2 > converted_first = original;
     converted_first[0][1] = 0.02F; // small error
     telemetry::RecordMatrixRoundTrip(original, converted_first);
 
-    math::Matrix<float, 2, 2> converted_second = original;
+    math::Matrix < float, 2, 2 > converted_second = original;
     converted_second[1][0] = -0.5F; // larger error
     telemetry::RecordMatrixRoundTrip(original, converted_second);
 
@@ -118,8 +118,8 @@ TEST(ConversionTelemetry, HandlesZeroOriginalValues)
     auto& telemetry_system = telemetry::ConversionTelemetry::instance();
     telemetry_system.reset_for_testing();
 
-    math::Matrix<double, 2, 2> original{}; // all zeros
-    math::Matrix<double, 2, 2> converted = original;
+    math::Matrix < double, 2, 2 > original{}; // all zeros
+    math::Matrix < double, 2, 2 > converted = original;
     converted[0][1] = 0.25;
 
     telemetry::RecordMatrixRoundTrip(original, converted);

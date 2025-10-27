@@ -14,7 +14,9 @@ namespace engine::rendering::backend::opengl
         draws.clear();
     }
 
-    OpenGLCommandEncoder::OpenGLCommandEncoder(OpenGLCommandBuffer& buffer) noexcept : buffer_(&buffer) {}
+    OpenGLCommandEncoder::OpenGLCommandEncoder(OpenGLCommandBuffer& buffer) noexcept : buffer_(&buffer)
+    {
+    }
 
     void OpenGLCommandEncoder::draw_geometry(const GeometryDrawCommand& command)
     {
@@ -45,7 +47,7 @@ namespace engine::rendering::backend::opengl
         }
 
         buffer->reset(descriptor.pass_name, descriptor.command_buffer, descriptor.queue);
-        return std::make_unique<OpenGLCommandEncoder>(*buffer);
+        return std::make_unique < OpenGLCommandEncoder > (*buffer);
     }
 
     void OpenGLCommandEncoderProvider::end_encoder(const CommandEncoderDescriptor& descriptor,
@@ -55,4 +57,3 @@ namespace engine::rendering::backend::opengl
         static_cast<void>(encoder);
     }
 }
-

@@ -7,14 +7,16 @@
 
 #include <array>
 
-namespace engine::geometry {
-
+namespace engine::geometry
+{
     /// @brief View frustum defined by 6 planes (left, right, bottom, top, near, far)
     /// Planes point inward (normals toward frustum interior)
-    struct ENGINE_GEOMETRY_API Frustum {
+    struct ENGINE_GEOMETRY_API Frustum
+    {
         std::array<Plane, 6> planes;
 
-        enum PlaneIndex : size_t {
+        enum PlaneIndex : size_t
+        {
             kLeft = 0,
             kRight = 1,
             kBottom = 2,
@@ -33,6 +35,4 @@ namespace engine::geometry {
     /// @param frustum The frustum to extract corners from
     /// @return Array of 8 corner points (near: bottom-left, bottom-right, top-right, top-left; far: same order)
     [[nodiscard]] ENGINE_GEOMETRY_API std::array<math::vec3, 8> GetCorners(const Frustum& frustum) noexcept;
-
 } // namespace engine::geometry
-

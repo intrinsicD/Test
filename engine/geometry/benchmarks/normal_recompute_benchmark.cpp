@@ -208,10 +208,12 @@ namespace
                                                  ? static_cast<double>(config.iterations) / duration_seconds
                                                  : 0.0;
         const double vertices_per_second = duration_seconds > 0.0
-                                               ? static_cast<double>(vertex_count * config.iterations) / duration_seconds
+                                               ? static_cast<double>(vertex_count * config.iterations) /
+                                               duration_seconds
                                                : 0.0;
         const double triangles_per_second = duration_seconds > 0.0
-                                                ? static_cast<double>(triangle_count * config.iterations) / duration_seconds
+                                                ? static_cast<double>(triangle_count * config.iterations) /
+                                                duration_seconds
                                                 : 0.0;
 
         BenchmarkMetrics metrics{};

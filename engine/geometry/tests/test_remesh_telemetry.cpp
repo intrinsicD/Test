@@ -152,4 +152,3 @@ namespace engine::geometry
         EXPECT_TRUE(metrics.last_job_label.empty());
     }
 } // namespace engine::geometry
-

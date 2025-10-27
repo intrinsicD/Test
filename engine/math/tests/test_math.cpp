@@ -82,13 +82,13 @@ TEST(MathCommon, ZeroAndOneHelpers)
 
 TEST(Vector, DefaultConstructedIsZeroInitialized)
 {
-    Vector<int, 3> value;
+    Vector < int, 3 > value;
     ExpectVectorEqual(value, {0, 0, 0});
 }
 
 TEST(Vector, ScalarConstructorFillsAllElements)
 {
-    Vector<float, 4> value(2.5F);
+    Vector < float, 4 > value(2.5F);
     ExpectVectorEqual(value, {2.5F, 2.5F, 2.5F, 2.5F});
 }
 
@@ -100,7 +100,7 @@ TEST(Vector, VariadicConstructorAssignsElements)
 
 TEST(Vector, ElementAccessSupportsConstAndNonConst)
 {
-    Vector<int, 2> value(1);
+    Vector < int, 2 > value(1);
     value[0] = 5;
     value[1] = 7;
 
@@ -288,7 +288,7 @@ TEST(Vector, ComparisonUtilities)
 
 TEST(Matrix, DefaultConstructedIsZeroInitialized)
 {
-    Matrix<int, 2, 3> value;
+    Matrix < int, 2, 3 > value;
     for (std::size_t row = 0; row < 2; ++row)
     {
         ExpectVectorEqual(value[row], {0, 0, 0});
@@ -308,17 +308,21 @@ TEST(VectorConversions, ArrayRoundTrip)
     const auto packed = conversions::to_array(original);
     static_assert(std::is_same_v<decltype(packed), const std::array<float, 4>>);
 
-    const auto unpacked = conversions::vector_from_array<float, 4>(packed);
+    const auto unpacked = conversions::vector_from_array < float
+    ,
+    4 > (packed);
     ExpectVectorEqual(unpacked, {1.0F, -2.0F, 3.5F, 4.0F});
 
     const float legacy_data[4] = {5.0F, 6.0F, 7.0F, 8.0F};
-    const auto span_round_trip = conversions::vector_from_span<float, 4>(std::span<const float>{legacy_data, 4});
+    const auto span_round_trip = conversions::vector_from_span < float
+    ,
+    4 > (std::span<const float>{legacy_data, 4});
     ExpectVectorEqual(span_round_trip, {5.0F, 6.0F, 7.0F, 8.0F});
 }
 
 TEST(MatrixConversions, ColumnMajorRoundTrip)
 {
-    Matrix<float, 4, 4> value{};
+    Matrix < float, 4, 4 > value{};
     float counter = 0.0F;
     for (std::size_t column = 0; column < 4; ++column)
     {
@@ -335,7 +339,9 @@ TEST(MatrixConversions, ColumnMajorRoundTrip)
         EXPECT_FLOAT_EQ(packed[i], static_cast<float>(i));
     }
 
-    const auto unpacked = conversions::matrix_from_column_major_array<float, 4, 4>(packed);
+    const auto unpacked = conversions::matrix_from_column_major_array < float
+    ,
+    4, 4 > (packed);
     for (std::size_t column = 0; column < 4; ++column)
     {
         for (std::size_t row = 0; row < 4; ++row)
@@ -347,7 +353,7 @@ TEST(MatrixConversions, ColumnMajorRoundTrip)
 
 TEST(MatrixConversions, RowMajorRoundTrip)
 {
-    Matrix<double, 3, 3> value{};
+    Matrix < double, 3, 3 > value{};
     double counter = 1.0;
     for (std::size_t row = 0; row < 3; ++row)
     {
@@ -365,7 +371,9 @@ TEST(MatrixConversions, RowMajorRoundTrip)
     }
 
     const double legacy_row_major[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
-    const auto from_span = conversions::matrix_from_row_major_span<double, 3, 3>(std::span<const double>{legacy_row_major, 9});
+    const auto from_span = conversions::matrix_from_row_major_span < double
+    ,
+    3, 3 > (std::span<const double>{legacy_row_major, 9});
     for (std::size_t row = 0; row < 3; ++row)
     {
         for (std::size_t column = 0; column < 3; ++column)
@@ -374,7 +382,9 @@ TEST(MatrixConversions, RowMajorRoundTrip)
         }
     }
 
-    const auto unpacked = conversions::matrix_from_row_major_array<double, 3, 3>(packed);
+    const auto unpacked = conversions::matrix_from_row_major_array < double
+    ,
+    3, 3 > (packed);
     for (std::size_t row = 0; row < 3; ++row)
     {
         for (std::size_t column = 0; column < 3; ++column)
@@ -386,7 +396,7 @@ TEST(MatrixConversions, RowMajorRoundTrip)
 
 TEST(Matrix, RowAccessSupportsConstAndNonConst)
 {
-    Matrix<int, 2, 2> value;
+    Matrix < int, 2, 2 > value;
     value[0][0] = 1;
     value[0][1] = 2;
     value[1][0] = 3;
@@ -414,7 +424,7 @@ TEST(Matrix, ArithmeticOperators)
 
 TEST(Matrix, CompoundAssignmentOperators)
 {
-    Matrix<double, 2, 2> value(1.0, 2.0, 3.0, 4.0);
+    Matrix < double, 2, 2 > value(1.0, 2.0, 3.0, 4.0);
     const Matrix<double, 2, 2> rhs(0.5, 0.5, 0.5, 0.5);
 
     value += rhs;
@@ -833,7 +843,7 @@ TEST(Matrix, TryInverseReturnsExpectedResult)
         }
     }
 
-    Matrix<float, 4, 4> m4 = identity_matrix<float, 4>();
+    Matrix < float, 4, 4 > m4 = identity_matrix<float, 4>();
     m4[0][0] = 2.0F;
     m4[1][1] = 3.0F;
     m4[2][2] = 4.0F;
@@ -891,7 +901,7 @@ TEST(Matrix, InverseAndCombineReturnIdentity)
         }
     }
 
-    Matrix<float, 4, 4> m4 = identity_matrix<float, 4>();
+    Matrix < float, 4, 4 > m4 = identity_matrix<float, 4>();
     m4[0][0] = 2.0F;
     m4[1][1] = 3.0F;
     m4[2][2] = 4.0F;
@@ -913,12 +923,12 @@ TEST(Matrix, InverseAndCombineReturnIdentity)
 
 TEST(Matrix, Pseudoinverse)
 {
-  const float tol = 1e-4F;
+    const float tol = 1e-4F;
 
     // Test 1: Simple 2x3 matrix
     {
-        Matrix<float, 2, 3> A(1, 0, 0,
-                              0, 1, 0);
+        Matrix < float, 2, 3 > A(1, 0, 0,
+                                 0, 1, 0);
         auto A_plus = utils::pseudo_inverse(A);
 
         // A^+ * A projects onto the row space; with full row rank the projection
@@ -937,10 +947,10 @@ TEST(Matrix, Pseudoinverse)
 
     // Test 2: Overdetermined (tall) matrix - least squares
     {
-        Matrix<float, 4, 2> A(1, 0,
-                              0, 1,
-                              1, 0,
-                              0, 1);
+        Matrix < float, 4, 2 > A(1, 0,
+                                 0, 1,
+                                 1, 0,
+                                 0, 1);
         auto A_plus = utils::pseudo_inverse(A);
         EXPECT_EQ(A_plus.rows(), 2u);
         EXPECT_EQ(A_plus.cols(), 4u);
@@ -959,8 +969,8 @@ TEST(Matrix, Pseudoinverse)
 
     // Test 3: Underdetermined (wide) matrix - minimum norm
     {
-        Matrix<float, 2, 4> A(1, 0, 1, 0,
-                              0, 1, 0, 1);
+        Matrix < float, 2, 4 > A(1, 0, 1, 0,
+                                 0, 1, 0, 1);
         auto A_plus = utils::pseudo_inverse(A);
 
         // A * A^+ should be identity
@@ -1015,11 +1025,13 @@ TEST(Matrix, Pseudoinverse)
 TEST(Quaternion, CayleyParameterizationRoundTrip)
 {
     const float tol = 1e-5F;
-    const std::array<Vector<float, 4>, 4> samples{
-        Vector<float, 4>{0.0F, 1.0F, 0.0F, 0.0F},
-        Vector<float, 4>{std::numbers::pi_v<float> / 3.0F, 0.0F, 1.0F, 0.0F},
-        Vector<float, 4>{-std::numbers::pi_v<float> / 2.0F, 0.0F, 0.0F, 1.0F},
-        Vector<float, 4>{std::numbers::pi_v<float> * 0.75F, 1.0F, 1.0F, -0.5F},
+    const std::array<Vector < float, 4>
+    ,
+    4 > samples{
+        Vector < float, 4 >{0.0F, 1.0F, 0.0F, 0.0F},
+        Vector < float, 4 >{std::numbers::pi_v<float> / 3.0F, 0.0F, 1.0F, 0.0F},
+        Vector < float, 4 >{-std::numbers::pi_v<float> / 2.0F, 0.0F, 0.0F, 1.0F},
+        Vector < float, 4 >{std::numbers::pi_v<float> * 0.75F, 1.0F, 1.0F, -0.5F},
     };
 
     for (const auto& sample : samples)
@@ -1828,4 +1840,3 @@ TEST(RotationUtils, RotateZ3TransformsVector)
     EXPECT_NEAR(rotated[1], 1.0f, 1e-6f);
     EXPECT_NEAR(rotated[2], 0.0f, 1e-6f);
 }
-

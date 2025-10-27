@@ -20,7 +20,9 @@ class IoThreadPoolTest : public ::testing::Test
 protected:
     void SetUp() override
     {
-        engine::core::threading::IoThreadPool::instance().configure({.worker_count = 2, .queue_capacity = 8, .enable = true});
+        engine::core::threading::IoThreadPool::instance().configure({
+            .worker_count = 2, .queue_capacity = 8, .enable = true
+        });
     }
 
     void TearDown() override
@@ -37,7 +39,8 @@ TEST_F(IoThreadPoolTest, ExecutesHigherPriorityFirst)
     std::condition_variable cv;
     std::atomic<int> remaining{3};
 
-    auto record = [&](int value) {
+    auto record = [&](int value)
+    {
         std::unique_lock lock{mutex};
         order.push_back(value);
         if (--remaining == 0)
@@ -46,14 +49,17 @@ TEST_F(IoThreadPoolTest, ExecutesHigherPriorityFirst)
         }
     };
 
-    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::Low, [&, record]() mutable {
+    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::Low, [&, record]() mutable
+    {
         std::this_thread::sleep_for(10ms);
         record(2);
     }));
-    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::High, [&, record]() mutable {
+    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::High, [&, record]() mutable
+    {
         record(0);
     }));
-    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::Normal, [&, record]() mutable {
+    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::Normal, [&, record]() mutable
+    {
         record(1);
     }));
 
@@ -73,11 +79,14 @@ TEST_F(IoThreadPoolTest, RejectsWhenQueueIsFull)
     std::promise<void> gate;
     std::shared_future<void> ready = gate.get_future().share();
 
-    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::Normal, [ready]() mutable {
+    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::Normal, [ready]() mutable
+    {
         ready.wait();
     }));
 
-    const bool accepted = pool.enqueue(engine::core::threading::IoTaskPriority::Normal, []() {});
+    const bool accepted = pool.enqueue(engine::core::threading::IoTaskPriority::Normal, []()
+    {
+    });
     EXPECT_FALSE(accepted);
 
     gate.set_value();
@@ -89,4 +98,3 @@ TEST(IoThreadPoolStandalone, ShutdownWithoutConfigureIsSafe)
     pool.shutdown();
     // No assertion needed; the test ensures there is no crash.
 }
-

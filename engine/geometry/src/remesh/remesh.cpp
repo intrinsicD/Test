@@ -40,7 +40,9 @@ namespace engine::geometry
 
         [[nodiscard]] RemeshValidationResult make_target_error(std::string message)
         {
-            return RemeshValidationResult{make_remesh_error(RemeshError::invalid_target_configuration, std::move(message))};
+            return RemeshValidationResult{
+                make_remesh_error(RemeshError::invalid_target_configuration, std::move(message))
+            };
         }
 
         [[nodiscard]] RemeshValidationResult make_attribute_error(std::string message)
@@ -112,7 +114,7 @@ namespace engine::geometry
             {
                 const bool protect_boundary = request.feature_preservation.lock_boundary_edges && tag.is_boundary;
                 const bool protect_feature = request.feature_preservation.lock_feature_edges &&
-                                             (tag.is_crease || tag.is_non_manifold);
+                    (tag.is_crease || tag.is_non_manifold);
 
                 if (protect_boundary || protect_feature)
                 {
@@ -398,7 +400,8 @@ namespace engine::geometry
                 return;
             }
 
-            std::sort(packing.begin(), packing.end(), [](const PackingInfo& a, const PackingInfo& b) {
+            std::sort(packing.begin(), packing.end(), [](const PackingInfo& a, const PackingInfo& b)
+            {
                 return a.padded_height > b.padded_height;
             });
 
@@ -532,11 +535,13 @@ namespace engine::geometry
                 }
 
                 auto& edge_counts = island_edge_counts[island_index];
-                const std::array<std::pair<std::uint32_t, std::uint32_t>, 3> edges{{
-                    {i0, i1},
-                    {i1, i2},
-                    {i2, i0},
-                }};
+                const std::array<std::pair<std::uint32_t, std::uint32_t>, 3> edges{
+                    {
+                        {i0, i1},
+                        {i1, i2},
+                        {i2, i0},
+                    }
+                };
 
                 for (const auto& [a, b] : edges)
                 {
@@ -656,9 +661,9 @@ namespace engine::geometry
         }
 
         void assign_interpolated_uv(VertexProperty<math::vec2>& texture_coordinates,
-                                     VertexHandle target,
-                                     const math::vec2& a,
-                                     const math::vec2& b) noexcept
+                                    VertexHandle target,
+                                    const math::vec2& a,
+                                    const math::vec2& b) noexcept
         {
             texture_coordinates[target] = (a + b) * 0.5F;
         }
@@ -777,8 +782,8 @@ namespace engine::geometry
         }
 
         [[nodiscard]] std::optional<std::vector<double>> solve_dense_linear_system(std::vector<double> matrix,
-                                                                                   std::vector<double> rhs,
-                                                                                   std::size_t order) noexcept
+            std::vector<double> rhs,
+            std::size_t order) noexcept
         {
             if (order == 0U || matrix.size() != order * order || rhs.size() != order)
             {
@@ -974,7 +979,8 @@ namespace engine::geometry
                 return generate_planar_parameterization(mesh, policy);
             }
 
-            std::vector<std::complex<double>> complex_matrix(vertex_count * vertex_count, std::complex<double>{0.0, 0.0});
+            std::vector<std::complex<double>> complex_matrix(vertex_count * vertex_count,
+                                                             std::complex<double>{0.0, 0.0});
 
             const auto accumulate_entry = [&](std::uint32_t a,
                                               std::uint32_t b,
@@ -1217,7 +1223,7 @@ namespace engine::geometry
                 }
 
                 const bool is_boundary = vertex < topology_summary.vertices.size() &&
-                                         topology_summary.vertices[vertex].is_boundary;
+                    topology_summary.vertices[vertex].is_boundary;
                 row.target = is_boundary ? pi : 2.0 * pi;
                 constraints.push_back(std::move(row));
             }
@@ -1338,8 +1344,10 @@ namespace engine::geometry
             generated[seed_v0] = math::vec2{0.0F, 0.0F};
             generated[seed_v1] = math::vec2{static_cast<float>(seed_len01), 0.0F};
             generated[seed_v2] =
-                math::vec2{static_cast<float>(length_v0v2 * std::cos(seed_angle0)),
-                           static_cast<float>(length_v0v2 * std::sin(seed_angle0))};
+                math::vec2{
+                    static_cast<float>(length_v0v2 * std::cos(seed_angle0)),
+                    static_cast<float>(length_v0v2 * std::sin(seed_angle0))
+                };
             assigned[seed_v0] = true;
             assigned[seed_v1] = true;
             assigned[seed_v2] = true;
@@ -1402,12 +1410,13 @@ namespace engine::geometry
                     mesh.indices[face_index * 3U + 2U],
                 };
 
-                std::array<bool, 3U> vertex_assigned{
-                    assigned[vertices[0]], assigned[vertices[1]], assigned[vertices[2]]};
+                std::array < bool, 3U > vertex_assigned{
+                    assigned[vertices[0]], assigned[vertices[1]], assigned[vertices[2]]
+                };
 
                 const std::size_t assigned_count = static_cast<std::size_t>(vertex_assigned[0]) +
-                                                    static_cast<std::size_t>(vertex_assigned[1]) +
-                                                    static_cast<std::size_t>(vertex_assigned[2]);
+                    static_cast<std::size_t>(vertex_assigned[1]) +
+                    static_cast<std::size_t>(vertex_assigned[2]);
 
                 if (assigned_count < 2U)
                 {
@@ -1474,7 +1483,7 @@ namespace engine::geometry
                 math::vec2 perp_dir{-dir_unit[1], dir_unit[0]};
 
                 const math::vec3 normal = math::cross(mesh.positions[vertex_b] - mesh.positions[vertex_a],
-                                                       mesh.positions[vertex_u] - mesh.positions[vertex_a]);
+                                                      mesh.positions[vertex_u] - mesh.positions[vertex_a]);
                 const double orientation = static_cast<double>(math::dot(normal, reference_normal));
                 if (orientation < 0.0)
                 {
@@ -1511,28 +1520,36 @@ namespace engine::geometry
     {
         if (request.input_mesh == nullptr)
         {
-            return RemeshValidationResult{make_remesh_error(RemeshError::invalid_input_mesh,
-                                                            "remesh request missing input mesh")};
+            return RemeshValidationResult{
+                make_remesh_error(RemeshError::invalid_input_mesh,
+                                  "remesh request missing input mesh")
+            };
         }
 
         if (request.input_mesh->positions.empty())
         {
-            return RemeshValidationResult{make_remesh_error(RemeshError::invalid_input_mesh,
-                                                            "input mesh must contain vertices")};
+            return RemeshValidationResult{
+                make_remesh_error(RemeshError::invalid_input_mesh,
+                                  "input mesh must contain vertices")
+            };
         }
 
         if (!request.input_mesh->indices.empty() && request.input_mesh->indices.size() % 3 != 0)
         {
-            return RemeshValidationResult{make_remesh_error(RemeshError::invalid_input_mesh,
-                                                            "triangle index buffer must be a multiple of three")};
+            return RemeshValidationResult{
+                make_remesh_error(RemeshError::invalid_input_mesh,
+                                  "triangle index buffer must be a multiple of three")
+            };
         }
 
         for (const std::uint32_t index : request.input_mesh->indices)
         {
             if (index >= request.input_mesh->positions.size())
             {
-                return RemeshValidationResult{make_remesh_error(RemeshError::invalid_input_mesh,
-                                                                "triangle index out of range")};
+                return RemeshValidationResult{
+                    make_remesh_error(RemeshError::invalid_input_mesh,
+                                      "triangle index out of range")
+                };
             }
         }
 
@@ -1691,11 +1708,13 @@ namespace engine::geometry
             const std::uint32_t b = mesh.indices[i + 1];
             const std::uint32_t c = mesh.indices[i + 2];
 
-            const std::array<std::pair<std::uint32_t, std::uint32_t>, 3> edges{{
-                {a, b},
-                {b, c},
-                {c, a},
-            }};
+            const std::array<std::pair<std::uint32_t, std::uint32_t>, 3> edges{
+                {
+                    {a, b},
+                    {b, c},
+                    {c, a},
+                }
+            };
 
             for (const auto& [u, v] : edges)
             {
@@ -1766,9 +1785,11 @@ namespace engine::geometry
             const float mean_length = resolved.edge_statistics.mean_edge_length();
             if (mean_length <= std::numeric_limits<float>::min())
             {
-                return RemeshResult<ResolvedRemeshingTargets>{make_remesh_error(
-                    RemeshError::invalid_target_configuration,
-                    "relative_edge_scale requires a mesh with non-degenerate edges")};
+                return RemeshResult<ResolvedRemeshingTargets>{
+                    make_remesh_error(
+                        RemeshError::invalid_target_configuration,
+                        "relative_edge_scale requires a mesh with non-degenerate edges")
+                };
             }
 
             const float derived_edge_length =
@@ -1778,9 +1799,11 @@ namespace engine::geometry
             {
                 if (!math::utils::nearly_equal(resolved.target_edge_length.value(), derived_edge_length, 1e-4f))
                 {
-                    return RemeshResult<ResolvedRemeshingTargets>{make_remesh_error(
-                        RemeshError::invalid_target_configuration,
-                        "absolute and relative edge targets disagree")};
+                    return RemeshResult<ResolvedRemeshingTargets>{
+                        make_remesh_error(
+                            RemeshError::invalid_target_configuration,
+                            "absolute and relative edge targets disagree")
+                    };
                 }
             }
             else
@@ -1793,9 +1816,11 @@ namespace engine::geometry
         {
             // Validation should have caught this already, but provide a defensive guard for callers
             // that bypass ValidateRemeshRequest.
-            return RemeshResult<ResolvedRemeshingTargets>{make_remesh_error(
-                RemeshError::invalid_target_configuration,
-                "remeshing mode requires an absolute edge length target")};
+            return RemeshResult<ResolvedRemeshingTargets>{
+                make_remesh_error(
+                    RemeshError::invalid_target_configuration,
+                    "remeshing mode requires an absolute edge length target")
+            };
         }
 
         return RemeshResult<ResolvedRemeshingTargets>{resolved};
@@ -2093,7 +2118,7 @@ namespace engine::geometry
             std::uint32_t performed_iterations = 0U;
             const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
             const bool resample_texture = texture_coordinates != nullptr &&
-                                          texture_mode != AttributeTransferMode::kDrop;
+                texture_mode != AttributeTransferMode::kDrop;
             const bool update_rest_positions = rest_positions != nullptr;
 
             for (; performed_iterations < request.max_iterations; ++performed_iterations)
@@ -2184,7 +2209,8 @@ namespace engine::geometry
                         update_collapse_uv(*texture_coordinates, keep_vertex, remove_vertex);
                     }
 
-                    interface.position(keep_vertex) = (interface.position(keep_vertex) + interface.position(remove_vertex)) * 0.5F;
+                    interface.position(keep_vertex) = (interface.position(keep_vertex) + interface.position(
+                        remove_vertex)) * 0.5F;
                     interface.collapse(collapse_halfedge);
                     if (counters != nullptr)
                     {
@@ -2287,7 +2313,7 @@ namespace engine::geometry
         };
 
         [[nodiscard]] AdaptiveRemeshThresholds make_adaptive_thresholds(const RemeshRequest& request,
-                                                                         const ResolvedRemeshingTargets& resolved)
+                                                                        const ResolvedRemeshingTargets& resolved)
         {
             AdaptiveRemeshThresholds thresholds{};
 
@@ -2398,7 +2424,7 @@ namespace engine::geometry
             const float smoothing_factor = request.relaxation_factor * request.tangential_smoothing_weight;
             const bool tangential_smoothing = request.tangential_smoothing_weight > 0.0F;
             const bool resample_texture = texture_coordinates != nullptr &&
-                                          texture_mode != AttributeTransferMode::kDrop;
+                texture_mode != AttributeTransferMode::kDrop;
             const bool update_rest_positions = rest_positions != nullptr;
 
             for (; performed_iterations < request.max_iterations; ++performed_iterations)
@@ -2578,8 +2604,10 @@ namespace engine::geometry
         const ResolvedRemeshingTargets& resolved_targets = resolved_targets_result.value();
         if (request.mode != RemeshingMode::kAdaptive && !resolved_targets.target_edge_length.has_value())
         {
-            return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_target_configuration,
-                                                                "remeshing requires a target edge length")};
+            return RemeshResult<RemeshOutput>{
+                make_remesh_error(RemeshError::invalid_target_configuration,
+                                  "remeshing requires a target edge length")
+            };
         }
 
         const SurfaceTopologySummary topology_summary = AnalyzeSurfaceTopology(
@@ -2622,8 +2650,10 @@ namespace engine::geometry
 
         if (!mesh.interface.is_triangle_mesh())
         {
-            return RemeshResult<RemeshOutput>{make_remesh_error(RemeshError::invalid_input_mesh,
-                                                                "uniform remeshing currently supports triangle meshes only")};
+            return RemeshResult<RemeshOutput>{
+                make_remesh_error(RemeshError::invalid_input_mesh,
+                                  "uniform remeshing currently supports triangle meshes only")
+            };
         }
 
         std::vector<bool> locked = initialise_locked_vertices(topology_summary, mesh.interface, request);
@@ -2643,36 +2673,36 @@ namespace engine::geometry
         {
         case RemeshingMode::kUniform:
         case RemeshingMode::kFeaturePreserving:
-        {
-            const float target_length = resolved_targets.target_edge_length.value();
-            iterations = execute_uniform_remesh(request,
-                                                mesh.interface,
-                                                locked,
-                                                target_length,
-                                                kDefaultSplitThreshold,
-                                                kDefaultCollapseThreshold,
-                                                protected_edge_ptr,
-                                                use_tangential_smoothing,
-                                                rest_positions_ptr,
-                                                texture_coordinates_ptr,
-                                                texture_transfer_mode,
-                                                &counters);
-            break;
-        }
+            {
+                const float target_length = resolved_targets.target_edge_length.value();
+                iterations = execute_uniform_remesh(request,
+                                                    mesh.interface,
+                                                    locked,
+                                                    target_length,
+                                                    kDefaultSplitThreshold,
+                                                    kDefaultCollapseThreshold,
+                                                    protected_edge_ptr,
+                                                    use_tangential_smoothing,
+                                                    rest_positions_ptr,
+                                                    texture_coordinates_ptr,
+                                                    texture_transfer_mode,
+                                                    &counters);
+                break;
+            }
         case RemeshingMode::kAdaptive:
-        {
-            adaptive_thresholds = make_adaptive_thresholds(request, resolved_targets);
-            iterations = execute_adaptive_remesh(request,
-                                                 mesh.interface,
-                                                 locked,
-                                                 adaptive_thresholds.value(),
-                                                 protected_edge_ptr,
-                                                 rest_positions_ptr,
-                                                 texture_coordinates_ptr,
-                                                 texture_transfer_mode,
-                                                 &counters);
-            break;
-        }
+            {
+                adaptive_thresholds = make_adaptive_thresholds(request, resolved_targets);
+                iterations = execute_adaptive_remesh(request,
+                                                     mesh.interface,
+                                                     locked,
+                                                     adaptive_thresholds.value(),
+                                                     protected_edge_ptr,
+                                                     rest_positions_ptr,
+                                                     texture_coordinates_ptr,
+                                                     texture_transfer_mode,
+                                                     &counters);
+                break;
+            }
         }
 
         if (rest_positions_ptr != nullptr)
@@ -2747,41 +2777,41 @@ namespace engine::geometry
             output.parameterization = ParameterizationSummary{};
             break;
         case ParameterizationMode::kReuseExisting:
-        {
-            if (output.mesh.texture_coordinates.empty())
             {
-                output.parameterization = ParameterizationSummary{};
+                if (output.mesh.texture_coordinates.empty())
+                {
+                    output.parameterization = ParameterizationSummary{};
+                    break;
+                }
+
+                output.parameterization = finalize_parameterization(output.mesh, request.parameterization);
                 break;
             }
-
-            output.parameterization = finalize_parameterization(output.mesh, request.parameterization);
-            break;
-        }
         case ParameterizationMode::kGenerateLscm:
-        {
-            auto parameterization_result = generate_lscm_parameterization(output.mesh, request.parameterization);
-            if (!parameterization_result.has_value())
             {
-                return RemeshResult<RemeshOutput>{parameterization_result.error()};
+                auto parameterization_result = generate_lscm_parameterization(output.mesh, request.parameterization);
+                if (!parameterization_result.has_value())
+                {
+                    return RemeshResult<RemeshOutput>{parameterization_result.error()};
+                }
+                output.parameterization = parameterization_result.value();
+                break;
             }
-            output.parameterization = parameterization_result.value();
-            break;
-        }
         case ParameterizationMode::kGenerateAbfpp:
-        {
-            auto parameterization_result = generate_abfpp_parameterization(output.mesh, request.parameterization);
-            if (!parameterization_result.has_value())
             {
-                return RemeshResult<RemeshOutput>{parameterization_result.error()};
+                auto parameterization_result = generate_abfpp_parameterization(output.mesh, request.parameterization);
+                if (!parameterization_result.has_value())
+                {
+                    return RemeshResult<RemeshOutput>{parameterization_result.error()};
+                }
+                output.parameterization = parameterization_result.value();
+                break;
             }
-            output.parameterization = parameterization_result.value();
-            break;
-        }
         }
 
         const double duration_ms = std::chrono::duration<double, std::milli>(
-                                        std::chrono::steady_clock::now() - start_time)
-                                        .count();
+                std::chrono::steady_clock::now() - start_time)
+            .count();
         output.statistics.duration_ms = duration_ms;
 
         if (request.record_diagnostics)
@@ -2800,4 +2830,3 @@ namespace engine::geometry
         return RemeshResult<RemeshOutput>{output};
     }
 } // namespace engine::geometry
-

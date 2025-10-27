@@ -5,7 +5,8 @@
 namespace geo = engine::geometry;
 namespace graph_ns = engine::geometry::graph;
 
-TEST(Graph, BuildsUndirectedConnectivity) {
+TEST(Graph, BuildsUndirectedConnectivity)
+{
     geo::Graph graph;
 
     const auto v0 = graph.interface.add_vertex({});
@@ -42,12 +43,12 @@ TEST(Graph, BuildsUndirectedConnectivity) {
     ASSERT_EQ(neighbors.size(), 2U);
     EXPECT_TRUE(
         (*neighbors.begin() == v1 && *(++neighbors.begin()) == v2) ||
-        (*neighbors.begin() == v2 && *(++neighbors.begin())== v1)
+        (*neighbors.begin() == v2 && *(++neighbors.begin()) == v1)
     );
 
     const auto start = graph.interface.from_vertex(e01);
     const auto end = graph.interface.to_vertex(e01);
-    EXPECT_TRUE((start == v0 &&end == v1) || (start == v1 && end == v0));
+    EXPECT_TRUE((start == v0 && end == v1) || (start == v1 && end == v0));
 
     auto edge_property = graph.interface.add_edge_property<float>("e:length", 1.0F);
     auto e = graph.interface.edge(e01);
@@ -61,7 +62,8 @@ TEST(Graph, BuildsUndirectedConnectivity) {
     EXPECT_EQ(vertex_property_copy[v0], 2);
 }
 
-TEST(Graph, CopiesAndClears) {
+TEST(Graph, CopiesAndClears)
+{
     geo::Graph graph;
     const auto v0 = graph.interface.add_vertex({});
     const auto v1 = graph.interface.add_vertex({});
@@ -88,7 +90,8 @@ TEST(Graph, CopiesAndClears) {
     EXPECT_FLOAT_EQ(new_weights[new_v], 0.0F);
 }
 
-TEST(Graph, CopyIndependence) {
+TEST(Graph, CopyIndependence)
+{
     geo::Graph original;
 
     const auto v0 = original.interface.add_vertex({0.0F, 0.0F, 0.0F});

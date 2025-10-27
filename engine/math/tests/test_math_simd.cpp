@@ -68,7 +68,8 @@ namespace
     }
 
     template <typename T, std::size_t N, std::size_t Width>
-    SimdVector<T, N, Width> SimdSubtract(const SimdVector<T, N, Width>& lhs, const SimdVector<T, N, Width>& rhs) noexcept
+    SimdVector<T, N, Width> SimdSubtract(const SimdVector<T, N, Width>& lhs,
+                                         const SimdVector<T, N, Width>& rhs) noexcept
     {
         SimdVector<T, N, Width> result{};
         for (std::size_t lane = 0; lane < Width; ++lane)
@@ -214,7 +215,7 @@ namespace
         {
             std::mt19937 rng(seed);
             std::uniform_real_distribution<float> distribution(0.25F, 2.0F);
-            std::array<float, kBatchSize> values{};
+            std::array < float, kBatchSize > values{};
             for (auto& value : values)
             {
                 value = distribution(rng);
@@ -252,7 +253,7 @@ namespace
             {
                 std::array<Vec3, kWidth> lhs_chunk{};
                 std::array<Vec3, kWidth> rhs_chunk{};
-                std::array<float, kWidth> scalar_chunk{};
+                std::array < float, kWidth > scalar_chunk{};
                 for (std::size_t lane = 0; lane < kWidth; ++lane)
                 {
                     lhs_chunk[lane] = lhs[offset + lane];
@@ -276,29 +277,29 @@ TYPED_TEST(SimdValidationTest, VectorArithmeticMatchesScalar)
     const auto scalars = TestFixture::MakeScalars(2025U);
 
     TestFixture::ForEachChunk(lhs, rhs, scalars,
-        [](const auto& lhs_chunk, const auto& rhs_chunk, const auto& scalar_chunk)
-        {
-            const auto lhs_pack = LoadVectors<float, 3, width>(lhs_chunk);
-            const auto rhs_pack = LoadVectors<float, 3, width>(rhs_chunk);
-            const auto add_pack = SimdAdd(lhs_pack, rhs_pack);
-            const auto sub_pack = SimdSubtract(lhs_pack, rhs_pack);
-            const auto scale_pack = SimdScale(lhs_pack, scalar_chunk);
+                              [](const auto& lhs_chunk, const auto& rhs_chunk, const auto& scalar_chunk)
+                              {
+                                  const auto lhs_pack = LoadVectors<float, 3, width>(lhs_chunk);
+                                  const auto rhs_pack = LoadVectors<float, 3, width>(rhs_chunk);
+                                  const auto add_pack = SimdAdd(lhs_pack, rhs_pack);
+                                  const auto sub_pack = SimdSubtract(lhs_pack, rhs_pack);
+                                  const auto scale_pack = SimdScale(lhs_pack, scalar_chunk);
 
-            const auto add_vectors = StoreVectors(add_pack);
-            const auto sub_vectors = StoreVectors(sub_pack);
-            const auto scaled_vectors = StoreVectors(scale_pack);
+                                  const auto add_vectors = StoreVectors(add_pack);
+                                  const auto sub_vectors = StoreVectors(sub_pack);
+                                  const auto scaled_vectors = StoreVectors(scale_pack);
 
-            for (std::size_t lane = 0; lane < width; ++lane)
-            {
-                const auto expected_add = lhs_chunk[lane] + rhs_chunk[lane];
-                const auto expected_sub = lhs_chunk[lane] - rhs_chunk[lane];
-                const auto expected_scale = lhs_chunk[lane] * scalar_chunk[lane];
+                                  for (std::size_t lane = 0; lane < width; ++lane)
+                                  {
+                                      const auto expected_add = lhs_chunk[lane] + rhs_chunk[lane];
+                                      const auto expected_sub = lhs_chunk[lane] - rhs_chunk[lane];
+                                      const auto expected_scale = lhs_chunk[lane] * scalar_chunk[lane];
 
-                ExpectVec3Near(add_vectors[lane], expected_add, 1e-5F);
-                ExpectVec3Near(sub_vectors[lane], expected_sub, 1e-5F);
-                ExpectVec3Near(scaled_vectors[lane], expected_scale, 1e-5F);
-            }
-        });
+                                      ExpectVec3Near(add_vectors[lane], expected_add, 1e-5F);
+                                      ExpectVec3Near(sub_vectors[lane], expected_sub, 1e-5F);
+                                      ExpectVec3Near(scaled_vectors[lane], expected_scale, 1e-5F);
+                                  }
+                              });
 }
 
 TYPED_TEST(SimdValidationTest, DotAndCrossMatchScalar)
@@ -308,24 +309,24 @@ TYPED_TEST(SimdValidationTest, DotAndCrossMatchScalar)
     const auto rhs = TestFixture::MakeVectors(2112U);
 
     TestFixture::ForEachChunk(lhs, rhs,
-        [](const auto& lhs_chunk, const auto& rhs_chunk)
-        {
-            const auto lhs_pack = LoadVectors<float, 3, width>(lhs_chunk);
-            const auto rhs_pack = LoadVectors<float, 3, width>(rhs_chunk);
+                              [](const auto& lhs_chunk, const auto& rhs_chunk)
+                              {
+                                  const auto lhs_pack = LoadVectors<float, 3, width>(lhs_chunk);
+                                  const auto rhs_pack = LoadVectors<float, 3, width>(rhs_chunk);
 
-            const auto dot_values = SimdDot(lhs_pack, rhs_pack);
-            const auto cross_pack = SimdCross(lhs_pack, rhs_pack);
-            const auto cross_vectors = StoreVectors(cross_pack);
+                                  const auto dot_values = SimdDot(lhs_pack, rhs_pack);
+                                  const auto cross_pack = SimdCross(lhs_pack, rhs_pack);
+                                  const auto cross_vectors = StoreVectors(cross_pack);
 
-            for (std::size_t lane = 0; lane < width; ++lane)
-            {
-                const auto expected_dot = engine::math::dot(lhs_chunk[lane], rhs_chunk[lane]);
-                const auto expected_cross = engine::math::cross(lhs_chunk[lane], rhs_chunk[lane]);
+                                  for (std::size_t lane = 0; lane < width; ++lane)
+                                  {
+                                      const auto expected_dot = engine::math::dot(lhs_chunk[lane], rhs_chunk[lane]);
+                                      const auto expected_cross = engine::math::cross(lhs_chunk[lane], rhs_chunk[lane]);
 
-                EXPECT_NEAR(dot_values[lane], expected_dot, 1e-5F);
-                ExpectVec3Near(cross_vectors[lane], expected_cross, 1e-5F);
-            }
-        });
+                                      EXPECT_NEAR(dot_values[lane], expected_dot, 1e-5F);
+                                      ExpectVec3Near(cross_vectors[lane], expected_cross, 1e-5F);
+                                  }
+                              });
 }
 
 TYPED_TEST(SimdValidationTest, NormalizeMatchesScalar)
@@ -334,26 +335,26 @@ TYPED_TEST(SimdValidationTest, NormalizeMatchesScalar)
     const auto values = TestFixture::MakeVectors(17U);
 
     TestFixture::ForEachChunk(values, values,
-        [](const auto& value_chunk, const auto&)
-        {
-            const auto pack = LoadVectors<float, 3, width>(value_chunk);
-            const auto lengths = SimdLength(pack);
-            const auto normalized_pack = SimdNormalize(pack);
-            const auto normalized_vectors = StoreVectors(normalized_pack);
+                              [](const auto& value_chunk, const auto&)
+                              {
+                                  const auto pack = LoadVectors<float, 3, width>(value_chunk);
+                                  const auto lengths = SimdLength(pack);
+                                  const auto normalized_pack = SimdNormalize(pack);
+                                  const auto normalized_vectors = StoreVectors(normalized_pack);
 
-            for (std::size_t lane = 0; lane < width; ++lane)
-            {
-                const auto expected_length = engine::math::length(value_chunk[lane]);
-                const auto expected_normalized = engine::math::normalize(value_chunk[lane]);
+                                  for (std::size_t lane = 0; lane < width; ++lane)
+                                  {
+                                      const auto expected_length = engine::math::length(value_chunk[lane]);
+                                      const auto expected_normalized = engine::math::normalize(value_chunk[lane]);
 
-                EXPECT_NEAR(lengths[lane], expected_length, 1e-5F);
-                ExpectVec3Near(normalized_vectors[lane], expected_normalized, 1e-5F);
+                                      EXPECT_NEAR(lengths[lane], expected_length, 1e-5F);
+                                      ExpectVec3Near(normalized_vectors[lane], expected_normalized, 1e-5F);
 
-                if (expected_length > 0.0F)
-                {
-                    const auto normalized_length = engine::math::length(normalized_vectors[lane]);
-                    EXPECT_NEAR(normalized_length, 1.0F, 1e-5F);
-                }
-            }
-        });
+                                      if (expected_length > 0.0F)
+                                      {
+                                          const auto normalized_length = engine::math::length(normalized_vectors[lane]);
+                                          EXPECT_NEAR(normalized_length, 1.0F, 1e-5F);
+                                      }
+                                  }
+                              });
 }

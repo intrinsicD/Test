@@ -4,5 +4,5 @@
 
 namespace engine::scene::systems
 {
-    void register_scene_systems(entt::registry& registry);
+    void register_scene_systems(entt::registry & registry);
 }

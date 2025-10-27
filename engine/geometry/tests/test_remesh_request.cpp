@@ -251,4 +251,3 @@ namespace engine::geometry
         EXPECT_EQ(resolved.error().code(), RemeshError::invalid_target_configuration);
     }
 }
-

@@ -2,12 +2,14 @@
 
 #include "engine/animation/api.hpp"
 
-TEST(AnimationModule, ModuleNameMatchesNamespace) {
+TEST(AnimationModule, ModuleNameMatchesNamespace)
+{
     EXPECT_EQ(engine::animation::module_name(), "animation");
     EXPECT_STREQ(engine_animation_module_name(), "animation");
 }
 
-TEST(AnimationModule, ControllerEvaluatesInterpolatedPose) {
+TEST(AnimationModule, ControllerEvaluatesInterpolatedPose)
+{
     auto clip = engine::animation::make_default_clip();
     auto controller = engine::animation::make_linear_controller(std::move(clip));
 
@@ -26,7 +28,8 @@ TEST(AnimationModule, ControllerEvaluatesInterpolatedPose) {
     EXPECT_NEAR(root->translation[1], 0.25F, 1e-4F);
 }
 
-TEST(AnimationModule, MakeLinearControllerExpandsDurationToLastKeyframe) {
+TEST(AnimationModule, MakeLinearControllerExpandsDurationToLastKeyframe)
+{
     using namespace engine::animation;
 
     AnimationClip clip;
@@ -47,7 +50,8 @@ TEST(AnimationModule, MakeLinearControllerExpandsDurationToLastKeyframe) {
     EXPECT_DOUBLE_EQ(controller.clip.tracks.front().keyframes.back().time, 1.25);
 }
 
-TEST(AnimationModule, MakeLinearControllerSortsAndDeduplicatesKeyframes) {
+TEST(AnimationModule, MakeLinearControllerSortsAndDeduplicatesKeyframes)
+{
     using namespace engine::animation;
 
     AnimationClip clip;
@@ -71,7 +75,8 @@ TEST(AnimationModule, MakeLinearControllerSortsAndDeduplicatesKeyframes) {
     EXPECT_NEAR(keyframes.back().time, 0.5, 1e-9);
 }
 
-TEST(AnimationModule, AdvanceControllerClampsWhenNotLooping) {
+TEST(AnimationModule, AdvanceControllerClampsWhenNotLooping)
+{
     using namespace engine::animation;
 
     auto controller = make_linear_controller(make_default_clip());
@@ -84,7 +89,8 @@ TEST(AnimationModule, AdvanceControllerClampsWhenNotLooping) {
     EXPECT_NEAR(controller.playback_time, 0.0, 1e-9);
 }
 
-TEST(AnimationModule, AdvanceControllerWrapsWhenLooping) {
+TEST(AnimationModule, AdvanceControllerWrapsWhenLooping)
+{
     using namespace engine::animation;
 
     auto controller = make_linear_controller(make_default_clip());
@@ -98,7 +104,8 @@ TEST(AnimationModule, AdvanceControllerWrapsWhenLooping) {
     EXPECT_NEAR(controller.playback_time, 0.5, 1e-9);
 }
 
-TEST(AnimationModule, AdvanceControllerSkipsWhenClipDurationIsZero) {
+TEST(AnimationModule, AdvanceControllerSkipsWhenClipDurationIsZero)
+{
     using namespace engine::animation;
 
     AnimationController controller;

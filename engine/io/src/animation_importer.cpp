@@ -17,7 +17,8 @@ namespace engine::io::animation
     {
         [[nodiscard]] std::string to_lower(std::string value)
         {
-            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) {
+            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c)
+            {
                 return static_cast<char>(std::tolower(c));
             });
             return value;
@@ -51,7 +52,7 @@ namespace engine::io::animation
             if (!stream)
             {
                 return make_animation_io_error(AnimationIoError::io_failure,
-                                                "Failed to open animation clip for detection: " + path.string());
+                                               "Failed to open animation clip for detection: " + path.string());
             }
             char ch = '\0';
             while (stream.get(ch))

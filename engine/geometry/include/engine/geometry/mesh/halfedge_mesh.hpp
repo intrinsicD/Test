@@ -403,7 +403,8 @@ namespace engine::geometry::mesh
 
         friend ENGINE_GEOMETRY_API void read(HalfedgeMeshInterface&, const std::filesystem::path&);
 
-        friend ENGINE_GEOMETRY_API void write(const HalfedgeMeshInterface&, const std::filesystem::path&, const IOFlags&);
+        friend ENGINE_GEOMETRY_API void write(const HalfedgeMeshInterface&, const std::filesystem::path&,
+                                              const IOFlags&);
 
         Vertices& vertex_props_;
         Halfedges& halfedge_props_;

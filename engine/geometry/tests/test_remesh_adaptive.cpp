@@ -55,7 +55,7 @@ namespace engine::geometry
         const MeshEdgeStatistics stats = ComputeMeshEdgeStatistics(output.mesh);
         ASSERT_GT(stats.edge_count, 0U);
         const float allowed = request.targets.target_edge_length.value() +
-                              request.targets.maximum_surface_deviation.value();
+            request.targets.maximum_surface_deviation.value();
         EXPECT_LE(stats.max_edge_length, allowed + 1e-3F);
     }
 

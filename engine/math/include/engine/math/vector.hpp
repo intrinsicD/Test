@@ -420,7 +420,7 @@ namespace engine::math
     ENGINE_MATH_INLINE std::array<bool, N> greater_than(const Vector<T, N>& lhs,
                                                         const Vector<T, N>& rhs) noexcept
     {
-        std::array<bool, N> mask{};
+        std::array < bool, N > mask{};
         for (typename Vector<T, N>::size_type i = 0; i < N; ++i)
         {
             mask[i] = lhs[i] > rhs[i];

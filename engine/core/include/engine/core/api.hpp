@@ -12,10 +12,9 @@
 #  define ENGINE_CORE_API
 #endif
 
-namespace engine::core {
-
-[[nodiscard]] std::string_view module_name() noexcept;
-
-}  // namespace engine::core
+namespace engine::core
+{
+    [[nodiscard]] std::string_view module_name() noexcept;
+} // namespace engine::core
 
 extern "C" ENGINE_CORE_API const char* engine_core_module_name() noexcept;

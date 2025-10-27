@@ -91,9 +91,15 @@ TEST(SceneValidation, DetectsTransformMismatchWhenNotDirty)
 
     auto& registry = scene_instance.registry();
     auto& root_local = registry.emplace<components::LocalTransform>(root.id());
-    root_local.value.translation = engine::math::Vector<float, 3>{1.0F, 0.0F, 0.0F};
+    root_local.value.translation = engine::math::Vector < float, 3 >
+    {
+        1.0F, 0.0F, 0.0F
+    };
     auto& child_local = registry.emplace<components::LocalTransform>(child.id());
-    child_local.value.translation = engine::math::Vector<float, 3>{0.0F, 2.0F, 0.0F};
+    child_local.value.translation = engine::math::Vector < float, 3 >
+    {
+        0.0F, 2.0F, 0.0F
+    };
 
     systems::set_parent(registry, child.id(), root.id());
     systems::mark_subtree_dirty(registry, root.id());

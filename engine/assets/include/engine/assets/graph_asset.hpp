@@ -18,59 +18,61 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine::assets {
-
-struct GraphAssetDescriptor {
-    GraphHandle handle{};
-    std::filesystem::path source{};
-    io::GraphFileFormat format_hint{io::GraphFileFormat::unknown};
-
-    [[nodiscard]] static GraphAssetDescriptor from_file(const std::filesystem::path& path,
-                                                        io::GraphFileFormat hint = io::GraphFileFormat::unknown)
+namespace engine::assets
+{
+    struct GraphAssetDescriptor
     {
-        return GraphAssetDescriptor{GraphHandle{path}, path, hint};
-    }
-};
+        GraphHandle handle{};
+        std::filesystem::path source{};
+        io::GraphFileFormat format_hint{io::GraphFileFormat::unknown};
 
-struct GraphAsset {
-    GraphAssetDescriptor descriptor{};
-    geometry::Graph graph{};
-    io::GeometryDetectionResult detection{};
-    std::filesystem::file_time_type last_write{};
-};
+        [[nodiscard]] static GraphAssetDescriptor from_file(const std::filesystem::path& path,
+                                                            io::GraphFileFormat hint = io::GraphFileFormat::unknown)
+        {
+            return GraphAssetDescriptor{GraphHandle{path}, path, hint};
+        }
+    };
 
-class GraphCache {
-public:
-    GraphCache();
+    struct GraphAsset
+    {
+        GraphAssetDescriptor descriptor{};
+        geometry::Graph graph{};
+        io::GeometryDetectionResult detection{};
+        std::filesystem::file_time_type last_write{};
+    };
 
-    using HotReloadCallback = std::function<void(const GraphAsset&)>;
+    class GraphCache
+    {
+    public:
+        GraphCache();
 
-    [[nodiscard]] const GraphAsset& load(const GraphAssetDescriptor& descriptor);
-    [[nodiscard]] bool contains(const GraphHandle& handle) const;
-    [[nodiscard]] const GraphAsset& get(const GraphHandle& handle) const;
+        using HotReloadCallback = std::function<void(const GraphAsset&)>;
 
-    void unload(const GraphHandle& handle);
-    void register_hot_reload_callback(const GraphHandle& handle, HotReloadCallback callback);
-    void poll();
+        [[nodiscard]] const GraphAsset& load(const GraphAssetDescriptor& descriptor);
+        [[nodiscard]] bool contains(const GraphHandle& handle) const;
+        [[nodiscard]] const GraphAsset& get(const GraphHandle& handle) const;
 
-private:
-    using Pool = core::memory::ResourcePool<GraphAsset, GraphHandleTag>;
-    using RawHandle = typename Pool::handle_type;
-    using HandleHasher = typename Pool::handle_hasher;
+        void unload(const GraphHandle& handle);
+        void register_hot_reload_callback(const GraphHandle& handle, HotReloadCallback callback);
+        void poll();
 
-    engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, GraphAsset& asset, bool notify);
-    void register_watch_locked(const RawHandle& handle, GraphAsset& asset);
-    void unregister_watch_locked(const RawHandle& handle);
+    private:
+        using Pool = core::memory::ResourcePool<GraphAsset, GraphHandleTag>;
+        using RawHandle = typename Pool::handle_type;
+        using HandleHasher = typename Pool::handle_hasher;
 
-    Pool assets_{};
-    std::unordered_map<std::string, RawHandle> bindings_{};
-    std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
-    std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
-    std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_{};
-    platform::filesystem::FilesystemWatcher watcher_{};
-    mutable std::mutex mutex_{};
-    std::shared_ptr<void> handle_validator_registration_{};
-};
+        engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, GraphAsset& asset, bool notify);
+        void register_watch_locked(const RawHandle& handle, GraphAsset& asset);
+        void unregister_watch_locked(const RawHandle& handle);
 
-}  // namespace engine::assets
-
+        Pool assets_{};
+        std::unordered_map<std::string, RawHandle> bindings_{};
+        std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
+        std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
+        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_
+            {};
+        platform::filesystem::FilesystemWatcher watcher_{};
+        mutable std::mutex mutex_{};
+        std::shared_ptr<void> handle_validator_registration_{};
+    };
+} // namespace engine::assets

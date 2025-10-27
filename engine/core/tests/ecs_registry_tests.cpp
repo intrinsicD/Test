@@ -6,25 +6,27 @@
 #include "engine/core/ecs/registry.hpp"
 #include "engine/core/ecs/system.hpp"
 
-namespace {
+namespace
+{
+    struct position
+    {
+        float x{};
+        float y{};
+        float z{};
+    };
 
-struct position {
-    float x{};
-    float y{};
-    float z{};
-};
-
-struct velocity {
-    float vx{};
-    float vy{};
-    float vz{};
-};
-
-}  // namespace
+    struct velocity
+    {
+        float vx{};
+        float vy{};
+        float vz{};
+    };
+} // namespace
 
 namespace ecs = engine::core::ecs;
 
-TEST(EcsRegistry, EntityLifetime) {
+TEST(EcsRegistry, EntityLifetime)
+{
     ecs::registry registry;
 
     const auto first = registry.create();
@@ -40,7 +42,8 @@ TEST(EcsRegistry, EntityLifetime) {
     EXPECT_GT(second.generation(), first.generation());
 }
 
-TEST(EcsRegistry, ComponentAddRemove) {
+TEST(EcsRegistry, ComponentAddRemove)
+{
     ecs::registry registry;
     const auto entity = registry.create();
 
@@ -64,7 +67,8 @@ TEST(EcsRegistry, ComponentAddRemove) {
     EXPECT_FALSE(velocities.contains(entity));
 }
 
-TEST(EcsRegistry, MultiComponentIterationOrder) {
+TEST(EcsRegistry, MultiComponentIterationOrder)
+{
     ecs::registry registry;
 
     const auto e1 = registry.create();
@@ -80,7 +84,8 @@ TEST(EcsRegistry, MultiComponentIterationOrder) {
     registry.emplace<position>(e3, position{3.0f, 0.0f, 0.0f});
 
     std::vector<ecs::entity_id> visited;
-    for (auto&& [entity, pos, vel] : registry.view<position, velocity>()) {
+    for (auto&& [entity, pos, vel] : registry.view<position, velocity>())
+    {
         visited.push_back(entity);
         vel.vx += pos.x;
     }
@@ -95,12 +100,14 @@ TEST(EcsRegistry, MultiComponentIterationOrder) {
     EXPECT_FLOAT_EQ(vel2.vx, 3.0f);
 }
 
-TEST(EcsRegistry, SchedulerExecutesSystems) {
+TEST(EcsRegistry, SchedulerExecutesSystems)
+{
     ecs::registry registry;
     ecs::system_scheduler scheduler;
 
     int invoke_count = 0;
-    scheduler.add_lambda_system("increment", [&](ecs::registry& reg, double dt) {
+    scheduler.add_lambda_system("increment", [&](ecs::registry& reg, double dt)
+    {
         ++invoke_count;
         EXPECT_NEAR(dt, 0.016, 1e-6);
         auto entity = reg.create();
@@ -112,4 +119,3 @@ TEST(EcsRegistry, SchedulerExecutesSystems) {
     EXPECT_EQ(invoke_count, 1);
     EXPECT_EQ(registry.alive_count(), 1U);
 }
-

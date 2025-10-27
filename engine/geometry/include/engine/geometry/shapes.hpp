@@ -11,4 +11,3 @@
 #include "engine/geometry/shapes/segment.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
 #include "engine/geometry/shapes/triangle.hpp"
-

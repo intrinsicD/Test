@@ -44,7 +44,8 @@ namespace engine::math::conversions
     }
 
     template <typename T, std::size_t Rows, std::size_t Cols>
-    [[nodiscard]] constexpr std::array<T, Rows * Cols> to_column_major_array(const Matrix<T, Rows, Cols>& value) noexcept
+    [[nodiscard]] constexpr std::array<T, Rows * Cols> to_column_major_array(
+        const Matrix<T, Rows, Cols>& value) noexcept
     {
         std::array<T, Rows * Cols> result{};
         std::size_t index = 0;
@@ -106,13 +107,15 @@ namespace engine::math::conversions
     }
 
     template <typename T, std::size_t Rows, std::size_t Cols>
-    [[nodiscard]] constexpr Matrix<T, Rows, Cols> matrix_from_column_major_array(const std::array<T, Rows * Cols>& data) noexcept
+    [[nodiscard]] constexpr Matrix<T, Rows, Cols> matrix_from_column_major_array(
+        const std::array<T, Rows * Cols>& data) noexcept
     {
         return matrix_from_column_major_span<T, Rows, Cols>(std::span<const T, Rows * Cols>{data});
     }
 
     template <typename T, std::size_t Rows, std::size_t Cols>
-    [[nodiscard]] constexpr Matrix<T, Rows, Cols> matrix_from_row_major_array(const std::array<T, Rows * Cols>& data) noexcept
+    [[nodiscard]] constexpr Matrix<T, Rows, Cols> matrix_from_row_major_array(
+        const std::array<T, Rows * Cols>& data) noexcept
     {
         return matrix_from_row_major_span<T, Rows, Cols>(std::span<const T, Rows * Cols>{data});
     }

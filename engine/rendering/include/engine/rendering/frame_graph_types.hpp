@@ -101,7 +101,7 @@ namespace engine::rendering
     inline ResourceUsage operator|(ResourceUsage lhs, ResourceUsage rhs) noexcept
     {
         return static_cast<ResourceUsage>(static_cast<std::uint32_t>(lhs) |
-                                          static_cast<std::uint32_t>(rhs));
+            static_cast<std::uint32_t>(rhs));
     }
 
     inline ResourceUsage& operator|=(ResourceUsage& lhs, ResourceUsage rhs) noexcept
@@ -113,7 +113,7 @@ namespace engine::rendering
     inline ResourceUsage operator&(ResourceUsage lhs, ResourceUsage rhs) noexcept
     {
         return static_cast<ResourceUsage>(static_cast<std::uint32_t>(lhs) &
-                                          static_cast<std::uint32_t>(rhs));
+            static_cast<std::uint32_t>(rhs));
     }
 
     inline bool any(ResourceUsage usage) noexcept
@@ -134,7 +134,8 @@ namespace engine::rendering
         }
 
         bool first = true;
-        const auto append = [&](std::string_view label) {
+        const auto append = [&](std::string_view label)
+        {
             if (!first)
             {
                 os << '|';
@@ -244,4 +245,4 @@ namespace engine::rendering
         }
         return os;
     }
-}  // namespace engine::rendering
+} // namespace engine::rendering

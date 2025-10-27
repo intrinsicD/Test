@@ -31,7 +31,8 @@ namespace engine::animation
 
         [[nodiscard]] bool is_finite(const math::quat& value) noexcept
         {
-            return std::isfinite(value[0]) && std::isfinite(value[1]) && std::isfinite(value[2]) && std::isfinite(value[3]);
+            return std::isfinite(value[0]) && std::isfinite(value[1]) && std::isfinite(value[2]) &&
+                std::isfinite(value[3]);
         }
 
         class JsonParser
@@ -289,15 +290,23 @@ namespace engine::animation
                         const char escape = m_data[m_index++];
                         switch (escape)
                         {
-                            case '"': result.push_back('"'); break;
-                            case '\\': result.push_back('\\'); break;
-                            case '/': result.push_back('/'); break;
-                            case 'b': result.push_back('\b'); break;
-                            case 'f': result.push_back('\f'); break;
-                            case 'n': result.push_back('\n'); break;
-                            case 'r': result.push_back('\r'); break;
-                            case 't': result.push_back('\t'); break;
-                            case 'u':
+                        case '"': result.push_back('"');
+                            break;
+                        case '\\': result.push_back('\\');
+                            break;
+                        case '/': result.push_back('/');
+                            break;
+                        case 'b': result.push_back('\b');
+                            break;
+                        case 'f': result.push_back('\f');
+                            break;
+                        case 'n': result.push_back('\n');
+                            break;
+                        case 'r': result.push_back('\r');
+                            break;
+                        case 't': result.push_back('\t');
+                            break;
+                        case 'u':
                             {
                                 if (m_index + 4 > m_data.size())
                                 {
@@ -331,12 +340,13 @@ namespace engine::animation
                                 }
                                 else
                                 {
-                                    throw std::runtime_error("Non-ASCII Unicode escapes are not supported in animation clip JSON");
+                                    throw std::runtime_error(
+                                        "Non-ASCII Unicode escapes are not supported in animation clip JSON");
                                 }
                                 break;
                             }
-                            default:
-                                throw std::runtime_error("Unsupported escape sequence in animation clip JSON");
+                        default:
+                            throw std::runtime_error("Unsupported escape sequence in animation clip JSON");
                         }
                         continue;
                     }
@@ -482,26 +492,33 @@ namespace engine::animation
                 const unsigned char byte = static_cast<unsigned char>(ch);
                 switch (ch)
                 {
-                    case '\\': result.append("\\\\"); break;
-                    case '"': result.append("\\\""); break;
-                    case '\b': result.append("\\b"); break;
-                    case '\f': result.append("\\f"); break;
-                    case '\n': result.append("\\n"); break;
-                    case '\r': result.append("\\r"); break;
-                    case '\t': result.append("\\t"); break;
-                    default:
-                        if (byte < 0x20U)
-                        {
-                            constexpr char hex_digits[] = "0123456789abcdef";
-                            result.append("\\u00");
-                            result.push_back(hex_digits[(byte >> 4U) & 0x0FU]);
-                            result.push_back(hex_digits[byte & 0x0FU]);
-                        }
-                        else
-                        {
-                            result.push_back(ch);
-                        }
-                        break;
+                case '\\': result.append("\\\\");
+                    break;
+                case '"': result.append("\\\"");
+                    break;
+                case '\b': result.append("\\b");
+                    break;
+                case '\f': result.append("\\f");
+                    break;
+                case '\n': result.append("\\n");
+                    break;
+                case '\r': result.append("\\r");
+                    break;
+                case '\t': result.append("\\t");
+                    break;
+                default:
+                    if (byte < 0x20U)
+                    {
+                        constexpr char hex_digits[] = "0123456789abcdef";
+                        result.append("\\u00");
+                        result.push_back(hex_digits[(byte >> 4U) & 0x0FU]);
+                        result.push_back(hex_digits[byte & 0x0FU]);
+                    }
+                    else
+                    {
+                        result.push_back(ch);
+                    }
+                    break;
                 }
             }
             return result;
@@ -560,7 +577,8 @@ namespace engine::animation
                                     std::string message,
                                     std::string joint,
                                     std::size_t track,
-                                    std::size_t keyframe) {
+                                    std::size_t keyframe)
+        {
             errors.push_back(
                 ClipValidationError{code, std::move(message), std::move(joint), track, keyframe});
         };
@@ -899,4 +917,3 @@ namespace engine::animation
         return read_clip_json(stream);
     }
 } // namespace engine::animation
-

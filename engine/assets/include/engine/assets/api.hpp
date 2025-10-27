@@ -12,10 +12,9 @@
 #  define ENGINE_ASSETS_API
 #endif
 
-namespace engine::assets {
-
-[[nodiscard]] std::string_view module_name() noexcept;
-
-}  // namespace engine::assets
+namespace engine::assets
+{
+    [[nodiscard]] std::string_view module_name() noexcept;
+} // namespace engine::assets
 
 extern "C" ENGINE_ASSETS_API const char* engine_assets_module_name() noexcept;

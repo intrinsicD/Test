@@ -1684,4 +1684,3 @@ namespace engine::geometry
         EXPECT_TRUE(Intersects(box2, box1)); // Symmetry
     }
 } // namespace engine::geometry
-

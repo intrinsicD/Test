@@ -130,7 +130,8 @@ namespace
         std::vector<std::string> cycle{};
         stack.reserve(plugins.size());
 
-        const auto record_cycle = [&](std::string_view dependency_name) {
+        const auto record_cycle = [&](std::string_view dependency_name)
+        {
             cycle.clear();
             const auto begin = std::find(stack.begin(), stack.end(), dependency_name);
             for (auto it = begin; it != stack.end(); ++it)
@@ -140,7 +141,8 @@ namespace
             cycle.emplace_back(dependency_name);
         };
 
-        const auto dfs = [&](auto&& self, std::size_t index) -> bool {
+        const auto dfs = [&](auto&& self, std::size_t index) -> bool
+        {
             if (states[index] == PluginVisitState::visited)
             {
                 return false;
@@ -229,7 +231,7 @@ namespace
         {
             std::ostringstream builder;
             builder << "mesh.positions size (" << dependencies.mesh.positions.size()
-                    << ") must match mesh.rest_positions size (" << mesh_vertex_count << ")";
+                << ") must match mesh.rest_positions size (" << mesh_vertex_count << ")";
             errors.push_back(make_runtime_error(RuntimeError::dependency_invalid_mesh, builder.str()));
         }
 
@@ -248,7 +250,7 @@ namespace
             {
                 std::ostringstream builder;
                 builder << "Rig binding vertex count (" << dependencies.binding.vertices.size()
-                        << ") must match mesh vertex count (" << mesh_vertex_count << ")";
+                    << ") must match mesh vertex count (" << mesh_vertex_count << ")";
                 errors.push_back(make_runtime_error(RuntimeError::dependency_invalid_binding, builder.str()));
             }
 
@@ -710,7 +712,8 @@ namespace engine::runtime
             snapshot.descriptors.reserve(64);
             snapshot.samples.reserve(64);
 
-            const auto clamp_to_int = [](auto value) -> std::int64_t {
+            const auto clamp_to_int = [](auto value) -> std::int64_t
+            {
                 const auto as_u64 = static_cast<std::uint64_t>(value);
                 const auto max_value = static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
                 return static_cast<std::int64_t>(std::min(as_u64, max_value));
@@ -719,7 +722,8 @@ namespace engine::runtime
             const auto add_counter = [&](std::string_view name,
                                          std::string_view description,
                                          std::int64_t value,
-                                         std::vector<core::telemetry::Label> labels = {}) {
+                                         std::vector<core::telemetry::Label> labels = {})
+            {
                 const std::size_t index = snapshot.descriptors.size();
                 core::telemetry::MetricDescriptor descriptor{};
                 descriptor.name.assign(name);
@@ -739,7 +743,8 @@ namespace engine::runtime
                                        std::string_view description,
                                        double value,
                                        core::telemetry::MetricUnit unit,
-                                       std::vector<core::telemetry::Label> labels = {}) {
+                                       std::vector<core::telemetry::Label> labels = {})
+            {
                 const std::size_t index = snapshot.descriptors.size();
                 core::telemetry::MetricDescriptor descriptor{};
                 descriptor.name.assign(name);
@@ -887,15 +892,17 @@ namespace engine::runtime
                 };
             static_assert(geometry_operation_names.size() == geometry::geometry_spatial_query_operation_count());
 
-            const auto operation_labels = [&](std::size_t operation_index) {
+            const auto operation_labels = [&](std::size_t operation_index)
+            {
                 return make_single_label("operation", geometry_operation_names[operation_index]);
             };
 
             const auto add_geometry_counter = [&](
-                                                  std::string_view name,
-                                                  std::string_view description,
-                                                  std::uint64_t value,
-                                                  std::size_t operation_index) {
+                std::string_view name,
+                std::string_view description,
+                std::uint64_t value,
+                std::size_t operation_index)
+            {
                 add_counter(name,
                             description,
                             clamp_to_int(value),
@@ -903,10 +910,11 @@ namespace engine::runtime
             };
 
             const auto add_geometry_gauge = [&](
-                                                std::string_view name,
-                                                std::string_view description,
-                                                std::uint64_t value,
-                                                std::size_t operation_index) {
+                std::string_view name,
+                std::string_view description,
+                std::uint64_t value,
+                std::size_t operation_index)
+            {
                 add_gauge(name,
                           description,
                           static_cast<double>(value),
@@ -937,7 +945,8 @@ namespace engine::runtime
             }
 
 #if ENGINE_ENABLE_RENDERING
-            const auto shading_mode_name = [](rendering::ResearchShadingMode mode) noexcept {
+            const auto shading_mode_name = [](rendering::ResearchShadingMode mode) noexcept
+            {
                 switch (mode)
                 {
                 case rendering::ResearchShadingMode::Forward:
@@ -948,13 +957,15 @@ namespace engine::runtime
                 return std::string_view{"forward"};
             };
 
-            const auto phase_name = [](rendering::PassPhase phase) {
+            const auto phase_name = [](rendering::PassPhase phase)
+            {
                 std::ostringstream stream;
                 stream << phase;
                 return stream.str();
             };
 
-            const auto make_pass_labels = [&](const rendering::ResearchBaselinePassTelemetry& telemetry) {
+            const auto make_pass_labels = [&](const rendering::ResearchBaselinePassTelemetry& telemetry)
+            {
                 std::vector<core::telemetry::Label> labels{};
                 labels.reserve(2);
 
@@ -1031,7 +1042,8 @@ namespace engine::runtime
             }
 #endif
 
-            const auto make_dimension_labels = [](std::size_t dimension) {
+            const auto make_dimension_labels = [](std::size_t dimension)
+            {
                 std::vector<core::telemetry::Label> labels{};
                 labels.reserve(1);
                 core::telemetry::Label dimension_label{};
@@ -1041,7 +1053,8 @@ namespace engine::runtime
                 return labels;
             };
 
-            const auto make_matrix_labels = [](std::size_t rows, std::size_t columns) {
+            const auto make_matrix_labels = [](std::size_t rows, std::size_t columns)
+            {
                 std::vector<core::telemetry::Label> labels{};
                 labels.reserve(2);
                 core::telemetry::Label row_label{};
@@ -1230,7 +1243,8 @@ namespace engine::runtime
                       static_cast<double>(validation.issue_count),
                       core::telemetry::MetricUnit::Count);
 
-            const auto add_issue_metric = [&](std::string_view type, std::size_t value) {
+            const auto add_issue_metric = [&](std::string_view type, std::size_t value)
+            {
                 add_gauge("runtime.scene_validation.issues",
                           "Hierarchy validation issues by type",
                           static_cast<double>(value),
@@ -1287,7 +1301,8 @@ namespace engine::runtime
             diagnostics.handle_validation = assets::HandleValidationTelemetry::instance().snapshot();
 
             auto& snapshot = diagnostics.metrics;
-            const auto emit_counter = [&](std::string_view name, std::string_view description, std::int64_t value) {
+            const auto emit_counter = [&](std::string_view name, std::string_view description, std::int64_t value)
+            {
                 core::telemetry::MetricDescriptor descriptor{};
                 descriptor.name.assign(name);
                 descriptor.kind = core::telemetry::MetricKind::Counter;
@@ -1456,7 +1471,7 @@ namespace engine::runtime
         }
 
         [[nodiscard]] assets::AssetLoadFuture<assets::MeshHandle>
-            request_mesh_asset(const assets::AssetLoadRequest& request)
+        request_mesh_asset(const assets::AssetLoadRequest& request)
         {
             if (!initialized)
             {
@@ -1481,7 +1496,7 @@ namespace engine::runtime
         }
 
         [[nodiscard]] assets::AssetLoadFuture<assets::PointCloudHandle>
-            request_point_cloud_asset(const assets::AssetLoadRequest& request)
+        request_point_cloud_asset(const assets::AssetLoadRequest& request)
         {
             if (!initialized)
             {
@@ -1848,44 +1863,44 @@ namespace engine::runtime
             {
                 for (const auto& plugin : dependencies.subsystem_plugins)
                 {
-                if (plugin == nullptr)
-                {
-                    continue;
-                }
+                    if (plugin == nullptr)
+                    {
+                        continue;
+                    }
 
-                const std::string name{plugin->name()};
-                const auto start = Clock::now();
-                try
-                {
-                    plugin->initialize(lifecycle);
-                    started_plugins.push_back(plugin);
-                    const auto duration = Clock::now() - start;
-                    record_subsystem_event(name, duration, SubsystemPhase::Initialize);
+                    const std::string name{plugin->name()};
+                    const auto start = Clock::now();
+                    try
+                    {
+                        plugin->initialize(lifecycle);
+                        started_plugins.push_back(plugin);
+                        const auto duration = Clock::now() - start;
+                        record_subsystem_event(name, duration, SubsystemPhase::Initialize);
+                    }
+                    catch (const std::exception& exception)
+                    {
+                        const auto duration = Clock::now() - start;
+                        record_initialize_failure(name,
+                                                  classify_exception(exception),
+                                                  exception.what(),
+                                                  duration_to_ms(duration));
+                        throw;
+                    }
+                    catch (...)
+                    {
+                        const auto duration = Clock::now() - start;
+                        record_initialize_failure(
+                            name,
+                            "non_std_exception",
+                            "Subsystem initialize threw a non-standard exception",
+                            duration_to_ms(duration));
+                        throw;
+                    }
                 }
-                catch (const std::exception& exception)
-                {
-                    const auto duration = Clock::now() - start;
-                    record_initialize_failure(name,
-                                              classify_exception(exception),
-                                              exception.what(),
-                                              duration_to_ms(duration));
-                    throw;
-                }
-                catch (...)
-                {
-                    const auto duration = Clock::now() - start;
-                    record_initialize_failure(
-                        name,
-                        "non_std_exception",
-                        "Subsystem initialize threw a non-standard exception",
-                        duration_to_ms(duration));
-                    throw;
-                }
+                initialized = true;
             }
-            initialized = true;
-        }
-        catch (...)
-        {
+            catch (...)
+            {
                 for (auto it = started_plugins.rbegin(); it != started_plugins.rend(); ++it)
                 {
                     if (*it == nullptr)
@@ -2030,9 +2045,9 @@ namespace engine::runtime
                     }
 
                     animation::skinning::build_global_joint_transforms(binding, pose, joint_global_transforms,
-                                                                        root_translation);
+                                                                       root_translation);
                     animation::skinning::build_skinning_transforms(binding, joint_global_transforms,
-                                                                    skinning_transforms);
+                                                                   skinning_transforms);
                     engine::geometry::deform::apply_linear_blend_skinning(binding, skinning_transforms, mesh);
                 },
                 {physics_integrate});
@@ -2196,13 +2211,13 @@ namespace engine::runtime
 
 #if ENGINE_ENABLE_ASSETS
     assets::AssetLoadFuture<assets::MeshHandle>
-        RuntimeHost::request_mesh_asset(const assets::AssetLoadRequest& request)
+    RuntimeHost::request_mesh_asset(const assets::AssetLoadRequest& request)
     {
         return impl_->request_mesh_asset(request);
     }
 
     assets::AssetLoadFuture<assets::PointCloudHandle>
-        RuntimeHost::request_point_cloud_asset(const assets::AssetLoadRequest& request)
+    RuntimeHost::request_point_cloud_asset(const assets::AssetLoadRequest& request)
     {
         return impl_->request_point_cloud_asset(request);
     }
@@ -2324,14 +2339,14 @@ namespace engine::runtime
 
 #if ENGINE_ENABLE_ASSETS
     assets::AssetLoadFuture<assets::MeshHandle>
-        request_mesh_asset(const assets::AssetLoadRequest& request)
+    request_mesh_asset(const assets::AssetLoadRequest& request)
     {
         auto& host = ensure_initialized_host();
         return host.request_mesh_asset(request);
     }
 
     assets::AssetLoadFuture<assets::PointCloudHandle>
-        request_point_cloud_asset(const assets::AssetLoadRequest& request)
+    request_point_cloud_asset(const assets::AssetLoadRequest& request)
     {
         auto& host = ensure_initialized_host();
         return host.request_point_cloud_asset(request);
@@ -2696,12 +2711,12 @@ namespace engine::runtime
         }
     }
 
-extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
-    std::size_t index,
-    float* out_scale,
-    float* out_rotation,
-    float* out_translation) noexcept
-{
+    extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
+        std::size_t index,
+        float* out_scale,
+        float* out_rotation,
+        float* out_translation) noexcept
+    {
         try
         {
             const auto& nodes = engine::runtime::scene_nodes();
@@ -2737,6 +2752,7 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
 }
 
 extern "C" ENGINE_RUNTIME_API std::size_t
+
 engine_runtime_streaming_geometry_failure_capacity_value() noexcept
 {
     return engine::io::geometry_io_error_count();
@@ -2827,6 +2843,7 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_diagnostic_hot_reload_metrics(
 }
 
 extern "C" ENGINE_RUNTIME_API std::uint32_t
+
 engine_runtime_diagnostic_hot_reload_recent_failure_count() noexcept
 {
     const auto& failures = engine::runtime::diagnostics().hot_reload.recent_failures;
@@ -3316,7 +3333,7 @@ extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_metric_label
 }
 
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_label_key(std::size_t metric_index,
-                                                                                      std::size_t label_index) noexcept
+    std::size_t label_index) noexcept
 {
     const auto& metrics = engine::runtime::diagnostics().metrics;
     if (metric_index >= metrics.descriptors.size())
@@ -3332,7 +3349,7 @@ extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_label
 }
 
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_label_value(std::size_t metric_index,
-                                                                                        std::size_t label_index) noexcept
+    std::size_t label_index) noexcept
 {
     const auto& metrics = engine::runtime::diagnostics().metrics;
     if (metric_index >= metrics.descriptors.size())

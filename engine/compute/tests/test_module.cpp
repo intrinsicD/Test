@@ -34,121 +34,121 @@ TEST(ComputeModule, IdentityTransformIsMatrixIdentity)
 
 namespace
 {
+    using DispatcherPtr = std::unique_ptr<engine::compute::Dispatcher>;
 
-using DispatcherPtr = std::unique_ptr<engine::compute::Dispatcher>;
-
-void ExpectSubstring(std::string_view haystack, std::string_view needle)
-{
-    if (haystack.find(needle) == std::string_view::npos)
+    void ExpectSubstring(std::string_view haystack, std::string_view needle)
     {
-        FAIL() << "Expected substring '" << needle << "' within '" << haystack << "'";
-    }
-}
-
-void ExpectDispatcherRespectsDependencies(DispatcherPtr dispatcher)
-{
-    std::array<int, 3> values{0, 0, 0};
-    const auto first = dispatcher->add_kernel("first", [&]() { values[0] = 1; });
-    const auto second = dispatcher->add_kernel(
-        "second",
-        [&]()
+        if (haystack.find(needle) == std::string_view::npos)
         {
-            values[1] = values[0] + 1;
-        },
-        {first});
-    MAYBE_UNUSED_CONST_AUTO third = dispatcher->add_kernel(
-        "third",
-        [&]()
-        {
-            values[2] = values[1] + 1;
-        },
-        {second});
-
-    const auto report = dispatcher->dispatch();
-    ASSERT_EQ(report.execution_order.size(), 3U);
-    ASSERT_EQ(report.kernel_durations.size(), report.execution_order.size());
-    EXPECT_EQ(report.execution_order.front(), "first");
-    EXPECT_EQ(report.execution_order.back(), "third");
-    for (const auto duration : report.kernel_durations)
-    {
-        EXPECT_GE(duration, 0.0);
-    }
-    EXPECT_EQ(report.clock_domain, engine::compute::TimingDomain::Cpu);
-    EXPECT_EQ(report.clock_name, "steady_clock");
-    EXPECT_EQ(values[2], 3);
-
-    ASSERT_EQ(report.dependency_graph.nodes.size(), 3U);
-    EXPECT_TRUE(report.dependency_graph.nodes[0].dependencies.empty());
-    ASSERT_EQ(report.dependency_graph.nodes[2].dependencies.size(), 1U);
-    EXPECT_EQ(report.dependency_graph.nodes[2].dependencies.front(), second);
-}
-
-TEST(ComputeModule, DispatcherAcceptsCustomClockConfiguration)
-{
-    auto dispatcher = engine::compute::make_cpu_dispatcher();
-    bool measure_invoked = false;
-    engine::compute::ClockConfiguration configuration{};
-    configuration.name = "cuda_events";
-    configuration.domain = engine::compute::TimingDomain::Gpu;
-    configuration.measure = [&measure_invoked](const engine::compute::kernel_callback& callback) -> double {
-        measure_invoked = true;
-        if (callback)
-        {
-            callback();
+            FAIL() << "Expected substring '" << needle << "' within '" << haystack << "'";
         }
-        return 0.123;
-    };
-    dispatcher->set_clock(std::move(configuration));
-
-    bool kernel_invoked = false;
-    MAYBE_UNUSED_CONST_AUTO kernel = dispatcher->add_kernel("timed", [&kernel_invoked]() {
-        kernel_invoked = true;
-    });
-
-    const auto report = dispatcher->dispatch();
-    ASSERT_EQ(report.kernel_durations.size(), 1U);
-    EXPECT_TRUE(measure_invoked);
-    EXPECT_TRUE(kernel_invoked);
-    EXPECT_DOUBLE_EQ(report.kernel_durations.front(), 0.123);
-    EXPECT_EQ(report.clock_domain, engine::compute::TimingDomain::Gpu);
-    EXPECT_EQ(report.clock_name, "cuda_events");
-}
-
-TEST(ComputeModule, DispatcherRejectsClockWithoutMeasureCallback)
-{
-    auto dispatcher = engine::compute::make_cpu_dispatcher();
-    engine::compute::ClockConfiguration invalid_configuration{};
-    EXPECT_THROW(dispatcher->set_clock(std::move(invalid_configuration)), std::invalid_argument);
-}
-
-template <typename ExceptionType>
-void ExpectDispatcherThrows(
-    DispatcherPtr dispatcher,
-    const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_first,
-    const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_second,
-    std::string_view expected_prefix)
-{
-    MAYBE_UNUSED_CONST_AUTO a = dispatcher->add_kernel("a", []
-    {
-    }, dependencies_for_first);
-    MAYBE_UNUSED_CONST_AUTO b = dispatcher->add_kernel("b", []
-    {
-    }, dependencies_for_second);
-
-    try
-    {
-        (void)dispatcher->dispatch();
-        FAIL() << "Dispatcher did not raise the expected exception";
     }
-    catch (const ExceptionType& error)
-    {
-        const std::string_view message{error.what()};
-        ExpectSubstring(message, expected_prefix);
-        ExpectSubstring(message, "digraph");
-    }
-}
 
-}  // namespace
+    void ExpectDispatcherRespectsDependencies(DispatcherPtr dispatcher)
+    {
+        std::array < int, 3 > values{0, 0, 0};
+        const auto first = dispatcher->add_kernel("first", [&]() { values[0] = 1; });
+        const auto second = dispatcher->add_kernel(
+            "second",
+            [&]()
+            {
+                values[1] = values[0] + 1;
+            },
+            {first});
+        MAYBE_UNUSED_CONST_AUTO third = dispatcher->add_kernel(
+            "third",
+            [&]()
+            {
+                values[2] = values[1] + 1;
+            },
+            {second});
+
+        const auto report = dispatcher->dispatch();
+        ASSERT_EQ(report.execution_order.size(), 3U);
+        ASSERT_EQ(report.kernel_durations.size(), report.execution_order.size());
+        EXPECT_EQ(report.execution_order.front(), "first");
+        EXPECT_EQ(report.execution_order.back(), "third");
+        for (const auto duration : report.kernel_durations)
+        {
+            EXPECT_GE(duration, 0.0);
+        }
+        EXPECT_EQ(report.clock_domain, engine::compute::TimingDomain::Cpu);
+        EXPECT_EQ(report.clock_name, "steady_clock");
+        EXPECT_EQ(values[2], 3);
+
+        ASSERT_EQ(report.dependency_graph.nodes.size(), 3U);
+        EXPECT_TRUE(report.dependency_graph.nodes[0].dependencies.empty());
+        ASSERT_EQ(report.dependency_graph.nodes[2].dependencies.size(), 1U);
+        EXPECT_EQ(report.dependency_graph.nodes[2].dependencies.front(), second);
+    }
+
+    TEST(ComputeModule, DispatcherAcceptsCustomClockConfiguration)
+    {
+        auto dispatcher = engine::compute::make_cpu_dispatcher();
+        bool measure_invoked = false;
+        engine::compute::ClockConfiguration configuration{};
+        configuration.name = "cuda_events";
+        configuration.domain = engine::compute::TimingDomain::Gpu;
+        configuration.measure = [&measure_invoked](const engine::compute::kernel_callback& callback) -> double
+        {
+            measure_invoked = true;
+            if (callback)
+            {
+                callback();
+            }
+            return 0.123;
+        };
+        dispatcher->set_clock(std::move(configuration));
+
+        bool kernel_invoked = false;
+        MAYBE_UNUSED_CONST_AUTO kernel = dispatcher->add_kernel("timed", [&kernel_invoked]()
+        {
+            kernel_invoked = true;
+        });
+
+        const auto report = dispatcher->dispatch();
+        ASSERT_EQ(report.kernel_durations.size(), 1U);
+        EXPECT_TRUE(measure_invoked);
+        EXPECT_TRUE(kernel_invoked);
+        EXPECT_DOUBLE_EQ(report.kernel_durations.front(), 0.123);
+        EXPECT_EQ(report.clock_domain, engine::compute::TimingDomain::Gpu);
+        EXPECT_EQ(report.clock_name, "cuda_events");
+    }
+
+    TEST(ComputeModule, DispatcherRejectsClockWithoutMeasureCallback)
+    {
+        auto dispatcher = engine::compute::make_cpu_dispatcher();
+        engine::compute::ClockConfiguration invalid_configuration{};
+        EXPECT_THROW(dispatcher->set_clock(std::move(invalid_configuration)), std::invalid_argument);
+    }
+
+    template <typename ExceptionType>
+    void ExpectDispatcherThrows(
+        DispatcherPtr dispatcher,
+        const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_first,
+        const std::vector<engine::compute::Dispatcher::kernel_id>& dependencies_for_second,
+        std::string_view expected_prefix)
+    {
+        MAYBE_UNUSED_CONST_AUTO a = dispatcher->add_kernel("a", []
+        {
+        }, dependencies_for_first);
+        MAYBE_UNUSED_CONST_AUTO b = dispatcher->add_kernel("b", []
+        {
+        }, dependencies_for_second);
+
+        try
+        {
+            (void)dispatcher->dispatch();
+            FAIL() << "Dispatcher did not raise the expected exception";
+        }
+        catch (const ExceptionType& error)
+        {
+            const std::string_view message{error.what()};
+            ExpectSubstring(message, expected_prefix);
+            ExpectSubstring(message, "digraph");
+        }
+    }
+} // namespace
 
 TEST(ComputeModule, CpuDispatcherRespectsDependencies)
 {

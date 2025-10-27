@@ -33,7 +33,7 @@ namespace
         {
             const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
             path = std::filesystem::temp_directory_path() /
-                   ("engine-assets-" + std::to_string(timestamp));
+                ("engine-assets-" + std::to_string(timestamp));
             std::filesystem::create_directories(path);
         }
 
@@ -116,7 +116,8 @@ TEST(MeshCache, HotReloadNotifies)
 
     bool reloaded = false;
     cache.register_hot_reload_callback(descriptor.handle,
-                                       [&](const engine::assets::MeshAsset& updated) {
+                                       [&](const engine::assets::MeshAsset& updated)
+                                       {
                                            reloaded = true;
                                            EXPECT_EQ(updated.mesh.interface.face_count(), 2U);
                                        });
@@ -315,7 +316,8 @@ TEST(PointCloudCache, HotReloadNotifies)
 
     bool reloaded = false;
     cache.register_hot_reload_callback(descriptor.handle,
-                                       [&](const engine::assets::PointCloudAsset& updated) {
+                                       [&](const engine::assets::PointCloudAsset& updated)
+                                       {
                                            reloaded = true;
                                            EXPECT_EQ(updated.point_cloud.interface.vertex_count(), 3U);
                                        });
@@ -400,7 +402,8 @@ TEST(GraphCache, HotReloadNotifies)
 
     bool reloaded = false;
     cache.register_hot_reload_callback(descriptor.handle,
-                                       [&](const engine::assets::GraphAsset& updated) {
+                                       [&](const engine::assets::GraphAsset& updated)
+                                       {
                                            reloaded = true;
                                            EXPECT_EQ(updated.graph.interface.edge_count(), 3U);
                                        });
@@ -448,14 +451,17 @@ TEST(TextureCache, ProvidesBinaryPayload)
 
     bool reloaded = false;
     cache.register_hot_reload_callback(descriptor.handle,
-                                       [&](const engine::assets::TextureAsset& updated) {
+                                       [&](const engine::assets::TextureAsset& updated)
+                                       {
                                            reloaded = true;
                                            EXPECT_GT(updated.data.size(), payload.size());
                                        });
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    const std::array<std::byte, 6> new_payload{std::byte{0x01}, std::byte{0x02}, std::byte{0x03},
-                                               std::byte{0x04}, std::byte{0x05}, std::byte{0x06}};
+    const std::array<std::byte, 6> new_payload{
+        std::byte{0x01}, std::byte{0x02}, std::byte{0x03},
+        std::byte{0x04}, std::byte{0x05}, std::byte{0x06}
+    };
     write_binary(path, new_payload);
 
     cache.poll();
@@ -478,7 +484,8 @@ TEST(ShaderCache, CompilesAndHotReloads)
     std::size_t previous_size = asset.binary.spirv.size();
     bool reloaded = false;
     cache.register_hot_reload_callback(descriptor.handle,
-                                       [&](const engine::assets::ShaderAsset& updated) {
+                                       [&](const engine::assets::ShaderAsset& updated)
+                                       {
                                            reloaded = true;
                                            EXPECT_GE(updated.binary.spirv.size(), previous_size);
                                        });

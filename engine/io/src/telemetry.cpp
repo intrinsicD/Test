@@ -13,7 +13,8 @@ namespace engine::io
             "read_point_cloud",
             "write_point_cloud",
             "read_graph",
-            "write_graph"};
+            "write_graph"
+        };
     } // namespace
 
     GeometryIoTelemetry& GeometryIoTelemetry::instance() noexcept
@@ -86,4 +87,3 @@ namespace engine::io
         return "unknown";
     }
 } // namespace engine::io
-

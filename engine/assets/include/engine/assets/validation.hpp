@@ -152,12 +152,18 @@ namespace engine::assets
     public:
         static HandleValidatorRegistry& instance();
 
-        [[nodiscard]] std::shared_ptr<void> register_mesh_validator(detail::ValidatorBucket<MeshHandle>::Validator validator);
-        [[nodiscard]] std::shared_ptr<void> register_graph_validator(detail::ValidatorBucket<GraphHandle>::Validator validator);
-        [[nodiscard]] std::shared_ptr<void> register_point_cloud_validator(detail::ValidatorBucket<PointCloudHandle>::Validator validator);
-        [[nodiscard]] std::shared_ptr<void> register_texture_validator(detail::ValidatorBucket<TextureHandle>::Validator validator);
-        [[nodiscard]] std::shared_ptr<void> register_shader_validator(detail::ValidatorBucket<ShaderHandle>::Validator validator);
-        [[nodiscard]] std::shared_ptr<void> register_material_validator(detail::ValidatorBucket<MaterialHandle>::Validator validator);
+        [[nodiscard]] std::shared_ptr<void> register_mesh_validator(
+            detail::ValidatorBucket<MeshHandle>::Validator validator);
+        [[nodiscard]] std::shared_ptr<void> register_graph_validator(
+            detail::ValidatorBucket<GraphHandle>::Validator validator);
+        [[nodiscard]] std::shared_ptr<void> register_point_cloud_validator(
+            detail::ValidatorBucket<PointCloudHandle>::Validator validator);
+        [[nodiscard]] std::shared_ptr<void> register_texture_validator(
+            detail::ValidatorBucket<TextureHandle>::Validator validator);
+        [[nodiscard]] std::shared_ptr<void> register_shader_validator(
+            detail::ValidatorBucket<ShaderHandle>::Validator validator);
+        [[nodiscard]] std::shared_ptr<void> register_material_validator(
+            detail::ValidatorBucket<MaterialHandle>::Validator validator);
 
         [[nodiscard]] bool validate(const MeshHandle& handle) const;
         [[nodiscard]] bool validate(const GraphHandle& handle) const;
@@ -203,7 +209,9 @@ namespace engine::assets
         if (!valid)
         {
             result.valid = false;
-            result.failure = HandleValidationFailure{type, identifier, std::string{context}, "Handle validator rejected handle"};
+            result.failure = HandleValidationFailure{
+                type, identifier, std::string{context}, "Handle validator rejected handle"
+            };
             HandleValidationTelemetry::instance().record_failure(*result.failure);
             return result;
         }
@@ -224,5 +232,4 @@ namespace engine::assets
 #endif
         return result.valid;
     }
-}  // namespace engine::assets
-
+} // namespace engine::assets

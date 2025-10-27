@@ -15,7 +15,8 @@
 #include <string>
 #include <vector>
 
-namespace engine::geometry::graph {
+namespace engine::geometry::graph
+{
     struct ENGINE_GEOMETRY_API IOFlags
     {
         enum class Format
@@ -30,21 +31,22 @@ namespace engine::geometry::graph {
         bool include_counts{true};
     };
 
-    class ENGINE_GEOMETRY_API GraphInterface {
+    class ENGINE_GEOMETRY_API GraphInterface
+    {
     public:
-        GraphInterface(Vertices &vertex_props,
-                       Halfedges &halfedge_props,
-                       Edges &edge_props);
+        GraphInterface(Vertices& vertex_props,
+                       Halfedges& halfedge_props,
+                       Edges& edge_props);
 
-        GraphInterface(const GraphInterface &rhs);
+        GraphInterface(const GraphInterface& rhs);
 
-        GraphInterface(GraphInterface &&) noexcept = default;
+        GraphInterface(GraphInterface&&) noexcept = default;
 
         ~GraphInterface();
 
-        GraphInterface &operator=(const GraphInterface &rhs);
+        GraphInterface& operator=(const GraphInterface& rhs);
 
-        GraphInterface &assign(const GraphInterface &rhs);
+        GraphInterface& assign(const GraphInterface& rhs);
 
         using VertexIterator = Iterator<GraphInterface, VertexHandle>;
         using HalfedgeIterator = Iterator<GraphInterface, HalfedgeHandle>;
@@ -54,7 +56,7 @@ namespace engine::geometry::graph {
         using HalfedgeRange = Range<HalfedgeIterator>;
         using EdgeRange = Range<EdgeIterator>;
 
-        [[nodiscard]] VertexHandle add_vertex(const math::vec3 &p);
+        [[nodiscard]] VertexHandle add_vertex(const math::vec3& p);
 
         void clear();
 
@@ -101,15 +103,18 @@ namespace engine::geometry::graph {
 
         [[nodiscard]] HalfedgeHandle prev_halfedge(HalfedgeHandle h) const { return halfedge_connectivity_[h].prev; }
 
-        [[nodiscard]] HalfedgeHandle opposite_halfedge(HalfedgeHandle h) const {
+        [[nodiscard]] HalfedgeHandle opposite_halfedge(HalfedgeHandle h) const
+        {
             return HalfedgeHandle((h.index() & 1U) ? h.index() - 1U : h.index() + 1U);
         }
 
-        [[nodiscard]] HalfedgeHandle ccw_rotated_halfedge(HalfedgeHandle h) const {
+        [[nodiscard]] HalfedgeHandle ccw_rotated_halfedge(HalfedgeHandle h) const
+        {
             return opposite_halfedge(prev_halfedge(h));
         }
 
-        [[nodiscard]] HalfedgeHandle cw_rotated_halfedge(HalfedgeHandle h) const {
+        [[nodiscard]] HalfedgeHandle cw_rotated_halfedge(HalfedgeHandle h) const
+        {
             return next_halfedge(opposite_halfedge(h));
         }
 
@@ -118,78 +123,90 @@ namespace engine::geometry::graph {
 
         [[nodiscard]] VertexHandle vertex(EdgeHandle e, unsigned int i) const { return to_vertex(halfedge(e, i)); }
 
-        
-        template<class T>
-        [[nodiscard]] VertexProperty<T> add_vertex_property(const std::string &name, T default_value = T()) {
+
+        template <class T>
+        [[nodiscard]] VertexProperty<T> add_vertex_property(const std::string& name, T default_value = T())
+        {
             return VertexProperty<T>(vertex_props_.add<T>(name, default_value));
         }
 
-        template<class T>
-        [[nodiscard]] VertexProperty<T> get_vertex_property(const std::string &name) const {
+        template <class T>
+        [[nodiscard]] VertexProperty<T> get_vertex_property(const std::string& name) const
+        {
             return VertexProperty<T>(vertex_props_.get<T>(name));
         }
 
-        template<class T>
-        [[nodiscard]] VertexProperty<T> vertex_property(const std::string &name, T default_value = T()) {
+        template <class T>
+        [[nodiscard]] VertexProperty<T> vertex_property(const std::string& name, T default_value = T())
+        {
             return VertexProperty<T>(vertex_props_.get_or_add<T>(name, default_value));
         }
 
-        template<class T>
-        void remove_vertex_property(VertexProperty<T> &prop) {
+        template <class T>
+        void remove_vertex_property(VertexProperty<T>& prop)
+        {
             vertex_props_.remove(prop);
         }
 
-        [[nodiscard]] bool has_vertex_property(const std::string &name) const { return vertex_props_.exists(name); }
+        [[nodiscard]] bool has_vertex_property(const std::string& name) const { return vertex_props_.exists(name); }
 
-        template<class T>
-        [[nodiscard]] HalfedgeProperty<T> add_halfedge_property(const std::string &name, T default_value = T()) {
+        template <class T>
+        [[nodiscard]] HalfedgeProperty<T> add_halfedge_property(const std::string& name, T default_value = T())
+        {
             return HalfedgeProperty<T>(halfedge_props_.add<T>(name, default_value));
         }
 
-        template<class T>
-        [[nodiscard]] EdgeProperty<T> add_edge_property(const std::string &name, T default_value = T()) {
+        template <class T>
+        [[nodiscard]] EdgeProperty<T> add_edge_property(const std::string& name, T default_value = T())
+        {
             return EdgeProperty<T>(edge_props_.add<T>(name, default_value));
         }
 
-        template<class T>
-        [[nodiscard]] HalfedgeProperty<T> get_halfedge_property(const std::string &name) const {
+        template <class T>
+        [[nodiscard]] HalfedgeProperty<T> get_halfedge_property(const std::string& name) const
+        {
             return HalfedgeProperty<T>(halfedge_props_.get<T>(name));
         }
 
-        template<class T>
-        [[nodiscard]] EdgeProperty<T> get_edge_property(const std::string &name) const {
+        template <class T>
+        [[nodiscard]] EdgeProperty<T> get_edge_property(const std::string& name) const
+        {
             return EdgeProperty<T>(edge_props_.get<T>(name));
         }
 
-        template<class T>
-        [[nodiscard]] HalfedgeProperty<T> halfedge_property(const std::string &name, T default_value = T()) {
+        template <class T>
+        [[nodiscard]] HalfedgeProperty<T> halfedge_property(const std::string& name, T default_value = T())
+        {
             return HalfedgeProperty<T>(halfedge_props_.get_or_add<T>(name, default_value));
         }
 
-        template<class T>
-        [[nodiscard]] EdgeProperty<T> edge_property(const std::string &name, T default_value = T()) {
+        template <class T>
+        [[nodiscard]] EdgeProperty<T> edge_property(const std::string& name, T default_value = T())
+        {
             return EdgeProperty<T>(edge_props_.get_or_add<T>(name, default_value));
         }
 
-        template<class T>
-        void remove_halfedge_property(HalfedgeProperty<T> &prop) {
+        template <class T>
+        void remove_halfedge_property(HalfedgeProperty<T>& prop)
+        {
             halfedge_props_.remove(prop);
         }
 
-        [[nodiscard]] bool has_halfedge_property(const std::string &name) const { return halfedge_props_.exists(name); }
+        [[nodiscard]] bool has_halfedge_property(const std::string& name) const { return halfedge_props_.exists(name); }
 
-        template<class T>
-        void remove_edge_property(EdgeProperty<T> &prop) {
+        template <class T>
+        void remove_edge_property(EdgeProperty<T>& prop)
+        {
             edge_props_.remove(prop);
         }
 
-        [[nodiscard]] bool has_edge_property(const std::string &name) const { return edge_props_.exists(name); }
+        [[nodiscard]] bool has_edge_property(const std::string& name) const { return edge_props_.exists(name); }
 
         [[nodiscard]] std::vector<std::string> vertex_properties() const { return vertex_props_.properties(); }
         [[nodiscard]] std::vector<std::string> halfedge_properties() const { return halfedge_props_.properties(); }
         [[nodiscard]] std::vector<std::string> edge_properties() const { return edge_props_.properties(); }
 
-        
+
         [[nodiscard]] VertexIterator vertices_begin() const;
 
         [[nodiscard]] VertexIterator vertices_end() const;
@@ -207,20 +224,23 @@ namespace engine::geometry::graph {
         [[nodiscard]] EdgeIterator edges_end() const;
 
         [[nodiscard]] EdgeRange edges() const { return {edges_begin(), edges_end()}; }
-        
-        [[nodiscard]] VertexAroundVertexCirculator<GraphInterface> vertices(VertexHandle v) const {
+
+        [[nodiscard]] VertexAroundVertexCirculator<GraphInterface> vertices(VertexHandle v) const
+        {
             return {this, v};
         }
 
-        [[nodiscard]] EdgeAroundVertexCirculator<GraphInterface> edges(VertexHandle v) const {
+        [[nodiscard]] EdgeAroundVertexCirculator<GraphInterface> edges(VertexHandle v) const
+        {
             return {this, v};
         }
 
-        [[nodiscard]] HalfedgeAroundVertexCirculator<GraphInterface> halfedges(VertexHandle v) const {
+        [[nodiscard]] HalfedgeAroundVertexCirculator<GraphInterface> halfedges(VertexHandle v) const
+        {
             return {this, v};
         }
-        
-        [[nodiscard]] HalfedgeHandle insert_vertex(EdgeHandle e, const math::vec3 &p);
+
+        [[nodiscard]] HalfedgeHandle insert_vertex(EdgeHandle e, const math::vec3& p);
 
         [[nodiscard]] HalfedgeHandle insert_vertex(EdgeHandle e, VertexHandle v);
 
@@ -229,7 +249,7 @@ namespace engine::geometry::graph {
         [[nodiscard]] std::optional<HalfedgeHandle> find_halfedge(VertexHandle start, VertexHandle end) const;
 
         [[nodiscard]] std::optional<EdgeHandle> find_edge(VertexHandle a, VertexHandle b) const;
-        
+
         [[nodiscard]] bool is_collapse_ok(HalfedgeHandle h) const;
 
         void collapse(HalfedgeHandle h);
@@ -240,7 +260,7 @@ namespace engine::geometry::graph {
 
         bool remove_edge(EdgeHandle e);
 
-        [[nodiscard]] HalfedgeHandle split(EdgeHandle e, const math::vec3 &p);
+        [[nodiscard]] HalfedgeHandle split(EdgeHandle e, const math::vec3& p);
 
         [[nodiscard]] HalfedgeHandle split(EdgeHandle e, VertexHandle v);
 
@@ -250,11 +270,11 @@ namespace engine::geometry::graph {
 
         void delete_edge(EdgeHandle e);
 
-        [[nodiscard]] const math::vec3 &position(VertexHandle v) const { return vertex_points_[v]; }
-        [[nodiscard]] math::vec3 &position(VertexHandle v) { return vertex_points_[v]; }
+        [[nodiscard]] const math::vec3& position(VertexHandle v) const { return vertex_points_[v]; }
+        [[nodiscard]] math::vec3& position(VertexHandle v) { return vertex_points_[v]; }
 
-        [[nodiscard]] std::span<const math::vec3> positions() const {return vertex_points_.span();}
-        [[nodiscard]] std::span<math::vec3> positions() {return vertex_points_.span();}
+        [[nodiscard]] std::span<const math::vec3> positions() const { return vertex_points_.span(); }
+        [[nodiscard]] std::span<math::vec3> positions() { return vertex_points_.span(); }
 
         [[nodiscard]] VertexHandle new_vertex();
 
@@ -265,16 +285,17 @@ namespace engine::geometry::graph {
         [[nodiscard]] HalfedgeHandle add_edge(VertexHandle start, VertexHandle end);
 
         [[nodiscard]] bool has_garbage() const noexcept { return has_garbage_; }
+
     private:
         void ensure_properties();
 
-        friend ENGINE_GEOMETRY_API void read(GraphInterface &, const std::filesystem::path &);
+        friend ENGINE_GEOMETRY_API void read(GraphInterface&, const std::filesystem::path&);
 
-        friend ENGINE_GEOMETRY_API void write(const GraphInterface &, const std::filesystem::path &, const IOFlags &);
+        friend ENGINE_GEOMETRY_API void write(const GraphInterface&, const std::filesystem::path&, const IOFlags&);
 
-        Vertices &vertex_props_;
-        Halfedges &halfedge_props_;
-        Edges &edge_props_;
+        Vertices& vertex_props_;
+        Halfedges& halfedge_props_;
+        Edges& edge_props_;
 
         VertexProperty<math::vec3> vertex_points_;
         VertexProperty<VertexConnectivity> vertex_connectivity_;
@@ -289,47 +310,57 @@ namespace engine::geometry::graph {
         bool has_garbage_{false};
     };
 
-    ENGINE_GEOMETRY_API void read(GraphInterface &graph, const std::filesystem::path &path);
+    ENGINE_GEOMETRY_API void read(GraphInterface& graph, const std::filesystem::path& path);
 
-    ENGINE_GEOMETRY_API void write(const GraphInterface &graph,
-                                   const std::filesystem::path &path,
-                                   const IOFlags &flags = {});
+    ENGINE_GEOMETRY_API void write(const GraphInterface& graph,
+                                   const std::filesystem::path& path,
+                                   const IOFlags& flags = {});
 } // namespace engine::geometry::graph
 
 
-namespace engine::geometry {
+namespace engine::geometry
+{
     using GraphInterface = graph::GraphInterface;
 
     using GraphIOFlags = graph::IOFlags;
 
-    struct ENGINE_GEOMETRY_API GraphData {
+    struct ENGINE_GEOMETRY_API GraphData
+    {
         Vertices vertex_props;
         Halfedges halfedge_props;
         Edges edge_props;
     };
 
-    struct ENGINE_GEOMETRY_API Graph {
-        Graph() : data(), interface(data.vertex_props, data.halfedge_props, data.edge_props) {
+    struct ENGINE_GEOMETRY_API Graph
+    {
+        Graph() : data(), interface(data.vertex_props, data.halfedge_props, data.edge_props)
+        {
         }
 
-        Graph(const Graph &rhs) : Graph() {
+        Graph(const Graph& rhs) : Graph()
+        {
             interface = rhs.interface;
         }
 
-        Graph(Graph &&rhs) noexcept : Graph() {
+        Graph(Graph&& rhs) noexcept : Graph()
+        {
             interface = rhs.interface;
             rhs.interface.clear();
         }
 
-        Graph &operator=(const Graph &rhs) {
-            if (this != &rhs) {
+        Graph& operator=(const Graph& rhs)
+        {
+            if (this != &rhs)
+            {
                 interface = rhs.interface;
             }
             return *this;
         }
 
-        Graph &operator=(Graph &&rhs) noexcept {
-            if (this != &rhs) {
+        Graph& operator=(Graph&& rhs) noexcept
+        {
+            if (this != &rhs)
+            {
                 interface = rhs.interface;
                 rhs.interface.clear();
             }

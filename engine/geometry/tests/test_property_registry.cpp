@@ -76,4 +76,3 @@ TEST(PropertyRegistry, AddGetAndDefaults)
     EXPECT_EQ(registry.size(), 0u);
     EXPECT_EQ(registry.property_count(), 0u);
 }
-

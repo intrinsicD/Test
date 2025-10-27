@@ -53,7 +53,7 @@ namespace engine
             return std::get<T>(storage_);
         }
 
-        [[nodiscard]] const T& value() const&
+        [[nodiscard]] const T& value() const &
         {
             assert(has_value());
             return std::get<T>(storage_);
@@ -66,7 +66,7 @@ namespace engine
         }
 
         template <typename U>
-        [[nodiscard]] T value_or(U&& fallback) const&
+        [[nodiscard]] T value_or(U&& fallback) const &
         {
             if (has_value())
             {
@@ -82,7 +82,7 @@ namespace engine
             return std::get<E>(storage_);
         }
 
-        [[nodiscard]] const E& error() const&
+        [[nodiscard]] const E& error() const &
         {
             assert(!has_value());
             return std::get<E>(storage_);
@@ -138,7 +138,7 @@ namespace engine
             return error_.value();
         }
 
-        [[nodiscard]] const E& error() const&
+        [[nodiscard]] const E& error() const &
         {
             assert(!has_value());
             return error_.value();
@@ -154,4 +154,3 @@ namespace engine
         std::optional<E> error_{};
     };
 } // namespace engine
-

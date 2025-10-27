@@ -4,46 +4,54 @@
 
 namespace
 {
-engine::animation::AnimationClip make_translation_clip(float y)
-{
-    engine::animation::AnimationClip clip;
-    clip.name = "test.translation";
-    clip.duration = 1.0;
+    engine::animation::AnimationClip make_translation_clip(float y)
+    {
+        engine::animation::AnimationClip clip;
+        clip.name = "test.translation";
+        clip.duration = 1.0;
 
-    engine::animation::JointTrack track;
-    track.joint_name = "root";
-    track.keyframes.push_back(engine::animation::Keyframe{0.0, engine::animation::JointPose{engine::math::vec3{0.0F, y, 0.0F},
-                                                                                          engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
-                                                                                          engine::math::vec3{1.0F, 1.0F, 1.0F}}});
-    track.keyframes.push_back(engine::animation::Keyframe{1.0, engine::animation::JointPose{engine::math::vec3{0.0F, y, 0.0F},
-                                                                                          engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
-                                                                                          engine::math::vec3{1.0F, 1.0F, 1.0F}}});
+        engine::animation::JointTrack track;
+        track.joint_name = "root";
+        track.keyframes.push_back(engine::animation::Keyframe{
+            0.0, engine::animation::JointPose{
+                engine::math::vec3{0.0F, y, 0.0F},
+                engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
+                engine::math::vec3{1.0F, 1.0F, 1.0F}
+            }
+        });
+        track.keyframes.push_back(engine::animation::Keyframe{
+            1.0, engine::animation::JointPose{
+                engine::math::vec3{0.0F, y, 0.0F},
+                engine::math::quat{1.0F, 0.0F, 0.0F, 0.0F},
+                engine::math::vec3{1.0F, 1.0F, 1.0F}
+            }
+        });
 
-    engine::animation::sort_keyframes(track);
-    clip.tracks.push_back(track);
-    return clip;
-}
+        engine::animation::sort_keyframes(track);
+        clip.tracks.push_back(track);
+        return clip;
+    }
 
-engine::animation::AnimationClip make_pose_clip(float translation_y, float rotation_radians, float scale_x)
-{
-    engine::animation::AnimationClip clip;
-    clip.name = "test.pose";
-    clip.duration = 1.0;
+    engine::animation::AnimationClip make_pose_clip(float translation_y, float rotation_radians, float scale_x)
+    {
+        engine::animation::AnimationClip clip;
+        clip.name = "test.pose";
+        clip.duration = 1.0;
 
-    engine::animation::JointPose pose;
-    pose.translation = engine::math::vec3{0.0F, translation_y, 0.0F};
-    pose.rotation = engine::math::from_angle_axis(rotation_radians, engine::math::vec3{0.0F, 0.0F, 1.0F});
-    pose.scale = engine::math::vec3{scale_x, 1.0F, 1.0F};
+        engine::animation::JointPose pose;
+        pose.translation = engine::math::vec3{0.0F, translation_y, 0.0F};
+        pose.rotation = engine::math::from_angle_axis(rotation_radians, engine::math::vec3{0.0F, 0.0F, 1.0F});
+        pose.scale = engine::math::vec3{scale_x, 1.0F, 1.0F};
 
-    engine::animation::JointTrack track;
-    track.joint_name = "root";
-    track.keyframes.push_back(engine::animation::Keyframe{0.0, pose});
-    track.keyframes.push_back(engine::animation::Keyframe{1.0, pose});
+        engine::animation::JointTrack track;
+        track.joint_name = "root";
+        track.keyframes.push_back(engine::animation::Keyframe{0.0, pose});
+        track.keyframes.push_back(engine::animation::Keyframe{1.0, pose});
 
-    engine::animation::sort_keyframes(track);
-    clip.tracks.push_back(track);
-    return clip;
-}
+        engine::animation::sort_keyframes(track);
+        clip.tracks.push_back(track);
+        return clip;
+    }
 } // namespace
 
 TEST(AnimationBlendTree, EvaluatesLinearBlend)

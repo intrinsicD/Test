@@ -36,7 +36,8 @@ namespace engine::scene::graph
         }
 
         std::unordered_set<entity_type> visited;
-        auto view = registry_->view<const components::Hierarchy>();
+        auto view = registry_->view < const
+        components::Hierarchy > ();
         const auto estimate = static_cast<std::size_t>(view.size());
 
         std::vector<entity_type> stack;
@@ -91,8 +92,8 @@ namespace engine::scene::graph
                 {
                     std::ostringstream message;
                     message << "Cycle detected in scene hierarchy: "
-                            << format_entity(parent) << " is an ancestor of " << format_entity(entity)
-                            << " and appears again in the current traversal";
+                        << format_entity(parent) << " is an ancestor of " << format_entity(entity)
+                        << " and appears again in the current traversal";
                     stack.pop_back();
                     stack_lookup.erase(entity);
                     return make_scene_graph_error(SceneGraphError::cycle_detected, message.str());

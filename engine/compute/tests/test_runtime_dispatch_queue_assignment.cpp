@@ -40,4 +40,3 @@ TEST(RuntimeDispatchQueueAssignment, CaseInsensitiveHashing)
     const auto upper = samples::deterministic_queue_index("PHYSICS", 5U);
     EXPECT_EQ(lower, upper);
 }
-

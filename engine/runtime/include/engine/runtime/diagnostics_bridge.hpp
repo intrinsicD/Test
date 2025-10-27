@@ -8,13 +8,15 @@
 
 #include "engine/scene/validation.hpp"
 
-namespace engine::runtime {
-
+namespace engine::runtime
+{
     class DiagnosticsBridge
     {
     public:
         using HierarchyReportCallback = std::function<void(
-            const scene::validation::HierarchyValidationReport&, double)>;
+                                                      const scene::validation::HierarchyValidationReport&, double
+        )
+        >;
         using CallbackId = std::uint64_t;
 
         static DiagnosticsBridge& instance() noexcept;
@@ -39,6 +41,4 @@ namespace engine::runtime {
         std::size_t last_signature_{0};
         std::size_t last_issue_count_{0};
     };
-
-}  // namespace engine::runtime
-
+} // namespace engine::runtime

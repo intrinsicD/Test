@@ -8,9 +8,10 @@
 
 #include "engine/tools/api.hpp"
 
-namespace engine::tools::profiling {
-
-    struct ProfileEntry {
+namespace engine::tools::profiling
+{
+    struct ProfileEntry
+    {
         std::string name;
         double duration_ms{0.0};
         std::uint64_t call_count{0};
@@ -19,12 +20,14 @@ namespace engine::tools::profiling {
         double average_ms{0.0};
     };
 
-    struct ProfileReport {
+    struct ProfileReport
+    {
         std::vector<ProfileEntry> entries;
         double total_duration_ms{0.0};
     };
 
-    class ENGINE_TOOLS_API Profiler {
+    class ENGINE_TOOLS_API Profiler
+    {
     public:
         Profiler() = default;
         ~Profiler() = default;
@@ -36,7 +39,8 @@ namespace engine::tools::profiling {
         [[nodiscard]] ProfileReport generate_report() const;
 
     private:
-        struct TimingData {
+        struct TimingData
+        {
             std::chrono::steady_clock::time_point start_time;
             double total_ms{0.0};
             double min_ms{std::numeric_limits<double>::max()};
@@ -48,7 +52,8 @@ namespace engine::tools::profiling {
         std::unordered_map<std::string, TimingData> timings_;
     };
 
-    class ENGINE_TOOLS_API ScopedProfile {
+    class ENGINE_TOOLS_API ScopedProfile
+    {
     public:
         ScopedProfile(Profiler& profiler, std::string_view name);
         ~ScopedProfile();
@@ -63,11 +68,9 @@ namespace engine::tools::profiling {
 
     // Global profiler instance
     ENGINE_TOOLS_API Profiler& global_profiler();
-
-}  // namespace engine::tools::profiling
+} // namespace engine::tools::profiling
 
 // Convenience macro for scoped profiling
 #define PROFILE_SCOPE(name) \
 engine::tools::profiling::ScopedProfile profile_scope_##__LINE__( \
 engine::tools::profiling::global_profiler(), name)
-

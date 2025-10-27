@@ -12,4 +12,3 @@ namespace engine::geometry::deform
                                      std::span<const math::Transform<float>> skinning_transforms,
                                      SurfaceMesh& mesh);
 }
-

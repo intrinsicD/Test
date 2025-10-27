@@ -28,7 +28,8 @@ namespace engine::geometry::mesh
             }
 
             std::string extension = path.extension().string();
-            std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) {
+            std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c)
+            {
                 return static_cast<char>(std::tolower(c));
             });
 
@@ -50,15 +51,16 @@ namespace engine::geometry::mesh
             if (index_token.empty())
             {
                 throw std::runtime_error("Missing vertex index in OBJ face on line " + std::to_string(line_number) +
-                                         " of \"" + path.string() + "\"");
+                    " of \"" + path.string() + "\"");
             }
 
             int value = 0;
             const auto parsed = std::from_chars(index_token.data(), index_token.data() + index_token.size(), value);
             if (parsed.ec != std::errc{})
             {
-                throw std::runtime_error("Invalid vertex index \"" + std::string(index_token) + "\" in OBJ face on line " +
-                                         std::to_string(line_number) + " of \"" + path.string() + "\"");
+                throw std::runtime_error(
+                    "Invalid vertex index \"" + std::string(index_token) + "\" in OBJ face on line " +
+                    std::to_string(line_number) + " of \"" + path.string() + "\"");
             }
 
             std::ptrdiff_t resolved = 0;
@@ -72,15 +74,16 @@ namespace engine::geometry::mesh
             }
             else
             {
-                throw std::runtime_error("OBJ indices are 1-based; encountered zero on line " + std::to_string(line_number) +
-                                         " of \"" + path.string() + "\"");
+                throw std::runtime_error(
+                    "OBJ indices are 1-based; encountered zero on line " + std::to_string(line_number) +
+                    " of \"" + path.string() + "\"");
             }
 
             if (resolved < 0 || resolved >= static_cast<std::ptrdiff_t>(vertex_count))
             {
                 throw std::runtime_error("OBJ face on line " + std::to_string(line_number) + " of \"" + path.string() +
-                                         "\" references vertex " + std::to_string(value) +
-                                         " outside the available range");
+                    "\" references vertex " + std::to_string(value) +
+                    " outside the available range");
             }
 
             return static_cast<std::size_t>(resolved);
@@ -124,7 +127,7 @@ namespace engine::geometry::mesh
                     if (!(line_stream >> x >> y >> z))
                     {
                         throw std::runtime_error("Invalid vertex specification on line " + std::to_string(line_number) +
-                                                 " of \"" + path.string() + "\"");
+                            " of \"" + path.string() + "\"");
                     }
 
                     // Consume optional homogeneous coordinate if present.
@@ -140,7 +143,7 @@ namespace engine::geometry::mesh
                     if (positions.empty())
                     {
                         throw std::runtime_error("Encountered face before any vertices in OBJ file \"" + path.string() +
-                                                 "\"");
+                            "\"");
                     }
 
                     std::vector<std::size_t> polygon;
@@ -150,16 +153,17 @@ namespace engine::geometry::mesh
                     while (line_stream >> vertex_token)
                     {
                         const std::size_t index = parse_obj_vertex_index(vertex_token,
-                                                                          positions.size(),
-                                                                          line_number,
-                                                                          path);
+                                                                         positions.size(),
+                                                                         line_number,
+                                                                         path);
                         polygon.push_back(index);
                     }
 
                     if (polygon.size() < 3)
                     {
-                        throw std::runtime_error("OBJ face on line " + std::to_string(line_number) + " of \"" + path.string() +
-                                                 "\" contains fewer than three vertices");
+                        throw std::runtime_error(
+                            "OBJ face on line " + std::to_string(line_number) + " of \"" + path.string() +
+                            "\" contains fewer than three vertices");
                     }
 
                     faces.emplace_back(std::move(polygon));
@@ -196,7 +200,7 @@ namespace engine::geometry::mesh
                 if (!mesh.add_face(face_vertices))
                 {
                     throw std::runtime_error("Failed to construct face while importing OBJ file \"" + path.string() +
-                                             "\"; the polygon may be non-manifold");
+                        "\"; the polygon may be non-manifold");
                 }
             }
         }
@@ -256,8 +260,9 @@ namespace engine::geometry::mesh
                         const auto mapped = index_map[vertex.index()];
                         if (mapped == std::numeric_limits<std::size_t>::max())
                         {
-                            throw std::runtime_error("Cannot export OBJ because a face references a deleted vertex in \"" +
-                                                     path.string() + "\"");
+                            throw std::runtime_error(
+                                "Cannot export OBJ because a face references a deleted vertex in \"" +
+                                path.string() + "\"");
                         }
                         polygon_indices.push_back(mapped);
                     }
@@ -290,11 +295,11 @@ namespace engine::geometry::mesh
         const IOFlags::Format format = resolve_format(IOFlags::Format::kAuto, path);
         switch (format)
         {
-            case IOFlags::Format::kOBJ:
-                read_obj(mesh, path);
-                break;
-            default:
-                throw std::runtime_error("Unsupported mesh format for file \"" + path.string() + "\"");
+        case IOFlags::Format::kOBJ:
+            read_obj(mesh, path);
+            break;
+        default:
+            throw std::runtime_error("Unsupported mesh format for file \"" + path.string() + "\"");
         }
     }
 
@@ -305,11 +310,11 @@ namespace engine::geometry::mesh
         const IOFlags::Format format = resolve_format(flags.format, path);
         switch (format)
         {
-            case IOFlags::Format::kOBJ:
-                write_obj(mesh, path, flags);
-                break;
-            default:
-                throw std::runtime_error("Unsupported mesh format for file \"" + path.string() + "\"");
+        case IOFlags::Format::kOBJ:
+            write_obj(mesh, path, flags);
+            break;
+        default:
+            throw std::runtime_error("Unsupported mesh format for file \"" + path.string() + "\"");
         }
     }
 } // namespace engine::geometry::mesh

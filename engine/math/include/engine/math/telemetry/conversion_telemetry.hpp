@@ -104,7 +104,8 @@ namespace engine::math::telemetry
             metrics.last_relative_error = max_relative_error;
         }
 
-        void record_matrix(std::size_t rows, std::size_t columns, double max_abs_error, double max_relative_error) noexcept
+        void record_matrix(std::size_t rows, std::size_t columns, double max_abs_error,
+                           double max_relative_error) noexcept
         {
             std::lock_guard<std::mutex> lock(mutex_);
             detail::MatrixMetrics& metrics = matrix_metrics_[detail::pack_matrix_key(rows, columns)];
@@ -140,9 +141,11 @@ namespace engine::math::telemetry
                 snapshot.vectors.push_back(entry);
             }
 
-            std::sort(snapshot.vectors.begin(), snapshot.vectors.end(), [](const ConversionVectorEntry& lhs, const ConversionVectorEntry& rhs) {
-                return lhs.dimension < rhs.dimension;
-            });
+            std::sort(snapshot.vectors.begin(), snapshot.vectors.end(),
+                      [](const ConversionVectorEntry& lhs, const ConversionVectorEntry& rhs)
+                      {
+                          return lhs.dimension < rhs.dimension;
+                      });
 
             snapshot.matrices.reserve(matrix_metrics_.size());
             for (const auto& [key, metrics] : matrix_metrics_)
@@ -164,13 +167,15 @@ namespace engine::math::telemetry
                 snapshot.matrices.push_back(entry);
             }
 
-            std::sort(snapshot.matrices.begin(), snapshot.matrices.end(), [](const ConversionMatrixEntry& lhs, const ConversionMatrixEntry& rhs) {
-                if (lhs.rows == rhs.rows)
-                {
-                    return lhs.columns < rhs.columns;
-                }
-                return lhs.rows < rhs.rows;
-            });
+            std::sort(snapshot.matrices.begin(), snapshot.matrices.end(),
+                      [](const ConversionMatrixEntry& lhs, const ConversionMatrixEntry& rhs)
+                      {
+                          if (lhs.rows == rhs.rows)
+                          {
+                              return lhs.columns < rhs.columns;
+                          }
+                          return lhs.rows < rhs.rows;
+                      });
 
             return snapshot;
         }
@@ -211,7 +216,8 @@ namespace engine::math::telemetry
     }
 
     template <typename T, std::size_t Rows, std::size_t Columns>
-    inline void RecordMatrixRoundTrip(const Matrix<T, Rows, Columns>& original, const Matrix<T, Rows, Columns>& round_trip) noexcept
+    inline void RecordMatrixRoundTrip(const Matrix<T, Rows, Columns>& original,
+                                      const Matrix<T, Rows, Columns>& round_trip) noexcept
     {
         double max_abs_error = 0.0;
         double max_relative_error = 0.0;

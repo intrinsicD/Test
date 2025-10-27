@@ -19,9 +19,9 @@ namespace engine::rendering
         public:
             ForwardGeometryPass(FrameGraphResourceHandle color, FrameGraphResourceHandle depth)
                 : RenderPass("ForwardGeometry",
-                              QueueType::Graphics,
-                              PassPhase::Geometry,
-                              ValidationSeverity::Error),
+                             QueueType::Graphics,
+                             PassPhase::Geometry,
+                             ValidationSeverity::Error),
                   color_(color),
                   depth_(depth)
             {
@@ -41,7 +41,9 @@ namespace engine::rendering
                 using engine::rendering::components::RenderGeometry;
                 using engine::scene::components::WorldTransform;
 
-                auto view = registry.view<WorldTransform, RenderGeometry>();
+                auto view = registry.view < WorldTransform, RenderGeometry
+                >
+                ();
                 draw_commands_.clear();
 
                 for (auto [entity, world, geometry] : view.each())
@@ -63,7 +65,7 @@ namespace engine::rendering
                         context.render.resources.require_graph(*graph);
                     }
                     else if (const auto* point_cloud = geometry.point_cloud();
-                             point_cloud != nullptr && !point_cloud->empty())
+                        point_cloud != nullptr && !point_cloud->empty())
                     {
                         if (!engine::assets::validate_handle(*point_cloud, "ForwardGeometryPass::require_point_cloud"))
                         {

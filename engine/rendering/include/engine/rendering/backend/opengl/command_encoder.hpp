@@ -59,10 +59,9 @@ namespace engine::rendering::backend::opengl
             const CommandEncoderDescriptor& descriptor) override;
 
         void end_encoder(const CommandEncoderDescriptor& descriptor,
-                          std::unique_ptr<CommandEncoder> encoder) override;
+                         std::unique_ptr<CommandEncoder> encoder) override;
 
     private:
         OpenGLGpuResourceProvider* provider_;
     };
 }
-

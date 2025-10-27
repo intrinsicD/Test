@@ -82,7 +82,8 @@ TEST(AssetLoadFuture, ReportsProgressAndResult)
 
     engine::assets::MeshHandle handle{std::string{"mesh/test"}};
 
-    std::thread worker([&]() {
+    std::thread worker([&]()
+    {
         std::this_thread::sleep_for(10ms);
         promise.set_ready(handle);
     });
@@ -104,7 +105,8 @@ TEST(AssetLoadFuture, CancelRequestIsPropagated)
     future.cancel();
     EXPECT_TRUE(future.cancellation_requested());
 
-    std::thread worker([&]() {
+    std::thread worker([&]()
+    {
         EXPECT_TRUE(promise.cancellation_requested());
         promise.set_cancelled();
     });
@@ -121,7 +123,8 @@ TEST(AssetLoadFuture, FailurePropagatesErrors)
 {
     auto [promise, future] = engine::assets::detail::make_asset_load_channel<engine::assets::MeshHandle>();
 
-    std::thread worker([&]() {
+    std::thread worker([&]()
+    {
         promise.set_loading();
         promise.set_failed(engine::assets::make_asset_load_error(
             engine::assets::AssetLoadErrorCategory::DecodeError, "decode failure"));
@@ -140,7 +143,9 @@ class MeshCacheAsyncTest : public ::testing::Test
 protected:
     void SetUp() override
     {
-        engine::core::threading::IoThreadPool::instance().configure({.worker_count = 2, .queue_capacity = 8, .enable = true});
+        engine::core::threading::IoThreadPool::instance().configure({
+            .worker_count = 2, .queue_capacity = 8, .enable = true
+        });
     }
 
     void TearDown() override
@@ -319,7 +324,8 @@ TEST(AssetStreamingTelemetry, RecordsCancellationTransition)
         "cancel",
         engine::assets::AssetLoadPriority::Normal,
         false,
-        [](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>& promise) {
+        [](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>& promise)
+        {
             engine::assets::MeshHandle handle{std::string{"cancel"}};
             for (int i = 0; i < 50; ++i)
             {
@@ -366,7 +372,8 @@ TEST(AssetStreamingTelemetry, RecordsRejectedEnqueue)
         "reject",
         engine::assets::AssetLoadPriority::Normal,
         false,
-        [](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>&) {
+        [](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>&)
+        {
             engine::assets::MeshHandle handle{std::string{"reject"}};
             return engine::assets::AssetLoadResult<engine::assets::MeshHandle>{handle};
         },
@@ -407,7 +414,8 @@ TEST(AssetAsyncQueue, CancelPendingRequestResolvesFuture)
         engine::assets::AssetLoadPriority::High,
         false,
         [&release_blocker, &blocker_started](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>&)
-            -> engine::assets::AssetLoadResult<engine::assets::MeshHandle> {
+        -> engine::assets::AssetLoadResult<engine::assets::MeshHandle>
+        {
             blocker_started.set_value();
             release_blocker.get_future().wait();
             engine::assets::MeshHandle handle{std::string{"blocking"}};
@@ -424,7 +432,8 @@ TEST(AssetAsyncQueue, CancelPendingRequestResolvesFuture)
         engine::assets::AssetLoadPriority::Low,
         false,
         [&cancelled_task_executed](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>&)
-            -> engine::assets::AssetLoadResult<engine::assets::MeshHandle> {
+        -> engine::assets::AssetLoadResult<engine::assets::MeshHandle>
+        {
             cancelled_task_executed.store(true, std::memory_order_relaxed);
             engine::assets::MeshHandle handle{std::string{"cancelled"}};
             return engine::assets::AssetLoadResult<engine::assets::MeshHandle>{handle};
@@ -460,7 +469,8 @@ TEST(AssetAsyncQueue, CancelDuringExecutionResolvesAsCancelled)
         engine::assets::AssetLoadPriority::Normal,
         false,
         [&task_started, &allow_exit](engine::assets::detail::AssetLoadPromise<engine::assets::MeshHandle>& promise)
-            -> engine::assets::AssetLoadResult<engine::assets::MeshHandle> {
+        -> engine::assets::AssetLoadResult<engine::assets::MeshHandle>
+        {
             task_started.set_value();
             allow_exit.get_future().wait();
 

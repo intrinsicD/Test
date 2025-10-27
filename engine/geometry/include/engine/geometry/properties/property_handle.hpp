@@ -9,77 +9,85 @@
 #include <utility>
 #include <vector>
 
-namespace engine::geometry {
+namespace engine::geometry
+{
     using PropertyIndex = std::uint32_t;
     constexpr PropertyIndex kInvalidPropertyIndex = std::numeric_limits<PropertyIndex>::max();
 
-    class PropertyHandle {
+    class PropertyHandle
+    {
     public:
         using index_type = PropertyIndex;
 
         constexpr PropertyHandle() noexcept = default;
 
-        explicit constexpr PropertyHandle(index_type idx) noexcept : index_(idx) {
+        explicit constexpr PropertyHandle(index_type idx) noexcept : index_(idx)
+        {
         }
 
-        [[nodiscard]] constexpr index_type &index() noexcept { return index_; }
+        [[nodiscard]] constexpr index_type& index() noexcept { return index_; }
         [[nodiscard]] constexpr index_type index() const noexcept { return index_; }
         [[nodiscard]] constexpr bool is_valid() const noexcept { return index_ != kInvalidPropertyIndex; }
         constexpr void reset() noexcept { index_ = kInvalidPropertyIndex; }
 
-        [[nodiscard]] auto operator<=>(const PropertyHandle &) const noexcept = default;
+        [[nodiscard]] auto operator<=>(const PropertyHandle&) const noexcept = default;
 
     protected:
         index_type index_{kInvalidPropertyIndex};
     };
 
-    class VertexHandle final : public PropertyHandle {
+    class VertexHandle final : public PropertyHandle
+    {
     public:
         using PropertyHandle::PropertyHandle;
     };
 
-    class HalfedgeHandle final : public PropertyHandle {
+    class HalfedgeHandle final : public PropertyHandle
+    {
     public:
         using PropertyHandle::PropertyHandle;
     };
 
-    class EdgeHandle final : public PropertyHandle {
+    class EdgeHandle final : public PropertyHandle
+    {
     public:
         using PropertyHandle::PropertyHandle;
     };
 
-    class FaceHandle final : public PropertyHandle {
+    class FaceHandle final : public PropertyHandle
+    {
     public:
         using PropertyHandle::PropertyHandle;
     };
 
-    class NodeHandle final : public PropertyHandle {
+    class NodeHandle final : public PropertyHandle
+    {
     public:
         using PropertyHandle::PropertyHandle;
     };
 
-    std::ostream &operator<<(std::ostream &os, VertexHandle v);
+    std::ostream& operator<<(std::ostream& os, VertexHandle v);
 
-    std::ostream &operator<<(std::ostream &os, HalfedgeHandle h);
+    std::ostream& operator<<(std::ostream& os, HalfedgeHandle h);
 
-    std::ostream &operator<<(std::ostream &os, EdgeHandle e);
+    std::ostream& operator<<(std::ostream& os, EdgeHandle e);
 
-    std::ostream &operator<<(std::ostream &os, FaceHandle f);
+    std::ostream& operator<<(std::ostream& os, FaceHandle f);
 
-    std::ostream &operator<<(std::ostream &os, NodeHandle n);
+    std::ostream& operator<<(std::ostream& os, NodeHandle n);
 
-    template<class T>
+    template <class T>
     using VertexProperty = HandleProperty<VertexHandle, T>;
 
-    template<class T>
+    template <class T>
     using HalfedgeProperty = HandleProperty<HalfedgeHandle, T>;
 
-    template<class T>
+    template <class T>
     using EdgeProperty = HandleProperty<EdgeHandle, T>;
 
-    template<class T>
+    template <class T>
     using FaceProperty = HandleProperty<FaceHandle, T>;
 
-    template<class T>
+    template <class T>
     using NodeProperty = HandleProperty<NodeHandle, T>;
 }

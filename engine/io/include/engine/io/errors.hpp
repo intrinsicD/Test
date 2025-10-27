@@ -106,7 +106,7 @@ namespace engine::io
     };
 
     [[nodiscard]] inline AnimationIoErrorCode make_animation_io_error(AnimationIoError error,
-                                                                       std::string message = {})
+                                                                      std::string message = {})
     {
         AnimationIoErrorCode code{"engine.io", error, to_string(error)};
         if (!message.empty())
@@ -119,4 +119,3 @@ namespace engine::io
     template <typename T>
     using AnimationIoResult = engine::Result<T, AnimationIoErrorCode>;
 } // namespace engine::io
-

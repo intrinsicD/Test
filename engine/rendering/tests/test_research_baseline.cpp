@@ -31,11 +31,25 @@ namespace engine::rendering::tests
         class NullProvider final : public RenderResourceProvider
         {
         public:
-            void require_mesh(const assets::MeshHandle&) override {}
-            void require_graph(const assets::GraphHandle&) override {}
-            void require_point_cloud(const assets::PointCloudHandle&) override {}
-            void require_material(const assets::MaterialHandle&) override {}
-            void require_shader(const assets::ShaderHandle&) override {}
+            void require_mesh(const assets::MeshHandle&) override
+            {
+            }
+
+            void require_graph(const assets::GraphHandle&) override
+            {
+            }
+
+            void require_point_cloud(const assets::PointCloudHandle&) override
+            {
+            }
+
+            void require_material(const assets::MaterialHandle&) override
+            {
+            }
+
+            void require_shader(const assets::ShaderHandle&) override
+            {
+            }
         };
     }
 
@@ -156,8 +170,10 @@ namespace engine::rendering::tests
         resources::RecordingGpuResourceProvider device_provider{};
         tests::RecordingScheduler scheduler{};
         tests::RecordingCommandEncoderProvider command_encoders{};
-        RenderExecutionContext context{provider, materials, RenderView{scene},
-                                       scheduler, device_provider, command_encoders};
+        RenderExecutionContext context{
+            provider, materials, RenderView{scene},
+            scheduler, device_provider, command_encoders
+        };
 
         graph.execute(context);
 
@@ -165,7 +181,8 @@ namespace engine::rendering::tests
         EXPECT_EQ(snapshot.active_mode, ResearchShadingMode::Deferred);
         EXPECT_GE(snapshot.mode_selection_counts[1], 1U);
 
-        const auto overlay_index = [](ResearchOverlay overlay) {
+        const auto overlay_index = [](ResearchOverlay overlay)
+        {
             return static_cast<std::size_t>(overlay);
         };
 
@@ -178,9 +195,11 @@ namespace engine::rendering::tests
         EXPECT_EQ(snapshot.overlay_selection_counts[overlay_index(ResearchOverlay::Uv)], 0U);
         EXPECT_GE(snapshot.overlay_selection_counts[overlay_index(ResearchOverlay::Material)], 1U);
 
-        const auto find_pass = [&](std::string_view name) {
+        const auto find_pass = [&](std::string_view name)
+        {
             return std::find_if(snapshot.passes.begin(), snapshot.passes.end(),
-                                [&](const ResearchBaselinePassTelemetry& telemetry) {
+                                [&](const ResearchBaselinePassTelemetry& telemetry)
+                                {
                                     return telemetry.name == name;
                                 });
         };

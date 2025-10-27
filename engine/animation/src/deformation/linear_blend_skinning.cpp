@@ -9,7 +9,7 @@ namespace engine::animation::skinning
     namespace
     {
         [[nodiscard]] JointPose joint_pose_from_binding(const AnimationRigPose& pose,
-                                                         std::string_view joint_name) noexcept
+                                                        std::string_view joint_name) noexcept
         {
             if (const auto* resolved = pose.find(joint_name))
             {
@@ -107,4 +107,3 @@ namespace engine::animation::skinning
         }
     }
 } // namespace engine::animation::skinning
-

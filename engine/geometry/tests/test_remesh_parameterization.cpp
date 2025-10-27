@@ -240,9 +240,9 @@ TEST(RemeshParameterizationTests, RepackExistingParameterizationNormalizesIsland
         for (std::size_t j = i + 1; j < charts.size(); ++j)
         {
             const float overlap_x = std::min(charts[i].max_uv[0], charts[j].max_uv[0]) -
-                                    std::max(charts[i].min_uv[0], charts[j].min_uv[0]);
+                std::max(charts[i].min_uv[0], charts[j].min_uv[0]);
             const float overlap_y = std::min(charts[i].max_uv[1], charts[j].max_uv[1]) -
-                                    std::max(charts[i].min_uv[1], charts[j].min_uv[1]);
+                std::max(charts[i].min_uv[1], charts[j].min_uv[1]);
             EXPECT_TRUE(overlap_x <= 1e-4F || overlap_y <= 1e-4F);
         }
     }
@@ -315,6 +315,6 @@ TEST(RemeshParameterizationTests, DisallowingReuseForcesRepack)
     EXPECT_TRUE(moved);
     EXPECT_NEAR(seam_sum, output.parameterization.total_seam_length, 1e-3F);
     const float translation_delta = std::abs(charts[0].translation[0] - charts[1].translation[0]) +
-                                    std::abs(charts[0].translation[1] - charts[1].translation[1]);
+        std::abs(charts[0].translation[1] - charts[1].translation[1]);
     EXPECT_GT(translation_delta, 1e-4F);
 }

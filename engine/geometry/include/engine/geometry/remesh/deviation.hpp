@@ -21,4 +21,3 @@ namespace engine::geometry
         const SurfaceMesh& reference,
         const SurfaceMesh& candidate) noexcept;
 }
-

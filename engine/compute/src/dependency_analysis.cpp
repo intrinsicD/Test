@@ -4,98 +4,100 @@
 #include <cstdint>
 #include <vector>
 
-namespace engine::compute {
-namespace {
-    enum class VisitState : std::uint8_t {
-        Unvisited,
-        Visiting,
-        Visited,
-    };
-
-    void append_cycle_path(std::vector<kernel_id>::const_iterator begin,
-                           std::vector<kernel_id>::const_iterator end,
-                           std::vector<kernel_id>& destination)
+namespace engine::compute
+{
+    namespace
     {
-        destination.assign(begin, end);
-        if (!destination.empty())
+        enum class VisitState : std::uint8_t
         {
-            destination.push_back(*begin);
-        }
-    }
+            Unvisited,
+            Visiting,
+            Visited,
+        };
 
-    void depth_first_search(const DependencyGraph& graph,
-                            kernel_id node,
-                            std::vector<VisitState>& state,
-                            std::vector<kernel_id>& stack,
-                            CycleDetectionResult& result)
-    {
-        if (result.has_cycle)
+        void append_cycle_path(std::vector<kernel_id>::const_iterator begin,
+                               std::vector<kernel_id>::const_iterator end,
+                               std::vector<kernel_id>& destination)
         {
-            return;
-        }
-
-        state[node] = VisitState::Visiting;
-        stack.push_back(node);
-
-        const auto& metadata = graph.nodes[node];
-        for (const auto dependency : metadata.dependencies)
-        {
-            if (dependency >= graph.nodes.size())
+            destination.assign(begin, end);
+            if (!destination.empty())
             {
-                continue;
+                destination.push_back(*begin);
+            }
+        }
+
+        void depth_first_search(const DependencyGraph& graph,
+                                kernel_id node,
+                                std::vector<VisitState>& state,
+                                std::vector<kernel_id>& stack,
+                                CycleDetectionResult& result)
+        {
+            if (result.has_cycle)
+            {
+                return;
             }
 
-            const auto dependency_state = state[dependency];
-            if (dependency_state == VisitState::Unvisited)
+            state[node] = VisitState::Visiting;
+            stack.push_back(node);
+
+            const auto& metadata = graph.nodes[node];
+            for (const auto dependency : metadata.dependencies)
             {
-                depth_first_search(graph, dependency, state, stack, result);
-                if (result.has_cycle)
+                if (dependency >= graph.nodes.size())
                 {
+                    continue;
+                }
+
+                const auto dependency_state = state[dependency];
+                if (dependency_state == VisitState::Unvisited)
+                {
+                    depth_first_search(graph, dependency, state, stack, result);
+                    if (result.has_cycle)
+                    {
+                        return;
+                    }
+                }
+                else if (dependency_state == VisitState::Visiting)
+                {
+                    result.has_cycle = true;
+                    const auto it = std::find(stack.begin(), stack.end(), dependency);
+                    if (it != stack.end())
+                    {
+                        append_cycle_path(it, stack.end(), result.cycle);
+                    }
+                    else
+                    {
+                        result.cycle = {dependency, dependency};
+                    }
                     return;
                 }
             }
-            else if (dependency_state == VisitState::Visiting)
-            {
-                result.has_cycle = true;
-                const auto it = std::find(stack.begin(), stack.end(), dependency);
-                if (it != stack.end())
-                {
-                    append_cycle_path(it, stack.end(), result.cycle);
-                }
-                else
-                {
-                    result.cycle = {dependency, dependency};
-                }
-                return;
-            }
+
+            stack.pop_back();
+            state[node] = VisitState::Visited;
         }
+    } // namespace
 
-        stack.pop_back();
-        state[node] = VisitState::Visited;
-    }
-}  // namespace
-
-CycleDetectionResult detect_cycles(const DependencyGraph& graph) noexcept
-{
-    CycleDetectionResult result{};
-    const auto node_count = graph.nodes.size();
-    std::vector<VisitState> state(node_count, VisitState::Unvisited);
-    std::vector<kernel_id> stack;
-    stack.reserve(node_count);
-
-    for (kernel_id node = 0; node < node_count; ++node)
+    CycleDetectionResult detect_cycles(const DependencyGraph& graph) noexcept
     {
-        if (state[node] == VisitState::Unvisited)
+        CycleDetectionResult result{};
+        const auto node_count = graph.nodes.size();
+        std::vector<VisitState> state(node_count, VisitState::Unvisited);
+        std::vector<kernel_id> stack;
+        stack.reserve(node_count);
+
+        for (kernel_id node = 0; node < node_count; ++node)
         {
-            depth_first_search(graph, node, state, stack, result);
-            if (result.has_cycle)
+            if (state[node] == VisitState::Unvisited)
             {
-                break;
+                depth_first_search(graph, node, state, stack, result);
+                if (result.has_cycle)
+                {
+                    break;
+                }
             }
         }
+
+        return result;
     }
-
-    return result;
-}
-
-}  // namespace engine::compute
+} // namespace engine::compute

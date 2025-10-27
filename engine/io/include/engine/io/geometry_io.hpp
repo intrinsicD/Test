@@ -105,4 +105,3 @@ namespace engine::io
     ENGINE_IO_API std::ostream& operator<<(std::ostream& stream, PointCloudFileFormat format);
     ENGINE_IO_API std::ostream& operator<<(std::ostream& stream, GraphFileFormat format);
 } // namespace engine::io
-

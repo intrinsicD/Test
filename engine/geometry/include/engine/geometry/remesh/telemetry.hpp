@@ -110,4 +110,3 @@ namespace engine::geometry
         std::array<std::string, remesh_telemetry_mode_count()> last_job_labels_{};
     };
 } // namespace engine::geometry
-

@@ -1,26 +1,26 @@
 set(ENGINE_RENDERING_TEST_SOURCES
-    test_module.cpp
-    test_frame_graph.cpp
-    test_forward_pipeline.cpp
-    test_opengl_command_encoder.cpp
-    test_opengl_resource_provider.cpp
-    test_research_baseline.cpp
-    test_backend_adapters.cpp
-    test_backend_validation.cpp
+        test_module.cpp
+        test_frame_graph.cpp
+        test_forward_pipeline.cpp
+        test_opengl_command_encoder.cpp
+        test_opengl_resource_provider.cpp
+        test_research_baseline.cpp
+        test_backend_adapters.cpp
+        test_backend_validation.cpp
 )
 
-if(ENGINE_RENDERING_VULKAN_AVAILABLE)
+if (ENGINE_RENDERING_VULKAN_AVAILABLE)
     list(APPEND ENGINE_RENDERING_TEST_SOURCES
-        test_vulkan_resource_translation.cpp
+            test_vulkan_resource_translation.cpp
     )
-endif()
+endif ()
 
 add_executable(engine_rendering_tests
-    ${ENGINE_RENDERING_TEST_SOURCES}
+        ${ENGINE_RENDERING_TEST_SOURCES}
 )
 
 target_link_libraries(engine_rendering_tests
-    PRIVATE
+        PRIVATE
         engine::project_options
         engine_rendering
         GTest::gtest_main

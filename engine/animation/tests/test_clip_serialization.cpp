@@ -21,13 +21,21 @@ namespace
 
         JointTrack root_track;
         root_track.joint_name = "root";
-        root_track.keyframes.push_back({0.0, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
-        root_track.keyframes.push_back({1.0, JointPose{vec3{0.0F, 1.0F, 0.0F}, quat{0.0F, 0.0F, 1.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
+        root_track.keyframes.push_back({
+            0.0, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}
+        });
+        root_track.keyframes.push_back({
+            1.0, JointPose{vec3{0.0F, 1.0F, 0.0F}, quat{0.0F, 0.0F, 1.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}
+        });
 
         JointTrack arm_track;
         arm_track.joint_name = "arm";
-        arm_track.keyframes.push_back({0.0, JointPose{vec3{1.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
-        arm_track.keyframes.push_back({1.0, JointPose{vec3{1.0F, 0.5F, 0.0F}, quat{0.70710677F, 0.0F, 0.70710677F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
+        arm_track.keyframes.push_back({
+            0.0, JointPose{vec3{1.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}
+        });
+        arm_track.keyframes.push_back({
+            1.0, JointPose{vec3{1.0F, 0.5F, 0.0F}, quat{0.70710677F, 0.0F, 0.70710677F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}
+        });
 
         clip.tracks.push_back(std::move(root_track));
         clip.tracks.push_back(std::move(arm_track));
@@ -47,9 +55,10 @@ namespace
                                       std::size_t track,
                                       std::size_t keyframe)
     {
-        const auto it = std::find_if(errors.begin(), errors.end(), [&](const ClipValidationError& error) {
+        const auto it = std::find_if(errors.begin(), errors.end(), [&](const ClipValidationError& error)
+        {
             return error.code == code && error.joint_name == joint && error.track_index == track
-                   && error.keyframe_index == keyframe;
+                && error.keyframe_index == keyframe;
         });
         return it != errors.end();
     }
@@ -98,12 +107,20 @@ TEST(AnimationClipValidation, DetectsTrackAndKeyframeIssues)
 
     JointTrack malformed;
     malformed.joint_name = "root";
-    malformed.keyframes.push_back({-0.5, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{0.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
-    malformed.keyframes.push_back({0.0,
-                                   JointPose{vec3{std::numeric_limits<float>::infinity(), 0.0F, 0.0F},
-                                             quat{std::numeric_limits<float>::quiet_NaN(), 0.0F, 0.0F, 1.0F},
-                                             vec3{1.0F, std::numeric_limits<float>::quiet_NaN(), 1.0F}}});
-    malformed.keyframes.push_back({0.0, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}});
+    malformed.keyframes.push_back({
+        -0.5, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{0.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}
+    });
+    malformed.keyframes.push_back({
+        0.0,
+        JointPose{
+            vec3{std::numeric_limits<float>::infinity(), 0.0F, 0.0F},
+            quat{std::numeric_limits<float>::quiet_NaN(), 0.0F, 0.0F, 1.0F},
+            vec3{1.0F, std::numeric_limits<float>::quiet_NaN(), 1.0F}
+        }
+    });
+    malformed.keyframes.push_back({
+        0.0, JointPose{vec3{0.0F, 0.0F, 0.0F}, quat{1.0F, 0.0F, 0.0F, 0.0F}, vec3{1.0F, 1.0F, 1.0F}}
+    });
     clip.tracks.push_back(malformed);
 
     const auto errors = validate_clip(clip);

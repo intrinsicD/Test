@@ -283,7 +283,8 @@ namespace
         compute::ClockConfiguration configuration{};
         configuration.name = "gpu_simulated_clock";
         configuration.domain = compute::TimingDomain::Gpu;
-        configuration.measure = [](const compute::kernel_callback& callback) -> double {
+        configuration.measure = [](const compute::kernel_callback& callback) -> double
+        {
             const auto start = Clock::now();
             if (callback)
             {
@@ -319,7 +320,8 @@ namespace
             auto dispatcher = compute::make_cuda_dispatcher();
             dispatcher->set_clock(make_gpu_clock_configuration());
             dispatcher->clear();
-            dispatcher->add_kernel("animation.sample_clip.gpu", [&controller, &pose]() {
+            dispatcher->add_kernel("animation.sample_clip.gpu", [&controller, &pose]()
+            {
                 pose = animation::evaluate_controller(controller);
             });
 
@@ -536,7 +538,7 @@ namespace
         const std::size_t track_count = clip.tracks.size();
         const std::size_t rig_joints = options.rig_joints.value_or(std::max(track_count, capture.pose_joint_count));
         const bool jitter_exceeded = options.jitter_budget_ms >= 0.0
-                                     && capture.summary.stddev_ms > options.jitter_budget_ms;
+            && capture.summary.stddev_ms > options.jitter_budget_ms;
         const std::string_view scenario_name = to_string(options.scenario);
         const char* task_id = options.scenario == Scenario::GpuAsync ? "AN-230.2" : "AN-230.1";
 
@@ -625,8 +627,8 @@ int main(int argc, char** argv)
         }
 
         const CaptureResult capture = options.scenario == Scenario::GpuAsync
-                                           ? capture_gpu_frames(clip, options.frames, options.timestep)
-                                           : capture_cpu_frames(clip, options.frames, options.timestep);
+                                          ? capture_gpu_frames(clip, options.frames, options.timestep)
+                                          : capture_cpu_frames(clip, options.frames, options.timestep);
         const double fps = capture.summary.mean_ms > 0.0 ? 1000.0 / capture.summary.mean_ms : 0.0;
 
         std::cout << "Animation Benchmark" << '\n';

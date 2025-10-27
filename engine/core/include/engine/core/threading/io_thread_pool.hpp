@@ -13,8 +13,8 @@
 #include <utility>
 #include <vector>
 
-namespace engine::core::threading {
-
+namespace engine::core::threading
+{
     enum class IoTaskPriority : std::uint8_t
     {
         High = 0,
@@ -31,7 +31,7 @@ namespace engine::core::threading {
         [[nodiscard]] bool operator==(const IoThreadPoolConfig& other) const noexcept
         {
             return worker_count == other.worker_count && queue_capacity == other.queue_capacity &&
-                   enable == other.enable;
+                enable == other.enable;
         }
 
         [[nodiscard]] bool operator!=(const IoThreadPoolConfig& other) const noexcept
@@ -91,6 +91,4 @@ namespace engine::core::threading {
         std::atomic<std::uint64_t> total_enqueued_{0};
         std::atomic<std::uint64_t> total_executed_{0};
     };
-
-}  // namespace engine::core::threading
-
+} // namespace engine::core::threading

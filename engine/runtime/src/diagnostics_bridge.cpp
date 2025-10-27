@@ -6,8 +6,8 @@
 
 #include <spdlog/spdlog.h>
 
-namespace engine::runtime {
-
+namespace engine::runtime
+{
     namespace
     {
         template <typename T>
@@ -15,7 +15,7 @@ namespace engine::runtime {
         {
             seed ^= std::hash<T>{}(value) + 0x9e3779b97f4a7c15ULL + (seed << 6U) + (seed >> 2U);
         }
-    }  // namespace
+    } // namespace
 
     DiagnosticsBridge& DiagnosticsBridge::instance() noexcept
     {
@@ -35,7 +35,8 @@ namespace engine::runtime {
     void DiagnosticsBridge::unregister_hierarchy_callback(CallbackId id)
     {
         std::lock_guard lock{mutex_};
-        auto it = std::remove_if(hierarchy_callbacks_.begin(), hierarchy_callbacks_.end(), [id](const auto& entry) {
+        auto it = std::remove_if(hierarchy_callbacks_.begin(), hierarchy_callbacks_.end(), [id](const auto& entry)
+        {
             return entry.first == id;
         });
         hierarchy_callbacks_.erase(it, hierarchy_callbacks_.end());
@@ -141,6 +142,4 @@ namespace engine::runtime {
         last_signature_ = 0;
         last_issue_count_ = 0;
     }
-
-}  // namespace engine::runtime
-
+} // namespace engine::runtime

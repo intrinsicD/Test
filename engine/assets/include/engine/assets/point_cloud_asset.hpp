@@ -18,66 +18,68 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine::assets {
-
-struct PointCloudAssetDescriptor {
-    PointCloudHandle handle{};
-    std::filesystem::path source{};
-    io::PointCloudFileFormat format_hint{io::PointCloudFileFormat::unknown};
-
-    [[nodiscard]] static PointCloudAssetDescriptor from_file(
-        const std::filesystem::path& path,
-        io::PointCloudFileFormat hint = io::PointCloudFileFormat::unknown)
+namespace engine::assets
+{
+    struct PointCloudAssetDescriptor
     {
-        return PointCloudAssetDescriptor{PointCloudHandle{path}, path, hint};
-    }
-};
+        PointCloudHandle handle{};
+        std::filesystem::path source{};
+        io::PointCloudFileFormat format_hint{io::PointCloudFileFormat::unknown};
 
-struct PointCloudAsset {
-    PointCloudAssetDescriptor descriptor{};
-    geometry::PointCloud point_cloud{};
-    io::GeometryDetectionResult detection{};
-    std::filesystem::file_time_type last_write{};
-};
+        [[nodiscard]] static PointCloudAssetDescriptor from_file(
+            const std::filesystem::path& path,
+            io::PointCloudFileFormat hint = io::PointCloudFileFormat::unknown)
+        {
+            return PointCloudAssetDescriptor{PointCloudHandle{path}, path, hint};
+        }
+    };
 
-class PointCloudCache {
-public:
-    PointCloudCache();
+    struct PointCloudAsset
+    {
+        PointCloudAssetDescriptor descriptor{};
+        geometry::PointCloud point_cloud{};
+        io::GeometryDetectionResult detection{};
+        std::filesystem::file_time_type last_write{};
+    };
 
-    using HotReloadCallback = std::function<void(const PointCloudAsset&)>;
+    class PointCloudCache
+    {
+    public:
+        PointCloudCache();
 
-    [[nodiscard]] const PointCloudAsset& load(const PointCloudAssetDescriptor& descriptor);
-    [[nodiscard]] bool contains(const PointCloudHandle& handle) const;
-    [[nodiscard]] const PointCloudAsset& get(const PointCloudHandle& handle) const;
+        using HotReloadCallback = std::function<void(const PointCloudAsset&)>;
 
-    [[nodiscard]] AssetLoadFuture<PointCloudHandle> load_async(
-        const AssetLoadRequest& request,
-        core::threading::IoThreadPool& pool);
-    [[nodiscard]] AssetLoadState async_state(std::string_view identifier) const;
+        [[nodiscard]] const PointCloudAsset& load(const PointCloudAssetDescriptor& descriptor);
+        [[nodiscard]] bool contains(const PointCloudHandle& handle) const;
+        [[nodiscard]] const PointCloudAsset& get(const PointCloudHandle& handle) const;
 
-    void unload(const PointCloudHandle& handle);
-    void register_hot_reload_callback(const PointCloudHandle& handle, HotReloadCallback callback);
-    void poll();
+        [[nodiscard]] AssetLoadFuture<PointCloudHandle> load_async(
+            const AssetLoadRequest& request,
+            core::threading::IoThreadPool& pool);
+        [[nodiscard]] AssetLoadState async_state(std::string_view identifier) const;
 
-private:
-    using Pool = core::memory::ResourcePool<PointCloudAsset, PointCloudHandleTag>;
-    using RawHandle = typename Pool::handle_type;
-    using HandleHasher = typename Pool::handle_hasher;
+        void unload(const PointCloudHandle& handle);
+        void register_hot_reload_callback(const PointCloudHandle& handle, HotReloadCallback callback);
+        void poll();
 
-    engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, PointCloudAsset& asset, bool notify);
-    void register_watch_locked(const RawHandle& handle, PointCloudAsset& asset);
-    void unregister_watch_locked(const RawHandle& handle);
+    private:
+        using Pool = core::memory::ResourcePool<PointCloudAsset, PointCloudHandleTag>;
+        using RawHandle = typename Pool::handle_type;
+        using HandleHasher = typename Pool::handle_hasher;
 
-    Pool assets_{};
-    std::unordered_map<std::string, RawHandle> bindings_{};
-    std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
-    std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
-    std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_{};
-    platform::filesystem::FilesystemWatcher watcher_{};
-    mutable std::mutex mutex_{};
-    AssetAsyncQueue<PointCloudHandle> async_queue_{};
-    std::shared_ptr<void> handle_validator_registration_{};
-};
+        engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, PointCloudAsset& asset, bool notify);
+        void register_watch_locked(const RawHandle& handle, PointCloudAsset& asset);
+        void unregister_watch_locked(const RawHandle& handle);
 
-}  // namespace engine::assets
-
+        Pool assets_{};
+        std::unordered_map<std::string, RawHandle> bindings_{};
+        std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
+        std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
+        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_
+            {};
+        platform::filesystem::FilesystemWatcher watcher_{};
+        mutable std::mutex mutex_{};
+        AssetAsyncQueue<PointCloudHandle> async_queue_{};
+        std::shared_ptr<void> handle_validator_registration_{};
+    };
+} // namespace engine::assets

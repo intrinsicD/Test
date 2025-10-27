@@ -47,14 +47,18 @@ namespace engine::geometry
 
         animation::AnimationRigPose pose{};
         pose.joints.emplace_back("root",
-                                 animation::JointPose{math::vec3{0.0F, 0.0F, 0.0F},
-                                                       math::quat{1.0F, 0.0F, 0.0F, 0.0F},
-                                                       math::vec3{1.0F, 1.0F, 1.0F}});
+                                 animation::JointPose{
+                                     math::vec3{0.0F, 0.0F, 0.0F},
+                                     math::quat{1.0F, 0.0F, 0.0F, 0.0F},
+                                     math::vec3{1.0F, 1.0F, 1.0F}
+                                 });
         pose.joints.emplace_back("child",
-                                 animation::JointPose{math::vec3{0.0F, 2.0F, 0.0F},
-                                                       math::normalize(math::angle_axis(math::radians(90.0F),
-                                                                                        math::vec3{0.0F, 0.0F, 1.0F})),
-                                                       math::vec3{1.0F, 1.0F, 1.0F}});
+                                 animation::JointPose{
+                                     math::vec3{0.0F, 2.0F, 0.0F},
+                                     math::normalize(math::angle_axis(math::radians(90.0F),
+                                                                      math::vec3{0.0F, 0.0F, 1.0F})),
+                                     math::vec3{1.0F, 1.0F, 1.0F}
+                                 });
 
         std::vector<math::Transform<float>> globals(binding.joints.size());
         std::vector<math::Transform<float>> skin(binding.joints.size());
@@ -70,4 +74,3 @@ namespace engine::geometry
         EXPECT_NEAR(mesh.positions[2][1], 2.0F, 1.0e-3F);
     }
 }
-

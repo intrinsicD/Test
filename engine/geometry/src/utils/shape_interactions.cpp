@@ -19,6 +19,7 @@ namespace engine::geometry
             math::vec3 point_on_segment;
             math::vec3 point_on_box;
         };
+
         SegmentAabbClosestResult ClosestPointSegmentAabb(const Segment& segment,
                                                          const Aabb& box,
                                                          float allowed_t_min,
@@ -41,7 +42,7 @@ namespace engine::geometry
             constexpr double kBoundTolerance = 1e-5;
 
             math::vec3 candidate{0.0f};
-            std::array<int, 3> free_indices{};
+            std::array < int, 3 > free_indices{};
             int free_count = 0;
 
             for (int i = 0; i < 3; ++i)
@@ -175,9 +176,9 @@ namespace engine::geometry
         }
 
         double evaluate_box_quadratic(const math::mat3& A,
-                                       const math::vec3& b,
-                                       double c,
-                                       const math::vec3& u) noexcept
+                                      const math::vec3& b,
+                                      double c,
+                                      const math::vec3& u) noexcept
         {
             const math::vec3 Au = A * u;
             const double quad = static_cast<double>(math::dot(u, Au));
@@ -186,17 +187,21 @@ namespace engine::geometry
         }
 
         bool ellipsoid_obb_intersection(const Ellipsoid& ellipsoid,
-                                         const math::vec3& box_center,
-                                         const math::mat3& box_axes,
-                                         const math::vec3& half_sizes) noexcept
+                                        const math::vec3& box_center,
+                                        const math::mat3& box_axes,
+                                        const math::vec3& half_sizes) noexcept
         {
-            const math::vec3 radii{math::utils::max(ellipsoid.radii[0], constants::INTERSECTION_EPSILON),
-                                   math::utils::max(ellipsoid.radii[1], constants::INTERSECTION_EPSILON),
-                                   math::utils::max(ellipsoid.radii[2], constants::INTERSECTION_EPSILON)};
+            const math::vec3 radii{
+                math::utils::max(ellipsoid.radii[0], constants::INTERSECTION_EPSILON),
+                math::utils::max(ellipsoid.radii[1], constants::INTERSECTION_EPSILON),
+                math::utils::max(ellipsoid.radii[2], constants::INTERSECTION_EPSILON)
+            };
 
-            const math::vec3 inv_radii_sq{1.0f / (radii[0] * radii[0]),
-                                          1.0f / (radii[1] * radii[1]),
-                                          1.0f / (radii[2] * radii[2])};
+            const math::vec3 inv_radii_sq{
+                1.0f / (radii[0] * radii[0]),
+                1.0f / (radii[1] * radii[1]),
+                1.0f / (radii[2] * radii[2])
+            };
 
             const math::mat3 ellipsoid_axes = math::utils::to_rotation_matrix(ellipsoid.orientation);
             const math::mat3 ellipsoid_axes_t = transpose(ellipsoid_axes);
@@ -3157,8 +3162,10 @@ namespace engine::geometry
     bool Intersects(const Frustum& frustum, const math::vec3& point) noexcept
     {
         // Point is inside frustum if it's on the inside (positive) side of all planes
-        for (const auto& plane : frustum.planes) {
-            if (SignedDistance(plane, point) < 0.0f) {
+        for (const auto& plane : frustum.planes)
+        {
+            if (SignedDistance(plane, point) < 0.0f)
+            {
                 return false;
             }
         }
@@ -3169,7 +3176,8 @@ namespace engine::geometry
     {
         // AABB intersects frustum if it's not completely outside any plane
         // Use n-vertex/p-vertex test for efficiency
-        for (const auto& plane : frustum.planes) {
+        for (const auto& plane : frustum.planes)
+        {
             // Find the "positive vertex" (vertex furthest in plane normal direction)
             math::vec3 p_vertex;
             p_vertex[0] = (plane.normal[0] >= 0.0f) ? aabb.max[0] : aabb.min[0];
@@ -3177,7 +3185,8 @@ namespace engine::geometry
             p_vertex[2] = (plane.normal[2] >= 0.0f) ? aabb.max[2] : aabb.min[2];
 
             // If p-vertex is outside (negative side), entire AABB is outside this plane
-            if (SignedDistance(plane, p_vertex) < 0.0f) {
+            if (SignedDistance(plane, p_vertex) < 0.0f)
+            {
                 return false;
             }
         }
@@ -3187,9 +3196,11 @@ namespace engine::geometry
     bool Intersects(const Frustum& frustum, const Sphere& sphere) noexcept
     {
         // Sphere intersects frustum if center is within radius distance from all planes
-        for (const auto& plane : frustum.planes) {
+        for (const auto& plane : frustum.planes)
+        {
             const float dist = SignedDistance(plane, sphere.center);
-            if (dist < -sphere.radius) {
+            if (dist < -sphere.radius)
+            {
                 return false;
             }
         }
@@ -3243,5 +3254,4 @@ namespace engine::geometry
     {
         return Intersects(frustum, obb);
     }
-
 } // namespace engine::geometry

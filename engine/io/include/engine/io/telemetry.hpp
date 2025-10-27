@@ -85,11 +85,12 @@ namespace engine::io
 
     [[nodiscard]] constexpr std::array<GeometryIoError, geometry_io_error_count()> geometry_io_error_codes() noexcept
     {
-        return {GeometryIoError::file_not_found,
-                GeometryIoError::io_failure,
-                GeometryIoError::invalid_argument,
-                GeometryIoError::unsupported_format,
-                GeometryIoError::plugin_missing};
+        return {
+            GeometryIoError::file_not_found,
+            GeometryIoError::io_failure,
+            GeometryIoError::invalid_argument,
+            GeometryIoError::unsupported_format,
+            GeometryIoError::plugin_missing
+        };
     }
 } // namespace engine::io
-

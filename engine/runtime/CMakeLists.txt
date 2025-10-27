@@ -1,18 +1,18 @@
 set(target_name engine_runtime)
 
 add_library(${target_name}
-    src/api.cpp
-    src/diagnostics_bridge.cpp
-    src/subsystem_registry.cpp
+        src/api.cpp
+        src/diagnostics_bridge.cpp
+        src/subsystem_registry.cpp
 )
 
 engine_apply_module_defaults(${target_name}
-    PUBLIC_INCLUDE_DIRS
+        PUBLIC_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${target_name}
-    PUBLIC
+        PUBLIC
         engine_animation
         engine_assets
         engine_compute
@@ -26,18 +26,18 @@ target_link_libraries(${target_name}
         engine_scene
 )
 
-if(TARGET engine_compute_cuda AND ENGINE_ENABLE_COMPUTE_CUDA)
+if (TARGET engine_compute_cuda AND ENGINE_ENABLE_COMPUTE_CUDA)
     target_link_libraries(${target_name}
-        PUBLIC
+            PUBLIC
             engine_compute_cuda
     )
-endif()
+endif ()
 
 target_compile_definitions(${target_name}
-    PRIVATE
+        PRIVATE
         ENGINE_RUNTIME_EXPORTS
 )
 
-if(BUILD_TESTING)
+if (BUILD_TESTING)
     add_subdirectory(tests)
-endif()
+endif ()

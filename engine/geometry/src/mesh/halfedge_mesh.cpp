@@ -2,18 +2,21 @@
 
 #include <algorithm>
 
-namespace engine::geometry::mesh {
-    HalfedgeMeshInterface::HalfedgeMeshInterface(Vertices &vertex_props,
-                               Halfedges &halfedge_props,
-                               Edges &edge_props,
-                               Faces &face_props) : vertex_props_(vertex_props),
-                                                    halfedge_props_(halfedge_props),
-                                                    edge_props_(edge_props),
-                                                    face_props_(face_props) {
+namespace engine::geometry::mesh
+{
+    HalfedgeMeshInterface::HalfedgeMeshInterface(Vertices& vertex_props,
+                                                 Halfedges& halfedge_props,
+                                                 Edges& edge_props,
+                                                 Faces& face_props) : vertex_props_(vertex_props),
+                                                                      halfedge_props_(halfedge_props),
+                                                                      edge_props_(edge_props),
+                                                                      face_props_(face_props)
+    {
         ensure_properties();
     }
 
-    void HalfedgeMeshInterface::ensure_properties() {
+    void HalfedgeMeshInterface::ensure_properties()
+    {
         vertex_points_ = vertex_property<math::vec3>("v:point");
         vertex_connectivity_ = vertex_property<VertexConnectivity>("v:connectivity");
         halfedge_connectivity_ = halfedge_property<HalfedgeConnectivity>("h:connectivity");
@@ -24,17 +27,20 @@ namespace engine::geometry::mesh {
         face_deleted_ = face_property<bool>("f:deleted", false);
     }
 
-    HalfedgeMeshInterface::HalfedgeMeshInterface(const HalfedgeMeshInterface &rhs) : vertex_props_(rhs.vertex_props_),
-                                                          halfedge_props_(rhs.halfedge_props_),
-                                                          edge_props_(rhs.edge_props_),
-                                                          face_props_(rhs.face_props_) {
+    HalfedgeMeshInterface::HalfedgeMeshInterface(const HalfedgeMeshInterface& rhs) : vertex_props_(rhs.vertex_props_),
+        halfedge_props_(rhs.halfedge_props_),
+        edge_props_(rhs.edge_props_),
+        face_props_(rhs.face_props_)
+    {
         operator=(rhs);
     }
 
     HalfedgeMeshInterface::~HalfedgeMeshInterface() = default;
 
-    HalfedgeMeshInterface &HalfedgeMeshInterface::operator=(const HalfedgeMeshInterface &rhs) {
-        if (this == &rhs) {
+    HalfedgeMeshInterface& HalfedgeMeshInterface::operator=(const HalfedgeMeshInterface& rhs)
+    {
+        if (this == &rhs)
+        {
             return *this;
         }
 
@@ -53,8 +59,10 @@ namespace engine::geometry::mesh {
         return *this;
     }
 
-    HalfedgeMeshInterface &HalfedgeMeshInterface::assign(const HalfedgeMeshInterface &rhs) {
-        if (this == &rhs) {
+    HalfedgeMeshInterface& HalfedgeMeshInterface::assign(const HalfedgeMeshInterface& rhs)
+    {
+        if (this == &rhs)
+        {
             return *this;
         }
 
@@ -87,7 +95,8 @@ namespace engine::geometry::mesh {
         return *this;
     }
 
-    void HalfedgeMeshInterface::clear() {
+    void HalfedgeMeshInterface::clear()
+    {
         vertex_props_.clear();
         halfedge_props_.clear();
         edge_props_.clear();
@@ -102,182 +111,227 @@ namespace engine::geometry::mesh {
         has_garbage_ = false;
     }
 
-    void HalfedgeMeshInterface::free_memory() {
+    void HalfedgeMeshInterface::free_memory()
+    {
         vertex_props_.shrink_to_fit();
         halfedge_props_.shrink_to_fit();
         edge_props_.shrink_to_fit();
         face_props_.shrink_to_fit();
     }
 
-    void HalfedgeMeshInterface::reserve(std::size_t nvertices, std::size_t nedges, std::size_t nfaces) {
+    void HalfedgeMeshInterface::reserve(std::size_t nvertices, std::size_t nedges, std::size_t nfaces)
+    {
         vertex_props_.reserve(nvertices);
         halfedge_props_.reserve(2 * nedges);
         edge_props_.reserve(nedges);
         face_props_.reserve(nfaces);
     }
 
-    HalfedgeMeshInterface::VertexIterator HalfedgeMeshInterface::vertices_begin() const {
+    HalfedgeMeshInterface::VertexIterator HalfedgeMeshInterface::vertices_begin() const
+    {
         return VertexIterator(VertexHandle(0), this);
     }
 
-    HalfedgeMeshInterface::VertexIterator HalfedgeMeshInterface::vertices_end() const {
+    HalfedgeMeshInterface::VertexIterator HalfedgeMeshInterface::vertices_end() const
+    {
         return VertexIterator(VertexHandle(vertices_size()), this);
     }
 
-    HalfedgeMeshInterface::HalfedgeIterator HalfedgeMeshInterface::halfedges_begin() const {
+    HalfedgeMeshInterface::HalfedgeIterator HalfedgeMeshInterface::halfedges_begin() const
+    {
         return HalfedgeIterator(HalfedgeHandle(0), this);
     }
 
-    HalfedgeMeshInterface::HalfedgeIterator HalfedgeMeshInterface::halfedges_end() const {
+    HalfedgeMeshInterface::HalfedgeIterator HalfedgeMeshInterface::halfedges_end() const
+    {
         return HalfedgeIterator(HalfedgeHandle(halfedges_size()), this);
     }
 
-    HalfedgeMeshInterface::EdgeIterator HalfedgeMeshInterface::edges_begin() const {
+    HalfedgeMeshInterface::EdgeIterator HalfedgeMeshInterface::edges_begin() const
+    {
         return EdgeIterator(EdgeHandle(0), this);
     }
 
-    HalfedgeMeshInterface::EdgeIterator HalfedgeMeshInterface::edges_end() const {
+    HalfedgeMeshInterface::EdgeIterator HalfedgeMeshInterface::edges_end() const
+    {
         return EdgeIterator(EdgeHandle(edges_size()), this);
     }
 
-    HalfedgeMeshInterface::FaceIterator HalfedgeMeshInterface::faces_begin() const {
+    HalfedgeMeshInterface::FaceIterator HalfedgeMeshInterface::faces_begin() const
+    {
         return FaceIterator(FaceHandle(0), this);
     }
 
-    HalfedgeMeshInterface::FaceIterator HalfedgeMeshInterface::faces_end() const {
+    HalfedgeMeshInterface::FaceIterator HalfedgeMeshInterface::faces_end() const
+    {
         return FaceIterator(FaceHandle(faces_size()), this);
     }
 
-    bool HalfedgeMeshInterface::is_manifold(VertexHandle v) const {
+    bool HalfedgeMeshInterface::is_manifold(VertexHandle v) const
+    {
         int gaps = 0;
         auto hit = halfedges(v);
         auto hend = hit;
-        if (hit) {
-            do {
-                if (is_boundary(*hit)) {
+        if (hit)
+        {
+            do
+            {
+                if (is_boundary(*hit))
+                {
                     ++gaps;
                 }
-            } while (++hit != hend);
+            }
+            while (++hit != hend);
         }
         return gaps < 2;
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::halfedge(EdgeHandle e, unsigned int i) const {
+    HalfedgeHandle HalfedgeMeshInterface::halfedge(EdgeHandle e, unsigned int i) const
+    {
         assert(i <= 1);
         return HalfedgeHandle((e.index() << 1U) + i);
     }
 
-    bool HalfedgeMeshInterface::is_boundary(EdgeHandle e) const {
+    bool HalfedgeMeshInterface::is_boundary(EdgeHandle e) const
+    {
         return is_boundary(halfedge(e, 0)) || is_boundary(halfedge(e, 1));
     }
 
-    bool HalfedgeMeshInterface::is_boundary(FaceHandle f) const {
+    bool HalfedgeMeshInterface::is_boundary(FaceHandle f) const
+    {
         HalfedgeHandle h = halfedge(f);
         const HalfedgeHandle start = h;
-        do {
-            if (is_boundary(opposite_halfedge(h))) {
+        do
+        {
+            if (is_boundary(opposite_halfedge(h)))
+            {
                 return true;
             }
             h = next_halfedge(h);
-        } while (h != start);
+        }
+        while (h != start);
         return false;
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::insert_vertex(EdgeHandle e, const math::vec3 &p) {
+    HalfedgeHandle HalfedgeMeshInterface::insert_vertex(EdgeHandle e, const math::vec3& p)
+    {
         return insert_vertex(halfedge(e, 0), add_vertex(p));
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::insert_vertex(EdgeHandle e, VertexHandle v) {
+    HalfedgeHandle HalfedgeMeshInterface::insert_vertex(EdgeHandle e, VertexHandle v)
+    {
         return insert_vertex(halfedge(e, 0), v);
     }
 
-    std::optional<HalfedgeHandle> HalfedgeMeshInterface::find_halfedge(VertexHandle start, VertexHandle end) const {
+    std::optional<HalfedgeHandle> HalfedgeMeshInterface::find_halfedge(VertexHandle start, VertexHandle end) const
+    {
         assert(is_valid(start) && is_valid(end));
 
         HalfedgeHandle h = halfedge(start);
         const HalfedgeHandle hh = h;
 
-        if (h.is_valid()) {
-            do {
-                if (to_vertex(h) == end) {
+        if (h.is_valid())
+        {
+            do
+            {
+                if (to_vertex(h) == end)
+                {
                     return h;
                 }
                 h = cw_rotated_halfedge(h);
-            } while (h != hh);
+            }
+            while (h != hh);
         }
 
         return std::nullopt;
     }
 
-    std::optional<EdgeHandle> HalfedgeMeshInterface::find_edge(VertexHandle a, VertexHandle b) const {
+    std::optional<EdgeHandle> HalfedgeMeshInterface::find_edge(VertexHandle a, VertexHandle b) const
+    {
         if (auto h = find_halfedge(a, b)) return edge(*h);
         return std::nullopt;
     }
 
-    bool HalfedgeMeshInterface::is_triangle_mesh() const {
-        for (auto f: faces()) {
-            if (valence(f) != 3) {
+    bool HalfedgeMeshInterface::is_triangle_mesh() const
+    {
+        for (auto f : faces())
+        {
+            if (valence(f) != 3)
+            {
                 return false;
             }
         }
         return true;
     }
 
-    bool HalfedgeMeshInterface::is_quad_mesh() const {
-        for (auto f: faces()) {
-            if (valence(f) != 4) {
+    bool HalfedgeMeshInterface::is_quad_mesh() const
+    {
+        for (auto f : faces())
+        {
+            if (valence(f) != 4)
+            {
                 return false;
             }
         }
         return true;
     }
 
-    void HalfedgeMeshInterface::adjust_outgoing_halfedge(VertexHandle v) {
+    void HalfedgeMeshInterface::adjust_outgoing_halfedge(VertexHandle v)
+    {
         HalfedgeHandle h = halfedge(v);
         const HalfedgeHandle start = h;
-        if (h.is_valid()) {
-            do {
-                if (is_boundary(h)) {
+        if (h.is_valid())
+        {
+            do
+            {
+                if (is_boundary(h))
+                {
                     set_halfedge(v, h);
                     return;
                 }
                 h = cw_rotated_halfedge(h);
-            } while (h != start);
+            }
+            while (h != start);
         }
     }
 
-    VertexHandle HalfedgeMeshInterface::add_vertex(const math::vec3 &p) {
+    VertexHandle HalfedgeMeshInterface::add_vertex(const math::vec3& p)
+    {
         VertexHandle v = new_vertex();
-        if (v.is_valid()) {
+        if (v.is_valid())
+        {
             vertex_points_[v] = p;
         }
         return v;
     }
 
-    std::optional<FaceHandle> HalfedgeMeshInterface::add_triangle(VertexHandle v0, VertexHandle v1, VertexHandle v2) {
+    std::optional<FaceHandle> HalfedgeMeshInterface::add_triangle(VertexHandle v0, VertexHandle v1, VertexHandle v2)
+    {
         add_face_vertices_.assign({v0, v1, v2});
         return add_face(add_face_vertices_);
     }
 
     std::optional<FaceHandle>
-    HalfedgeMeshInterface::add_quad(VertexHandle v0, VertexHandle v1, VertexHandle v2, VertexHandle v3) {
+    HalfedgeMeshInterface::add_quad(VertexHandle v0, VertexHandle v1, VertexHandle v2, VertexHandle v3)
+    {
         add_face_vertices_.assign({v0, v1, v2, v3});
         return add_face(add_face_vertices_);
     }
 
-    std::optional<FaceHandle> HalfedgeMeshInterface::add_face(std::span<const VertexHandle> vertices) {
+    std::optional<FaceHandle> HalfedgeMeshInterface::add_face(std::span<const VertexHandle> vertices)
+    {
         const std::size_t n = vertices.size();
         assert(n > 2);
 
         VertexHandle v;
         std::size_t i, ii, id;
         HalfedgeHandle inner_next, inner_prev, outer_next, outer_prev, boundary_next, boundary_prev, patch_start,
-                patch_end;
+                       patch_end;
 
-        std::vector<HalfedgeHandle> &halfedges = add_face_halfedges_;
-        std::vector<bool> &is_new = add_face_is_new_;
-        std::vector<bool> &needs_adjust = add_face_needs_adjust_;
-        NextCache &next_cache = add_face_next_cache_;
+        std::vector<HalfedgeHandle>& halfedges = add_face_halfedges_;
+        std::vector<bool>& is_new = add_face_is_new_;
+        std::vector<bool>& needs_adjust = add_face_needs_adjust_;
+        NextCache& next_cache = add_face_next_cache_;
         halfedges.clear();
         halfedges.resize(n, HalfedgeHandle());
         is_new.clear();
@@ -287,38 +341,50 @@ namespace engine::geometry::mesh {
         next_cache.clear();
         next_cache.reserve(3 * n);
 
-        for (i = 0, ii = 1; i < n; ++i, ++ii, ii %= n) {
-            if (!is_boundary(vertices[i])) {
+        for (i = 0, ii = 1; i < n; ++i, ++ii, ii %= n)
+        {
+            if (!is_boundary(vertices[i]))
+            {
                 return std::nullopt;
             }
-            if (auto h = find_halfedge(vertices[i], vertices[ii])) {
+            if (auto h = find_halfedge(vertices[i], vertices[ii]))
+            {
                 halfedges[i] = *h;
-            }else{
+            }
+            else
+            {
                 is_new[i] = true;
             }
 
-            if (!is_new[i] && !is_boundary(halfedges[i])) {
+            if (!is_new[i] && !is_boundary(halfedges[i]))
+            {
                 return std::nullopt;
             }
         }
 
-        for (i = 0, ii = 1; i < n; ++i, ++ii, ii %= n) {
-            if (!is_new[i] && !is_new[ii]) {
+        for (i = 0, ii = 1; i < n; ++i, ++ii, ii %= n)
+        {
+            if (!is_new[i] && !is_new[ii])
+            {
                 inner_prev = halfedges[i];
                 inner_next = halfedges[ii];
 
-                if (next_halfedge(inner_prev) != inner_next) {
+                if (next_halfedge(inner_prev) != inner_next)
+                {
                     outer_prev = opposite_halfedge(inner_next);
                     outer_next = opposite_halfedge(inner_prev);
                     boundary_prev = outer_prev;
-                    do {
+                    do
+                    {
                         boundary_prev = opposite_halfedge(next_halfedge(boundary_prev));
-                    } while (!is_boundary(boundary_prev) || boundary_prev == inner_prev);
+                    }
+                    while (!is_boundary(boundary_prev) || boundary_prev == inner_prev);
                     boundary_next = next_halfedge(boundary_prev);
                     assert(is_boundary(boundary_prev));
                     assert(is_boundary(boundary_next));
 
-                    if (boundary_next == inner_next) {
+                    if (boundary_next == inner_next)
+                    {
                         return std::nullopt;
                     }
 
@@ -332,8 +398,10 @@ namespace engine::geometry::mesh {
             }
         }
 
-        for (i = 0, ii = 1; i < n; ++i, ++ii, ii %= n) {
-            if (is_new[i]) {
+        for (i = 0, ii = 1; i < n; ++i, ++ii, ii %= n)
+        {
+            if (is_new[i])
+            {
                 halfedges[i] = new_edge(vertices[i], vertices[ii]);
             }
         }
@@ -341,63 +409,76 @@ namespace engine::geometry::mesh {
         FaceHandle f = new_face();
         set_halfedge(f, halfedges[n - 1]);
 
-        for (i = 0, ii = 1; i < n; ++i, ++ii, ii %= n) {
+        for (i = 0, ii = 1; i < n; ++i, ++ii, ii %= n)
+        {
             v = vertices[ii];
             inner_prev = halfedges[i];
             inner_next = halfedges[ii];
 
             id = 0;
-            if (is_new[i]) {
+            if (is_new[i])
+            {
                 id |= 1;
             }
-            if (is_new[ii]) {
+            if (is_new[ii])
+            {
                 id |= 2;
             }
 
-            if (id) {
+            if (id)
+            {
                 outer_prev = opposite_halfedge(inner_next);
                 outer_next = opposite_halfedge(inner_prev);
 
-                switch (id) {
-                    case 1:
-                        boundary_prev = prev_halfedge(inner_next);
-                        next_cache.emplace_back(boundary_prev, outer_next);
+                switch (id)
+                {
+                case 1:
+                    boundary_prev = prev_halfedge(inner_next);
+                    next_cache.emplace_back(boundary_prev, outer_next);
+                    set_halfedge(v, outer_next);
+                    break;
+
+                case 2:
+                    boundary_next = next_halfedge(inner_prev);
+                    next_cache.emplace_back(outer_prev, boundary_next);
+                    set_halfedge(v, boundary_next);
+                    break;
+
+                case 3:
+                    if (!halfedge(v).is_valid())
+                    {
                         set_halfedge(v, outer_next);
-                        break;
-
-                    case 2:
-                        boundary_next = next_halfedge(inner_prev);
+                        next_cache.emplace_back(outer_prev, outer_next);
+                    }
+                    else
+                    {
+                        boundary_next = halfedge(v);
+                        boundary_prev = prev_halfedge(boundary_next);
+                        next_cache.emplace_back(boundary_prev, outer_next);
                         next_cache.emplace_back(outer_prev, boundary_next);
-                        set_halfedge(v, boundary_next);
-                        break;
-
-                    case 3:
-                        if (!halfedge(v).is_valid()) {
-                            set_halfedge(v, outer_next);
-                            next_cache.emplace_back(outer_prev, outer_next);
-                        } else {
-                            boundary_next = halfedge(v);
-                            boundary_prev = prev_halfedge(boundary_next);
-                            next_cache.emplace_back(boundary_prev, outer_next);
-                            next_cache.emplace_back(outer_prev, boundary_next);
-                        }
-                        break;
+                    }
+                    break;
                 }
 
                 next_cache.emplace_back(inner_prev, inner_next);
-            } else {
+            }
+            else
+            {
                 needs_adjust[ii] = (halfedge(v) == inner_next);
             }
 
             set_face(halfedges[i], f);
         }
 
-        for (const auto &[first, second]: next_cache) {
+        for (const auto& [first, second] : next_cache)
+        {
             set_next_halfedge(first, second);
         }
 
-        for (i = 0; i < n; ++i) {
-            if (needs_adjust[i]) {
+        for (i = 0; i < n; ++i)
+        {
+            if (needs_adjust[i])
+            {
                 adjust_outgoing_halfedge(vertices[i]);
             }
         }
@@ -405,17 +486,20 @@ namespace engine::geometry::mesh {
         return f;
     }
 
-    std::size_t HalfedgeMeshInterface::valence(VertexHandle v) const {
+    std::size_t HalfedgeMeshInterface::valence(VertexHandle v) const
+    {
         auto vv = vertices(v);
         return static_cast<std::size_t>(std::distance(vv.begin(), vv.end()));
     }
 
-    std::size_t HalfedgeMeshInterface::valence(FaceHandle f) const {
+    std::size_t HalfedgeMeshInterface::valence(FaceHandle f) const
+    {
         auto vv = vertices(f);
         return static_cast<std::size_t>(std::distance(vv.begin(), vv.end()));
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::insert_vertex(HalfedgeHandle h0, VertexHandle v) {
+    HalfedgeHandle HalfedgeMeshInterface::insert_vertex(HalfedgeHandle h0, VertexHandle v)
+    {
         const HalfedgeHandle h2 = next_halfedge(h0);
         const HalfedgeHandle o0 = opposite_halfedge(h0);
         const HalfedgeHandle o2 = prev_halfedge(o0);
@@ -442,23 +526,27 @@ namespace engine::geometry::mesh {
         set_halfedge(v, h1);
         adjust_outgoing_halfedge(v);
 
-        if (fh.is_valid()) {
+        if (fh.is_valid())
+        {
             set_halfedge(fh, h0);
         }
-        if (fo.is_valid()) {
+        if (fo.is_valid())
+        {
             set_halfedge(fo, o1);
         }
 
         return o1;
     }
 
-    VertexHandle HalfedgeMeshInterface::split(FaceHandle f, const math::vec3 &p) {
+    VertexHandle HalfedgeMeshInterface::split(FaceHandle f, const math::vec3& p)
+    {
         VertexHandle v = add_vertex(p);
         split(f, v);
         return v;
     }
 
-    void HalfedgeMeshInterface::split(FaceHandle f, VertexHandle v) {
+    void HalfedgeMeshInterface::split(FaceHandle f, VertexHandle v)
+    {
         const HalfedgeHandle hend = halfedge(f);
         HalfedgeHandle h = next_halfedge(hend);
 
@@ -469,7 +557,8 @@ namespace engine::geometry::mesh {
 
         hold = opposite_halfedge(hold);
 
-        while (h != hend) {
+        while (h != hend)
+        {
             const HalfedgeHandle hnext = next_halfedge(h);
 
             const FaceHandle fnew = new_face();
@@ -498,11 +587,13 @@ namespace engine::geometry::mesh {
         set_halfedge(v, hold);
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::split(EdgeHandle e, const math::vec3 &p) {
+    HalfedgeHandle HalfedgeMeshInterface::split(EdgeHandle e, const math::vec3& p)
+    {
         return split(e, add_vertex(p));
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::split(EdgeHandle e, VertexHandle v) {
+    HalfedgeHandle HalfedgeMeshInterface::split(EdgeHandle e, VertexHandle v)
+    {
         const HalfedgeHandle h0 = halfedge(e, 0);
         const HalfedgeHandle o0 = halfedge(e, 1);
 
@@ -517,7 +608,8 @@ namespace engine::geometry::mesh {
         set_halfedge(v, h0);
         set_vertex(o0, v);
 
-        if (!is_boundary(h0)) {
+        if (!is_boundary(h0))
+        {
             const HalfedgeHandle h1 = next_halfedge(h0);
             const HalfedgeHandle h2 = next_halfedge(h1);
 
@@ -545,12 +637,15 @@ namespace engine::geometry::mesh {
             set_next_halfedge(e0, h2);
             set_next_halfedge(h2, t1);
             set_next_halfedge(t1, e0);
-        } else {
+        }
+        else
+        {
             set_next_halfedge(prev_halfedge(h0), t1);
             set_next_halfedge(t1, h0);
         }
 
-        if (!is_boundary(o0)) {
+        if (!is_boundary(o0))
+        {
             const HalfedgeHandle o1 = next_halfedge(o0);
             const HalfedgeHandle o2 = next_halfedge(o1);
 
@@ -578,20 +673,24 @@ namespace engine::geometry::mesh {
             set_next_halfedge(o0, e2);
             set_next_halfedge(e2, o2);
             set_next_halfedge(o2, o0);
-        } else {
+        }
+        else
+        {
             set_next_halfedge(e1, next_halfedge(o0));
             set_next_halfedge(o0, e1);
             set_halfedge(v, e1);
         }
 
-        if (halfedge(v2) == h0) {
+        if (halfedge(v2) == h0)
+        {
             set_halfedge(v2, t1);
         }
 
         return t1;
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::insert_edge(HalfedgeHandle h0, HalfedgeHandle h1) {
+    HalfedgeHandle HalfedgeMeshInterface::insert_edge(HalfedgeHandle h0, HalfedgeHandle h1)
+    {
         assert(face(h0) == face(h1));
         assert(face(h0).is_valid());
 
@@ -617,16 +716,20 @@ namespace engine::geometry::mesh {
         set_next_halfedge(h1, h5);
         set_next_halfedge(h5, h2);
         HalfedgeHandle h = h2;
-        do {
+        do
+        {
             set_face(h, f1);
             h = next_halfedge(h);
-        } while (h != h2);
+        }
+        while (h != h2);
 
         return h4;
     }
 
-    bool HalfedgeMeshInterface::is_flip_ok(EdgeHandle e) const {
-        if (is_boundary(e)) {
+    bool HalfedgeMeshInterface::is_flip_ok(EdgeHandle e) const
+    {
+        if (is_boundary(e))
+        {
             return false;
         }
 
@@ -636,18 +739,21 @@ namespace engine::geometry::mesh {
         const VertexHandle v0 = to_vertex(next_halfedge(h0));
         const VertexHandle v1 = to_vertex(next_halfedge(h1));
 
-        if (v0 == v1) {
+        if (v0 == v1)
+        {
             return false;
         }
 
-        if (find_halfedge(v0, v1).has_value()) {
+        if (find_halfedge(v0, v1).has_value())
+        {
             return false;
         }
 
         return true;
     }
 
-    void HalfedgeMeshInterface::flip(EdgeHandle e) {
+    void HalfedgeMeshInterface::flip(EdgeHandle e)
+    {
         assert(is_flip_ok(e));
 
         const HalfedgeHandle a0 = halfedge(e, 0);
@@ -685,50 +791,62 @@ namespace engine::geometry::mesh {
         set_halfedge(fa, a0);
         set_halfedge(fb, b0);
 
-        if (halfedge(va0) == b0) {
+        if (halfedge(va0) == b0)
+        {
             set_halfedge(va0, a1);
         }
-        if (halfedge(vb0) == a0) {
+        if (halfedge(vb0) == a0)
+        {
             set_halfedge(vb0, b1);
         }
     }
 
-    bool HalfedgeMeshInterface::is_collapse_ok(HalfedgeHandle v0v1) const {
+    bool HalfedgeMeshInterface::is_collapse_ok(HalfedgeHandle v0v1) const
+    {
         const HalfedgeHandle v1v0 = opposite_halfedge(v0v1);
         const VertexHandle v0 = to_vertex(v1v0);
         const VertexHandle v1 = to_vertex(v0v1);
         VertexHandle vl, vr;
         HalfedgeHandle h1, h2;
 
-        if (!is_boundary(v0v1)) {
+        if (!is_boundary(v0v1))
+        {
             vl = to_vertex(next_halfedge(v0v1));
             h1 = next_halfedge(v0v1);
             h2 = next_halfedge(h1);
-            if (is_boundary(opposite_halfedge(h1)) && is_boundary(opposite_halfedge(h2))) {
+            if (is_boundary(opposite_halfedge(h1)) && is_boundary(opposite_halfedge(h2)))
+            {
                 return false;
             }
         }
 
-        if (!is_boundary(v1v0)) {
+        if (!is_boundary(v1v0))
+        {
             vr = to_vertex(next_halfedge(v1v0));
             h1 = next_halfedge(v1v0);
             h2 = next_halfedge(h1);
-            if (is_boundary(opposite_halfedge(h1)) && is_boundary(opposite_halfedge(h2))) {
+            if (is_boundary(opposite_halfedge(h1)) && is_boundary(opposite_halfedge(h2)))
+            {
                 return false;
             }
         }
 
-        if (vl == vr) {
+        if (vl == vr)
+        {
             return false;
         }
 
-        if (is_boundary(v0) && is_boundary(v1) && !is_boundary(v0v1) && !is_boundary(v1v0)) {
+        if (is_boundary(v0) && is_boundary(v1) && !is_boundary(v0v1) && !is_boundary(v1v0))
+        {
             return false;
         }
 
-        for (auto vv: vertices(v0)) {
-            if (vv != v1 && vv != vl && vv != vr) {
-                if (find_halfedge(vv, v1).has_value()) {
+        for (auto vv : vertices(v0))
+        {
+            if (vv != v1 && vv != vl && vv != vr)
+            {
+                if (find_halfedge(vv, v1).has_value())
+                {
                     return false;
                 }
             }
@@ -737,7 +855,8 @@ namespace engine::geometry::mesh {
         return true;
     }
 
-    bool HalfedgeMeshInterface::is_removal_ok(EdgeHandle e) const {
+    bool HalfedgeMeshInterface::is_removal_ok(EdgeHandle e) const
+    {
         const HalfedgeHandle h0 = halfedge(e, 0);
         const HalfedgeHandle h1 = halfedge(e, 1);
         const VertexHandle v0 = to_vertex(h0);
@@ -745,18 +864,24 @@ namespace engine::geometry::mesh {
         const FaceHandle f0 = face(h0);
         const FaceHandle f1 = face(h1);
 
-        if (!f0.is_valid() || !f1.is_valid()) {
+        if (!f0.is_valid() || !f1.is_valid())
+        {
             return false;
         }
 
-        if (f0 == f1) {
+        if (f0 == f1)
+        {
             return false;
         }
 
-        for (auto v: vertices(f0)) {
-            if (v != v0 && v != v1) {
-                for (auto f: faces(v)) {
-                    if (f == f1) {
+        for (auto v : vertices(f0))
+        {
+            if (v != v0 && v != v1)
+            {
+                for (auto f : faces(v))
+                {
+                    if (f == f1)
+                    {
                         return false;
                     }
                 }
@@ -766,8 +891,10 @@ namespace engine::geometry::mesh {
         return true;
     }
 
-    bool HalfedgeMeshInterface::remove_edge(EdgeHandle e) {
-        if (!is_removal_ok(e)) {
+    bool HalfedgeMeshInterface::remove_edge(EdgeHandle e)
+    {
+        if (!is_removal_ok(e))
+        {
             return false;
         }
 
@@ -785,21 +912,25 @@ namespace engine::geometry::mesh {
         const HalfedgeHandle h1_prev = prev_halfedge(h1);
         const HalfedgeHandle h1_next = next_halfedge(h1);
 
-        if (halfedge(v0) == h1) {
+        if (halfedge(v0) == h1)
+        {
             set_halfedge(v0, h0_next);
         }
-        if (halfedge(v1) == h0) {
+        if (halfedge(v1) == h0)
+        {
             set_halfedge(v1, h1_next);
         }
 
-        for (auto h: halfedges(f0)) {
+        for (auto h : halfedges(f0))
+        {
             set_face(h, f1);
         }
 
         set_next_halfedge(h1_prev, h0_next);
         set_next_halfedge(h0_prev, h1_next);
 
-        if (halfedge(f1) == h1) {
+        if (halfedge(f1) == h1)
+        {
             set_halfedge(f1, h1_next);
         }
 
@@ -812,7 +943,8 @@ namespace engine::geometry::mesh {
         return true;
     }
 
-    void HalfedgeMeshInterface::collapse(HalfedgeHandle h) {
+    void HalfedgeMeshInterface::collapse(HalfedgeHandle h)
+    {
         const HalfedgeHandle h0 = h;
         const HalfedgeHandle h1 = prev_halfedge(h0);
         const HalfedgeHandle o0 = opposite_halfedge(h0);
@@ -820,16 +952,19 @@ namespace engine::geometry::mesh {
 
         remove_edge_helper(h0);
 
-        if (next_halfedge(next_halfedge(h1)) == h1) {
+        if (next_halfedge(next_halfedge(h1)) == h1)
+        {
             remove_loop_helper(h1);
         }
 
-        if (next_halfedge(next_halfedge(o1)) == o1) {
+        if (next_halfedge(next_halfedge(o1)) == o1)
+        {
             remove_loop_helper(o1);
         }
     }
 
-    void HalfedgeMeshInterface::remove_edge_helper(HalfedgeHandle h) {
+    void HalfedgeMeshInterface::remove_edge_helper(HalfedgeHandle h)
+    {
         const HalfedgeHandle hn = next_halfedge(h);
         const HalfedgeHandle hp = prev_halfedge(h);
 
@@ -843,21 +978,25 @@ namespace engine::geometry::mesh {
         const VertexHandle vh = to_vertex(h);
         const VertexHandle vo = to_vertex(o);
 
-        for (const auto hc: halfedges(vo)) {
+        for (const auto hc : halfedges(vo))
+        {
             set_vertex(opposite_halfedge(hc), vh);
         }
 
         set_next_halfedge(hp, hn);
         set_next_halfedge(op, on);
 
-        if (fh.is_valid()) {
+        if (fh.is_valid())
+        {
             set_halfedge(fh, hn);
         }
-        if (fo.is_valid()) {
+        if (fo.is_valid())
+        {
             set_halfedge(fo, on);
         }
 
-        if (halfedge(vh) == o) {
+        if (halfedge(vh) == o)
+        {
             set_halfedge(vh, hn);
         }
         adjust_outgoing_halfedge(vh);
@@ -870,7 +1009,8 @@ namespace engine::geometry::mesh {
         has_garbage_ = true;
     }
 
-    void HalfedgeMeshInterface::remove_loop_helper(HalfedgeHandle h) {
+    void HalfedgeMeshInterface::remove_loop_helper(HalfedgeHandle h)
+    {
         const HalfedgeHandle h0 = h;
         const HalfedgeHandle h1 = next_halfedge(h0);
 
@@ -895,11 +1035,13 @@ namespace engine::geometry::mesh {
         set_halfedge(v1, o1);
         adjust_outgoing_halfedge(v1);
 
-        if (fo.is_valid() && halfedge(fo) == o0) {
+        if (fo.is_valid() && halfedge(fo) == o0)
+        {
             set_halfedge(fo, h1);
         }
 
-        if (fh.is_valid()) {
+        if (fh.is_valid())
+        {
             face_deleted_[fh] = true;
             ++deleted_faces_;
         }
@@ -908,51 +1050,63 @@ namespace engine::geometry::mesh {
         has_garbage_ = true;
     }
 
-    void HalfedgeMeshInterface::delete_vertex(VertexHandle v) {
-        if (is_deleted(v)) {
+    void HalfedgeMeshInterface::delete_vertex(VertexHandle v)
+    {
+        if (is_deleted(v))
+        {
             return;
         }
 
         std::vector<FaceHandle> incident_faces;
         incident_faces.reserve(6);
 
-        for (auto f: faces(v)) {
+        for (auto f : faces(v))
+        {
             incident_faces.push_back(f);
         }
 
-        for (auto f: incident_faces) {
+        for (auto f : incident_faces)
+        {
             delete_face(f);
         }
 
-        if (!vertex_deleted_[v]) {
+        if (!vertex_deleted_[v])
+        {
             vertex_deleted_[v] = true;
             ++deleted_vertices_;
             has_garbage_ = true;
         }
     }
 
-    void HalfedgeMeshInterface::delete_edge(EdgeHandle e) {
-        if (is_deleted(e)) {
+    void HalfedgeMeshInterface::delete_edge(EdgeHandle e)
+    {
+        if (is_deleted(e))
+        {
             return;
         }
 
         const FaceHandle f0 = face(halfedge(e, 0));
         const FaceHandle f1 = face(halfedge(e, 1));
 
-        if (f0.is_valid()) {
+        if (f0.is_valid())
+        {
             delete_face(f0);
         }
-        if (f1.is_valid()) {
+        if (f1.is_valid())
+        {
             delete_face(f1);
         }
     }
 
-    void HalfedgeMeshInterface::delete_face(FaceHandle f) {
-        if (face_deleted_[f]) {
+    void HalfedgeMeshInterface::delete_face(FaceHandle f)
+    {
+        if (face_deleted_[f])
+        {
             return;
         }
 
-        if (!face_deleted_[f]) {
+        if (!face_deleted_[f])
+        {
             face_deleted_[f] = true;
             ++deleted_faces_;
         }
@@ -963,18 +1117,22 @@ namespace engine::geometry::mesh {
         std::vector<VertexHandle> vertices;
         vertices.reserve(3);
 
-        for (auto hc: halfedges(f)) {
+        for (auto hc : halfedges(f))
+        {
             set_face(hc, FaceHandle());
 
-            if (is_boundary(opposite_halfedge(hc))) {
+            if (is_boundary(opposite_halfedge(hc)))
+            {
                 deleted_edges.push_back(edge(hc));
             }
 
             vertices.push_back(to_vertex(hc));
         }
 
-        if (!deleted_edges.empty()) {
-            for (const auto &edge_handle: deleted_edges) {
+        if (!deleted_edges.empty())
+        {
+            for (const auto& edge_handle : deleted_edges)
+            {
                 const auto h0 = halfedge(edge_handle, 0);
                 const auto v0 = to_vertex(h0);
                 const auto next0 = next_halfedge(h0);
@@ -988,52 +1146,68 @@ namespace engine::geometry::mesh {
                 set_next_halfedge(prev0, next1);
                 set_next_halfedge(prev1, next0);
 
-                if (!edge_deleted_[edge_handle]) {
+                if (!edge_deleted_[edge_handle])
+                {
                     edge_deleted_[edge_handle] = true;
                     ++deleted_edges_;
                 }
 
-                if (halfedge(v0) == h1) {
-                    if (next0 == h1) {
-                        if (!vertex_deleted_[v0]) {
+                if (halfedge(v0) == h1)
+                {
+                    if (next0 == h1)
+                    {
+                        if (!vertex_deleted_[v0])
+                        {
                             vertex_deleted_[v0] = true;
                             ++deleted_vertices_;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         set_halfedge(v0, next0);
                     }
                 }
 
-                if (halfedge(v1) == h0) {
-                    if (next1 == h0) {
-                        if (!vertex_deleted_[v1]) {
+                if (halfedge(v1) == h0)
+                {
+                    if (next1 == h0)
+                    {
+                        if (!vertex_deleted_[v1])
+                        {
                             vertex_deleted_[v1] = true;
                             ++deleted_vertices_;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         set_halfedge(v1, next1);
                     }
                 }
             }
         }
 
-        for (auto vtx: vertices) {
+        for (auto vtx : vertices)
+        {
             adjust_outgoing_halfedge(vtx);
         }
 
         has_garbage_ = true;
     }
 
-    VertexHandle HalfedgeMeshInterface::new_vertex() {
-        if (vertices_size() >= kInvalidPropertyIndex) {
+    VertexHandle HalfedgeMeshInterface::new_vertex()
+    {
+        if (vertices_size() >= kInvalidPropertyIndex)
+        {
             return {};
         }
         vertex_props_.push_back();
         return VertexHandle(vertices_size() - 1);
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::new_edge() {
-        if (halfedges_size() >= kInvalidPropertyIndex) {
+    HalfedgeHandle HalfedgeMeshInterface::new_edge()
+    {
+        if (halfedges_size() >= kInvalidPropertyIndex)
+        {
             return {};
         }
 
@@ -1044,10 +1218,12 @@ namespace engine::geometry::mesh {
         return HalfedgeHandle(halfedges_size() - 2);
     }
 
-    HalfedgeHandle HalfedgeMeshInterface::new_edge(VertexHandle start, VertexHandle end) {
+    HalfedgeHandle HalfedgeMeshInterface::new_edge(VertexHandle start, VertexHandle end)
+    {
         assert(start != end);
 
-        if (halfedges_size() >= kInvalidPropertyIndex) {
+        if (halfedges_size() >= kInvalidPropertyIndex)
+        {
             return {};
         }
 
@@ -1064,8 +1240,10 @@ namespace engine::geometry::mesh {
         return h0;
     }
 
-    FaceHandle HalfedgeMeshInterface::new_face() {
-        if (faces_size() >= kInvalidPropertyIndex) {
+    FaceHandle HalfedgeMeshInterface::new_face()
+    {
+        if (faces_size() >= kInvalidPropertyIndex)
+        {
             return {};
         }
 
@@ -1073,8 +1251,10 @@ namespace engine::geometry::mesh {
         return FaceHandle(faces_size() - 1);
     }
 
-    void HalfedgeMeshInterface::garbage_collection() {
-        if (!has_garbage_) {
+    void HalfedgeMeshInterface::garbage_collection()
+    {
+        if (!has_garbage_)
+        {
             return;
         }
 
@@ -1086,29 +1266,37 @@ namespace engine::geometry::mesh {
         auto vmap = add_vertex_property<VertexHandle>("v:garbage-collection");
         auto hmap = add_halfedge_property<HalfedgeHandle>("h:garbage-collection");
         auto fmap = add_face_property<FaceHandle>("f:garbage-collection");
-        
-        for (std::size_t i = 0; i < nv; ++i) {
+
+        for (std::size_t i = 0; i < nv; ++i)
+        {
             vmap[VertexHandle(i)] = VertexHandle(i);
         }
-        for (std::size_t i = 0; i < nh; ++i) {
+        for (std::size_t i = 0; i < nh; ++i)
+        {
             hmap[HalfedgeHandle(i)] = HalfedgeHandle(i);
         }
-        for (std::size_t i = 0; i < nf; ++i) {
+        for (std::size_t i = 0; i < nf; ++i)
+        {
             fmap[FaceHandle(i)] = FaceHandle(i);
         }
 
-        if (nv > 0) {
+        if (nv > 0)
+        {
             std::size_t i0 = 0;
             std::size_t i1 = nv - 1;
 
-            while (true) {
-                while (!vertex_deleted_[VertexHandle(i0)] && i0 < i1) {
+            while (true)
+            {
+                while (!vertex_deleted_[VertexHandle(i0)] && i0 < i1)
+                {
                     ++i0;
                 }
-                while (vertex_deleted_[VertexHandle(i1)] && i0 < i1) {
+                while (vertex_deleted_[VertexHandle(i1)] && i0 < i1)
+                {
                     --i1;
                 }
-                if (i0 >= i1) {
+                if (i0 >= i1)
+                {
                     break;
                 }
 
@@ -1118,18 +1306,23 @@ namespace engine::geometry::mesh {
             nv = vertex_deleted_[VertexHandle(i0)] ? i0 : i0 + 1;
         }
 
-        if (ne > 0) {
+        if (ne > 0)
+        {
             std::size_t i0 = 0;
             std::size_t i1 = ne - 1;
 
-            while (true) {
-                while (!edge_deleted_[EdgeHandle(i0)] && i0 < i1) {
+            while (true)
+            {
+                while (!edge_deleted_[EdgeHandle(i0)] && i0 < i1)
+                {
                     ++i0;
                 }
-                while (edge_deleted_[EdgeHandle(i1)] && i0 < i1) {
+                while (edge_deleted_[EdgeHandle(i1)] && i0 < i1)
+                {
                     --i1;
                 }
-                if (i0 >= i1) {
+                if (i0 >= i1)
+                {
                     break;
                 }
 
@@ -1142,18 +1335,23 @@ namespace engine::geometry::mesh {
             nh = 2 * ne;
         }
 
-        if (nf > 0) {
+        if (nf > 0)
+        {
             std::size_t i0 = 0;
             std::size_t i1 = nf - 1;
 
-            while (true) {
-                while (!face_deleted_[FaceHandle(i0)] && i0 < i1) {
+            while (true)
+            {
+                while (!face_deleted_[FaceHandle(i0)] && i0 < i1)
+                {
                     ++i0;
                 }
-                while (face_deleted_[FaceHandle(i1)] && i0 < i1) {
+                while (face_deleted_[FaceHandle(i1)] && i0 < i1)
+                {
                     --i1;
                 }
-                if (i0 >= i1) {
+                if (i0 >= i1)
+                {
                     break;
                 }
 
@@ -1163,23 +1361,28 @@ namespace engine::geometry::mesh {
             nf = face_deleted_[FaceHandle(i0)] ? i0 : i0 + 1;
         }
 
-        for (std::size_t i = 0; i < nv; ++i) {
+        for (std::size_t i = 0; i < nv; ++i)
+        {
             auto v = VertexHandle(i);
-            if (!is_isolated(v)) {
+            if (!is_isolated(v))
+            {
                 set_halfedge(v, hmap[halfedge(v)]);
             }
         }
 
-        for (std::size_t i = 0; i < nh; ++i) {
+        for (std::size_t i = 0; i < nh; ++i)
+        {
             auto h = HalfedgeHandle(i);
             set_vertex(h, vmap[to_vertex(h)]);
             set_next_halfedge(h, hmap[next_halfedge(h)]);
-            if (!is_boundary(h)) {
+            if (!is_boundary(h))
+            {
                 set_face(h, fmap[face(h)]);
             }
         }
 
-        for (std::size_t i = 0; i < nf; ++i) {
+        for (std::size_t i = 0; i < nf; ++i)
+        {
             auto f = FaceHandle(i);
             set_halfedge(f, hmap[halfedge(f)]);
         }

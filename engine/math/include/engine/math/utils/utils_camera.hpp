@@ -7,10 +7,9 @@
 
 namespace engine::math::utils
 {
-    template<typename T>
+    template <typename T>
     ENGINE_MATH_INLINE Matrix<T, 4, 4> perspective(T fov_y, T aspect, T near, T far) noexcept
     {
-
         const T f = T(1) / utils::tan(fov_y / T(2));
         Matrix<T, 4, 4> result{
             f / aspect, T(0), T(0), T(0),
@@ -21,7 +20,7 @@ namespace engine::math::utils
         return result;
     }
 
-    template<typename T>
+    template <typename T>
     ENGINE_MATH_INLINE Matrix<T, 4, 4> orthographic(T left, T right, T bottom, T top, T near, T far) noexcept
     {
         Matrix<T, 4, 4> result{
@@ -33,20 +32,21 @@ namespace engine::math::utils
         return result;
     }
 
-    template<typename T>
+    template <typename T>
     ENGINE_MATH_INLINE T radians(T degrees) noexcept
     {
         return degrees * (static_cast<T>(3.14159265358979323846) / T(180));
     }
 
-    template<typename T>
+    template <typename T>
     ENGINE_MATH_INLINE T degrees(T radians) noexcept
     {
         return radians * (T(180) / static_cast<T>(3.14159265358979323846));
     }
 
-template <typename T>
-    ENGINE_MATH_INLINE Matrix<T, 4, 4> look_at(const Vector<T, 3>& eye, const Vector<T, 3>& center, const Vector<T, 3>& up) noexcept
+    template <typename T>
+    ENGINE_MATH_INLINE Matrix<T, 4, 4> look_at(const Vector<T, 3>& eye, const Vector<T, 3>& center,
+                                               const Vector<T, 3>& up) noexcept
     {
         const Vector<T, 3> forward = center - eye;
         const T min_length_sq = std::numeric_limits<T>::epsilon();

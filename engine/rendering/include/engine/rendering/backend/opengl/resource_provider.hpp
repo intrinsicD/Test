@@ -106,4 +106,3 @@ namespace engine::rendering::backend::opengl
                                                       const FrameGraphResourceInfo& info) const noexcept;
     };
 }
-

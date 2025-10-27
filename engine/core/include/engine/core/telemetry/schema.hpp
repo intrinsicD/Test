@@ -7,8 +7,8 @@
 #include <variant>
 #include <vector>
 
-namespace engine::core::telemetry {
-
+namespace engine::core::telemetry
+{
     enum class MetricKind
     {
         Counter,
@@ -61,6 +61,4 @@ namespace engine::core::telemetry {
     [[nodiscard]] bool is_integral(const MetricValue& value) noexcept;
     [[nodiscard]] double as_double(const MetricValue& value) noexcept;
     [[nodiscard]] std::int64_t as_int(const MetricValue& value) noexcept;
-
-}  // namespace engine::core::telemetry
-
+} // namespace engine::core::telemetry

@@ -60,28 +60,50 @@ namespace
     }
 
     constexpr CorpusSample kSamples[] = {
-        {"mesh_triangle.obj", engine::io::GeometryKind::mesh, engine::io::MeshFileFormat::obj,
-         engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::unknown, ".obj", nullptr},
-        {"mesh_ascii.ply", engine::io::GeometryKind::mesh, engine::io::MeshFileFormat::ply,
-         engine::io::PointCloudFileFormat::ply, engine::io::GraphFileFormat::ply, ".ply", nullptr},
-        {"mesh_ascii.stl", engine::io::GeometryKind::mesh, engine::io::MeshFileFormat::stl,
-         engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::unknown, ".stl", nullptr},
-        {"mesh_simple.off", engine::io::GeometryKind::mesh, engine::io::MeshFileFormat::off,
-         engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::unknown, ".off", nullptr},
-        {"point_cloud_ascii.ply", engine::io::GeometryKind::point_cloud, engine::io::MeshFileFormat::ply,
-         engine::io::PointCloudFileFormat::ply, engine::io::GraphFileFormat::ply, ".ply", nullptr},
-        {"point_cloud_ascii.pcd", engine::io::GeometryKind::point_cloud, engine::io::MeshFileFormat::unknown,
-         engine::io::PointCloudFileFormat::pcd, engine::io::GraphFileFormat::unknown, ".pcd", nullptr},
-        {"point_cloud_basic.xyz", engine::io::GeometryKind::point_cloud, engine::io::MeshFileFormat::unknown,
-         engine::io::PointCloudFileFormat::xyz, engine::io::GraphFileFormat::unknown, ".xyz", nullptr},
-        {"graph_ascii.ply", engine::io::GeometryKind::graph, engine::io::MeshFileFormat::ply,
-         engine::io::PointCloudFileFormat::ply, engine::io::GraphFileFormat::ply, ".ply", nullptr},
-        {"graph_edgelist.txt", engine::io::GeometryKind::graph, engine::io::MeshFileFormat::unknown,
-         engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::edgelist, ".txt", nullptr},
-        {"invalid_truncated_header.ply", engine::io::GeometryKind::point_cloud, engine::io::MeshFileFormat::ply,
-         engine::io::PointCloudFileFormat::ply, engine::io::GraphFileFormat::ply, ".ply", nullptr},
-        {"invalid_notply_header.ply", engine::io::GeometryKind::unknown, engine::io::MeshFileFormat::unknown,
-         engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::unknown, nullptr, "invalid_argument"},
+        {
+            "mesh_triangle.obj", engine::io::GeometryKind::mesh, engine::io::MeshFileFormat::obj,
+            engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::unknown, ".obj", nullptr
+        },
+        {
+            "mesh_ascii.ply", engine::io::GeometryKind::mesh, engine::io::MeshFileFormat::ply,
+            engine::io::PointCloudFileFormat::ply, engine::io::GraphFileFormat::ply, ".ply", nullptr
+        },
+        {
+            "mesh_ascii.stl", engine::io::GeometryKind::mesh, engine::io::MeshFileFormat::stl,
+            engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::unknown, ".stl", nullptr
+        },
+        {
+            "mesh_simple.off", engine::io::GeometryKind::mesh, engine::io::MeshFileFormat::off,
+            engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::unknown, ".off", nullptr
+        },
+        {
+            "point_cloud_ascii.ply", engine::io::GeometryKind::point_cloud, engine::io::MeshFileFormat::ply,
+            engine::io::PointCloudFileFormat::ply, engine::io::GraphFileFormat::ply, ".ply", nullptr
+        },
+        {
+            "point_cloud_ascii.pcd", engine::io::GeometryKind::point_cloud, engine::io::MeshFileFormat::unknown,
+            engine::io::PointCloudFileFormat::pcd, engine::io::GraphFileFormat::unknown, ".pcd", nullptr
+        },
+        {
+            "point_cloud_basic.xyz", engine::io::GeometryKind::point_cloud, engine::io::MeshFileFormat::unknown,
+            engine::io::PointCloudFileFormat::xyz, engine::io::GraphFileFormat::unknown, ".xyz", nullptr
+        },
+        {
+            "graph_ascii.ply", engine::io::GeometryKind::graph, engine::io::MeshFileFormat::ply,
+            engine::io::PointCloudFileFormat::ply, engine::io::GraphFileFormat::ply, ".ply", nullptr
+        },
+        {
+            "graph_edgelist.txt", engine::io::GeometryKind::graph, engine::io::MeshFileFormat::unknown,
+            engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::edgelist, ".txt", nullptr
+        },
+        {
+            "invalid_truncated_header.ply", engine::io::GeometryKind::point_cloud, engine::io::MeshFileFormat::ply,
+            engine::io::PointCloudFileFormat::ply, engine::io::GraphFileFormat::ply, ".ply", nullptr
+        },
+        {
+            "invalid_notply_header.ply", engine::io::GeometryKind::unknown, engine::io::MeshFileFormat::unknown,
+            engine::io::PointCloudFileFormat::unknown, engine::io::GraphFileFormat::unknown, nullptr, "invalid_argument"
+        },
     };
 
     INSTANTIATE_TEST_SUITE_P(GeometryDetectionCorpus, GeometryCorpusDetectionTest,

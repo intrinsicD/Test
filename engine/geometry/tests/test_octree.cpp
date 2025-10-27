@@ -76,7 +76,8 @@ namespace
         for (auto split_point : {
                  geo::Octree::SplitPoint::Center,
                  geo::Octree::SplitPoint::Mean,
-                 geo::Octree::SplitPoint::Median })
+                 geo::Octree::SplitPoint::Median
+             })
         {
             for (bool tight : {false, true})
             {
@@ -142,7 +143,8 @@ namespace
 
 TEST(Octree, QueryAabbMatchesBruteForce)
 {
-    run_query_test(200, 1337, 25, [](Rng& rng) {
+    run_query_test(200, 1337, 25, [](Rng& rng)
+    {
         geo::Aabb query{};
         geo::Random(query, rng);
         const math::vec3 padding{0.1f};
@@ -154,7 +156,8 @@ TEST(Octree, QueryAabbMatchesBruteForce)
 
 TEST(Octree, QuerySphereMatchesBruteForce)
 {
-    run_query_test(160, 2024, 25, [](Rng& rng) {
+    run_query_test(160, 2024, 25, [](Rng& rng)
+    {
         geo::Sphere query{};
         geo::Random(query, rng);
         return query;
@@ -163,7 +166,8 @@ TEST(Octree, QuerySphereMatchesBruteForce)
 
 TEST(Octree, QueryRayMatchesBruteForce)
 {
-    run_query_test(180, 42, 20, [](Rng& rng) {
+    run_query_test(180, 42, 20, [](Rng& rng)
+    {
         geo::Ray query{};
         geo::Random(query, rng);
         return query;
@@ -172,7 +176,8 @@ TEST(Octree, QueryRayMatchesBruteForce)
 
 TEST(Octree, QueryCylinderMatchesBruteForce)
 {
-    run_query_test(130, 1234, 20, [](Rng& rng) {
+    run_query_test(130, 1234, 20, [](Rng& rng)
+    {
         geo::Cylinder query{};
         geo::Random(query, rng);
         return query;
@@ -181,7 +186,8 @@ TEST(Octree, QueryCylinderMatchesBruteForce)
 
 TEST(Octree, QueryEllipsoidMatchesBruteForce)
 {
-    run_query_test(140, 2025, 20, [](Rng& rng) {
+    run_query_test(140, 2025, 20, [](Rng& rng)
+    {
         geo::Ellipsoid query{};
         geo::Random(query, rng);
         return query;
@@ -190,7 +196,8 @@ TEST(Octree, QueryEllipsoidMatchesBruteForce)
 
 TEST(Octree, QueryObbMatchesBruteForce)
 {
-    run_query_test(150, 31415, 20, [](Rng& rng) {
+    run_query_test(150, 31415, 20, [](Rng& rng)
+    {
         geo::Obb query{};
         geo::Random(query, rng);
         return query;
@@ -199,7 +206,8 @@ TEST(Octree, QueryObbMatchesBruteForce)
 
 TEST(Octree, QueryTriangleMatchesBruteForce)
 {
-    run_query_test(150, 2718, 20, [](Rng& rng) {
+    run_query_test(150, 2718, 20, [](Rng& rng)
+    {
         geo::Triangle query{};
         geo::Random(query, rng);
         return query;
@@ -208,7 +216,8 @@ TEST(Octree, QueryTriangleMatchesBruteForce)
 
 TEST(Octree, QuerySegmentMatchesBruteForce)
 {
-    run_query_test(150, 8080, 20, [](Rng& rng) {
+    run_query_test(150, 8080, 20, [](Rng& rng)
+    {
         geo::Segment query{};
         geo::Random(query, rng);
         return query;
@@ -217,7 +226,8 @@ TEST(Octree, QuerySegmentMatchesBruteForce)
 
 TEST(Octree, QueryLineMatchesBruteForce)
 {
-    run_query_test(150, 4242, 20, [](Rng& rng) {
+    run_query_test(150, 4242, 20, [](Rng& rng)
+    {
         geo::Line query{};
         geo::Random(query, rng);
         return query;
@@ -226,7 +236,8 @@ TEST(Octree, QueryLineMatchesBruteForce)
 
 TEST(Octree, QueryPlaneMatchesBruteForce)
 {
-    run_query_test(150, 5151, 20, [](Rng& rng) {
+    run_query_test(150, 5151, 20, [](Rng& rng)
+    {
         geo::Plane query{};
         geo::Random(query, rng);
         return query;
@@ -325,7 +336,8 @@ TEST(OctreeTelemetry, RecordsSpatialQueries)
     boxes.vector() = {
         geo::Aabb{math::vec3{-1.0F, -1.0F, -1.0F}, math::vec3{-0.5F, -0.5F, -0.5F}},
         geo::Aabb{math::vec3{-0.25F, -0.25F, -0.25F}, math::vec3{0.25F, 0.25F, 0.25F}},
-        geo::Aabb{math::vec3{1.0F, 1.0F, 1.0F}, math::vec3{1.5F, 1.5F, 1.5F}}};
+        geo::Aabb{math::vec3{1.0F, 1.0F, 1.0F}, math::vec3{1.5F, 1.5F, 1.5F}}
+    };
 
     geo::Octree tree;
     geo::Octree::SplitPolicy policy{};
@@ -374,7 +386,8 @@ TEST(OctreeTelemetry, RecordsSpatialQueries)
     const auto snapshot = telemetry.snapshot();
 
     const auto& build = snapshot.operation(geo::GeometrySpatialQueryOperation::octree_build);
-    const auto expect_count = [](const auto& metrics, std::uint64_t invocations, std::size_t results) {
+    const auto expect_count = [](const auto& metrics, std::uint64_t invocations, std::size_t results)
+    {
         const auto expected_results = static_cast<std::uint64_t>(results);
         EXPECT_EQ(invocations, metrics.invocations);
         EXPECT_EQ(expected_results, metrics.total_results);

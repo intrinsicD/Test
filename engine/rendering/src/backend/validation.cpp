@@ -113,7 +113,7 @@ namespace engine::rendering::backend::validation
             identifier.append(queue);
             return identifier;
         }
-    }  // namespace
+    } // namespace
 
     BackendValidationReport validate_backend(resources::IGpuResourceProvider& provider)
     {
@@ -121,21 +121,25 @@ namespace engine::rendering::backend::validation
         report.api = provider.api();
 
         bool frame_started = false;
-        record_check(report, "lifecycle.begin_frame", [&] {
+        record_check(report, "lifecycle.begin_frame", [&]
+        {
             provider.begin_frame();
             frame_started = true;
         });
 
         const std::array queues{QueueType::Graphics, QueueType::Compute, QueueType::Transfer};
-        const std::array queue_names{std::string_view{"graphics"}, std::string_view{"compute"},
-                                     std::string_view{"transfer"}};
+        const std::array queue_names{
+            std::string_view{"graphics"}, std::string_view{"compute"},
+            std::string_view{"transfer"}
+        };
         std::size_t next_handle_index = 0;
 
         for (std::size_t index = 0; index < queues.size(); ++index)
         {
             const auto queue = queues[index];
             const auto name = queue_names[index];
-            record_check(report, make_queue_identifier("queue", name), [&] {
+            record_check(report, make_queue_identifier("queue", name), [&]
+            {
                 const auto handle = provider.queue_handle(queue);
                 if (handle.api != report.api)
                 {
@@ -151,7 +155,8 @@ namespace engine::rendering::backend::validation
                 }
             });
 
-            record_check(report, make_queue_identifier("command_buffer", name), [&] {
+            record_check(report, make_queue_identifier("command_buffer", name), [&]
+            {
                 CommandBufferHandle handle{++next_handle_index};
                 const auto native = provider.allocate_command_buffer(queue, "backend_validation", handle);
                 CommandBufferGuard guard{provider, handle};
@@ -174,7 +179,8 @@ namespace engine::rendering::backend::validation
             });
         }
 
-        record_check(report, "lifecycle.end_frame", [&] {
+        record_check(report, "lifecycle.end_frame", [&]
+        {
             if (!frame_started)
             {
                 throw std::runtime_error{"begin_frame failed; end_frame skipped"};
@@ -183,7 +189,8 @@ namespace engine::rendering::backend::validation
             frame_started = false;
         });
 
-        record_check(report, "fence.resolve", [&] {
+        record_check(report, "fence.resolve", [&]
+        {
             resources::Fence fence{"backend_validation_fence"};
             const auto native = provider.resolve_fence(fence);
             if (native.api != report.api)
@@ -196,7 +203,8 @@ namespace engine::rendering::backend::validation
             }
         });
 
-        record_check(report, "semaphore.resolve", [&] {
+        record_check(report, "semaphore.resolve", [&]
+        {
             resources::TimelineSemaphore semaphore{"backend_validation_semaphore"};
             const auto native = provider.resolve_semaphore(semaphore);
             if (native.api != report.api)
@@ -221,12 +229,14 @@ namespace engine::rendering::backend::validation
         const auto api_name = std::string{api_token(report.api)};
         const auto total_checks = static_cast<std::int64_t>(report.observations.size());
         const auto failed_checks = static_cast<std::int64_t>(std::count_if(
-            report.observations.begin(), report.observations.end(), [](const BackendValidationObservation& observation) {
+            report.observations.begin(), report.observations.end(), [](const BackendValidationObservation& observation)
+            {
                 return !observation.passed;
             }));
         const auto passed_checks = total_checks - failed_checks;
 
-        const auto add_counter = [&](std::string name, std::string_view description, std::int64_t value) {
+        const auto add_counter = [&](std::string name, std::string_view description, std::int64_t value)
+        {
             const std::size_t index = metrics.descriptors.size();
             core::telemetry::MetricDescriptor descriptor{};
             descriptor.name = std::move(name);
@@ -241,7 +251,8 @@ namespace engine::rendering::backend::validation
             metrics.samples.push_back(std::move(sample));
         };
 
-        const auto add_gauge = [&](std::string name, std::string_view description, double value) {
+        const auto add_gauge = [&](std::string name, std::string_view description, double value)
+        {
             const std::size_t index = metrics.descriptors.size();
             core::telemetry::MetricDescriptor descriptor{};
             descriptor.name = std::move(name);
@@ -272,4 +283,3 @@ namespace engine::rendering::backend::validation
         return metrics;
     }
 }
-

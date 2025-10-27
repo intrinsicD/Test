@@ -55,11 +55,20 @@ namespace
 TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
 {
     auto& validators = engine::assets::HandleValidatorRegistry::instance();
-    [[maybe_unused]] auto mesh_validator = validators.register_mesh_validator([](const engine::assets::MeshHandle&) { return true; });
-    [[maybe_unused]] auto graph_validator = validators.register_graph_validator([](const engine::assets::GraphHandle&) { return true; });
-    [[maybe_unused]] auto cloud_validator = validators.register_point_cloud_validator([](const engine::assets::PointCloudHandle&) { return true; });
-    [[maybe_unused]] auto material_validator = validators.register_material_validator([](const engine::assets::MaterialHandle&) { return true; });
-    [[maybe_unused]] auto shader_validator = validators.register_shader_validator([](const engine::assets::ShaderHandle&) { return true; });
+    [[maybe_unused]] auto mesh_validator = validators.register_mesh_validator([](const engine::assets::MeshHandle&)
+    {
+        return true;
+    });
+    [[maybe_unused]] auto graph_validator = validators.register_graph_validator([](const engine::assets::GraphHandle&)
+    {
+        return true;
+    });
+    [[maybe_unused]] auto cloud_validator = validators.register_point_cloud_validator(
+        [](const engine::assets::PointCloudHandle&) { return true; });
+    [[maybe_unused]] auto material_validator = validators.register_material_validator(
+        [](const engine::assets::MaterialHandle&) { return true; });
+    [[maybe_unused]] auto shader_validator = validators.register_shader_validator(
+        [](const engine::assets::ShaderHandle&) { return true; });
 
     engine::assets::MeshHandle mesh_handle{std::string{"mesh"}};
     engine::assets::MeshHandle::pool_handle_type mesh_raw{};
@@ -76,7 +85,10 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     const auto mesh_entity = scene.create_entity();
     auto& mesh_world =
         scene.registry().emplace<engine::scene::components::WorldTransform>(mesh_entity.id());
-    mesh_world.value.translation = engine::math::Vector<float, 3>{1.0F, 2.0F, 3.0F};
+    mesh_world.value.translation = engine::math::Vector < float, 3 >
+    {
+        1.0F, 2.0F, 3.0F
+    };
     scene.registry().emplace<engine::rendering::components::RenderGeometry>(
         mesh_entity.id(),
         engine::rendering::components::RenderGeometry::from_mesh(mesh_handle, mesh_material));
@@ -95,7 +107,10 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     const auto graph_entity = scene.create_entity();
     auto& graph_world =
         scene.registry().emplace<engine::scene::components::WorldTransform>(graph_entity.id());
-    graph_world.value.translation = engine::math::Vector<float, 3>{-1.0F, 0.5F, 4.0F};
+    graph_world.value.translation = engine::math::Vector < float, 3 >
+    {
+        -1.0F, 0.5F, 4.0F
+    };
     scene.registry().emplace<engine::rendering::components::RenderGeometry>(
         graph_entity.id(),
         engine::rendering::components::RenderGeometry::from_graph(graph_handle, graph_material));
@@ -114,7 +129,10 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     const auto cloud_entity = scene.create_entity();
     auto& cloud_world =
         scene.registry().emplace<engine::scene::components::WorldTransform>(cloud_entity.id());
-    cloud_world.value.translation = engine::math::Vector<float, 3>{0.0F, -3.0F, -1.0F};
+    cloud_world.value.translation = engine::math::Vector < float, 3 >
+    {
+        0.0F, -3.0F, -1.0F
+    };
     scene.registry().emplace<engine::rendering::components::RenderGeometry>(
         cloud_entity.id(),
         engine::rendering::components::RenderGeometry::from_point_cloud(cloud_handle, cloud_material));
@@ -158,23 +176,23 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
 
     pipeline.render(scene, submission);
 
-    ASSERT_EQ(scheduler.submissions.size(), 1);  // NOLINT
+    ASSERT_EQ(scheduler.submissions.size(), 1); // NOLINT
     EXPECT_EQ(scheduler.submissions.front().pass_name, "ForwardGeometry");
     EXPECT_EQ(scheduler.submissions.front().queue, engine::rendering::QueueType::Graphics);
 
-    ASSERT_EQ(scheduler.pass_metadata.size(), 1);  // NOLINT
+    ASSERT_EQ(scheduler.pass_metadata.size(), 1); // NOLINT
     const auto& pass_record = scheduler.pass_metadata.front();
     EXPECT_EQ(pass_record.pass_name, "ForwardGeometry");
     EXPECT_EQ(pass_record.preferred_queue, engine::rendering::QueueType::Graphics);
     EXPECT_EQ(pass_record.phase, engine::rendering::PassPhase::Geometry);
     EXPECT_EQ(pass_record.validation, engine::rendering::ValidationSeverity::Error);
 
-    ASSERT_EQ(command_encoders.begin_records.size(), 1);  // NOLINT
+    ASSERT_EQ(command_encoders.begin_records.size(), 1); // NOLINT
     EXPECT_EQ(command_encoders.begin_records.front().pass_name, "ForwardGeometry");
     EXPECT_EQ(command_encoders.begin_records.front().queue, engine::rendering::QueueType::Graphics);
-    ASSERT_EQ(command_encoders.completed_encoders.size(), 1);  // NOLINT
+    ASSERT_EQ(command_encoders.completed_encoders.size(), 1); // NOLINT
     const auto& recorded_encoder = *command_encoders.completed_encoders.front();
-    ASSERT_EQ(recorded_encoder.draws.size(), 3);  // NOLINT
+    ASSERT_EQ(recorded_encoder.draws.size(), 3); // NOLINT
     bool saw_mesh = false;
     bool saw_graph = false;
     bool saw_point_cloud = false;
@@ -186,7 +204,13 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
             EXPECT_EQ(std::get<engine::assets::MeshHandle>(draw.geometry).id(), std::string{"mesh"});
             EXPECT_EQ(draw.material.id(), std::string{"mesh_material"});
             EXPECT_EQ(draw.transform.translation,
-                      (engine::math::Vector<float, 3>{1.0F, 2.0F, 3.0F}));
+                      (engine::math::Vector < float, 3 >
+            {
+                1.0F, 2.0F, 3.0F
+            }
+            )
+            )
+            ;
         }
         else if (std::holds_alternative<engine::assets::GraphHandle>(draw.geometry))
         {
@@ -194,7 +218,13 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
             EXPECT_EQ(std::get<engine::assets::GraphHandle>(draw.geometry).id(), std::string{"graph"});
             EXPECT_EQ(draw.material.id(), std::string{"graph_material"});
             EXPECT_EQ(draw.transform.translation,
-                      (engine::math::Vector<float, 3>{-1.0F, 0.5F, 4.0F}));
+                      (engine::math::Vector < float, 3 >
+            {
+                -1.0F, 0.5F, 4.0F
+            }
+            )
+            )
+            ;
         }
         else if (std::holds_alternative<engine::assets::PointCloudHandle>(draw.geometry))
         {
@@ -202,16 +232,22 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
             EXPECT_EQ(std::get<engine::assets::PointCloudHandle>(draw.geometry).id(), std::string{"cloud"});
             EXPECT_EQ(draw.material.id(), std::string{"cloud_material"});
             EXPECT_EQ(draw.transform.translation,
-                      (engine::math::Vector<float, 3>{0.0F, -3.0F, -1.0F}));
+                      (engine::math::Vector < float, 3 >
+            {
+                0.0F, -3.0F, -1.0F
+            }
+            )
+            )
+            ;
         }
     }
     EXPECT_TRUE(saw_mesh);
     EXPECT_TRUE(saw_graph);
     EXPECT_TRUE(saw_point_cloud);
 
-    ASSERT_EQ(graph.execution_order().size(), 1);  // NOLINT
+    ASSERT_EQ(graph.execution_order().size(), 1); // NOLINT
     const auto& events = graph.resource_events();
-    ASSERT_EQ(events.size(), 4);  // NOLINT
+    ASSERT_EQ(events.size(), 4); // NOLINT
 
     EXPECT_EQ(events[0].resource_name, "ForwardColor");
     EXPECT_EQ(events[0].type, engine::rendering::ResourceEvent::Type::Acquire);
@@ -225,39 +261,39 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     EXPECT_EQ(events[3].resource_name, "ForwardDepth");
     EXPECT_EQ(events[3].type, engine::rendering::ResourceEvent::Type::Release);
 
-    ASSERT_EQ(provider.meshes.size(), 1);  // NOLINT
+    ASSERT_EQ(provider.meshes.size(), 1); // NOLINT
     EXPECT_EQ(provider.meshes.front().id(), std::string{"mesh"});
 
-    ASSERT_EQ(provider.graphs.size(), 1);  // NOLINT
+    ASSERT_EQ(provider.graphs.size(), 1); // NOLINT
     EXPECT_EQ(provider.graphs.front().id(), std::string{"graph"});
 
-    ASSERT_EQ(provider.point_clouds.size(), 1);  // NOLINT
+    ASSERT_EQ(provider.point_clouds.size(), 1); // NOLINT
     EXPECT_EQ(provider.point_clouds.front().id(), std::string{"cloud"});
 
-    ASSERT_EQ(provider.materials.size(), 3);  // NOLINT
+    ASSERT_EQ(provider.materials.size(), 3); // NOLINT
     EXPECT_TRUE(std::find(provider.materials.begin(), provider.materials.end(),
                           engine::assets::MaterialHandle{std::string{"mesh_material"}})
-                != provider.materials.end());
+        != provider.materials.end());
     EXPECT_TRUE(std::find(provider.materials.begin(), provider.materials.end(),
                           engine::assets::MaterialHandle{std::string{"graph_material"}})
-                != provider.materials.end());
+        != provider.materials.end());
     EXPECT_TRUE(std::find(provider.materials.begin(), provider.materials.end(),
                           engine::assets::MaterialHandle{std::string{"cloud_material"}})
-                != provider.materials.end());
+        != provider.materials.end());
 
-    ASSERT_EQ(provider.shaders.size(), 3);  // NOLINT
+    ASSERT_EQ(provider.shaders.size(), 3); // NOLINT
     EXPECT_TRUE(std::find(provider.shaders.begin(), provider.shaders.end(),
                           engine::assets::ShaderHandle{std::string{"mesh_shader"}})
-                != provider.shaders.end());
+        != provider.shaders.end());
     EXPECT_TRUE(std::find(provider.shaders.begin(), provider.shaders.end(),
                           engine::assets::ShaderHandle{std::string{"graph_shader"}})
-                != provider.shaders.end());
+        != provider.shaders.end());
     EXPECT_TRUE(std::find(provider.shaders.begin(), provider.shaders.end(),
                           engine::assets::ShaderHandle{std::string{"cloud_shader"}})
-                != provider.shaders.end());
+        != provider.shaders.end());
 
     EXPECT_EQ(device_provider.frames_begun(), 1U);
     EXPECT_EQ(device_provider.frames_completed(), 1U);
-    ASSERT_EQ(device_provider.acquired().size(), 2);  // NOLINT
-    ASSERT_EQ(device_provider.released().size(), 2);  // NOLINT
+    ASSERT_EQ(device_provider.acquired().size(), 2); // NOLINT
+    ASSERT_EQ(device_provider.released().size(), 2); // NOLINT
 }

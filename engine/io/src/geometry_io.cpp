@@ -41,19 +41,19 @@ namespace engine::io
             if (format.empty())
             {
                 spdlog::warn("Geometry IO {} failed for '{}' (error={}, message={})",
-                              to_string(operation),
-                              path.string(),
-                              error.identifier(),
-                              message);
+                             to_string(operation),
+                             path.string(),
+                             error.identifier(),
+                             message);
             }
             else
             {
                 spdlog::warn("Geometry IO {} failed for '{}' (format={}, error={}, message={})",
-                              to_string(operation),
-                              path.string(),
-                              format,
-                              error.identifier(),
-                              message);
+                             to_string(operation),
+                             path.string(),
+                             format,
+                             error.identifier(),
+                             message);
             }
         }
 
@@ -62,7 +62,7 @@ namespace engine::io
         public:
             GeometryIoException(GeometryIoError code, std::string_view message)
                 : std::runtime_error(std::string{message})
-                , code_{code}
+                  , code_{code}
             {
             }
 
@@ -104,7 +104,7 @@ namespace engine::io
             {
                 return make_geometry_io_error(GeometryIoError::io_failure,
                                               std::string{"Filesystem error while processing '"} + path.string()
-                                                  + "': " + e.what());
+                                              + "': " + e.what());
             }
             catch (const std::bad_alloc&)
             {
@@ -119,7 +119,10 @@ namespace engine::io
 
         [[nodiscard]] std::string to_lower(std::string value)
         {
-            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c)
+            {
+                return static_cast<char>(std::tolower(c));
+            });
             return value;
         }
 
@@ -379,7 +382,8 @@ namespace engine::io
             {
                 if (!consume(expected))
                 {
-                    throw std::runtime_error(std::string{"Expected character '"} + expected + "' in signature database");
+                    throw std::runtime_error(
+                        std::string{"Expected character '"} + expected + "' in signature database");
                 }
             }
 
@@ -466,41 +470,42 @@ namespace engine::io
                         result.push_back('\t');
                         break;
                     case 'u':
-                    {
-                        if (m_index + 4 > m_data.size())
                         {
-                            throw std::runtime_error("Incomplete unicode escape in signature database string");
-                        }
-                        unsigned int code_point = 0U;
-                        for (int i = 0; i < 4; ++i)
-                        {
-                            const char hex = m_data[m_index++];
-                            code_point <<= 4U;
-                            if (hex >= '0' && hex <= '9')
+                            if (m_index + 4 > m_data.size())
                             {
-                                code_point += static_cast<unsigned int>(hex - '0');
+                                throw std::runtime_error("Incomplete unicode escape in signature database string");
                             }
-                            else if (hex >= 'a' && hex <= 'f')
+                            unsigned int code_point = 0U;
+                            for (int i = 0; i < 4; ++i)
                             {
-                                code_point += static_cast<unsigned int>(10 + hex - 'a');
+                                const char hex = m_data[m_index++];
+                                code_point <<= 4U;
+                                if (hex >= '0' && hex <= '9')
+                                {
+                                    code_point += static_cast<unsigned int>(hex - '0');
+                                }
+                                else if (hex >= 'a' && hex <= 'f')
+                                {
+                                    code_point += static_cast<unsigned int>(10 + hex - 'a');
+                                }
+                                else if (hex >= 'A' && hex <= 'F')
+                                {
+                                    code_point += static_cast<unsigned int>(10 + hex - 'A');
+                                }
+                                else
+                                {
+                                    throw std::runtime_error("Invalid unicode escape in signature database string");
+                                }
                             }
-                            else if (hex >= 'A' && hex <= 'F')
-                            {
-                                code_point += static_cast<unsigned int>(10 + hex - 'A');
-                            }
-                            else
-                            {
-                                throw std::runtime_error("Invalid unicode escape in signature database string");
-                            }
-                        }
 
-                        if (code_point > 0x7FU)
-                        {
-                            throw std::runtime_error("Non-ASCII unicode escapes are not supported in signature database strings");
+                            if (code_point > 0x7FU)
+                            {
+                                throw std::runtime_error(
+                                    "Non-ASCII unicode escapes are not supported in signature database strings");
+                            }
+                            result.push_back(static_cast<char>(code_point));
+                            break;
                         }
-                        result.push_back(static_cast<char>(code_point));
-                        break;
-                    }
                     default:
                         throw std::runtime_error("Unsupported escape sequence in signature database string");
                     }
@@ -882,7 +887,8 @@ namespace engine::io
         private:
             [[nodiscard]] std::filesystem::path resolve_path() const
             {
-                if (const char* override_path = std::getenv(kSignatureDatabaseEnvVar); override_path != nullptr && override_path[0] != '\0')
+                if (const char* override_path = std::getenv(kSignatureDatabaseEnvVar); override_path != nullptr &&
+                    override_path[0] != '\0')
                 {
                     return std::filesystem::path{override_path};
                 }
@@ -921,7 +927,8 @@ namespace engine::io
                     }
                     else
                     {
-                        spdlog::debug("Loaded {} geometry signature rules from '{}'", parsed_rules.size(), path.string());
+                        spdlog::debug("Loaded {} geometry signature rules from '{}'", parsed_rules.size(),
+                                      path.string());
                     }
                     return parsed_rules;
                 }
@@ -1259,7 +1266,7 @@ namespace engine::io
                     matched = true;
                 }
                 else if (starts_with(lowered, "o ") || starts_with(lowered, "g ") || starts_with(lowered, "usemtl ")
-                         || starts_with(lowered, "mtllib "))
+                    || starts_with(lowered, "mtllib "))
                 {
                     ++geometry_tokens;
                     matched = true;
@@ -1338,7 +1345,8 @@ namespace engine::io
 
                 if (starts_with(lowered, "version ") || starts_with(lowered, "fields ") || starts_with(lowered, "size ")
                     || starts_with(lowered, "type ") || starts_with(lowered, "count ") || starts_with(lowered, "width ")
-                    || starts_with(lowered, "height ") || starts_with(lowered, "points ") || starts_with(lowered, "data "))
+                    || starts_with(lowered, "height ") || starts_with(lowered, "points ") || starts_with(
+                        lowered, "data "))
                 {
                     ++header_hits;
                     if (starts_with(lowered, "data "))
@@ -1436,7 +1444,8 @@ namespace engine::io
 
         [[nodiscard]] GeometryDetectionResult detect_geometry_from_signatures(std::string_view data)
         {
-            if (auto database_detection = detect_geometry_from_signature_database(data); database_detection.kind != GeometryKind::unknown)
+            if (auto database_detection = detect_geometry_from_signature_database(data); database_detection.kind !=
+                GeometryKind::unknown)
             {
                 return database_detection;
             }
@@ -1465,7 +1474,8 @@ namespace engine::io
 
         [[nodiscard]] std::string_view ltrim(std::string_view value)
         {
-            const auto it = std::find_if_not(value.begin(), value.end(), [](unsigned char c) {
+            const auto it = std::find_if_not(value.begin(), value.end(), [](unsigned char c)
+            {
                 return std::isspace(c) != 0;
             });
             if (it == value.end())
@@ -1576,7 +1586,7 @@ namespace engine::io
                 return false;
             }
 
-            std::array<char, 80U> header{};
+            std::array < char, 80U > header{};
             stream.read(header.data(), static_cast<std::streamsize>(header.size()));
             if (stream.gcount() != static_cast<std::streamsize>(header.size()))
             {
@@ -1718,21 +1728,24 @@ namespace engine::io
             GeometryDetectionResult result{};
             result.format_hint = ext;
 
-            if (auto mesh_format = mesh_format_from_extension(ext); mesh_format != MeshFileFormat::unknown && ext != ".ply")
+            if (auto mesh_format = mesh_format_from_extension(ext); mesh_format != MeshFileFormat::unknown && ext !=
+                ".ply")
             {
                 result.kind = GeometryKind::mesh;
                 result.mesh_format = mesh_format;
                 return result;
             }
 
-            if (auto pc_format = point_cloud_format_from_extension(ext); pc_format != PointCloudFileFormat::unknown && ext != ".ply")
+            if (auto pc_format = point_cloud_format_from_extension(ext); pc_format != PointCloudFileFormat::unknown &&
+                ext != ".ply")
             {
                 result.kind = GeometryKind::point_cloud;
                 result.point_cloud_format = pc_format;
                 return result;
             }
 
-            if (auto graph_format = graph_format_from_extension(ext); graph_format != GraphFileFormat::unknown && ext != ".ply")
+            if (auto graph_format = graph_format_from_extension(ext); graph_format != GraphFileFormat::unknown && ext !=
+                ".ply")
             {
                 result.kind = GeometryKind::graph;
                 result.graph_format = graph_format;
@@ -1824,11 +1837,14 @@ namespace engine::io
                         const auto slash = token.find('/');
                         const std::string index_str = (slash == std::string::npos) ? token : token.substr(0, slash);
                         const int index = std::stoi(index_str);
-                        const int positive_index = index > 0 ? index : static_cast<int>(vertex_handles.size()) + index + 1;
+                        const int positive_index = index > 0
+                                                       ? index
+                                                       : static_cast<int>(vertex_handles.size()) + index + 1;
                         if (positive_index <= 0 || static_cast<std::size_t>(positive_index) > vertex_handles.size())
                         {
                             throw GeometryIoException(GeometryIoError::invalid_argument,
-                                                      "OBJ face references invalid vertex index in file: " + path.string());
+                                                      "OBJ face references invalid vertex index in file: " + path.
+                                                      string());
                         }
                         face_vertices.push_back(vertex_handles[static_cast<std::size_t>(positive_index - 1)]);
                     }
@@ -1897,7 +1913,8 @@ namespace engine::io
                     }
                     stream << ' ' << idx;
                     h = mesh.next_halfedge(h);
-                } while (h != h_start);
+                }
+                while (h != h_start);
                 stream << '\n';
             }
         }
@@ -2013,7 +2030,8 @@ namespace engine::io
                     }
                     indices.push_back(idx);
                     h = mesh.next_halfedge(h);
-                } while (h != h_start);
+                }
+                while (h != h_start);
 
                 stream << indices.size();
                 for (const auto idx : indices)
@@ -2109,7 +2127,7 @@ namespace engine::io
                     throw GeometryIoException(GeometryIoError::invalid_argument,
                                               "Failed to add face while parsing PLY file: " + path.string());
                 }
-        }
+            }
         }
 
         void write_mesh_ply(const std::filesystem::path& path, const geometry::MeshInterface& mesh)
@@ -2166,7 +2184,8 @@ namespace engine::io
                     }
                     indices.push_back(idx);
                     h = mesh.next_halfedge(h);
-                } while (h != h_start);
+                }
+                while (h != h_start);
 
                 stream << indices.size();
                 for (const auto idx : indices)
@@ -2335,7 +2354,8 @@ namespace engine::io
                 }
                 else if (starts_with(lower, "points"))
                 {
-                    point_count = static_cast<std::size_t>(std::stoull(lower.substr(lower.find_first_of("0123456789"))));
+                    point_count = static_cast<std::size_t>(
+                        std::stoull(lower.substr(lower.find_first_of("0123456789"))));
                 }
                 else if (starts_with(lower, "data"))
                 {
@@ -2414,7 +2434,8 @@ namespace engine::io
             graph.clear();
 
             std::unordered_map<std::size_t, geometry::VertexHandle> vertex_map;
-            auto get_vertex = [&](std::size_t id) {
+            auto get_vertex = [&](std::size_t id)
+            {
                 auto it = vertex_map.find(id);
                 if (it != vertex_map.end())
                 {
@@ -2470,12 +2491,12 @@ namespace engine::io
                 const auto v1 = graph.vertex(e, 1);
                 const auto idx0 = vertex_indices[v0.index()];
                 const auto idx1 = vertex_indices[v1.index()];
-                    if (idx0 == invalid || idx1 == invalid)
-                    {
-                        throw GeometryIoException(
-                            GeometryIoError::invalid_argument,
-                            "Graph contains edge with unregistered vertex while writing edge list");
-                    }
+                if (idx0 == invalid || idx1 == invalid)
+                {
+                    throw GeometryIoException(
+                        GeometryIoError::invalid_argument,
+                        "Graph contains edge with unregistered vertex while writing edge list");
+                }
                 stream << idx0 << ' ' << idx1 << '\n';
             }
         }
@@ -2516,7 +2537,8 @@ namespace engine::io
                 if (!std::getline(stream, line))
                 {
                     throw GeometryIoException(GeometryIoError::invalid_argument,
-                                              "Unexpected end of file while reading PLY graph vertices: " + path.string());
+                                              "Unexpected end of file while reading PLY graph vertices: " + path.
+                                              string());
                 }
                 auto tokens = tokenize(line);
                 vec3 position{0.0F, 0.0F, 0.0F};
@@ -2593,12 +2615,12 @@ namespace engine::io
                 const auto v1 = graph.vertex(e, 1);
                 const auto idx0 = vertex_indices[v0.index()];
                 const auto idx1 = vertex_indices[v1.index()];
-                    if (idx0 == invalid || idx1 == invalid)
-                    {
-                        throw GeometryIoException(
-                            GeometryIoError::invalid_argument,
-                            "Graph contains edge with unregistered vertex while writing PLY");
-                    }
+                if (idx0 == invalid || idx1 == invalid)
+                {
+                    throw GeometryIoException(
+                        GeometryIoError::invalid_argument,
+                        "Graph contains edge with unregistered vertex while writing PLY");
+                }
                 stream << idx0 << ' ' << idx1 << '\n';
             }
         }
@@ -2880,7 +2902,8 @@ namespace engine::io
         auto& telemetry = GeometryIoTelemetry::instance();
         telemetry.record_attempt(GeometryIoOperation::detect);
 
-        auto outcome = [&]() -> GeometryIoResult<GeometryDetectionResult> {
+        auto outcome = [&]() -> GeometryIoResult<GeometryDetectionResult>
+        {
             if (!std::filesystem::exists(path))
             {
                 return make_geometry_io_error(
@@ -3104,7 +3127,8 @@ namespace engine::io
         const bool has_mesh = mesh != nullptr;
         const bool has_point_cloud = point_cloud != nullptr;
         const bool has_graph = graph != nullptr;
-        const int provided = static_cast<int>(has_mesh) + static_cast<int>(has_point_cloud) + static_cast<int>(has_graph);
+        const int provided = static_cast<int>(has_mesh) + static_cast<int>(has_point_cloud) + static_cast<int>(
+            has_graph);
         if (provided != 1)
         {
             return make_geometry_io_error(GeometryIoError::invalid_argument,
@@ -3205,7 +3229,8 @@ namespace engine::io
         telemetry.record_attempt(GeometryIoOperation::read_mesh);
         std::string_view format_label = to_string(format);
 
-        auto outcome = [&]() -> GeometryIoResult<void> {
+        auto outcome = [&]() -> GeometryIoResult<void>
+        {
             MeshFileFormat resolved = format;
             if (resolved == MeshFileFormat::unknown)
             {
@@ -3231,7 +3256,7 @@ namespace engine::io
             {
                 return make_geometry_io_error(GeometryIoError::plugin_missing,
                                               "No mesh importer registered for format '" +
-                                                  std::string(to_string(resolved)) + "' while reading " + path.string());
+                                              std::string(to_string(resolved)) + "' while reading " + path.string());
             }
 
             if (auto import_result = importer->import(path, mesh); !import_result)
@@ -3264,7 +3289,8 @@ namespace engine::io
         telemetry.record_attempt(GeometryIoOperation::write_mesh);
         std::string_view format_label = to_string(format);
 
-        auto outcome = [&]() -> GeometryIoResult<void> {
+        auto outcome = [&]() -> GeometryIoResult<void>
+        {
             MeshFileFormat resolved = format;
             if (resolved == MeshFileFormat::unknown)
             {
@@ -3289,7 +3315,7 @@ namespace engine::io
             {
                 return make_geometry_io_error(GeometryIoError::plugin_missing,
                                               "No mesh exporter registered for format '" +
-                                                  std::string(to_string(resolved)) + "' while writing " + path.string());
+                                              std::string(to_string(resolved)) + "' while writing " + path.string());
             }
 
             if (auto export_result = exporter->export_mesh(path, mesh); !export_result)
@@ -3322,7 +3348,8 @@ namespace engine::io
         telemetry.record_attempt(GeometryIoOperation::read_point_cloud);
         std::string_view format_label = to_string(format);
 
-        auto outcome = [&]() -> GeometryIoResult<void> {
+        auto outcome = [&]() -> GeometryIoResult<void>
+        {
             PointCloudFileFormat resolved = format;
             if (resolved == PointCloudFileFormat::unknown)
             {
@@ -3348,7 +3375,7 @@ namespace engine::io
             {
                 return make_geometry_io_error(GeometryIoError::plugin_missing,
                                               "No point cloud importer registered for format '" +
-                                                  std::string(to_string(resolved)) + "' while reading " + path.string());
+                                              std::string(to_string(resolved)) + "' while reading " + path.string());
             }
 
             if (auto import_result = importer->import(path, point_cloud); !import_result)
@@ -3381,7 +3408,8 @@ namespace engine::io
         telemetry.record_attempt(GeometryIoOperation::write_point_cloud);
         std::string_view format_label = to_string(format);
 
-        auto outcome = [&]() -> GeometryIoResult<void> {
+        auto outcome = [&]() -> GeometryIoResult<void>
+        {
             PointCloudFileFormat resolved = format;
             if (resolved == PointCloudFileFormat::unknown)
             {
@@ -3397,7 +3425,8 @@ namespace engine::io
             if (resolved == PointCloudFileFormat::unknown)
             {
                 return make_geometry_io_error(GeometryIoError::unsupported_format,
-                                              "Unable to determine point cloud export format for file: " + path.string());
+                                              "Unable to determine point cloud export format for file: " + path.
+                                              string());
             }
 
             const auto& registry = global_geometry_io_registry();
@@ -3406,7 +3435,7 @@ namespace engine::io
             {
                 return make_geometry_io_error(GeometryIoError::plugin_missing,
                                               "No point cloud exporter registered for format '" +
-                                                  std::string(to_string(resolved)) + "' while writing " + path.string());
+                                              std::string(to_string(resolved)) + "' while writing " + path.string());
             }
 
             if (auto export_result = exporter->export_point_cloud(path, point_cloud); !export_result)
@@ -3439,7 +3468,8 @@ namespace engine::io
         telemetry.record_attempt(GeometryIoOperation::read_graph);
         std::string_view format_label = to_string(format);
 
-        auto outcome = [&]() -> GeometryIoResult<void> {
+        auto outcome = [&]() -> GeometryIoResult<void>
+        {
             GraphFileFormat resolved = format;
             if (resolved == GraphFileFormat::unknown)
             {
@@ -3465,7 +3495,7 @@ namespace engine::io
             {
                 return make_geometry_io_error(GeometryIoError::plugin_missing,
                                               "No graph importer registered for format '" +
-                                                  std::string(to_string(resolved)) + "' while reading " + path.string());
+                                              std::string(to_string(resolved)) + "' while reading " + path.string());
             }
 
             if (auto import_result = importer->import(path, graph); !import_result)
@@ -3498,7 +3528,8 @@ namespace engine::io
         telemetry.record_attempt(GeometryIoOperation::write_graph);
         std::string_view format_label = to_string(format);
 
-        auto outcome = [&]() -> GeometryIoResult<void> {
+        auto outcome = [&]() -> GeometryIoResult<void>
+        {
             GraphFileFormat resolved = format;
             if (resolved == GraphFileFormat::unknown)
             {
@@ -3523,7 +3554,7 @@ namespace engine::io
             {
                 return make_geometry_io_error(GeometryIoError::plugin_missing,
                                               "No graph exporter registered for format '" +
-                                                  std::string(to_string(resolved)) + "' while writing " + path.string());
+                                              std::string(to_string(resolved)) + "' while writing " + path.string());
             }
 
             if (auto export_result = exporter->export_graph(path, graph); !export_result)
@@ -3581,4 +3612,3 @@ namespace engine::io
         return stream;
     }
 } // namespace engine::io
-

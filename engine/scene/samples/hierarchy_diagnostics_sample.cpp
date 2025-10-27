@@ -224,7 +224,8 @@ scene_end
                            std::ostream& output,
                            bool pretty)
     {
-        const auto indent = [&](int level) {
+        const auto indent = [&](int level)
+        {
             if (pretty)
             {
                 output << std::string(level * 2, ' ');
@@ -435,7 +436,7 @@ scene_end
         for (const auto& issue : report.issues)
         {
             std::cout << "    - [" << validation::to_string(issue.type) << "] entity="
-                      << entity_to_string(issue.entity);
+                << entity_to_string(issue.entity);
             if (issue.related != entt::null)
             {
                 std::cout << " related=" << entity_to_string(issue.related);

@@ -1,15 +1,15 @@
 add_executable(engine_scene_tests
-    test_components.cpp
-    test_module.cpp
-    test_systems.cpp
-    test_serialization.cpp
-    test_scene_graph_validator.cpp
-    scene_destruction_tests.cpp
-    test_validation.cpp
+        test_components.cpp
+        test_module.cpp
+        test_systems.cpp
+        test_serialization.cpp
+        test_scene_graph_validator.cpp
+        scene_destruction_tests.cpp
+        test_validation.cpp
 )
 
 target_link_libraries(engine_scene_tests
-    PRIVATE
+        PRIVATE
         engine::project_options
         engine_scene
         GTest::gtest_main

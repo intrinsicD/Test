@@ -62,4 +62,3 @@ namespace engine::runtime
 
     using RuntimeValidationResult = RuntimeResult<void>;
 } // namespace engine::runtime
-

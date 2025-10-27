@@ -123,13 +123,13 @@ namespace engine::rendering
             {
             case QueueType::Graphics:
                 return has_flag(usage, ResourceUsage::ShaderRead) ||
-                       has_flag(usage, ResourceUsage::TransferSource) ||
-                       has_flag(usage, ResourceUsage::ColorAttachment) ||
-                       has_flag(usage, ResourceUsage::DepthStencilAttachment) ||
-                       has_flag(usage, ResourceUsage::Present);
+                    has_flag(usage, ResourceUsage::TransferSource) ||
+                    has_flag(usage, ResourceUsage::ColorAttachment) ||
+                    has_flag(usage, ResourceUsage::DepthStencilAttachment) ||
+                    has_flag(usage, ResourceUsage::Present);
             case QueueType::Compute:
                 return has_flag(usage, ResourceUsage::ShaderRead) ||
-                       has_flag(usage, ResourceUsage::TransferSource);
+                    has_flag(usage, ResourceUsage::TransferSource);
             case QueueType::Transfer:
                 return has_flag(usage, ResourceUsage::TransferSource);
             }
@@ -142,13 +142,13 @@ namespace engine::rendering
             {
             case QueueType::Graphics:
                 return has_flag(usage, ResourceUsage::ShaderWrite) ||
-                       has_flag(usage, ResourceUsage::ColorAttachment) ||
-                       has_flag(usage, ResourceUsage::DepthStencilAttachment) ||
-                       has_flag(usage, ResourceUsage::TransferDestination) ||
-                       has_flag(usage, ResourceUsage::Present);
+                    has_flag(usage, ResourceUsage::ColorAttachment) ||
+                    has_flag(usage, ResourceUsage::DepthStencilAttachment) ||
+                    has_flag(usage, ResourceUsage::TransferDestination) ||
+                    has_flag(usage, ResourceUsage::Present);
             case QueueType::Compute:
                 return has_flag(usage, ResourceUsage::ShaderWrite) ||
-                       has_flag(usage, ResourceUsage::TransferDestination);
+                    has_flag(usage, ResourceUsage::TransferDestination);
             case QueueType::Transfer:
                 return has_flag(usage, ResourceUsage::TransferDestination);
             }
@@ -251,7 +251,8 @@ namespace engine::rendering
         if (encoder == nullptr)
         {
             throw std::logic_error{
-                "FrameGraphPassExecutionContext::command_encoder accessed without an active encoder"};
+                "FrameGraphPassExecutionContext::command_encoder accessed without an active encoder"
+            };
         }
         return *encoder;
     }
@@ -277,14 +278,17 @@ namespace engine::rendering
         }
 
         const auto duplicate = std::find_if(resources_.begin(), resources_.end(),
-                                            [&](const ResourceNode& resource) {
+                                            [&](const ResourceNode& resource)
+                                            {
                                                 return resource.name == descriptor.name;
                                             });
 
         if (duplicate != resources_.end())
         {
-            throw std::invalid_argument{"FrameGraph::create_resource received duplicate resource name: '" +
-                                        descriptor.name + "'"};
+            throw std::invalid_argument{
+                "FrameGraph::create_resource received duplicate resource name: '" +
+                descriptor.name + "'"
+            };
         }
 
         compiled_ = false;
@@ -382,17 +386,17 @@ namespace engine::rendering
                 if (resource.width == 0 || resource.height == 0 || resource.depth == 0)
                 {
                     throw std::logic_error("FrameGraph texture resource '" + resource.name +
-                                           "' missing extent metadata");
+                        "' missing extent metadata");
                 }
                 if (resource.array_layers == 0)
                 {
                     throw std::logic_error("FrameGraph texture resource '" + resource.name +
-                                           "' missing array layer metadata");
+                        "' missing array layer metadata");
                 }
                 if (resource.mip_levels == 0)
                 {
                     throw std::logic_error("FrameGraph texture resource '" + resource.name +
-                                           "' missing mip level metadata");
+                        "' missing mip level metadata");
                 }
             }
         }
@@ -402,7 +406,8 @@ namespace engine::rendering
             const auto queue = passes_[pass_index].pass->queue();
             const auto& pass = passes_[pass_index];
 
-            auto validate_access = [&](FrameGraphResourceHandle handle, bool is_write) {
+            auto validate_access = [&](FrameGraphResourceHandle handle, bool is_write)
+            {
                 if (!handle.valid() || handle.index >= resources_.size())
                 {
                     throw std::logic_error{"FrameGraph pass references invalid resource handle"};
@@ -410,16 +415,18 @@ namespace engine::rendering
 
                 const auto& resource = resources_[handle.index];
                 const auto usage = resource.usage;
-                const bool supported = is_write ? queue_supports_write(queue, usage)
-                                                : queue_supports_read(queue, usage);
+                const bool supported = is_write
+                                           ? queue_supports_write(queue, usage)
+                                           : queue_supports_read(queue, usage);
 
                 if (!supported)
                 {
                     std::ostringstream message;
                     message << "FrameGraph pass '" << pass.pass->name() << "' on queue "
-                            << to_string(queue) << (is_write ? " cannot write resource '"
-                                                            : " cannot read resource '")
-                            << resource.name << "' with usage '" << to_string(usage) << "'";
+                        << to_string(queue) << (is_write
+                                                    ? " cannot write resource '"
+                                                    : " cannot read resource '")
+                        << resource.name << "' with usage '" << to_string(usage) << "'";
                     throw std::logic_error(message.str());
                 }
             };
@@ -499,7 +506,8 @@ namespace engine::rendering
         pass_end_barriers_.assign(passes_.size(), {});
 
         auto make_barrier = [](FrameGraphResourceHandle handle, resources::Access source_access,
-                               resources::Access destination_access) {
+                               resources::Access destination_access)
+        {
             resources::Barrier barrier{};
             barrier.resource = handle;
             barrier.source_stage = resources::PipelineStage::Graphics;
@@ -514,7 +522,8 @@ namespace engine::rendering
             const std::size_t pass_index = execution_order_[order_index];
             const auto& pass = passes_[pass_index];
 
-            auto update_use = [&](FrameGraphResourceHandle handle) {
+            auto update_use = [&](FrameGraphResourceHandle handle)
+            {
                 auto& resource = resources_[handle.index];
                 resource.first_use = std::min(resource.first_use, order_index);
                 if (resource.last_use == std::numeric_limits<std::size_t>::max())
@@ -536,8 +545,9 @@ namespace engine::rendering
                 const auto& resource = resources_[handle.index];
                 const auto writer = resource.writer;
                 const auto source_access =
-                    writer == std::numeric_limits<std::size_t>::max() ? resources::Access::Read
-                                                                      : resources::Access::Write;
+                    writer == std::numeric_limits<std::size_t>::max()
+                        ? resources::Access::Read
+                        : resources::Access::Write;
                 begin_barriers.push_back(make_barrier(handle, source_access, resources::Access::Read));
             }
 
@@ -587,26 +597,32 @@ namespace engine::rendering
                 throw std::runtime_error{"CommandEncoderProvider returned null encoder"};
             }
 
-            auto signal_acquire = [&](FrameGraphResourceHandle handle) {
+            auto signal_acquire = [&](FrameGraphResourceHandle handle)
+            {
                 auto& resource = resources_[handle.index];
                 if (resource.lifetime == ResourceLifetime::Transient &&
                     resource.first_use == order_index && !alive[handle.index])
                 {
                     alive[handle.index] = true;
-                    resource_events_.push_back(ResourceEvent{ResourceEvent::Type::Acquire, resource.name,
-                                                              std::string(pass.pass->name())});
+                    resource_events_.push_back(ResourceEvent{
+                        ResourceEvent::Type::Acquire, resource.name,
+                        std::string(pass.pass->name())
+                    });
                     context.device_resources.on_transient_acquire(handle, resource_info(handle));
                 }
             };
 
-            auto signal_release = [&](FrameGraphResourceHandle handle) {
+            auto signal_release = [&](FrameGraphResourceHandle handle)
+            {
                 auto& resource = resources_[handle.index];
                 if (resource.lifetime == ResourceLifetime::Transient &&
                     resource.last_use == order_index && alive[handle.index])
                 {
                     alive[handle.index] = false;
-                    resource_events_.push_back(ResourceEvent{ResourceEvent::Type::Release, resource.name,
-                                                              std::string(pass.pass->name())});
+                    resource_events_.push_back(ResourceEvent{
+                        ResourceEvent::Type::Release, resource.name,
+                        std::string(pass.pass->name())
+                    });
                     context.device_resources.on_transient_release(handle, resource_info(handle));
                 }
             };
@@ -639,7 +655,8 @@ namespace engine::rendering
             auto begin_barriers = pass_begin_barriers_[pass_index];
             auto end_barriers = pass_end_barriers_[pass_index];
 
-            const auto stage_for_queue = [](QueueType queue_type) {
+            const auto stage_for_queue = [](QueueType queue_type)
+            {
                 switch (queue_type)
                 {
                 case QueueType::Graphics:
@@ -706,20 +723,22 @@ namespace engine::rendering
         }
 
         const auto& resource = resources_[handle.index];
-        return FrameGraphResourceInfo{resource.name,
-                                      resource.lifetime,
-                                      resource.format,
-                                      resource.dimension,
-                                      resource.usage,
-                                      resource.initial_state,
-                                      resource.final_state,
-                                      resource.width,
-                                      resource.height,
-                                      resource.depth,
-                                      resource.array_layers,
-                                      resource.mip_levels,
-                                      resource.sample_count,
-                                      resource.size_bytes};
+        return FrameGraphResourceInfo{
+            resource.name,
+            resource.lifetime,
+            resource.format,
+            resource.dimension,
+            resource.usage,
+            resource.initial_state,
+            resource.final_state,
+            resource.width,
+            resource.height,
+            resource.depth,
+            resource.array_layers,
+            resource.mip_levels,
+            resource.sample_count,
+            resource.size_bytes
+        };
     }
 
     std::span<const FrameGraphResourceHandle> FrameGraph::pass_reads(std::size_t pass_index)

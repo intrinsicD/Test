@@ -46,7 +46,8 @@ namespace engine::assets
             entry.last_failure_reason = counter.last_reason;
             entries.push_back(std::move(entry));
         }
-        std::sort(entries.begin(), entries.end(), [](const auto& lhs, const auto& rhs) {
+        std::sort(entries.begin(), entries.end(), [](const auto& lhs, const auto& rhs)
+        {
             return lhs.type < rhs.type;
         });
         return entries;
@@ -64,32 +65,38 @@ namespace engine::assets
         return registry;
     }
 
-    std::shared_ptr<void> HandleValidatorRegistry::register_mesh_validator(detail::ValidatorBucket<MeshHandle>::Validator validator)
+    std::shared_ptr<void> HandleValidatorRegistry::register_mesh_validator(
+        detail::ValidatorBucket<MeshHandle>::Validator validator)
     {
         return mesh_validators_.register_validator(std::move(validator));
     }
 
-    std::shared_ptr<void> HandleValidatorRegistry::register_graph_validator(detail::ValidatorBucket<GraphHandle>::Validator validator)
+    std::shared_ptr<void> HandleValidatorRegistry::register_graph_validator(
+        detail::ValidatorBucket<GraphHandle>::Validator validator)
     {
         return graph_validators_.register_validator(std::move(validator));
     }
 
-    std::shared_ptr<void> HandleValidatorRegistry::register_point_cloud_validator(detail::ValidatorBucket<PointCloudHandle>::Validator validator)
+    std::shared_ptr<void> HandleValidatorRegistry::register_point_cloud_validator(
+        detail::ValidatorBucket<PointCloudHandle>::Validator validator)
     {
         return point_cloud_validators_.register_validator(std::move(validator));
     }
 
-    std::shared_ptr<void> HandleValidatorRegistry::register_texture_validator(detail::ValidatorBucket<TextureHandle>::Validator validator)
+    std::shared_ptr<void> HandleValidatorRegistry::register_texture_validator(
+        detail::ValidatorBucket<TextureHandle>::Validator validator)
     {
         return texture_validators_.register_validator(std::move(validator));
     }
 
-    std::shared_ptr<void> HandleValidatorRegistry::register_shader_validator(detail::ValidatorBucket<ShaderHandle>::Validator validator)
+    std::shared_ptr<void> HandleValidatorRegistry::register_shader_validator(
+        detail::ValidatorBucket<ShaderHandle>::Validator validator)
     {
         return shader_validators_.register_validator(std::move(validator));
     }
 
-    std::shared_ptr<void> HandleValidatorRegistry::register_material_validator(detail::ValidatorBucket<MaterialHandle>::Validator validator)
+    std::shared_ptr<void> HandleValidatorRegistry::register_material_validator(
+        detail::ValidatorBucket<MaterialHandle>::Validator validator)
     {
         return material_validators_.register_validator(std::move(validator));
     }
@@ -123,5 +130,4 @@ namespace engine::assets
     {
         return material_validators_.validate(handle);
     }
-}  // namespace engine::assets
-
+} // namespace engine::assets

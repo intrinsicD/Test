@@ -52,4 +52,3 @@ namespace engine::geometry::tools
     [[nodiscard]] std::string BuildDatasetManifestEntry(const RemeshCliOptions& options,
                                                         const RemeshCliExecutionResult& result) noexcept;
 }
-

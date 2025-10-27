@@ -9,6 +9,7 @@ namespace engine::geometry::mesh
     namespace
     {
         constexpr char kRestPositionPropertyName[] = "v:rest_position";
+
         [[nodiscard]] bool is_valid_triangle(const SurfaceMesh& surface, std::size_t base_index)
         {
             const auto i0 = surface.indices[base_index];

@@ -21,7 +21,7 @@ namespace
         {
             const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
             path = std::filesystem::temp_directory_path() /
-                   ("engine-handle-validation-" + std::to_string(timestamp));
+                ("engine-handle-validation-" + std::to_string(timestamp));
             std::filesystem::create_directories(path);
         }
 

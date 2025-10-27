@@ -1,15 +1,15 @@
 add_executable(engine_animation_tests
-    test_module.cpp
-    test_clip_serialization.cpp
-    test_blend_tree.cpp
-    test_rig_binding.cpp
-    test_skinning.cpp
-    test_benchmark_statistics.cpp
-    test_benchmark_telemetry.cpp
+        test_module.cpp
+        test_clip_serialization.cpp
+        test_blend_tree.cpp
+        test_rig_binding.cpp
+        test_skinning.cpp
+        test_benchmark_statistics.cpp
+        test_benchmark_telemetry.cpp
 )
 
 target_link_libraries(engine_animation_tests
-    PRIVATE
+        PRIVATE
         engine::project_options
         engine_animation
         GTest::gtest_main

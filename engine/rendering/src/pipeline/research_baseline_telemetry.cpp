@@ -109,4 +109,3 @@ namespace engine::rendering
         passes_.clear();
     }
 }
-

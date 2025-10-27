@@ -21,8 +21,7 @@ namespace engine::rendering::backend::validation
         std::vector<BackendValidationObservation> observations{};
     };
 
-    [[nodiscard]] BackendValidationReport validate_backend(resources::IGpuResourceProvider& provider);
+    [[nodiscard]] BackendValidationReport validate_backend(resources::IGpuResourceProvider & provider);
 
     [[nodiscard]] core::telemetry::MetricSet backend_parity_metrics(const BackendValidationReport& report);
 }
-
