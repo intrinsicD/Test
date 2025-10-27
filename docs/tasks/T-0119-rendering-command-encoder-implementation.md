@@ -1,4 +1,5 @@
 # T-0119: Rendering Command Encoder Implementation
+**Status**: 🟡 In Progress — OpenGL command encoder now records geometry draws and integrates with the GPU scheduler. Backend-specific API submissions remain outstanding.
 ## Goal
 Implement concrete command encoder backends for Vulkan, DirectX12, Metal, and OpenGL to translate high-level draw commands into actual GPU API calls.
 ## Background
@@ -104,3 +105,7 @@ Implement concrete command encoder backends for Vulkan, DirectX12, Metal, and Op
 - How do we handle descriptor set allocation and recycling?
 - What's the strategy for push constants vs. descriptor sets in Vulkan?
 - Should we support immediate-mode rendering fallback for debugging?
+
+## Progress Log
+- 2025-12-08: Introduced the `OpenGLCommandEncoder` and a provider that records geometry draws into command buffer submissions.
+  Scheduler submissions now surface recorded draw lists, enabling validation ahead of backend-specific API bindings.

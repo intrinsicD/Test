@@ -1,4 +1,5 @@
 # T-0120: GPU Resource Provider Implementation
+**Status**: 🟡 In Progress — OpenGL provider now allocates and tracks command buffers, fences, and timeline handles while real GPU resource creation remains outstanding.
 
 ## Goal
 Implement concrete `IGpuResourceProvider` backends that create, manage, and track actual GPU resources (buffers, textures, pipelines) for each graphics API.
@@ -154,4 +155,8 @@ Implement concrete `IGpuResourceProvider` backends that create, manage, and trac
 - How do we handle device lost scenarios and recovery?
 - What's the transient resource pool size strategy?
 - Should we implement suballocation for small resources?
+
+## Progress Log
+- 2025-12-08: Added an OpenGL-focused provider that issues native queue/command buffer handles backed by reusable command
+  buffers and stub fence/timeline tracking to unblock command encoder integration.
 

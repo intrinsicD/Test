@@ -3,7 +3,9 @@ set(target_name engine_rendering)
 add_library(${target_name}
     src/api.cpp
     src/backend/validation.cpp
+    src/backend/opengl/command_encoder.cpp
     src/backend/opengl/command_stream.cpp
+    src/backend/opengl/resource_provider.cpp
     src/frame_graph.cpp
     src/forward_pipeline.cpp
     src/pipeline/research_baseline_telemetry.cpp

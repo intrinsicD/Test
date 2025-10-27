@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "engine/rendering/backend/native_scheduler_base.hpp"
+#include "engine/rendering/backend/opengl/command_encoder.hpp"
+#include "engine/rendering/backend/opengl/resource_provider.hpp"
 
 namespace engine::rendering::backend::opengl
 {
@@ -93,6 +95,7 @@ namespace engine::rendering::backend::opengl
         std::vector<OpenGLTimelineSubmit> signals;
         resources::FenceNativeHandle fence{};
         std::uint64_t fence_value{0};
+        std::vector<GeometryDrawCommand> draw_commands;
 
         [[nodiscard]] std::uint32_t begin_memory_barrier_mask() const noexcept
         {
@@ -270,6 +273,14 @@ namespace engine::rendering::backend::opengl
                 submit.semaphore = provider_.resolve_semaphore(*signal.semaphore);
                 submit.value = signal.value;
                 submission.signals.push_back(submit);
+            }
+
+            if (auto* opengl_provider = dynamic_cast<OpenGLGpuResourceProvider*>(&provider_); opengl_provider != nullptr)
+            {
+                if (const auto* recorded_buffer = opengl_provider->command_buffer(encoder.handle); recorded_buffer != nullptr)
+                {
+                    submission.draw_commands = recorded_buffer->draws;
+                }
             }
 
             return submission;
