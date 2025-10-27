@@ -69,7 +69,44 @@ namespace engine::rendering::backend::opengl
                    || info.dimension == ResourceDimension::CubeMap;
         }
 
+        [[nodiscard]] bool is_buffer_resource(const FrameGraphResourceInfo& info) noexcept
+        {
+            return info.dimension == ResourceDimension::Buffer;
+        }
+
 #if ENGINE_RENDERING_HAS_GLAD
+        [[nodiscard]] GLenum buffer_target(ResourceUsage usage) noexcept
+        {
+            if (rendering::has_flag(usage, ResourceUsage::ShaderWrite))
+            {
+                return GL_SHADER_STORAGE_BUFFER;
+            }
+            if (rendering::has_flag(usage, ResourceUsage::ShaderRead))
+            {
+                return GL_UNIFORM_BUFFER;
+            }
+            if (rendering::has_flag(usage, ResourceUsage::TransferDestination))
+            {
+                return GL_COPY_WRITE_BUFFER;
+            }
+            if (rendering::has_flag(usage, ResourceUsage::TransferSource))
+            {
+                return GL_COPY_READ_BUFFER;
+            }
+            return GL_ARRAY_BUFFER;
+        }
+
+        [[nodiscard]] GLenum buffer_usage_hint(ResourceUsage usage) noexcept
+        {
+            if (rendering::has_flag(usage, ResourceUsage::TransferDestination)
+                || rendering::has_flag(usage, ResourceUsage::TransferSource)
+                || rendering::has_flag(usage, ResourceUsage::ShaderWrite))
+            {
+                return GL_DYNAMIC_DRAW;
+            }
+            return GL_STATIC_DRAW;
+        }
+
         [[nodiscard]] GLenum texture_target(const FrameGraphResourceInfo& info) noexcept
         {
             switch (info.dimension)
@@ -127,6 +164,41 @@ namespace engine::rendering::backend::opengl
                 break;
             }
             return std::nullopt;
+        }
+
+        [[nodiscard]] GLuint create_buffer(const FrameGraphResourceInfo& info, GLenum target)
+        {
+            GLuint name = 0;
+            if (glad_glCreateBuffers != nullptr)
+            {
+                glad_glCreateBuffers(1, &name);
+            }
+            else if (glad_glGenBuffers != nullptr)
+            {
+                glad_glGenBuffers(1, &name);
+            }
+
+            if (name == 0)
+            {
+                return 0;
+            }
+
+            if (info.size_bytes != 0)
+            {
+                const auto usage = buffer_usage_hint(info.usage);
+                if (glad_glNamedBufferData != nullptr)
+                {
+                    glad_glNamedBufferData(name, static_cast<GLsizeiptr>(info.size_bytes), nullptr, usage);
+                }
+                else if (glad_glBindBuffer != nullptr && glad_glBufferData != nullptr)
+                {
+                    glad_glBindBuffer(target, name);
+                    glad_glBufferData(target, static_cast<GLsizeiptr>(info.size_bytes), nullptr, usage);
+                    glad_glBindBuffer(target, 0);
+                }
+            }
+
+            return name;
         }
 
         [[nodiscard]] GLuint create_texture(const FrameGraphResourceInfo& info,
@@ -206,6 +278,14 @@ namespace engine::rendering::backend::opengl
                 glad_glDeleteTextures(1, &name);
             }
         }
+
+        void destroy_gl_buffer(GLuint name)
+        {
+            if (name != 0 && glad_glDeleteBuffers != nullptr)
+            {
+                glad_glDeleteBuffers(1, &name);
+            }
+        }
 #endif  // ENGINE_RENDERING_HAS_GLAD
     }  // namespace
 
@@ -213,6 +293,11 @@ namespace engine::rendering::backend::opengl
 
     OpenGLGpuResourceProvider::~OpenGLGpuResourceProvider()
     {
+        for (auto& [index, record] : buffers_)
+        {
+            static_cast<void>(index);
+            destroy_buffer(record);
+        }
         for (auto& [index, record] : textures_)
         {
             static_cast<void>(index);
@@ -309,6 +394,32 @@ namespace engine::rendering::backend::opengl
 
         acquired_.push_back(handle);
 
+        if (is_buffer_resource(info))
+        {
+            auto it = buffers_.find(handle.index);
+            if (it == buffers_.end())
+            {
+                allocate_buffer(handle.index, info);
+                it = buffers_.find(handle.index);
+            }
+            else if (!buffer_descriptor_matches(it->second, info))
+            {
+                destroy_buffer(it->second);
+                allocate_buffer(handle.index, info);
+                it = buffers_.find(handle.index);
+            }
+
+            if (it != buffers_.end())
+            {
+                it->second.in_use = true;
+            }
+
+            if (!is_texture_resource(info))
+            {
+                return;
+            }
+        }
+
         if (!is_texture_resource(info))
         {
             return;
@@ -343,6 +454,20 @@ namespace engine::rendering::backend::opengl
 
         released_.push_back(handle);
 
+        if (is_buffer_resource(info))
+        {
+            auto buffer_it = buffers_.find(handle.index);
+            if (buffer_it != buffers_.end())
+            {
+                buffer_it->second.in_use = false;
+            }
+
+            if (!is_texture_resource(info))
+            {
+                return;
+            }
+        }
+
         auto it = textures_.find(handle.index);
         if (it == textures_.end())
         {
@@ -373,6 +498,22 @@ namespace engine::rendering::backend::opengl
         return it->second.buffer.get();
     }
 
+    const OpenGLGpuResourceProvider::BufferRecord*
+    OpenGLGpuResourceProvider::buffer(FrameGraphResourceHandle handle) const noexcept
+    {
+        if (!handle.valid())
+        {
+            return nullptr;
+        }
+
+        auto it = buffers_.find(handle.index);
+        if (it == buffers_.end())
+        {
+            return nullptr;
+        }
+        return &it->second;
+    }
+
     const OpenGLGpuResourceProvider::TextureRecord*
     OpenGLGpuResourceProvider::texture(FrameGraphResourceHandle handle) const noexcept
     {
@@ -389,6 +530,21 @@ namespace engine::rendering::backend::opengl
         return &it->second;
     }
 
+    void OpenGLGpuResourceProvider::destroy_buffer(BufferRecord& record) noexcept
+    {
+#if ENGINE_RENDERING_HAS_GLAD
+        if (record.native_allocation)
+        {
+            destroy_gl_buffer(static_cast<GLuint>(record.handle));
+        }
+#endif
+        record.handle = 0;
+        record.target = 0;
+        record.native_allocation = false;
+        record.in_use = false;
+        record.size_bytes = 0;
+    }
+
     void OpenGLGpuResourceProvider::destroy_texture(TextureRecord& record) noexcept
     {
 #if ENGINE_RENDERING_HAS_GLAD
@@ -401,6 +557,35 @@ namespace engine::rendering::backend::opengl
         record.in_use = false;
         record.depth_attachment = false;
         record.native_allocation = false;
+    }
+
+    void OpenGLGpuResourceProvider::allocate_buffer(std::size_t index, const FrameGraphResourceInfo& info)
+    {
+        BufferRecord record{};
+        record.name = std::string{info.name};
+        record.usage = info.usage;
+        record.size_bytes = info.size_bytes;
+        record.in_use = true;
+
+#if ENGINE_RENDERING_HAS_GLAD
+        const auto target = buffer_target(info.usage);
+        const auto gl_name = create_buffer(info, target);
+        if (gl_name != 0)
+        {
+            record.handle = gl_name;
+            record.target = target;
+            record.native_allocation = true;
+        }
+#endif
+
+        if (record.handle == 0)
+        {
+            record.handle = next_buffer_id_++;
+            record.target = 0;
+            record.native_allocation = false;
+        }
+
+        buffers_.insert_or_assign(index, record);
     }
 
     void OpenGLGpuResourceProvider::allocate_texture(std::size_t index, const FrameGraphResourceInfo& info)
@@ -440,6 +625,12 @@ namespace engine::rendering::backend::opengl
         }
 
         textures_.insert_or_assign(index, record);
+    }
+
+    bool OpenGLGpuResourceProvider::buffer_descriptor_matches(const BufferRecord& record,
+                                                               const FrameGraphResourceInfo& info) const noexcept
+    {
+        return record.usage == info.usage && record.size_bytes == info.size_bytes;
     }
 
     bool OpenGLGpuResourceProvider::texture_descriptor_matches(const TextureRecord& record,

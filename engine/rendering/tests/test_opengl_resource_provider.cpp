@@ -8,6 +8,20 @@
 
 namespace
 {
+    engine::rendering::FrameGraphResourceInfo make_buffer_resource(std::string_view name,
+                                                                    std::uint64_t size_bytes,
+                                                                    engine::rendering::ResourceUsage usage)
+    {
+        engine::rendering::FrameGraphResourceInfo info{};
+        info.name = name;
+        info.dimension = engine::rendering::ResourceDimension::Buffer;
+        info.usage = usage;
+        info.initial_state = engine::rendering::ResourceState::CommonRead;
+        info.final_state = engine::rendering::ResourceState::CommonRead;
+        info.size_bytes = size_bytes;
+        return info;
+    }
+
     engine::rendering::FrameGraphResourceInfo make_color_resource(std::string_view name,
                                                                   std::uint32_t width,
                                                                   std::uint32_t height)
@@ -52,6 +66,56 @@ TEST(OpenGLResourceProvider, AllocatesTextureOnAcquire)
     record = provider.texture(handle);
     ASSERT_NE(record, nullptr);
     EXPECT_FALSE(record->in_use);
+}
+
+TEST(OpenGLResourceProvider, AllocatesBufferOnAcquire)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 10;
+
+    const auto info = make_buffer_resource("Compute", 4096,
+                                           engine::rendering::ResourceUsage::ShaderRead
+                                               | engine::rendering::ResourceUsage::ShaderWrite);
+
+    provider.on_transient_acquire(handle, info);
+
+    const auto* record = provider.buffer(handle);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->size_bytes, 4096U);
+    EXPECT_TRUE(record->in_use);
+    EXPECT_NE(record->handle, 0U);
+
+    provider.on_transient_release(handle, info);
+
+    record = provider.buffer(handle);
+    ASSERT_NE(record, nullptr);
+    EXPECT_FALSE(record->in_use);
+}
+
+TEST(OpenGLResourceProvider, ReallocatesBufferWhenDescriptorChanges)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 11;
+
+    auto info = make_buffer_resource("ComputeResize", 2048,
+                                     engine::rendering::ResourceUsage::ShaderRead);
+    provider.on_transient_acquire(handle, info);
+    const auto* initial = provider.buffer(handle);
+    ASSERT_NE(initial, nullptr);
+    const auto first_handle = initial->handle;
+
+    provider.on_transient_release(handle, info);
+
+    info.size_bytes = 8192;
+    provider.on_transient_acquire(handle, info);
+
+    const auto* resized = provider.buffer(handle);
+    ASSERT_NE(resized, nullptr);
+    EXPECT_EQ(resized->size_bytes, 8192U);
+    EXPECT_NE(resized->handle, 0U);
+    EXPECT_NE(resized->handle, first_handle);
 }
 
 TEST(OpenGLResourceProvider, ReallocatesTextureWhenDescriptorChanges)

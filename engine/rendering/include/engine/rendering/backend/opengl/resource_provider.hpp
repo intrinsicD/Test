@@ -46,6 +46,19 @@ namespace engine::rendering::backend::opengl
         [[nodiscard]] OpenGLCommandBuffer* command_buffer(CommandBufferHandle handle) noexcept;
         [[nodiscard]] const OpenGLCommandBuffer* command_buffer(CommandBufferHandle handle) const noexcept;
 
+        struct BufferRecord
+        {
+            std::string name;
+            ResourceUsage usage{ResourceUsage::None};
+            std::uint64_t size_bytes{0};
+            std::uint32_t handle{0};
+            std::uint32_t target{0};
+            bool native_allocation{false};
+            bool in_use{false};
+        };
+
+        [[nodiscard]] const BufferRecord* buffer(FrameGraphResourceHandle handle) const noexcept;
+
         struct TextureRecord
         {
             std::string name;
@@ -93,15 +106,21 @@ namespace engine::rendering::backend::opengl
         std::unordered_map<std::string, TimelineRecord> timelines_{};
         std::vector<FrameGraphResourceHandle> acquired_{};
         std::vector<FrameGraphResourceHandle> released_{};
+        std::unordered_map<std::size_t, BufferRecord> buffers_{};
         std::unordered_map<std::size_t, TextureRecord> textures_{};
         mutable std::uint64_t next_queue_id_{1};
         std::uint64_t next_command_buffer_id_{1};
         std::uint64_t next_fence_id_{1};
         std::uint64_t next_timeline_id_{1};
+        std::uint32_t next_buffer_id_{1};
         std::uint32_t next_texture_id_{1};
 
+        void destroy_buffer(BufferRecord& record) noexcept;
         void destroy_texture(TextureRecord& record) noexcept;
+        void allocate_buffer(std::size_t index, const FrameGraphResourceInfo& info);
         void allocate_texture(std::size_t index, const FrameGraphResourceInfo& info);
+        [[nodiscard]] bool buffer_descriptor_matches(const BufferRecord& record,
+                                                     const FrameGraphResourceInfo& info) const noexcept;
         [[nodiscard]] bool texture_descriptor_matches(const TextureRecord& record,
                                                       const FrameGraphResourceInfo& info) const noexcept;
     };
