@@ -17,6 +17,9 @@ namespace
 {
     using namespace std::chrono_literals;
 
+    // Path to sample assets directory
+    const std::filesystem::path SAMPLES_DIR = std::filesystem::path(__FILE__).parent_path().parent_path() / "samples";
+
     class IoThreadPoolScope
     {
     public:
@@ -34,6 +37,16 @@ namespace
             engine::core::threading::IoThreadPool::instance().shutdown();
         }
     };
+
+    std::filesystem::path get_test_mesh_path()
+    {
+        return SAMPLES_DIR / "test_mesh.obj";
+    }
+
+    std::filesystem::path get_corrupted_mesh_path()
+    {
+        return SAMPLES_DIR / "test_mesh_corrupted.obj";
+    }
 }
 
 TEST(AssetLoadRequest, FromPathAssignsDefaults)
@@ -136,38 +149,10 @@ protected:
     }
 };
 
-namespace
-{
-    std::filesystem::path write_temporary_obj()
-    {
-        auto path = std::filesystem::temp_directory_path() / "engine_async_mesh.obj";
-        std::ofstream stream{path};
-        stream << "o mesh\n";
-        stream << "v 0 0 0\n";
-        stream << "v 1 0 0\n";
-        stream << "v 0 1 0\n";
-        stream << "f 1 2 3\n";
-        stream.close();
-        return path;
-    }
-
-    std::filesystem::path write_corrupted_obj()
-    {
-        auto path = std::filesystem::temp_directory_path() / "engine_async_mesh_corrupted.obj";
-        std::ofstream stream{path};
-        stream << "o mesh\n";
-        stream << "v 0 0 0\n";
-        stream << "v 1 0 0\n";
-        stream << "f 1 3 2\n";  // references a missing vertex index
-        stream.close();
-        return path;
-    }
-}
-
 TEST_F(MeshCacheAsyncTest, LoadAsyncCompletesSuccessfully)
 {
     engine::assets::MeshCache cache;
-    const auto path = write_temporary_obj();
+    const auto path = get_test_mesh_path();
     auto request = engine::assets::AssetLoadRequest::from_path(
         engine::assets::AssetType::mesh, path, {});
 
@@ -176,8 +161,6 @@ TEST_F(MeshCacheAsyncTest, LoadAsyncCompletesSuccessfully)
     const auto result = future.get();
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Ready);
-
-    std::filesystem::remove(path);
 }
 
 TEST_F(MeshCacheAsyncTest, LoadAsyncReportsFailures)
@@ -196,7 +179,7 @@ TEST_F(MeshCacheAsyncTest, LoadAsyncReportsFailures)
 TEST_F(MeshCacheAsyncTest, LoadAsyncPropagatesGeometryErrorOnDecodeFailure)
 {
     engine::assets::MeshCache cache;
-    const auto path = write_corrupted_obj();
+    const auto path = get_corrupted_mesh_path();
     auto request = engine::assets::AssetLoadRequest::from_path(
         engine::assets::AssetType::mesh, path, {});
 
@@ -207,14 +190,12 @@ TEST_F(MeshCacheAsyncTest, LoadAsyncPropagatesGeometryErrorOnDecodeFailure)
     ASSERT_TRUE(result.error().geometry_error().has_value());
     EXPECT_EQ(result.error().geometry_error()->code(), engine::io::GeometryIoError::invalid_argument);
     EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Failed);
-
-    std::filesystem::remove(path);
 }
 
 TEST_F(MeshCacheAsyncTest, LoadAsyncHonoursCancellation)
 {
     engine::assets::MeshCache cache;
-    const auto path = write_temporary_obj();
+    const auto path = get_test_mesh_path();
     auto request = engine::assets::AssetLoadRequest::from_path(
         engine::assets::AssetType::mesh, path, {});
 
@@ -225,8 +206,6 @@ TEST_F(MeshCacheAsyncTest, LoadAsyncHonoursCancellation)
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error().code(), engine::assets::AssetLoadErrorCategory::Cancelled);
     EXPECT_EQ(cache.async_state(request.identifier), engine::assets::AssetLoadState::Cancelled);
-
-    std::filesystem::remove(path);
 }
 
 TEST(AssetStreamingTelemetry, RecordsSuccessfulTransition)
@@ -237,7 +216,7 @@ TEST(AssetStreamingTelemetry, RecordsSuccessfulTransition)
     IoThreadPoolScope scope{0, 4};
     engine::assets::MeshCache cache;
 
-    const auto path = write_temporary_obj();
+    const auto path = get_test_mesh_path();
     auto request = engine::assets::AssetLoadRequest::from_path(
         engine::assets::AssetType::mesh, path, {});
     request.allow_blocking_fallback = true;
@@ -259,8 +238,6 @@ TEST(AssetStreamingTelemetry, RecordsSuccessfulTransition)
     {
         EXPECT_EQ(failure_count, 0U);
     }
-
-    std::filesystem::remove(path);
 }
 
 TEST(AssetStreamingTelemetry, RecordsFailureTransition)
@@ -304,7 +281,7 @@ TEST(AssetStreamingTelemetry, RecordsDecodeFailureTransition)
     IoThreadPoolScope scope{0, 4};
     engine::assets::MeshCache cache;
 
-    const auto path = write_corrupted_obj();
+    const auto path = get_corrupted_mesh_path();
     auto request = engine::assets::AssetLoadRequest::from_path(
         engine::assets::AssetType::mesh, path, {});
     request.allow_blocking_fallback = true;
@@ -328,8 +305,6 @@ TEST(AssetStreamingTelemetry, RecordsDecodeFailureTransition)
         engine::io::geometry_io_error_index(engine::io::GeometryIoError::invalid_argument);
     ASSERT_LT(failure_index, snapshot.geometry_failures.size());
     EXPECT_EQ(snapshot.geometry_failures[failure_index], 1U);
-
-    std::filesystem::remove(path);
 }
 
 TEST(AssetStreamingTelemetry, RecordsCancellationTransition)
@@ -517,4 +492,3 @@ TEST(AssetAsyncQueue, CancelDuringExecutionResolvesAsCancelled)
     EXPECT_EQ(snapshot.total_cancelled, 1U);
     EXPECT_EQ(snapshot.total_rejected, 0U);
 }
-

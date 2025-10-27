@@ -24,6 +24,9 @@
 
 namespace
 {
+    // Path to sample assets directory
+    const std::filesystem::path SAMPLES_DIR = std::filesystem::path(__FILE__).parent_path().parent_path() / "samples";
+
     struct TempDirectory
     {
         TempDirectory()
@@ -63,13 +66,7 @@ namespace
 
 TEST(MeshCache, LoadsMeshData)
 {
-    TempDirectory temp;
-    const auto path = temp.path / "triangle.obj";
-    write_text(path,
-               "v 0 0 0\n"
-               "v 1 0 0\n"
-               "v 0 1 0\n"
-               "f 1 2 3\n");
+    const auto path = SAMPLES_DIR / "triangle.obj";
 
     engine::assets::MeshCache cache;
     const auto descriptor = engine::assets::MeshAssetDescriptor::from_file(path, engine::io::MeshFileFormat::obj);
@@ -539,4 +536,3 @@ TEST(AssetHotReloadTelemetry, RetainsRecentFailures)
 
     telemetry.reset_for_testing();
 }
-

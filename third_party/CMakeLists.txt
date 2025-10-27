@@ -98,6 +98,9 @@ else()
     )
     FetchContent_MakeAvailable(spdlog_external)
 endif()
+
+target_compile_definitions(spdlog PUBLIC SPDLOG_FMT_RUNTIME)
+
 # Provide a compatibility header-only alias if only spdlog::spdlog exists
 if(TARGET spdlog::spdlog AND NOT TARGET spdlog::spdlog_header_only)
     add_library(spdlog_header_only INTERFACE)
@@ -142,6 +145,11 @@ endforeach()
 if(EXISTS "${_LOCAL_IMGUI_DIR}" AND (EXISTS "${_LOCAL_IMGUI_DIR}/CMakeLists.txt" OR _IMGUI_LOCAL_HAS_CORE))
     if(EXISTS "${_LOCAL_IMGUI_DIR}/CMakeLists.txt")
         add_subdirectory("${_LOCAL_IMGUI_DIR}" "${CMAKE_BINARY_DIR}/third_party/imgui")
+
+        if(TARGET imgui)
+            target_include_directories(imgui PRIVATE "${_LOCAL_IMGUI_DIR}")
+            target_include_directories(imgui PUBLIC "${_LOCAL_IMGUI_DIR}")
+        endif()
     else()
         set(_IMGUI_CORE_SOURCES)
         foreach(_IMGUI_FILENAME IN LISTS _IMGUI_CORE_FILENAMES)

@@ -12,6 +12,9 @@
 
 namespace
 {
+    // Path to sample assets directory
+    const std::filesystem::path SAMPLES_DIR = std::filesystem::path(__FILE__).parent_path().parent_path() / "samples";
+
     struct TempDirectory
     {
         TempDirectory()
@@ -125,4 +128,3 @@ TEST(HandleValidation, DetectsStaleMeshHandle)
     EXPECT_EQ(entry.last_failure_context, "HandleValidation.StaleMesh");
     EXPECT_EQ(entry.last_failure_reason, "Handle validator rejected handle");
 }
-
