@@ -1,0 +1,175 @@
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Callable, List
+
+import pytest
+
+from engine3g.config_schema import load_configuration
+from engine3g.prototype_harness import (
+    HarnessExecutionOptions,
+    HarnessRunSummary,
+    PrototypeHarness,
+    PrototypeHarnessError,
+    load_harness,
+    summarize,
+)
+
+
+@dataclass
+class _MockRuntime:
+    ticks: List[float]
+    initialized: bool = False
+    shutdown_count: int = 0
+
+    def __enter__(self) -> "_MockRuntime":
+        self.initialized = True
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.shutdown_count += 1
+        self.initialized = False
+
+    def initialize(self) -> None:
+        self.initialized = True
+
+    def shutdown(self) -> None:
+        self.shutdown_count += 1
+        self.initialized = False
+
+    def tick(self, dt: float) -> None:
+        self.ticks.append(dt)
+
+
+def _write_configuration(tmp_path: Path) -> Path:
+    config = {
+        "datasets": [
+            {
+                "schema": {"id": "ai-004.dataset", "version": 1},
+                "id": "remesh-sample",
+                "kind": "geometry.remesh",
+                "tags": ["geometry", "remesh"],
+                "source": {"generator": "geometry_remesh", "mesh": "assets/input.obj"},
+                "outputs": {"mesh": "assets/output.obj"},
+                "remeshing": {"mode": "uniform"},
+                "feature_preservation": {
+                    "lock_boundary_edges": True,
+                    "lock_feature_edges": True,
+                    "minimum_feature_angle_degrees": 45.0,
+                },
+                "metrics": {
+                    "input": {
+                        "vertices": 4,
+                        "faces": 2,
+                        "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
+                    },
+                    "output": {
+                        "vertices": 4,
+                        "faces": 2,
+                        "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
+                    },
+                },
+                "statistics": {
+                    "iterations": 4,
+                    "splits": 1,
+                    "collapses": 1,
+                    "duration_ms": 1.0,
+                    "max_error": 0.1,
+                    "min_edge_length": 0.5,
+                    "max_edge_length": 1.5,
+                    "max_surface_deviation": 0.1,
+                    "mean_surface_deviation": 0.05,
+                    "rms_surface_deviation": 0.07,
+                },
+            }
+        ],
+        "rendering": {
+            "schema": {"id": "ai-004.rendering", "version": 1},
+            "preset": "research-baseline",
+            "options": {"shading_mode": "deferred"},
+        },
+        "runtime": {
+            "schema": {"id": "ai-004.runtime", "version": 1},
+            "dataset": "remesh-sample",
+            "simulation": {"timestep_seconds": 0.01, "max_substeps": 1},
+        },
+    }
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+    return path
+
+
+def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+    runtime = _MockRuntime(ticks=[])
+
+    harness = PrototypeHarness(configuration, runtime_factory=lambda: runtime)
+    summary = harness.run_headless(HarnessExecutionOptions(frames=3, dt=0.5))
+
+    assert runtime.ticks == [0.5, 0.5, 0.5]
+    assert runtime.shutdown_count == 1
+    assert summary.frames_executed == 3
+    assert summary.dataset_id == "remesh-sample"
+    assert summary.rendering_preset == "research-baseline"
+
+
+def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    text = json.loads(config_path.read_text(encoding="utf-8"))
+    text["runtime"]["dataset"] = "unknown"
+    config_path.write_text(json.dumps(text), encoding="utf-8")
+
+    configuration = load_configuration(config_path)
+    with pytest.raises(PrototypeHarnessError):
+        PrototypeHarness(configuration)
+
+
+def test_load_harness_validates_sections(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    harness = load_harness(config_path)
+    assert harness.selected_dataset is not None
+
+
+def test_load_harness_requires_runtime_section(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    text = json.loads(config_path.read_text(encoding="utf-8"))
+    del text["runtime"]
+    config_path.write_text(json.dumps(text), encoding="utf-8")
+
+    with pytest.raises(PrototypeHarnessError):
+        load_harness(config_path)
+
+
+def test_summarize_formats_output() -> None:
+    summary = HarnessRunSummary(
+        dataset_id="remesh-sample",
+        rendering_preset="research-baseline",
+        shading_mode="deferred",
+        frames_executed=10,
+        timestep_seconds=0.016,
+    )
+    assert (
+        summarize(summary)
+        == "dataset=remesh-sample preset=research-baseline shading=deferred frames=10 dt=0.016000"
+    )
+
+
+def test_cli_dry_run(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    config_path = _write_configuration(tmp_path)
+
+    def _load(path: str, *, runtime_factory: Callable[[], object] | None = None) -> PrototypeHarness:
+        configuration = load_configuration(path)
+        return PrototypeHarness(configuration, runtime_factory=lambda: _MockRuntime(ticks=[]))
+
+    monkeypatch.setattr("engine3g.prototype_harness.load_harness", _load)
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(["--config", str(config_path), "--dry-run"])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Dry run summary" in captured.out
+

@@ -75,6 +75,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   tooling overlays and benchmark selectors.
 - 2025-12-09: Schema document updated with rendering/runtime/benchmark/telemetry sections and validator expanded to cover the
   unified configuration manifest.
+- 2025-12-11: Python-based runtime prototype harness scaffolded with CLI (`python -m scripts.prototyping.run_prototype_harness`)
+  to validate AI-004 configurations and execute headless tick loops pending native integration.
 
 ---
 

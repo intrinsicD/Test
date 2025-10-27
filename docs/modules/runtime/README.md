@@ -248,6 +248,18 @@ ctest --preset linux-gcc-debug -R runtime
   when benchmarking previously captured JSON payloads and `--report` to archive
   the textual summary in CI artefacts.
 
+### Prototyping Harness (AI-004)
+
+- Validate AI-004 configurations with the Python harness scaffold:
+  ```bash
+  python -m scripts.prototyping.run_prototype_harness --config docs/examples/ai004_sample.json --dry-run
+  ```
+  The harness consumes the shared configuration schema, reports the selected
+  dataset/preset pairing, and can execute a headless tick loop once the runtime
+  shared library is available locally. Pass `--frames` and `--dt` to control
+  execution cadence; use `--dry-run` to perform schema validation without
+  loading the native runtime library.
+
 ## TODO / Next Steps
 
 - Deliver `RT-320` (AI-004): build the prototyping harness with configuration schema, scripting hooks, and headless benchmarking that integrates the `RE-610` rendering baseline and `AS-330` dataset manifests.
