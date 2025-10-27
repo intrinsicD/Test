@@ -109,3 +109,6 @@ Implement concrete command encoder backends for Vulkan, DirectX12, Metal, and Op
 ## Progress Log
 - 2025-12-08: Introduced the `OpenGLCommandEncoder` and a provider that records geometry draws into command buffer submissions.
   Scheduler submissions now surface recorded draw lists, enabling validation ahead of backend-specific API bindings.
+- 2025-12-12: Added `OpenGLImmediateCommandStream` which resolves meshes through the render resource provider and issues
+  OpenGL draw calls (with draw-count instrumentation for headless runs), wiring recorded geometry directly into the command
+  stream for AI-004 prototypes.
