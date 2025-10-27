@@ -572,6 +572,23 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(ellipsoid, separated));
     }
 
+    TEST(EllipsoidIntersection, EllipsoidObbSymmetricParity)
+    {
+        const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Obb overlapping{{1, 0, 0}, {0.5f, 0.5f, 0.5f}, math::quat{1, 0, 0, 0}};
+        const Obb separated{{5, 0, 0}, {0.5f, 0.5f, 0.5f}, math::quat{1, 0, 0, 0}};
+
+        const bool forward_hit = Intersects(ellipsoid, overlapping);
+        const bool reverse_hit = Intersects(overlapping, ellipsoid);
+        EXPECT_TRUE(forward_hit);
+        EXPECT_EQ(forward_hit, reverse_hit);
+
+        const bool forward_miss = Intersects(ellipsoid, separated);
+        const bool reverse_miss = Intersects(separated, ellipsoid);
+        EXPECT_FALSE(forward_miss);
+        EXPECT_EQ(forward_miss, reverse_miss);
+    }
+
     TEST(EllipsoidIntersection, EllipsoidPlane)
     {
         const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
@@ -643,6 +660,23 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(ellipsoid, separated));
     }
 
+    TEST(EllipsoidIntersection, EllipsoidSphereSymmetricParity)
+    {
+        const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Sphere overlapping{{1, 0, 0}, 0.75f};
+        const Sphere separated{{3.5f, 0, 0}, 0.25f};
+
+        const bool forward_hit = Intersects(ellipsoid, overlapping);
+        const bool reverse_hit = Intersects(overlapping, ellipsoid);
+        EXPECT_TRUE(forward_hit);
+        EXPECT_EQ(forward_hit, reverse_hit);
+
+        const bool forward_miss = Intersects(ellipsoid, separated);
+        const bool reverse_miss = Intersects(separated, ellipsoid);
+        EXPECT_FALSE(forward_miss);
+        EXPECT_EQ(forward_miss, reverse_miss);
+    }
+
     TEST(EllipsoidIntersection, EllipsoidTriangle)
     {
         const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
@@ -651,6 +685,23 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(ellipsoid, intersecting));
         EXPECT_FALSE(Intersects(ellipsoid, separated));
+    }
+
+    TEST(EllipsoidIntersection, EllipsoidTriangleSymmetricParity)
+    {
+        const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Triangle intersecting{{-1, -1, 0}, {1, -1, 0}, {0, 1, 0}};
+        const Triangle separated{{3, 3, 0}, {4, 3, 0}, {3.5f, 4, 0}};
+
+        const bool forward_hit = Intersects(ellipsoid, intersecting);
+        const bool reverse_hit = Intersects(intersecting, ellipsoid);
+        EXPECT_TRUE(forward_hit);
+        EXPECT_EQ(forward_hit, reverse_hit);
+
+        const bool forward_miss = Intersects(ellipsoid, separated);
+        const bool reverse_miss = Intersects(separated, ellipsoid);
+        EXPECT_FALSE(forward_miss);
+        EXPECT_EQ(forward_miss, reverse_miss);
     }
 
     // ============================================================================
@@ -865,6 +916,23 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(box, separated));
     }
 
+    TEST(ObbIntersection, ObbSphereSymmetricParity)
+    {
+        const Obb box{{0, 0, 0}, {1, 2, 1}, math::quat{1, 0, 0, 0}};
+        const Sphere overlapping{{0.5f, 0, 0}, 0.5f};
+        const Sphere separated{{3, 0, 0}, 0.25f};
+
+        const bool forward_hit = Intersects(box, overlapping);
+        const bool reverse_hit = Intersects(overlapping, box);
+        EXPECT_TRUE(forward_hit);
+        EXPECT_EQ(forward_hit, reverse_hit);
+
+        const bool forward_miss = Intersects(box, separated);
+        const bool reverse_miss = Intersects(separated, box);
+        EXPECT_FALSE(forward_miss);
+        EXPECT_EQ(forward_miss, reverse_miss);
+    }
+
     TEST(ObbIntersection, ObbTriangle)
     {
         const Obb box{{0, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
@@ -873,6 +941,23 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(box, intersecting));
         EXPECT_FALSE(Intersects(box, separated));
+    }
+
+    TEST(ObbIntersection, ObbTriangleSymmetricParity)
+    {
+        const Obb box{{0, 0, 0}, {1, 1, 1}, math::quat{1, 0, 0, 0}};
+        const Triangle intersecting{{-2, 0, 0}, {2, 0, 0}, {0, 2, 0}};
+        const Triangle separated{{3, 3, 0}, {4, 3, 0}, {3.5f, 4, 0}};
+
+        const bool forward_hit = Intersects(box, intersecting);
+        const bool reverse_hit = Intersects(intersecting, box);
+        EXPECT_TRUE(forward_hit);
+        EXPECT_EQ(forward_hit, reverse_hit);
+
+        const bool forward_miss = Intersects(box, separated);
+        const bool reverse_miss = Intersects(separated, box);
+        EXPECT_FALSE(forward_miss);
+        EXPECT_EQ(forward_miss, reverse_miss);
     }
 
     // ============================================================================
@@ -1224,6 +1309,23 @@ namespace engine::geometry
 
         EXPECT_TRUE(Intersects(sphere, intersecting));
         EXPECT_FALSE(Intersects(sphere, separated));
+    }
+
+    TEST(SphereIntersection, SphereTriangleSymmetricParity)
+    {
+        const Sphere sphere{{0, 0, 0}, 1.0f};
+        const Triangle intersecting{{-2, 0, 0}, {2, 0, 0}, {0, 2, 0}};
+        const Triangle separated{{3, 3, 3}, {4, 3, 3}, {3.5f, 4, 3}};
+
+        const bool forward_hit = Intersects(sphere, intersecting);
+        const bool reverse_hit = Intersects(intersecting, sphere);
+        EXPECT_TRUE(forward_hit);
+        EXPECT_EQ(forward_hit, reverse_hit);
+
+        const bool forward_miss = Intersects(sphere, separated);
+        const bool reverse_miss = Intersects(separated, sphere);
+        EXPECT_FALSE(forward_miss);
+        EXPECT_EQ(forward_miss, reverse_miss);
     }
 
     TEST(SphereIntersection, SphereLineSymmetricResultParity)
