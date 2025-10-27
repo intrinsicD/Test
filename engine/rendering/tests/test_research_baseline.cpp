@@ -1,11 +1,23 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
+#include <string>
 #include <string_view>
 #include <vector>
 
+#include "engine/assets/handles.hpp"
+#include "engine/core/memory/resource_pool.hpp"
 #include "engine/rendering/frame_graph.hpp"
+#include "engine/rendering/components.hpp"
 #include "engine/rendering/pipeline/research_baseline.hpp"
+#include "engine/rendering/pipeline/research_baseline_telemetry.hpp"
+#include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
+#include "engine/rendering/material_system.hpp"
+#include "command_encoder_test_utils.hpp"
+#include "scheduler_test_utils.hpp"
+#include "engine/scene/components/transform.hpp"
+#include "engine/scene/scene.hpp"
 
 namespace engine::rendering::tests
 {
@@ -15,6 +27,16 @@ namespace engine::rendering::tests
         {
             ASSERT_NO_THROW(graph.compile());
         }
+
+        class NullProvider final : public RenderResourceProvider
+        {
+        public:
+            void require_mesh(const assets::MeshHandle&) override {}
+            void require_graph(const assets::GraphHandle&) override {}
+            void require_point_cloud(const assets::PointCloudHandle&) override {}
+            void require_material(const assets::MaterialHandle&) override {}
+            void require_shader(const assets::ShaderHandle&) override {}
+        };
     }
 
     TEST(ResearchBaselinePreset, DeferredCreatesGBufferAndLightingPass)
@@ -103,5 +125,64 @@ namespace engine::rendering::tests
         };
 
         EXPECT_EQ(pass_names, std::vector<std::string_view>(expected.begin(), expected.end()));
+    }
+
+    TEST(ResearchBaselineTelemetry, RecordsPassAndShadingMetrics)
+    {
+        ResearchBaselineTelemetry::instance().reset_for_testing();
+
+        FrameGraph graph;
+        ResearchBaselineOptions options{};
+        options.shading_mode = ResearchShadingMode::Deferred;
+
+        configure_research_baseline(graph, options);
+        compile(graph);
+
+        scene::Scene scene{};
+        auto entity = scene.create_entity();
+        entity.emplace<scene::components::WorldTransform>();
+
+        core::memory::ResourcePool<int, assets::MeshHandleTag> mesh_pool;
+        auto [mesh_handle, value] = mesh_pool.acquire(1);
+        (void)value;
+        assets::MeshHandle mesh_identifier{std::string{"telemetry://mesh"}};
+        mesh_identifier.bind(mesh_handle);
+        entity.emplace<components::RenderGeometry>(components::RenderGeometry::from_mesh(mesh_identifier));
+
+        MaterialSystem materials{};
+        NullProvider provider{};
+        resources::RecordingGpuResourceProvider device_provider{};
+        tests::RecordingScheduler scheduler{};
+        tests::RecordingCommandEncoderProvider command_encoders{};
+        RenderExecutionContext context{provider, materials, RenderView{scene},
+                                       scheduler, device_provider, command_encoders};
+
+        graph.execute(context);
+
+        const auto snapshot = ResearchBaselineTelemetry::instance().snapshot();
+        EXPECT_EQ(snapshot.active_mode, ResearchShadingMode::Deferred);
+        EXPECT_GE(snapshot.mode_selection_counts[1], 1U);
+
+        const auto find_pass = [&](std::string_view name) {
+            return std::find_if(snapshot.passes.begin(), snapshot.passes.end(),
+                                [&](const ResearchBaselinePassTelemetry& telemetry) {
+                                    return telemetry.name == name;
+                                });
+        };
+
+        const auto gbuffer = find_pass("Research.GBuffer");
+        ASSERT_NE(gbuffer, snapshot.passes.end());
+        EXPECT_EQ(gbuffer->last_draw_calls, 1U);
+        EXPECT_EQ(gbuffer->total_draw_calls, 1U);
+        EXPECT_GE(gbuffer->last_gpu_time_ms, 0.0);
+
+        const auto lighting = find_pass("Research.LightingComposite");
+        ASSERT_NE(lighting, snapshot.passes.end());
+        EXPECT_EQ(lighting->last_draw_calls, 0U);
+        EXPECT_GE(lighting->last_gpu_time_ms, 0.0);
+
+        const auto& encoders = command_encoders.completed_encoders;
+        ASSERT_FALSE(encoders.empty());
+        EXPECT_EQ(encoders.front()->draws.size(), 1U);
     }
 }

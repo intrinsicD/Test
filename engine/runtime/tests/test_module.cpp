@@ -31,6 +31,9 @@
 #    include "engine/rendering/backend/vulkan/resource_translation.hpp"
 #endif
 #include "engine/rendering/forward_pipeline.hpp"
+#if ENGINE_ENABLE_RENDERING
+#    include "engine/rendering/pipeline/research_baseline_telemetry.hpp"
+#endif
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/assets/point_cloud_asset.hpp"
 #include "engine/assets/validation.hpp"
@@ -1624,6 +1627,36 @@ TEST(RuntimeHost, DiagnosticsExposeGeometrySpatialTelemetry)
 
     host.shutdown();
 }
+
+#if ENGINE_ENABLE_RENDERING
+TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
+{
+    auto& telemetry = engine::rendering::ResearchBaselineTelemetry::instance();
+    telemetry.reset_for_testing();
+    telemetry.set_shading_mode(engine::rendering::ResearchShadingMode::Deferred);
+    telemetry.record_pass("Research.GBuffer", engine::rendering::PassPhase::Geometry, 3U, 0.5);
+    telemetry.record_pass("Research.LightingComposite", engine::rendering::PassPhase::Lighting, 0U, 0.25);
+
+    engine::runtime::RuntimeHost host{};
+    host.shutdown();
+    host.initialize();
+    host.tick(0.016);
+
+    const auto& metrics = host.diagnostics().metrics;
+
+    const auto shading_metric = find_metric_index(metrics, "rendering.research.shading_mode.active");
+    ASSERT_TRUE(shading_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*shading_metric].value), 1.0);
+
+    const auto pass_label = std::make_pair(std::string_view{"pass"}, std::string_view{"Research.GBuffer"});
+    const auto draw_metric =
+        find_metric_index(metrics, "rendering.research.pass.draw_calls_total", pass_label);
+    ASSERT_TRUE(draw_metric.has_value());
+    EXPECT_EQ(engine::core::telemetry::as_int(metrics.samples[*draw_metric].value), 3);
+
+    host.shutdown();
+}
+#endif
 
 TEST(RuntimeDiagnosticsCAPI, MetricEnumerationsExposeSchema)
 {
