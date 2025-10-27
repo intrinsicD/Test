@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <numbers>
+
 #include "engine/geometry/shapes.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
 
@@ -599,6 +601,20 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(ellipsoid, outside));
     }
 
+    TEST(EllipsoidIntersection, EllipsoidPlaneRotated)
+    {
+        const math::quat rotation = math::angle_axis(std::numbers::pi_v<float> / 5.0f,
+                                                     math::normalize(math::vec3{0.0f, 1.0f, 1.0f}));
+        const Ellipsoid ellipsoid{{0.25f, 0.35f, -0.1f}, {1.1f, 0.6f, 0.75f}, rotation};
+        const Plane slicing{{0.0f, 0.0f, 1.0f}, 0.05f};
+        const Plane separated{{0.0f, 0.0f, 1.0f}, -1.0f};
+
+        EXPECT_TRUE(Intersects(ellipsoid, slicing));
+        EXPECT_TRUE(Intersects(slicing, ellipsoid));
+        EXPECT_FALSE(Intersects(ellipsoid, separated));
+        EXPECT_FALSE(Intersects(separated, ellipsoid));
+    }
+
     TEST(EllipsoidIntersection, EllipsoidRay)
     {
         const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
@@ -677,6 +693,20 @@ namespace engine::geometry
         EXPECT_EQ(forward_miss, reverse_miss);
     }
 
+    TEST(EllipsoidIntersection, EllipsoidCylinderRotated)
+    {
+        const Cylinder cylinder{{0, 0, 0}, {0, 0, 1}, 0.4f, 2.0f};
+        const math::quat rotation = math::angle_axis(std::numbers::pi_v<float> / 4.0f,
+                                                     math::normalize(math::vec3{0.0f, 1.0f, 1.0f}));
+        const Ellipsoid overlapping{{0.3f, 0.2f, 0.1f}, {0.7f, 0.45f, 0.55f}, rotation};
+        const Ellipsoid separated{{1.8f, 0.0f, 0.5f}, {0.5f, 0.4f, 0.3f}, rotation};
+
+        EXPECT_TRUE(Intersects(overlapping, cylinder));
+        EXPECT_TRUE(Intersects(cylinder, overlapping));
+        EXPECT_FALSE(Intersects(separated, cylinder));
+        EXPECT_FALSE(Intersects(cylinder, separated));
+    }
+
     TEST(EllipsoidIntersection, EllipsoidTriangle)
     {
         const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
@@ -702,6 +732,20 @@ namespace engine::geometry
         const bool reverse_miss = Intersects(separated, ellipsoid);
         EXPECT_FALSE(forward_miss);
         EXPECT_EQ(forward_miss, reverse_miss);
+    }
+
+    TEST(EllipsoidIntersection, EllipsoidTriangleRotated)
+    {
+        const math::quat rotation = math::angle_axis(std::numbers::pi_v<float> / 6.0f,
+                                                     math::normalize(math::vec3{0.2f, 0.7f, 0.6f}));
+        const Ellipsoid ellipsoid{{0.35f, 0.15f, 0.25f}, {0.85f, 0.55f, 0.4f}, rotation};
+        const Triangle intersecting{{0.35f, 0.15f, 0.25f}, {0.9f, -0.05f, 0.35f}, {0.0f, 0.65f, 0.1f}};
+        const Triangle separated{{1.5f, 1.1f, 1.2f}, {1.8f, 1.0f, 1.3f}, {1.6f, 1.4f, 1.1f}};
+
+        EXPECT_TRUE(Intersects(ellipsoid, intersecting));
+        EXPECT_TRUE(Intersects(intersecting, ellipsoid));
+        EXPECT_FALSE(Intersects(ellipsoid, separated));
+        EXPECT_FALSE(Intersects(separated, ellipsoid));
     }
 
     // ============================================================================
@@ -1515,6 +1559,18 @@ namespace engine::geometry
         const Ellipsoid ellipsoid{{0, 0, 0}, {2, 1, 1}, math::quat{1, 0, 0, 0}};
         EXPECT_TRUE(Contains(ellipsoid, math::vec3{1, 0, 0}));
         EXPECT_FALSE(Contains(ellipsoid, math::vec3{3, 0, 0}));
+    }
+
+    TEST(Containment, EllipsoidContainsObbRotated)
+    {
+        const math::quat rotation = math::angle_axis(std::numbers::pi_v<float> / 7.0f,
+                                                     math::normalize(math::vec3{0.3f, 0.5f, 0.8f}));
+        const Ellipsoid ellipsoid{{0.1f, -0.05f, 0.2f}, {1.2f, 0.9f, 0.7f}, rotation};
+        const Obb inside{{0.15f, -0.02f, 0.25f}, {0.35f, 0.25f, 0.2f}, rotation};
+        const Obb outside{{1.4f, 0.9f, 1.2f}, {0.3f, 0.2f, 0.25f}, rotation};
+
+        EXPECT_TRUE(Contains(ellipsoid, inside));
+        EXPECT_FALSE(Contains(ellipsoid, outside));
     }
 
     TEST(Containment, PlaneContainsPoint)
