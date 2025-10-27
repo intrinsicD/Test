@@ -526,6 +526,60 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(separated, cyl));
     }
 
+    TEST(CylinderIntersection, CylinderEllipsoidEdgeCaseRegression)
+    {
+        const Cylinder cylinder{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 4.0f}, 1.0f, 2.0f};
+
+        const math::quat orientation = math::angle_axis(std::numbers::pi_v<float> / 3.0f,
+                                                        math::normalize(math::vec3{1.0f, 1.0f, 0.25f}));
+        const Ellipsoid ellipsoid{{1.05f, 0.35f, -1.2f}, {0.55f, 0.25f, 0.85f}, orientation};
+
+        auto ellipsoid_surface_penetrates_cylinder = [&]() {
+            const math::mat3 rotation = math::utils::to_rotation_matrix(ellipsoid.orientation);
+            constexpr int kLatitudeSamples = 128;
+            constexpr int kLongitudeSamples = 256;
+
+            for (int lat = 0; lat <= kLatitudeSamples; ++lat)
+            {
+                const float u = static_cast<float>(lat) / static_cast<float>(kLatitudeSamples);
+                const float theta = u * std::numbers::pi_v<float>;
+                const float sin_theta = math::utils::sin(theta);
+                const float cos_theta = math::utils::cos(theta);
+
+                for (int lon = 0; lon < kLongitudeSamples; ++lon)
+                {
+                    const float v = static_cast<float>(lon) / static_cast<float>(kLongitudeSamples);
+                    const float phi = v * 2.0f * std::numbers::pi_v<float>;
+                    const float sin_phi = math::utils::sin(phi);
+                    const float cos_phi = math::utils::cos(phi);
+
+                    const math::vec3 local{
+                        ellipsoid.radii[0] * sin_theta * cos_phi,
+                        ellipsoid.radii[1] * sin_theta * sin_phi,
+                        ellipsoid.radii[2] * cos_theta
+                    };
+
+                    const math::vec3 world = ellipsoid.center + rotation * local;
+                    if (Contains(cylinder, world))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        ASSERT_TRUE(ellipsoid_surface_penetrates_cylinder()) << "Sampling failed to detect the known intersection";
+
+        // Regression guard: this configuration features a very thin penetration band along the cylinder
+        // axis; the combined GJK solver and deterministic fallback must continue to report an
+        // intersection for both argument orders.
+        EXPECT_TRUE(Intersects(cylinder, ellipsoid));
+        EXPECT_TRUE(Intersects(ellipsoid, cylinder));
+    }
+
+
     // ============================================================================
     // ELLIPSOID INTERSECTION TESTS
     // ============================================================================

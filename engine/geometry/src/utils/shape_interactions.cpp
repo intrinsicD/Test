@@ -13,6 +13,341 @@ namespace engine::geometry
 {
     namespace
     {
+        constexpr int kGjkMaxIterations = 32;
+        constexpr float kGjkDirectionEpsilon = 1e-9f;
+
+        struct GjkSimplex
+        {
+            std::array<math::vec3, 4> points{};
+            int size{0};
+        };
+
+        struct EllipsoidSupportInfo
+        {
+            math::mat3 rotation{};
+            math::mat3 rotation_transpose{};
+            math::vec3 radii_sq{0.0f};
+        };
+
+        [[nodiscard]] EllipsoidSupportInfo MakeSupportInfo(const Ellipsoid& ellipsoid) noexcept
+        {
+            EllipsoidSupportInfo info;
+            info.rotation = math::utils::to_rotation_matrix(ellipsoid.orientation);
+            info.rotation_transpose = transpose(info.rotation);
+            info.radii_sq = {ellipsoid.radii[0] * ellipsoid.radii[0],
+                             ellipsoid.radii[1] * ellipsoid.radii[1],
+                             ellipsoid.radii[2] * ellipsoid.radii[2]};
+            return info;
+        }
+
+        [[nodiscard]] math::vec3 SupportPoint(const Cylinder& cylinder, const math::vec3& direction) noexcept
+        {
+            const math::vec3 axis_dir = AxisDirection(cylinder);
+            const float axial = math::dot(direction, axis_dir);
+
+            math::vec3 support = cylinder.center;
+            if (axial >= 0.0f)
+            {
+                support += axis_dir * cylinder.half_height;
+            }
+            else
+            {
+                support -= axis_dir * cylinder.half_height;
+            }
+
+            const math::vec3 radial = direction - axial * axis_dir;
+            const float radial_len_sq = math::length_squared(radial);
+            if (radial_len_sq > constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+            {
+                const float radial_len = math::utils::sqrt(radial_len_sq);
+                support += (cylinder.radius / radial_len) * radial;
+            }
+
+            return support;
+        }
+
+        [[nodiscard]] math::vec3 SupportPoint(const Ellipsoid& ellipsoid,
+                                              const EllipsoidSupportInfo& info,
+                                              const math::vec3& direction) noexcept
+        {
+            const math::vec3 local_dir = info.rotation_transpose * direction;
+            math::vec3 scaled{
+                ellipsoid.radii[0] * local_dir[0],
+                ellipsoid.radii[1] * local_dir[1],
+                ellipsoid.radii[2] * local_dir[2]
+            };
+
+            const float scaled_len_sq = math::length_squared(scaled);
+            if (scaled_len_sq <= constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+            {
+                return ellipsoid.center;
+            }
+
+            const float scaled_len = math::utils::sqrt(scaled_len_sq);
+            const math::vec3 support_local{
+                info.radii_sq[0] * local_dir[0] / scaled_len,
+                info.radii_sq[1] * local_dir[1] / scaled_len,
+                info.radii_sq[2] * local_dir[2] / scaled_len
+            };
+
+            return ellipsoid.center + info.rotation * support_local;
+        }
+
+        [[nodiscard]] math::vec3 SupportMinkowskiDifference(const Cylinder& cylinder,
+                                                             const Ellipsoid& ellipsoid,
+                                                             const EllipsoidSupportInfo& info,
+                                                             const math::vec3& direction) noexcept
+        {
+            return SupportPoint(cylinder, direction) - SupportPoint(ellipsoid, info, -direction);
+        }
+
+        [[nodiscard]] math::vec3 Perpendicular(const math::vec3& v) noexcept
+        {
+            if (math::length_squared(v) <= kGjkDirectionEpsilon)
+            {
+                return math::vec3{1.0f, 0.0f, 0.0f};
+            }
+
+            if (math::utils::abs(v[0]) > math::utils::abs(v[1]))
+            {
+                return math::vec3{-v[2], 0.0f, v[0]};
+            }
+            return math::vec3{0.0f, v[2], -v[1]};
+        }
+
+        bool GjkStepLine(GjkSimplex& simplex, math::vec3& direction) noexcept
+        {
+            const math::vec3 a = simplex.points[1];
+            const math::vec3 b = simplex.points[0];
+            const math::vec3 ab = b - a;
+            const math::vec3 ao = -a;
+
+            if (math::dot(ab, ao) > 0.0f)
+            {
+                direction = math::cross(math::cross(ab, ao), ab);
+                if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+                {
+                    direction = Perpendicular(ab);
+                }
+            }
+            else
+            {
+                simplex.points[0] = a;
+                simplex.size = 1;
+                direction = ao;
+                if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+                {
+                    direction = Perpendicular(ab);
+                }
+            }
+
+            return false;
+        }
+
+        bool GjkStepTriangle(GjkSimplex& simplex, math::vec3& direction) noexcept
+        {
+            const math::vec3 a = simplex.points[2];
+            const math::vec3 b = simplex.points[1];
+            const math::vec3 c = simplex.points[0];
+
+            const math::vec3 ab = b - a;
+            const math::vec3 ac = c - a;
+            const math::vec3 ao = -a;
+            const math::vec3 abc = math::cross(ab, ac);
+
+            const math::vec3 ab_perp = math::cross(abc, ab);
+            if (math::dot(ab_perp, ao) > 0.0f)
+            {
+                simplex.points[0] = b;
+                simplex.points[1] = a;
+                simplex.size = 2;
+                direction = math::cross(math::cross(ab, ao), ab);
+                if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+                {
+                    direction = Perpendicular(ab);
+                }
+                return false;
+            }
+
+            const math::vec3 ac_perp = math::cross(ac, abc);
+            if (math::dot(ac_perp, ao) > 0.0f)
+            {
+                simplex.points[0] = c;
+                simplex.points[1] = a;
+                simplex.size = 2;
+                direction = math::cross(math::cross(ac, ao), ac);
+                if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+                {
+                    direction = Perpendicular(ac);
+                }
+                return false;
+            }
+
+            if (math::dot(abc, ao) > 0.0f)
+            {
+                direction = abc;
+            }
+            else
+            {
+                std::swap(simplex.points[0], simplex.points[1]);
+                direction = -abc;
+            }
+
+            if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+            {
+                direction = Perpendicular(abc);
+            }
+
+            return false;
+        }
+
+        bool GjkStepTetrahedron(GjkSimplex& simplex, math::vec3& direction) noexcept
+        {
+            const math::vec3 a = simplex.points[3];
+            const math::vec3 b = simplex.points[2];
+            const math::vec3 c = simplex.points[1];
+            const math::vec3 d = simplex.points[0];
+
+            const math::vec3 ao = -a;
+            const math::vec3 ab = b - a;
+            const math::vec3 ac = c - a;
+            const math::vec3 ad = d - a;
+
+            const math::vec3 abc = math::cross(ab, ac);
+            if (math::dot(abc, ao) > 0.0f)
+            {
+                simplex.points[0] = c;
+                simplex.points[1] = b;
+                simplex.points[2] = a;
+                simplex.size = 3;
+                direction = abc;
+                if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+                {
+                    direction = Perpendicular(abc);
+                }
+                return false;
+            }
+
+            const math::vec3 acd = math::cross(ac, ad);
+            if (math::dot(acd, ao) > 0.0f)
+            {
+                simplex.points[0] = d;
+                simplex.points[1] = c;
+                simplex.points[2] = a;
+                simplex.size = 3;
+                direction = acd;
+                if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+                {
+                    direction = Perpendicular(acd);
+                }
+                return false;
+            }
+
+            const math::vec3 adb = math::cross(ad, ab);
+            if (math::dot(adb, ao) > 0.0f)
+            {
+                simplex.points[0] = b;
+                simplex.points[1] = d;
+                simplex.points[2] = a;
+                simplex.size = 3;
+                direction = adb;
+                if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+                {
+                    direction = Perpendicular(adb);
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        bool GjkProcessSimplex(GjkSimplex& simplex, math::vec3& direction) noexcept
+        {
+            switch (simplex.size)
+            {
+            case 1:
+                direction = -simplex.points[0];
+                if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+                {
+                    direction = math::vec3{1.0f, 0.0f, 0.0f};
+                }
+                return false;
+            case 2:
+                return GjkStepLine(simplex, direction);
+            case 3:
+                return GjkStepTriangle(simplex, direction);
+            case 4:
+                return GjkStepTetrahedron(simplex, direction);
+            default:
+                return false;
+            }
+        }
+
+        bool GjkIntersects(const Cylinder& cylinder, const Ellipsoid& ellipsoid) noexcept
+        {
+            const EllipsoidSupportInfo info = MakeSupportInfo(ellipsoid);
+
+            math::vec3 direction = cylinder.center - ellipsoid.center;
+            if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+            {
+                direction = math::vec3{1.0f, 0.0f, 0.0f};
+            }
+
+            GjkSimplex simplex{};
+            simplex.points[0] = SupportMinkowskiDifference(cylinder, ellipsoid, info, direction);
+            simplex.size = 1;
+            direction = -simplex.points[0];
+            if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+            {
+                direction = math::vec3{0.0f, 1.0f, 0.0f};
+            }
+
+            for (int iteration = 0; iteration < kGjkMaxIterations; ++iteration)
+            {
+                const math::vec3 support =
+                    SupportMinkowskiDifference(cylinder, ellipsoid, info, direction);
+
+                if (math::dot(support, direction) <= constants::INTERSECTION_EPSILON)
+                {
+                    return false;
+                }
+
+                simplex.points[simplex.size++] = support;
+
+                if (GjkProcessSimplex(simplex, direction))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool CylinderEllipsoidFallback(const Cylinder& cylinder, const Ellipsoid& ellipsoid) noexcept
+        {
+            const Line axis_line{cylinder.center, AxisDirection(cylinder)};
+            if (Intersects(axis_line, ellipsoid, nullptr))
+            {
+                const Segment axis_seg{BottomCenter(cylinder), TopCenter(cylinder)};
+                if (Intersects(axis_seg, ellipsoid, nullptr)) return true;
+            }
+
+            const math::vec3 top = TopCenter(cylinder);
+            const math::vec3 bottom = BottomCenter(cylinder);
+
+            for (int i = 0; i <= 8; ++i)
+            {
+                const float t = static_cast<float>(i) / 8.0f;
+                const math::vec3 axis_point = bottom + t * (top - bottom);
+                if (SquaredDistance(ellipsoid, axis_point) <= cylinder.radius * cylinder.radius)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         struct SegmentAabbClosestResult
         {
             float distance_sq;
@@ -707,27 +1042,11 @@ namespace engine::geometry
 
     bool Intersects(const Cylinder& a, const Ellipsoid& b) noexcept
     {
-        // Check if cylinder axis intersects ellipsoid
-        const Line axis_line{a.center, AxisDirection(a)};
-        if (Intersects(axis_line, b, nullptr))
+        if (GjkIntersects(a, b))
         {
-            // Further check if intersection is within cylinder height
-            const Segment axis_seg{BottomCenter(a), TopCenter(a)};
-            if (Intersects(axis_seg, b, nullptr)) return true;
+            return true;
         }
-
-        // Check closest point on ellipsoid to cylinder axis
-        const math::vec3 top = TopCenter(a);
-        const math::vec3 bottom = BottomCenter(a);
-
-        for (int i = 0; i <= 8; ++i)
-        {
-            const float t = i / 8.0f;
-            const math::vec3 axis_point = bottom + t * (top - bottom);
-            if (SquaredDistance(b, axis_point) <= a.radius * a.radius) return true;
-        }
-
-        return false;
+        return CylinderEllipsoidFallback(a, b);
     }
 
     bool Intersects(const Cylinder& cylinder, const Line& line, Result* result) noexcept
