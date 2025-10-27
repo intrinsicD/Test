@@ -101,7 +101,7 @@ struct RigBinding {
     std::vector<RigJoint> joints;
     std::vector<VertexBinding> vertices;
 
-    [[nodiscard]] constexpr bool empty() const noexcept { return joints.empty() && vertices.empty(); }
+    [[nodiscard]] bool empty() const noexcept { return joints.empty() && vertices.empty(); }
 
     void resize_vertices(std::size_t count) {
         const std::size_t previous_size = vertices.size();
@@ -151,4 +151,3 @@ struct RigBinding {
 };
 
 }  // namespace engine::animation
-

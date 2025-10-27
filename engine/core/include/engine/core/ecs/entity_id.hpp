@@ -56,7 +56,7 @@ private:
     value_type value_{entt::null};
 };
 
-[[nodiscard]] inline constexpr entity_id make_entity_id(entt::registry &registry) noexcept {
+[[nodiscard]] inline entity_id make_entity_id(entt::registry &registry) noexcept {
     return entity_id{registry.create()};
 }
 
@@ -83,4 +83,3 @@ struct hash<engine::core::ecs::entity_id> {
 };
 
 }  // namespace std
-
