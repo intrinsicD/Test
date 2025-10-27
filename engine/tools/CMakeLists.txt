@@ -28,3 +28,5 @@ if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 
+# Add examples subdirectory
+add_subdirectory(examples)
