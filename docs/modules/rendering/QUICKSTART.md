@@ -2,9 +2,9 @@
 
 ## Current Status (October 27, 2025)
 
-✅ **Research Baseline Preset (RE-610)** - COMPLETE  
-⚠️ **GPU Resource Provider (T-0120)** - NOT STARTED (CRITICAL PATH)  
-⚠️ **Command Encoder (T-0119)** - NOT STARTED (CRITICAL PATH)
+✅ **Research Baseline Preset (RE-610)** - COMPLETE
+🟡 **GPU Resource Provider (T-0120)** - IN PROGRESS (command buffer orchestration live)
+🟡 **Command Encoder (T-0119)** - IN PROGRESS (OpenGL draw recording implemented)
 
 ## Quick Test
 
@@ -51,9 +51,10 @@ Frame graph configured with resources:
    - Vertex/index buffer allocation
    - Texture creation
    - Shader compilation
-   
+   - Upload + residency management (command buffer scaffolding now available)
+
 2. **Command Recording** (T-0119)
-   - Actual OpenGL draw calls
+   - Translate recorded draw calls into OpenGL API submissions
    - Shader binding
    - Uniform setup
 

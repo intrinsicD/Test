@@ -17,7 +17,7 @@
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/pipeline/research_baseline.hpp"
 #include "engine/rendering/backend/opengl/gpu_scheduler.hpp"
-#include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
+#include "engine/rendering/backend/opengl/resource_provider.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/scene/components/transform.hpp"
@@ -113,8 +113,7 @@ int main(int argc, char* argv[])
     {
         // Initialize rendering backend
         std::cout << "Initializing OpenGL rendering backend...\n";
-        auto resource_provider = std::make_unique<engine::rendering::resources::RecordingGpuResourceProvider>(
-            engine::rendering::resources::GraphicsApi::OpenGL);
+        auto resource_provider = std::make_unique<engine::rendering::backend::opengl::OpenGLGpuResourceProvider>();
 
         auto scheduler = std::make_unique<engine::rendering::backend::opengl::OpenGLGpuScheduler>(
             *resource_provider);
