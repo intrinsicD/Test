@@ -1,7 +1,18 @@
 #include "engine/rendering/backend/opengl/resource_provider.hpp"
 
+#include <optional>
 #include <stdexcept>
 #include <utility>
+
+#ifndef ENGINE_RENDERING_HAS_GLAD
+#    define ENGINE_RENDERING_HAS_GLAD 0
+#endif
+
+#if ENGINE_RENDERING_HAS_GLAD
+#    include <glad/gl.h>
+#endif
+
+#include "engine/rendering/frame_graph.hpp"
 
 namespace engine::rendering::backend::opengl
 {
@@ -37,7 +48,177 @@ namespace engine::rendering::backend::opengl
         }
     }  // namespace
 
+    namespace
+    {
+        struct TextureFormatInfo
+        {
+#if ENGINE_RENDERING_HAS_GLAD
+            GLenum target{GL_TEXTURE_2D};
+            GLenum internal_format{GL_RGBA8};
+            GLenum format{GL_RGBA};
+            GLenum type{GL_UNSIGNED_BYTE};
+#endif
+            bool depth_attachment{false};
+        };
+
+        [[nodiscard]] bool is_texture_resource(const FrameGraphResourceInfo& info) noexcept
+        {
+            return info.dimension == ResourceDimension::Texture2D
+                   || info.dimension == ResourceDimension::Texture3D
+                   || info.dimension == ResourceDimension::Texture1D
+                   || info.dimension == ResourceDimension::CubeMap;
+        }
+
+#if ENGINE_RENDERING_HAS_GLAD
+        [[nodiscard]] GLenum texture_target(const FrameGraphResourceInfo& info) noexcept
+        {
+            switch (info.dimension)
+            {
+            case ResourceDimension::Texture1D:
+                return GL_TEXTURE_1D;
+            case ResourceDimension::Texture3D:
+                return GL_TEXTURE_3D;
+            case ResourceDimension::CubeMap:
+                return GL_TEXTURE_CUBE_MAP;
+            case ResourceDimension::Texture2D:
+            default:
+                return GL_TEXTURE_2D;
+            }
+        }
+
+        [[nodiscard]] std::optional<TextureFormatInfo> translate_texture_format(
+            const FrameGraphResourceInfo& info) noexcept
+        {
+            TextureFormatInfo translated{};
+            translated.target = texture_target(info);
+            switch (info.format)
+            {
+            case ResourceFormat::Rgba8Unorm:
+                translated.internal_format = GL_RGBA8;
+                translated.format = GL_RGBA;
+                translated.type = GL_UNSIGNED_BYTE;
+                translated.depth_attachment = false;
+                return translated;
+            case ResourceFormat::Rgba16f:
+                translated.internal_format = GL_RGBA16F;
+                translated.format = GL_RGBA;
+                translated.type = GL_HALF_FLOAT;
+                translated.depth_attachment = false;
+                return translated;
+            case ResourceFormat::Rgba32f:
+                translated.internal_format = GL_RGBA32F;
+                translated.format = GL_RGBA;
+                translated.type = GL_FLOAT;
+                translated.depth_attachment = false;
+                return translated;
+            case ResourceFormat::Depth24Stencil8:
+                translated.internal_format = GL_DEPTH24_STENCIL8;
+                translated.format = GL_DEPTH_STENCIL;
+                translated.type = GL_UNSIGNED_INT_24_8;
+                translated.depth_attachment = true;
+                return translated;
+            case ResourceFormat::Depth32f:
+                translated.internal_format = GL_DEPTH_COMPONENT32F;
+                translated.format = GL_DEPTH_COMPONENT;
+                translated.type = GL_FLOAT;
+                translated.depth_attachment = true;
+                return translated;
+            case ResourceFormat::Unknown:
+                break;
+            }
+            return std::nullopt;
+        }
+
+        [[nodiscard]] GLuint create_texture(const FrameGraphResourceInfo& info,
+                                            const TextureFormatInfo& format)
+        {
+            GLuint name = 0;
+            if (glad_glCreateTextures != nullptr)
+            {
+                glad_glCreateTextures(format.target, 1, &name);
+            }
+            else if (glad_glGenTextures != nullptr)
+            {
+                glad_glGenTextures(1, &name);
+            }
+
+            if (name == 0)
+            {
+                return 0;
+            }
+
+            const auto guard = [&]() {
+                if (glad_glBindTexture != nullptr)
+                {
+                    glad_glBindTexture(format.target, name);
+                }
+            };
+
+            guard();
+
+            if (format.target == GL_TEXTURE_1D)
+            {
+                if (glad_glTexImage1D != nullptr)
+                {
+                    glad_glTexImage1D(GL_TEXTURE_1D, 0, static_cast<GLint>(format.internal_format),
+                                       static_cast<GLsizei>(info.width), 0, format.format, format.type, nullptr);
+                }
+            }
+            else if (format.target == GL_TEXTURE_3D)
+            {
+                if (glad_glTexImage3D != nullptr)
+                {
+                    glad_glTexImage3D(GL_TEXTURE_3D, 0, static_cast<GLint>(format.internal_format),
+                                       static_cast<GLsizei>(info.width), static_cast<GLsizei>(info.height),
+                                       static_cast<GLsizei>(info.depth), 0, format.format, format.type, nullptr);
+                }
+            }
+            else
+            {
+                if (glad_glTexImage2D != nullptr)
+                {
+                    glad_glTexImage2D(format.target, 0, static_cast<GLint>(format.internal_format),
+                                       static_cast<GLsizei>(info.width), static_cast<GLsizei>(info.height), 0,
+                                       format.format, format.type, nullptr);
+                }
+            }
+
+            if (glad_glTexParameteri != nullptr)
+            {
+                glad_glTexParameteri(format.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glad_glTexParameteri(format.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glad_glTexParameteri(format.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glad_glTexParameteri(format.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            }
+
+            if (glad_glBindTexture != nullptr)
+            {
+                glad_glBindTexture(format.target, 0);
+            }
+
+            return name;
+        }
+
+        void destroy_gl_texture(GLuint name)
+        {
+            if (name != 0 && glad_glDeleteTextures != nullptr)
+            {
+                glad_glDeleteTextures(1, &name);
+            }
+        }
+#endif  // ENGINE_RENDERING_HAS_GLAD
+    }  // namespace
+
     OpenGLGpuResourceProvider::OpenGLGpuResourceProvider() = default;
+
+    OpenGLGpuResourceProvider::~OpenGLGpuResourceProvider()
+    {
+        for (auto& [index, record] : textures_)
+        {
+            static_cast<void>(index);
+            destroy_texture(record);
+        }
+    }
 
     resources::GraphicsApi OpenGLGpuResourceProvider::api() const noexcept
     {
@@ -50,10 +231,7 @@ namespace engine::rendering::backend::opengl
         released_.clear();
     }
 
-    void OpenGLGpuResourceProvider::end_frame()
-    {
-        // Intentionally left blank – the provider currently performs no GPU work.
-    }
+    void OpenGLGpuResourceProvider::end_frame() {}
 
     resources::QueueNativeHandle OpenGLGpuResourceProvider::queue_handle(QueueType queue) const
     {
@@ -124,15 +302,55 @@ namespace engine::rendering::backend::opengl
     void OpenGLGpuResourceProvider::on_transient_acquire(FrameGraphResourceHandle handle,
                                                           const FrameGraphResourceInfo& info)
     {
-        static_cast<void>(info);
+        if (!handle.valid())
+        {
+            return;
+        }
+
         acquired_.push_back(handle);
+
+        if (!is_texture_resource(info))
+        {
+            return;
+        }
+
+        auto it = textures_.find(handle.index);
+        if (it == textures_.end())
+        {
+            allocate_texture(handle.index, info);
+            it = textures_.find(handle.index);
+        }
+        else if (!texture_descriptor_matches(it->second, info))
+        {
+            destroy_texture(it->second);
+            allocate_texture(handle.index, info);
+            it = textures_.find(handle.index);
+        }
+
+        if (it != textures_.end())
+        {
+            it->second.in_use = true;
+        }
     }
 
     void OpenGLGpuResourceProvider::on_transient_release(FrameGraphResourceHandle handle,
                                                           const FrameGraphResourceInfo& info)
     {
-        static_cast<void>(info);
+        if (!handle.valid())
+        {
+            return;
+        }
+
         released_.push_back(handle);
+
+        auto it = textures_.find(handle.index);
+        if (it == textures_.end())
+        {
+            return;
+        }
+
+        static_cast<void>(info);
+        it->second.in_use = false;
     }
 
     OpenGLCommandBuffer* OpenGLGpuResourceProvider::command_buffer(CommandBufferHandle handle) noexcept
@@ -153,6 +371,84 @@ namespace engine::rendering::backend::opengl
             return nullptr;
         }
         return it->second.buffer.get();
+    }
+
+    const OpenGLGpuResourceProvider::TextureRecord*
+    OpenGLGpuResourceProvider::texture(FrameGraphResourceHandle handle) const noexcept
+    {
+        if (!handle.valid())
+        {
+            return nullptr;
+        }
+
+        auto it = textures_.find(handle.index);
+        if (it == textures_.end())
+        {
+            return nullptr;
+        }
+        return &it->second;
+    }
+
+    void OpenGLGpuResourceProvider::destroy_texture(TextureRecord& record) noexcept
+    {
+#if ENGINE_RENDERING_HAS_GLAD
+        if (record.native_allocation)
+        {
+            destroy_gl_texture(static_cast<GLuint>(record.handle));
+        }
+#endif
+        record.handle = 0;
+        record.in_use = false;
+        record.depth_attachment = false;
+        record.native_allocation = false;
+    }
+
+    void OpenGLGpuResourceProvider::allocate_texture(std::size_t index, const FrameGraphResourceInfo& info)
+    {
+        TextureRecord record{};
+        record.name = std::string{info.name};
+        record.format = info.format;
+        record.usage = info.usage;
+        record.dimension = info.dimension;
+        record.sample_count = info.sample_count;
+        record.width = info.width;
+        record.height = info.height;
+        record.depth = info.depth;
+        record.array_layers = info.array_layers;
+        record.mip_levels = info.mip_levels;
+        record.in_use = true;
+
+#if ENGINE_RENDERING_HAS_GLAD
+        if (const auto translated = translate_texture_format(info))
+        {
+            const auto gl_name = create_texture(info, *translated);
+            if (gl_name != 0)
+            {
+                record.handle = gl_name;
+                record.native_allocation = true;
+                record.depth_attachment = translated->depth_attachment;
+            }
+        }
+#endif
+
+        if (record.handle == 0)
+        {
+            record.handle = next_texture_id_++;
+            record.native_allocation = false;
+            record.depth_attachment = info.format == ResourceFormat::Depth24Stencil8
+                                      || info.format == ResourceFormat::Depth32f;
+        }
+
+        textures_.insert_or_assign(index, record);
+    }
+
+    bool OpenGLGpuResourceProvider::texture_descriptor_matches(const TextureRecord& record,
+                                                                const FrameGraphResourceInfo& info) const noexcept
+    {
+        return record.format == info.format && record.usage == info.usage && record.dimension == info.dimension
+               && record.sample_count == info.sample_count && record.width == info.width
+               && record.height == info.height && record.depth == info.depth
+               && record.array_layers == info.array_layers && record.mip_levels == info.mip_levels;
     }
 }
 

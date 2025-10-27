@@ -492,6 +492,8 @@ ctest --preset linux-gcc-debug -R rendering
 ## Current State
 
 - Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, Vulkan scheduler prototype, and OpenGL scheduler queue-normalisation with translated `glMemoryBarrier` masks. Backend validation metrics cover all providers and consume the shared metadata schema aligned with runtime submission invariants.
+- OpenGL GPU resource provider materialises transient frame-graph textures on acquire, reusing allocations when descriptors
+  match and tagging depth attachments so framebuffer wiring can bind native handles once command encoding lands.
 
 ## Usage
 

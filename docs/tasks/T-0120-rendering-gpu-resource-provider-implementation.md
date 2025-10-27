@@ -157,6 +157,9 @@ Implement concrete `IGpuResourceProvider` backends that create, manage, and trac
 - Should we implement suballocation for small resources?
 
 ## Progress Log
+- 2025-12-09: OpenGL provider now materialises transient texture resources on acquire, reusing allocations when descriptors
+  match and tagging depth attachments for future framebuffer wiring. Added unit coverage to lock in descriptor tracking
+  behaviour.
 - 2025-12-08: Added an OpenGL-focused provider that issues native queue/command buffer handles backed by reusable command
   buffers and stub fence/timeline tracking to unblock command encoder integration.
 
