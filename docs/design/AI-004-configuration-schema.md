@@ -24,6 +24,12 @@ Capture the shared configuration contract required by `AI-004` deliverables so r
 3. Validate schema against representative configurations and record findings here. ✅ Dataset manifests validated with strict slug rules, telemetry fields, and optional parameterisation metadata.
 4. Update this document with field tables, versioning strategy, and migration checklist prior to kickoff review.
 
+### Validation Tooling
+
+- `python -m scripts.validate_ai004_config --dataset <manifest> --config <configuration>` validates manifests with the shared
+  Python loader so pipelines can fail fast when schema drift is detected. ✅ Script added alongside automated tests to unblock
+  CI wiring and local iteration.
+
 ---
 
 ## Dataset Section (v1 Draft)

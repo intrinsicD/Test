@@ -5,12 +5,12 @@
     "throw std::invalid_argument(\"out_skinning span is too small for joint count\");": 1
   },
   "engine/animation/src/serialization.cpp": {
+    "throw std::runtime_error(": 1,
     "throw std::runtime_error(\"Cannot serialise invalid animation clip\");": 1,
     "throw std::runtime_error(\"Failed while writing animation clip JSON\");": 1,
     "throw std::runtime_error(\"Invalid Unicode escape in animation clip JSON\");": 2,
     "throw std::runtime_error(\"Invalid escape sequence in animation clip JSON\");": 1,
     "throw std::runtime_error(\"Invalid numeric literal in animation clip JSON\");": 2,
-    "throw std::runtime_error(\"Non-ASCII Unicode escapes are not supported in animation clip JSON\");": 1,
     "throw std::runtime_error(\"Unexpected token in animation clip JSON\");": 2,
     "throw std::runtime_error(\"Unexpected trailing data in animation clip JSON\");": 1,
     "throw std::runtime_error(\"Unsupported escape sequence in animation clip JSON\");": 1,
@@ -18,13 +18,27 @@
     "throw std::runtime_error(message.str());": 1,
     "throw std::system_error(std::error_code(errno, std::generic_category()),": 2
   },
+  "engine/animation/tools/benchmark_driver/benchmark_driver.cpp": {
+    "throw std::invalid_argument(stream.str());": 4,
+    "throw std::invalid_argument{\"--clip requires a value\"};": 1,
+    "throw std::invalid_argument{\"--dt must be greater than zero\"};": 1,
+    "throw std::invalid_argument{\"--dt requires a value\"};": 1,
+    "throw std::invalid_argument{\"--frames must be greater than zero\"};": 1,
+    "throw std::invalid_argument{\"--frames requires a value\"};": 1,
+    "throw std::invalid_argument{\"--jitter-budget-ms requires a value\"};": 1,
+    "throw std::invalid_argument{\"--output requires a value\"};": 1,
+    "throw std::invalid_argument{\"--rig-joints requires a value\"};": 1,
+    "throw std::invalid_argument{\"--scenario requires a value\"};": 1,
+    "throw std::runtime_error(stream.str());": 1,
+    "throw std::runtime_error{\"Animation clip contains no tracks\"};": 1
+  },
   "engine/assets/include/engine/assets/detail/filesystem_utils.hpp": {
     "throw std::runtime_error(": 1
   },
   "engine/assets/src/graph_asset.cpp": {
     "throw std::invalid_argument(\"Graph handle identifier cannot be empty\");": 2,
     "throw std::out_of_range(\"Graph asset handle not found\");": 1,
-    "throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}": 1
+    "throw std::runtime_error(message.empty()": 1
   },
   "engine/assets/src/material_asset.cpp": {
     "throw std::invalid_argument(\"Material handle identifier cannot be empty\");": 1,
@@ -45,14 +59,43 @@
   "engine/assets/src/shader_asset.cpp": {
     "throw std::invalid_argument(\"Shader handle identifier cannot be empty\");": 2,
     "throw std::out_of_range(\"Shader asset handle not found\");": 1,
-    "throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}": 1
+    "throw std::runtime_error(message.empty()": 1
   },
   "engine/assets/src/texture_asset.cpp": {
     "throw std::invalid_argument(\"Texture handle identifier cannot be empty\");": 2,
     "throw std::out_of_range(\"Texture asset handle not found\");": 1,
     "throw std::runtime_error(\"Failed to open texture file: \" + path.generic_string());": 1,
     "throw std::runtime_error(\"Failed to read texture file: \" + path.generic_string());": 1,
-    "throw std::runtime_error(message.empty() ? std::string{to_string(reload.error().code())}": 1
+    "throw std::runtime_error(message.empty()": 1
+  },
+  "engine/compute/samples/runtime_dispatch_demo/runtime_dispatch_demo.cpp": {
+    "throw std::invalid_argument(\"CUDA dispatcher backend requested but not available in this build\");": 1,
+    "throw std::invalid_argument(stream.str());": 5,
+    "throw std::invalid_argument{\"--dispatcher-backend requires a value\"};": 1,
+    "throw std::invalid_argument{\"--dt must be positive\"};": 1,
+    "throw std::invalid_argument{\"--dt requires a value\"};": 1,
+    "throw std::invalid_argument{\"--frames must be greater than zero\"};": 1,
+    "throw std::invalid_argument{\"--frames requires a value\"};": 1,
+    "throw std::invalid_argument{\"--jitter-budget-ms must be non-negative\"};": 1,
+    "throw std::invalid_argument{\"--jitter-budget-ms requires a value\"};": 1,
+    "throw std::invalid_argument{\"--output requires a path\"};": 1,
+    "throw std::invalid_argument{\"--output-dir cannot be empty\"};": 1,
+    "throw std::invalid_argument{\"--output-dir requires a path\"};": 1,
+    "throw std::invalid_argument{\"--queue-map entries cannot be empty\"};": 1,
+    "throw std::invalid_argument{\"--queue-map expects category=queue\"};": 1,
+    "throw std::invalid_argument{\"--queue-map requires category=queue\"};": 1,
+    "throw std::invalid_argument{\"--queue-names entries must be unique\"};": 1,
+    "throw std::invalid_argument{\"--queue-names requires a comma-separated list\"};": 1,
+    "throw std::invalid_argument{\"--queue-names requires at least one entry\"};": 1,
+    "throw std::invalid_argument{\"--queue-names size must match --queues\"};": 1,
+    "throw std::invalid_argument{\"--queues must be greater than zero\"};": 1,
+    "throw std::invalid_argument{\"--queues requires a value\"};": 1,
+    "throw std::invalid_argument{\"--repeat must be greater than zero\"};": 1,
+    "throw std::invalid_argument{\"--repeat requires a value\"};": 1,
+    "throw std::invalid_argument{\"--workload requires a profile\"};": 1,
+    "throw std::invalid_argument{\"Expected floating point value\"};": 1,
+    "throw std::invalid_argument{\"Expected positive integer\"};": 1,
+    "throw std::out_of_range{\"Value exceeds size_t range\"};": 1
   },
   "engine/compute/src/api.cpp": {
     "throw std::invalid_argument{\"ClockConfiguration.measure must be callable\"};": 1,
@@ -75,7 +118,7 @@
     "throw std::invalid_argument(\"skinning_transforms span is too small for joint count\");": 1
   },
   "engine/geometry/src/graph/graph_io.cpp": {
-    "throw std::runtime_error(\"Edge in graph file \\\"\" + path.string() + \"\\\" references vertex outside range\");": 1,
+    "throw std::runtime_error(": 1,
     "throw std::runtime_error(\"Failed to add edge while importing graph file \\\"\" + path.string() + \"\\\"\");": 1,
     "throw std::runtime_error(\"Failed while writing graph file \\\"\" + path.string() + \"\\\"\");": 1,
     "throw std::runtime_error(\"Graph file \\\"\" + path.string() + \"\\\" declares \" +": 2,
@@ -88,24 +131,23 @@
     "throw std::system_error(std::error_code(errno, std::generic_category()),": 2
   },
   "engine/geometry/src/mesh/halfedge_mesh_io.cpp": {
-    "throw std::runtime_error(\"Cannot export OBJ because a face references a deleted vertex in \\\"\" +": 1,
+    "throw std::runtime_error(": 4,
     "throw std::runtime_error(\"Encountered face before any vertices in OBJ file \\\"\" + path.string() +": 1,
     "throw std::runtime_error(\"Failed to construct face while importing OBJ file \\\"\" + path.string() +": 1,
     "throw std::runtime_error(\"Failed while writing OBJ file \\\"\" + path.string() + \"\\\"\");": 1,
-    "throw std::runtime_error(\"Invalid vertex index \\\"\" + std::string(index_token) + \"\\\" in OBJ face on line \" +": 1,
     "throw std::runtime_error(\"Invalid vertex specification on line \" + std::to_string(line_number) +": 1,
     "throw std::runtime_error(\"Missing vertex index in OBJ face on line \" + std::to_string(line_number) +": 1,
-    "throw std::runtime_error(\"OBJ face on line \" + std::to_string(line_number) + \" of \\\"\" + path.string() +": 2,
-    "throw std::runtime_error(\"OBJ indices are 1-based; encountered zero on line \" + std::to_string(line_number) +": 1,
+    "throw std::runtime_error(\"OBJ face on line \" + std::to_string(line_number) + \" of \\\"\" + path.string() +": 1,
     "throw std::runtime_error(\"Unsupported mesh format for file \\\"\" + path.string() + \"\\\"\");": 3,
     "throw std::system_error(std::error_code(errno, std::generic_category()),": 2
   },
   "engine/geometry/src/mesh/surface_mesh_conversion.cpp": {
-    "throw std::runtime_error(": 2,
+    "throw std::runtime_error(": 3,
     "throw std::runtime_error(\"Halfedge mesh references a deleted vertex while exporting SurfaceMesh\");": 1,
     "throw std::runtime_error(\"SurfaceMesh contains degenerate triangles which cannot form a halfedge face\");": 1,
     "throw std::runtime_error(\"SurfaceMesh indices are not a multiple of three; only triangles are supported\");": 1,
-    "throw std::runtime_error(\"SurfaceMesh indices reference vertices outside the available range\");": 1
+    "throw std::runtime_error(\"SurfaceMesh indices reference vertices outside the available range\");": 1,
+    "throw std::runtime_error(\"SurfaceMesh rest positions must match the vertex count when provided\");": 1
   },
   "engine/geometry/src/point_cloud/point_cloud_io.cpp": {
     "throw std::runtime_error(\"Expected PLY signature at beginning of file\");": 1,
@@ -131,6 +173,7 @@
     "throw GeometryIoException(map_open_error(path), \"Failed to open PLY file: \" + path.string());": 3,
     "throw GeometryIoException(map_open_error(path), \"Failed to open XYZ file: \" + path.string());": 1,
     "throw GeometryIoException(map_open_error(path), \"Failed to open edge list file: \" + path.string());": 1,
+    "throw std::runtime_error(": 2,
     "throw std::runtime_error(\"Expected boolean value in signature database\");": 1,
     "throw std::runtime_error(\"Expected literal '\" + std::string{literal} + \"' in signature database\");": 1,
     "throw std::runtime_error(\"Expected string in signature database\");": 1,
@@ -140,7 +183,6 @@
     "throw std::runtime_error(\"Invalid escape sequence in signature database string\");": 1,
     "throw std::runtime_error(\"Invalid unicode escape in signature database string\");": 1,
     "throw std::runtime_error(\"Mesh signature rule missing 'mesh_format'\");": 1,
-    "throw std::runtime_error(\"Non-ASCII unicode escapes are not supported in signature database strings\");": 1,
     "throw std::runtime_error(\"Point cloud signature rule missing 'point_cloud_format'\");": 1,
     "throw std::runtime_error(\"Signature match is missing 'type'\");": 1,
     "throw std::runtime_error(\"Signature match must specify at least one pattern\");": 1,
@@ -156,7 +198,6 @@
     "throw std::runtime_error(\"Unknown point cloud format in signature rule: \" + value);": 1,
     "throw std::runtime_error(\"Unsupported escape sequence in signature database string\");": 1,
     "throw std::runtime_error(\"Unterminated string in signature database\");": 1,
-    "throw std::runtime_error(std::string{\"Expected character '\"} + expected + \"' in signature database\");": 1,
     "throw;": 1
   },
   "engine/io/src/geometry_io_registry.cpp": {
@@ -205,6 +246,18 @@
     "throw std::invalid_argument{\"OpenGLGpuScheduler requires an OpenGL resource provider\"};": 1,
     "throw std::runtime_error{\"NativeSchedulerBase received unknown command buffer\"};": 1
   },
+  "engine/rendering/src/backend/opengl/command_encoder.cpp": {
+    "throw std::runtime_error{\"OpenGLCommandEncoder invoked without active command buffer\"};": 1,
+    "throw std::runtime_error{\"OpenGLCommandEncoderProvider could not resolve command buffer\"};": 1,
+    "throw std::runtime_error{\"OpenGLCommandEncoderProvider has no resource provider\"};": 1
+  },
+  "engine/rendering/src/backend/opengl/render_resource_provider.cpp": {
+    "throw std::invalid_argument(": 1,
+    "throw std::invalid_argument(\"Mesh handle identifier cannot be empty\");": 1,
+    "throw std::runtime_error(\"OpenGLRenderResourceProvider could not resolve mesh: \" + id);": 1,
+    "throw std::runtime_error(\"Surface mesh is missing indices\");": 1,
+    "throw std::runtime_error(\"Surface mesh is missing vertex positions\");": 1
+  },
   "engine/rendering/src/backend/validation.cpp": {
     "throw std::runtime_error{\"begin_frame failed; end_frame skipped\"};": 1,
     "throw std::runtime_error{\"command buffer API mismatch\"};": 1,
@@ -233,8 +286,8 @@
     "throw std::invalid_argument{\"translate_view_type received non-texture resource\"};": 1
   },
   "engine/rendering/src/frame_graph.cpp": {
+    "throw std::invalid_argument{": 1,
     "throw std::invalid_argument{\"FrameGraph::add_pass expects a valid RenderPass\"};": 1,
-    "throw std::invalid_argument{\"FrameGraph::create_resource received duplicate resource name: '\" +": 1,
     "throw std::invalid_argument{\"FrameGraph::create_resource requires a non-empty resource name\"};": 1,
     "throw std::logic_error(\"FrameGraph buffer resource '\" + resource.name + \"' missing size metadata\");": 1,
     "throw std::logic_error(\"FrameGraph resource '\" + resource.name + \"' missing dimension metadata\");": 1,
@@ -261,6 +314,7 @@
   "engine/runtime/src/api.cpp": {
     "static void throw_if_invalid_dependencies(const RuntimeHostDependencies& deps)": 1,
     "throw std::runtime_error(\"RuntimeHost cannot be configured while initialized\");": 1,
+    "throw std::runtime_error(\"RuntimeHost dispatcher_factory produced a null dispatcher\");": 1,
     "throw std::runtime_error(\"RuntimeHost has no implementation\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before accessing body positions\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before accessing dispatch reports\");": 1,
@@ -277,7 +331,8 @@
   "engine/runtime/src/subsystem_registry.cpp": {
     "throw std::invalid_argument{\"Subsystem factory must not be null\"};": 1,
     "throw std::invalid_argument{\"Subsystem name must not be empty\"};": 1,
-    "throw std::invalid_argument{format_cycle_message(*cycle)};": 2
+    "throw std::invalid_argument{format_cycle_message(*cycle)};": 2,
+    "throw std::logic_error{\"Subsystem dependency cycle detected while computing load order\"};": 1
   },
   "engine/runtime/tests/test_module.cpp": {
     "FAIL() << \"Expected cycle detection to throw\";": 1,
