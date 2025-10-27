@@ -170,15 +170,6 @@ TEST(PlatformWindowing, AutoBackendFallsBackWhenOverrideFails) {
     EXPECT_TRUE(backend_name == "glfw" || backend_name == "mock");
 }
 
-TEST(PlatformWindowing, AutoBackendTrimsOverrideValue) {
-    using namespace engine::platform;
-
-    ScopedEnvironmentVariable env{"ENGINE_PLATFORM_WINDOW_BACKEND", "  SDL  "};
-    auto window = create_window(WindowConfig{}, WindowBackend::Auto);
-    ASSERT_TRUE(window != nullptr);
-    EXPECT_EQ(window->backend_name(), "sdl");
-}
-
 TEST(PlatformWindowing, AutoBackendIgnoresWhitespaceOnlyOverride) {
     using namespace engine::platform;
 
@@ -187,8 +178,6 @@ TEST(PlatformWindowing, AutoBackendIgnoresWhitespaceOnlyOverride) {
     ASSERT_TRUE(window != nullptr);
 #if ENGINE_PLATFORM_HAS_GLFW
     EXPECT_EQ(window->backend_name(), "glfw");
-#else
-    EXPECT_EQ(window->backend_name(), "sdl");
 #endif
 }
 

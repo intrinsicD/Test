@@ -22,9 +22,6 @@ std::optional<WindowBackend> parse_backend(std::string_view argument) {
     if (argument == "glfw") {
         return WindowBackend::GLFW;
     }
-    if (argument == "sdl") {
-        return WindowBackend::SDL;
-    }
     return std::nullopt;
 }
 
@@ -32,7 +29,7 @@ std::string build_usage_preamble(const char* executable) {
     std::ostringstream usage;
     usage << "Window test application\n"
           << "Usage: " << executable
-          << " [--backend=<auto|mock|glfw|sdl>] [--title=<text>]"
+          << " [--backend=<auto|mock|glfw>] [--title=<text>]"
           << " [--width=<pixels>] [--height=<pixels>] [--hidden]";
     return usage.str();
 }

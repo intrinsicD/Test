@@ -22,8 +22,6 @@ enum class WindowBackend {
     Auto,
     /// Stub entry for a GLFW-driven implementation.
     GLFW,
-    /// Stub entry for a SDL-driven implementation.
-    SDL,
     /// Headless mock implementation used for tests and server environments.
     Mock,
 };
@@ -271,7 +269,7 @@ public:
 /// the associated event queue. When \p backend is WindowBackend::Auto the
 /// implementation selects the most suitable backend for the current build.
 /// Set the environment variable `ENGINE_PLATFORM_WINDOW_BACKEND` to override
-/// the automatic selection (accepted values: `auto`, `mock`, `glfw`, `sdl`).
+/// the automatic selection (accepted values: `auto`, `mock`, `glfw`).
 [[nodiscard]] ENGINE_PLATFORM_API std::shared_ptr<Window> create_window(
     WindowConfig config,
     WindowBackend backend = WindowBackend::Auto,

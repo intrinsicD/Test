@@ -624,7 +624,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                     glfw_window.cpp
                     glfw_window_stub.cpp
                     mock_window.cpp
-                    sdl_window.cpp
                     window_base.cpp
                     window_base.hpp
                     window_console.cpp

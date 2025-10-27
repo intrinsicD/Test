@@ -21,9 +21,6 @@ namespace engine::platform
 #define ENGINE_PLATFORM_HAS_GLFW 0
 #endif
 
-#ifndef ENGINE_PLATFORM_HAS_SDL
-#define ENGINE_PLATFORM_HAS_SDL 1
-#endif
 
     namespace windowing
     {
@@ -32,10 +29,6 @@ namespace engine::platform
 #if ENGINE_PLATFORM_HAS_GLFW
         std::shared_ptr<Window> create_glfw_window(WindowConfig config,
                                                    std::shared_ptr<EventQueue> queue);
-#endif
-#if ENGINE_PLATFORM_HAS_SDL
-        std::shared_ptr<Window> create_sdl_window(WindowConfig config,
-                                                  std::shared_ptr<EventQueue> queue);
 #endif
     } // namespace windowing
 
@@ -52,9 +45,6 @@ namespace engine::platform
 #else
             0
 #endif
-#if ENGINE_PLATFORM_HAS_SDL
-            + 1
-#endif
             + 1;
 
         constexpr auto kDefaultBackendOrder = []
@@ -63,9 +53,6 @@ namespace engine::platform
                 {
 #if ENGINE_PLATFORM_HAS_GLFW
                     WindowBackend::GLFW,
-#endif
-#if ENGINE_PLATFORM_HAS_SDL
-                    WindowBackend::SDL,
 #endif
                     WindowBackend::Mock,
                 }
@@ -87,9 +74,6 @@ namespace engine::platform
 #if ENGINE_PLATFORM_HAS_GLFW
             + 1
 #endif
-#if ENGINE_PLATFORM_HAS_SDL
-            + 1
-#endif
         ;
 
         constexpr auto kBackendDescriptors = []
@@ -99,9 +83,6 @@ namespace engine::platform
                     {WindowBackend::Mock, WindowBackendCapabilities{true, false}, windowing::create_mock_window},
 #if ENGINE_PLATFORM_HAS_GLFW
                     {WindowBackend::GLFW, WindowBackendCapabilities{true, true}, windowing::create_glfw_window},
-#endif
-#if ENGINE_PLATFORM_HAS_SDL
-                    {WindowBackend::SDL, WindowBackendCapabilities{true, true}, windowing::create_sdl_window},
 #endif
                 }
             };
@@ -128,8 +109,6 @@ namespace engine::platform
                 return "auto";
             case WindowBackend::GLFW:
                 return "glfw";
-            case WindowBackend::SDL:
-                return "sdl";
             case WindowBackend::Mock:
                 return "mock";
             }
@@ -143,8 +122,6 @@ namespace engine::platform
             {
             case WindowBackend::GLFW:
                 return ENGINE_PLATFORM_HAS_GLFW != 0;
-            case WindowBackend::SDL:
-                return ENGINE_PLATFORM_HAS_SDL != 0;
             case WindowBackend::Mock:
             case WindowBackend::Auto:
                 return true;
@@ -201,10 +178,6 @@ namespace engine::platform
             if (normalised == "glfw")
             {
                 return WindowBackend::GLFW;
-            }
-            if (normalised == "sdl")
-            {
-                return WindowBackend::SDL;
             }
 
             return std::nullopt;

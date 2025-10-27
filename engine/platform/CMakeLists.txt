@@ -8,7 +8,6 @@ set(platform_sources
     src/windowing/window_system.cpp
     src/windowing/window_base.cpp
     src/windowing/mock_window.cpp
-    src/windowing/sdl_window.cpp
     src/input/input_state.cpp
 )
 

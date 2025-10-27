@@ -67,15 +67,6 @@ public:
 
 }  // namespace
 
-TEST(WindowSystem, ExplicitSdlBackendCreatesWindow) {
-    using namespace engine::platform;
-
-    WindowConfig config;
-    auto window = create_window(config, WindowBackend::SDL);
-    ASSERT_NE(window, nullptr);
-    EXPECT_EQ(window->backend_name(), "sdl");
-}
-
 TEST(WindowSystem, CapabilityRequirementsRejectMockBackend) {
     using namespace engine::platform;
 
