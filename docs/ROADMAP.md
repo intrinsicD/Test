@@ -69,6 +69,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   the shared configuration schema during prototyping runs.
 - 2025-12-06: Introduced `rendering::configure_research_baseline` to scaffold the RE-610 preset with forward/deferred toggles
   and overlay targets, unblocking runtime and tools integration work.
+- 2025-12-07: Research baseline telemetry publishes shading mode selections and per-pass draw/timing metrics to the runtime
+  diagnostics bridge, satisfying RE-610 instrumentation requirements.
 
 ---
 

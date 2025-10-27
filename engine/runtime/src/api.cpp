@@ -53,6 +53,7 @@
 #    include "engine/rendering/components.hpp"
 #    include "engine/rendering/frame_graph.hpp"
 #    include "engine/rendering/forward_pipeline.hpp"
+#    include "engine/rendering/pipeline/research_baseline_telemetry.hpp"
 #    include "engine/rendering/material_system.hpp"
 #endif
 #if ENGINE_ENABLE_SCENE
@@ -934,6 +935,81 @@ namespace engine::runtime
                                    operation_metrics.max_results,
                                    op_index);
             }
+
+#if ENGINE_ENABLE_RENDERING
+            const auto shading_mode_name = [](rendering::ResearchShadingMode mode) noexcept {
+                switch (mode)
+                {
+                case rendering::ResearchShadingMode::Forward:
+                    return std::string_view{"forward"};
+                case rendering::ResearchShadingMode::Deferred:
+                    return std::string_view{"deferred"};
+                }
+                return std::string_view{"forward"};
+            };
+
+            const auto phase_name = [](rendering::PassPhase phase) {
+                std::ostringstream stream;
+                stream << phase;
+                return stream.str();
+            };
+
+            const auto make_pass_labels = [&](const rendering::ResearchBaselinePassTelemetry& telemetry) {
+                std::vector<core::telemetry::Label> labels{};
+                labels.reserve(2);
+
+                core::telemetry::Label pass_label{};
+                pass_label.key = "pass";
+                pass_label.value = telemetry.name;
+                labels.push_back(std::move(pass_label));
+
+                core::telemetry::Label phase_label{};
+                phase_label.key = "phase";
+                phase_label.value = phase_name(telemetry.phase);
+                labels.push_back(std::move(phase_label));
+
+                return labels;
+            };
+
+            const auto research_snapshot = rendering::ResearchBaselineTelemetry::instance().snapshot();
+
+            const std::array modes{rendering::ResearchShadingMode::Forward, rendering::ResearchShadingMode::Deferred};
+            for (std::size_t index = 0; index < modes.size(); ++index)
+            {
+                add_counter("rendering.research.shading_mode.selection",
+                            "Research baseline shading mode selections grouped by mode",
+                            clamp_to_int(research_snapshot.mode_selection_counts[index]),
+                            make_single_label("mode", shading_mode_name(modes[index])));
+            }
+
+            add_gauge("rendering.research.shading_mode.active",
+                      "Active research baseline shading mode (0 = forward, 1 = deferred)",
+                      research_snapshot.active_mode == rendering::ResearchShadingMode::Deferred ? 1.0 : 0.0,
+                      core::telemetry::MetricUnit::None);
+
+            for (const auto& pass : research_snapshot.passes)
+            {
+                add_counter("rendering.research.pass.draw_calls_total",
+                            "Total draw calls recorded by research baseline passes",
+                            clamp_to_int(pass.total_draw_calls),
+                            make_pass_labels(pass));
+                add_gauge("rendering.research.pass.last_draw_calls",
+                          "Draw calls submitted during the most recent research baseline pass execution",
+                          static_cast<double>(pass.last_draw_calls),
+                          core::telemetry::MetricUnit::Count,
+                          make_pass_labels(pass));
+                add_gauge("rendering.research.pass.last_gpu_time_ms",
+                          "Most recent GPU execution time for the research baseline pass (milliseconds)",
+                          pass.last_gpu_time_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_pass_labels(pass));
+                add_gauge("rendering.research.pass.max_gpu_time_ms",
+                          "Maximum recorded GPU execution time for the research baseline pass (milliseconds)",
+                          pass.max_gpu_time_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_pass_labels(pass));
+            }
+#endif
 
             const auto make_dimension_labels = [](std::size_t dimension) {
                 std::vector<core::telemetry::Label> labels{};

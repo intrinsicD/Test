@@ -83,7 +83,7 @@ Create a curated frame graph preset that includes deferred and forward shading v
 - [x] Frame graph preset with configurable forward and deferred shading paths.
 - [ ] Shader hot reload supported for baseline pipeline with validation messages.
 - [ ] Debug overlays for normals, UV density, material parameters, and light volumes.
-- [ ] Telemetry counters for draw calls, GPU time per pass, and shading variant selection exported via diagnostics.
+- [x] Telemetry counters for draw calls, GPU time per pass, and shading variant selection exported via diagnostics.
 
 ### Non-Functional Requirements
 - [ ] Performance: Baseline achieves ≥ 120 FPS on RTX 3070 @ 1080p in sample scene.
@@ -99,7 +99,7 @@ Create a curated frame graph preset that includes deferred and forward shading v
 ### Documentation Requirements
 - [ ] Update rendering README with preset usage guide.
 - [ ] Add shader authoring guide referencing dataset assets.
-- [ ] Document telemetry fields in `design/TELEMETRY_SCHEMA.md` appendix.
+- [x] Document telemetry fields in `design/TELEMETRY_SCHEMA.md` appendix.
 - [ ] Publish quickstart tutorial under `docs/design/` for research baseline.
 
 ---

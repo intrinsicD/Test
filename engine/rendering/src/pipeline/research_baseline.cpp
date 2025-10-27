@@ -1,5 +1,6 @@
 #include "engine/rendering/pipeline/research_baseline.hpp"
 
+#include <chrono>
 #include <memory>
 #include <optional>
 #include <string>
@@ -11,6 +12,7 @@
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/rendering/render_pass.hpp"
+#include "engine/rendering/pipeline/research_baseline_telemetry.hpp"
 #include "engine/scene/components/transform.hpp"
 #include "engine/scene/scene.hpp"
 
@@ -70,6 +72,8 @@ namespace engine::rendering
 
             void execute(FrameGraphPassExecutionContext& context) override
             {
+                const auto start_time = std::chrono::steady_clock::now();
+
                 auto& scene = context.render.view.scene;
                 auto& registry = scene.registry();
 
@@ -125,6 +129,11 @@ namespace engine::rendering
                 {
                     encoder.draw_geometry(command);
                 }
+
+                const auto end_time = std::chrono::steady_clock::now();
+                const auto duration = std::chrono::duration<double, std::milli>(end_time - start_time);
+                ResearchBaselineTelemetry::instance().record_pass(
+                    name(), phase(), static_cast<std::uint64_t>(draw_commands_.size()), duration.count());
             }
 
         private:
@@ -173,6 +182,11 @@ namespace engine::rendering
             void execute(FrameGraphPassExecutionContext& context) override
             {
                 (void)context;
+                const auto start_time = std::chrono::steady_clock::now();
+                const auto end_time = std::chrono::steady_clock::now();
+                const auto duration = std::chrono::duration<double, std::milli>(end_time - start_time);
+                ResearchBaselineTelemetry::instance().record_pass(
+                    name(), phase(), 0U, duration.count());
             }
 
         private:
@@ -202,6 +216,11 @@ namespace engine::rendering
             void execute(FrameGraphPassExecutionContext& context) override
             {
                 (void)context;
+                const auto start_time = std::chrono::steady_clock::now();
+                const auto end_time = std::chrono::steady_clock::now();
+                const auto duration = std::chrono::duration<double, std::milli>(end_time - start_time);
+                ResearchBaselineTelemetry::instance().record_pass(
+                    name(), phase(), 0U, duration.count());
             }
 
         private:
@@ -268,6 +287,8 @@ namespace engine::rendering
         const bool deferred = options.shading_mode == ResearchShadingMode::Deferred;
         GeometryOutputs geometry_outputs{};
         geometry_outputs.depth = resources.depth;
+
+        ResearchBaselineTelemetry::instance().set_shading_mode(options.shading_mode);
 
         if (deferred)
         {

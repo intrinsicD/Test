@@ -6,6 +6,7 @@ add_library(${target_name}
     src/backend/opengl/command_stream.cpp
     src/frame_graph.cpp
     src/forward_pipeline.cpp
+    src/pipeline/research_baseline_telemetry.cpp
     src/pipeline/research_baseline.cpp
     src/material_system.cpp
     src/resources/recording_gpu_resource_provider.cpp

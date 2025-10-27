@@ -91,6 +91,23 @@ statistics, streaming health, dispatcher stages, subsystem execution, and
 scene-validation outcomes. Each update rebuilds the snapshot to prevent stale
 entries when stages or subsystems disappear.
 
+When the rendering module is enabled, the snapshot also emits research baseline
+metrics aligned with task `RE-610`:
+
+- `rendering.research.shading_mode.selection` (counter, labels: `mode`) — number
+  of times the preset was configured for each shading variant.
+- `rendering.research.shading_mode.active` (gauge, unit None) — currently active
+  shading mode (0 = forward, 1 = deferred).
+- `rendering.research.pass.draw_calls_total` (counter, labels: `pass`, `phase`) —
+  cumulative draw calls per research pass.
+- `rendering.research.pass.last_draw_calls` (gauge, unit Count, labels: `pass`,
+  `phase`) — draw calls observed during the most recent pass execution.
+- `rendering.research.pass.last_gpu_time_ms` (gauge, unit Milliseconds, labels:
+  `pass`, `phase`) — most recent GPU execution time per pass.
+- `rendering.research.pass.max_gpu_time_ms` (gauge, unit Milliseconds, labels:
+  `pass`, `phase`) — maximum recorded GPU execution time per pass since the
+  telemetry state was reset.
+
 The C API exposes descriptors and samples through the following functions
 (`engine/runtime/api.hpp`):
 

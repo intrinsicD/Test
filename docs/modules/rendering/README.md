@@ -115,6 +115,29 @@ buffer, G-Buffer attachments, and overlay outputs so the runtime harness can
 bind them to presentation or telemetry capture paths. Default dimensions are
 1920×1080, but callers can override them through `ResearchBaselineOptions`.
 
+### Telemetry
+
+`ResearchBaselineTelemetry` records metrics for diagnostics and runtime
+dashboards whenever the preset is configured or executed:
+
+- `rendering.research.shading_mode.selection` (counter) — increments each time
+  the preset is configured for a shading variant. Label `mode` is either
+  `forward` or `deferred`.
+- `rendering.research.shading_mode.active` (gauge) — reports the currently
+  active shading mode as `0` for forward and `1` for deferred pipelines.
+- `rendering.research.pass.draw_calls_total` (counter) — cumulative draw calls
+  submitted by each pass. Labels: `pass` and `phase` (frame-graph phase).
+- `rendering.research.pass.last_draw_calls` (gauge, unit Count) — draw calls
+  submitted during the most recent execution of a pass.
+- `rendering.research.pass.last_gpu_time_ms` (gauge, unit Milliseconds) — most
+  recent execution time per pass measured while encoding GPU work.
+- `rendering.research.pass.max_gpu_time_ms` (gauge, unit Milliseconds) — peak
+  execution time observed for each pass since the telemetry state was reset.
+
+Runtime diagnostics export these metrics through the shared telemetry schema so
+the prototyping harness and benchmarking automation can surface draw-call
+counts, pass timings, and shading-mode usage without additional wiring.
+
 ## Backend Support
 
 ### Vulkan Backend
