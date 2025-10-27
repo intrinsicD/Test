@@ -178,3 +178,5 @@ TEST(PrototypeConfig, ValidSchemaLoads) {
 - Ensure dataset licensing constraints from `AS-330` are represented in schema metadata.
 - 2025-12-09: Rendering/runtime/benchmark/telemetry schema tables published and Python validator extended to parse full
   configuration manifests (`python/engine3g/config_schema.py`).
+- 2025-12-10: Added `scripts/validate_ai004_config.py` CLI + regression tests so CI and local workflows can validate manifests
+  without writing bespoke harness code, unblocking DC-040 validation deliverable work.
