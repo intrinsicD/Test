@@ -21,6 +21,8 @@
   the schema validators for CI pipelines and ad-hoc checks during AI-004 development.
 - `python -m scripts.prototyping.run_prototype_harness --config <path> [--dry-run]` validates and exercises the AI-004
   prototyping harness scaffold. Use `--dry-run` to skip native runtime loading while still confirming configuration integrity.
+- Set the environment variable `ENGINE_AI004_SCHEMA_V1=1` to require schema headers in manifests. When unset, the loaders
+  tolerate legacy manifests by injecting default headers so existing workflows remain functional during the migration window.
 - Manage runtime lifetime ergonomically using the context manager exposed by `engine3g.loader.load_runtime()` or
   `EngineRuntimeHandle`; entering the context calls `initialize()` and exiting always calls `shutdown()` when the runtime was
   activated by the context:

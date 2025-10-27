@@ -8,7 +8,7 @@ import os
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Mapping, MutableSequence, Optional, Sequence, Tuple, Union
+from typing import Dict, Mapping, MutableMapping, MutableSequence, Optional, Sequence, Tuple, Union
 
 try:  # pragma: no cover - optional dependency detection
     import yaml  # type: ignore
@@ -48,6 +48,64 @@ __all__ = [
 
 class ConfigurationSchemaError(RuntimeError):
     """Raised when a configuration manifest fails schema validation."""
+
+
+_SCHEMA_ENV_FLAG = "ENGINE_AI004_SCHEMA_V1"
+_TRUTHY_VALUES = {"1", "true", "on", "yes", "enable", "enabled"}
+
+
+def _is_schema_enforced(override: Optional[bool]) -> bool:
+    """Return whether strict schema enforcement is enabled."""
+
+    if override is not None:
+        return override
+    value = os.environ.get(_SCHEMA_ENV_FLAG)
+    if value is None:
+        return False
+    return value.strip().lower() in _TRUTHY_VALUES
+
+
+def _ensure_schema_header_defaults(target: MutableMapping[str, object], schema_id: str) -> None:
+    """Populate default schema header entries when they are absent."""
+
+    schema_value = target.get("schema")
+    if not isinstance(schema_value, Mapping):
+        target["schema"] = {"id": schema_id, "version": 1}
+        return
+
+    schema_dict: Dict[str, object] = dict(schema_value)
+    schema_dict.setdefault("id", schema_id)
+    schema_dict.setdefault("version", 1)
+    target["schema"] = schema_dict
+
+
+def _apply_dataset_schema_defaults(manifest: MutableMapping[str, object]) -> None:
+    datasets_value = manifest.get("datasets")
+    if not isinstance(datasets_value, Sequence) or isinstance(datasets_value, (str, bytes)):
+        return
+    for entry in datasets_value:
+        if isinstance(entry, MutableMapping):
+            _ensure_schema_header_defaults(entry, "ai-004.dataset")
+
+
+def _apply_configuration_schema_defaults(configuration: MutableMapping[str, object]) -> None:
+    datasets_value = configuration.get("datasets")
+    if isinstance(datasets_value, MutableMapping):
+        _apply_dataset_schema_defaults(datasets_value)
+    elif isinstance(datasets_value, Sequence) and not isinstance(datasets_value, (str, bytes)):
+        for entry in datasets_value:
+            if isinstance(entry, MutableMapping):
+                _ensure_schema_header_defaults(entry, "ai-004.dataset")
+
+    for key, schema_id in (
+        ("rendering", "ai-004.rendering"),
+        ("runtime", "ai-004.runtime"),
+        ("benchmarks", "ai-004.benchmarks"),
+        ("telemetry", "ai-004.telemetry"),
+    ):
+        section = configuration.get(key)
+        if isinstance(section, MutableMapping):
+            _ensure_schema_header_defaults(section, schema_id)
 
 
 def _child(context: str, key: Union[str, int]) -> str:
@@ -943,21 +1001,37 @@ def _load_raw_manifest(path: Path) -> Mapping[str, object]:
     raise ConfigurationSchemaError(f"Unsupported manifest format '{suffix}'")
 
 
-def load_dataset_manifest(path: Union[str, os.PathLike[str]]) -> DatasetManifest:
+def load_dataset_manifest(
+    path: Union[str, os.PathLike[str]],
+    *,
+    require_schema: bool | None = None,
+) -> DatasetManifest:
     """Load and validate a dataset manifest compatible with AI-004 schemas."""
 
     manifest_path = Path(path)
     raw = _load_raw_manifest(manifest_path)
     data = deepcopy(raw)
     mapping = _require_mapping(data, "manifest")
+
+    if not _is_schema_enforced(require_schema) and isinstance(mapping, MutableMapping):
+        _apply_dataset_schema_defaults(mapping)
+
     return DatasetManifest.from_mapping(mapping)
 
 
-def load_configuration(path: Union[str, os.PathLike[str]]) -> Ai004Configuration:
+def load_configuration(
+    path: Union[str, os.PathLike[str]],
+    *,
+    require_schema: bool | None = None,
+) -> Ai004Configuration:
     """Load a complete AI-004 configuration manifest covering all schema sections."""
 
     manifest_path = Path(path)
     raw = _load_raw_manifest(manifest_path)
     data = deepcopy(raw)
     mapping = _require_mapping(data, "configuration")
+
+    if not _is_schema_enforced(require_schema) and isinstance(mapping, MutableMapping):
+        _apply_configuration_schema_defaults(mapping)
+
     return Ai004Configuration.from_mapping(mapping)

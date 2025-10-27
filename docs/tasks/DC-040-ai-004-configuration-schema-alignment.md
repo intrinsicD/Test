@@ -180,3 +180,5 @@ TEST(PrototypeConfig, ValidSchemaLoads) {
   configuration manifests (`python/engine3g/config_schema.py`).
 - 2025-12-10: Added `scripts/validate_ai004_config.py` CLI + regression tests so CI and local workflows can validate manifests
   without writing bespoke harness code, unblocking DC-040 validation deliverable work.
+- 2025-12-12: `ENGINE_AI004_SCHEMA_V1` gate added to harness loaders so teams can opt-in to strict schema validation while
+  legacy manifests remain operational during migration.

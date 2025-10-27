@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, List
 
 import pytest
+
+_TESTS_DIR = Path(__file__).resolve().parent
+_PYTHON_ROOT = _TESTS_DIR.parent
+_PROJECT_ROOT = _PYTHON_ROOT.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+if str(_PYTHON_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PYTHON_ROOT))
 
 from engine3g.config_schema import load_configuration
 from engine3g.prototype_harness import (
