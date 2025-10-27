@@ -631,7 +631,7 @@ namespace engine::rendering::backend::opengl
     }
 
     bool OpenGLGpuResourceProvider::buffer_descriptor_matches(const BufferRecord& record,
-                                                               const FrameGraphResourceInfo& info) const noexcept
+                                                              const FrameGraphResourceInfo& info) const noexcept
     {
         return record.usage == info.usage && record.size_bytes == info.size_bytes;
     }

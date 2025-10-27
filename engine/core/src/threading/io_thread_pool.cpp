@@ -113,6 +113,7 @@ namespace engine::core::threading
                         });
 
                         if (stopping_&& queues_[0]
+                        
                         .
                         empty() && queues_[1].empty() && queues_[2].empty()
                         )

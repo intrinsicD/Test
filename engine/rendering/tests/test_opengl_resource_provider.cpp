@@ -9,8 +9,8 @@
 namespace
 {
     engine::rendering::FrameGraphResourceInfo make_buffer_resource(std::string_view name,
-                                                                    std::uint64_t size_bytes,
-                                                                    engine::rendering::ResourceUsage usage)
+                                                                   std::uint64_t size_bytes,
+                                                                   engine::rendering::ResourceUsage usage)
     {
         engine::rendering::FrameGraphResourceInfo info{};
         info.name = name;
@@ -76,7 +76,7 @@ TEST(OpenGLResourceProvider, AllocatesBufferOnAcquire)
 
     const auto info = make_buffer_resource("Compute", 4096,
                                            engine::rendering::ResourceUsage::ShaderRead
-                                               | engine::rendering::ResourceUsage::ShaderWrite);
+                                           | engine::rendering::ResourceUsage::ShaderWrite);
 
     provider.on_transient_acquire(handle, info);
 
