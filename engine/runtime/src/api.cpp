@@ -987,6 +987,26 @@ namespace engine::runtime
                       research_snapshot.active_mode == rendering::ResearchShadingMode::Deferred ? 1.0 : 0.0,
                       core::telemetry::MetricUnit::None);
 
+            const std::array overlay_names{
+                std::string_view{"normals"},
+                std::string_view{"uv"},
+                std::string_view{"material"},
+                std::string_view{"light_volume"},
+            };
+
+            for (std::size_t index = 0; index < overlay_names.size(); ++index)
+            {
+                add_counter("rendering.research.overlay.selection",
+                            "Research baseline overlay enable selections grouped by overlay",
+                            clamp_to_int(research_snapshot.overlay_selection_counts[index]),
+                            make_single_label("overlay", overlay_names[index]));
+                add_gauge("rendering.research.overlay.enabled",
+                          "Active state for research baseline overlays (1 = enabled)",
+                          research_snapshot.overlays_enabled[index] ? 1.0 : 0.0,
+                          core::telemetry::MetricUnit::None,
+                          make_single_label("overlay", overlay_names[index]));
+            }
+
             for (const auto& pass : research_snapshot.passes)
             {
                 add_counter("rendering.research.pass.draw_calls_total",

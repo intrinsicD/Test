@@ -1634,6 +1634,10 @@ TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
     auto& telemetry = engine::rendering::ResearchBaselineTelemetry::instance();
     telemetry.reset_for_testing();
     telemetry.set_shading_mode(engine::rendering::ResearchShadingMode::Deferred);
+    engine::rendering::ResearchBaselineOptions overlay_options{};
+    overlay_options.enable_normals_overlay = true;
+    overlay_options.enable_material_overlay = true;
+    telemetry.set_overlays(overlay_options);
     telemetry.record_pass("Research.GBuffer", engine::rendering::PassPhase::Geometry, 3U, 0.5);
     telemetry.record_pass("Research.LightingComposite", engine::rendering::PassPhase::Lighting, 0U, 0.25);
 
@@ -1653,6 +1657,24 @@ TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
         find_metric_index(metrics, "rendering.research.pass.draw_calls_total", pass_label);
     ASSERT_TRUE(draw_metric.has_value());
     EXPECT_EQ(engine::core::telemetry::as_int(metrics.samples[*draw_metric].value), 3);
+
+    const auto normals_overlay_label =
+        std::make_pair(std::string_view{"overlay"}, std::string_view{"normals"});
+    const auto normals_enabled_metric =
+        find_metric_index(metrics, "rendering.research.overlay.enabled", normals_overlay_label);
+    ASSERT_TRUE(normals_enabled_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*normals_enabled_metric].value), 1.0);
+
+    const auto normals_selection_metric =
+        find_metric_index(metrics, "rendering.research.overlay.selection", normals_overlay_label);
+    ASSERT_TRUE(normals_selection_metric.has_value());
+    EXPECT_EQ(engine::core::telemetry::as_int(metrics.samples[*normals_selection_metric].value), 1);
+
+    const auto uv_overlay_label = std::make_pair(std::string_view{"overlay"}, std::string_view{"uv"});
+    const auto uv_enabled_metric =
+        find_metric_index(metrics, "rendering.research.overlay.enabled", uv_overlay_label);
+    ASSERT_TRUE(uv_enabled_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*uv_enabled_metric].value), 0.0);
 
     host.shutdown();
 }

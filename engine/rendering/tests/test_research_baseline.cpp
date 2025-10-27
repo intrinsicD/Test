@@ -134,6 +134,8 @@ namespace engine::rendering::tests
         FrameGraph graph;
         ResearchBaselineOptions options{};
         options.shading_mode = ResearchShadingMode::Deferred;
+        options.enable_normals_overlay = true;
+        options.enable_material_overlay = true;
 
         configure_research_baseline(graph, options);
         compile(graph);
@@ -162,6 +164,19 @@ namespace engine::rendering::tests
         const auto snapshot = ResearchBaselineTelemetry::instance().snapshot();
         EXPECT_EQ(snapshot.active_mode, ResearchShadingMode::Deferred);
         EXPECT_GE(snapshot.mode_selection_counts[1], 1U);
+
+        const auto overlay_index = [](ResearchOverlay overlay) {
+            return static_cast<std::size_t>(overlay);
+        };
+
+        EXPECT_TRUE(snapshot.overlays_enabled[overlay_index(ResearchOverlay::Normals)]);
+        EXPECT_FALSE(snapshot.overlays_enabled[overlay_index(ResearchOverlay::Uv)]);
+        EXPECT_TRUE(snapshot.overlays_enabled[overlay_index(ResearchOverlay::Material)]);
+        EXPECT_FALSE(snapshot.overlays_enabled[overlay_index(ResearchOverlay::LightVolume)]);
+
+        EXPECT_GE(snapshot.overlay_selection_counts[overlay_index(ResearchOverlay::Normals)], 1U);
+        EXPECT_EQ(snapshot.overlay_selection_counts[overlay_index(ResearchOverlay::Uv)], 0U);
+        EXPECT_GE(snapshot.overlay_selection_counts[overlay_index(ResearchOverlay::Material)], 1U);
 
         const auto find_pass = [&](std::string_view name) {
             return std::find_if(snapshot.passes.begin(), snapshot.passes.end(),

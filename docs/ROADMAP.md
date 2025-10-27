@@ -71,6 +71,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   and overlay targets, unblocking runtime and tools integration work.
 - 2025-12-07: Research baseline telemetry publishes shading mode selections and per-pass draw/timing metrics to the runtime
   diagnostics bridge, satisfying RE-610 instrumentation requirements.
+- 2025-12-08: Overlay enablement telemetry reports normals/UV/material/light-volume usage to runtime diagnostics to unblock
+  tooling overlays and benchmark selectors.
 
 ---
 

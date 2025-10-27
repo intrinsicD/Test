@@ -181,3 +181,5 @@ TEST(RenderingResearchBaseline, CreatesDeferredPreset) {
 - Provide fallback lighting configuration for laptops with limited GPU capacity.
 - 2025-12-06: `rendering::configure_research_baseline` seeds the preset with forward/deferred geometry stages and overlay targets;
   follow-up work will layer material/lighting shaders, telemetry, and documentation deliverables.
+- 2025-12-08: Overlay enablement telemetry now tracks normals/UV/material/light-volume toggles and surfaces gauges/counters
+  through the runtime diagnostics bridge for AI-004 tooling integration.
