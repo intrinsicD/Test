@@ -5,6 +5,7 @@ add_library(${target_name}
         src/backend/validation.cpp
         src/backend/opengl/command_encoder.cpp
         src/backend/opengl/command_stream.cpp
+        src/backend/opengl/immediate_command_stream.cpp
         src/backend/opengl/resource_provider.cpp
         src/backend/opengl/render_resource_provider.cpp
         src/frame_graph.cpp

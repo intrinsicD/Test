@@ -239,6 +239,15 @@ for (const auto& barrier : submission.begin_barriers)
 - When no custom stream is supplied the default implementation issues `glMemoryBarrier` calls (when GLAD is available) for the
   aggregated masks and flushes the queue, allowing headless test harnesses to observe deterministic ordering without requiring
   a live OpenGL context.
+- The module now ships `rendering::backend::opengl::OpenGLImmediateCommandStream`, a concrete command stream that resolves
+  mesh handles through `OpenGLRenderResourceProvider` and issues `glDraw*` calls when GLAD is present.  The stream also counts
+  attempted draw calls so tests can validate behaviour without a real OpenGL context:
+
+  ```cpp
+  rendering::backend::opengl::OpenGLRenderResourceProvider render_resources(mesh_resolver);
+  rendering::backend::opengl::OpenGLImmediateCommandStream stream(render_resources);
+  rendering::backend::opengl::OpenGLGpuScheduler scheduler(provider, &stream);
+  ```
 
 ## Resource Management
 
