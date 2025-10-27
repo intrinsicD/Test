@@ -178,3 +178,4 @@ Implement missing critical tests:
 - 2025-12-02: Added plane intersection symmetry tests for cylinder, ellipsoid, OBB, sphere, and triangle pairings to lock boolean parity across overload orders and extend coverage to planform classifiers used by rendering and physics culling paths.
 - 2025-12-03: Upgraded frustum–OBB intersection to use oriented extent projections and added dedicated tests (inside/outside/intersecting + symmetric parity) to remove the bounding-sphere approximation and tighten rendering culling results.
 - 2025-12-08: Added boolean symmetry regression tests for ellipsoid–OBB, ellipsoid–sphere, ellipsoid–triangle, OBB–sphere, OBB–triangle, and sphere–triangle overload pairs to keep bidirectional intersection calls aligned.
+- 2025-12-09: Added rotated ellipsoid regression tests for plane, triangle, and cylinder intersections plus ellipsoid–OBB containment to ensure orientation-sensitive cases remain covered during future refactors.
