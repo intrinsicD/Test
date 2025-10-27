@@ -21,9 +21,9 @@ set(ENGINE_MODULES
 
 option(ENGINE_ENABLE_CUDA "Enable CUDA support for compute module targets" OFF)
 
-set(_engine_window_backend_options GLFW SDL MOCK)
+set(_engine_window_backend_options GLFW MOCK)
 set(ENGINE_WINDOW_BACKEND "GLFW" CACHE STRING
-    "Default window backend (GLFW, SDL, MOCK)")
+    "Default window backend (GLFW, MOCK)")
 set_property(CACHE ENGINE_WINDOW_BACKEND PROPERTY STRINGS ${_engine_window_backend_options})
 string(TOUPPER "${ENGINE_WINDOW_BACKEND}" _engine_window_backend_normalised)
 list(FIND _engine_window_backend_options "${_engine_window_backend_normalised}" _engine_window_backend_index)
@@ -34,7 +34,7 @@ if(_engine_window_backend_index EQUAL -1)
         "Received '${ENGINE_WINDOW_BACKEND}'.")
 endif()
 set(ENGINE_WINDOW_BACKEND "${_engine_window_backend_normalised}" CACHE STRING
-    "Default window backend (GLFW, SDL, MOCK)" FORCE)
+    "Default window backend (GLFW, MOCK)" FORCE)
 unset(_engine_window_backend_index)
 unset(_engine_window_backend_normalised)
 unset(_engine_window_backend_valid)

@@ -79,7 +79,7 @@ if(DEFINED ENGINE_ENABLE_GLFW AND ENGINE_ENABLE_GLFW)
         set(ENGINE_GLFW_AVAILABLE OFF CACHE BOOL "Is GLFW available" FORCE)
     endif()
 else()
-    message(STATUS "GLFW support disabled; platform module will rely on mock/SDL backends only.")
+    message(STATUS "GLFW support disabled; platform module will rely on mock backend only.")
 endif()
 
 # spdlog (submodule first, fallback to FetchContent)

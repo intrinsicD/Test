@@ -21,7 +21,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 | IO | ✅ Stable | Geometry/animation import-export wrappers, plugin-ready handlers, cache policy scaffolding, and curated fuzz corpus with regression coverage. | Coordinate CI enablement for the libFuzzer harness and extend `IO-240` telemetry instrumentation. |
 | Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, transform utilities, and analytic solvers for linear systems and low-degree polynomials. | Conversion telemetry instrumentation captures drift metrics (`MA-130`) alongside the external-format cheatsheet; solver telemetry follow-up remains planned. |
 | Physics | ✅ Stable | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase plus collision telemetry. | Scope automation for long-term collision telemetry trends (post-`PH-430`). |
-| Platform | ✅ Stable | Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. | Validate GLFW headless automation, refresh documentation, and keep SDL parity tasks deferred in the backlog. |
+| Platform | ✅ Stable | Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. | Validate GLFW headless automation and refresh documentation. |
 | Rendering | ✅ Stable | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, Vulkan scheduler prototype, OpenGL queue-normalised scheduler with translated barrier masks and command-stream dispatch, and backend validation metrics covering all providers. | `RE-610`: deliver research rendering baseline with deferred/forward presets, debug overlays, and telemetry integration (AI-004). |
 | Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, asynchronous asset requests, and submission into the rendering pipeline. | `RT-320`: stand up prototyping harness with configuration schema, scripting hooks, and headless benchmarking (AI-004). |
 | Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | Keep the `SC-225` hierarchy diagnostics samples and dashboards aligned with the `runtime.scene_validation.alert_level` policy introduced by `SC-230`. |
@@ -43,7 +43,7 @@ respecting capability requirements declared in `WindowConfig`.
 
 **Build-time default**
 
-- Provide `-DENGINE_WINDOW_BACKEND=<GLFW|SDL|MOCK|AUTO>` during configuration.
+- Provide `-DENGINE_WINDOW_BACKEND=<GLFW|MOCK|AUTO>` during configuration.
 - The cache value is normalised and embedded as `ENGINE_PLATFORM_DEFAULT_BACKEND`;
   `AUTO` disables the build-time preference.
 - Presets under `scripts/build/presets/` pin sensible defaults (desktop = GLFW,
@@ -51,7 +51,7 @@ respecting capability requirements declared in `WindowConfig`.
 
 **Runtime override**
 
-- `ENGINE_PLATFORM_WINDOW_BACKEND` accepts `auto`, `glfw`, `sdl`, or `mock`
+- `ENGINE_PLATFORM_WINDOW_BACKEND` accepts `auto`, `glfw`, or `mock`
   (case-insensitive). Invalid values degrade to `mock` to keep automation
   deterministic.
 - When the override targets a concrete backend, the selector still appends the
@@ -63,11 +63,10 @@ respecting capability requirements declared in `WindowConfig`.
 | Backend | Headless Safe | Native Surface |
 | --- | --- | --- |
 | GLFW | ✅ | ✅ |
-| SDL | ✅ | ✅ |
 | Mock | ✅ | ❌ |
 
-GLFW now honours the headless capability requirement by creating hidden windows automatically when a configuration requests a
-headless-safe backend. This keeps CI automation deterministic without requiring SDL while the SDL tasks remain in the backlog.
+GLFW honours the headless capability requirement by creating hidden windows automatically when a configuration requests a
+headless-safe backend, keeping CI automation deterministic.
 
 `WindowConfig::CapabilityRequirements` filters out ineligible backends before a
 selection is attempted. Direct requests for an incompatible backend return
@@ -79,7 +78,7 @@ backend selection reference.
 
 1. Runtime override (`ENGINE_PLATFORM_WINDOW_BACKEND`), then mock if required.
 2. Build-time default when it maps to an available backend.
-3. Remaining compiled backends in deterministic order (GLFW → SDL → Mock),
+3. Remaining compiled backends in deterministic order (GLFW → Mock),
    guarded by `ENGINE_PLATFORM_HAS_*` macros.
 
 Toggle GLFW fetching/building using `-DENGINE_ENABLE_GLFW=<ON|OFF>`. Missing X11
@@ -102,7 +101,6 @@ The architecture improvement plan is the authoritative backlog. The summary belo
 | `DC-004` | Standardise error handling across modules. | Migrate IO to `Result<T>` and publish migration guide. | Core, IO | ✅ Done |
 | `AI-001` | Handle-based lifetime management across assets + rendering. | Debug validation hooks and telemetry wired across caches and rendering entry points. | Assets, Rendering | ✅ Done |
 | `AI-002` | Async asset streaming with telemetry and runtime integration. | IO thread pool, cancellation hardening, and diagnostics integration delivered. | Assets, Runtime | ✅ Done |
-| `DC-003` | SDL backend implementation. | Deferred while GLFW headless automation (`DC-005`) covers CI needs; resume once backlog reprioritises SDL parity. | Platform | ⏸ Deferred |
 | `AI-003` | Frame-graph metadata + queue affinity for backend parity. | Publish metadata schema and align runtime submission invariants. | Rendering, Runtime | ✅ Done |
 | `RT-002` | Persistent physics manifolds with benchmarking. | ✅ Completed – manifold cache, telemetry, and collision benchmark harness captured in CI. | Physics | ✅ Done |
 | `RT-003` | Vulkan backend parity and documentation. | Align runtime submission surfaces and publish backend checklist. | Rendering, Runtime | ✅ Done |

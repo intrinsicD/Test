@@ -38,7 +38,6 @@ target_compile_definitions(${target_name}
         ENGINE_PLATFORM_EXPORTS
     PUBLIC
         ENGINE_PLATFORM_DEFAULT_BACKEND="${ENGINE_WINDOW_BACKEND}"
-        ENGINE_PLATFORM_HAS_SDL=1
         ENGINE_PLATFORM_HAS_GLFW=${_engine_platform_has_glfw}
 )
 
@@ -52,4 +51,3 @@ endif()
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
-

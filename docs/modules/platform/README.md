@@ -2,7 +2,7 @@
 
 ## Overview
 
-The platform module provides cross-platform abstractions for windowing, input handling, filesystem access, and hot-reload infrastructure. It supports multiple window backends (GLFW, SDL, Mock) with runtime selection and includes a filesystem watcher for asset hot-reload workflows (`CC-002`).
+The platform module provides cross-platform abstractions for windowing, input handling, filesystem access, and hot-reload infrastructure. It supports multiple window backends (GLFW, Mock) with runtime selection and includes a filesystem watcher for asset hot-reload workflows (`CC-002`).
 
 ## Window Backends
 
@@ -35,7 +35,6 @@ if (!window) {
 | Backend | Headless Safe | Native Surface | Platforms |
 | --- | --- | --- | --- |
 | **GLFW** | ✅ | ✅ | Windows, Linux, macOS |
-| **SDL** | ✅ | ✅ | Windows, Linux, macOS, mobile |
 | **Mock** | ✅ | ❌ | All (testing) |
 
 When `WindowConfig::CapabilityRequirements::require_headless_safe` is set, the GLFW backend automatically creates a hidden
@@ -61,10 +60,10 @@ Invalid values gracefully degrade to Mock backend to keep automation determinist
 Set the default backend during CMake configuration:
 
 ```bash
-cmake --preset linux-gcc-debug -DENGINE_WINDOW_BACKEND=SDL
+cmake --preset linux-gcc-debug -DENGINE_WINDOW_BACKEND=GLFW
 ```
 
-Options: `GLFW`, `SDL`, `MOCK`, `AUTO` (no build-time preference)
+Options: `GLFW`, `MOCK`, `AUTO` (no build-time preference)
 
 ### Backend Implementation
 
@@ -235,17 +234,6 @@ platform::set_clipboard_text("Copied text");
 std::string text = platform::get_clipboard_text();
 ```
 
-## SDL Backend Integration (`PL-215`)
-
-The SDL backend provides parity with GLFW plus additional features:
-
-- Headless rendering support
-- Mobile platform support (Android, iOS)
-- Better gamepad compatibility
-- Audio subsystem integration (planned)
-
-See [`SDL_BACKEND_CHECKLIST.md`](SDL_BACKEND_CHECKLIST.md) for implementation progress.
-
 ## Mock Backend (Testing)
 
 The Mock backend enables deterministic testing:
@@ -325,14 +313,12 @@ ctest --preset linux-gcc-debug -R platform
 -   CMake now disables the option automatically when GLFW cannot be configured
     (missing headers or fetch failures) so builds fall back to the mock backend
     instead of failing during configuration.
-- **SDL2** (optional): When SDL backend is compiled
 - **X11 libraries** (Linux): `libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, `libxi-dev`
 - **Core**: Error handling, telemetry
 
 ## Related Documentation
 
-- [`BACKLOG.md`](BACKLOG.md): Module milestones including SDL backend work
-- [`SDL_BACKEND_CHECKLIST.md`](SDL_BACKEND_CHECKLIST.md): SDL implementation progress
+- [`BACKLOG.md`](BACKLOG.md): Module milestones
 - [`../../ROADMAP.md`](../../ROADMAP.md): Platform module status in roadmap
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): Platform role in data flow
 - Used by: Runtime (window management), Assets (filesystem watcher), Rendering (surface creation)
@@ -349,5 +335,4 @@ ctest --preset linux-gcc-debug -R platform
 
 ## TODO / Next Steps
 
-- Scope SDL backend implementation using the parity checklist (`PL-215`) to advance `DC-003`; see ../../ROADMAP.md
 - Extend filesystem watcher docs with OS-specific caveats and integration examples in assets hot-reload; see ../../ROADMAP.md

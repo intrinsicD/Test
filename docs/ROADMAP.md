@@ -103,22 +103,6 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   telemetry-aligned summaries, enabling scripted `GE-221+` workflows without
   embedding the geometry module.
 - 2025-12-04: Remeshing preserves rest-space offsets by interpolating and averaging `SurfaceMesh::rest_positions` and resynchronises Laplacian relaxation so animation bindings remain stable as GE-221+ progresses.
-- **DC-003** — SDL backend parity (deferred now that GLFW satisfies headless automation)
-
-#### `DC-003` — SDL Backend Implementation (⏸ Deferred)
-
-| Task ID | Description | Exit Criteria | Status |
-| --- | --- | --- | --- |
-| `DC-003.1` | Stand up native SDL window lifecycle and deterministic event pumping. | SDL backend creates native windows, translates input/events, and demotes to the mock backend when SDL is unavailable; unit smoke tests green. | ⏸ Deferred |
-| `DC-003.2` | Integrate swapchain surface export and backend selection fallbacks. | Vulkan/OpenGL surfaces exposed through `SwapchainSurface`, build presets updated, runtime override respects fallback order. | ⏸ Deferred |
-| `DC-003.3` | Expand validation, CI, and telemetry coverage. | Platform + runtime integration tests execute with SDL enabled in CI, diagnostics capture SDL errors, README/checklist updated. | ⏸ Deferred |
-
-**Recent Updates:**
-- 2025-10-28: Moved `DC-003` to the backlog after GLFW gained headless automation support; SDL parity tasks remain staged for later execution.
-- 2025-10-27: Task card [`DC-003.3`](tasks/DC-003.3-sdl-ci-telemetry.md) published to enable SDL CI coverage and telemetry instrumentation, closing the remaining roadmap gap.
-- 2025-10-26: Task card [`DC-003.2`](tasks/DC-003.2-sdl-swapchain-surface-export.md) created and prioritised to follow `DC-003.1`, covering SDL swapchain surface export and fallback alignment.
-- 2025-10-25: Task card [`DC-003.1`](tasks/DC-003.1-sdl-window-lifecycle.md) published to deliver native SDL window lifecycle and deterministic event pumping.
-- 2025-10-24: `PL-215` published the SDL parity checklist; implementation work now tracked under `DC-003`.
 
 ### Mid-term (3-6 months)
 
