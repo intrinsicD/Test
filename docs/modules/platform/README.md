@@ -335,4 +335,4 @@ ctest --preset linux-gcc-debug -R platform
 
 ## TODO / Next Steps
 
-- Extend filesystem watcher docs with OS-specific caveats and integration examples in assets hot-reload; see ../../ROADMAP.md
+- `PL-240`: Extend filesystem watcher docs with OS-specific caveats and integration examples in assets hot-reload; see [`../../ROADMAP.md`](../../ROADMAP.md)
