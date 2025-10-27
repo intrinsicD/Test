@@ -91,6 +91,35 @@ namespace engine::geometry
                     1e-6);
     }
 
+    TEST(RemeshTelemetry, SkipsRecordingWhenDiagnosticsDisabled)
+    {
+        auto& telemetry = RemeshTelemetry::instance();
+        telemetry.reset_for_testing();
+
+        SurfaceMesh mesh = make_unit_square_mesh();
+
+        RemeshRequest request{};
+        request.input_mesh = &mesh;
+        request.mode = RemeshingMode::kUniform;
+        request.targets.target_edge_length = 0.5F;
+        request.max_iterations = 4U;
+        request.record_diagnostics = false;
+
+        const RemeshResult<RemeshOutput> result = Remesh(request);
+        ASSERT_TRUE(result.has_value()) << result.error().message();
+
+        const RemeshTelemetrySnapshot snapshot = telemetry.snapshot();
+        const RemeshTelemetryOperationSnapshot& metrics = snapshot.operation(RemeshingMode::kUniform);
+
+        EXPECT_EQ(metrics.invocations, 0U);
+        EXPECT_EQ(metrics.total_iterations, 0U);
+        EXPECT_EQ(metrics.total_splits, 0U);
+        EXPECT_EQ(metrics.total_collapses, 0U);
+        EXPECT_EQ(metrics.surface_deviation_invocations, 0U);
+        EXPECT_EQ(metrics.last_surface_deviation_sample_count, 0U);
+        EXPECT_TRUE(metrics.last_job_label.empty());
+    }
+
     TEST(RemeshTelemetry, ResetClearsMetrics)
     {
         auto& telemetry = RemeshTelemetry::instance();

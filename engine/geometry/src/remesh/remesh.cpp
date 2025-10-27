@@ -2784,15 +2784,18 @@ namespace engine::geometry
                                         .count();
         output.statistics.duration_ms = duration_ms;
 
-        RemeshTelemetry::instance().record_invocation(request.mode,
-                                                      iterations,
-                                                      counters.split_count,
-                                                      counters.collapse_count,
-                                                      static_cast<std::uint64_t>(output.mesh.positions.size()),
-                                                      duration_ms,
-                                                      output.statistics,
-                                                      surface_deviation_sample_count,
-                                                      request.job_label);
+        if (request.record_diagnostics)
+        {
+            RemeshTelemetry::instance().record_invocation(request.mode,
+                                                          iterations,
+                                                          counters.split_count,
+                                                          counters.collapse_count,
+                                                          static_cast<std::uint64_t>(output.mesh.positions.size()),
+                                                          duration_ms,
+                                                          output.statistics,
+                                                          surface_deviation_sample_count,
+                                                          request.job_label);
+        }
 
         return RemeshResult<RemeshOutput>{output};
     }

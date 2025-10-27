@@ -211,6 +211,10 @@ if (remesh_result.has_value())
 }
 ```
 
+Set `request.record_diagnostics = false;` when running ad-hoc experiments or
+benchmarks where you do not want to update module-level telemetry; the CLI’s
+`--no-diagnostics` flag forwards to the same toggle.
+
 After executing one or more jobs you can query module-level telemetry to feed
 diagnostics overlays or CI dashboards:
 
@@ -344,7 +348,8 @@ Key options:
 - `--parameterization <none|reuse|lscm|abfpp>` enables atlas generation or reuse
   with the same validation rules enforced by `ValidateRemeshRequest`.
 - `--job-label` records a label in telemetry snapshots and `--no-diagnostics`
-  disables telemetry when running offline experiments.
+  disables telemetry when running offline experiments so `RemeshTelemetry`
+  counters remain untouched (mirrors `RemeshRequest::record_diagnostics`).
 - `--verbose` prints the resolved targets, budgets, and per-chart UV metadata.
 
 When no output path is provided the CLI writes
