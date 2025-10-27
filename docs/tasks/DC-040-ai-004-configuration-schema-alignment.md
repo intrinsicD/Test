@@ -81,7 +81,7 @@ Stand up a cross-cutting task to author, review, and ratify the shared configura
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] Publish schema draft covering datasets, rendering presets, runtime execution, sandbox layout bindings, and benchmark automation.
+- [x] Publish schema draft covering datasets, rendering presets, runtime execution, sandbox layout bindings, and benchmark automation.
 - [ ] Hold cross-module review meeting with sign-off recorded in ADR review history.
 - [ ] Integrate schema validation checks into prototyping harness startup (behind feature flag).
 - [ ] Document migration steps for legacy manifests in module READMEs.
@@ -176,3 +176,5 @@ TEST(PrototypeConfig, ValidSchemaLoads) {
 ## Notes
 - Schedule schema review alongside AI-004 integration demos.
 - Ensure dataset licensing constraints from `AS-330` are represented in schema metadata.
+- 2025-12-09: Rendering/runtime/benchmark/telemetry schema tables published and Python validator extended to parse full
+  configuration manifests (`python/engine3g/config_schema.py`).

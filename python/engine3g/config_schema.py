@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Mapping, MutableSequence, Optional, Sequence, Tuple, Union
-
 import json
 import math
 import os
 from copy import deepcopy
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Mapping, MutableSequence, Optional, Sequence, Tuple, Union
 
 try:  # pragma: no cover - optional dependency detection
     import yaml  # type: ignore
@@ -27,7 +26,23 @@ __all__ = [
     "ParameterizationChart",
     "ParameterizationSummary",
     "DatasetStatistics",
+    "RenderingConfig",
+    "RuntimeConfig",
+    "RuntimeCameraConfig",
+    "RuntimeSimulationConfig",
+    "RuntimeHotReloadConfig",
+    "BenchmarkConfig",
+    "BenchmarkScenarioConfig",
+    "BenchmarkCommandConfig",
+    "BenchmarkMetricConfig",
+    "BenchmarkThreshold",
+    "TelemetryConfig",
+    "TelemetryOutputConfig",
+    "TelemetryMetricConfig",
+    "TelemetrySamplingConfig",
+    "Ai004Configuration",
     "load_dataset_manifest",
+    "load_configuration",
 ]
 
 
@@ -88,6 +103,13 @@ def _require_int(value: object, context: str) -> int:
     return value
 
 
+def _require_positive_int(value: object, context: str) -> int:
+    integer = _require_int(value, context)
+    if integer <= 0:
+        raise ConfigurationSchemaError(f"{context} must be greater than zero")
+    return integer
+
+
 def _require_float(value: object, context: str) -> float:
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         result = float(value)
@@ -96,11 +118,39 @@ def _require_float(value: object, context: str) -> float:
     raise ConfigurationSchemaError(f"{context} must be a finite number")
 
 
+def _require_positive_float(value: object, context: str) -> float:
+    number = _require_float(value, context)
+    if number <= 0.0:
+        raise ConfigurationSchemaError(f"{context} must be greater than zero")
+    return number
+
+
+def _require_non_negative_float(value: object, context: str) -> float:
+    number = _require_float(value, context)
+    if number < 0.0:
+        raise ConfigurationSchemaError(f"{context} must be non-negative")
+    return number
+
+
 def _require_vec2(value: object, context: str) -> Tuple[float, float]:
     sequence = _require_sequence(value, context)
     if len(sequence) != 2:
         raise ConfigurationSchemaError(f"{context} must contain exactly two elements")
-    return (_require_float(sequence[0], _child(context, 0)), _require_float(sequence[1], _child(context, 1)))
+    return (
+        _require_float(sequence[0], _child(context, 0)),
+        _require_float(sequence[1], _child(context, 1)),
+    )
+
+
+def _require_vec3(value: object, context: str) -> Tuple[float, float, float]:
+    sequence = _require_sequence(value, context)
+    if len(sequence) != 3:
+        raise ConfigurationSchemaError(f"{context} must contain exactly three elements")
+    return (
+        _require_float(sequence[0], _child(context, 0)),
+        _require_float(sequence[1], _child(context, 1)),
+        _require_float(sequence[2], _child(context, 2)),
+    )
 
 
 @dataclass(frozen=True)
@@ -411,6 +461,470 @@ class DatasetManifest:
         return cls(datasets=tuple(datasets))
 
 
+def _parse_schema_header(data: Mapping[str, object], context: str, expected_id: str) -> int:
+    schema = _require_mapping(data.get("schema"), _child(context, "schema"))
+    schema_id = _require_string(schema.get("id"), _child(context, "schema.id"))
+    if schema_id != expected_id:
+        raise ConfigurationSchemaError(
+            f"{_child(context, 'schema.id')} must be '{expected_id}'; received '{schema_id}'"
+        )
+    version = _require_int(schema.get("version"), _child(context, "schema.version"))
+    if version < 1:
+        raise ConfigurationSchemaError(f"{_child(context, 'schema.version')} must be >= 1")
+    return version
+
+
+@dataclass(frozen=True)
+class RenderingConfig:
+    schema_version: int
+    preset: str
+    shading_mode: str
+    width: int
+    height: int
+    overlay_normals: bool
+    overlay_uv: bool
+    overlay_material: bool
+    overlay_light_volume: bool
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "RenderingConfig":
+        version = _parse_schema_header(data, context, "ai-004.rendering")
+        preset = _require_string(data.get("preset"), _child(context, "preset"))
+        options = data.get("options")
+        shading_mode = "deferred"
+        width = 1920
+        height = 1080
+        overlay_normals = False
+        overlay_uv = False
+        overlay_material = False
+        overlay_light_volume = False
+
+        if options is not None:
+            options_map = _require_mapping(options, _child(context, "options"))
+            if "shading_mode" in options_map:
+                shading_value = _require_string(options_map.get("shading_mode"), _child(context, "options.shading_mode"))
+                shading_lower = shading_value.lower()
+                if shading_lower not in {"forward", "deferred"}:
+                    raise ConfigurationSchemaError(
+                        f"{_child(context, 'options.shading_mode')} must be 'forward' or 'deferred'; received '{shading_value}'"
+                    )
+                shading_mode = shading_lower
+            if "resolution" in options_map:
+                resolution = _require_mapping(options_map.get("resolution"), _child(context, "options.resolution"))
+                width = _require_positive_int(resolution.get("width"), _child(context, "options.resolution.width"))
+                height = _require_positive_int(resolution.get("height"), _child(context, "options.resolution.height"))
+            if "overlays" in options_map:
+                overlays = _require_mapping(options_map.get("overlays"), _child(context, "options.overlays"))
+                if "normals" in overlays:
+                    overlay_normals = _require_bool(overlays.get("normals"), _child(context, "options.overlays.normals"))
+                if "uv" in overlays:
+                    overlay_uv = _require_bool(overlays.get("uv"), _child(context, "options.overlays.uv"))
+                if "material" in overlays:
+                    overlay_material = _require_bool(overlays.get("material"), _child(context, "options.overlays.material"))
+                if "light_volume" in overlays:
+                    overlay_light_volume = _require_bool(
+                        overlays.get("light_volume"), _child(context, "options.overlays.light_volume")
+                    )
+
+        return cls(
+            schema_version=version,
+            preset=preset,
+            shading_mode=shading_mode,
+            width=width,
+            height=height,
+            overlay_normals=overlay_normals,
+            overlay_uv=overlay_uv,
+            overlay_material=overlay_material,
+            overlay_light_volume=overlay_light_volume,
+        )
+
+
+@dataclass(frozen=True)
+class RuntimeCameraConfig:
+    mode: str
+    position: Optional[Tuple[float, float, float]]
+    target: Optional[Tuple[float, float, float]]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "RuntimeCameraConfig":
+        mode = _require_string(data.get("mode"), _child(context, "mode"))
+        mode_lower = mode.lower()
+        if mode_lower not in {"orbit", "fly", "fixed"}:
+            raise ConfigurationSchemaError(
+                f"{_child(context, 'mode')} must be one of 'orbit', 'fly', or 'fixed'; received '{mode}'"
+            )
+        position = None
+        if "position" in data:
+            position = _require_vec3(data.get("position"), _child(context, "position"))
+        target = None
+        if "target" in data:
+            target = _require_vec3(data.get("target"), _child(context, "target"))
+        return cls(mode=mode_lower, position=position, target=target)
+
+
+@dataclass(frozen=True)
+class RuntimeSimulationConfig:
+    timestep_seconds: float
+    max_substeps: int
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "RuntimeSimulationConfig":
+        return cls(
+            timestep_seconds=_require_positive_float(
+                data.get("timestep_seconds"), _child(context, "timestep_seconds")
+            ),
+            max_substeps=_require_positive_int(data.get("max_substeps"), _child(context, "max_substeps")),
+        )
+
+
+@dataclass(frozen=True)
+class RuntimeHotReloadConfig:
+    enabled: bool
+    watch_interval_seconds: Optional[float]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "RuntimeHotReloadConfig":
+        enabled = _require_bool(data.get("enabled"), _child(context, "enabled"))
+        interval = None
+        if "watch_interval_seconds" in data:
+            interval = _require_positive_float(data.get("watch_interval_seconds"), _child(context, "watch_interval_seconds"))
+        return cls(enabled=enabled, watch_interval_seconds=interval)
+
+
+@dataclass(frozen=True)
+class RuntimeConfig:
+    schema_version: int
+    dataset: Optional[str]
+    scene_manifest: Optional[str]
+    scene_entry_point: Optional[str]
+    camera: Optional[RuntimeCameraConfig]
+    simulation: Optional[RuntimeSimulationConfig]
+    hot_reload: RuntimeHotReloadConfig
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "RuntimeConfig":
+        version = _parse_schema_header(data, context, "ai-004.runtime")
+        dataset = None
+        if "dataset" in data:
+            dataset = _require_slug(data.get("dataset"), _child(context, "dataset"))
+
+        scene_manifest = None
+        scene_entry_point = None
+        if "scene" in data:
+            scene = _require_mapping(data.get("scene"), _child(context, "scene"))
+            scene_manifest = _require_string(scene.get("manifest"), _child(context, "scene.manifest"))
+            if "entry_point" in scene:
+                scene_entry_point = _require_string(scene.get("entry_point"), _child(context, "scene.entry_point"))
+
+        camera = None
+        if "camera" in data:
+            camera = RuntimeCameraConfig.from_mapping(
+                _require_mapping(data.get("camera"), _child(context, "camera")), _child(context, "camera")
+            )
+
+        simulation = None
+        if "simulation" in data:
+            simulation = RuntimeSimulationConfig.from_mapping(
+                _require_mapping(data.get("simulation"), _child(context, "simulation")),
+                _child(context, "simulation"),
+            )
+
+        hot_reload_config = RuntimeHotReloadConfig(enabled=False, watch_interval_seconds=None)
+        if "hot_reload" in data:
+            hot_reload_config = RuntimeHotReloadConfig.from_mapping(
+                _require_mapping(data.get("hot_reload"), _child(context, "hot_reload")),
+                _child(context, "hot_reload"),
+            )
+
+        return cls(
+            schema_version=version,
+            dataset=dataset,
+            scene_manifest=scene_manifest,
+            scene_entry_point=scene_entry_point,
+            camera=camera,
+            simulation=simulation,
+            hot_reload=hot_reload_config,
+        )
+
+
+@dataclass(frozen=True)
+class BenchmarkThreshold:
+    mode: str
+    limit: float
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "BenchmarkThreshold":
+        threshold_type = _require_string(data.get("type"), _child(context, "type"))
+        threshold_lower = threshold_type.lower()
+        if threshold_lower == "relative":
+            limit = _require_non_negative_float(data.get("max_regression"), _child(context, "max_regression"))
+        elif threshold_lower == "absolute":
+            limit = _require_non_negative_float(data.get("max_delta"), _child(context, "max_delta"))
+        else:
+            raise ConfigurationSchemaError(
+                f"{_child(context, 'type')} must be 'relative' or 'absolute'; received '{threshold_type}'"
+            )
+        return cls(mode=threshold_lower, limit=limit)
+
+
+@dataclass(frozen=True)
+class BenchmarkMetricConfig:
+    name: str
+    higher_is_better: bool
+    threshold: BenchmarkThreshold
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "BenchmarkMetricConfig":
+        name = _require_string(data.get("name"), _child(context, "name"))
+        higher = _require_bool(data.get("higher_is_better"), _child(context, "higher_is_better"))
+        threshold = BenchmarkThreshold.from_mapping(
+            _require_mapping(data.get("threshold"), _child(context, "threshold")),
+            _child(context, "threshold"),
+        )
+        return cls(name=name, higher_is_better=higher, threshold=threshold)
+
+
+@dataclass(frozen=True)
+class BenchmarkCommandConfig:
+    command: Optional[Tuple[str, ...]]
+    output: str
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "BenchmarkCommandConfig":
+        output = _require_string(data.get("output"), _child(context, "output"))
+        command_tokens: Optional[Tuple[str, ...]] = None
+        if "command" in data:
+            sequence = _require_sequence(data.get("command"), _child(context, "command"))
+            if not sequence:
+                raise ConfigurationSchemaError(f"{_child(context, 'command')} must not be empty")
+            command_tokens = tuple(str(token) for token in sequence)
+        return cls(command=command_tokens, output=output)
+
+
+@dataclass(frozen=True)
+class BenchmarkScenarioConfig:
+    identifier: str
+    name: str
+    dataset: Optional[str]
+    rendering_preset: Optional[str]
+    runtime_profile: Optional[str]
+    engine: BenchmarkCommandConfig
+    reference: BenchmarkCommandConfig
+    metrics: Tuple[BenchmarkMetricConfig, ...]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "BenchmarkScenarioConfig":
+        name = _require_string(data.get("name"), _child(context, "name"))
+        identifier = _require_slug(data.get("id", name), _child(context, "id"))
+        dataset = None
+        if "dataset" in data:
+            dataset = _require_slug(data.get("dataset"), _child(context, "dataset"))
+
+        rendering_preset = None
+        if "rendering_preset" in data:
+            rendering_preset = _require_string(data.get("rendering_preset"), _child(context, "rendering_preset"))
+
+        runtime_profile = None
+        if "runtime_profile" in data:
+            runtime_profile = _require_string(data.get("runtime_profile"), _child(context, "runtime_profile"))
+
+        engine = BenchmarkCommandConfig.from_mapping(
+            _require_mapping(data.get("engine"), _child(context, "engine")), _child(context, "engine")
+        )
+        reference = BenchmarkCommandConfig.from_mapping(
+            _require_mapping(data.get("reference"), _child(context, "reference")),
+            _child(context, "reference"),
+        )
+
+        metrics_value = _require_sequence(data.get("metrics"), _child(context, "metrics"))
+        if not metrics_value:
+            raise ConfigurationSchemaError(f"{_child(context, 'metrics')} must contain at least one metric")
+        metrics: MutableSequence[BenchmarkMetricConfig] = []
+        for index, entry in enumerate(metrics_value):
+            metric_context = _child(context, f"metrics[{index}]")
+            metrics.append(
+                BenchmarkMetricConfig.from_mapping(_require_mapping(entry, metric_context), metric_context)
+            )
+
+        return cls(
+            identifier=identifier,
+            name=name,
+            dataset=dataset,
+            rendering_preset=rendering_preset,
+            runtime_profile=runtime_profile,
+            engine=engine,
+            reference=reference,
+            metrics=tuple(metrics),
+        )
+
+
+@dataclass(frozen=True)
+class BenchmarkConfig:
+    schema_version: int
+    scenarios: Tuple[BenchmarkScenarioConfig, ...]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "BenchmarkConfig":
+        version = _parse_schema_header(data, context, "ai-004.benchmarks")
+        scenarios_value = _require_sequence(data.get("scenarios"), _child(context, "scenarios"))
+        if not scenarios_value:
+            raise ConfigurationSchemaError(f"{_child(context, 'scenarios')} must contain at least one scenario")
+        scenarios: MutableSequence[BenchmarkScenarioConfig] = []
+        for index, entry in enumerate(scenarios_value):
+            scenario_context = _child(context, f"scenarios[{index}]")
+            scenarios.append(
+                BenchmarkScenarioConfig.from_mapping(_require_mapping(entry, scenario_context), scenario_context)
+            )
+        return cls(schema_version=version, scenarios=tuple(scenarios))
+
+
+@dataclass(frozen=True)
+class TelemetryOutputConfig:
+    kind: str
+    path: Optional[str]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "TelemetryOutputConfig":
+        kind = _require_string(data.get("type"), _child(context, "type"))
+        kind_lower = kind.lower()
+        path = None
+        if kind_lower == "file":
+            path = _require_string(data.get("path"), _child(context, "path"))
+        elif kind_lower == "stdout":
+            if "path" in data:
+                raise ConfigurationSchemaError(f"{_child(context, 'path')} is not valid for stdout outputs")
+        else:
+            raise ConfigurationSchemaError(
+                f"{_child(context, 'type')} must be 'file' or 'stdout'; received '{kind}'"
+            )
+        return cls(kind=kind_lower, path=path)
+
+
+@dataclass(frozen=True)
+class TelemetryMetricConfig:
+    name: str
+    statistic: str
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "TelemetryMetricConfig":
+        name = _require_string(data.get("name"), _child(context, "name"))
+        statistic = _require_string(data.get("statistic"), _child(context, "statistic"))
+        statistic_lower = statistic.lower()
+        if statistic_lower not in {"mean", "median", "min", "max", "p95", "p99"}:
+            raise ConfigurationSchemaError(
+                f"{_child(context, 'statistic')} must be one of mean, median, min, max, p95, or p99; received '{statistic}'"
+            )
+        return cls(name=name, statistic=statistic_lower)
+
+
+@dataclass(frozen=True)
+class TelemetrySamplingConfig:
+    frame_interval: int
+    include_debug_overlays: bool
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "TelemetrySamplingConfig":
+        frame_interval = _require_positive_int(data.get("frame_interval"), _child(context, "frame_interval"))
+        include_debug = False
+        if "include_debug_overlays" in data:
+            include_debug = _require_bool(data.get("include_debug_overlays"), _child(context, "include_debug_overlays"))
+        return cls(frame_interval=frame_interval, include_debug_overlays=include_debug)
+
+
+@dataclass(frozen=True)
+class TelemetryConfig:
+    schema_version: int
+    outputs: Tuple[TelemetryOutputConfig, ...]
+    metrics: Tuple[TelemetryMetricConfig, ...]
+    sampling: Optional[TelemetrySamplingConfig]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "TelemetryConfig":
+        version = _parse_schema_header(data, context, "ai-004.telemetry")
+
+        outputs: Tuple[TelemetryOutputConfig, ...] = tuple()
+        if "outputs" in data:
+            outputs_value = _require_sequence(data.get("outputs"), _child(context, "outputs"))
+            parsed_outputs: MutableSequence[TelemetryOutputConfig] = []
+            for index, entry in enumerate(outputs_value):
+                output_context = _child(context, f"outputs[{index}]")
+                parsed_outputs.append(
+                    TelemetryOutputConfig.from_mapping(_require_mapping(entry, output_context), output_context)
+                )
+            outputs = tuple(parsed_outputs)
+
+        metrics: Tuple[TelemetryMetricConfig, ...] = tuple()
+        if "metrics" in data:
+            metrics_value = _require_sequence(data.get("metrics"), _child(context, "metrics"))
+            parsed_metrics: MutableSequence[TelemetryMetricConfig] = []
+            for index, entry in enumerate(metrics_value):
+                metric_context = _child(context, f"metrics[{index}]")
+                parsed_metrics.append(
+                    TelemetryMetricConfig.from_mapping(_require_mapping(entry, metric_context), metric_context)
+                )
+            metrics = tuple(parsed_metrics)
+
+        sampling = None
+        if "sampling" in data:
+            sampling = TelemetrySamplingConfig.from_mapping(
+                _require_mapping(data.get("sampling"), _child(context, "sampling")),
+                _child(context, "sampling"),
+            )
+
+        return cls(schema_version=version, outputs=outputs, metrics=metrics, sampling=sampling)
+
+
+@dataclass(frozen=True)
+class Ai004Configuration:
+    datasets: DatasetManifest
+    rendering: Optional[RenderingConfig]
+    runtime: Optional[RuntimeConfig]
+    benchmarks: Optional[BenchmarkConfig]
+    telemetry: Optional[TelemetryConfig]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object]) -> "Ai004Configuration":
+        datasets = DatasetManifest(datasets=tuple())
+        if "datasets" in data:
+            datasets = DatasetManifest.from_mapping(data)
+
+        rendering = None
+        if "rendering" in data:
+            rendering = RenderingConfig.from_mapping(
+                _require_mapping(data.get("rendering"), "rendering"),
+                "rendering",
+            )
+
+        runtime = None
+        if "runtime" in data:
+            runtime = RuntimeConfig.from_mapping(
+                _require_mapping(data.get("runtime"), "runtime"),
+                "runtime",
+            )
+
+        benchmarks = None
+        if "benchmarks" in data:
+            benchmarks = BenchmarkConfig.from_mapping(
+                _require_mapping(data.get("benchmarks"), "benchmarks"),
+                "benchmarks",
+            )
+
+        telemetry = None
+        if "telemetry" in data:
+            telemetry = TelemetryConfig.from_mapping(
+                _require_mapping(data.get("telemetry"), "telemetry"),
+                "telemetry",
+            )
+
+        return cls(
+            datasets=datasets,
+            rendering=rendering,
+            runtime=runtime,
+            benchmarks=benchmarks,
+            telemetry=telemetry,
+        )
+
+
 def _load_raw_manifest(path: Path) -> Mapping[str, object]:
     text = path.read_text(encoding="utf-8")
     suffix = path.suffix.lower()
@@ -437,3 +951,13 @@ def load_dataset_manifest(path: Union[str, os.PathLike[str]]) -> DatasetManifest
     data = deepcopy(raw)
     mapping = _require_mapping(data, "manifest")
     return DatasetManifest.from_mapping(mapping)
+
+
+def load_configuration(path: Union[str, os.PathLike[str]]) -> Ai004Configuration:
+    """Load a complete AI-004 configuration manifest covering all schema sections."""
+
+    manifest_path = Path(path)
+    raw = _load_raw_manifest(manifest_path)
+    data = deepcopy(raw)
+    mapping = _require_mapping(data, "configuration")
+    return Ai004Configuration.from_mapping(mapping)

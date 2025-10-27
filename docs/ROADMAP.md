@@ -73,6 +73,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   diagnostics bridge, satisfying RE-610 instrumentation requirements.
 - 2025-12-08: Overlay enablement telemetry reports normals/UV/material/light-volume usage to runtime diagnostics to unblock
   tooling overlays and benchmark selectors.
+- 2025-12-09: Schema document updated with rendering/runtime/benchmark/telemetry sections and validator expanded to cover the
+  unified configuration manifest.
 
 ---
 

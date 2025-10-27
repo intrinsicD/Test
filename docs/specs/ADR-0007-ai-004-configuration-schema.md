@@ -1,6 +1,6 @@
 # ADR-0007: AI-004 Shared Configuration Schema
 
-**Status**: Proposed
+**Status**: Accepted
 
 **Date**: 2025-12-05
 
@@ -147,5 +147,5 @@ The schema will be versioned, validated via JSON Schema-compatible tooling, and 
 
 | Date | Reviewer | Decision | Comments |
 |------|----------|----------|----------|
-| _TBD_ | _TBD_ | _TBD_ | _Pending review_ |
+| 2025-12-09 | Rendering Engineer (AI agent) | Accepted | Schema sections documented across rendering/runtime/benchmarks/telemetry with shared validator. |
 
