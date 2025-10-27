@@ -134,6 +134,23 @@ def test_load_dataset_manifest_from_json_without_parameterization(tmp_path: Path
     assert dataset.output_metrics.edge_length.mean == pytest.approx(0.5)
 
 
+def test_dataset_manifest_schema_flag(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    entry = deepcopy(BASE_ENTRY)
+    entry.pop("schema")
+    path = tmp_path / "legacy_manifest.json"
+    path.write_text(json.dumps({"datasets": [entry]}), encoding="utf-8")
+
+    monkeypatch.delenv("ENGINE_AI004_SCHEMA_V1", raising=False)
+    manifest = load_dataset_manifest(path)
+    dataset = manifest.datasets[0]
+    assert dataset.schema_id == "ai-004.dataset"
+    assert dataset.schema_version == 1
+
+    monkeypatch.setenv("ENGINE_AI004_SCHEMA_V1", "1")
+    with pytest.raises(ConfigurationSchemaError):
+        load_dataset_manifest(path)
+
+
 def test_invalid_dataset_identifier_raises(tmp_path: Path) -> None:
     entry = deepcopy(BASE_ENTRY)
     entry["id"] = "Invalid Name"
@@ -230,6 +247,27 @@ def test_load_full_configuration(tmp_path: Path) -> None:
     assert configuration.telemetry.outputs[0].path == "telemetry/{scenario}.json"
     assert configuration.telemetry.sampling is not None
     assert configuration.telemetry.sampling.frame_interval == 2
+
+
+def test_configuration_schema_flag(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    dataset_entry = deepcopy(BASE_ENTRY)
+    dataset_entry.pop("schema")
+    config = {
+        "datasets": [dataset_entry],
+        "rendering": {"preset": "research-baseline"},
+        "runtime": {"dataset": "remesh-sample"},
+    }
+    path = tmp_path / "legacy_config.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+
+    monkeypatch.delenv("ENGINE_AI004_SCHEMA_V1", raising=False)
+    configuration = load_configuration(path)
+    assert configuration.rendering is not None
+    assert configuration.rendering.schema_version == 1
+
+    monkeypatch.setenv("ENGINE_AI004_SCHEMA_V1", "true")
+    with pytest.raises(ConfigurationSchemaError):
+        load_configuration(path)
 
 
 def test_invalid_rendering_schema_id(tmp_path: Path) -> None:

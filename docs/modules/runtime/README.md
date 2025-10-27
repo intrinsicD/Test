@@ -259,6 +259,10 @@ ctest --preset linux-gcc-debug -R runtime
   shared library is available locally. Pass `--frames` and `--dt` to control
   execution cadence; use `--dry-run` to perform schema validation without
   loading the native runtime library.
+- Enable strict schema enforcement during the migration by exporting
+  `ENGINE_AI004_SCHEMA_V1=1`. When the variable is unset the loaders inject
+  default schema headers so legacy manifests remain compatible while teams
+  complete the transition to the v1 specification.
 
 ## TODO / Next Steps
 

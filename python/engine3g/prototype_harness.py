@@ -7,6 +7,7 @@ from typing import Callable, Optional
 
 from .config_schema import (
     Ai004Configuration,
+    ConfigurationSchemaError,
     DatasetEntry,
     DatasetManifest,
     RenderingConfig,
@@ -147,7 +148,10 @@ def load_harness(
 
     from .config_schema import load_configuration  # Local import to avoid cycle during module init
 
-    configuration = load_configuration(path)
+    try:
+        configuration = load_configuration(path)
+    except ConfigurationSchemaError as error:
+        raise PrototypeHarnessError(str(error)) from error
     if configuration.runtime is None:
         raise PrototypeHarnessError("configuration.runtime section is required for harness execution")
     if not configuration.datasets.datasets:

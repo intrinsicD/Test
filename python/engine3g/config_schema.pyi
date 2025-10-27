@@ -97,4 +97,36 @@ class DatasetManifest:
     datasets: Tuple[DatasetEntry, ...]
 
 
-def load_dataset_manifest(path: Union[str, os.PathLike[str]]) -> DatasetManifest: ...
+def load_dataset_manifest(
+    path: Union[str, os.PathLike[str]],
+    *,
+    require_schema: bool | None = ...,
+) -> DatasetManifest: ...
+
+
+@dataclass
+class Ai004Configuration:
+    datasets: DatasetManifest
+    rendering: Optional["RenderingConfig"]
+    runtime: Optional["RuntimeConfig"]
+    benchmarks: Optional["BenchmarkConfig"]
+    telemetry: Optional["TelemetryConfig"]
+
+
+class RenderingConfig: ...
+
+
+class RuntimeConfig: ...
+
+
+class BenchmarkConfig: ...
+
+
+class TelemetryConfig: ...
+
+
+def load_configuration(
+    path: Union[str, os.PathLike[str]],
+    *,
+    require_schema: bool | None = ...,
+) -> Ai004Configuration: ...
