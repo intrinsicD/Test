@@ -182,3 +182,5 @@ TEST(RuntimePrototypeHarness, AppliesConfigurationOverrides) {
 ## Notes
 - Coordinate with scripting maintainers for safe embedding.
 - Provide containerised environment for benchmark reproducibility.
+- 2025-12-11: Added Python-based prototype harness scaffold (`python/engine3g/prototype_harness.py`) and CLI entry point
+  (`python -m scripts.prototyping.run_prototype_harness`) to validate AI-004 configurations and execute headless tick loops.

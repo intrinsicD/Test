@@ -19,6 +19,8 @@
   (YAML or JSON) and surface `ConfigurationSchemaError` diagnostics when schema requirements are violated.
 - `python -m scripts.validate_ai004_config --dataset manifest.json --config config.yaml` offers a command-line wrapper around
   the schema validators for CI pipelines and ad-hoc checks during AI-004 development.
+- `python -m scripts.prototyping.run_prototype_harness --config <path> [--dry-run]` validates and exercises the AI-004
+  prototyping harness scaffold. Use `--dry-run` to skip native runtime loading while still confirming configuration integrity.
 - Manage runtime lifetime ergonomically using the context manager exposed by `engine3g.loader.load_runtime()` or
   `EngineRuntimeHandle`; entering the context calls `initialize()` and exiting always calls `shutdown()` when the runtime was
   activated by the context:

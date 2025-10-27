@@ -30,6 +30,14 @@ from .loader import (
     load_module,
     load_runtime,
 )
+from .prototype_harness import (
+    HarnessExecutionOptions,
+    HarnessRunSummary,
+    PrototypeHarness,
+    PrototypeHarnessError,
+    load_harness,
+    summarize,
+)
 
 __all__ = [
     "Ai004Configuration",
@@ -53,9 +61,15 @@ __all__ = [
     "EngineLibraryNotFound",
     "EngineModuleHandle",
     "EngineRuntimeHandle",
+    "HarnessExecutionOptions",
+    "HarnessRunSummary",
+    "PrototypeHarness",
+    "PrototypeHarnessError",
     "load_configuration",
     "load_dataset_manifest",
     "load_all_modules",
     "load_module",
     "load_runtime",
+    "load_harness",
+    "summarize",
 ]
