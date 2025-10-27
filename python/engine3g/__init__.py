@@ -1,9 +1,25 @@
 """Python helpers for interacting with the modular 3G engine libraries."""
 
 from .config_schema import (
+    Ai004Configuration,
+    BenchmarkCommandConfig,
+    BenchmarkConfig,
+    BenchmarkMetricConfig,
+    BenchmarkScenarioConfig,
+    BenchmarkThreshold,
     ConfigurationSchemaError,
     DatasetEntry,
     DatasetManifest,
+    RenderingConfig,
+    RuntimeCameraConfig,
+    RuntimeConfig,
+    RuntimeHotReloadConfig,
+    RuntimeSimulationConfig,
+    TelemetryConfig,
+    TelemetryMetricConfig,
+    TelemetryOutputConfig,
+    TelemetrySamplingConfig,
+    load_configuration,
     load_dataset_manifest,
 )
 from .loader import (
@@ -16,15 +32,30 @@ from .loader import (
 )
 
 __all__ = [
+    "Ai004Configuration",
+    "BenchmarkCommandConfig",
+    "BenchmarkConfig",
+    "BenchmarkMetricConfig",
+    "BenchmarkScenarioConfig",
+    "BenchmarkThreshold",
     "ConfigurationSchemaError",
     "DatasetEntry",
     "DatasetManifest",
+    "RenderingConfig",
+    "RuntimeCameraConfig",
+    "RuntimeConfig",
+    "RuntimeHotReloadConfig",
+    "RuntimeSimulationConfig",
+    "TelemetryConfig",
+    "TelemetryMetricConfig",
+    "TelemetryOutputConfig",
+    "TelemetrySamplingConfig",
     "EngineLibraryNotFound",
     "EngineModuleHandle",
     "EngineRuntimeHandle",
+    "load_configuration",
     "load_dataset_manifest",
     "load_all_modules",
     "load_module",
     "load_runtime",
 ]
-

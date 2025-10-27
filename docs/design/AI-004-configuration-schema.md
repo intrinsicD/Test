@@ -1,6 +1,6 @@
 # AI-004 Configuration Schema Specification (Draft)
 
-**Status**: In progress – dataset manifest contract validated via `python/engine3g/config_schema.py`
+**Status**: In review – dataset, rendering, runtime, benchmark, and telemetry sections captured via shared validator
 
 **Related Tasks**: `AI-004`, `DC-040`, `RE-610`, `RT-320`, `TL-210`, `AS-330`, `CC-310`
 
@@ -100,17 +100,170 @@ release so misconfigured manifests fail fast.
 
 ---
 
+## Rendering Section (v1 Draft)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `schema.id` | `string` | ✅ | Always `ai-004.rendering`. |
+| `schema.version` | `integer` | ✅ | Initial release `1`. |
+| `preset` | `string` | ✅ | Rendering preset identifier (e.g., `research-baseline`). |
+| `options.shading_mode` | `string` | ❌ | `forward` or `deferred`; defaults to deferred. |
+| `options.resolution.width` | `integer` | ❌ | Frame width in pixels; defaults to `1920`. |
+| `options.resolution.height` | `integer` | ❌ | Frame height in pixels; defaults to `1080`. |
+| `options.overlays.normals` | `bool` | ❌ | Enable normals debug overlay. |
+| `options.overlays.uv` | `bool` | ❌ | Enable UV density overlay. |
+| `options.overlays.material` | `bool` | ❌ | Enable material ID overlay. |
+| `options.overlays.light_volume` | `bool` | ❌ | Enable light volume overlay. |
+
+The rendering section mirrors `ResearchBaselineOptions` so presets can be
+generated directly from configuration without bespoke glue code.
+
+---
+
+## Runtime Section (v1 Draft)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `schema.id` | `string` | ✅ | Always `ai-004.runtime`. |
+| `schema.version` | `integer` | ✅ | Initial release `1`. |
+| `dataset` | `string` | ❌ | Dataset slug selected for the session. |
+| `scene.manifest` | `string` | ❌ | Path to runtime scene manifest. |
+| `scene.entry_point` | `string` | ❌ | Optional entry point identifier. |
+| `camera.mode` | `string` | ❌ | `orbit`, `fly`, or `fixed`. |
+| `camera.position` | `vec3` | ❌ | Starting camera position. |
+| `camera.target` | `vec3` | ❌ | Look-at target; orbit mode uses it as pivot. |
+| `simulation.timestep_seconds` | `float` | ❌ | Fixed simulation timestep; defaults to engine configuration. |
+| `simulation.max_substeps` | `integer` | ❌ | Max physics substeps per frame. |
+| `hot_reload.enabled` | `bool` | ❌ | Toggle asset/script hot reload. |
+| `hot_reload.watch_interval_seconds` | `float` | ❌ | File watcher polling cadence. |
+
+---
+
+## Benchmark Section (v1 Draft)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `schema.id` | `string` | ✅ | Always `ai-004.benchmarks`. |
+| `schema.version` | `integer` | ✅ | Initial release `1`. |
+| `scenarios[].id` | `string` | ✅ | Slug for cross-referencing scenario. |
+| `scenarios[].name` | `string` | ✅ | Human readable scenario label. |
+| `scenarios[].dataset` | `string` | ❌ | Dataset slug when scenario consumes assets. |
+| `scenarios[].rendering_preset` | `string` | ❌ | Rendering preset to activate. |
+| `scenarios[].runtime_profile` | `string` | ❌ | Runtime profile identifier. |
+| `scenarios[].engine.command` | `array<string>` | ❌ | Command tokens for engine execution; optional for dry runs. |
+| `scenarios[].engine.output` | `string` | ✅ | Path template for engine metrics output. |
+| `scenarios[].reference.command` | `array<string>` | ❌ | Command tokens for reference implementation. |
+| `scenarios[].reference.output` | `string` | ✅ | Path template for reference metrics output. |
+| `scenarios[].metrics[].name` | `string` | ✅ | Metric identifier (`fps`, `frame_time`, etc.). |
+| `scenarios[].metrics[].higher_is_better` | `bool` | ✅ | Comparison orientation for the metric. |
+| `scenarios[].metrics[].threshold.type` | `string` | ✅ | `relative` (requires `max_regression`) or `absolute` (requires `max_delta`). |
+
+Metrics reuse the comparative benchmark orchestrator semantics so schema-driven
+configurations flow directly into `run_comparative_benchmarks.py` without
+translation layers.
+
+---
+
+## Telemetry Section (v1 Draft)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `schema.id` | `string` | ✅ | Always `ai-004.telemetry`. |
+| `schema.version` | `integer` | ✅ | Initial release `1`. |
+| `outputs[].type` | `string` | ❌ | `file` or `stdout`. |
+| `outputs[].path` | `string` | ✅* | Required when type is `file`. |
+| `metrics[].name` | `string` | ❌ | Metric identifier (e.g., `frame_time`). |
+| `metrics[].statistic` | `string` | ❌ | Aggregation mode (`mean`, `median`, `p95`, `p99`, `min`, `max`). |
+| `sampling.frame_interval` | `integer` | ❌ | Sample every N frames; defaults to `1`. |
+| `sampling.include_debug_overlays` | `bool` | ❌ | Include overlay telemetry in captures. |
+
+---
+
+## Top-Level Configuration Example
+
+```yaml
+datasets:
+  - ...  # Dataset entry from the section above
+rendering:
+  schema:
+    id: ai-004.rendering
+    version: 1
+  preset: research-baseline
+  options:
+    shading_mode: forward
+    resolution:
+      width: 1280
+      height: 720
+    overlays:
+      normals: true
+runtime:
+  schema:
+    id: ai-004.runtime
+    version: 1
+  dataset: remesh-sample
+  scene:
+    manifest: scenes/remesh.scene
+    entry_point: main
+  camera:
+    mode: orbit
+    position: [0.0, 1.0, 2.0]
+    target: [0.0, 0.5, 0.0]
+  simulation:
+    timestep_seconds: 0.0166667
+    max_substeps: 4
+  hot_reload:
+    enabled: true
+    watch_interval_seconds: 0.5
+benchmarks:
+  schema:
+    id: ai-004.benchmarks
+    version: 1
+  scenarios:
+    - id: remesh-baseline
+      name: Remesh Baseline
+      dataset: remesh-sample
+      rendering_preset: research-baseline
+      engine:
+        command: ["python", "engine.py", "{output_path}"]
+        output: "{output_dir}/{scenario}_engine.json"
+      reference:
+        command: ["python", "reference.py", "{output_path}"]
+        output: "{output_dir}/{scenario}_reference.json"
+      metrics:
+        - name: fps
+          higher_is_better: true
+          threshold:
+            type: relative
+            max_regression: 0.05
+telemetry:
+  schema:
+    id: ai-004.telemetry
+    version: 1
+  outputs:
+    - type: file
+      path: telemetry/{scenario}.json
+  metrics:
+    - name: frame_time
+      statistic: mean
+  sampling:
+    frame_interval: 2
+    include_debug_overlays: true
+```
+
+---
+
 ## Validation Helpers
 
 Dataset manifests now have an executable reference validator under
 [`python/engine3g/config_schema.py`](../../python/engine3g/config_schema.py).
-`load_dataset_manifest()` accepts YAML or JSON documents, enforces slug
-requirements (`[a-z0-9-]+`), validates remeshing targets, feature preservation
-flags, parameterisation summaries, and telemetry statistics, and returns
-dataclass-backed structures for downstream tooling. The accompanying regression
-suite (`python/tests/test_config_schema.py`) loads both YAML manifests generated
-by `geometry_remesh` and JSON fixtures without parameterisation data to ensure
-optional sections are handled gracefully.
+`load_configuration()` and `load_dataset_manifest()` accept YAML or JSON
+documents. Validation enforces slug requirements (`[a-z0-9-]+`), rendering
+preset invariants, runtime camera/simulation bounds, benchmark threshold
+semantics, and telemetry output declarations. Parsed manifests materialise as
+dataclasses for downstream tooling. Regression tests under
+`python/tests/test_config_schema.py` exercise dataset-only manifests alongside
+full multi-section configurations to guarantee optional sections behave
+predictably.
 
 Callers should surface `ConfigurationSchemaError` messages directly to users so
 schema violations remain actionable during asset packaging or prototyping

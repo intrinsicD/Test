@@ -15,8 +15,8 @@
   normalises both forms while resolving shared libraries.
 - The loader enforces unique module names when aggregating runtime subsystems, raising a descriptive error if duplicates are
   reported so misconfigured registries do not produce partially loaded module sets.
-- `engine3g.config_schema.load_dataset_manifest()` validates AI-004 dataset manifests (YAML or JSON) and surfaces
-  `ConfigurationSchemaError` diagnostics when schema requirements are violated.
+- `engine3g.config_schema.load_configuration()` and `load_dataset_manifest()` validate AI-004 configuration manifests
+  (YAML or JSON) and surface `ConfigurationSchemaError` diagnostics when schema requirements are violated.
 - Manage runtime lifetime ergonomically using the context manager exposed by `engine3g.loader.load_runtime()` or
   `EngineRuntimeHandle`; entering the context calls `initialize()` and exiting always calls `shutdown()` when the runtime was
   activated by the context:

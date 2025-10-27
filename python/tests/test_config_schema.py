@@ -14,8 +14,13 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 from engine3g import (
+    Ai004Configuration,
     ConfigurationSchemaError,
     DatasetManifest,
+    RenderingConfig,
+    RuntimeConfig,
+    TelemetryConfig,
+    load_configuration,
     load_dataset_manifest,
 )
 
@@ -138,3 +143,134 @@ def test_invalid_dataset_identifier_raises(tmp_path: Path) -> None:
     with pytest.raises(ConfigurationSchemaError) as exc:
         load_dataset_manifest(path)
     assert "datasets[0].id" in str(exc.value)
+
+
+def test_load_full_configuration(tmp_path: Path) -> None:
+    dataset_entry = deepcopy(BASE_ENTRY)
+    config = {
+        "datasets": [dataset_entry],
+        "rendering": {
+            "schema": {"id": "ai-004.rendering", "version": 1},
+            "preset": "research-baseline",
+            "options": {
+                "shading_mode": "forward",
+                "resolution": {"width": 1280, "height": 720},
+                "overlays": {"normals": True, "material": True},
+            },
+        },
+        "runtime": {
+            "schema": {"id": "ai-004.runtime", "version": 1},
+            "dataset": "remesh-sample",
+            "scene": {"manifest": "scenes/remesh.scene", "entry_point": "main"},
+            "camera": {
+                "mode": "orbit",
+                "position": [0.0, 1.0, 2.0],
+                "target": [0.0, 0.5, 0.0],
+            },
+            "simulation": {"timestep_seconds": 1.0 / 60.0, "max_substeps": 4},
+            "hot_reload": {"enabled": True, "watch_interval_seconds": 0.5},
+        },
+        "benchmarks": {
+            "schema": {"id": "ai-004.benchmarks", "version": 1},
+            "scenarios": [
+                {
+                    "id": "remesh-baseline",
+                    "name": "Remesh Baseline",
+                    "dataset": "remesh-sample",
+                    "rendering_preset": "research-baseline",
+                    "runtime_profile": "default",
+                    "engine": {
+                        "command": ["python", "engine.py", "{output_path}"],
+                        "output": "{output_dir}/{scenario}_engine.json",
+                    },
+                    "reference": {
+                        "command": ["python", "reference.py", "{output_path}"],
+                        "output": "{output_dir}/{scenario}_reference.json",
+                    },
+                    "metrics": [
+                        {
+                            "name": "fps",
+                            "higher_is_better": True,
+                            "threshold": {"type": "relative", "max_regression": 0.05},
+                        },
+                        {
+                            "name": "error",
+                            "higher_is_better": False,
+                            "threshold": {"type": "absolute", "max_delta": 0.1},
+                        },
+                    ],
+                }
+            ],
+        },
+        "telemetry": {
+            "schema": {"id": "ai-004.telemetry", "version": 1},
+            "outputs": [{"type": "file", "path": "telemetry/{scenario}.json"}],
+            "metrics": [{"name": "frame_time", "statistic": "mean"}],
+            "sampling": {"frame_interval": 2, "include_debug_overlays": True},
+        },
+    }
+
+    path = tmp_path / "configuration.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+
+    configuration = load_configuration(path)
+    assert isinstance(configuration, Ai004Configuration)
+    assert isinstance(configuration.rendering, RenderingConfig)
+    assert configuration.rendering.shading_mode == "forward"
+    assert configuration.rendering.width == 1280
+    assert isinstance(configuration.runtime, RuntimeConfig)
+    assert configuration.runtime.dataset == "remesh-sample"
+    assert configuration.runtime.hot_reload.enabled is True
+    assert configuration.runtime.hot_reload.watch_interval_seconds == pytest.approx(0.5)
+    assert configuration.benchmarks is not None
+    scenario = configuration.benchmarks.scenarios[0]
+    assert scenario.metrics[0].threshold.mode == "relative"
+    assert configuration.telemetry is not None
+    assert isinstance(configuration.telemetry, TelemetryConfig)
+    assert configuration.telemetry.outputs[0].path == "telemetry/{scenario}.json"
+    assert configuration.telemetry.sampling is not None
+    assert configuration.telemetry.sampling.frame_interval == 2
+
+
+def test_invalid_rendering_schema_id(tmp_path: Path) -> None:
+    config = {
+        "rendering": {
+            "schema": {"id": "ai-004.invalid", "version": 1},
+            "preset": "research-baseline",
+        }
+    }
+    path = tmp_path / "invalid_rendering.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSchemaError) as exc:
+        load_configuration(path)
+    assert "rendering.schema.id" in str(exc.value)
+
+
+def test_invalid_benchmark_threshold_type(tmp_path: Path) -> None:
+    config = {
+        "benchmarks": {
+            "schema": {"id": "ai-004.benchmarks", "version": 1},
+            "scenarios": [
+                {
+                    "id": "remesh-baseline",
+                    "name": "Remesh Baseline",
+                    "engine": {"output": "{output_dir}/{scenario}.json"},
+                    "reference": {"output": "{output_dir}/{scenario}.json"},
+                    "metrics": [
+                        {
+                            "name": "fps",
+                            "higher_is_better": True,
+                            "threshold": {"type": "unknown", "max_regression": 0.05},
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+    path = tmp_path / "invalid_benchmark.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSchemaError) as exc:
+        load_configuration(path)
+    assert "benchmarks.scenarios[0].metrics[0].threshold.type" in str(exc.value)
