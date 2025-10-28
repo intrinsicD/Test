@@ -184,3 +184,4 @@ Implement missing critical tests:
 - 2025-12-13: Introduced `geometry_shape_intersection_benchmark` to measure AABB-sphere, ray-triangle, and cylinder-sphere queries, delivering 91.8 ns/test, 331.6 ns/test, and 206.2 ns/test respectively on the linux-gcc-debug preset (100k pairs × 64 iterations) and satisfying the sub-1 μs requirement for high-priority intersection paths.
 - 2025-12-18: Added frustum–cylinder and frustum–ellipsoid intersections powered by support mappings, replaced bounding-sphere fallbacks, and introduced symmetry regressions to lock parity for both overload orders.
 - 2025-12-19: Added frustum–triangle intersections via Sutherland–Hodgman clipping with parity regression tests to cover portal/visibility workloads ahead of T-0122 culling integration.
+- 2025-12-20: Implemented frustum line, ray, and segment clipping with parametric interval results and parity regression tests to support picking rays and portal edge classification for T-0122.

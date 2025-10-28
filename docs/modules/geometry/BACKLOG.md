@@ -86,3 +86,5 @@ roadmap after each milestone.
   validation and extending `GE-221+` observability.
 - 2025-12-19 — Frustum triangle clipping landed in `shape_interactions` with symmetric overloads/tests so portal visibility (T-0122)
   can classify geometry without approximating triangles as spheres/boxes.
+- 2025-12-20 — Frustum clipping now returns intervals for lines, rays, and segments with symmetric tests, covering picking rays
+  and portal edges for T-0122 visibility workloads.
