@@ -36,6 +36,9 @@ roadmap.
 | `AS-330` | Curate reference dataset packages with manifests, ingestion scripts, and provenance/licensing notes. | Datasets download via scripted workflow, register with runtime caches, and surface metadata in harness/UI. | 🟡 Planning | @assets-lead |
 | `CC-310` | Automate comparative benchmarks across engine and reference implementations with CI smoke coverage. | Benchmark orchestrator emits comparison reports, CI gate enforces thresholds, and telemetry viewer renders comparative plots. | 🟡 Planning | @perf-lead |
 | `DC-040` | Align AI-004 configuration schema across rendering, runtime, tools, assets, and benchmarking. | Shared schema ADR approved, validators integrated behind feature flag, and migration notes published for downstream teams. | 🟡 Planning | @architect-lead |
+| `DC-041` | Finalise AI-004 kickoff plan with milestone sequencing and risk ownership. | Roadmap milestone table published, risk register includes owners/deadlines, and kickoff brief linked from tasks index. | 🟡 Planning | @pm-agent |
+| `RT-321` | Validate prototyping harness on two reference case studies with reproducible metrics. | Harness CLI/UI execute case studies, telemetry baselines recorded, and integration/CI coverage protects runs. | 🟡 Planning | @runtime-lead |
+| `CC-311` | Integrate comparative benchmark visualisation and CI gating. | Telemetry viewer generates comparative reports, CI smoke job enforces ≤2% thresholds, and docs describe workflow. | 🟡 Planning | @perf-lead |
 
 **Priority Checkpoints:**
 - **P3:** Initiative charter approved; cross-module leads assigned.
@@ -61,12 +64,13 @@ roadmap.
 - CI smoke tests execute full AI-004 workflow in ≤5 minutes
 
 **Execution Phases:**
-- **Phase 1 (Priority P0):** Configuration schema (`DC-040`) + rendering baseline (`RE-610`) + runtime harness core (`RT-320`)
+- **Phase 1 (Priority P0):** Configuration schema (`DC-040`), kickoff readiness (`DC-041`), rendering baseline (`RE-610`), runtime harness core (`RT-320`), and case study validation (`RT-321`)
 - **Phase 2 (Priority P1):** Dataset integration (`AS-330`) + sandbox UI prototype (`TL-210`)
-- **Phase 3 (Priority P2):** Comparative benchmarking (`CC-310`) + CI automation
+- **Phase 3 (Priority P2):** Comparative benchmarking (`CC-310`) + visualisation/CI integration (`CC-311`)
 
 **Recent Progress:**
 - **Priority P2:** Drafted `ADR-0007` to define the shared AI-004 configuration schema and published coordination task `DC-040`.
+- **Priority P0:** Introduced `DC-041`, `RT-321`, and `CC-311` to close kickoff planning, case study validation, and comparative reporting gaps ahead of the review.
 - **Priority P2:** Added comparative benchmark orchestrator (`scripts/benchmarks/run_comparative_benchmarks.py`) executing
   CC-310 scenarios from declarative configurations and enforcing regression thresholds.
 - **Priority P3:** Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.

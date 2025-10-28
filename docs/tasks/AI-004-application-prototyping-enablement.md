@@ -42,6 +42,11 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 - Benchmark runs produce comparable telemetry and plots between engine implementations and reference scripts.
 - Documentation describes workflow from dataset ingestion through benchmarking for at least two exemplar research studies.
 
+### Priority Next Steps (P0 focus)
+1. **`DC-041` — Kickoff readiness:** publish the milestone plan, assign risk owners with mitigation due dates, and link a kickoff brief across roadmap and sprint docs.
+2. **`RT-321` — Case study validation:** deliver geometry and rendering case studies that run end-to-end through the harness and sandbox with telemetry baselines and regression coverage.
+3. **`CC-311` — Comparative visualisation:** integrate benchmark plots and CI gating so AI-004 demonstrations include side-by-side metrics.
+
 ---
 
 ## Technical Details
@@ -210,3 +215,4 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
   python/tests/test_prototype_harness.py::test_cli_integration_with_sample_assets`,
   guarding configuration schema alignment across runtime, rendering, and tooling
   workstreams.
+- New tasks `DC-041`, `RT-321`, and `CC-311` capture kickoff planning, case study validation, and comparative reporting deliverables to unblock the P0 milestone.
