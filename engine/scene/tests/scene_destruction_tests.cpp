@@ -67,3 +67,28 @@ TEST(SceneDestruction, DestroyForeignEntityIsNoOp)
     EXPECT_EQ(first_scene.size(), 1);
     EXPECT_EQ(second_scene.size(), 0);
 }
+
+TEST(SceneSize, MatchesRegistryAliveCount)
+{
+    Scene scene;
+
+    auto& entity_storage = scene.registry().storage<entt::entity>();
+
+    EXPECT_EQ(scene.size(), entity_storage.free_list());
+
+    auto entity_a = scene.create_entity();
+    auto entity_b = scene.create_entity();
+
+    EXPECT_EQ(scene.size(), 2u);
+    EXPECT_EQ(scene.size(), entity_storage.free_list());
+
+    scene.destroy_entity(entity_a);
+
+    EXPECT_EQ(scene.size(), 1u);
+    EXPECT_EQ(scene.size(), entity_storage.free_list());
+
+    scene.destroy_entity(entity_b);
+
+    EXPECT_EQ(scene.size(), 0u);
+    EXPECT_EQ(scene.size(), entity_storage.free_list());
+}
