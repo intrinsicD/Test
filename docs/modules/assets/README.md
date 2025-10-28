@@ -268,6 +268,9 @@ ctest --preset linux-gcc-debug -R assets
      (or export `ENGINE_AI004_SCHEMA_V1=1`) before publishing to ensure the
      runtime harness accepts the manifests without falling back to legacy
      defaults.
+  3. Ingest curated manifests with
+     `python -m scripts.datasets.ingest_dataset <manifest> --copy-assets --output <cache>`
+     to produce reproducible dataset caches populated with checksum metadata.
 
 ## TODO / Next Steps
 

@@ -1,0 +1,81 @@
+{
+  "datasets": [
+    {
+      "id": "remesh-unit-square",
+      "schema": {
+        "id": "ai-004.dataset",
+        "version": 1
+      },
+      "kind": "geometry.remesh",
+      "tags": ["geometry", "remesh", "sample"],
+      "source": {
+        "generator": "sample_assets",
+        "mesh": "source_mesh.obj"
+      },
+      "outputs": {
+        "mesh": "output_mesh.obj"
+      },
+      "remeshing": {
+        "mode": "uniform",
+        "targets": {
+          "target_edge_length": 0.5
+        }
+      },
+      "feature_preservation": {
+        "lock_boundary_edges": true,
+        "lock_feature_edges": false,
+        "minimum_feature_angle_degrees": 45.0
+      },
+      "metrics": {
+        "input": {
+          "vertices": 4,
+          "faces": 2,
+          "edge_length": {
+            "min": 1.0,
+            "mean": 1.1381,
+            "max": 1.4142
+          }
+        },
+        "output": {
+          "vertices": 5,
+          "faces": 4,
+          "edge_length": {
+            "min": 0.5,
+            "mean": 0.7906,
+            "max": 1.118
+          }
+        }
+      },
+      "parameterization": {
+        "mode": "reuse_existing",
+        "target_texel_density": 256.0,
+        "texel_density": 256.0,
+        "chart_count": 1,
+        "average_stretch": 1.0,
+        "max_stretch": 1.05,
+        "fill_ratio": 0.95,
+        "total_seam_length": 4.0,
+        "charts": [
+          {
+            "index": 0,
+            "min_uv": [0.0, 0.0],
+            "max_uv": [1.0, 1.0],
+            "translation": [0.0, 0.0],
+            "scale": 1.0,
+            "area": 1.0,
+            "boundary_length": 4.0
+          }
+        ]
+      },
+      "statistics": {
+        "iterations": 6,
+        "max_error": 0.0025,
+        "min_edge_length": 0.5,
+        "max_edge_length": 1.118,
+        "max_surface_deviation": 0.001,
+        "mean_surface_deviation": 0.0005,
+        "rms_surface_deviation": 0.0006
+      }
+    }
+  ]
+}
