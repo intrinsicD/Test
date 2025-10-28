@@ -1627,6 +1627,44 @@ namespace engine::geometry
         EXPECT_FALSE(Contains(ellipsoid, outside));
     }
 
+    TEST(Containment, CylinderContainsCylinderTilted)
+    {
+        const Cylinder outer{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, 2.0f, 3.0f};
+
+        Cylinder inner{{0.25f, 0.35f, 0.0f}, math::normalize(math::vec3{0.2f, 0.1f, 0.98f}), 0.75f, 1.5f};
+        EXPECT_TRUE(Contains(outer, inner));
+
+        Cylinder shifted = inner;
+        shifted.center = {1.7f, 0.0f, 0.0f};
+        EXPECT_FALSE(Contains(outer, shifted));
+    }
+
+    TEST(Containment, CylinderContainsEllipsoidTilted)
+    {
+        const Cylinder outer{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, 2.0f, 3.0f};
+
+        const math::quat rotation = math::angle_axis(std::numbers::pi_v<float> / 6.0f,
+                                                     math::normalize(math::vec3{0.45f, 0.25f, 0.86f}));
+        const Ellipsoid inside{{0.3f, 0.2f, 0.1f}, {0.6f, 0.4f, 0.8f}, rotation};
+        const Ellipsoid outside{{1.9f, 0.0f, 0.0f}, {0.6f, 0.4f, 0.8f}, rotation};
+
+        EXPECT_TRUE(Contains(outer, inside));
+        EXPECT_FALSE(Contains(outer, outside));
+    }
+
+    TEST(Containment, CylinderContainsObbTilted)
+    {
+        const Cylinder outer{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, 2.0f, 3.0f};
+
+        const math::quat rotation = math::angle_axis(std::numbers::pi_v<float> / 8.0f,
+                                                     math::normalize(math::vec3{0.35f, -0.25f, 0.9f}));
+        const Obb inside{{0.2f, -0.15f, 0.1f}, {0.45f, 0.35f, 0.9f}, rotation};
+        const Obb outside{{1.85f, 0.2f, 0.0f}, {0.45f, 0.35f, 0.9f}, rotation};
+
+        EXPECT_TRUE(Contains(outer, inside));
+        EXPECT_FALSE(Contains(outer, outside));
+    }
+
     TEST(Containment, PlaneContainsPoint)
     {
         const Plane plane{{0, 0, 1}, 0};
