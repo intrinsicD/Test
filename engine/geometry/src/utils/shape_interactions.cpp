@@ -3558,6 +3558,35 @@ namespace engine::geometry
         return true;
     }
 
+    bool Intersects(const Frustum& frustum, const Cylinder& cylinder) noexcept
+    {
+        for (const auto& plane : frustum.planes)
+        {
+            const math::vec3 support = SupportPoint(cylinder, plane.normal);
+            if (SignedDistance(plane, support) < 0.0f)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool Intersects(const Frustum& frustum, const Ellipsoid& ellipsoid) noexcept
+    {
+        const EllipsoidSupportInfo info = MakeSupportInfo(ellipsoid);
+        for (const auto& plane : frustum.planes)
+        {
+            const math::vec3 support = SupportPoint(ellipsoid, info, plane.normal);
+            if (SignedDistance(plane, support) < 0.0f)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Symmetric overloads
     bool Intersects(const Aabb& aabb, const Frustum& frustum) noexcept
     {
@@ -3572,5 +3601,15 @@ namespace engine::geometry
     bool Intersects(const Obb& obb, const Frustum& frustum) noexcept
     {
         return Intersects(frustum, obb);
+    }
+
+    bool Intersects(const Cylinder& cylinder, const Frustum& frustum) noexcept
+    {
+        return Intersects(frustum, cylinder);
+    }
+
+    bool Intersects(const Ellipsoid& ellipsoid, const Frustum& frustum) noexcept
+    {
+        return Intersects(frustum, ellipsoid);
     }
 } // namespace engine::geometry

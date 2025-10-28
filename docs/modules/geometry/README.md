@@ -147,6 +147,8 @@ engine::geometry::Frustum frustum = engine::geometry::ExtractFrustum(view_projec
 // Test intersection with bounding volumes
 bool visible = engine::geometry::Intersects(frustum, object_aabb);
 bool sphere_visible = engine::geometry::Intersects(frustum, bounding_sphere);
+bool cylinder_visible = engine::geometry::Intersects(frustum, bounding_cylinder);
+bool ellipsoid_visible = engine::geometry::Intersects(frustum, bounding_ellipsoid);
 
 // Get frustum corner points
 auto corners = engine::geometry::GetCorners(frustum);
@@ -156,6 +158,8 @@ The frustum is defined by 6 planes (left, right, bottom, top, near, far) with no
 - **Frustum-AABB**: p-vertex/n-vertex test for early rejection
 - **Frustum-Sphere**: signed distance to all planes vs. radius
 - **Frustum-OBB**: oriented extents projected onto plane normals for tight classification
+- **Frustum-Cylinder**: support mapping maintains axial and radial extents without resorting to bounding spheres
+- **Frustum-Ellipsoid**: orientation-aware support mapping via the ellipsoid's quadratic form
 - **Frustum-Point**: containment test against all planes
 
 ### Remeshing Requests (GE-221+)
