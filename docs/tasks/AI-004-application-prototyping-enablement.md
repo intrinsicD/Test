@@ -197,3 +197,5 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
   per run while `ENGINE_AI004_SCHEMA_V1` remains opt-in during the migration
   period. Module READMEs document the migration steps for runtime, rendering,
   tools, and assets.
+- Geometry remeshing statistics/telemetry emit triangle quality metrics so dataset
+  packaging can flag sliver-heavy assets before entering AI-004 workflows.

@@ -34,6 +34,8 @@ namespace engine::geometry
         std::uint64_t last_collapses{0};
         std::uint64_t last_vertex_count{0};
         std::uint64_t max_vertex_count{0};
+        std::uint64_t last_triangle_count{0};
+        std::uint64_t total_triangle_count{0};
         double last_duration_ms{0.0};
         double max_duration_ms{0.0};
         std::uint64_t surface_deviation_invocations{0};
@@ -46,6 +48,12 @@ namespace engine::geometry
         double average_rms_surface_deviation{0.0};
         std::uint64_t last_surface_deviation_sample_count{0};
         std::uint64_t total_surface_deviation_sample_count{0};
+        double last_min_triangle_quality{0.0};
+        double min_triangle_quality{0.0};
+        double last_mean_triangle_quality{0.0};
+        double average_triangle_quality{0.0};
+        double last_max_triangle_quality{0.0};
+        double max_triangle_quality{0.0};
         std::string last_job_label{};
     };
 
@@ -79,7 +87,7 @@ namespace engine::geometry
         void reset_for_testing() noexcept;
 
     private:
-        RemeshTelemetry() = default;
+        RemeshTelemetry();
 
         using CounterArray = std::array<std::atomic<std::uint64_t>, remesh_telemetry_mode_count()>;
         using GaugeArray = std::array<std::atomic<double>, remesh_telemetry_mode_count()>;
@@ -93,6 +101,8 @@ namespace engine::geometry
         CounterArray last_collapses_{};
         CounterArray last_vertex_count_{};
         CounterArray max_vertex_count_{};
+        CounterArray last_triangle_count_{};
+        CounterArray total_triangle_count_{};
         GaugeArray last_duration_ms_{};
         GaugeArray max_duration_ms_{};
         CounterArray surface_deviation_invocations_{};
@@ -105,6 +115,12 @@ namespace engine::geometry
         GaugeArray total_weighted_squared_surface_deviation_{};
         CounterArray last_surface_deviation_sample_count_{};
         CounterArray total_surface_deviation_sample_count_{};
+        GaugeArray last_min_triangle_quality_{};
+        GaugeArray min_triangle_quality_{};
+        GaugeArray last_mean_triangle_quality_{};
+        GaugeArray total_weighted_mean_triangle_quality_{};
+        GaugeArray last_max_triangle_quality_{};
+        GaugeArray max_triangle_quality_{};
 
         mutable std::mutex job_label_mutex_{};
         std::array<std::string, remesh_telemetry_mode_count()> last_job_labels_{};

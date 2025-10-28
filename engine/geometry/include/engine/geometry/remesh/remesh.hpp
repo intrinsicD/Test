@@ -99,12 +99,16 @@ namespace engine::geometry
         std::uint32_t iteration_count{0};
         std::uint64_t split_count{0};
         std::uint64_t collapse_count{0};
+        std::uint64_t triangle_count{0};
         float max_edge_length{0.0f};
         float min_edge_length{0.0f};
         float max_error{0.0f};
         float max_surface_deviation{0.0f};
         float mean_surface_deviation{0.0f};
         float rms_surface_deviation{0.0f};
+        float min_triangle_quality{0.0f};
+        float max_triangle_quality{0.0f};
+        float mean_triangle_quality{0.0f};
         double duration_ms{0.0};
     };
 
