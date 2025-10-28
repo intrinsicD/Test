@@ -117,6 +117,37 @@ namespace engine::tools::sandbox
         [[nodiscard]] const SandboxPreferences& preferences() const noexcept;
         void set_preferences(const SandboxPreferences& preferences);
 
+        /**
+         * @brief Select a dataset programmatically and emit the selection callback.
+         *
+         * @return true when the dataset identifier exists in the current summary.
+         */
+        bool select_dataset(std::string_view dataset_identifier);
+
+        /**
+         * @brief Select a rendering preset programmatically and emit the rendering callback.
+         *
+         * Resets shading mode and overlay preferences to preset defaults when the
+         * current preferences are incompatible with the new preset.
+         *
+         * @return true when the preset identifier exists in the current summary.
+         */
+        bool select_rendering_preset(std::string_view preset_identifier);
+
+        /**
+         * @brief Override the active shading mode if supported by the current preset.
+         *
+         * @return true when the shading mode was applied; false if the mode was invalid.
+         */
+        bool set_shading_mode(std::string_view shading_mode);
+
+        /**
+         * @brief Toggle an overlay for the active preset.
+         *
+         * @return true when the overlay exists on the active preset; false otherwise.
+         */
+        bool set_overlay_enabled(std::string_view overlay_key, bool enabled);
+
         bool load_preferences(const std::filesystem::path& path);
         bool save_preferences(const std::filesystem::path& path) const;
 
@@ -136,7 +167,7 @@ namespace engine::tools::sandbox
         void render_runtime_summary();
 
         [[nodiscard]] bool matches_dataset_filter(std::string_view text) const;
-        void sync_overlay_preferences();
+        bool sync_overlay_preferences();
 
         ExperimentConfigurationSummary summary_{};
         TelemetrySnapshot telemetry_{};

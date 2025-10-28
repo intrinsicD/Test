@@ -84,6 +84,7 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
     preferences.benchmark_timestep = 1.0F / 120.0F;
 
     const auto result = runner.run(preferences);
+    SCOPED_TRACE(result.details);
     EXPECT_TRUE(result.success);
     EXPECT_EQ(result.headline, "Benchmark succeeded");
     EXPECT_NE(result.details.find("frames=240"), std::string::npos);

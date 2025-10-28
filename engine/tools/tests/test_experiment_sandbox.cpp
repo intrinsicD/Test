@@ -120,3 +120,95 @@ TEST(ExperimentSandbox, RecordsBenchmarkResult)
     EXPECT_EQ(stored->details, result.details);
 }
 
+TEST(ExperimentSandbox, DatasetSelectionInvokesCallback)
+{
+    ExperimentSandbox sandbox;
+    auto summary = make_summary();
+    summary.selected_dataset = summary.datasets.front().identifier;
+
+    std::string last_dataset;
+    int callback_count = 0;
+    SandboxCallbacks callbacks{};
+    callbacks.on_dataset_selected = [&](const std::string& identifier) {
+        ++callback_count;
+        last_dataset = identifier;
+    };
+
+    sandbox.set_configuration(summary);
+    sandbox.set_callbacks(callbacks);
+
+    ASSERT_TRUE(sandbox.select_dataset("dataset_b"));
+    EXPECT_EQ(callback_count, 1);
+    EXPECT_EQ(last_dataset, "dataset_b");
+    EXPECT_EQ(sandbox.preferences().selected_dataset, "dataset_b");
+
+    EXPECT_FALSE(sandbox.select_dataset("unknown"));
+    EXPECT_EQ(callback_count, 1) << "Callback should not trigger for invalid dataset";
+}
+
+TEST(ExperimentSandbox, RenderingSelectionInvokesCallback)
+{
+    ExperimentSandbox sandbox;
+    auto summary = make_summary();
+
+    RenderingPresetDescriptor secondary{};
+    secondary.identifier = "diagnostics";
+    secondary.label = "Diagnostics";
+    secondary.shading_modes = {"Forward"};
+    secondary.overlays = {
+        OverlayDescriptor{.key = "wireframe", .label = "Wireframe", .default_enabled = true},
+    };
+    summary.rendering_presets.push_back(secondary);
+
+    SandboxPreferences captured{};
+    int render_callback_count = 0;
+    SandboxCallbacks callbacks{};
+    callbacks.on_rendering_changed = [&](const SandboxPreferences& prefs) {
+        ++render_callback_count;
+        captured = prefs;
+    };
+
+    sandbox.set_configuration(summary);
+    sandbox.set_callbacks(callbacks);
+
+    ASSERT_TRUE(sandbox.select_rendering_preset("diagnostics"));
+    EXPECT_GE(render_callback_count, 1);
+    EXPECT_EQ(captured.selected_preset, "diagnostics");
+    ASSERT_TRUE(captured.overlays.contains("wireframe"));
+    EXPECT_TRUE(captured.overlays.at("wireframe"));
+
+    const int callbacks_after_preset = render_callback_count;
+    EXPECT_TRUE(sandbox.set_shading_mode("Forward"));
+    EXPECT_EQ(sandbox.preferences().shading_mode, "Forward");
+    EXPECT_EQ(render_callback_count, callbacks_after_preset)
+        << "Selecting the existing shading mode should not trigger callbacks";
+
+    EXPECT_FALSE(sandbox.set_shading_mode("Deferred"));
+    EXPECT_EQ(render_callback_count, callbacks_after_preset);
+}
+
+TEST(ExperimentSandbox, OverlayToggleInvokesCallback)
+{
+    ExperimentSandbox sandbox;
+    auto summary = make_summary();
+
+    SandboxPreferences captured{};
+    int render_callback_count = 0;
+    SandboxCallbacks callbacks{};
+    callbacks.on_rendering_changed = [&](const SandboxPreferences& prefs) {
+        ++render_callback_count;
+        captured = prefs;
+    };
+
+    sandbox.set_configuration(summary);
+    sandbox.set_callbacks(callbacks);
+
+    ASSERT_TRUE(sandbox.set_overlay_enabled("normals", true));
+    EXPECT_EQ(render_callback_count, 1);
+    ASSERT_TRUE(captured.overlays.contains("normals"));
+    EXPECT_TRUE(captured.overlays.at("normals"));
+
+    EXPECT_FALSE(sandbox.set_overlay_enabled("unknown", true));
+    EXPECT_EQ(render_callback_count, 1) << "Unknown overlays should not trigger callbacks";
+}
+

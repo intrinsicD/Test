@@ -124,6 +124,148 @@ namespace engine::tools::sandbox
         ensure_selection_defaults();
     }
 
+    bool ExperimentSandbox::select_dataset(std::string_view dataset_identifier)
+    {
+        const std::string identifier{dataset_identifier};
+        const auto lookup = dataset_lookup_.find(identifier);
+        if (lookup == dataset_lookup_.end())
+        {
+            return false;
+        }
+
+        const int index = static_cast<int>(lookup->second);
+        if (selected_dataset_index_ == index && preferences_.selected_dataset == identifier)
+        {
+            return true;
+        }
+
+        selected_dataset_index_ = index;
+        preferences_.selected_dataset = identifier;
+
+        if (callbacks_.on_dataset_selected)
+        {
+            callbacks_.on_dataset_selected(preferences_.selected_dataset);
+        }
+
+        return true;
+    }
+
+    bool ExperimentSandbox::select_rendering_preset(std::string_view preset_identifier)
+    {
+        const std::string identifier{preset_identifier};
+        const auto lookup = preset_lookup_.find(identifier);
+        if (lookup == preset_lookup_.end())
+        {
+            return false;
+        }
+
+        const int index = static_cast<int>(lookup->second);
+        const bool changed = selected_preset_index_ != index
+            || preferences_.selected_preset != identifier;
+
+        selected_preset_index_ = index;
+        preferences_.selected_preset = identifier;
+
+        bool state_changed = changed;
+
+        if (selected_preset_index_ >= 0
+            && selected_preset_index_ < static_cast<int>(summary_.rendering_presets.size()))
+        {
+            const auto& preset = summary_.rendering_presets[static_cast<std::size_t>(selected_preset_index_)];
+
+            if (!preset.shading_modes.empty()
+                && std::find(preset.shading_modes.begin(), preset.shading_modes.end(), preferences_.shading_mode)
+                    == preset.shading_modes.end())
+            {
+                preferences_.shading_mode = preset.shading_modes.front();
+                state_changed = true;
+            }
+            else if (preset.shading_modes.empty())
+            {
+                preferences_.shading_mode.clear();
+                state_changed = true;
+            }
+
+            if (sync_overlay_preferences())
+            {
+                state_changed = true;
+            }
+        }
+
+        if (callbacks_.on_rendering_changed && state_changed)
+        {
+            callbacks_.on_rendering_changed(preferences_);
+        }
+
+        return true;
+    }
+
+    bool ExperimentSandbox::set_shading_mode(std::string_view shading_mode)
+    {
+        if (selected_preset_index_ < 0
+            || selected_preset_index_ >= static_cast<int>(summary_.rendering_presets.size()))
+        {
+            return false;
+        }
+
+        const auto& preset = summary_.rendering_presets[static_cast<std::size_t>(selected_preset_index_)];
+        const auto it = std::find(preset.shading_modes.begin(), preset.shading_modes.end(), shading_mode);
+        if (it == preset.shading_modes.end())
+        {
+            return false;
+        }
+
+        if (preferences_.shading_mode == shading_mode)
+        {
+            return true;
+        }
+
+        preferences_.shading_mode = std::string{shading_mode};
+
+        if (callbacks_.on_rendering_changed)
+        {
+            callbacks_.on_rendering_changed(preferences_);
+        }
+
+        return true;
+    }
+
+    bool ExperimentSandbox::set_overlay_enabled(std::string_view overlay_key, bool enabled)
+    {
+        if (selected_preset_index_ < 0
+            || selected_preset_index_ >= static_cast<int>(summary_.rendering_presets.size()))
+        {
+            return false;
+        }
+
+        static_cast<void>(sync_overlay_preferences());
+
+        const auto& preset = summary_.rendering_presets[static_cast<std::size_t>(selected_preset_index_)];
+        const auto overlay_it = std::find_if(preset.overlays.begin(), preset.overlays.end(),
+                                             [&](const OverlayDescriptor& descriptor) {
+                                                 return descriptor.key == overlay_key;
+                                             });
+        if (overlay_it == preset.overlays.end())
+        {
+            return false;
+        }
+
+        auto& stored = preferences_.overlays[overlay_it->key];
+        if (stored == enabled)
+        {
+            return true;
+        }
+
+        stored = enabled;
+
+        if (callbacks_.on_rendering_changed)
+        {
+            callbacks_.on_rendering_changed(preferences_);
+        }
+
+        return true;
+    }
+
     bool ExperimentSandbox::load_preferences(const std::filesystem::path& path)
     {
         std::ifstream stream(path);
@@ -307,7 +449,7 @@ namespace engine::tools::sandbox
             preferences_.overlays.clear();
         }
 
-        sync_overlay_preferences();
+        static_cast<void>(sync_overlay_preferences());
     }
 
     void ExperimentSandbox::render_dataset_panel()
@@ -361,12 +503,7 @@ namespace engine::tools::sandbox
                 label.append("##").append(dataset.identifier);
                 if (ImGui::Selectable(label.c_str(), selected))
                 {
-                    selected_dataset_index_ = static_cast<int>(index);
-                    preferences_.selected_dataset = dataset.identifier;
-                    if (callbacks_.on_dataset_selected)
-                    {
-                        callbacks_.on_dataset_selected(dataset.identifier);
-                    }
+                    static_cast<void>(select_dataset(dataset.identifier));
                 }
 
                 if (!dataset.tags.empty())
@@ -413,17 +550,7 @@ namespace engine::tools::sandbox
                 std::string option_label = option.label.empty() ? option.identifier : option.label;
                 if (ImGui::Selectable(option_label.c_str(), selected))
                 {
-                    selected_preset_index_ = static_cast<int>(index);
-                    preferences_.selected_preset = option.identifier;
-                    sync_overlay_preferences();
-                    if (!option.shading_modes.empty())
-                    {
-                        preferences_.shading_mode = option.shading_modes.front();
-                    }
-                    if (callbacks_.on_rendering_changed)
-                    {
-                        callbacks_.on_rendering_changed(preferences_);
-                    }
+                    static_cast<void>(select_rendering_preset(option.identifier));
                 }
             }
             ImGui::EndCombo();
@@ -439,11 +566,7 @@ namespace engine::tools::sandbox
                     const bool selected = (mode == preferences_.shading_mode);
                     if (ImGui::Selectable(mode.c_str(), selected))
                     {
-                        preferences_.shading_mode = mode;
-                        if (callbacks_.on_rendering_changed)
-                        {
-                            callbacks_.on_rendering_changed(preferences_);
-                        }
+                        static_cast<void>(set_shading_mode(mode));
                     }
                 }
                 ImGui::EndCombo();
@@ -456,10 +579,9 @@ namespace engine::tools::sandbox
             std::string checkbox_label = overlay.label.empty() ? overlay.key : overlay.label;
             if (ImGui::Checkbox(checkbox_label.c_str(), &enabled))
             {
-                preferences_.overlays[overlay.key] = enabled;
-                if (callbacks_.on_rendering_changed)
+                if (!set_overlay_enabled(overlay.key, enabled))
                 {
-                    callbacks_.on_rendering_changed(preferences_);
+                    enabled = preferences_.overlays[overlay.key];
                 }
             }
         }
@@ -636,12 +758,13 @@ namespace engine::tools::sandbox
         return lowered.find(dataset_filter_lower_) != std::string::npos;
     }
 
-    void ExperimentSandbox::sync_overlay_preferences()
+    bool ExperimentSandbox::sync_overlay_preferences()
     {
         if (selected_preset_index_ < 0 || selected_preset_index_ >= static_cast<int>(summary_.rendering_presets.size()))
         {
+            const bool changed = !preferences_.overlays.empty();
             preferences_.overlays.clear();
-            return;
+            return changed;
         }
 
         const auto& overlays = summary_.rendering_presets[static_cast<std::size_t>(selected_preset_index_)].overlays;
@@ -653,7 +776,9 @@ namespace engine::tools::sandbox
             const bool enabled = (it != preferences_.overlays.end()) ? it->second : overlay.default_enabled;
             synchronised.emplace(overlay.key, enabled);
         }
+        const bool changed = preferences_.overlays != synchronised;
         preferences_.overlays = std::move(synchronised);
+        return changed;
     }
 
     void ExperimentSandbox::apply_benchmark_result(SandboxBenchmarkResult result)

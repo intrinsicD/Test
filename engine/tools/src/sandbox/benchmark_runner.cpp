@@ -1,6 +1,7 @@
 #include "engine/tools/sandbox/benchmark_runner.hpp"
 
 #include <algorithm>
+#include <charconv>
 #include <chrono>
 #include <cctype>
 #include <cstdlib>
@@ -22,25 +23,10 @@ namespace engine::tools::sandbox
 {
     namespace
     {
-        std::string trim_copy(std::string_view input)
-        {
-            std::size_t begin = 0;
-            std::size_t end = input.size();
-            while (begin < end && std::isspace(static_cast<unsigned char>(input[begin])) != 0)
-            {
-                ++begin;
-            }
-            while (end > begin && std::isspace(static_cast<unsigned char>(input[end - 1])) != 0)
-            {
-                --end;
-            }
-            return std::string{input.substr(begin, end - begin)};
-        }
-
         std::string sanitise_filename_component(std::time_t timestamp)
         {
             std::tm time_info{};
-    #if defined(_WIN32)
+#if defined(_WIN32)
             localtime_s(&time_info, &timestamp);
     #else
             localtime_r(&timestamp, &time_info);
@@ -200,6 +186,107 @@ namespace engine::tools::sandbox
     #endif
     }
 
+    namespace
+    {
+        [[nodiscard]] std::optional<std::string> extract_string_field(const std::string& content,
+                                                                      std::string_view key)
+        {
+            const std::string pattern = '"' + std::string{key} + '"';
+            const auto key_pos = content.find(pattern);
+            if (key_pos == std::string::npos)
+            {
+                return std::nullopt;
+            }
+
+            const auto colon = content.find(':', key_pos + pattern.size());
+            if (colon == std::string::npos)
+            {
+                return std::nullopt;
+            }
+
+            const auto value_begin = content.find_first_not_of(" \t\r\n", colon + 1);
+            if (value_begin == std::string::npos || content[value_begin] != '"')
+            {
+                return std::nullopt;
+            }
+
+            auto cursor = value_begin + 1;
+            std::string value;
+            value.reserve(32);
+            while (cursor < content.size())
+            {
+                const char ch = content[cursor];
+                if (ch == '\\')
+                {
+                    if (cursor + 1 < content.size())
+                    {
+                        value.push_back(content[cursor + 1]);
+                        cursor += 2;
+                        continue;
+                    }
+                    break;
+                }
+                if (ch == '"')
+                {
+                    return value;
+                }
+                value.push_back(ch);
+                ++cursor;
+            }
+            return std::nullopt;
+        }
+
+        template <typename T>
+        [[nodiscard]] std::optional<T> extract_numeric_field(const std::string& content, std::string_view key)
+        {
+            const std::string pattern = '"' + std::string{key} + '"';
+            const auto key_pos = content.find(pattern);
+            if (key_pos == std::string::npos)
+            {
+                return std::nullopt;
+            }
+
+            const auto colon = content.find(':', key_pos + pattern.size());
+            if (colon == std::string::npos)
+            {
+                return std::nullopt;
+            }
+
+            const auto value_begin = content.find_first_not_of(" \t\r\n", colon + 1);
+            if (value_begin == std::string::npos)
+            {
+                return std::nullopt;
+            }
+
+            auto value_end = value_begin;
+            while (value_end < content.size())
+            {
+                const char ch = content[value_end];
+                if (std::isdigit(static_cast<unsigned char>(ch)) != 0 || ch == '.' || ch == '-' || ch == '+' || ch == 'e'
+                    || ch == 'E')
+                {
+                    ++value_end;
+                    continue;
+                }
+                break;
+            }
+
+            if (value_end == value_begin)
+            {
+                return std::nullopt;
+            }
+
+            const std::string_view token(content.data() + value_begin, static_cast<std::size_t>(value_end - value_begin));
+            T parsed{};
+            const auto result = std::from_chars(token.data(), token.data() + token.size(), parsed);
+            if (result.ec != std::errc{})
+            {
+                return std::nullopt;
+            }
+            return parsed;
+        }
+    } // namespace
+
     std::optional<SandboxBenchmarkResult> PrototypeHarnessBenchmarkRunner::parse_summary(
         const std::filesystem::path& path)
     {
@@ -209,77 +296,17 @@ namespace engine::tools::sandbox
             return std::nullopt;
         }
 
-        std::optional<std::string> dataset;
-        std::optional<std::string> preset;
-        std::optional<std::string> shading;
-        std::optional<int> frames;
-        std::optional<double> timestep;
-
-        std::string line;
-        while (std::getline(stream, line))
+        const std::string content{std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}};
+        if (content.empty())
         {
-            const auto first_quote = line.find('"');
-            if (first_quote == std::string::npos)
-            {
-                continue;
-            }
-            const auto second_quote = line.find('"', first_quote + 1);
-            if (second_quote == std::string::npos)
-            {
-                continue;
-            }
-            const auto key = line.substr(first_quote + 1, second_quote - first_quote - 1);
-            const auto colon = line.find(':', second_quote);
-            if (colon == std::string::npos)
-            {
-                continue;
-            }
-
-            std::string value = trim_copy(line.substr(colon + 1));
-            if (!value.empty() && value.back() == ',')
-            {
-                value.pop_back();
-            }
-
-            if (!value.empty() && value.front() == '"' && value.back() == '"')
-            {
-                const auto unquoted = value.substr(1, value.size() - 2);
-                if (key == "dataset")
-                {
-                    dataset = unquoted;
-                }
-                else if (key == "rendering_preset")
-                {
-                    preset = unquoted;
-                }
-                else if (key == "shading_mode")
-                {
-                    shading = unquoted;
-                }
-                continue;
-            }
-
-            if (value.empty())
-            {
-                continue;
-            }
-
-            try
-            {
-                if (key == "frames")
-                {
-                    frames = std::stoi(value);
-                }
-                else if (key == "timestep_seconds")
-                {
-                    timestep = std::stod(value);
-                }
-            }
-            catch (...)
-            {
-                // Ignore parse errors for individual fields.
-            }
+            return std::nullopt;
         }
+
+        const auto dataset = extract_string_field(content, "dataset");
+        const auto preset = extract_string_field(content, "rendering_preset");
+        const auto shading = extract_string_field(content, "shading_mode");
+        const auto frames = extract_numeric_field<int>(content, "frames");
+        const auto timestep = extract_numeric_field<double>(content, "timestep_seconds");
 
         SandboxBenchmarkResult result{};
         result.success = true;

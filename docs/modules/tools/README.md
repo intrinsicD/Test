@@ -93,6 +93,9 @@ Key capabilities:
   harness summary directly in the panel.
 - **Telemetry panel** – live FPS/CPU/GPU timing counters and plotted series
   aligned with the shared telemetry schema.
+- **Programmatic control** – helpers (`select_dataset`, `select_rendering_preset`,
+  `set_shading_mode`, `set_overlay_enabled`) let automation mirror UI selections
+  while the registered callbacks update the harness in lockstep.
 - **Persistence** – user preferences persist via
   `ExperimentSandbox::save_preferences`, while layout state uses ImGui's
   INI saving hooks for reproducible workspace setups.
@@ -117,6 +120,11 @@ sandbox.set_callbacks({
         queue_benchmark_run(prefs);
     },
 });
+
+// Programmatically drive selections without synthesising ImGui input.
+sandbox.select_dataset("remesh-sample");
+sandbox.select_rendering_preset("research");
+sandbox.set_overlay_enabled("normals", true);
 
 // During the UI frame
 sandbox.render();
