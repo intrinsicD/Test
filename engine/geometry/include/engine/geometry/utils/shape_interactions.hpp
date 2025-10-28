@@ -298,6 +298,12 @@ namespace engine::geometry
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Cylinder& cylinder) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Ellipsoid& ellipsoid) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Triangle& triangle) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Line& line,
+                                                      Result* result = nullptr) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Ray& ray,
+                                                      Result* result = nullptr) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Segment& segment,
+                                                      Result* result = nullptr) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const math::vec3& point) noexcept;
 
     // Symmetric overloads
@@ -307,6 +313,12 @@ namespace engine::geometry
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& cylinder, const Frustum& frustum) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ellipsoid& ellipsoid, const Frustum& frustum) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Triangle& triangle, const Frustum& frustum) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Line& line, const Frustum& frustum,
+                                                      Result* result = nullptr) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray& ray, const Frustum& frustum,
+                                                      Result* result = nullptr) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment& segment, const Frustum& frustum,
+                                                      Result* result = nullptr) noexcept;
 
     //------------------------------------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------

@@ -3478,6 +3478,99 @@ namespace engine::geometry
     //------------------------------------------------------------------------------------------------------------------
     // Frustum intersection tests
 
+    namespace
+    {
+        enum class FrustumClipMode
+        {
+            kLine,
+            kRay,
+            kSegment
+        };
+
+        template <FrustumClipMode Mode>
+        bool ClipFrustumInterval(const Frustum& frustum,
+                                 const math::vec3& origin,
+                                 const math::vec3& direction,
+                                 float& t_min,
+                                 float& t_max) noexcept
+        {
+            if (math::length_squared(direction) <=
+                constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+            {
+                const bool inside = Intersects(frustum, origin);
+                if (inside)
+                {
+                    t_min = 0.0f;
+                    t_max = 0.0f;
+                }
+                return inside;
+            }
+
+            if constexpr (Mode == FrustumClipMode::kLine)
+            {
+                t_min = -std::numeric_limits<float>::infinity();
+                t_max = std::numeric_limits<float>::infinity();
+            }
+            else if constexpr (Mode == FrustumClipMode::kRay)
+            {
+                t_min = 0.0f;
+                t_max = std::numeric_limits<float>::infinity();
+            }
+            else
+            {
+                t_min = 0.0f;
+                t_max = 1.0f;
+            }
+
+            for (const Plane& plane : frustum.planes)
+            {
+                const float distance = SignedDistance(plane, origin);
+                const float denom = math::dot(plane.normal, direction);
+
+                if (math::utils::abs(denom) <= constants::PARALLEL_EPSILON)
+                {
+                    if (distance < 0.0f)
+                    {
+                        return false;
+                    }
+                    continue;
+                }
+
+                const float t = -distance / denom;
+                if (denom > 0.0f)
+                {
+                    t_min = math::utils::max(t_min, t);
+                }
+                else
+                {
+                    t_max = math::utils::min(t_max, t);
+                }
+
+                if (t_min - t_max > constants::INTERSECTION_EPSILON)
+                {
+                    return false;
+                }
+            }
+
+            if constexpr (Mode == FrustumClipMode::kRay)
+            {
+                if (t_max < -constants::INTERSECTION_EPSILON)
+                {
+                    return false;
+                }
+                t_min = math::utils::max(t_min, 0.0f);
+                t_max = math::utils::max(t_max, 0.0f);
+            }
+            else if constexpr (Mode == FrustumClipMode::kSegment)
+            {
+                t_min = math::utils::clamp(t_min, 0.0f, 1.0f);
+                t_max = math::utils::clamp(t_max, 0.0f, 1.0f);
+            }
+
+            return t_max >= t_min - constants::INTERSECTION_EPSILON;
+        }
+    } // namespace
+
     bool Intersects(const Frustum& frustum, const math::vec3& point) noexcept
     {
         // Point is inside frustum if it's on the inside (positive) side of all planes
@@ -3651,6 +3744,58 @@ namespace engine::geometry
         return polygon_vertex_count > 0;
     }
 
+    bool Intersects(const Frustum& frustum, const Line& line, Result* result) noexcept
+    {
+        float t_min = 0.0f;
+        float t_max = 0.0f;
+        if (!ClipFrustumInterval<FrustumClipMode::kLine>(frustum, line.point, line.direction, t_min, t_max))
+        {
+            return false;
+        }
+
+        if (result)
+        {
+            result->t_min = t_min;
+            result->t_max = t_max;
+        }
+        return true;
+    }
+
+    bool Intersects(const Frustum& frustum, const Ray& ray, Result* result) noexcept
+    {
+        float t_min = 0.0f;
+        float t_max = 0.0f;
+        if (!ClipFrustumInterval<FrustumClipMode::kRay>(frustum, ray.origin, ray.direction, t_min, t_max))
+        {
+            return false;
+        }
+
+        if (result)
+        {
+            result->t_min = t_min;
+            result->t_max = t_max;
+        }
+        return true;
+    }
+
+    bool Intersects(const Frustum& frustum, const Segment& segment, Result* result) noexcept
+    {
+        const math::vec3 direction = Direction(segment);
+        float t_min = 0.0f;
+        float t_max = 0.0f;
+        if (!ClipFrustumInterval<FrustumClipMode::kSegment>(frustum, segment.start, direction, t_min, t_max))
+        {
+            return false;
+        }
+
+        if (result)
+        {
+            result->t_min = t_min;
+            result->t_max = t_max;
+        }
+        return true;
+    }
+
     // Symmetric overloads
     bool Intersects(const Aabb& aabb, const Frustum& frustum) noexcept
     {
@@ -3680,5 +3825,20 @@ namespace engine::geometry
     bool Intersects(const Triangle& triangle, const Frustum& frustum) noexcept
     {
         return Intersects(frustum, triangle);
+    }
+
+    bool Intersects(const Line& line, const Frustum& frustum, Result* result) noexcept
+    {
+        return Intersects(frustum, line, result);
+    }
+
+    bool Intersects(const Ray& ray, const Frustum& frustum, Result* result) noexcept
+    {
+        return Intersects(frustum, ray, result);
+    }
+
+    bool Intersects(const Segment& segment, const Frustum& frustum, Result* result) noexcept
+    {
+        return Intersects(frustum, segment, result);
     }
 } // namespace engine::geometry

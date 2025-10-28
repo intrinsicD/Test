@@ -4,8 +4,11 @@
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/geometry/shapes/cylinder.hpp"
 #include "engine/geometry/shapes/ellipsoid.hpp"
+#include "engine/geometry/shapes/line.hpp"
 #include "engine/geometry/shapes/obb.hpp"
 #include "engine/geometry/shapes/plane.hpp"
+#include "engine/geometry/shapes/ray.hpp"
+#include "engine/geometry/shapes/segment.hpp"
 #include "engine/geometry/shapes/triangle.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
@@ -32,6 +35,18 @@ namespace
         return ApproxEqual(a[0], b[0], epsilon) &&
             ApproxEqual(a[1], b[1], epsilon) &&
             ApproxEqual(a[2], b[2], epsilon);
+    }
+
+    Frustum MakeUnitCubeFrustum()
+    {
+        Frustum frustum{};
+        frustum.planes[Frustum::kLeft] = Plane{{1.0f, 0.0f, 0.0f}, 1.0f};
+        frustum.planes[Frustum::kRight] = Plane{{-1.0f, 0.0f, 0.0f}, 1.0f};
+        frustum.planes[Frustum::kBottom] = Plane{{0.0f, 1.0f, 0.0f}, 1.0f};
+        frustum.planes[Frustum::kTop] = Plane{{0.0f, -1.0f, 0.0f}, 1.0f};
+        frustum.planes[Frustum::kNear] = Plane{{0.0f, 0.0f, 1.0f}, 1.0f};
+        frustum.planes[Frustum::kFar] = Plane{{0.0f, 0.0f, -1.0f}, 1.0f};
+        return frustum;
     }
 }
 
@@ -494,6 +509,76 @@ TEST(FrustumTest, SymmetricIntersectionTriangle)
     const Triangle triangle{{0.0f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f}, {0.0f, 0.5f, 0.0f}};
     EXPECT_EQ(Intersects(frustum, triangle), Intersects(triangle, frustum))
         << "Symmetric Triangle-Frustum intersection should match";
+}
+
+TEST(FrustumTest, LineIntersectionReturnsParamRange)
+{
+    const Frustum frustum = MakeUnitCubeFrustum();
+    const Line line{{-2.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+
+    Result forward{};
+    ASSERT_TRUE(Intersects(frustum, line, &forward));
+    EXPECT_NEAR(forward.t_min, 1.0f, 1e-4f);
+    EXPECT_NEAR(forward.t_max, 3.0f, 1e-4f);
+
+    Result reverse{};
+    ASSERT_TRUE(Intersects(line, frustum, &reverse));
+    EXPECT_NEAR(forward.t_min, reverse.t_min, 1e-6f);
+    EXPECT_NEAR(forward.t_max, reverse.t_max, 1e-6f);
+}
+
+TEST(FrustumTest, LineParallelOutsideIsRejected)
+{
+    const Frustum frustum = MakeUnitCubeFrustum();
+    const Line line{{2.0f, 2.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
+    EXPECT_FALSE(Intersects(frustum, line));
+}
+
+TEST(FrustumTest, RayIntersectionProducesEntryExit)
+{
+    const Frustum frustum = MakeUnitCubeFrustum();
+    const Ray ray{{-2.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+
+    Result result{};
+    ASSERT_TRUE(Intersects(frustum, ray, &result));
+    EXPECT_NEAR(result.t_min, 1.0f, 1e-4f);
+    EXPECT_NEAR(result.t_max, 3.0f, 1e-4f);
+}
+
+TEST(FrustumTest, RayPointingAwayDoesNotIntersect)
+{
+    const Frustum frustum = MakeUnitCubeFrustum();
+    const Ray ray{{2.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+    EXPECT_FALSE(Intersects(frustum, ray));
+}
+
+TEST(FrustumTest, SegmentIntersectionClampsToRange)
+{
+    const Frustum frustum = MakeUnitCubeFrustum();
+    const Segment segment{{-2.0f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f}};
+
+    Result result{};
+    ASSERT_TRUE(Intersects(frustum, segment, &result));
+    EXPECT_NEAR(result.t_min, 0.4f, 1e-4f);
+    EXPECT_NEAR(result.t_max, 1.0f, 1e-4f);
+}
+
+TEST(FrustumTest, SegmentOutsideIsRejected)
+{
+    const Frustum frustum = MakeUnitCubeFrustum();
+    const Segment segment{{-2.0f, 2.0f, 0.0f}, {-1.5f, 2.5f, 0.0f}};
+    EXPECT_FALSE(Intersects(frustum, segment));
+}
+
+TEST(FrustumTest, RayWithZeroDirectionFallsBackToPoint)
+{
+    const Frustum frustum = MakeUnitCubeFrustum();
+    const Ray ray{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+
+    Result result{};
+    ASSERT_TRUE(Intersects(frustum, ray, &result));
+    EXPECT_FLOAT_EQ(result.t_min, 0.0f);
+    EXPECT_FLOAT_EQ(result.t_max, 0.0f);
 }
 
 TEST(FrustumTest, GetCornersReturnsEightPoints)
