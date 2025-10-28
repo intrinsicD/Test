@@ -82,7 +82,7 @@ Develop a benchmarking matrix that orchestrates engine runs (via `RT-320` harnes
 
 ### Functional Requirements
  - [x] Benchmark orchestrator executes scenarios defined in shared configuration.
-- [ ] Harness collects telemetry, merges with reference results, and outputs comparison artefacts.
+- [x] Harness collects telemetry, merges with reference results, and outputs comparison artefacts.
 - [ ] CI smoke job executes reduced benchmark suite and enforces thresholds.
 - [ ] Dashboard/report generation summarises results for researchers.
 
@@ -181,3 +181,6 @@ def test_threshold_regression_detection():
 - 2025-12-03: Added `scripts/benchmarks/run_comparative_benchmarks.py` to parse declarative
   benchmark scenarios, execute engine/reference commands, and emit regression summaries,
   covering the orchestrator acceptance criterion.
+- 2025-12-14: Orchestrator now emits CSV summary tables (with configurable destinations)
+  alongside JSON summaries, enabling downstream tooling and telemetry viewer ingestion of
+  side-by-side engine vs. reference metrics without bespoke adapters.

@@ -4,6 +4,7 @@ import json
 import sys
 from pathlib import Path
 
+import csv
 import pytest
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -113,6 +114,28 @@ def test_execute_benchmarks_success(tmp_path: Path, capsys: pytest.CaptureFixtur
     assert metric_summary["name"] == "fps"
     assert metric_summary["passed"] is True
 
+    table_path = (tmp_path / "outputs" / "comparative_summary.csv").resolve()
+    with table_path.open(encoding="utf-8") as handle:
+        rows = list(csv.reader(handle))
+    assert rows[0] == [
+        "scenario",
+        "dataset",
+        "metric",
+        "higher_is_better",
+        "engine_value",
+        "reference_value",
+        "delta",
+        "relative_delta",
+        "passed",
+        "threshold_mode",
+        "threshold_limit",
+        "regression_amount",
+    ]
+    assert rows[1][0] == "success"
+    assert rows[1][2] == "fps"
+    assert rows[1][3] == "True"
+    assert rows[1][8] == "True"
+
 
 def test_execute_benchmarks_regression_failure(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     emitter = _create_metric_emitter(tmp_path / "emit_metrics.py")
@@ -199,4 +222,47 @@ def test_dry_run_uses_existing_outputs(tmp_path: Path, capsys: pytest.CaptureFix
 
     assert exit_code == 0
     assert "[PASS] dry" in captured.out
+
+    default_table = (output_dir / "comparative_summary.csv").resolve()
+    assert default_table.exists()
+
+
+def test_custom_table_path(tmp_path: Path) -> None:
+    emitter = _create_metric_emitter(tmp_path / "emit_metrics.py")
+    config_path = tmp_path / "config.json"
+    config = {
+        "output_directory": "outputs",
+        "scenarios": [
+            {
+                "name": "custom",
+                "engine": {
+                    "command": [sys.executable, str(emitter), "{output_path}", "105.0"],
+                    "output": "{output_dir}/{scenario}_engine.json",
+                },
+                "reference": {
+                    "command": [sys.executable, str(emitter), "{output_path}", "100.0"],
+                    "output": "{output_dir}/{scenario}_reference.json",
+                },
+                "metrics": [
+                    {
+                        "name": "fps",
+                        "higher_is_better": True,
+                        "threshold": {"type": "relative", "max_regression": 0.2},
+                    }
+                ],
+            }
+        ],
+    }
+    _write_config(config_path, config)
+
+    table_path = tmp_path / "table" / "summary.csv"
+    exit_code = run_comparative_benchmarks.main(
+        ["--config", str(config_path), "--table", str(table_path)]
+    )
+
+    assert exit_code == 0
+    assert table_path.exists()
+    with table_path.open(encoding="utf-8") as handle:
+        rows = list(csv.reader(handle))
+    assert rows[1][0] == "custom"
 

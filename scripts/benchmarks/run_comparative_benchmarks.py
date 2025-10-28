@@ -10,6 +10,11 @@ Usage
     python scripts/benchmarks/run_comparative_benchmarks.py \
         --config benchmarks/example.json
 
+The tool emits a machine-readable JSON summary along with a CSV table of
+per-scenario metrics under the configured output directory. Pass ``--output``
+and ``--table`` to override the default artifact paths when integrating with
+external dashboards or CI uploads.
+
 Configuration format (JSON or YAML)
 -----------------------------------
 
@@ -49,6 +54,7 @@ receive the concrete output location for its metrics JSON file.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import math
 import subprocess
@@ -224,6 +230,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Optional path for the summary JSON output. Defaults to <output_dir>/comparative_summary.json.",
     )
     parser.add_argument(
+        "--table",
+        type=Path,
+        help="Optional path for the summary CSV output. Defaults to <output_dir>/comparative_summary.csv.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Skip executing commands; useful when results are precomputed for testing.",
@@ -278,6 +289,53 @@ def write_summary(summary: BenchmarkSummary, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = summary.as_dict()
     path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def write_summary_table(summary: BenchmarkSummary, path: Path) -> None:
+    """Persist a tabular view of *summary* for downstream analysis tools."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    headers = [
+        "scenario",
+        "dataset",
+        "metric",
+        "higher_is_better",
+        "engine_value",
+        "reference_value",
+        "delta",
+        "relative_delta",
+        "passed",
+        "threshold_mode",
+        "threshold_limit",
+        "regression_amount",
+    ]
+
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(headers)
+        for result in summary.results:
+            dataset = result.scenario.dataset or ""
+            for metric in result.metrics:
+                if metric.relative_delta is None:
+                    relative_delta = ""
+                else:
+                    relative_delta = f"{metric.relative_delta:.10f}"
+                writer.writerow(
+                    [
+                        result.scenario.name,
+                        dataset,
+                        metric.spec.name,
+                        str(metric.spec.higher_is_better),
+                        f"{metric.engine_value:.10f}",
+                        f"{metric.reference_value:.10f}",
+                        f"{metric.delta:.10f}",
+                        relative_delta,
+                        str(metric.passed),
+                        metric.spec.threshold.mode,
+                        f"{metric.spec.threshold.limit:.10f}",
+                        f"{metric.regression_amount:.10f}",
+                    ]
+                )
 
 
 def format_summary_text(summary: BenchmarkSummary) -> str:
@@ -602,6 +660,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         summary = execute_benchmarks(config, dry_run=args.dry_run)
         summary_path = args.output or config.output_dir / "comparative_summary.json"
         write_summary(summary, summary_path)
+        table_path = args.table or config.output_dir / "comparative_summary.csv"
+        write_summary_table(summary, table_path)
         print(format_summary_text(summary))
         return 0 if summary.passed else 1
     except BenchmarkConfigError as exc:
