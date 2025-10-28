@@ -203,3 +203,7 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
   manifests into deterministic caches with checksum metadata validated by
   regression tests, seeding `AS-330` deliverables with a sample manifest in
   `assets/datasets/remesh_sample`.
+- CI now exercises the AI-004 harness CLI end-to-end via `pytest
+  python/tests/test_prototype_harness.py::test_cli_integration_with_sample_assets`,
+  guarding configuration schema alignment across runtime, rendering, and tooling
+  workstreams.
