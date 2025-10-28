@@ -17,7 +17,7 @@ Provide an immediately usable prototyping harness that consumes the shared AI-00
 - Extensibility hooks for interactive tooling (e.g., TL-210 sandbox UI).
 - Telemetry capture plumbing aligned with `CC-001`.
 
-This design captures the initial Python-based scaffold that exercises the runtime library via the existing ctypes bindings while C++-native integrations are developed.
+This design captures the initial Python-based scaffold that exercises the runtime library via the existing ctypes bindings while C++-native integrations are developed. A canonical sample configuration (`docs/examples/ai004_sample.json`) accompanies the scaffold so contributors can validate the harness against the `assets/datasets/remesh_sample` package without drafting manifests from scratch.
 
 ---
 

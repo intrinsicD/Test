@@ -147,7 +147,9 @@ counts, pass timings, and shading-mode usage without additional wiring.
 ### AI-004 Configuration Migration
 
 - Rendering presets referenced by the prototyping harness must declare the
-  `ai-004.rendering` schema block before strict validation is enabled. Use the
+  `ai-004.rendering` schema block before strict validation is enabled. The
+  repository ships `docs/examples/ai004_sample.json`, which already embeds the
+  research baseline preset alongside the sample remeshing dataset. Use the
   shared validator:
   ```bash
   python -m scripts.validate_ai004_config --config docs/examples/ai004_sample.json

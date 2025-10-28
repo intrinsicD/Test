@@ -250,7 +250,10 @@ ctest --preset linux-gcc-debug -R runtime
 
 ### Prototyping Harness (AI-004)
 
-- Validate AI-004 configurations with the Python harness scaffold:
+- A sample configuration lives at `docs/examples/ai004_sample.json` and
+  references the `assets/datasets/remesh_sample` manifest so new contributors
+  can exercise the harness without authoring manifests from scratch. Validate
+  AI-004 configurations with the Python harness scaffold:
   ```bash
   python -m scripts.prototyping.run_prototype_harness --config docs/examples/ai004_sample.json --dry-run
   ```

@@ -322,3 +322,13 @@ def test_cli_integration_with_sample_assets(
     assert "Dry run summary" in captured.out
     assert captured.err == ""
 
+
+def test_docs_sample_configuration_is_loadable() -> None:
+    sample_config = Path(__file__).resolve().parents[2] / "docs" / "examples" / "ai004_sample.json"
+    assert sample_config.exists(), "docs/examples/ai004_sample.json is required for onboarding"
+
+    harness = load_harness(sample_config, require_schema=True)
+    assert harness.selected_dataset is not None
+    assert harness.configuration.rendering is not None
+    assert harness.configuration.runtime is not None
+
