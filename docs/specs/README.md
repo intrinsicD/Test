@@ -8,6 +8,7 @@ This directory houses ADRs, RFPs, and deep dives. They are the binding source of
 - [`ADR-0005-geometry-io-roundtrip.md`](ADR-0005-geometry-io-roundtrip.md) – geometry/IO ownership, file formats, and validation pipeline.
 - [`ADR-0006-animation-deformation.md`](ADR-0006-animation-deformation.md) – runtime linear blend skinning pipeline and rig binding requirements.
 - [`AN-240-state-machine-authoring.md`](AN-240-state-machine-authoring.md) – specification for animation state-machine authoring, serialization, and tooling integration.
+- [`ADR-0008-runtime-main-loop-and-tooling.md`](ADR-0008-runtime-main-loop-and-tooling.md) – runtime loop configurability, presentation backends, and reusable ImGui panel registry.
 
 When creating a new record:
 

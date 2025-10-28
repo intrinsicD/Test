@@ -306,6 +306,7 @@ ctest --preset linux-gcc-debug -R runtime
 - [`BACKLOG.md`](BACKLOG.md): Module-specific task tracking
 - [`DIAGNOSTICS.md`](DIAGNOSTICS.md): Comprehensive telemetry reference and troubleshooting
 - [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md): Asset loading workflows
+- [`../../specs/ADR-0008-runtime-main-loop-and-tooling.md`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md): Main loop configuration, presentation, and tooling registry.
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): System-level data flow and invariants
 - [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Shared metric definitions
 - [`../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md`](../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md): Frame-graph integration milestone

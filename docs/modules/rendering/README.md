@@ -521,6 +521,7 @@ ctest --preset linux-gcc-debug -R rendering
 - [`BACKEND_CHECKLIST.md`](BACKEND_CHECKLIST.md): Backend implementation status
 - [`METADATA_SCHEMA.md`](METADATA_SCHEMA.md): Frame graph metadata specification
 - [`../../specs/ADR-0003-runtime-frame-graph.md`](../../specs/ADR-0003-runtime-frame-graph.md): Frame graph architecture
+- [`../../specs/ADR-0008-runtime-main-loop-and-tooling.md`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md): Presentation abstraction and UI compositing requirements.
 - [`../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md`](../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md): Integration milestone
 - [`../../archive/backlog/legacy/tasks/T-0116-rendering-vulkan-resource-translation.md`](../../archive/backlog/legacy/tasks/T-0116-rendering-vulkan-resource-translation.md): Vulkan implementation
 
