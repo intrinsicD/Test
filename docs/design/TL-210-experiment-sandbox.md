@@ -109,6 +109,15 @@ state in per-user configuration locations.
   the sandbox plots whatever sample series the caller provides.
 - When wiring the sandbox into the prototyping harness UI loop, invoke
   `render()` after calling `ImGui::NewFrame()` and before `ImGui::Render()`.
+- Programmatic integrations can drive the UI state without synthesising ImGui
+  events using the newly exposed helpers:
+  - `select_dataset(id)` fires the dataset callback once the identifier is
+    valid.
+  - `select_rendering_preset(id)`, `set_shading_mode(name)`, and
+    `set_overlay_enabled(key, enabled)` update rendering preferences while
+    emitting the rendering callback only when state changes.
+  - `sync_overlay_preferences()` now reports whether preset switches changed
+    overlay defaults so automation can react accordingly.
 
 ## Next Steps
 

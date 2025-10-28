@@ -95,7 +95,7 @@ Build an ImGui-powered sandbox application embedded within the prototyping harne
 
 ### Testing Requirements
 - [x] Tools module unit tests cover widget validation and layout persistence.
-- [ ] Integration test verifies sandbox ↔ runtime communication.
+- [x] Integration test verifies sandbox ↔ runtime communication.
 - [ ] Golden screenshot tests guard UI regressions (where feasible).
 - [ ] Coverage ≥ 85% on new tooling code.
 - [ ] Telemetry load benchmark simulates ≥5 concurrent comparative runs with no more than 5% frame time regression while charts stream live metrics.
@@ -198,3 +198,6 @@ TEST(ExperimentSandbox, PersistsLayoutPreferences) {
   `run_prototype_harness.py --describe-json` outputs.
 - 2025-12-24: Introduced `PrototypeHarnessBenchmarkRunner` to execute the harness headlessly from the sandbox, parse the summary,
   and display success/failure messages inline in the benchmark panel.
+- 2025-12-26: Added programmatic selection helpers (`select_dataset`, `select_rendering_preset`,
+  `set_shading_mode`, `set_overlay_enabled`) plus callback-focused unit tests so runtime automation can simulate UI
+  interactions during integration testing.
