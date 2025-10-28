@@ -33,10 +33,14 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 - [`T-0123-rendering-pipeline-state-management.md`](T-0123-rendering-pipeline-state-management.md) – implement PSO caching, shader management, and state tracking.
 - [`T-0124-rendering-lighting-system.md`](T-0124-rendering-lighting-system.md) – implement comprehensive lighting with PBR shading, shadows, and light culling.
 - [`AI-004-application-prototyping-enablement.md`](AI-004-application-prototyping-enablement.md) – cross-module initiative aligning rendering, runtime, tools, assets, and benchmarking deliverables.
+- [`DC-040-ai-004-configuration-schema-alignment.md`](DC-040-ai-004-configuration-schema-alignment.md) – cross-module schema alignment.
+- [`DC-041-ai-004-kickoff-readiness.md`](DC-041-ai-004-kickoff-readiness.md) – publish kickoff milestone plan and risk ownership.
 - [`RE-610-research-rendering-baseline.md`](RE-610-research-rendering-baseline.md) – deliver research-grade rendering preset with telemetry.
 - [`RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md) – build reusable harness with interactive/headless modes and scripting hooks.
+- [`RT-321-prototyping-case-study-validation.md`](RT-321-prototyping-case-study-validation.md) – deliver reproducible AI-004 case studies with telemetry baselines.
 - [`TL-210-experiment-sandbox-ui.md`](TL-210-experiment-sandbox-ui.md) – ship ImGui sandbox for experiment configuration and telemetry capture.
 - [`AS-330-reference-dataset-packages.md`](AS-330-reference-dataset-packages.md) – curate datasets with manifests, ingestion scripts, and provenance.
 - [`CC-310-comparative-benchmark-automation.md`](CC-310-comparative-benchmark-automation.md) – automate comparative benchmarking and CI gates.
+- [`CC-311-benchmark-visualization-integration.md`](CC-311-benchmark-visualization-integration.md) – integrate comparative plots and CI gating for AI-004 benchmarks.
 
 Create new task files as work is planned. Archive completed tasks under a `done/` subdirectory if they remain valuable references.
