@@ -111,6 +111,15 @@ roadmap.
 
 ### Immediate Next (Ready for Sprint Planning)
 
+- **DC-080** — Automate documentation synchronization workflow to minimise drift between the central roadmap, README snapshots, and task files.
+  - **Priority P1:** Implement a documentation generation script that derives summary tables and TODO snapshots directly from authoritative roadmap data and updates downstream READMEs.
+  - **Priority P2:** Integrate the generator into `scripts/validate_docs.py` (or adjacent CI automation) and document the workflow so contributors run it alongside existing validation checks.
+- **PY-015** — Script Python environment bootstrap to standardise onboarding steps for contributors.
+  - **Priority P1:** Provide a single entry-point command (Makefile target or Python script) that provisions the virtual environment, installs dependencies, and exports required environment variables.
+  - **Priority P2:** Update contributor documentation to reference the scripted workflow and add regression coverage ensuring the bootstrap succeeds on supported platforms.
+- **SC-045** — Replace manual entity counting in `Scene::size()` with native EnTT utilities to avoid unnecessary iteration costs.
+  - **Priority P2:** Swap the custom traversal for `registry_.alive()` (or equivalent EnTT query) and add regression tests to confirm the size contract remains unchanged.
+
 - **RT-006** — IO signature hardening remains blocked on CI infrastructure provisioning. Monitor infra updates and reprioritise when capacity restored.
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
   - **Priority P0:** Uniform remeshing baseline (split/collapse + relaxation) available via
