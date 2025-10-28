@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/geometry/shapes/aabb.hpp"
+#include "engine/geometry/shapes/capsule.hpp"
 #include "engine/geometry/shapes/cylinder.hpp"
 #include "engine/geometry/shapes/ellipsoid.hpp"
 #include "engine/geometry/shapes/frustum.hpp"

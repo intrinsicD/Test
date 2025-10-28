@@ -90,3 +90,5 @@ roadmap after each milestone.
   and portal edges for T-0122 visibility workloads.
 - 2025-12-22 — Capsule intersections gained line, ray, and segment overloads with symmetric interval tests so picking and portal
   classifiers can use the shared primitive tracked by T-0129.
+- 2025-12-23 — Introduced the `Capsule` shape primitive with analytic helpers and random sampling so the new intersection paths
+  and documentation examples compile against a dedicated geometry type instead of relying on forward declarations.
