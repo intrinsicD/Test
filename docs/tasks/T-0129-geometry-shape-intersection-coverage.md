@@ -180,3 +180,4 @@ Implement missing critical tests:
 - 2025-12-08: Added boolean symmetry regression tests for ellipsoid–OBB, ellipsoid–sphere, ellipsoid–triangle, OBB–sphere, OBB–triangle, and sphere–triangle overload pairs to keep bidirectional intersection calls aligned.
 - 2025-12-09: Added rotated ellipsoid regression tests for plane, triangle, and cylinder intersections plus ellipsoid–OBB containment to ensure orientation-sensitive cases remain covered during future refactors.
 - 2025-12-10: Replaced the cylinder–ellipsoid intersection sampler with a GJK-based solver backed by the legacy axis sampling fallback and added a regression test covering thin, highly oriented ellipsoids to prevent false negatives in visibility-culling workloads.
+- 2025-12-12: Added containment regression tests for skewed cylinder-in-cylinder, cylinder–ellipsoid, and cylinder–OBB pairs to guarantee non-parallel orientation coverage for AI-004 visibility culling pipelines.
