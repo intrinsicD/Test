@@ -186,3 +186,5 @@ TEST(ExperimentSandbox, PersistsLayoutPreferences) {
 ## Notes
 - Coordinate with design to ensure UI conventions align with diagnostics viewer.
 - Consider plugin system for algorithm-specific widgets.
+- 2025-12-19: Harness CLI gained `--describe-json`/`--summary-json` exports so the sandbox can ingest dataset/preset metadata
+  and render execution summaries without bespoke parsers.

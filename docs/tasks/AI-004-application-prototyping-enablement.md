@@ -197,6 +197,9 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
   per run while `ENGINE_AI004_SCHEMA_V1` remains opt-in during the migration
   period. Module READMEs document the migration steps for runtime, rendering,
   tools, and assets.
+- Harness CLI now exports configuration descriptors (`--describe-json`) and
+  dry-run execution summaries (`--summary-json`) so TL-210 can populate sandbox
+  selectors and CC-310 can ingest benchmark outputs without bespoke parsers.
 - Geometry remeshing statistics/telemetry emit triangle quality metrics so dataset
   packaging can flag sliver-heavy assets before entering AI-004 workflows.
 - Dataset packaging workflows use `scripts/datasets/ingest_dataset.py` to copy
