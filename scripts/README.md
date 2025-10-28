@@ -26,6 +26,8 @@
 - Run `python scripts/update_agents_tree.py` after layout changes to refresh the generated hierarchy in `AGENTS.md`.
 - Package dataset manifests into cache directories with
   `python -m scripts.datasets.ingest_dataset <manifest> --copy-assets`.
+- Bootstrap the Python environment for contributors and CI workers with
+  `python -m scripts.bootstrap_python_env` (implements roadmap item `PY-015`).
 
 ## TODO / Next Steps
 
