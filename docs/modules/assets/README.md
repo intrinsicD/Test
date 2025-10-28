@@ -259,6 +259,15 @@ ctest --preset linux-gcc-debug -R assets
 - Run C++ tests for assets:
   - `ctest --preset linux-gcc-debug -R assets`
 - See examples above and tests under `engine/assets/tests/` for end-to-end usage.
+- During AI-004 migration, dataset packaging must emit `ai-004.dataset` schema
+  headers so downstream harnesses enforce consistent metadata:
+  1. Generate manifests with `geometry_remesh --manifest-output` or the dataset
+     packaging scripts and verify them via
+     `python -m scripts.validate_ai004_config --dataset <manifest>`.
+  2. Use `python -m scripts.prototyping.run_prototype_harness --config <config> --require-schema`
+     (or export `ENGINE_AI004_SCHEMA_V1=1`) before publishing to ensure the
+     runtime harness accepts the manifests without falling back to legacy
+     defaults.
 
 ## TODO / Next Steps
 

@@ -263,6 +263,19 @@ ctest --preset linux-gcc-debug -R runtime
   `ENGINE_AI004_SCHEMA_V1=1`. When the variable is unset the loaders inject
   default schema headers so legacy manifests remain compatible while teams
   complete the transition to the v1 specification.
+- `run_prototype_harness` also exposes `--require-schema`, which forwards the
+  enforcement request directly to the loader for per-run validation. Use it in
+  CI or local smoke tests to guarantee manifests declare `ai-004.*` headers
+  before runtime ticks execute.
+- Migration checklist for legacy manifests:
+  1. Run `python -m scripts.validate_ai004_config --dataset <path> --config <path>`
+     to surface missing headers or field violations.
+  2. Update manifests to include the schema blocks described in
+     [`docs/design/AI-004-configuration-schema.md`](../../design/AI-004-configuration-schema.md).
+  3. Re-run the harness with `--require-schema` (or set
+     `ENGINE_AI004_SCHEMA_V1=1`) to confirm the updated manifests satisfy v1.
+  4. Remove temporary overrides once all modules publish schema-compliant
+     manifests; the feature flag can then become the default behaviour.
 
 ## TODO / Next Steps
 

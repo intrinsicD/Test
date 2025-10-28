@@ -37,7 +37,7 @@ def _print_summary(harness: PrototypeHarness) -> None:
 
 def _run(args: argparse.Namespace) -> int:
     try:
-        harness = load_harness(str(args.config))
+        harness = load_harness(str(args.config), require_schema=True if args.require_schema else None)
     except PrototypeHarnessError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
@@ -84,6 +84,14 @@ def main(argv: Iterable[str] | None = None) -> int:
         "--dry-run",
         action="store_true",
         help="Validate configuration without loading the runtime library.",
+    )
+    parser.add_argument(
+        "--require-schema",
+        action="store_true",
+        help=(
+            "Fail if configuration or dataset sections omit ai-004 schema headers. "
+            "When unset the harness honours the ENGINE_AI004_SCHEMA_V1 feature flag."
+        ),
     )
     args = parser.parse_args(list(argv) if argv is not None else None)
 

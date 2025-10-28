@@ -87,6 +87,9 @@ roadmap.
   metrics without custom adapters, advancing `CC-310` reporting deliverables.
 - **Priority P1:** `geometry_remesh` CLI grows `--manifest-output` to persist AI-004 dataset manifests
   on disk, enabling AS-330 ingestion scripts to register remeshed assets without manual edits.
+- **Priority P1:** Prototyping harness CLI introduces a `--require-schema` guard and module READMEs
+  record migration checklists so strict configuration validation can roll out incrementally across
+  AI-004 workstreams during the v1 adoption phase.
 
 ---
 

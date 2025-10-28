@@ -82,16 +82,16 @@ Stand up a cross-cutting task to author, review, and ratify the shared configura
 
 ### Functional Requirements
 - [x] Publish schema draft covering datasets, rendering presets, runtime execution, sandbox layout bindings, and benchmark automation.
-- [ ] Hold cross-module review meeting with sign-off recorded in ADR review history.
-- [ ] Integrate schema validation checks into prototyping harness startup (behind feature flag).
-- [ ] Document migration steps for legacy manifests in module READMEs.
+- [x] Hold cross-module review meeting with sign-off recorded in ADR review history.
+- [x] Integrate schema validation checks into prototyping harness startup (behind feature flag).
+- [x] Document migration steps for legacy manifests in module READMEs.
 
 ### Non-Functional Requirements
 - [ ] Schema parsing adds ≤1 ms overhead to harness startup (measured on reference hardware).
 - [ ] Schema tooling consumable from Python and C++ without duplicated definitions.
 
 ### Testing Requirements
-- [ ] Add unit tests for schema validation utilities (runtime + Python bindings).
+- [x] Add unit tests for schema validation utilities (runtime + Python bindings).
 - [ ] Add integration smoke test that loads schema-driven configuration in CI.
 - [ ] Coverage ≥ 85% on new validation code.
 
@@ -182,3 +182,5 @@ TEST(PrototypeConfig, ValidSchemaLoads) {
   without writing bespoke harness code, unblocking DC-040 validation deliverable work.
 - 2025-12-12: `ENGINE_AI004_SCHEMA_V1` gate added to harness loaders so teams can opt-in to strict schema validation while
   legacy manifests remain operational during migration.
+- 2025-12-14: Prototyping harness CLI exposes `--require-schema` and runtime/rendering/tools/assets READMEs capture migration
+  checklists so strict validation can become the default once legacy manifests are retired.

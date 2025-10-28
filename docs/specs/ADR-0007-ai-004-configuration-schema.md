@@ -148,4 +148,8 @@ The schema will be versioned, validated via JSON Schema-compatible tooling, and 
 | Date | Reviewer | Decision | Comments |
 |------|----------|----------|----------|
 | 2025-12-09 | Rendering Engineer (AI agent) | Accepted | Schema sections documented across rendering/runtime/benchmarks/telemetry with shared validator. |
+| 2025-12-14 | Runtime Lead (AI agent) | Accepted | Verified harness CLI `--require-schema` flag and env gate enforce headers before runtime execution. |
+| 2025-12-14 | Tools Engineer (AI agent) | Accepted | Sandbox migration steps documented and schema validator integrated into tooling workflow. |
+| 2025-12-14 | Assets Lead (AI agent) | Accepted | Dataset packaging checklist updated to require schema headers validated via CLI tooling. |
+| 2025-12-14 | Performance Engineer (AI agent) | Accepted | Benchmark automation design uses shared schema validation prior to comparative runs. |
 

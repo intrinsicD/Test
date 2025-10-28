@@ -131,6 +131,10 @@ TEST(DatasetManifest, ParsesMetadata) {
 - Use YAML manifests validated against JSON schema for deterministic structure.
 - Store dataset downloads via git-lfs or external CDN with caching to avoid repo bloat.
 - Provide version pinning to support reproducible research citations.
+- Enforce schema headers during packaging by running
+  `python -m scripts.validate_ai004_config --dataset <manifest>` and
+  exercising the prototyping harness with `--require-schema` so assets remain
+  compatible once strict validation becomes the default.
 
 ### Risks & Mitigations
 | Risk | Likelihood | Impact | Mitigation |

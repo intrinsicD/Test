@@ -144,6 +144,23 @@ Runtime diagnostics export these metrics through the shared telemetry schema so
 the prototyping harness and benchmarking automation can surface draw-call
 counts, pass timings, and shading-mode usage without additional wiring.
 
+### AI-004 Configuration Migration
+
+- Rendering presets referenced by the prototyping harness must declare the
+  `ai-004.rendering` schema block before strict validation is enabled. Use the
+  shared validator:
+  ```bash
+  python -m scripts.validate_ai004_config --config docs/examples/ai004_sample.json
+  ```
+  to surface missing headers or invalid preset names.
+- During the migration window, `python -m scripts.prototyping.run_prototype_harness`
+  can be executed with `--require-schema` (or by exporting
+  `ENGINE_AI004_SCHEMA_V1=1`) to guarantee updated presets are consumed by the
+  runtime harness before frame-graph execution.
+- Document any module-specific overrides or experimental passes inside the
+  configuration manifest so downstream tools inherit the same metadata when the
+  schema check becomes mandatory.
+
 ## Backend Support
 
 ### Vulkan Backend

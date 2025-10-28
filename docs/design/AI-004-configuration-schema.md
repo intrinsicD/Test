@@ -271,6 +271,12 @@ dataclasses for downstream tooling. Regression tests under
 full multi-section configurations to guarantee optional sections behave
 predictably.
 
+`python -m scripts.prototyping.run_prototype_harness --require-schema` toggles
+strict enforcement for individual runs while the `ENGINE_AI004_SCHEMA_V1`
+feature flag enables rollout-wide validation. Use the CLI alongside
+`scripts.validate_ai004_config` during migration to prevent legacy manifests
+from bypassing schema headers.
+
 Callers should surface `ConfigurationSchemaError` messages directly to users so
 schema violations remain actionable during asset packaging or prototyping
 workflows.

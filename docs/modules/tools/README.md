@@ -227,6 +227,16 @@ Once modularization is complete, the module will be re-enabled and integrated in
 - Run tools tests:
   - `pytest scripts/tests/`
   - `ctest --preset linux-gcc-debug -R tools` (when C++ tools are enabled)
+- Sandbox UI and prototyping harness consumers should adopt the shared AI-004
+  configuration schema during migration:
+  1. Validate manifests with `python -m scripts.validate_ai004_config` before
+     loading them in tooling prototypes.
+  2. When iterating locally, pass `--require-schema` to
+     `python -m scripts.prototyping.run_prototype_harness` (or export
+     `ENGINE_AI004_SCHEMA_V1=1`) so the Python harness fails fast on missing
+     schema blocks.
+  3. Update sandbox layout persistence to record schema IDs once the UI begins
+     emitting AI-004 configuration fragments.
 
 ## TODO / Next Steps
 

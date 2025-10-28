@@ -133,6 +133,10 @@ TEST(ExperimentSandbox, PersistsLayoutPreferences) {
 - Use modular widget system so research teams can plug in new controls without recompiling base UI.
 - Store configuration in YAML/JSON shared with runtime harness.
 - Provide keyboard shortcuts and command palette for power users.
+- Validate sandbox-generated manifests with the shared schema tooling:
+  `scripts.validate_ai004_config` and the prototyping harness `--require-schema`
+  option ensure UI exports remain compatible once strict validation is
+  mandatory.
 
 ### Risks & Mitigations
 | Risk | Likelihood | Impact | Mitigation |
