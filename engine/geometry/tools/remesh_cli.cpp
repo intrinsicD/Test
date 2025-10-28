@@ -9,6 +9,7 @@
 #include <cmath>
 #include <exception>
 #include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -270,6 +271,17 @@ namespace engine::geometry::tools
                 }
                 ++index;
                 options.output_path = std::filesystem::path{arguments[index]};
+                continue;
+            }
+
+            if (argument == "--manifest-output")
+            {
+                if (index + 1 >= arguments.size())
+                {
+                    return RemeshCliOptionsResult{missing_value_error(argument)};
+                }
+                ++index;
+                options.manifest_output_path = std::filesystem::path{arguments[index]};
                 continue;
             }
 
@@ -647,6 +659,40 @@ namespace engine::geometry::tools
             return RemeshCliExecution{std::string{"Failed to save remeshed output: "}.append(exception.what())};
         }
 
+        if (options.manifest_output_path.has_value())
+        {
+            const std::filesystem::path& manifest_path = options.manifest_output_path.value();
+            const std::filesystem::path parent = manifest_path.parent_path();
+            if (!parent.empty())
+            {
+                std::error_code ec{};
+                std::filesystem::create_directories(parent, ec);
+                if (ec)
+                {
+                    std::ostringstream stream;
+                    stream << "Failed to create manifest directory '" << parent.string() << "': " << ec.message();
+                    return RemeshCliExecution{stream.str()};
+                }
+            }
+
+            const std::string manifest = BuildDatasetManifestEntry(options, summary);
+            std::ofstream manifest_stream{manifest_path, std::ios::binary};
+            if (!manifest_stream)
+            {
+                std::ostringstream stream;
+                stream << "Failed to open dataset manifest path '" << manifest_path.string() << "'";
+                return RemeshCliExecution{stream.str()};
+            }
+
+            manifest_stream << manifest;
+            if (!manifest_stream)
+            {
+                std::ostringstream stream;
+                stream << "Failed to write dataset manifest to '" << manifest_path.string() << "'";
+                return RemeshCliExecution{stream.str()};
+            }
+        }
+
         return RemeshCliExecution{summary};
     }
 
@@ -873,6 +919,11 @@ namespace engine::geometry::tools
         }
 
         stream << '\n';
+        if (options.manifest_output_path.has_value())
+        {
+            stream << "  Dataset manifest written to: "
+                   << options.manifest_output_path->generic_string() << "\n";
+        }
         stream << "  Dataset manifest snippet:\n";
         const std::string manifest = BuildDatasetManifestEntry(options, result);
         std::istringstream manifest_stream{manifest};
@@ -891,6 +942,7 @@ namespace engine::geometry::tools
         stream << "Options:\n";
         stream << "  --input <path>                  Path to the source mesh (OBJ).\n";
         stream << "  --output <path>                 Output mesh path (defaults to <input>_remeshed.obj).\n";
+        stream << "  --manifest-output <path>        Write dataset manifest YAML to <path>.\n";
         stream << "  --mode <uniform|feature|adaptive>\n";
         stream << "                                   Remeshing mode (default: uniform).\n";
         stream << "  --target-edge-length <value>    Absolute target edge length in world units.\n";

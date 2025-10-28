@@ -402,6 +402,9 @@ datasets:
 
 Use the CLI in automation or diagnostics pipelines when a lightweight remeshing
 harness is required without embedding the geometry module in a separate host.
+Pass `--manifest-output <path>` to persist the YAML snippet directly; the CLI
+creates parent directories automatically so dataset packaging (`AS-330`) can
+ingest remeshing outputs without manual copy/paste steps.
 
 Use `ComputeMeshEdgeStatistics` when you need aggregate edge metrics for telemetry
 or adaptive error budgets. `ResolveRemeshingTargets` consumes a validated request

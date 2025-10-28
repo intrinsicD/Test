@@ -182,3 +182,4 @@ TEST(DatasetManifest, ParsesMetadata) {
 
 ## Progress Log
 - 2025-12-04: Licensing packet (assets + legal) submitted for primary geometry datasets; awaiting legal approval by 2025-12-08 to unblock harness manifests.
+- 2025-12-16: `geometry_remesh` adds `--manifest-output` to write AI-004 dataset manifest YAML directly, reducing manual steps for dataset ingestion scripts.

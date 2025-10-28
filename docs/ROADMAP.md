@@ -80,6 +80,8 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - 2025-12-14: Comparative benchmark orchestrator writes JSON and CSV summaries (configurable
   via `--output`/`--table`) so telemetry viewers and CI pipelines can ingest engine vs. reference
   metrics without custom adapters, advancing `CC-310` reporting deliverables.
+- 2025-12-16: `geometry_remesh` CLI grows `--manifest-output` to persist AI-004 dataset manifests
+  on disk, enabling AS-330 ingestion scripts to register remeshed assets without manual edits.
 
 ---
 
