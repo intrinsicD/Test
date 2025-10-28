@@ -120,6 +120,9 @@ Kickoff sequencing details and risk ownership live in [`tasks/AI-004-kickoff-bri
 - **Priority P0:** Bundled case studies (`geometry-baseline`, `rendering-debug`) now live under
   `assets/datasets/case_studies` with CLI `--case-study` support and pytest coverage,
   enabling RT-321 dry runs without manual manifest assembly.
+- **Priority P0:** Added the `runtime_prototype_harness_geometry_case_study` CTest to execute
+  the geometry baseline case study in the harness with schema enforcement, providing
+  deterministic AI-004 regression coverage alongside the Python smoke suite.
 - **Priority P1:** Remeshing statistics and telemetry now report triangle counts plus normalised
   quality scores, allowing AI-004 dataset validation to flag sliver-heavy outputs without rerunning
   processing, progressing the `GE-221+` execution milestone.

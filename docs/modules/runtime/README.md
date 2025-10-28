@@ -270,6 +270,13 @@ ctest --preset linux-gcc-debug -R runtime
   The CLI prints the resolved manifest path, writes summaries when
   `--summary-json`/`--describe-json` are provided, and keeps the registry in
   sync with the AI-004 kickoff plan tracked by `RT-321`.
+- Continuous integration exercises the geometry baseline case study via CTest:
+  ```bash
+  ctest --preset <preset> -R runtime_prototype_harness_geometry_case_study
+  ```
+  The test launches the harness CLI in dry-run mode with schema enforcement
+  enabled, writes run summaries into the build artefact directory, and applies
+  the mock window backend so it remains deterministic on headless runners.
 - Enable strict schema enforcement during the migration by exporting
   `ENGINE_AI004_SCHEMA_V1=1`. When the variable is unset the loaders inject
   default schema headers so legacy manifests remain compatible while teams
