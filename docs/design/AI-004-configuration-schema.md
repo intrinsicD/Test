@@ -63,6 +63,10 @@ All numeric values are emitted with fixed precision to simplify regression testi
 and diffing. Paths are rendered using POSIX separators so manifests remain
 portable across platforms.
 
+Dataset identifiers must be unique within a manifest. Validators reject
+duplicate slugs so downstream tooling can assume one-to-one mappings when
+resolving dataset references from runtime or benchmark configuration sections.
+
 ### Example
 
 ```yaml
@@ -294,6 +298,10 @@ predictably. Static analyzers and editors consume the mirrored type stubs in
 [`python/engine3g/config_schema.pyi`](../../python/engine3g/config_schema.pyi)
 so downstream tooling can reason about schema-backed data without importing the
 runtime loader.
+
+Cross-referencing is also enforced: runtime configuration and benchmark
+scenarios must reference dataset slugs declared in the manifest, and validators
+raise descriptive errors when a slug is missing or duplicated.
 
 `python -m scripts.prototyping.run_prototype_harness --require-schema` toggles
 strict enforcement for individual runs while the `ENGINE_AI004_SCHEMA_V1`
