@@ -112,3 +112,6 @@ Implement concrete command encoder backends for Vulkan, DirectX12, Metal, and Op
 - 2025-12-12: Added `OpenGLImmediateCommandStream` which resolves meshes through the render resource provider and issues
   OpenGL draw calls (with draw-count instrumentation for headless runs), wiring recorded geometry directly into the command
   stream for AI-004 prototypes.
+- 2025-12-13: Introduced `OpenGLRuntimeSubmission`, bundling the render resource provider, command stream, GPU resource
+  provider, encoder provider, and scheduler so runtime hosts can execute frame graphs with real draw submissions backed by the
+  OpenGL command encoder.
