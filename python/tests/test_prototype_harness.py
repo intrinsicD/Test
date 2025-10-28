@@ -18,10 +18,12 @@ if str(_PYTHON_ROOT) not in sys.path:
 
 from engine3g.config_schema import load_configuration
 from engine3g.prototype_harness import (
+    configuration_summary_to_dict,
     HarnessExecutionOptions,
     HarnessRunSummary,
     PrototypeHarness,
     PrototypeHarnessError,
+    run_summary_to_dict,
     load_harness,
     summarize,
 )
@@ -125,6 +127,23 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.rendering_preset == "research-baseline"
 
 
+def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+
+    harness = PrototypeHarness(configuration)
+    description = harness.describe_configuration()
+    description_payload = configuration_summary_to_dict(description)
+
+    assert description.selected_dataset == "remesh-sample"
+    assert description.runtime.dataset == "remesh-sample"
+    assert description.rendering is not None
+    assert description.rendering.preset == "research-baseline"
+    assert description_payload["runtime"]["hot_reload"] == {"enabled": False}
+    assert description_payload["datasets"][0]["id"] == "remesh-sample"
+    assert description_payload["datasets"][0]["kind"] == "geometry.remesh"
+
+
 def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     text = json.loads(config_path.read_text(encoding="utf-8"))
@@ -179,6 +198,43 @@ def test_summarize_formats_output() -> None:
         summarize(summary)
         == "dataset=remesh-sample preset=research-baseline shading=deferred frames=10 dt=0.016000"
     )
+
+    summary_payload = run_summary_to_dict(summary)
+    assert summary_payload["dataset"] == "remesh-sample"
+    assert summary_payload["frames"] == 10
+
+
+def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    config_path = _write_configuration(tmp_path)
+    describe_path = tmp_path / "exports" / "describe.json"
+    summary_path = tmp_path / "exports" / "summary.json"
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        [
+            "--config",
+            str(config_path),
+            "--dry-run",
+            "--describe-json",
+            str(describe_path),
+            "--summary-json",
+            str(summary_path),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert describe_path.exists()
+    assert summary_path.exists()
+
+    description_payload = json.loads(describe_path.read_text(encoding="utf-8"))
+    summary_payload = json.loads(summary_path.read_text(encoding="utf-8"))
+
+    assert description_payload["selected_dataset"] == "remesh-sample"
+    assert description_payload["rendering"]["preset"] == "research-baseline"
+    assert summary_payload["frames"] == 0
+    assert "Configuration:" in captured.out
 
 
 def test_cli_dry_run(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

@@ -235,7 +235,9 @@ Once modularization is complete, the module will be re-enabled and integrated in
      `python -m scripts.prototyping.run_prototype_harness` (or export
      `ENGINE_AI004_SCHEMA_V1=1`) so the Python harness fails fast on missing
      schema blocks.
-  3. Update sandbox layout persistence to record schema IDs once the UI begins
+  3. Use `--describe-json <path>` to export dataset/rendering/runtime metadata for the sandbox UI and
+     `--summary-json <path>` to persist headless execution summaries that feed benchmark capture.
+  4. Update sandbox layout persistence to record schema IDs once the UI begins
      emitting AI-004 configuration fragments.
 
 ## TODO / Next Steps

@@ -90,6 +90,9 @@ roadmap.
 - **Priority P1:** Prototyping harness CLI introduces a `--require-schema` guard and module READMEs
   record migration checklists so strict configuration validation can roll out incrementally across
   AI-004 workstreams during the v1 adoption phase.
+- **Priority P0:** Harness CLI exports configuration descriptors (`--describe-json`) and execution
+  summaries (`--summary-json`) so TL-210 sandbox selectors and CC-310 benchmark automation can
+  consume AI-004 data without bespoke parsers.
 - **Priority P0:** Introduced `scripts/datasets/ingest_dataset.py` with regression coverage and a
   sample manifest under `assets/datasets/remesh_sample` so AS-330 dataset packages produce
   reproducible cache metadata for the prototyping harness.

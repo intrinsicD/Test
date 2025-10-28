@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import Iterable
@@ -15,9 +16,11 @@ if str(PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(PYTHON_ROOT))
 
 from engine3g.prototype_harness import (  # type: ignore
+    configuration_summary_to_dict,
     HarnessExecutionOptions,
     PrototypeHarness,
     PrototypeHarnessError,
+    run_summary_to_dict,
     load_harness,
     summarize,
 )
@@ -35,6 +38,11 @@ def _print_summary(harness: PrototypeHarness) -> None:
     print(f"Configuration: dataset={dataset} preset={preset} shading={shading}")
 
 
+def _write_json(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def _run(args: argparse.Namespace) -> int:
     try:
         harness = load_harness(str(args.config), require_schema=True if args.require_schema else None)
@@ -44,9 +52,15 @@ def _run(args: argparse.Namespace) -> int:
 
     _print_summary(harness)
 
+    if args.describe_json is not None:
+        description = harness.describe_configuration()
+        _write_json(args.describe_json, configuration_summary_to_dict(description))
+
     if args.dry_run:
         summary = harness.run_headless(HarnessExecutionOptions(dry_run=True, frames=1, dt=args.dt))
         print(f"Dry run summary: {summarize(summary)}")
+        if args.summary_json is not None:
+            _write_json(args.summary_json, run_summary_to_dict(summary))
         return 0
 
     options = _make_options(args)
@@ -57,6 +71,8 @@ def _run(args: argparse.Namespace) -> int:
         return 3
 
     print(f"Execution summary: {summarize(summary)}")
+    if args.summary_json is not None:
+        _write_json(args.summary_json, run_summary_to_dict(summary))
     return 0
 
 
@@ -92,6 +108,19 @@ def main(argv: Iterable[str] | None = None) -> int:
             "Fail if configuration or dataset sections omit ai-004 schema headers. "
             "When unset the harness honours the ENGINE_AI004_SCHEMA_V1 feature flag."
         ),
+    )
+    parser.add_argument(
+        "--describe-json",
+        type=Path,
+        help=(
+            "Write a JSON description of datasets, rendering presets, and runtime parameters "
+            "for the sandbox UI."
+        ),
+    )
+    parser.add_argument(
+        "--summary-json",
+        type=Path,
+        help="Write the execution summary to the specified JSON file.",
     )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
