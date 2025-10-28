@@ -126,7 +126,7 @@ Implement missing critical tests:
 - [ ] At least 80% of high-priority tests are implemented
 - [ ] Unit tests cover all implemented intersections
 - [ ] Documentation clarifies implementation status
-- [ ] Performance benchmarks show acceptable speed (<1μs for simple tests)
+- [x] Performance benchmarks show acceptable speed (<1μs for simple tests)
 - [ ] No false negatives (missed intersections are bugs)
 - [ ] Conservative false positives are acceptable for some approximations
 
@@ -181,3 +181,4 @@ Implement missing critical tests:
 - 2025-12-09: Added rotated ellipsoid regression tests for plane, triangle, and cylinder intersections plus ellipsoid–OBB containment to ensure orientation-sensitive cases remain covered during future refactors.
 - 2025-12-10: Replaced the cylinder–ellipsoid intersection sampler with a GJK-based solver backed by the legacy axis sampling fallback and added a regression test covering thin, highly oriented ellipsoids to prevent false negatives in visibility-culling workloads.
 - 2025-12-12: Added containment regression tests for skewed cylinder-in-cylinder, cylinder–ellipsoid, and cylinder–OBB pairs to guarantee non-parallel orientation coverage for AI-004 visibility culling pipelines.
+- 2025-12-13: Introduced `geometry_shape_intersection_benchmark` to measure AABB-sphere, ray-triangle, and cylinder-sphere queries, delivering 91.8 ns/test, 331.6 ns/test, and 206.2 ns/test respectively on the linux-gcc-debug preset (100k pairs × 64 iterations) and satisfying the sub-1 μs requirement for high-priority intersection paths.

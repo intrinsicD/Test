@@ -427,7 +427,8 @@ See diagnostics and IO modules for telemetry surfaces.
 
 ## Performance Benchmarks
 
-See `engine/geometry/benchmarks/` for current microbenchmarks (e.g., normal recomputation and frustum culling tests).
+See `engine/geometry/benchmarks/` for current microbenchmarks (normal recomputation, frustum culling, and shape intersection
+throughput).
 
 ## Testing
 
@@ -459,6 +460,8 @@ Surface mesh utilities, shapes and intersections, kd-tree and octree accelerator
   - `ctest --preset linux-gcc-debug -R geometry_normals_benchmark`
 - Run the frustum culling benchmark:
   - `ctest --preset linux-gcc-debug -R geometry_frustum_benchmark`
+- Run the shape intersection benchmark:
+  - `ctest --preset linux-gcc-debug -R geometry_shape_intersection_benchmark`
 - Explore examples under `engine/geometry/tests/` and benchmarks under `engine/geometry/benchmarks/`.
 
 ## TODO / Next Steps
