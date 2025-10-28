@@ -176,9 +176,11 @@ namespace engine::scene
 
     std::size_t Scene::size() const noexcept
     {
-        std::size_t count = 0;
-        auto view = registry_.view < entt::entity > ();
-        view.each([&](entt::entity) { ++count; });
-        return count;
+        if (const auto* entities = registry_.storage<entt::entity>(); entities != nullptr)
+        {
+            return entities->free_list();
+        }
+
+        return 0;
     }
 } // namespace engine::scene
