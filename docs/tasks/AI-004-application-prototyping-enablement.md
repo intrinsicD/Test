@@ -214,6 +214,9 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
 - Harness CLI now exports configuration descriptors (`--describe-json`) and
   dry-run execution summaries (`--summary-json`) so TL-210 can populate sandbox
   selectors and CC-310 can ingest benchmark outputs without bespoke parsers.
+- Sample AI-004 configuration published at `docs/examples/ai004_sample.json`,
+  pairing the harness CLI with the `assets/datasets/remesh_sample` package to
+  streamline dry-run validation for new contributors.
 - Geometry remeshing statistics/telemetry emit triangle quality metrics so dataset
   packaging can flag sliver-heavy assets before entering AI-004 workflows.
 - Dataset packaging workflows use `scripts/datasets/ingest_dataset.py` to copy

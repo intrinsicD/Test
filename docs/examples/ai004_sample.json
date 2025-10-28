@@ -1,0 +1,158 @@
+{
+  "datasets": [
+    {
+      "schema": {
+        "id": "ai-004.dataset",
+        "version": 2
+      },
+      "id": "remesh-unit-square",
+      "kind": "geometry.remesh",
+      "job_label": "Unit Square Remesh",
+      "tags": [
+        "geometry",
+        "remesh",
+        "sample"
+      ],
+      "source": {
+        "generator": "sample_assets",
+        "mesh": "assets/datasets/remesh_sample/source_mesh.obj",
+        "mesh_sha256": "cd19dd57831e52bc2e56b40ab7ba0edf8f08723ec145bfb371c596de6a6225d0",
+        "mesh_size_bytes": 196
+      },
+      "outputs": {
+        "mesh": "assets/datasets/remesh_sample/output_mesh.obj",
+        "mesh_sha256": "651a849dba9796080df43d1ef1ec7760c7083bcd222f3b3b0996464334c44e65",
+        "mesh_size_bytes": 277
+      },
+      "remeshing": {
+        "mode": "uniform",
+        "targets": {
+          "target_edge_length": 0.5
+        }
+      },
+      "feature_preservation": {
+        "lock_boundary_edges": true,
+        "lock_feature_edges": false,
+        "minimum_feature_angle_degrees": 45.0
+      },
+      "metrics": {
+        "input": {
+          "vertices": 4,
+          "faces": 2,
+          "edge_length": {
+            "min": 1.0,
+            "mean": 1.1381,
+            "max": 1.4142
+          }
+        },
+        "output": {
+          "vertices": 5,
+          "faces": 4,
+          "edge_length": {
+            "min": 0.5,
+            "mean": 0.7906,
+            "max": 1.118
+          }
+        }
+      },
+      "parameterization": {
+        "mode": "reuse_existing",
+        "target_texel_density": 256.0,
+        "texel_density": 256.0,
+        "chart_count": 1,
+        "average_stretch": 1.0,
+        "max_stretch": 1.05,
+        "fill_ratio": 0.95,
+        "total_seam_length": 4.0,
+        "charts": [
+          {
+            "index": 0,
+            "min_uv": [
+              0.0,
+              0.0
+            ],
+            "max_uv": [
+              1.0,
+              1.0
+            ],
+            "translation": [
+              0.0,
+              0.0
+            ],
+            "scale": 1.0,
+            "area": 1.0,
+            "boundary_length": 4.0
+          }
+        ]
+      },
+      "statistics": {
+        "iterations": 6,
+        "max_error": 0.0025,
+        "min_edge_length": 0.5,
+        "max_edge_length": 1.118,
+        "max_surface_deviation": 0.001,
+        "mean_surface_deviation": 0.0005,
+        "rms_surface_deviation": 0.0006
+      }
+    }
+  ],
+  "rendering": {
+    "schema": {
+      "id": "ai-004.rendering",
+      "version": 1
+    },
+    "preset": "research-baseline",
+    "options": {
+      "shading_mode": "deferred",
+      "resolution": {
+        "width": 1280,
+        "height": 720
+      },
+      "overlays": {
+        "normals": false,
+        "uv": false,
+        "material": false,
+        "light_volume": false
+      }
+    }
+  },
+  "runtime": {
+    "schema": {
+      "id": "ai-004.runtime",
+      "version": 1
+    },
+    "dataset": "remesh-unit-square",
+    "camera": {
+      "mode": "orbit",
+      "position": [
+        0.0,
+        0.0,
+        5.0
+      ],
+      "target": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "simulation": {
+      "timestep_seconds": 0.0166667,
+      "max_substeps": 2
+    },
+    "hot_reload": {
+      "enabled": false
+    }
+  },
+  "telemetry": {
+    "schema": {
+      "id": "ai-004.telemetry",
+      "version": 1
+    },
+    "outputs": [
+      {
+        "type": "file",
+        "path": "telemetry/{scenario}.json"
+      }
+    ]
+  }
+}

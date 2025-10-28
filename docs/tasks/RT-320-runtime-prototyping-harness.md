@@ -186,3 +186,6 @@ TEST(RuntimePrototypeHarness, AppliesConfigurationOverrides) {
   (`python -m scripts.prototyping.run_prototype_harness`) to validate AI-004 configurations and execute headless tick loops.
 - 2025-12-14: Harness CLI now supports `--require-schema`, delegating to the shared loader so CI and local smoke tests can
   enforce `ai-004.*` headers without relying solely on the environment flag.
+- 2025-12-20: Published `docs/examples/ai004_sample.json`, pairing the harness with the sample remeshing dataset so newcomers
+  can run `python -m scripts.prototyping.run_prototype_harness --config docs/examples/ai004_sample.json --dry-run` without
+  crafting manifests manually.
