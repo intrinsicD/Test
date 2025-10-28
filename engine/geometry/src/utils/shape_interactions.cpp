@@ -1118,6 +1118,45 @@ namespace engine::geometry
         return distance_sq <= radius_sum * radius_sum;
     }
 
+    bool Intersects(const Capsule& capsule, const Cylinder& cylinder) noexcept
+    {
+        const Segment capsule_segment{capsule.point_a, capsule.point_b};
+        const Segment axis_segment{BottomCenter(cylinder), TopCenter(cylinder)};
+        const auto closest = ClosestPointsBetweenSegments(capsule_segment, axis_segment);
+
+        auto accumulate_distance = [&](double current, const math::vec3& sample) noexcept
+        {
+            return std::min(current, SquaredDistance(cylinder, sample));
+        };
+
+        double min_distance_sq = SquaredDistance(cylinder, closest.point_on_first);
+        min_distance_sq = accumulate_distance(min_distance_sq, capsule.point_a);
+        min_distance_sq = accumulate_distance(min_distance_sq, capsule.point_b);
+
+        const math::vec3 segment_dir = capsule.point_b - capsule.point_a;
+        const math::vec3 axis_dir = AxisDirection(cylinder);
+        const float proj_dir = math::dot(segment_dir, axis_dir);
+
+        if (!math::utils::nearly_equal(proj_dir, 0.0f, constants::PARALLEL_EPSILON))
+        {
+            const float start_proj = math::dot(capsule.point_a - cylinder.center, axis_dir);
+            const float planes[2] = {-cylinder.half_height, cylinder.half_height};
+
+            for (float plane : planes)
+            {
+                const float t = (plane - start_proj) / proj_dir;
+                if (t >= 0.0f && t <= 1.0f)
+                {
+                    const math::vec3 sample = capsule.point_a + segment_dir * t;
+                    min_distance_sq = accumulate_distance(min_distance_sq, sample);
+                }
+            }
+        }
+
+        const double expanded_radius = static_cast<double>(capsule.radius) + static_cast<double>(constants::INTERSECTION_EPSILON);
+        return min_distance_sq <= expanded_radius * expanded_radius;
+    }
+
     bool Intersects(const Capsule& capsule, const Line& line, Result* result) noexcept
     {
         std::array<float, 6> hits{};
@@ -1257,6 +1296,11 @@ namespace engine::geometry
         const float radius_sum = a.radius + b.radius;
 
         return dist_sq <= radius_sum * radius_sum;
+    }
+
+    bool Intersects(const Cylinder& a, const Capsule& b) noexcept
+    {
+        return Intersects(b, a);
     }
 
     bool Intersects(const Cylinder& a, const Ellipsoid& b) noexcept

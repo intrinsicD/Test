@@ -173,6 +173,18 @@ Line, ray, and segment overloads expose parametric entry/exit intervals so
 visibility picking and portal edge classifiers can consume capsules without
 bespoke math.
 
+```cpp
+engine::geometry::Cylinder column{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, 0.6f, 1.0f};
+if (engine::geometry::Intersects(capsule, column))
+{
+    // Resolve capsule vs. cylindrical obstacle (symmetry holds for Intersects(column, capsule)).
+}
+```
+
+Capsule–cylinder intersection tests share the same regression suite on both
+argument orders so character proxies and environment volumes remain symmetric
+during broad-phase collision detection.
+
 Utility helpers provide direct access to capsule metrics:
 
 - `Center(capsule)`, `Axis(capsule)`, and `AxisDirection(capsule)` describe the

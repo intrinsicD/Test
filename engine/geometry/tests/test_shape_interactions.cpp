@@ -169,6 +169,27 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(miss, capsule, nullptr));
     }
 
+    TEST(CapsuleIntersection, CapsuleCylinder)
+    {
+        const Cylinder column{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, 0.6f, 1.0f};
+
+        const Capsule overlapping{{0.0f, 0.0f, -1.2f}, {0.0f, 0.0f, 1.2f}, 0.4f};
+        EXPECT_TRUE(Intersects(overlapping, column));
+        EXPECT_TRUE(Intersects(column, overlapping));
+
+        const Capsule cap_contact{{0.4f, 0.0f, 1.15f}, {0.4f, 0.0f, 1.45f}, 0.25f};
+        EXPECT_TRUE(Intersects(cap_contact, column));
+        EXPECT_TRUE(Intersects(column, cap_contact));
+
+        const Capsule radial_separation{{2.0f, 0.0f, -0.5f}, {2.0f, 0.0f, 0.5f}, 0.25f};
+        EXPECT_FALSE(Intersects(radial_separation, column));
+        EXPECT_FALSE(Intersects(column, radial_separation));
+
+        const Capsule corner_miss{{1.1f, 0.0f, 1.25f}, {1.1f, 0.0f, 1.65f}, 0.5f};
+        EXPECT_FALSE(Intersects(corner_miss, column));
+        EXPECT_FALSE(Intersects(column, corner_miss));
+    }
+
     TEST(ShapeInteractionsSphereContains, SphereInsideAabb)
     {
         const Aabb box{{-3.0f, -2.0f, -1.0f}, {3.0f, 2.0f, 1.0f}};
