@@ -566,9 +566,16 @@ class DatasetManifest:
     def from_mapping(cls, data: Mapping[str, object]) -> "DatasetManifest":
         datasets_value = _require_sequence(data.get("datasets"), "datasets")
         datasets: MutableSequence[DatasetEntry] = []
+        seen_identifiers: set[str] = set()
         for index, entry in enumerate(datasets_value):
             context = f"datasets[{index}]"
-            datasets.append(DatasetEntry.from_mapping(_require_mapping(entry, context), context))
+            dataset_entry = DatasetEntry.from_mapping(_require_mapping(entry, context), context)
+            if dataset_entry.identifier in seen_identifiers:
+                raise ConfigurationSchemaError(
+                    f"{context}.id duplicates dataset identifier '{dataset_entry.identifier}'"
+                )
+            seen_identifiers.add(dataset_entry.identifier)
+            datasets.append(dataset_entry)
         return cls(datasets=tuple(datasets))
 
 
@@ -999,6 +1006,20 @@ class Ai004Configuration:
         if "datasets" in data:
             datasets = DatasetManifest.from_mapping(data)
 
+        dataset_slugs = {entry.identifier for entry in datasets.datasets}
+
+        def _validate_dataset_reference(slug: str, context: str) -> None:
+            if slug in dataset_slugs:
+                return
+            if dataset_slugs:
+                available = ", ".join(sorted(dataset_slugs))
+                raise ConfigurationSchemaError(
+                    f"{context} references unknown dataset '{slug}'. Available datasets: {available}"
+                )
+            raise ConfigurationSchemaError(
+                f"{context} references dataset '{slug}' but no datasets are declared"
+            )
+
         rendering = None
         if "rendering" in data:
             rendering = RenderingConfig.from_mapping(
@@ -1012,6 +1033,8 @@ class Ai004Configuration:
                 _require_mapping(data.get("runtime"), "runtime"),
                 "runtime",
             )
+            if runtime.dataset is not None:
+                _validate_dataset_reference(runtime.dataset, "runtime.dataset")
 
         benchmarks = None
         if "benchmarks" in data:
@@ -1019,6 +1042,12 @@ class Ai004Configuration:
                 _require_mapping(data.get("benchmarks"), "benchmarks"),
                 "benchmarks",
             )
+            for index, scenario in enumerate(benchmarks.scenarios):
+                if scenario.dataset is not None:
+                    _validate_dataset_reference(
+                        scenario.dataset,
+                        f"benchmarks.scenarios[{index}].dataset",
+                    )
 
         telemetry = None
         if "telemetry" in data:

@@ -16,7 +16,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 if str(_PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(_PYTHON_ROOT))
 
-from engine3g.config_schema import load_configuration
+from engine3g.config_schema import ConfigurationSchemaError, load_configuration
 from engine3g.prototype_harness import (
     configuration_summary_to_dict,
     HarnessExecutionOptions,
@@ -150,9 +150,8 @@ def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:
     text["runtime"]["dataset"] = "unknown"
     config_path.write_text(json.dumps(text), encoding="utf-8")
 
-    configuration = load_configuration(config_path)
-    with pytest.raises(PrototypeHarnessError):
-        PrototypeHarness(configuration)
+    with pytest.raises(ConfigurationSchemaError):
+        load_configuration(config_path)
 
 
 def test_load_harness_validates_sections(tmp_path: Path) -> None:

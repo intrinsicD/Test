@@ -17,7 +17,8 @@
 - The loader enforces unique module names when aggregating runtime subsystems, raising a descriptive error if duplicates are
   reported so misconfigured registries do not produce partially loaded module sets.
 - `engine3g.config_schema.load_configuration()` and `load_dataset_manifest()` validate AI-004 configuration manifests
-  (YAML or JSON) and surface `ConfigurationSchemaError` diagnostics when schema requirements are violated.
+  (YAML or JSON), enforce unique dataset slugs, and surface `ConfigurationSchemaError` diagnostics when schema requirements or
+  cross-references (e.g., runtime/benchmark dataset selections) are violated.
 - `python -m scripts.validate_ai004_config --dataset manifest.json --config config.yaml` offers a command-line wrapper around
   the schema validators for CI pipelines and ad-hoc checks during AI-004 development.
 - `python -m scripts.prototyping.run_prototype_harness --config <path> [--dry-run] [--require-schema]` validates and exercises

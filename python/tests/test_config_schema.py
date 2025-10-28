@@ -208,6 +208,18 @@ def test_dataset_manifest_version_one_allows_missing_metadata(tmp_path: Path) ->
     assert dataset.output_mesh_size_bytes is None
 
 
+def test_dataset_manifest_disallows_duplicate_identifiers(tmp_path: Path) -> None:
+    first = deepcopy(LEGACY_ENTRY)
+    second = deepcopy(LEGACY_ENTRY)
+    second["source"]["mesh"] = "other.obj"
+    path = tmp_path / "duplicate_ids.json"
+    path.write_text(json.dumps({"datasets": [first, second]}), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSchemaError) as exc:
+        load_dataset_manifest(path)
+    assert "datasets[1].id" in str(exc.value)
+
+
 def test_load_full_configuration(tmp_path: Path) -> None:
     dataset_entry = deepcopy(BASE_ENTRY)
     config = {
@@ -358,3 +370,52 @@ def test_invalid_benchmark_threshold_type(tmp_path: Path) -> None:
     with pytest.raises(ConfigurationSchemaError) as exc:
         load_configuration(path)
     assert "benchmarks.scenarios[0].metrics[0].threshold.type" in str(exc.value)
+
+
+def test_runtime_dataset_reference_must_exist(tmp_path: Path) -> None:
+    dataset_entry = deepcopy(BASE_ENTRY)
+    config = {
+        "datasets": [dataset_entry],
+        "runtime": {
+            "schema": {"id": "ai-004.runtime", "version": 1},
+            "dataset": "unknown-dataset",
+        },
+    }
+    path = tmp_path / "missing_runtime_dataset.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSchemaError) as exc:
+        load_configuration(path)
+    assert "runtime.dataset" in str(exc.value)
+
+
+def test_benchmark_dataset_reference_must_exist(tmp_path: Path) -> None:
+    dataset_entry = deepcopy(BASE_ENTRY)
+    config = {
+        "datasets": [dataset_entry],
+        "benchmarks": {
+            "schema": {"id": "ai-004.benchmarks", "version": 1},
+            "scenarios": [
+                {
+                    "id": "scenario",
+                    "name": "Scenario",
+                    "dataset": "unknown-dataset",
+                    "engine": {"output": "engine.json"},
+                    "reference": {"output": "ref.json"},
+                    "metrics": [
+                        {
+                            "name": "fps",
+                            "higher_is_better": True,
+                            "threshold": {"type": "relative", "max_regression": 0.05},
+                        }
+                    ],
+                }
+            ],
+        },
+    }
+    path = tmp_path / "missing_scenario_dataset.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSchemaError) as exc:
+        load_configuration(path)
+    assert "benchmarks.scenarios[0].dataset" in str(exc.value)
