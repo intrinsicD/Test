@@ -217,6 +217,10 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
 - Sample AI-004 configuration published at `docs/examples/ai004_sample.json`,
   pairing the harness CLI with the `assets/datasets/remesh_sample` package to
   streamline dry-run validation for new contributors.
+- Bundled case studies (`geometry-baseline`, `rendering-debug`) now live under
+  `assets/datasets/case_studies/` with an index consumed by
+  `scripts.prototyping.run_prototype_harness --case-study <id>`, giving runtime
+  and tools teams reproducible manifests for RT-321 dry runs.
 - Geometry remeshing statistics/telemetry emit triangle quality metrics so dataset
   packaging can flag sliver-heavy assets before entering AI-004 workflows.
 - Dataset packaging workflows use `scripts/datasets/ingest_dataset.py` to copy

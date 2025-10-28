@@ -276,6 +276,52 @@ def test_cli_require_schema_flag(tmp_path: Path, capsys: pytest.CaptureFixture[s
     assert captured.out == ""
 
 
+def test_cli_case_study_support(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    summary_path = tmp_path / "summary.json"
+    summary_path_rendering = tmp_path / "summary_rendering.json"
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        [
+            "--case-study",
+            "geometry-baseline",
+            "--dry-run",
+            "--summary-json",
+            str(summary_path),
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert summary_path.exists()
+
+    summary_payload = json.loads(summary_path.read_text(encoding="utf-8"))
+
+    assert summary_payload["dataset"] == "geometry-remesh-baseline"
+    assert "Selected case study 'geometry-baseline'" in captured.out
+    assert "Dry run summary" in captured.out
+
+    exit_code_rendering = run_prototype_harness.main(
+        [
+            "--case-study",
+            "rendering-debug",
+            "--dry-run",
+            "--summary-json",
+            str(summary_path_rendering),
+        ]
+    )
+    captured_rendering = capsys.readouterr()
+
+    assert exit_code_rendering == 0
+    assert summary_path_rendering.exists()
+
+    summary_rendering = json.loads(summary_path_rendering.read_text(encoding="utf-8"))
+
+    assert summary_rendering["dataset"] == "rendering-light-volume"
+    assert "Selected case study 'rendering-debug'" in captured_rendering.out
+
+
 def test_cli_integration_with_sample_assets(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

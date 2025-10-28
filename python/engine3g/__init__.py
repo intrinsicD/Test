@@ -22,6 +22,13 @@ from .config_schema import (
     load_configuration,
     load_dataset_manifest,
 )
+from .case_studies import (
+    CaseStudy,
+    CaseStudyError,
+    CaseStudyNotFoundError,
+    available_case_studies,
+    get_case_study,
+)
 from .loader import (
     EngineLibraryNotFound,
     EngineModuleHandle,
@@ -65,8 +72,13 @@ __all__ = [
     "HarnessRunSummary",
     "PrototypeHarness",
     "PrototypeHarnessError",
+    "CaseStudy",
+    "CaseStudyError",
+    "CaseStudyNotFoundError",
     "load_configuration",
     "load_dataset_manifest",
+    "available_case_studies",
+    "get_case_study",
     "load_all_modules",
     "load_module",
     "load_runtime",
