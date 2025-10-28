@@ -152,7 +152,7 @@ index 609ba22..3d4c0e9 100644
  
  ## Access Patterns
  
-@@ -82,12 +82,67 @@ associated task record [`T-0115`](../../tasks/T-0115-assets-async-streaming-mvp.
+@@ -82,12 +82,67 @@ associated task record [`T-0115`](../../archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.
  `scene::validation::HierarchyValidationReport`, including `metrics` (issue
  counts) and detailed `issues`. Use `report.ok()` to detect whether hierarchy
  invariants hold before submitting to rendering (`RT-005`). When issues are

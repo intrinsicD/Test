@@ -17,7 +17,7 @@ This review evaluates the Test Engine roadmap and trajectory through the dual le
 
 1. Draft a coordination task (`DC-0xx`) capturing the shared configuration schema deliverable for `AI-004`, including acceptance criteria and responsible leads.
 2. Extend the roadmap risk section with owner + due date metadata to improve accountability ahead of the 2025-12-05 kickoff review.
-3. Capture licensing review progress for `AS-330` in `docs/tasks/` so the backlog reflects approval status before datasets ship to the harness.
+3. Capture licensing review progress for `AS-330` in `docs/archive/backlog/legacy/tasks/` so the backlog reflects approval status before datasets ship to the harness.
 
 ## Architecture Assessment
 

@@ -12,7 +12,7 @@ The old and new agentic workflows have been successfully merged into a **unified
 - ✅ **Specialized multi-agent roles** (15 distinct roles)
 - ✅ **Single entry point** (agents/AGENTS-INDEX.md)
 - ✅ **Practical development guidance** (build commands, coding standards)
-- ✅ **Clear task management** (module-based IDs, docs/tasks/ structure)
+- ✅ **Clear task management** (module-based IDs, docs/backlog/active/ structure)
 - ✅ **Explicit coordination** (Agent Orchestrator)
 - ✅ **Quality gates** (Security, Performance, QA, Reviewer)
 - ✅ **Comprehensive templates** (ADR, Context Pack, Issue, PR, Task Card)
@@ -50,7 +50,7 @@ The old and new agentic workflows have been successfully merged into a **unified
 |---------|----------------|
 | Single entry point | agents/AGENTS-INDEX.md with clear quick start |
 | Build workflow | Standard cmake commands in Common Guardrails and Index |
-| Task management | Module-based IDs (RE-541), docs/tasks/ structure |
+| Task management | Module-based IDs (RE-541), docs/backlog/active/ structure |
 | Documentation integration | NAVIGATION.md, CODING_STYLE.md, module READMEs required |
 | Module health tracking | README.md table referenced by Orchestrator |
 | Practical commands | Concrete examples in multiple places |
@@ -100,8 +100,9 @@ The old and new agentic workflows have been successfully merged into a **unified
 ### For Task Management
 
 **Active Development Tasks:**
-- Location: `docs/tasks/<MODULE>-<NUMBER>.md`
-- Example: `docs/tasks/RE-541.md`
+- Location: `docs/backlog/active/<MODULE>-<NUMBER>.md`
+- Example: `docs/backlog/active/RE-541.md`
+- Legacy history remains under `docs/archive/backlog/legacy/` for reference.
 - Template: `agents/TEMPLATES/TASK_CARD.md`
 
 **Strategic Initiatives:**
@@ -202,7 +203,7 @@ Track these to validate the hybrid workflow:
 ### What Stayed the Same
 
 1. ✅ Module-based task IDs (RE-541, GE-221, etc.)
-2. ✅ Task location: `docs/tasks/`
+2. ✅ Task location: `docs/backlog/active/`
 3. ✅ ROADMAP.md as authoritative backlog
 4. ✅ NAVIGATION.md for documentation routing
 5. ✅ CODING_STYLE.md standards
@@ -281,7 +282,7 @@ Track these to validate the hybrid workflow:
 4. Reviewer validates
 
 ### Q: Where do I create new tasks?
-**A:** Active development tasks go in `docs/tasks/` with module-based IDs. Community issues go to GitHub Issues.
+**A:** Active development tasks go in `docs/backlog/active/` with module-based IDs. Community issues go to GitHub Issues.
 
 ### Q: How do I know which role to use?
 **A:** See the "Choose Your Role" table in [agents/AGENTS-INDEX.md](../agents/AGENTS-INDEX.md) or the Quick Reference above.

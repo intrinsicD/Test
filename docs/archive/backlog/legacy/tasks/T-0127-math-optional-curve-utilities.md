@@ -127,7 +127,7 @@ Add convenience functions for single-axis rotation matrices to improve API ergon
 ## Inputs
 - Code: `engine/math/include/engine/math/matrix.hpp`, `engine/math/include/engine/math/utils/utils_rotation.hpp`
 - Tests: `engine/math/tests/test_math.cpp`
-- Docs: [`docs/modules/math/README.md`](../modules/math/README.md)
+- Docs: [`docs/modules/math/README.md`](../../../../modules/math/README.md)
 
 ## Constraints
 - Must maintain consistency with existing rotation conventions (right-handed, column-major).

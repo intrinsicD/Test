@@ -5,7 +5,7 @@ Complete the outstanding `RT-003` tasks by implementing Vulkan resource translat
 backend configuration documentation and samples.
 
 ## Background
-- Roadmap alignment: [`RT-003`](../ROADMAP.md#rt-003-vulkan-backend-prototype) has two unchecked deliverables.
+- Roadmap alignment: [`RT-003`](../../../../ROADMAP.md) has two unchecked deliverables.
 - Current state: Vulkan scheduler prototype exists (per `T-0104`); resource providers still use placeholder handles and
   documentation is limited to internal notes.
 - Dependencies: Frame-graph metadata expansion (`AI-003`) is complete, providing the descriptors required for Vulkan allocations.

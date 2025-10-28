@@ -219,7 +219,7 @@ ctest --preset linux-gcc-debug -R animation
 - [`../../specs/ADR-0006-animation-deformation.md`](../../specs/ADR-0006-animation-deformation.md): Deformation architecture decisions
 - [`../../specs/AN-240-state-machine-authoring.md`](../../specs/AN-240-state-machine-authoring.md): Planned state machine design
 - [`../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md`](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md): GPU sampling proposal
-- [`../../tasks/T-0113-animation-runtime-skinning.md`](../../tasks/T-0113-animation-runtime-skinning.md): Runtime integration milestone
+- [`../../archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md`](../../archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md): Runtime integration milestone
 
 ## Current State
 

@@ -29,7 +29,7 @@ Documentation update clarifies that geometry tasks `GE-212` (remeshing/parameter
 - Regression coverage: Not applicable.
 
 ## Follow-Up Work
-- [ ] Create agent assignment notes for geometry backlog once staffing decisions are made → `docs/tasks/` (TBD).
+- [ ] Create agent assignment notes for geometry backlog once staffing decisions are made → `docs/backlog/archive/legacy/tasks/` (TBD).
 
 ## Verdict
 - [x] ✅ Approve (ready to merge)

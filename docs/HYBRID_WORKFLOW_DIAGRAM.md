@@ -27,7 +27,7 @@ PHASE 1: DISCOVERY & PLANNING
 ┌────────────────────────────────────────────────────────────────┐
 │ 🎯 Product Manager (10)                                        │
 │    ├─ Reads: docs/ROADMAP.md (OLD: strategic alignment)       │
-│    ├─ Creates: docs/tasks/MODULE-NNN.md (OLD: task location)  │
+│    ├─ Creates: docs/archive/backlog/legacy/tasks/MODULE-NNN.md (OLD: task location)  │
 │    ├─ Uses: Module-based IDs (OLD: RE-541, GE-221)           │
 │    └─ Template: TEMPLATES/TASK_CARD.md (NEW: formalized)      │
 │                                                                │
@@ -122,7 +122,7 @@ PHASE 5: REVIEW & RELEASE
 THREE-TIER STRUCTURE (Best of both workflows):
 
 1. ACTIVE TASKS (OLD: clear structure)
-   Location: docs/tasks/
+   Location: docs/archive/backlog/legacy/tasks/
    Format:   <MODULE>-<NUMBER>.md (e.g., RE-541.md)
    Template: TEMPLATES/TASK_CARD.md (NEW: formalized)
    Tracking: README.md module health table (OLD: visibility)

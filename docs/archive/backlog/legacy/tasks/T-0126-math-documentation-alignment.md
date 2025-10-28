@@ -11,7 +11,7 @@ Align math module documentation with actual implementation by removing aspiratio
 - Part of broader documentation quality initiative (`MA-131`).
 
 ## Inputs
-- Docs: [`docs/modules/math/README.md`](../modules/math/README.md)
+- Docs: [`docs/modules/math/README.md`](../../../../modules/math/README.md)
 - Code: `engine/math/include/engine/math/*.hpp`
 - Reference: Existing test suite showing actual API usage
 

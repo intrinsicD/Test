@@ -5,7 +5,7 @@ Deliver `TI-001` by establishing deterministic integration tests that exercise a
 providing a reusable harness under `engine/tests/integration/` with documentation and CI coverage.
 
 ## Background
-- Roadmap alignment: [`TI-001`](../ROADMAP.md#ti-001-integration-suites) remains unchecked.
+- Roadmap alignment: [`TI-001`](../../../../ROADMAP.md) remains unchecked.
 - Current state: `engine/tests/integration/` exists but contains no executable targets; runtime smoke tests cover only unit-level
   scenarios.
 - Dependencies: Runtime subsystem injection (`DC-001`) and frame-graph metadata (`AI-003`) are complete, enabling stable
@@ -15,8 +15,8 @@ providing a reusable harness under `engine/tests/integration/` with documentatio
 - Code: `engine/runtime/`, `engine/animation/`, `engine/physics/`, `engine/rendering/`, `engine/tests/`.
 - Build scripts: `CMakeLists.txt` root plus module-specific test registrations.
 - Tooling: `scripts/ci/run_presets.py` for CI orchestration.
-- Docs: [`docs/modules/runtime/README.md`](../modules/runtime/README.md),
-  [`docs/modules/rendering/README.md`](../modules/rendering/README.md), [`CODING_STYLE.md`](../../CODING_STYLE.md).
+- Docs: [`docs/modules/runtime/README.md`](../../../../modules/runtime/README.md),
+  [`docs/modules/rendering/README.md`](../../../../modules/rendering/README.md), [`CODING_STYLE.md`](../../../../../CODING_STYLE.md).
 
 ## Constraints
 - Tests must run headless using the mock platform backend (`ENGINE_WINDOW_BACKEND=MOCK`).

@@ -15,7 +15,7 @@
 
 ### 1) **Create an Issue or Task**
 
-**For internal/active tasks:** Create `docs/tasks/<MODULE>-<NUMBER>.md` from [`TEMPLATES/TASK_CARD.md`](TEMPLATES/TASK_CARD.md)
+**For internal/active tasks:** Create `docs/backlog/active/<MODULE>-<NUMBER>.md` from [`TEMPLATES/TASK_CARD.md`](TEMPLATES/TASK_CARD.md)
 
 **For community/external:** Create GitHub Issue from [`TEMPLATES/ISSUE_TEMPLATE.md`](TEMPLATES/ISSUE_TEMPLATE.md).  
    - Describe the problem, scope, and acceptance tests.

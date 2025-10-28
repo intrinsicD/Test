@@ -75,7 +75,7 @@ This document captures the complete set of conventions for contributing to the m
 - For GPU/backend changes, add integration tests or validation layers that run in CI-compatible configurations.
 
 ### Benchmarking
-- Benchmark updates belong in `docs/tasks/` acceptance criteria with captured numbers.
+- Benchmark updates belong in `docs/backlog/active/` acceptance criteria with captured numbers.
 - Use consistent hardware and configurations for reproducible results.
 - Document baseline performance in module READMEs.
 
@@ -132,7 +132,7 @@ Before submitting for review:
 ### Review Expectations
 - **Summaries must cite affected files and relevant docs** — Make it easy for reviewers to understand context.
 - **Call out invariant deviations** — Any deviation from [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) invariants must be justified or fixed.
-- **Highlight follow-up work** — Reference tasks in `docs/tasks/` so reviewers see the backlog context.
+- **Highlight follow-up work** — Reference tasks in `docs/backlog/active/` so reviewers see the backlog context.
 - **Link to ADRs** — When implementing architectural decisions, reference the relevant `docs/specs/ADR-*.md`.
 
 ### Review Quality Standards

@@ -118,7 +118,7 @@ python scripts/validate_docs.py
 
 1. **Review [AGENTS-QUICKSTART.md](AGENTS-QUICKSTART.md)** for the end-to-end workflow
 2. **Check the module health table** in [README.md](../README.md)
-3. **Find or create a task** in [docs/tasks/](../docs/tasks/) or GitHub Issues
+3. **Find or create a task** in [docs/backlog/active/](../docs/backlog/active/) or GitHub Issues
 4. **Follow the Definition of Done** in [00-COMMON-GUARDRAILS.md](00-COMMON-GUARDRAILS.md)
 
 ---
@@ -140,7 +140,7 @@ Use these templates for consistent work products:
 ### Where Tasks Live
 
 **Internal Tasks** (for active development):
-- Location: `docs/tasks/`
+- Location: `docs/backlog/active/`
 - Format: `<MODULE>-<NUMBER>.md` (e.g., `RE-541`, `GE-221`)
 - Tracking: Module health table in [README.md](../README.md)
 

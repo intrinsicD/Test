@@ -52,12 +52,12 @@ Stand up a cross-cutting task to author, review, and ratify the shared configura
 **Files to Modify:**
 - `docs/design/AI-004-configuration-schema.md` (new)
 - `docs/ROADMAP.md`
-- `docs/tasks/AI-004-application-prototyping-enablement.md`
-- `docs/tasks/TL-210-experiment-sandbox-ui.md`
-- `docs/tasks/AS-330-reference-dataset-packages.md`
-- `docs/tasks/RT-320-runtime-prototyping-harness.md`
-- `docs/tasks/RE-610-research-rendering-baseline.md`
-- `docs/tasks/CC-310-comparative-benchmark-automation.md`
+- `docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`
+- `docs/archive/backlog/legacy/tasks/TL-210-experiment-sandbox-ui.md`
+- `docs/archive/backlog/legacy/tasks/AS-330-reference-dataset-packages.md`
+- `docs/archive/backlog/legacy/tasks/RT-320-runtime-prototyping-harness.md`
+- `docs/archive/backlog/legacy/tasks/RE-610-research-rendering-baseline.md`
+- `docs/archive/backlog/legacy/tasks/CC-310-comparative-benchmark-automation.md`
 
 **New Files:**
 - `docs/specs/ADR-0007-ai-004-configuration-schema.md`
@@ -74,7 +74,7 @@ Stand up a cross-cutting task to author, review, and ratify the shared configura
 ### Related Work
 - Roadmap review dated 2025-12-05
 - `docs/specs/ADR-0003-runtime-frame-graph.md`
-- `docs/tasks/AI-004-application-prototyping-enablement.md`
+- `docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`
 
 ---
 

@@ -35,7 +35,7 @@ Guardrails:
 ## 1) Task discovery and selection
 Read and synthesize from these local sources to find work:
 - docs/ROADMAP.md, docs/NAVIGATION.md (priorities/scope)
-- docs/tasks/, docs/specs/, docs/reviews/ (if present)
+- docs/backlog/active/, docs/specs/, docs/reviews/ (if present)
 - TODO/FIXME in code (search repo)
 - Failing tests (run the test suites)
 

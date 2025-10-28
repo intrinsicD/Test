@@ -166,7 +166,7 @@ Typical runtime order:
 ## Related Documentation
 
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md)
-- [`../../tasks/T-0117-physics-contact-manifolds.md`](../../tasks/T-0117-physics-contact-manifolds.md)
+- [`../../archive/backlog/legacy/tasks/T-0117-physics-contact-manifolds.md`](../../archive/backlog/legacy/tasks/T-0117-physics-contact-manifolds.md)
 
 ## TODO / Next Steps
 

@@ -32,7 +32,7 @@
 | Structure & Entry Point | ✅ Single file simplicity | ❌ Multiple files |
 | Role Specialization | ❌ Generic guidance | ✅ 15 specialized roles |
 | Documentation Integration | ✅ Strong (NAVIGATION.md) | ❌ Missing |
-| Task Management | ✅ Clear (docs/tasks/) | ❌ Unclear location |
+| Task Management | ✅ Clear (docs/backlog/active/) | ❌ Unclear location |
 | Agent Coordination | ❌ Implicit | ✅ Explicit (Orchestrator) |
 | Quality Gates | ⚠️ General | ✅ Specialized roles |
 | Templates | ❌ Missing | ✅ Comprehensive |
@@ -82,7 +82,7 @@
 - **Task Management** section with:
   - Module-based task ID convention (`RE-541`, `GE-221`)
   - Module prefix table (AN, AS, CO, CR, etc.)
-  - Clear distinction: internal tasks (`docs/tasks/`) vs external (GitHub Issues)
+  - Clear distinction: internal tasks (`docs/backlog/active/`) vs external (GitHub Issues)
   - Roadmap/epic linkage
 
 #### E. Enhanced Agent Orchestrator Role
@@ -108,7 +108,7 @@
 **Added**:
 - Reference to AGENTS-INDEX.md as primary entry point
 - Updated Global Roadmap section with specific paths
-- Clarified task locations (docs/tasks/ vs GitHub Issues)
+- Clarified task locations (docs/backlog/active/ vs GitHub Issues)
 - Updated Task Lifecycle with module-based IDs
 - Enhanced "Designing New Tasks" with concrete locations
 
@@ -134,7 +134,7 @@
 | **NAVIGATION.md Reference** | Always mentioned | ✅ In Common Guardrails + Index |
 | **CODING_STYLE.md Reference** | Explicit | ✅ In Common Guardrails + Index |
 | **Build Commands** | AGENTS.md section 3 | ✅ Common Guardrails + Quickstart |
-| **Task Discovery** | docs/tasks/ clear | ✅ Product Manager + Orchestrator |
+| **Task Discovery** | docs/backlog/active/ clear | ✅ Product Manager + Orchestrator |
 | **Module Health Table** | README.md prominent | ✅ Referenced in Index + Orchestrator |
 | **Task ID Convention** | Module-based | ✅ Product Manager section |
 | **Architecture Alignment** | Section 1.1 | ✅ Common Guardrails |
@@ -162,7 +162,7 @@
 ### For Task Management
 
 **Internal/Active Development**:
-- Location: `docs/tasks/<MODULE>-<NUMBER>.md`
+- Location: `docs/backlog/active/<MODULE>-<NUMBER>.md`
 - Template: `agents/TEMPLATES/TASK_CARD.md`
 - Tracking: Module health table in README.md
 

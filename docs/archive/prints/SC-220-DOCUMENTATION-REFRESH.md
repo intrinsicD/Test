@@ -183,7 +183,7 @@ index 0000000..7997ce9
 +- [`docs/prints/sc-220-documentation-refresh.md`](../../prints/sc-220-documentation-refresh.md)
 +- [`docs/prints/rt-005-3-hierarchy-diagnostics-docs.md`](../../prints/rt-005-3-hierarchy-diagnostics-docs.md)
 +- [`docs/design/telemetry_schema.md`](../../design/telemetry_schema.md)
-+- [`docs/tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md)
++- [`docs/archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md`](../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md)
 
 diff --git a/docs/prints/rt-005-3-hierarchy-diagnostics-docs.md b/docs/prints/rt-005-3-hierarchy-diagnostics-docs.md
 index d954c5d..024ff64 100644

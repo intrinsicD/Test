@@ -24,5 +24,5 @@ Geometry and IO modules currently support ASCII mesh/point-cloud/graph formats. 
 - Enables `AI-001` by guaranteeing resource handles remain valid after IO/geometry conversions.
 
 ## Follow-Up Work
-- Implement the acceptance criteria in [`docs/tasks/T-0112-geometry-io-roundtrip-hardening.md`](../tasks/T-0112-geometry-io-roundtrip-hardening.md).
+- Implement the acceptance criteria in [`docs/archive/backlog/legacy/tasks/T-0112-geometry-io-roundtrip-hardening.md`](../archive/backlog/legacy/tasks/T-0112-geometry-io-roundtrip-hardening.md).
 - Update `docs/modules/geometry/README.md` and `docs/modules/io/README.md` once the pipeline is live.

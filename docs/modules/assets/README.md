@@ -242,7 +242,7 @@ ctest --preset linux-gcc-debug -R assets
 - [`../../design/ASYNC_STREAMING.md`](../../design/ASYNC_STREAMING.md): Async architecture and design decisions
 - [`../../design/RESOURCE_MANAGEMENT.md`](../../design/RESOURCE_MANAGEMENT.md): Handle lifecycle patterns
 - [`../../design/MATERIAL_PERSISTENCE_STRATEGY.md`](../../design/MATERIAL_PERSISTENCE_STRATEGY.md): Material serialization planning
-- [`../../tasks/T-0115-assets-async-streaming-mvp.md`](../../tasks/T-0115-assets-async-streaming-mvp.md): Async streaming milestone
+- [`../../archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md`](../../archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md): Async streaming milestone
 - [`../runtime/ASYNC_STREAMING_INTEGRATION.md`](../runtime/ASYNC_STREAMING_INTEGRATION.md)
 
 ## Current State

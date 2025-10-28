@@ -6,7 +6,7 @@ Implement the remaining `RT-001` deformation pipeline work by wiring linear blen
 content authors.
 
 ## Background
-- Roadmap alignment: [`RT-001`](../ROADMAP.md#rt-001-animation-deformation-pipeline) (pending tasks for LBS
+- Roadmap alignment: [`RT-001`](../../../../ROADMAP.md) (pending tasks for LBS
   integration, regression tests, and documentation).
 - Prior work: deterministic clip sampling, rig binding data structures, and pose evaluation landed in Sprint 05.
 - Dependencies: resource lifetime management (`AI-001`) and frame-graph metadata (`AI-003`) already enforce
@@ -15,9 +15,9 @@ content authors.
 ## Inputs
 - Code: `engine/animation/deformation/`, `engine/geometry/deform/`, `engine/runtime/runtime_host.cpp`,
   `engine/runtime/tests/`, `engine/rendering/frame_graph.hpp`.
-- Docs/specs: [`docs/modules/animation/README.md`](../modules/animation/README.md),
-  [`docs/modules/geometry/README.md`](../modules/geometry/README.md),
-  [`docs/specs/ADR-0006-animation-deformation.md`](../specs/ADR-0006-animation-deformation.md) *(author if missing)*.
+- Docs/specs: [`docs/modules/animation/README.md`](../../../../modules/animation/README.md),
+  [`docs/modules/geometry/README.md`](../../../../modules/geometry/README.md),
+  [`docs/specs/ADR-0006-animation-deformation.md`](../../../../specs/ADR-0006-animation-deformation.md) *(author if missing)*.
 - Fixtures: rigged test assets under `engine/animation/tests/data/` (extend as needed).
 
 ## Constraints

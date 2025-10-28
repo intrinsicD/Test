@@ -48,7 +48,7 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 3. **`CC-311` — Comparative visualisation:** integrate benchmark plots and CI gating so AI-004 demonstrations include side-by-side metrics.
 
 ### Kickoff Readiness Summary
-- **Milestone timeline:** See [`docs/tasks/AI-004-kickoff-brief.md`](AI-004-kickoff-brief.md) for the sequenced Phase 1 plan covering `DC-041` (2025-12-05 review prep), `RT-321` (2026-01-16), and `CC-311` (2026-01-19).
+- **Milestone timeline:** See [`docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md`](AI-004-kickoff-brief.md) for the sequenced Phase 1 plan covering `DC-041` (2025-12-05 review prep), `RT-321` (2026-01-16), and `CC-311` (2026-01-19).
 - **Risk owners & deadlines (all due ≥1 week before the 2025-12-05 kickoff review):**
   - Coordinated schema delivery — @pm-agent — mitigation deck due **2025-11-27**.
   - Dataset licensing approvals — @assets-lead — licensing checkpoint due **2025-11-27**.
@@ -72,7 +72,7 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 **Files to Modify:**
 - `docs/ROADMAP.md`
 - `docs/modules/*/README.md` for the affected modules
-- `docs/tasks/RE-610-*.md`, `RT-320-*.md`, `TL-210-*.md`, `AS-330-*.md`, `CC-310-*.md`
+- `docs/archive/backlog/legacy/tasks/RE-610-*.md`, `RT-320-*.md`, `TL-210-*.md`, `AS-330-*.md`, `CC-310-*.md`
 - `python/scripts` benchmarking utilities (exact files TBD during implementation)
 
 **New Files:**

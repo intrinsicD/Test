@@ -127,7 +127,7 @@ schema.
 These values feed the async streaming diagnostics described in
 [`docs/design/ASYNC_STREAMING.md`](../../design/ASYNC_STREAMING.md), the shared
 schema reference, and the associated task record
-[`T-0115`](../../tasks/T-0115-assets-async-streaming-mvp.md).
+[`T-0115`](../../archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md).
 
 ### Handle Validation
 `handle_validation` captures a snapshot from the asset handle validator

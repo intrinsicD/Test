@@ -57,7 +57,7 @@ Use module-based IDs: `<MODULE>-<NUMBER>` (e.g., `RE-541`, `GE-221`, `AI-002`)
 ### Where to Create Tasks
 
 **Internal/Active Tasks:**
-- Location: `docs/tasks/<TASK-ID>.md`
+- Location: `docs/backlog/active/<TASK-ID>.md`
 - Template: [TEMPLATES/TASK_CARD.md](TEMPLATES/TASK_CARD.md)
 - Tracking: Module health table in [README.md](../README.md)
 

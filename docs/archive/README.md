@@ -8,7 +8,7 @@ This directory contains historical documentation artifacts that provide context 
 
 - **`reviews/`** - Historical code review discussions and architectural review sessions. These are dated records of decisions made during specific review cycles. Consult these for historical context on why certain approaches were chosen.
 
-- **`tasks/done/`** - Completed task records that have been delivered and are no longer actively tracked. These are preserved for reference but should not be confused with active tasks in `../tasks/`.
+- **`tasks/done/`** - Completed task records that have been delivered and are no longer actively tracked. These are preserved for reference but should not be confused with active tasks in `../archive/backlog/legacy/tasks/`.
 
 ## When to Consult Archives
 
