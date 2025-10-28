@@ -1,6 +1,8 @@
+from __future__ import annotations
+
+import os
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union
-import os
 
 
 class ConfigurationSchemaError(RuntimeError): ...
@@ -101,32 +103,126 @@ class DatasetManifest:
     datasets: Tuple[DatasetEntry, ...]
 
 
-def load_dataset_manifest(
-    path: Union[str, os.PathLike[str]],
-    *,
-    require_schema: bool | None = ...,
-) -> DatasetManifest: ...
+@dataclass
+class RenderingConfig:
+    schema_version: int
+    preset: str
+    shading_mode: str
+    width: int
+    height: int
+    overlay_normals: bool
+    overlay_uv: bool
+    overlay_material: bool
+    overlay_light_volume: bool
+
+
+@dataclass
+class RuntimeCameraConfig:
+    mode: str
+    position: Optional[Tuple[float, float, float]]
+    target: Optional[Tuple[float, float, float]]
+
+
+@dataclass
+class RuntimeSimulationConfig:
+    timestep_seconds: float
+    max_substeps: int
+
+
+@dataclass
+class RuntimeHotReloadConfig:
+    enabled: bool
+    watch_interval_seconds: Optional[float]
+
+
+@dataclass
+class RuntimeConfig:
+    schema_version: int
+    dataset: Optional[str]
+    scene_manifest: Optional[str]
+    scene_entry_point: Optional[str]
+    camera: Optional[RuntimeCameraConfig]
+    simulation: Optional[RuntimeSimulationConfig]
+    hot_reload: RuntimeHotReloadConfig
+
+
+@dataclass
+class BenchmarkThreshold:
+    mode: str
+    limit: float
+
+
+@dataclass
+class BenchmarkMetricConfig:
+    name: str
+    higher_is_better: bool
+    threshold: BenchmarkThreshold
+
+
+@dataclass
+class BenchmarkCommandConfig:
+    command: Optional[Tuple[str, ...]]
+    output: str
+
+
+@dataclass
+class BenchmarkScenarioConfig:
+    identifier: str
+    name: str
+    dataset: Optional[str]
+    rendering_preset: Optional[str]
+    runtime_profile: Optional[str]
+    engine: BenchmarkCommandConfig
+    reference: BenchmarkCommandConfig
+    metrics: Tuple[BenchmarkMetricConfig, ...]
+
+
+@dataclass
+class BenchmarkConfig:
+    schema_version: int
+    scenarios: Tuple[BenchmarkScenarioConfig, ...]
+
+
+@dataclass
+class TelemetryOutputConfig:
+    kind: str
+    path: Optional[str]
+
+
+@dataclass
+class TelemetryMetricConfig:
+    name: str
+    statistic: str
+
+
+@dataclass
+class TelemetrySamplingConfig:
+    frame_interval: int
+    include_debug_overlays: bool
+
+
+@dataclass
+class TelemetryConfig:
+    schema_version: int
+    outputs: Tuple[TelemetryOutputConfig, ...]
+    metrics: Tuple[TelemetryMetricConfig, ...]
+    sampling: Optional[TelemetrySamplingConfig]
 
 
 @dataclass
 class Ai004Configuration:
     datasets: DatasetManifest
-    rendering: Optional["RenderingConfig"]
-    runtime: Optional["RuntimeConfig"]
-    benchmarks: Optional["BenchmarkConfig"]
-    telemetry: Optional["TelemetryConfig"]
+    rendering: Optional[RenderingConfig]
+    runtime: Optional[RuntimeConfig]
+    benchmarks: Optional[BenchmarkConfig]
+    telemetry: Optional[TelemetryConfig]
 
 
-class RenderingConfig: ...
-
-
-class RuntimeConfig: ...
-
-
-class BenchmarkConfig: ...
-
-
-class TelemetryConfig: ...
+def load_dataset_manifest(
+    path: Union[str, os.PathLike[str]],
+    *,
+    require_schema: bool | None = ...,
+) -> DatasetManifest: ...
 
 
 def load_configuration(

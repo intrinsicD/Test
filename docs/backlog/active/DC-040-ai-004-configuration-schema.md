@@ -25,3 +25,5 @@ AI-004 spans rendering presets, runtime harness controls, sandbox layouts, datas
 
 ## Notes
 Kickoff readiness (`DC-041`) depends on this task closing; escalate blockers within two business days.
+- Python stubs for the schema validators (`engine3g.config_schema.pyi`) now mirror the dataclass surface so IDEs and CI type
+  checks can rely on the shared contract while runtime integration proceeds.
