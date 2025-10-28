@@ -8,13 +8,18 @@ queues. It is the single source of truth for prioritisation; keep it in sync
 with [`../README.md`](../README.md), module READMEs, and task files under
 [`tasks/`](tasks/).
 
+Milestones and tasks are tagged with priority values instead of explicit due
+dates using the following scale: `P0` (critical), `P1` (high), `P2` (medium),
+and `P3` (low). Priorities reflect relative urgency and sequencing across the
+roadmap.
+
 ---
 
 ## 🎯 Active Work (Q1 2026)
 
 | ID | Intent | Dependencies | Next Milestone | Owning Groups | Owner |
 | --- | --- | --- | --- | --- | --- |
-| `AI-004` | Application prototyping enablement: rendering baseline, runtime harness, tooling sandbox, datasets, comparative benchmarks. | `AI-001`, `AI-002`, `AI-003` | Kickoff review + baseline plan sign-off (target 2025-11-15) | Rendering, Runtime, Tools, Assets, Performance | @pm-agent |
+| `AI-004` | Application prototyping enablement: rendering baseline, runtime harness, tooling sandbox, datasets, comparative benchmarks. | `AI-001`, `AI-002`, `AI-003` | Kickoff review + baseline plan sign-off (Priority P0) | Rendering, Runtime, Tools, Assets, Performance | @pm-agent |
 | `RT-006` | Harden IO signature detection with fuzzing + telemetry. | – | CI integration (blocked on infra) | IO | @io-lead |
 
 ### Active Task Details
@@ -32,16 +37,16 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 | `CC-310` | Automate comparative benchmarks across engine and reference implementations with CI smoke coverage. | Benchmark orchestrator emits comparison reports, CI gate enforces thresholds, and telemetry viewer renders comparative plots. | 🟡 Planning | @perf-lead |
 | `DC-040` | Align AI-004 configuration schema across rendering, runtime, tools, assets, and benchmarking. | Shared schema ADR approved, validators integrated behind feature flag, and migration notes published for downstream teams. | 🟡 Planning | @architect-lead |
 
-**Key Dates:**
-- 2025-10-20: Initiative charter approved; cross-module leads assigned.
-- 2025-11-15: Kickoff review to confirm shared configuration schema and dataset shortlist.
-- 2025-12-20: Runtime harness + rendering baseline integration demo with sandbox UI prototype.
-- 2026-01-15: Benchmark automation smoke suite active in CI.
+**Priority Checkpoints:**
+- **P3:** Initiative charter approved; cross-module leads assigned.
+- **P0:** Kickoff review to confirm shared configuration schema and dataset shortlist.
+- **P1:** Runtime harness + rendering baseline integration demo with sandbox UI prototype.
+- **P2:** Benchmark automation smoke suite active in CI.
 
 **Risks:**
-- Coordinated delivery requires shared configuration schema—Owner: @pm-agent (Product Manager), Due: 2025-11-20.
-- Dataset licensing review could delay publication—Owner: @assets-lead (Assets), Due: 2025-11-18.
-- Benchmarking hardware pool request pending infrastructure approval—Owner: @perf-lead (Performance), Due: 2025-11-22.
+- **P0:** Coordinated delivery requires shared configuration schema—Owner: @pm-agent (Product Manager).
+- **P1:** Dataset licensing review could delay publication—Owner: @assets-lead (Assets).
+- **P2:** Benchmarking hardware pool request pending infrastructure approval—Owner: @perf-lead (Performance).
 
 **Mitigations:**
 - Bi-weekly integration demos to surface drift early.
@@ -56,31 +61,31 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 - CI smoke tests execute full AI-004 workflow in ≤5 minutes
 
 **Execution Phases:**
-- **Phase 1 (Nov 2025):** Configuration schema (`DC-040`) + rendering baseline (`RE-610`) + runtime harness core (`RT-320`)
-- **Phase 2 (Dec 2025):** Dataset integration (`AS-330`) + sandbox UI prototype (`TL-210`)
-- **Phase 3 (Jan 2026):** Comparative benchmarking (`CC-310`) + CI automation
+- **Phase 1 (Priority P0):** Configuration schema (`DC-040`) + rendering baseline (`RE-610`) + runtime harness core (`RT-320`)
+- **Phase 2 (Priority P1):** Dataset integration (`AS-330`) + sandbox UI prototype (`TL-210`)
+- **Phase 3 (Priority P2):** Comparative benchmarking (`CC-310`) + CI automation
 
 **Recent Progress:**
-- 2025-10-24: Drafted `ADR-0007` to define the shared AI-004 configuration schema and published coordination task `DC-040`.
-- 2025-10-23: Added comparative benchmark orchestrator (`scripts/benchmarks/run_comparative_benchmarks.py`) executing
+- **Priority P2:** Drafted `ADR-0007` to define the shared AI-004 configuration schema and published coordination task `DC-040`.
+- **Priority P2:** Added comparative benchmark orchestrator (`scripts/benchmarks/run_comparative_benchmarks.py`) executing
   CC-310 scenarios from declarative configurations and enforcing regression thresholds.
-- 2025-10-22: Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.
-- 2025-10-26: `geometry_remesh` CLI emits AI-004-compatible `datasets` manifest snippets so remeshing jobs register directly with
+- **Priority P3:** Captured how `GE-221+` remeshing outputs populate AI-004 datasets in the geometry module README note, ensuring prototyping harness reuse.
+- **Priority P2:** `geometry_remesh` CLI emits AI-004-compatible `datasets` manifest snippets so remeshing jobs register directly with
   the shared configuration schema during prototyping runs.
-- 2025-12-06: Introduced `rendering::configure_research_baseline` to scaffold the RE-610 preset with forward/deferred toggles
+- **Priority P1:** Introduced `rendering::configure_research_baseline` to scaffold the RE-610 preset with forward/deferred toggles
   and overlay targets, unblocking runtime and tools integration work.
-- 2025-12-07: Research baseline telemetry publishes shading mode selections and per-pass draw/timing metrics to the runtime
+- **Priority P1:** Research baseline telemetry publishes shading mode selections and per-pass draw/timing metrics to the runtime
   diagnostics bridge, satisfying RE-610 instrumentation requirements.
-- 2025-12-08: Overlay enablement telemetry reports normals/UV/material/light-volume usage to runtime diagnostics to unblock
+- **Priority P1:** Overlay enablement telemetry reports normals/UV/material/light-volume usage to runtime diagnostics to unblock
   tooling overlays and benchmark selectors.
-- 2025-12-09: Schema document updated with rendering/runtime/benchmark/telemetry sections and validator expanded to cover the
+- **Priority P1:** Schema document updated with rendering/runtime/benchmark/telemetry sections and validator expanded to cover the
   unified configuration manifest.
-- 2025-12-11: Python-based runtime prototype harness scaffolded with CLI (`python -m scripts.prototyping.run_prototype_harness`)
+- **Priority P0:** Python-based runtime prototype harness scaffolded with CLI (`python -m scripts.prototyping.run_prototype_harness`)
   to validate AI-004 configurations and execute headless tick loops pending native integration.
-- 2025-12-14: Comparative benchmark orchestrator writes JSON and CSV summaries (configurable
+- **Priority P1:** Comparative benchmark orchestrator writes JSON and CSV summaries (configurable
   via `--output`/`--table`) so telemetry viewers and CI pipelines can ingest engine vs. reference
   metrics without custom adapters, advancing `CC-310` reporting deliverables.
-- 2025-12-16: `geometry_remesh` CLI grows `--manifest-output` to persist AI-004 dataset manifests
+- **Priority P1:** `geometry_remesh` CLI grows `--manifest-output` to persist AI-004 dataset manifests
   on disk, enabling AS-330 ingestion scripts to register remeshed assets without manual edits.
 
 ---
@@ -91,27 +96,27 @@ with [`../README.md`](../README.md), module READMEs, and task files under
 
 - **RT-006** — IO signature hardening remains blocked on CI infrastructure provisioning. Monitor infra updates and reprioritise when capacity restored.
 - **GE-221+** — Remeshing execution milestones (depends on published `GE-212` RFP)
-  - 2025-11-05: Uniform remeshing baseline (split/collapse + relaxation) available via
+  - **Priority P0:** Uniform remeshing baseline (split/collapse + relaxation) available via
     `Remesh`, returning `RemeshOutput` statistics for downstream tooling.
-  - 2025-11-03: Remesh request/validation scaffolding merged to capture
+  - **Priority P0:** Remesh request/validation scaffolding merged to capture
     configuration semantics ahead of kernel implementation.
-  - 2025-11-02: Surface topology summary utilities landed (`AnalyzeSurfaceTopology`) to
+  - **Priority P0:** Surface topology summary utilities landed (`AnalyzeSurfaceTopology`) to
     provide deterministic boundary and crease classification for Phase 0 planning.
-  - 2025-11-12: Feature-preserving remeshing adds crease-aware edge protection and
+  - **Priority P1:** Feature-preserving remeshing adds crease-aware edge protection and
     tangential smoothing; next milestone targets adaptive error budgeting.
-  - 2025-11-26: UV reuse in remeshing now interpolates/smooths coordinates, scales to
+  - **Priority P1:** UV reuse in remeshing now interpolates/smooths coordinates, scales to
     target texel density budgets, and records parameterisation summaries for
     telemetry tracking.
-- 2025-11-27: ABF++ parameterisation pipeline lands, generating conformal UV charts
+- **Priority P1:** ABF++ parameterisation pipeline lands, generating conformal UV charts
   from constrained angle optimisation and circle-intersection reconstruction to
   progress the `GE-221+` execution milestone.
-- 2025-11-30: Remesh telemetry instrumentation captures per-mode invocation counts,
+- **Priority P1:** Remesh telemetry instrumentation captures per-mode invocation counts,
   iteration totals, and split/collapse statistics with job labels to close the
   observability gap for `GE-221+` planning.
-- 2025-12-01: `geometry_remesh` CLI delivers offline remeshing execution with
+- **Priority P1:** `geometry_remesh` CLI delivers offline remeshing execution with
   telemetry-aligned summaries, enabling scripted `GE-221+` workflows without
   embedding the geometry module.
-- 2025-12-04: Remeshing preserves rest-space offsets by interpolating and averaging `SurfaceMesh::rest_positions` and resynchronises Laplacian relaxation so animation bindings remain stable as GE-221+ progresses.
+- **Priority P1:** Remeshing preserves rest-space offsets by interpolating and averaging `SurfaceMesh::rest_positions` and resynchronises Laplacian relaxation so animation bindings remain stable as GE-221+ progresses.
 
 ### Mid-term (3-6 months)
 
