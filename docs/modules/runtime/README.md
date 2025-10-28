@@ -308,4 +308,4 @@ ctest --preset linux-gcc-debug -R runtime
 - [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md): Asset loading workflows
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): System-level data flow and invariants
 - [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Shared metric definitions
-- [`../../tasks/T-0104-runtime-frame-graph-integration.md`](../../tasks/T-0104-runtime-frame-graph-integration.md): Frame-graph integration milestone
+- [`../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md`](../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md): Frame-graph integration milestone

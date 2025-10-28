@@ -89,7 +89,7 @@ The remeshing roadmap (`GE-221+`) now feeds directly into the `AI-004` prototypi
 statistics populate the dataset manifests consumed by the runtime harness (`RT-320`) and sandbox UI (`TL-210`), ensuring
 geometry variants appear alongside rendering presets during experiment setup. Update remeshing jobs to emit `datasets` entries
 compatible with the shared configuration schema defined in [`ADR-0007`](../../specs/ADR-0007-ai-004-configuration-schema.md)
-and tracked by task [`DC-040`](../../tasks/DC-040-ai-004-configuration-schema-alignment.md).
+and tracked by task [`DC-040`](../../archive/backlog/legacy/tasks/DC-040-ai-004-configuration-schema-alignment.md).
 
 ### Surface Topology Summary
 

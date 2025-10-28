@@ -29,7 +29,7 @@ None.
      available.
 
 ## Documentation Status
-- [x] `docs/tasks/2025-02-17-sprint-06.md`
+- [x] `docs/backlog/archive/legacy/tasks/2025-02-17-sprint-06.md`
 - [x] `scripts/README.md`
 - [x] `scripts/diagnostics/README.md`
 

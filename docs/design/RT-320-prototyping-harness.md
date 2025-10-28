@@ -102,6 +102,6 @@ EngineRuntimeHandle (ctypes wrapper)
 
 - [`python/engine3g/config_schema.py`](../../python/engine3g/config_schema.py)
 - [`python/engine3g/loader.py`](../../python/engine3g/loader.py)
-- [`docs/tasks/RT-320-runtime-prototyping-harness.md`](../tasks/RT-320-runtime-prototyping-harness.md)
+- [`docs/archive/backlog/legacy/tasks/RT-320-runtime-prototyping-harness.md`](../archive/backlog/legacy/tasks/RT-320-runtime-prototyping-harness.md)
 - [`scripts/validate_ai004_config.py`](../../scripts/validate_ai004_config.py)
 

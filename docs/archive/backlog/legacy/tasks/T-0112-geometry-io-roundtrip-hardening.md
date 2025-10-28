@@ -5,8 +5,8 @@ Guarantee lossless round-tripping for meshes, point clouds, and graphs by aligni
 
 ## Inputs
 - Code: `engine/geometry/`, `engine/io/`, `engine/geometry/tests/`
-- Specs: [`docs/specs/ADR-0005-geometry-io-roundtrip.md`](../specs/ADR-0005-geometry-io-roundtrip.md)
-- Roadmap: [`RT-006`](../specs/ADR-0005-geometry-io-roundtrip.md#roadmap-alignment)
+- Specs: [`docs/specs/ADR-0005-geometry-io-roundtrip.md`](../../../../specs/ADR-0005-geometry-io-roundtrip.md)
+- Roadmap: [`RT-006`](../../../../specs/ADR-0005-geometry-io-roundtrip.md#roadmap-alignment)
 
 ## Constraints
 - No additional allocations in kd-tree/octree hot loops.

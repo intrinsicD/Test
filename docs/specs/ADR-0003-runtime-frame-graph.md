@@ -20,5 +20,5 @@ Rendering backends require deterministic pass ordering, explicit resource transi
 - Additional tooling (e.g., frame capture visualisers) can operate purely on the serialized representation.
 
 ## Follow-Up Work
-- Document runtime integration steps in [`docs/tasks/T-0104-runtime-frame-graph-integration.md`](../tasks/T-0104-runtime-frame-graph-integration.md).
+- Document runtime integration steps in [`docs/archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md`](../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md).
 - Update `docs/modules/rendering/README.md` with scheduler implementation notes after the prototype stabilises.

@@ -5,13 +5,13 @@ previously stored under `docs/prints/`.
 
 ## When to Use
 - Developing a new feature or bug fix that affects the engine, runtime tooling, or documentation.
-- Executing roadmap tasks from `docs/tasks/` that require both implementation and follow-up validation.
+- Executing roadmap tasks from `docs/backlog/active/` that require both implementation and follow-up validation.
 - Practising the dual-phase implementer/reviewer workflow prior to automating it in CI.
 
 ## Prerequisites Checklist
 Before invoking the prompt, confirm:
 - [ ] You have read [`../NAVIGATION.md`](../NAVIGATION.md) and [`../../README.md`](../../README.md) for the current workspace snapshot.
-- [ ] The relevant task record(s) in [`../tasks/`](../tasks/) are open in another tab (e.g., `T-0104`, `T-0112`, `T-0115`,
+- [ ] The relevant task record(s) in [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) are open in another tab (e.g., `T-0104`, `T-0112`, `T-0115`,
       `T-0116`, `T-0117`).
 - [ ] Module-specific READMEs and roadmaps in [`../modules/`](../modules/) are reviewed for impacted subsystems.
 - [ ] Applicable specs or ADRs in [`../specs/`](../specs/) are identified.
@@ -40,7 +40,7 @@ checklists.
 
 **Repository Context**
 - Review the subsystem overview in [`../../README.md`](../../README.md) and invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
-- Inspect the active backlog via [`../tasks/README.md`](../tasks/README.md) with emphasis on:
+- Inspect the active backlog via [`../archive/backlog/legacy/tasks/README.md`](../archive/backlog/legacy/tasks/README.md) with emphasis on:
   - `T-0104 Runtime frame-graph integration`
   - `T-0112 Geometry/IO round-trip hardening`
   - `T-0113 Animation runtime skinning`

@@ -49,7 +49,7 @@ risks without ad-hoc status syncs.
 
 ## References
 - [`AI-004-application-prototyping-enablement.md`](AI-004-application-prototyping-enablement.md)
-- [`../ROADMAP.md#ai-004-—-application-prototyping-enablement-🚀-active`](../ROADMAP.md#ai-004-—-application-prototyping-enablement-🚀-active)
+- [`../../../../ROADMAP.md)
 - [`RT-321-prototyping-case-study-validation.md`](RT-321-prototyping-case-study-validation.md)
 - [`CC-311-benchmark-visualization-integration.md`](CC-311-benchmark-visualization-integration.md)
 - [`TL-210-experiment-sandbox-ui.md`](TL-210-experiment-sandbox-ui.md)

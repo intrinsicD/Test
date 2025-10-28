@@ -23,7 +23,7 @@ Examples:
 **All files in this directory are historical.** For current implementation guidance, use:
 - `../../prompts/IMPLEMENTATION-PLAYBOOK.md` - Current standard implementation workflow
 - `../../prompts/REVIEW-CHECKLIST.md` - Current review process
-- `../../tasks/` - Current work items
+- `../../archive/backlog/legacy/tasks/` - Current work items
 
 ## Using These Archives
 

@@ -52,7 +52,7 @@ Extend the telemetry viewer and diagnostics tooling to ingest comparative benchm
 - `scripts/tests/test_telemetry_viewer.py`
 - `python/tests/test_prototype_harness.py`
 - `docs/design/CC-310-benchmark-playbook.md`
-- `docs/tasks/AI-004-application-prototyping-enablement.md`
+- `docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`
 
 **New Files:**
 - `scripts/diagnostics/templates/comparative_report.html`
@@ -69,9 +69,9 @@ Extend the telemetry viewer and diagnostics tooling to ingest comparative benchm
 - `TL-210` sandbox telemetry overlays
 
 ### Related Work
-- `docs/tasks/CC-310-comparative-benchmark-automation.md`
-- `docs/tasks/TL-210-experiment-sandbox-ui.md`
-- `docs/tasks/AI-004-application-prototyping-enablement.md`
+- `docs/archive/backlog/legacy/tasks/CC-310-comparative-benchmark-automation.md`
+- `docs/archive/backlog/legacy/tasks/TL-210-experiment-sandbox-ui.md`
+- `docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`
 
 ---
 

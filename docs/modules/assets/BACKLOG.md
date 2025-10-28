@@ -32,7 +32,7 @@ _Last Updated: 2025-05-05_
 ## Notes
 
 - Track detailed acceptance criteria in
-  [`docs/tasks/T-0115-assets-async-streaming-mvp.md`](../../tasks/T-0115-assets-async-streaming-mvp.md).
+  [`docs/archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md`](../../archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md).
 - Coordinate hot reload work with the broader initiative documented in
   [`../../ROADMAP.md`](../../ROADMAP.md#cc-002-hot-reload-infrastructure).
 - 2025-03-24: Published [`design/MATERIAL_PERSISTENCE_STRATEGY.md`](../../design/MATERIAL_PERSISTENCE_STRATEGY.md)

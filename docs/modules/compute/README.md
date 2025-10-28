@@ -173,7 +173,7 @@ float max_val = compute::reduce_max(values);
 ## Runtime Integration Sample
 
 `engine_compute_runtime_sample` is the end-to-end harness delivered by
-[`CO-170`](../../tasks/CO-170-runtime-integration-sample.md). It advances
+[`CO-170`](../../archive/backlog/legacy/tasks/CO-170-runtime-integration-sample.md). It advances
 `RuntimeHost`, schedules animation/physics/geometry kernels through the dispatcher,
 and records telemetry that mirrors production workloads.
 

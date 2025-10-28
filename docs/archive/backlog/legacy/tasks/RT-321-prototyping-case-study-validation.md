@@ -54,7 +54,7 @@ Author two end-to-end case studies (one geometry-focused, one rendering-focused)
 - `scripts/tests/` + `python/tests/` integration suites
 - `docs/design/RT-320-prototyping-harness.md`
 - `docs/modules/runtime/README.md`
-- `docs/tasks/AI-004-application-prototyping-enablement.md`
+- `docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`
 
 **New Files:**
 - `assets/datasets/<case-study>/manifest.yaml`
@@ -72,9 +72,9 @@ Author two end-to-end case studies (one geometry-focused, one rendering-focused)
 - `TL-210` sandbox demo checklist
 
 ### Related Work
-- `docs/tasks/AI-004-application-prototyping-enablement.md`
-- `docs/tasks/AS-330-reference-dataset-packages.md`
-- `docs/tasks/TL-210-experiment-sandbox-ui.md`
+- `docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`
+- `docs/archive/backlog/legacy/tasks/AS-330-reference-dataset-packages.md`
+- `docs/archive/backlog/legacy/tasks/TL-210-experiment-sandbox-ui.md`
 
 ---
 

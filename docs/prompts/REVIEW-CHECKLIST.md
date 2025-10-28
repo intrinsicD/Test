@@ -12,7 +12,7 @@ Use this prompt to perform consistent, high-signal reviews for Test Engine pull 
 - [ ] Refresh invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md) and coding/testing standards in
       [`../../CODING_STYLE.md`](../../CODING_STYLE.md).
 - [ ] Open module READMEs/ROADMAPs for affected subsystems.
-- [ ] Locate referenced tasks in [`../tasks/`](../tasks/) and related specs/prints.
+- [ ] Locate referenced tasks in [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) and related specs/prints.
 - [ ] Ensure access to build/test tooling to reproduce results if needed.
 
 ## Prompt Template
@@ -120,7 +120,7 @@ PROJECT STANDARDS (Test Engine)
 3. File follow-up task if remediation exceeds PR scope.
 
 ## Review Workflow Reminders
-1. Confirm PR references a task (`docs/tasks/T-XXXX-*.md`) and acceptance criteria.
+1. Confirm PR references a task (`docs/backlog/active/T-XXXX-*.md`) and acceptance criteria.
 2. Review documentation updates for affected modules and central artefacts.
 3. Execute targeted tests locally when behaviour is complex or determinism is at risk.
 4. Record findings in `docs/reviews/` if performing post-merge audits.

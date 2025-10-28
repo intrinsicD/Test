@@ -280,7 +280,7 @@ diff --git a/docs/modules/animation/ROADMAP.md b/docs/modules/animation/ROADMAP.
 +| `AN-201` | … | ✅ Done |
 +- 2025-02-21: Added regression coverage for clip validation failure codes and controller playback invariants (`engine/animation/tests/test_clip_serialization.cpp`, `engine/animation/tests/test_module.cpp`).
 
-diff --git a/docs/tasks/T-0113-animation-runtime-skinning.md b/docs/tasks/T-0113-animation-runtime-skinning.md
+diff --git a/docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md b/docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md
 @@
 +- Regression coverage extended via `AnimationClipValidation.*` and `AnimationModule.*` tests to lock down validation and controller failure scenarios (AN-201).
 ```

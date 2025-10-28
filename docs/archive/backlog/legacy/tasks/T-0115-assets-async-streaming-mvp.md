@@ -8,7 +8,7 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
 - Telemetry instrumentation and reporting script updates.
 
 ## Background
-- Design reference: [`docs/design/ASYNC_STREAMING.md`](../design/ASYNC_STREAMING.md).
+- Design reference: [`docs/design/ASYNC_STREAMING.md`](../../../../design/ASYNC_STREAMING.md).
 - Current status: `AssetLoadRequest`/`AssetLoadFuture` primitives exist; scheduler, thread pool, and telemetry hooks are missing.
 - Dependencies: Resource lifetime management (`AI-001`) guarantees handle safety; error handling (`DC-004`) standardises
   `Result<T, Error>` usage.
@@ -77,7 +77,7 @@ Advance `AI-002` by delivering the remaining infrastructure for asynchronous ass
 - Hot reload telemetry regression now ensures OBJ reloads missing vertices or
   faces raise validation failures so counters reflect real asset errors.
 - Runtime integration guidance lives in
-  [`docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md`](../modules/runtime/ASYNC_STREAMING_INTEGRATION.md),
+  [`docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md`](../../../../modules/runtime/ASYNC_STREAMING_INTEGRATION.md),
   documenting configuration, scheduling flows, and telemetry consumption for
   runtime consumers (`AI-002.3`).
 - `RuntimeHost::request_mesh_asset` / `request_point_cloud_asset` delegate

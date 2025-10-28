@@ -20,7 +20,7 @@ Add frustum extraction and frustum-shape intersection utilities to the geometry 
 - Code: `engine/geometry/include/engine/geometry/shapes/`, `engine/geometry/src/shapes/`
 - Math: `engine/math/include/engine/math/` (matrix, vector utilities)
 - Tests: `engine/geometry/tests/`
-- Docs: [`docs/modules/geometry/README.md`](../modules/geometry/README.md)
+- Docs: [`docs/modules/geometry/README.md`](../../../../modules/geometry/README.md)
 
 ## Constraints
 - Must match existing shape API conventions (see AABB, Plane, etc.)

@@ -25,8 +25,8 @@ re-implementing testing primitives.
 ## Inputs
 - Code: `third_party/googletest/`, `engine/tests/**`, `CMakeLists.txt` (root and
   per-module test targets).
-- Docs: [`docs/ROADMAP.md`](../ROADMAP.md#ti-001-integration-suites),
-  [`docs/tasks/T-0114-testing-integration-suites.md`](T-0114-testing-integration-suites.md),
+- Docs: [`docs/ROADMAP.md`](../../../../ROADMAP.md),
+  [`docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md`](T-0114-testing-integration-suites.md),
   module READMEs that reference `TI-001`.
 - Build scripts: presets under `scripts/build/presets/`.
 
@@ -45,7 +45,7 @@ re-implementing testing primitives.
       succeeds without compile errors from `TEST_F`.
 - [x] `ctest --preset linux-gcc-debug --tests-regex engine_integration_tests`
       runs to completion on the upgraded toolchain.
-- [x] `docs/ROADMAP.md` and `docs/tasks/T-0114-testing-integration-suites.md`
+- [x] `docs/ROADMAP.md` and `docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md`
       mark `TI-001` as unblocked.
 - [x] Third-party licensing and README updates document the new Googletest
       source.

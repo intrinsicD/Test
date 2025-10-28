@@ -41,7 +41,7 @@ The **new workflow** (agents/*.md) provides superior role clarity, specializatio
 |--------|--------------|--------------|--------|
 | **Navigation Guide** | ✅ docs/NAVIGATION.md | ❌ Missing | **Old** |
 | **Coding Style** | ✅ CODING_STYLE.md referenced | ❌ Not integrated | **Old** |
-| **Task Discovery** | ✅ Clear (docs/tasks/) | ❌ Unclear | **Old** |
+| **Task Discovery** | ✅ Clear (docs/backlog/active/) | ❌ Unclear | **Old** |
 | **Module Documentation** | ✅ Per-module READMEs | ⚠️ Mentioned but not emphasized | **Old** |
 | **Architecture Docs** | ✅ Comprehensive (docs/) | ⚠️ Referenced but not detailed | **Old** |
 
@@ -53,7 +53,7 @@ The **new workflow** (agents/*.md) provides superior role clarity, specializatio
 
 | Aspect | Old Workflow | New Workflow | Winner |
 |--------|--------------|--------------|--------|
-| **Task Creation** | ✅ Clear location (docs/tasks/) | ⚠️ GitHub Issues (external) | **Old** |
+| **Task Creation** | ✅ Clear location (docs/backlog/active/) | ⚠️ GitHub Issues (external) | **Old** |
 | **Roadmap Integration** | ✅ Strong (docs/ROADMAP.md) | ⚠️ Mentioned | **Old** |
 | **Acceptance Criteria** | ✅ In task files | ✅ In issue templates | **Tie** |
 | **Task Tracking** | ✅ README table + task files | ⚠️ GitHub project boards | **Old** |
@@ -124,7 +124,7 @@ The **new workflow** (agents/*.md) provides superior role clarity, specializatio
 ### Old Workflow Strengths (Keep These)
 1. ✅ **Single entry point** - AGENTS.md provides quick orientation
 2. ✅ **Integrated documentation** - Strong links to NAVIGATION.md, CODING_STYLE.md
-3. ✅ **Task management** - Clear task file structure in docs/tasks/
+3. ✅ **Task management** - Clear task file structure in docs/backlog/active/
 4. ✅ **Module health table** - README.md snapshot of all modules
 5. ✅ **Build workflow** - Comprehensive CMake preset guidance
 6. ✅ **Architecture alignment** - Strong connection to docs/ROADMAP.md
@@ -163,8 +163,8 @@ The **new workflow** (agents/*.md) provides superior role clarity, specializatio
 **Fix Needed**: Add to common guardrails and all engineering roles
 
 ### 4. Task Discovery ❌
-**Problem**: Unclear where tasks live (GitHub vs docs/tasks/)  
-**Old Solution**: Clear structure in docs/tasks/ + README table  
+**Problem**: Unclear where tasks live (GitHub vs docs/backlog/active/)  
+**Old Solution**: Clear structure in docs/backlog/active/ + README table  
 **Fix Needed**: Clarify task management approach (hybrid?)
 
 ### 5. Module Health Dashboard ❌
@@ -207,7 +207,7 @@ The **new workflow** (agents/*.md) provides superior role clarity, specializatio
 
 3. **Enhance 10-Product-Manager.md**
    - Integrate docs/ROADMAP.md usage
-   - Reference docs/tasks/ structure
+   - Reference docs/backlog/active/ structure
    - Add task ID conventions (module-based)
 
 4. **Enhance 11-Agent-Orchestrator.md**
@@ -223,7 +223,7 @@ The **new workflow** (agents/*.md) provides superior role clarity, specializatio
 ### Phase 2: Structural Improvements
 
 1. **Unify task management**
-   - Keep docs/tasks/ for active work
+   - Keep docs/backlog/active/ for active work
    - Use GitHub Issues for community/external
    - Module-based task IDs (RE-541, GE-221)
 
@@ -263,7 +263,7 @@ The **new workflow excels at agent coordination and specialization** but lacks t
 - Single entry point (AGENTS-INDEX.md)
 - Documentation navigation (NAVIGATION.md integration)
 - Coding standards (CODING_STYLE.md references)
-- Task management clarity (docs/tasks/ + module IDs)
+- Task management clarity (docs/backlog/active/ + module IDs)
 - Build workflow (common commands and presets)
 - Module health tracking (README.md table)
 

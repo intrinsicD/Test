@@ -1,13 +1,13 @@
 # Task Records
 
-Each file in this directory documents a sprint backlog or a focused piece of work. Tasks drive discussions with ChatGPT and pair programmers—link to them from PRs and commit messages whenever possible. Treat them as the actionable layer beneath the architecture improvement plan summarised in [`../ROADMAP.md`](../ROADMAP.md).
+Each file in this directory documents a sprint backlog or a focused piece of work. Tasks drive discussions with ChatGPT and pair programmers—link to them from PRs and commit messages whenever possible. Treat them as the actionable layer beneath the architecture improvement plan summarised in [`../../../../ROADMAP.md`](../../../../ROADMAP.md).
 
 ## How to Use Task Records
 
 1. **Find the relevant file** before starting work. Sprint summaries follow the naming pattern `YYYY-MM-DD-sprint-XX.md`. Individual tickets use `T-####-short-title.md`.
 2. **Verify acceptance criteria.** If something is unclear, add clarifying bullets before touching code.
 3. **Update the checklist** as you complete deliverables. Keep benchmarks and metrics in the task file for future reference, and bubble materialised learnings back into the roadmap when they impact future priorities.
-4. **Link supporting specs** (ADR, RFP) so reviewers can trace intent. Add cross-references from [`ARCHITECTURE.md`](../ARCHITECTURE.md) when a decision introduces a new invariant.
+4. **Link supporting specs** (ADR, RFP) so reviewers can trace intent. Add cross-references from [`ARCHITECTURE.md`](../../../../ARCHITECTURE.md) when a decision introduces a new invariant.
 
 ## Current Focus
 

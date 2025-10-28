@@ -36,6 +36,6 @@ This document captures the stable truths about the engine. Treat it as the autho
 - [`ROADMAP.md`](ROADMAP.md) – authoritative backlog with `DC-`, `AI-`, and `RT-` identifiers referenced throughout this file.
 - [`docs/specs/ADR-0003-runtime-frame-graph.md`](specs/ADR-0003-runtime-frame-graph.md) – scheduler contracts and metadata expectations.
 - [`docs/specs/ADR-0005-geometry-io-roundtrip.md`](specs/ADR-0005-geometry-io-roundtrip.md) – geometry and IO ownership, file formats, and validation.
-- [`docs/tasks/2025-02-17-sprint-06.md`](tasks/2025-02-17-sprint-06.md) – current sprint focus tying runtime and rendering milestones together.
+- [`docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md`](archive/backlog/legacy/tasks/2025-02-17-sprint-06.md) – current sprint focus tying runtime and rendering milestones together.
 
 Keep this file short, precise, and free of tentative language. If a claim here stops being true, fix it immediately and reference the change in the affected ADR or task record.

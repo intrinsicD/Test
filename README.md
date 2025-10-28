@@ -6,33 +6,33 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 
 1. Review [docs/NAVIGATION.md](docs/NAVIGATION.md) for documentation navigation and task routing order.
 2. Confirm the initiative or module you are touching in [docs/ROADMAP.md](docs/ROADMAP.md) and the relevant `docs/modules/<name>/` README/ROADMAP pair.
-3. Open the matching record under [docs/tasks/](docs/tasks/) to understand acceptance criteria and status notes before editing code.
+3. Open the matching record under [docs/backlog/](docs/backlog/) to understand acceptance criteria and status notes before editing code.
 4. Update documentation, task checklists, and roadmap status together to keep the agent + human workflow in sync.
 
 ## Workspace Snapshot
 
-| Module | Health | Current Capability | Next Task |
+| Module | Health | Current Capability | Next Step |
 | --- | --- | --- | --- |
-| Animation | ✅ Stable | Deterministic clip sampling, validation, JSON import/export, blend-tree controllers, structured error reporting, and linear blend skinning transform generation consumed by the runtime pose system. | `AN-240`: draft state-machine authoring specification informed by the completed GPU sampling benchmarks. |
-| Assets | ✅ Stable | Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload callbacks driven by the filesystem watcher and async queue instrumentation publishing runtime telemetry for streaming diagnostics; diagnostics shell surfaces recent asset reload failures with actionable hints. Streaming report now exports hot-reload metrics for CI automation, emits a textual dashboard, and produces Chrome trace counter captures for dashboards, while OBJ reloads without vertices/faces are rejected to keep telemetry accurate. | `AS-330`: curate reference dataset packages with manifests, ingestion scripts, and licensing notes to unblock the prototyping harness. |
-| Compute | ✅ Stable | Kernel dispatcher with per-kernel telemetry, runtime integration sample capturing queue assignments/jitter baselines, backend capability probing, dependency cycle analysis tooling, dispatcher extension guidance, and math helpers for identity transforms. | Scope post-`AN-230` dispatcher enhancements and feed benchmark findings into follow-up proposals. |
-| Core | ✅ Stable | EnTT-backed registry façade, subsystem discovery helpers, module bootstrap plumbing, and dependency cycle diagnostics protecting `DC-001`. | Keep the new runtime packaging automation wired into CI so initialization failure guidance remains validated and telemetry tooling stays reproducible. |
-| Geometry | ✅ Stable | `SurfaceMesh` utilities, halfedge conversions, procedural primitives, ASCII IO, kd-tree/octree accelerators, CPU linear blend skinning deformers, surface topology analysis, spatial query telemetry aligned with the diagnostics schema, uniform + feature-preserving remeshing with tangential smoothing, rest-position preservation across Laplacian smoothing, plus adaptive error-budget remeshing that converts relative edge budgets into absolute targets, UV reuse that preserves/interpolates coordinates while reporting texel density metrics, ABF++ parameterisation for conformal UV generation, remeshing telemetry capturing iterations, duration, and split/collapse counts per job, and the `geometry_remesh` CLI for offline remeshing/UV generation with telemetry-aligned summaries. | Sequence remeshing execution milestones derived from the published RFP (`GE-221+` planning). |
-| IO | ✅ Stable | Geometry/animation import-export wrappers, plugin-ready handlers, cache policy scaffolding, and curated fuzz corpus with regression coverage. | Coordinate CI enablement for the libFuzzer harness and extend `IO-240` telemetry instrumentation. |
-| Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, transform utilities, and analytic solvers for linear systems and low-degree polynomials. | Conversion telemetry instrumentation captures drift metrics (`MA-130`) alongside the external-format cheatsheet; solver telemetry follow-up remains planned. |
-| Physics | ✅ Stable | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase plus collision telemetry. | Scope automation for long-term collision telemetry trends (post-`PH-430`). |
-| Platform | ✅ Stable | Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. | Validate GLFW headless automation and refresh documentation. |
-| Rendering | ✅ Stable | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, Vulkan scheduler prototype, OpenGL queue-normalised scheduler with translated barrier masks and command-stream dispatch, and backend validation metrics covering all providers. | `RE-610`: deliver research rendering baseline with deferred/forward presets, debug overlays, and telemetry integration (AI-004). |
-| Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, asynchronous asset requests, and submission into the rendering pipeline. | `RT-320`: stand up prototyping harness with configuration schema, scripting hooks, and headless benchmarking (AI-004). |
-| Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | Keep the `SC-225` hierarchy diagnostics samples and dashboards aligned with the `runtime.scene_validation.alert_level` policy introduced by `SC-230`. |
-| Tools | ✅ Stable | Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots, Dear ImGui integration for diagnostics UI, profiler utilities, and a new experiment sandbox UI scaffolding that enumerates AI-004 datasets/presets with telemetry overlays and persistent preferences. | `TL-210`: extend sandbox with direct harness wiring for benchmark automation (AI-004). |
+| Animation | ✅ Stable | Deterministic clip sampling, validation, JSON import/export, blend-tree controllers, structured error reporting, and linear blend skinning transform generation consumed by the runtime pose system. | Maintain backlog hygiene and support upcoming state-machine authoring guidance. |
+| Assets | ✅ Stable | Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload callbacks driven by the filesystem watcher and async queue instrumentation publishing runtime telemetry for streaming diagnostics; diagnostics shell surfaces recent asset reload failures with actionable hints. Streaming report now exports hot-reload metrics for CI automation, emits a textual dashboard, and produces Chrome trace counter captures for dashboards, while OBJ reloads without vertices/faces are rejected to keep telemetry accurate. | Deliver the AI-004 dataset packages via [AS-330](docs/backlog/active/AS-330-reference-dataset-packages.md). |
+| Compute | ✅ Stable | Kernel dispatcher with per-kernel telemetry, runtime integration sample capturing queue assignments/jitter baselines, backend capability probing, dependency cycle analysis tooling, dispatcher extension guidance, and math helpers for identity transforms. | Review dispatcher follow-ups after AI-004 integration demos. |
+| Core | ✅ Stable | EnTT-backed registry façade, subsystem discovery helpers, module bootstrap plumbing, and dependency cycle diagnostics protecting prior architecture decisions. | Keep runtime packaging automation validated in CI and document instrumentation updates. |
+| Geometry | ✅ Stable | `SurfaceMesh` utilities, halfedge conversions, procedural primitives, ASCII IO, kd-tree/octree accelerators, CPU linear blend skinning deformers, surface topology analysis, spatial query telemetry, adaptive remeshing, UV reuse, ABF++ parameterisation, remeshing telemetry, and the `geometry_remesh` CLI for offline remeshing/UV generation with telemetry-aligned summaries. | Curate remeshing datasets that feed the AI-004 harness and case studies. |
+| IO | ✅ Stable | Geometry/animation import-export wrappers, plugin-ready handlers, cache policy scaffolding, and curated fuzz corpus with regression coverage. | Coordinate libFuzzer CI enablement and expand telemetry instrumentation. |
+| Math | ✅ Stable | Vector/matrix/quaternion primitives, orthonormal basis helpers, transform utilities, and analytic solvers for linear systems and low-degree polynomials. | Finish solver telemetry and documentation refresh alongside module backlog grooming. |
+| Physics | ✅ Stable | Rigid-body world with mass clamping, damping, configurable sub-stepping, collider support, and sweep-and-prune broad phase plus collision telemetry. | Plan collision telemetry trend automation with runtime and diagnostics teams. |
+| Platform | ✅ Stable | Virtual filesystem providers, filesystem watcher abstraction for hot reload, backend selection plumbing, and mocked window/input services pending OS integrations. | Validate GLFW headless automation scenarios and refresh developer docs. |
+| Rendering | ✅ Stable | Frame-graph compilation/execution, command encoder hooks, resource lifetime tracking, Vulkan scheduler prototype, OpenGL queue-normalised scheduler with translated barrier masks and command-stream dispatch, and backend validation metrics covering all providers. | Support sandbox integration through [TL-210](docs/backlog/active/TL-210-experiment-sandbox-ui.md) and maintain the research baseline. |
+| Runtime | ✅ Stable | `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, asynchronous asset requests, and submission into the rendering pipeline. | Implement the prototyping harness via [RT-320](docs/backlog/active/RT-320-runtime-prototyping-harness.md). |
+| Scene | ✅ Stable | Entity façade, hierarchy and transform propagation, deterministic serialisation, and component helpers. | Keep diagnostics samples aligned with runtime validation policies and document findings. |
+| Tools | ✅ Stable | Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots, Dear ImGui integration for diagnostics UI, profiler utilities, and the experiment sandbox UI scaffolding that enumerates AI-004 datasets/presets with telemetry overlays and persistent preferences. | Finish sandbox wiring and benchmark automation through [TL-210](docs/backlog/active/TL-210-experiment-sandbox-ui.md). |
 
 ### Directory Map
 
 - **`docs/`** – Design records, module READMEs, task trackers, and reusable templates. Start here to align on priorities.
 - **`engine/`** – Native subsystems with headers, sources, and associated tests.
 - **`python/`** – Runtime loaders and utilities that mirror C++ APIs; now ships
-  a manually curated `.pyi` stub for `engine3g.loader` as part of `PY-001`.
+  a manually curated `.pyi` stub for `engine3g.loader` as part of the Python bindings refresh.
 - **`scripts/`** – Build, validation, CI, and diagnostics orchestration entry points.
 - **`third_party/`** – Vendored dependencies (EnTT, Dear ImGui, spdlog, GoogleTest, ...). Update only when dependency baselines shift.
 
@@ -92,45 +92,14 @@ with the mock backend.
 
 ## Execution Backlog Overview
 
-The architecture improvement plan is the authoritative backlog. The summary below mirrors [docs/ROADMAP.md](docs/ROADMAP.md) and highlights the active slices agents should track.
+The application-readiness plan is maintained in [docs/ROADMAP.md](docs/ROADMAP.md) with detailed backlog entries under [docs/backlog/](docs/backlog/). Current focus areas:
 
-### Cross-Cutting Initiatives
+- **Phase 1 – Kickoff Ready (Priority 1–2):** [DC-040](docs/backlog/active/DC-040-ai-004-configuration-schema.md), [DC-041](docs/backlog/active/DC-041-ai-004-kickoff-readiness.md), [RT-320](docs/backlog/active/RT-320-runtime-prototyping-harness.md).
+- **Phase 2 – Harness & Datasets (Priority 2–3):** [AS-330](docs/backlog/active/AS-330-reference-dataset-packages.md), [TL-210](docs/backlog/active/TL-210-experiment-sandbox-ui.md), [RT-321](docs/backlog/active/RT-321-prototyping-case-studies.md).
+- **Phase 3 – Benchmark Confidence (Priority 4):** [CC-310](docs/backlog/active/CC-310-comparative-benchmark-automation.md), [CC-311](docs/backlog/active/CC-311-benchmark-visualisation.md).
 
-| ID | Intent | Current Focus | Owner(s) | Status |
-| --- | --- | --- | --- | --- |
-| `DC-004` | Standardise error handling across modules. | Migrate IO to `Result<T>` and publish migration guide. | Core, IO | ✅ Done |
-| `AI-001` | Handle-based lifetime management across assets + rendering. | Debug validation hooks and telemetry wired across caches and rendering entry points. | Assets, Rendering | ✅ Done |
-| `AI-002` | Async asset streaming with telemetry and runtime integration. | IO thread pool, cancellation hardening, and diagnostics integration delivered. | Assets, Runtime | ✅ Done |
-| `AI-003` | Frame-graph metadata + queue affinity for backend parity. | Publish metadata schema and align runtime submission invariants. | Rendering, Runtime | ✅ Done |
-| `RT-002` | Persistent physics manifolds with benchmarking. | ✅ Completed – manifold cache, telemetry, and collision benchmark harness captured in CI. | Physics | ✅ Done |
-| `RT-003` | Vulkan backend parity and documentation. | Align runtime submission surfaces and publish backend checklist. | Rendering, Runtime | ✅ Done |
-| `RT-005` | Scene hierarchy validation + diagnostics. | Integrate cycle detection and reporting hooks. | Scene, Runtime | ✅ Done |
-| `RT-006` | IO signature hardening + fuzzing. | Wire signature database and libFuzzer corpus seeding. | IO | 🟠 Blocked on fuzz harness infra |
-| `CC-001` | Telemetry instrumentation and viewer. | Telemetry schema, viewer CLI, and instrumentation guide published. | Core, Tools | ✅ Done |
-| `CC-002` | Hot reload infrastructure. | Hot reload callbacks publish telemetry and diagnostics viewer surfaces reload failures. | Assets, Platform | ✅ Done |
+See the roadmap for risk owners, success metrics, and archival history.
 
-### Sprint Horizon
-
-| Horizon | Rank | Initiative | Primary Deliverable |
-| --- | --- | --- | --- |
-| Sprint 1 | 1 | `AI-003` | ✅ Completed – runtime diagnostics capture frame-graph metadata for Vulkan parity validation. |
-|         | 2 | `RT-003` | ✅ Completed – integration regression locks Vulkan submission determinism (`RT-003.3`). |
-|         | 3 | `TI-001` | Integration harness smoke suite stabilised post `T-0118`. |
-| Sprint 2–3 | 1 | `DC-004` | IO migration merged with documentation updates. |
-|             | 2 | `AI-001` | ✅ Completed – handle validation hooks emit telemetry in debug builds. |
-|             | 3 | `RT-002` | ✅ Completed – collision benchmark harness records throughput metrics for CI. |
-|             | 4 | `DI-001` | Module README refresh complete (follow template below). |
-| Mid-Term (M4–M5) | 1 | `AI-002` | Async streaming MVP validated end-to-end. |
-|                   | 2 | `CC-001` | Diagnostics viewer prototype available. |
-|                   | 3 | `PY-001` | Core bindings and `.pyi` stubs published. |
-
-Reconcile this table with the roadmap whenever priorities change. Update both documents in the same change to prevent drift.
-
-### AI-004 Risk Register Snapshot
-
-- Coordinated configuration schema delivery — **Owner:** @pm-agent — **Due:** 2025-11-27.
-- Dataset licensing approval for curated packages — **Owner:** @assets-lead — **Due:** 2025-11-27.
-- Benchmarking hardware allocation for comparative runs — **Owner:** @perf-lead — **Due:** 2025-11-27.
 
 ## Build & Test Workflow
 

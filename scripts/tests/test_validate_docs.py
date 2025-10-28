@@ -61,7 +61,7 @@ def test_main_flags_readme_identifiers_not_in_roadmap(
     repo_root = tmp_path
     docs_dir = repo_root / "docs"
     docs_dir.mkdir()
-    tasks_dir = docs_dir / "tasks"
+    tasks_dir = docs_dir / "backlog" / "active"
     tasks_dir.mkdir()
 
     roadmap = docs_dir / "ROADMAP.md"
@@ -86,7 +86,7 @@ def test_main_flags_missing_task_file_for_active_roadmap_entry(
 ) -> None:
     repo_root = tmp_path
     docs_dir = repo_root / "docs"
-    tasks_dir = docs_dir / "tasks"
+    tasks_dir = docs_dir / "backlog" / "active"
     tasks_dir.mkdir(parents=True)
 
     roadmap = docs_dir / "ROADMAP.md"
@@ -113,7 +113,7 @@ def test_main_flags_missing_task_file_for_active_roadmap_entry(
 
     assert exit_code == 1
     assert (
-        "docs/ROADMAP.md references active task DC-999 without matching docs/tasks/DC-999-*.md"
+        "docs/ROADMAP.md references active task DC-999 without matching docs/backlog/active/DC-999-*.md"
         in captured
     )
 
@@ -123,7 +123,7 @@ def test_main_passes_when_documents_are_synchronised(
 ) -> None:
     repo_root = tmp_path
     docs_dir = repo_root / "docs"
-    tasks_dir = docs_dir / "tasks"
+    tasks_dir = docs_dir / "backlog" / "active"
     tasks_dir.mkdir(parents=True)
 
     roadmap = docs_dir / "ROADMAP.md"

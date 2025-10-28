@@ -15,7 +15,7 @@ Before orchestrating, review the workspace snapshot:
 - **[docs/ROADMAP.md](../docs/ROADMAP.md)** - Active initiatives and architectural priorities
 
 **Task Locations:**
-- Active tasks: `docs/tasks/<TASK-ID>.md`
+- Active tasks: `docs/backlog/active/<TASK-ID>.md`
 - Community issues: GitHub Issues
 - Roadmap items: `docs/ROADMAP.md`
 

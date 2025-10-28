@@ -10,7 +10,7 @@ invariants, roadmap intent, and determinism.
 - Technical-debt paydowns that require staged rollouts and regression coverage.
 
 ## Prerequisites Checklist
-- [ ] Map the work to a roadmap/task identifier in [`../ROADMAP.md`](../ROADMAP.md) or [`../tasks/`](../tasks/).
+- [ ] Map the work to a roadmap/task identifier in [`../ROADMAP.md`](../ROADMAP.md) or [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/).
 - [ ] Review relevant specs/ADRs in [`../specs/`](../specs/) and design notes in [`../design/`](../design/).
 - [ ] Collect READMEs/ROADMAPs for impacted modules under [`../modules/`](../modules/).
 - [ ] Confirm rollback strategy, migration guardrails, and observability expectations.
@@ -165,5 +165,5 @@ PROJECT STANDARDS (Test Engine)
 1. Start from the canonical roadmap entry (`../ROADMAP.md#architecture-improvement-plan`).
 2. Track dependencies and prerequisites among initiatives.
 3. Update roadmap tables and module READMEs as checkpoints are met.
-4. Synchronise task files (`docs/tasks/T-XXXX-*.md`) with execution notes.
+4. Synchronise task files (`docs/backlog/active/T-XXXX-*.md`) with execution notes.
 5. Reflect milestone status in the root `README.md` snapshot when major work lands.

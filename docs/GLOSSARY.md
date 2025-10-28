@@ -59,7 +59,7 @@ A comprehensive reference of terms, acronyms, and identifiers used throughout th
 | **RFP** | Request for Proposal. Design documents outlining requirements for major features (e.g., `GE-212-REMESHING_PARAMETERIZATION_RFP.md`). |
 | **RuntimeHost** | Entry point that orchestrates animation, physics, geometry, and rendering submission. Documented in `docs/modules/runtime/README.md`. |
 | **Spatial Index** | Acceleration structure (kd-tree, octree) maintained by geometry module to speed spatial queries. |
-| **Task Record** | Markdown file under `docs/tasks/` containing goal, inputs, constraints, deliverables, and acceptance checklist. |
+| **Task Record** | Markdown file under `docs/backlog/active/` (archived in `docs/backlog/archive/`) containing goal, inputs, constraints, deliverables, and acceptance checklist. |
 
 ### Rendering & Graphics
 
@@ -194,8 +194,8 @@ A comprehensive reference of terms, acronyms, and identifiers used throughout th
 | `docs/design/*.md` | Deep-dive design documents and guides |
 | `docs/modules/<name>/README.md` | Module overview and API documentation |
 | `docs/modules/<name>/BACKLOG.md` | Module-specific work queue |
-| `docs/tasks/T-*.md` | Individual task records with acceptance criteria |
-| `docs/tasks/YYYY-MM-DD-sprint-*.md` | Sprint planning documents |
+| `docs/backlog/active/T-*.md` | Individual task records with acceptance criteria |
+| `docs/backlog/active/YYYY-MM-DD-sprint-*.md` | Sprint planning documents |
 | `docs/archive/` | Historical artifacts (prints, reviews, completed tasks) |
 | `engine/<module>/include/` | Public C++ headers |
 | `engine/<module>/src/` | C++ implementation files |

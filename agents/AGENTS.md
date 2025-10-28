@@ -40,7 +40,7 @@ transitions and ensures each role receives the necessary context.
 ```text
 Roadmap / Task Request
     ↓
-Product Manager → Task Card (docs/tasks/<MODULE>-<ID>.md)
+Product Manager → Task Card (docs/backlog/active/<MODULE>-<ID>.md)
     ↓
 Agent Orchestrator → Context Pack → Specialist Role(s)
     ↓
@@ -115,7 +115,7 @@ next agent can reproduce your steps.
 
 | Task Type | Additional Documents |
 | --------- | -------------------- |
-| Feature / Enhancement | Module README (`docs/modules/<module>/README.md`), relevant ADRs (`docs/specs/ADR-*.md`), open tasks in `docs/tasks/` |
+| Feature / Enhancement | Module README (`docs/modules/<module>/README.md`), relevant ADRs (`docs/specs/ADR-*.md`), open tasks in `docs/backlog/active/` |
 | Bug Fix | Failing test or reproduction script, error telemetry captures, regression checklist |
 | Documentation | NAVIGATION.md entry for affected area, style guides (`CODING_STYLE.md`, module templates) |
 | Infrastructure | Build preset definitions (`scripts/build/`), CI orchestration (`scripts/ci/`), tooling READMEs |
@@ -144,7 +144,7 @@ reconcile with the Orchestrator if any assumption proves incorrect.
 2. **Architecture ambiguity?** – Loop in the Chief Architect (20) and reference
    the relevant ADR.
 3. **Documentation gaps?** – Coordinate with Docs/DevRel (95) and log follow-up
-   tasks in `docs/tasks/`.
+   tasks in `docs/backlog/active/`.
 4. **Blocked by tooling?** – Escalate to Tools/Build/CI Engineer (70).
 
 Always document the resolution path in the task card or PR description so other

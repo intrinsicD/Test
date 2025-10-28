@@ -47,11 +47,11 @@ Assemble a cross-module kickoff brief that captures the milestone timeline throu
 
 **Files to Modify:**
 - `docs/ROADMAP.md`
-- `docs/tasks/AI-004-application-prototyping-enablement.md`
-- `docs/tasks/2025-02-17-sprint-06.md` (or successor sprint file as applicable)
+- `docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`
+- `docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md` (or successor sprint file as applicable)
 
 **New Files:**
-- Kickoff brief under `docs/tasks/`
+- Kickoff brief under `docs/archive/backlog/legacy/tasks/`
 
 ### Dependencies
 **Depends On:**
@@ -62,7 +62,7 @@ Assemble a cross-module kickoff brief that captures the milestone timeline throu
 - `RT-320`, `TL-210`, `AS-330`, `CC-310` milestone acceptance for Phase 1 of AI-004
 
 ### Related Work
-- `docs/tasks/AI-004-application-prototyping-enablement.md`
+- `docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`
 - `docs/ROADMAP.md`
 - `docs/modules/*/README.md` TODO sections for affected modules
 
@@ -73,7 +73,7 @@ Assemble a cross-module kickoff brief that captures the milestone timeline throu
 ### Functional Requirements
 - [x] Publish an AI-004 kickoff milestone table in `docs/ROADMAP.md` with target dates, dependencies, and owners for Phase 1 deliverables.
 - [x] Update the AI-004 initiative task card with a "Kickoff Readiness" section summarising the milestone plan and risk ownership.
-- [x] Capture a succinct kickoff brief (one-pager) under `docs/tasks/` and reference it from the sprint tracker.
+- [x] Capture a succinct kickoff brief (one-pager) under `docs/archive/backlog/legacy/tasks/` and reference it from the sprint tracker.
 
 ### Non-Functional Requirements
 - [x] Risk mitigations have due dates no later than one week before the kickoff review.

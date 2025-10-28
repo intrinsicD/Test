@@ -159,7 +159,7 @@ def main() -> int:
 
     roadmap_path = DOCS_DIR / "ROADMAP.md"
     readme_path = ROOT / "README.md"
-    tasks_dir = DOCS_DIR / "tasks"
+    tasks_dir = DOCS_DIR / "backlog" / "active"
 
     if roadmap_path.exists():
         roadmap_text = roadmap_path.read_text(encoding="utf-8")
@@ -182,7 +182,7 @@ def main() -> int:
             if identifier not in task_index:
                 failures.append(
                     "docs/ROADMAP.md references active task "
-                    f"{identifier} without matching docs/tasks/{identifier}-*.md"
+                    f"{identifier} without matching docs/backlog/active/{identifier}-*.md"
                 )
 
     if failures:

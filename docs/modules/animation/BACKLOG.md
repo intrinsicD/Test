@@ -39,7 +39,7 @@ _Last Updated: 2025-11-19_
 
 ## Notes
 
-- Record benchmark data in [`docs/tasks/T-0113-animation-runtime-skinning.md`](../../tasks/T-0113-animation-runtime-skinning.md).
+- Record benchmark data in [`docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md`](../../archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md).
 - Align telemetry hooks with the broader diagnostics initiative (`CC-001`).
 - 2025-11-19: Published `animation_sampling_report.py` to summarise CPU/GPU captures and closed `AN-230.3`, completing the benchmarking milestone.
 - 2025-11-18: Benchmark driver exposes `gpu_async` scenario via `compute::Dispatcher`, emitting queue/category telemetry compatible with the dispatcher schema (`AN-230.2`).

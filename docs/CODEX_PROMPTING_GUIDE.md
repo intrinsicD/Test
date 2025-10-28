@@ -204,7 +204,7 @@ Read: agents/00-COMMON-GUARDRAILS.md, CODING_STYLE.md
 
 TASK: Add bloom post-processing effect
 MODULE: engine/rendering
-TASK ID: RE-550 (create task file in docs/tasks/)
+TASK ID: RE-550 (create task file in docs/backlog/active/)
 
 STEPS:
 1. Review docs/modules/rendering/README.md
@@ -351,7 +351,7 @@ PRE-FLIGHT CHECKLIST:
 □ Read guardrails: agents/00-COMMON-GUARDRAILS.md
 □ Review module: docs/modules/<module>/README.md
 □ Check roadmap: docs/ROADMAP.md
-□ Verify task: docs/tasks/<TASK-ID>.md
+□ Verify task: docs/backlog/active/<TASK-ID>.md
 
 BUILD STATUS:
 □ Configure: cmake --preset debug
