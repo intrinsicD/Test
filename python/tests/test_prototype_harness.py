@@ -219,3 +219,50 @@ def test_cli_require_schema_flag(tmp_path: Path, capsys: pytest.CaptureFixture[s
     assert "schema" in captured.err
     assert captured.out == ""
 
+
+def test_cli_integration_with_sample_assets(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    project_root = Path(__file__).resolve().parents[2]
+    manifest_path = project_root / "assets" / "datasets" / "remesh_sample" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    datasets = manifest.get("datasets")
+    assert isinstance(datasets, list) and datasets, "sample dataset manifest is required"
+    dataset_id = datasets[0]["id"]
+
+    configuration = {
+        "datasets": datasets,
+        "rendering": {
+            "schema": {"id": "ai-004.rendering", "version": 1},
+            "preset": "research-baseline",
+            "options": {
+                "shading_mode": "deferred",
+                "resolution": {"width": 1280, "height": 720},
+            },
+        },
+        "runtime": {
+            "schema": {"id": "ai-004.runtime", "version": 1},
+            "dataset": dataset_id,
+            "simulation": {"timestep_seconds": 1.0 / 60.0, "max_substeps": 2},
+        },
+        "telemetry": {
+            "schema": {"id": "ai-004.telemetry", "version": 1},
+            "outputs": [{"type": "file", "path": "telemetry/{scenario}.json"}],
+        },
+    }
+    config_path = tmp_path / "ai004_config.json"
+    config_path.write_text(json.dumps(configuration), encoding="utf-8")
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        ["--config", str(config_path), "--dry-run", "--require-schema"]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert "Configuration:" in captured.out
+    assert f"dataset={dataset_id}" in captured.out
+    assert "Dry run summary" in captured.out
+    assert captured.err == ""
+

@@ -92,7 +92,7 @@ Stand up a cross-cutting task to author, review, and ratify the shared configura
 
 ### Testing Requirements
 - [x] Add unit tests for schema validation utilities (runtime + Python bindings).
-- [ ] Add integration smoke test that loads schema-driven configuration in CI.
+- [x] Add integration smoke test that loads schema-driven configuration in CI.
 - [ ] Coverage ≥ 85% on new validation code.
 
 ### Documentation Requirements
@@ -184,3 +184,5 @@ TEST(PrototypeConfig, ValidSchemaLoads) {
   legacy manifests remain operational during migration.
 - 2025-12-14: Prototyping harness CLI exposes `--require-schema` and runtime/rendering/tools/assets READMEs capture migration
   checklists so strict validation can become the default once legacy manifests are retired.
+- 2025-12-15: Added CLI-driven integration smoke test exercising repository sample manifests to protect AI-004 configuration
+  schema from regressions (`python/tests/test_prototype_harness.py::test_cli_integration_with_sample_assets`).

@@ -29,6 +29,8 @@ Capture the shared configuration contract required by `AI-004` deliverables so r
 - `python -m scripts.validate_ai004_config --dataset <manifest> --config <configuration>` validates manifests with the shared
   Python loader so pipelines can fail fast when schema drift is detected. ✅ Script added alongside automated tests to unblock
   CI wiring and local iteration.
+- `pytest python/tests/test_prototype_harness.py::test_cli_integration_with_sample_assets` executes the harness CLI against
+  repository sample manifests, providing a CI-friendly smoke test for schema-regressed configurations.
 
 ---
 
