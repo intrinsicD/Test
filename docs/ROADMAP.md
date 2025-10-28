@@ -77,6 +77,9 @@ with [`../README.md`](../README.md), module READMEs, and task files under
   unified configuration manifest.
 - 2025-12-11: Python-based runtime prototype harness scaffolded with CLI (`python -m scripts.prototyping.run_prototype_harness`)
   to validate AI-004 configurations and execute headless tick loops pending native integration.
+- 2025-12-14: Comparative benchmark orchestrator writes JSON and CSV summaries (configurable
+  via `--output`/`--table`) so telemetry viewers and CI pipelines can ingest engine vs. reference
+  metrics without custom adapters, advancing `CC-310` reporting deliverables.
 
 ---
 
