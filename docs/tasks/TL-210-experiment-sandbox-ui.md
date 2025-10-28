@@ -193,3 +193,6 @@ TEST(ExperimentSandbox, PersistsLayoutPreferences) {
   and render execution summaries without bespoke parsers.
 - 2025-12-20: Landed `ExperimentSandbox` scaffolding with dataset browser, rendering controls, telemetry panel, benchmark
   callbacks, and preference/layout persistence. Tools documentation and architecture notes updated alongside unit coverage.
+- 2025-12-21: Added a JSON configuration loader that ingests harness summaries into `ExperimentSandbox`, flattening metrics and
+  runtime descriptors so UI integrations can hydrate datasets, presets, and camera/simulation notes directly from
+  `run_prototype_harness.py --describe-json` outputs.
