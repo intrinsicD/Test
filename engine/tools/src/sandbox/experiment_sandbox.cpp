@@ -63,6 +63,8 @@ namespace engine::tools::sandbox
 
     void ExperimentSandbox::set_configuration(const ExperimentConfigurationSummary& summary)
     {
+        const SandboxPreferences previous_preferences = preferences_;
+
         summary_ = summary;
         dataset_lookup_.clear();
         preset_lookup_.clear();
@@ -84,6 +86,7 @@ namespace engine::tools::sandbox
         }
 
         ensure_selection_defaults();
+        notify_preference_changes(previous_preferences);
     }
 
     void ExperimentSandbox::update_telemetry(const TelemetrySnapshot& telemetry)
@@ -94,6 +97,20 @@ namespace engine::tools::sandbox
     void ExperimentSandbox::set_callbacks(SandboxCallbacks callbacks)
     {
         callbacks_ = std::move(callbacks);
+
+        const bool has_dataset_selection = selected_dataset_index_ >= 0
+            && selected_dataset_index_ < static_cast<int>(summary_.datasets.size());
+        if (callbacks_.on_dataset_selected && has_dataset_selection)
+        {
+            callbacks_.on_dataset_selected(preferences_.selected_dataset);
+        }
+
+        const bool has_preset_selection = selected_preset_index_ >= 0
+            && selected_preset_index_ < static_cast<int>(summary_.rendering_presets.size());
+        if (callbacks_.on_rendering_changed && has_preset_selection)
+        {
+            callbacks_.on_rendering_changed(preferences_);
+        }
     }
 
     void ExperimentSandbox::render()
@@ -120,8 +137,10 @@ namespace engine::tools::sandbox
 
     void ExperimentSandbox::set_preferences(const SandboxPreferences& preferences)
     {
+        const SandboxPreferences previous_preferences = preferences_;
         preferences_ = preferences;
         ensure_selection_defaults();
+        notify_preference_changes(previous_preferences);
     }
 
     bool ExperimentSandbox::select_dataset(std::string_view dataset_identifier)
@@ -330,8 +349,7 @@ namespace engine::tools::sandbox
             }
         }
 
-        preferences_ = std::move(loaded);
-        ensure_selection_defaults();
+        set_preferences(loaded);
         return true;
     }
 
@@ -779,6 +797,25 @@ namespace engine::tools::sandbox
         const bool changed = preferences_.overlays != synchronised;
         preferences_.overlays = std::move(synchronised);
         return changed;
+    }
+
+    void ExperimentSandbox::notify_preference_changes(const SandboxPreferences& previous)
+    {
+        if (callbacks_.on_dataset_selected && preferences_.selected_dataset != previous.selected_dataset)
+        {
+            callbacks_.on_dataset_selected(preferences_.selected_dataset);
+        }
+
+        if (callbacks_.on_rendering_changed)
+        {
+            const bool preset_changed = preferences_.selected_preset != previous.selected_preset;
+            const bool shading_changed = preferences_.shading_mode != previous.shading_mode;
+            const bool overlays_changed = preferences_.overlays != previous.overlays;
+            if (preset_changed || shading_changed || overlays_changed)
+            {
+                callbacks_.on_rendering_changed(preferences_);
+            }
+        }
     }
 
     void ExperimentSandbox::apply_benchmark_result(SandboxBenchmarkResult result)

@@ -26,3 +26,6 @@ Initial sandbox scaffolding landed, but wiring to the runtime harness and benchm
 
 ## Notes
 Golden screenshot coverage is desirable but optional; prioritise deterministic smoke tests first. Coordinate UI telemetry with CC-001 to avoid duplication.
+- Sandbox now replays dataset/rendering callbacks whenever configuration or
+  preference changes are applied, keeping runtime integrations synchronised
+  without requiring manual reselection.

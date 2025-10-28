@@ -96,6 +96,11 @@ Key capabilities:
 - **Programmatic control** – helpers (`select_dataset`, `select_rendering_preset`,
   `set_shading_mode`, `set_overlay_enabled`) let automation mirror UI selections
   while the registered callbacks update the harness in lockstep.
+- **Immediate synchronisation** – `set_configuration`, `set_preferences`, and
+  `load_preferences` dispatch dataset/rendering callbacks as soon as the active
+  selection changes. Registering callbacks via `set_callbacks` replays the
+  current preferences so harness integrations stay in sync even when listeners
+  attach after the initial configuration step.
 - **Persistence** – user preferences persist via
   `ExperimentSandbox::save_preferences`, while layout state uses ImGui's
   INI saving hooks for reproducible workspace setups.

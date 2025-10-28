@@ -67,6 +67,30 @@ TEST(ExperimentSandbox, DefaultsToSummarySelection)
     EXPECT_EQ(prefs.shading_mode, "Forward");
 }
 
+TEST(ExperimentSandbox, ConfigurationDispatchesCallbacksWhenStateChanges)
+{
+    ExperimentSandbox sandbox;
+
+    int dataset_callbacks = 0;
+    int rendering_callbacks = 0;
+    SandboxCallbacks callbacks{};
+    callbacks.on_dataset_selected = [&](const std::string& identifier) {
+        ++dataset_callbacks;
+        EXPECT_EQ(identifier, "dataset_a");
+    };
+    callbacks.on_rendering_changed = [&](const SandboxPreferences& prefs) {
+        ++rendering_callbacks;
+        EXPECT_EQ(prefs.selected_preset, "research");
+        EXPECT_EQ(prefs.shading_mode, "Forward");
+    };
+
+    sandbox.set_callbacks(callbacks);
+    sandbox.set_configuration(make_summary());
+
+    EXPECT_EQ(dataset_callbacks, 1);
+    EXPECT_EQ(rendering_callbacks, 1);
+}
+
 TEST(ExperimentSandbox, PreferenceRoundTrip)
 {
     ExperimentSandbox sandbox;
@@ -87,6 +111,35 @@ TEST(ExperimentSandbox, PreferenceRoundTrip)
 
     ExperimentSandbox loaded;
     loaded.set_configuration(summary);
+
+    int dataset_callback_count = 0;
+    int rendering_callback_count = 0;
+    bool verify_dataset = false;
+    bool verify_rendering = false;
+    SandboxCallbacks callbacks{};
+    callbacks.on_dataset_selected = [&](const std::string& identifier) {
+        if (!verify_dataset)
+        {
+            return;
+        }
+        ++dataset_callback_count;
+        EXPECT_EQ(identifier, preferences.selected_dataset);
+    };
+    callbacks.on_rendering_changed = [&](const SandboxPreferences& prefs) {
+        if (!verify_rendering)
+        {
+            return;
+        }
+        ++rendering_callback_count;
+        EXPECT_EQ(prefs.selected_preset, preferences.selected_preset);
+        EXPECT_EQ(prefs.shading_mode, preferences.shading_mode);
+    };
+
+    loaded.set_callbacks(callbacks);
+    dataset_callback_count = 0;
+    rendering_callback_count = 0;
+    verify_dataset = true;
+    verify_rendering = true;
     ASSERT_TRUE(loaded.load_preferences(temp_path));
 
     const auto& loaded_prefs = loaded.preferences();
@@ -100,8 +153,87 @@ TEST(ExperimentSandbox, PreferenceRoundTrip)
     EXPECT_EQ(loaded_prefs.benchmark_frames, preferences.benchmark_frames);
     EXPECT_FLOAT_EQ(loaded_prefs.benchmark_timestep, preferences.benchmark_timestep);
 
+    EXPECT_EQ(dataset_callback_count, 1);
+    EXPECT_EQ(rendering_callback_count, 1);
+
     std::error_code ec;
     std::filesystem::remove(temp_path, ec);
+}
+
+TEST(ExperimentSandbox, CallbacksReplayCurrentStateWhenRegistered)
+{
+    ExperimentSandbox sandbox;
+    auto summary = make_summary();
+    sandbox.set_configuration(summary);
+
+    SandboxPreferences preferences = sandbox.preferences();
+    preferences.selected_dataset = "dataset_b";
+    preferences.shading_mode = "Deferred";
+    preferences.overlays = {{"normals", true}, {"uv", false}};
+    sandbox.set_preferences(preferences);
+
+    int dataset_callbacks = 0;
+    int rendering_callbacks = 0;
+    SandboxCallbacks callbacks{};
+    callbacks.on_dataset_selected = [&](const std::string& identifier) {
+        ++dataset_callbacks;
+        EXPECT_EQ(identifier, "dataset_b");
+    };
+    callbacks.on_rendering_changed = [&](const SandboxPreferences& prefs) {
+        ++rendering_callbacks;
+        EXPECT_EQ(prefs.selected_preset, preferences.selected_preset);
+        EXPECT_EQ(prefs.shading_mode, preferences.shading_mode);
+        ASSERT_TRUE(prefs.overlays.contains("normals"));
+        EXPECT_TRUE(prefs.overlays.at("normals"));
+    };
+
+    sandbox.set_callbacks(callbacks);
+
+    EXPECT_EQ(dataset_callbacks, 1);
+    EXPECT_EQ(rendering_callbacks, 1);
+}
+
+TEST(ExperimentSandbox, SetPreferencesDispatchesCallbacks)
+{
+    ExperimentSandbox sandbox;
+    sandbox.set_configuration(make_summary());
+
+    int dataset_callbacks = 0;
+    int rendering_callbacks = 0;
+    bool verify_callbacks = false;
+    SandboxCallbacks callbacks{};
+    callbacks.on_dataset_selected = [&](const std::string& identifier) {
+        if (!verify_callbacks)
+        {
+            return;
+        }
+        ++dataset_callbacks;
+        EXPECT_EQ(identifier, "dataset_b");
+    };
+    callbacks.on_rendering_changed = [&](const SandboxPreferences& prefs) {
+        if (!verify_callbacks)
+        {
+            return;
+        }
+        ++rendering_callbacks;
+        EXPECT_EQ(prefs.shading_mode, "Deferred");
+        ASSERT_TRUE(prefs.overlays.contains("normals"));
+        EXPECT_TRUE(prefs.overlays.at("normals"));
+    };
+
+    sandbox.set_callbacks(callbacks);
+    dataset_callbacks = 0;
+    rendering_callbacks = 0;
+    verify_callbacks = true;
+
+    SandboxPreferences preferences = sandbox.preferences();
+    preferences.selected_dataset = "dataset_b";
+    preferences.shading_mode = "Deferred";
+    preferences.overlays["normals"] = true;
+    sandbox.set_preferences(preferences);
+
+    EXPECT_EQ(dataset_callbacks, 1);
+    EXPECT_EQ(rendering_callbacks, 1);
 }
 
 TEST(ExperimentSandbox, RecordsBenchmarkResult)
@@ -137,13 +269,16 @@ TEST(ExperimentSandbox, DatasetSelectionInvokesCallback)
     sandbox.set_configuration(summary);
     sandbox.set_callbacks(callbacks);
 
-    ASSERT_TRUE(sandbox.select_dataset("dataset_b"));
     EXPECT_EQ(callback_count, 1);
+    EXPECT_EQ(last_dataset, summary.datasets.front().identifier);
+
+    ASSERT_TRUE(sandbox.select_dataset("dataset_b"));
+    EXPECT_EQ(callback_count, 2);
     EXPECT_EQ(last_dataset, "dataset_b");
     EXPECT_EQ(sandbox.preferences().selected_dataset, "dataset_b");
 
     EXPECT_FALSE(sandbox.select_dataset("unknown"));
-    EXPECT_EQ(callback_count, 1) << "Callback should not trigger for invalid dataset";
+    EXPECT_EQ(callback_count, 2) << "Callback should not trigger for invalid dataset";
 }
 
 TEST(ExperimentSandbox, RenderingSelectionInvokesCallback)
@@ -171,8 +306,11 @@ TEST(ExperimentSandbox, RenderingSelectionInvokesCallback)
     sandbox.set_configuration(summary);
     sandbox.set_callbacks(callbacks);
 
+    EXPECT_EQ(render_callback_count, 1);
+    EXPECT_EQ(captured.selected_preset, "research");
+
     ASSERT_TRUE(sandbox.select_rendering_preset("diagnostics"));
-    EXPECT_GE(render_callback_count, 1);
+    EXPECT_EQ(render_callback_count, 2);
     EXPECT_EQ(captured.selected_preset, "diagnostics");
     ASSERT_TRUE(captured.overlays.contains("wireframe"));
     EXPECT_TRUE(captured.overlays.at("wireframe"));
@@ -203,12 +341,14 @@ TEST(ExperimentSandbox, OverlayToggleInvokesCallback)
     sandbox.set_configuration(summary);
     sandbox.set_callbacks(callbacks);
 
-    ASSERT_TRUE(sandbox.set_overlay_enabled("normals", true));
     EXPECT_EQ(render_callback_count, 1);
+
+    ASSERT_TRUE(sandbox.set_overlay_enabled("normals", true));
+    EXPECT_EQ(render_callback_count, 2);
     ASSERT_TRUE(captured.overlays.contains("normals"));
     EXPECT_TRUE(captured.overlays.at("normals"));
 
     EXPECT_FALSE(sandbox.set_overlay_enabled("unknown", true));
-    EXPECT_EQ(render_callback_count, 1) << "Unknown overlays should not trigger callbacks";
+    EXPECT_EQ(render_callback_count, 2) << "Unknown overlays should not trigger callbacks";
 }
 
