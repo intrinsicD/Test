@@ -6,6 +6,7 @@
 #include "engine/geometry/shapes/ellipsoid.hpp"
 #include "engine/geometry/shapes/obb.hpp"
 #include "engine/geometry/shapes/plane.hpp"
+#include "engine/geometry/shapes/triangle.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
 #include "engine/math/matrix.hpp"
@@ -347,6 +348,44 @@ TEST(FrustumTest, EllipsoidFullyOutsideFrustum)
     EXPECT_FALSE(Intersects(frustum, outside)) << "Ellipsoid translated far outside should not intersect";
 }
 
+TEST(FrustumTest, TriangleFullyInsideFrustum)
+{
+    const mat4 identity{};
+    const Frustum frustum = ExtractFrustum(identity);
+
+    const Triangle inside{{0.0f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f}, {0.0f, 0.5f, 0.0f}};
+    EXPECT_TRUE(Intersects(frustum, inside)) << "Triangle entirely inside frustum should intersect";
+}
+
+TEST(FrustumTest, TriangleFullyOutsideFrustum)
+{
+    const float fov = utils::radians(45.0f);
+    const float aspect = 1.0f;
+    const float near = 0.5f;
+    const float far = 20.0f;
+
+    mat4 proj{};
+    proj[0][0] = 1.0f / (aspect * std::tan(fov / 2.0f));
+    proj[1][1] = 1.0f / std::tan(fov / 2.0f);
+    proj[2][2] = -(far + near) / (far - near);
+    proj[2][3] = -1.0f;
+    proj[3][2] = -(2.0f * far * near) / (far - near);
+
+    const Frustum frustum = ExtractFrustum(proj);
+
+    const Triangle outside{{500.0f, 0.0f, 0.0f}, {500.0f, 10.0f, 0.0f}, {510.0f, 0.0f, 0.0f}};
+    EXPECT_FALSE(Intersects(frustum, outside)) << "Triangle far outside frustum should not intersect";
+}
+
+TEST(FrustumTest, TriangleCrossingFrustum)
+{
+    const mat4 identity{};
+    const Frustum frustum = ExtractFrustum(identity);
+
+    const Triangle crossing{{-2.0f, 0.0f, 0.0f}, {2.0f, 0.0f, 0.0f}, {0.0f, 3.0f, 0.0f}};
+    EXPECT_TRUE(Intersects(frustum, crossing)) << "Triangle edges crossing frustum should intersect";
+}
+
 TEST(FrustumTest, ObbFullyInsideFrustum)
 {
     mat4 ortho{};
@@ -445,6 +484,16 @@ TEST(FrustumTest, SymmetricIntersectionEllipsoid)
     const Ellipsoid ellipsoid{{0.0f, 0.2f, 0.0f}, {0.6f, 0.4f, 0.5f}, angle_axis(utils::radians(35.0f), vec3{0.0f, 0.0f, 1.0f})};
     EXPECT_EQ(Intersects(frustum, ellipsoid), Intersects(ellipsoid, frustum))
         << "Symmetric Ellipsoid-Frustum intersection should match";
+}
+
+TEST(FrustumTest, SymmetricIntersectionTriangle)
+{
+    const mat4 identity{};
+    const Frustum frustum = ExtractFrustum(identity);
+
+    const Triangle triangle{{0.0f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f}, {0.0f, 0.5f, 0.0f}};
+    EXPECT_EQ(Intersects(frustum, triangle), Intersects(triangle, frustum))
+        << "Symmetric Triangle-Frustum intersection should match";
 }
 
 TEST(FrustumTest, GetCornersReturnsEightPoints)
