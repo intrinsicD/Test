@@ -185,6 +185,13 @@ roadmap.
 | `AS-330` | Asset hot-reload diagnostics integration | 2025-05-20 | Telemetry viewer surfaces recent reload failures with per-asset hints |
 | `TL-120` | Diagnostics dashboard with Chrome trace export for asset telemetry | 2025-10-24 | Streaming report text dashboard, Chrome trace counters, documentation refresh |
 | `AN-230` | GPU parallel sampling benchmarks | 2025-10-19 | Animation sampling analysis workflow, comparative benchmarking reference implementation |
+| `DC-001` | Runtime subsystem interfaces and plugin discovery guardrails | Historical | Dependency diagnostics across subsystems, lifecycle sequencing guidance, runtime bootstrap invariants |
+| `DI-001` | Documentation infrastructure refresh across module READMEs | Historical | Module READMEs aligned to shared template, roadmap/task cross-links, navigation updates |
+| `IO-240` | Import/export telemetry alignment with diagnostics tooling | Historical | Runtime diagnostics counters for IO failures, telemetry wiring for format handlers, documentation refresh |
+| `MA-130` | Conversion telemetry instrumentation | Historical | Drift metrics exported for conversion utilities, cheatsheet updates, runtime diagnostics integration |
+| `PH-430` | Collision telemetry automation | Historical | Collision benchmark harness instrumentation, diagnostics integration, CI smoke coverage |
+| `SC-225` | Hierarchy diagnostics samples | Historical | `scene_hierarchy_diagnostics_sample` CLI, reusable fixtures, telemetry snapshots in docs |
+| `SC-230` | Hierarchy alert threshold policy | Historical | Runtime alert level thresholds, dashboard guidance, diagnostics linkage |
 
 <details>
 <summary><b>Completed Initiative Details (Click to expand)</b></summary>
