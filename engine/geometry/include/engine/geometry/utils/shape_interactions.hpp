@@ -13,6 +13,7 @@ namespace engine::geometry::constants
 namespace engine::geometry
 {
     struct Aabb;
+    struct Capsule;
     struct Cylinder;
     struct Ellipsoid;
     struct Frustum;
@@ -41,6 +42,8 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& a, const Aabb& b) noexcept;
 
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& a, const Capsule& b) noexcept;
+
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& a, const Cylinder& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& a, const Ellipsoid& b) noexcept;
@@ -61,6 +64,27 @@ namespace engine::geometry
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& a, const Sphere& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& a, const Triangle& b) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Aabb& b) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Capsule& b) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Line& b,
+                                                      Result* result = nullptr) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Obb& b) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Plane& b) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Ray& b,
+                                                      Result* result = nullptr) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Segment& b,
+                                                      Result* result = nullptr) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Sphere& b) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Frustum& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& a, const Aabb& b) noexcept;
 
@@ -109,6 +133,9 @@ namespace engine::geometry
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ellipsoid& a, const Triangle& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Line& a, const Aabb& b,
+                                                      Result* result = nullptr) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Line& a, const Capsule& b,
                                                       Result* result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Line& a, const Cylinder& b,
@@ -163,6 +190,8 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Plane& a, const Aabb& b) noexcept;
 
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Plane& a, const Capsule& b) noexcept;
+
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Plane& a, const Cylinder& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Plane& a, const Ellipsoid& b) noexcept;
@@ -185,6 +214,9 @@ namespace engine::geometry
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Plane& a, const Triangle& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray& a, const Aabb& b,
+                                                      Result* result = nullptr) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray& a, const Capsule& b,
                                                       Result* result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ray& a, const Cylinder& b,
@@ -217,6 +249,9 @@ namespace engine::geometry
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment& a, const Aabb& b,
                                                       Result* result = nullptr) noexcept;
 
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment& a, const Capsule& b,
+                                                      Result* result = nullptr) noexcept;
+
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Segment& a, const Cylinder& b,
                                                       Result* result = nullptr) noexcept;
 
@@ -245,6 +280,8 @@ namespace engine::geometry
                                                       Result* result = nullptr) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& a, const Aabb& b) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& a, const Capsule& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& a, const Cylinder& b) noexcept;
 
@@ -293,6 +330,8 @@ namespace engine::geometry
     // Frustum intersection tests
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Aabb& aabb) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Capsule& capsule) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Sphere& sphere) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Obb& obb) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Cylinder& cylinder) noexcept;
@@ -308,6 +347,8 @@ namespace engine::geometry
 
     // Symmetric overloads
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& aabb, const Frustum& frustum) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& capsule, const Frustum& frustum) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& sphere, const Frustum& frustum) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb& obb, const Frustum& frustum) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& cylinder, const Frustum& frustum) noexcept;

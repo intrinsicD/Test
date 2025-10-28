@@ -360,6 +360,87 @@ namespace engine::geometry
                                                          float allowed_t_min,
                                                          float allowed_t_max) noexcept;
 
+        struct SegmentSegmentClosestResult
+        {
+            math::vec3 point_on_first;
+            math::vec3 point_on_second;
+            float distance_sq;
+        };
+
+        SegmentSegmentClosestResult ClosestPointsBetweenSegments(const Segment& first,
+                                                                 const Segment& second) noexcept
+        {
+            const math::vec3 u = first.end - first.start;
+            const math::vec3 v = second.end - second.start;
+            const math::vec3 w0 = first.start - second.start;
+
+            const float a = math::dot(u, u);
+            const float b = math::dot(u, v);
+            const float c = math::dot(v, v);
+            const float d = math::dot(u, w0);
+            const float e = math::dot(v, w0);
+            const float epsilon = 1e-6f;
+
+            float s = 0.0f;
+            float t = 0.0f;
+
+            if (a <= epsilon && c <= epsilon)
+            {
+                const math::vec3 p = first.start;
+                const math::vec3 q = second.start;
+                const math::vec3 diff = p - q;
+                return {p, q, math::dot(diff, diff)};
+            }
+
+            if (a <= epsilon)
+            {
+                s = 0.0f;
+                if (c > epsilon)
+                {
+                    t = math::utils::clamp(e / c, 0.0f, 1.0f);
+                }
+            }
+            else if (c <= epsilon)
+            {
+                t = 0.0f;
+                s = math::utils::clamp(-d / a, 0.0f, 1.0f);
+            }
+            else
+            {
+                const float denom = a * c - b * b;
+                if (denom > epsilon)
+                {
+                    s = math::utils::clamp((b * e - c * d) / denom, 0.0f, 1.0f);
+                }
+
+                t = b * s + e;
+                if (t <= 0.0f)
+                {
+                    t = 0.0f;
+                    s = math::utils::clamp(-d / a, 0.0f, 1.0f);
+                }
+                else if (t >= c)
+                {
+                    t = 1.0f;
+                    s = math::utils::clamp((b - d) / a, 0.0f, 1.0f);
+                }
+                else
+                {
+                    t /= c;
+                }
+            }
+
+            const math::vec3 point_first = first.start + u * s;
+            const math::vec3 point_second = second.start + v * t;
+            const math::vec3 diff = point_first - point_second;
+            return {point_first, point_second, math::dot(diff, diff)};
+        }
+
+        float SquaredDistanceSegmentSegment(const Segment& first, const Segment& second) noexcept
+        {
+            return ClosestPointsBetweenSegments(first, second).distance_sq;
+        }
+
         enum class BoundStatus : std::uint8_t
         {
             Free,
@@ -697,6 +778,22 @@ namespace engine::geometry
         }
     } // namespace
 
+    bool Intersects(const Capsule& capsule, const Aabb& box) noexcept
+    {
+        Aabb expanded = box;
+        const math::vec3 radius{capsule.radius, capsule.radius, capsule.radius};
+        expanded.min -= radius;
+        expanded.max += radius;
+
+        const Segment axis{capsule.point_a, capsule.point_b};
+        return Intersects(expanded, axis, nullptr);
+    }
+
+    bool Intersects(const Aabb& box, const Capsule& capsule) noexcept
+    {
+        return Intersects(capsule, box);
+    }
+
     bool Intersects(const Aabb& a, const Cylinder& b) noexcept
     {
         return IntersectsCylinderAabb(b, a);
@@ -1009,6 +1106,128 @@ namespace engine::geometry
         const float r = e[0] * an[0] + e[1] * an[1] + e[2] * an[2];
         if (d > r || d < -r) return false;
 
+        return true;
+    }
+
+    bool Intersects(const Capsule& a, const Capsule& b) noexcept
+    {
+        const Segment seg_a{a.point_a, a.point_b};
+        const Segment seg_b{b.point_a, b.point_b};
+        const float distance_sq = SquaredDistanceSegmentSegment(seg_a, seg_b);
+        const float radius_sum = a.radius + b.radius;
+        return distance_sq <= radius_sum * radius_sum;
+    }
+
+    bool Intersects(const Capsule& capsule, const Line& line, Result* result) noexcept
+    {
+        std::array<float, 6> hits{};
+        int hit_count = 0;
+
+        auto add_hit = [&](double value) noexcept
+        {
+            if (!std::isfinite(value)) return;
+            if (hit_count >= static_cast<int>(hits.size())) return;
+            hits[hit_count++] = static_cast<float>(value);
+        };
+
+        const math::vec3 ba = capsule.point_b - capsule.point_a;
+        const math::vec3 pa = line.point - capsule.point_a;
+        const math::vec3 rd = line.direction;
+
+        const double baba = static_cast<double>(math::dot(ba, ba));
+        const double bard = static_cast<double>(math::dot(ba, rd));
+        const double rdir_sq = static_cast<double>(math::dot(rd, rd));
+        const double baoa = static_cast<double>(math::dot(ba, pa));
+        const double rdoa = static_cast<double>(math::dot(rd, pa));
+        const double oaoa = static_cast<double>(math::dot(pa, pa));
+        const double radius = static_cast<double>(capsule.radius);
+        const double radius_sq = radius * radius;
+
+        const double A = baba * rdir_sq - bard * bard;
+        const double B = baba * rdoa - baoa * bard;
+        const double C = baba * (oaoa - radius_sq) - baoa * baoa;
+
+        if (std::abs(A) > static_cast<double>(constants::PARALLEL_EPSILON) &&
+            baba > static_cast<double>(constants::INTERSECTION_EPSILON))
+        {
+            double disc = B * B - A * C;
+            if (disc >= -static_cast<double>(constants::INTERSECTION_EPSILON))
+            {
+                disc = std::max(disc, 0.0);
+                const double sqrt_disc = std::sqrt(disc);
+                const double inv_a = 1.0 / A;
+                const double t0 = (-B - sqrt_disc) * inv_a;
+                const double t1 = (-B + sqrt_disc) * inv_a;
+
+                const double y0 = baoa + t0 * bard;
+                const double y1 = baoa + t1 * bard;
+
+                const double lower = -static_cast<double>(constants::INTERSECTION_EPSILON);
+                const double upper = baba + static_cast<double>(constants::INTERSECTION_EPSILON);
+
+                if (y0 >= lower && y0 <= upper) add_hit(t0);
+                if (y1 >= lower && y1 <= upper) add_hit(t1);
+            }
+        }
+
+        auto append_cap_hits = [&](const math::vec3& center) noexcept
+        {
+            Sphere sphere{center, capsule.radius};
+            Result sphere_result{};
+            if (Intersects(line, sphere, &sphere_result))
+            {
+                add_hit(sphere_result.t_min);
+                add_hit(sphere_result.t_max);
+            }
+        };
+
+        append_cap_hits(capsule.point_a);
+        append_cap_hits(capsule.point_b);
+
+        if (hit_count == 0)
+        {
+            return false;
+        }
+
+        std::sort(hits.begin(), hits.begin() + hit_count);
+
+        if (result)
+        {
+            result->t_min = hits.front();
+            result->t_max = hits[hit_count - 1];
+        }
+        return true;
+    }
+
+    bool Intersects(const Capsule& capsule, const Ray& ray, Result* result) noexcept
+    {
+        Result line_result{};
+        const Line line{ray.origin, ray.direction};
+
+        if (!Intersects(capsule, line, &line_result)) return false;
+        if (line_result.t_max < 0.0f) return false;
+
+        if (result)
+        {
+            result->t_min = math::utils::max(0.0f, line_result.t_min);
+            result->t_max = line_result.t_max;
+        }
+        return true;
+    }
+
+    bool Intersects(const Capsule& capsule, const Segment& segment, Result* result) noexcept
+    {
+        Result line_result{};
+        const Line line{segment.start, Direction(segment)};
+
+        if (!Intersects(capsule, line, &line_result)) return false;
+        if (line_result.t_min > 1.0f || line_result.t_max < 0.0f) return false;
+
+        if (result)
+        {
+            result->t_min = math::utils::clamp(line_result.t_min, 0.0f, 1.0f);
+            result->t_max = math::utils::clamp(line_result.t_max, 0.0f, 1.0f);
+        }
         return true;
     }
 
@@ -1536,6 +1755,11 @@ namespace engine::geometry
         return Intersects(b, a, result);
     }
 
+    bool Intersects(const Line& a, const Capsule& b, Result* result) noexcept
+    {
+        return Intersects(b, a, result);
+    }
+
     bool Intersects(const Line& a, const Cylinder& b, Result* result) noexcept
     {
         return Intersects(b, a, result);
@@ -1703,6 +1927,19 @@ namespace engine::geometry
         return Intersects(b, a);
     }
 
+    bool Intersects(const Capsule& capsule, const Obb& box) noexcept
+    {
+        Obb expanded = box;
+        expanded.half_sizes += math::vec3{capsule.radius, capsule.radius, capsule.radius};
+        const Segment axis{capsule.point_a, capsule.point_b};
+        return Intersects(expanded, axis, nullptr);
+    }
+
+    bool Intersects(const Obb& a, const Capsule& b) noexcept
+    {
+        return Intersects(b, a);
+    }
+
     bool Intersects(const Obb& a, const Cylinder& b) noexcept
     {
         return Intersects(b, a);
@@ -1850,6 +2087,25 @@ namespace engine::geometry
     }
 
 
+    bool Intersects(const Capsule& capsule, const Plane& plane) noexcept
+    {
+        const float dist_a = SignedDistance(plane, capsule.point_a);
+        const float dist_b = SignedDistance(plane, capsule.point_b);
+
+        if (dist_a * dist_b <= 0.0f)
+        {
+            return true;
+        }
+
+        const float min_distance = math::utils::min(math::utils::abs(dist_a), math::utils::abs(dist_b));
+        return min_distance <= capsule.radius;
+    }
+
+    bool Intersects(const Plane& plane, const Capsule& capsule) noexcept
+    {
+        return Intersects(capsule, plane);
+    }
+
     bool Intersects(const Plane& plane, const Aabb& aabb) noexcept
     {
         return Intersects(aabb, plane);
@@ -1935,6 +2191,11 @@ namespace engine::geometry
     bool Intersects(const Ray& ray, const Aabb& box, Result* result) noexcept
     {
         return Intersects(box, ray, result);
+    }
+
+    bool Intersects(const Ray& a, const Capsule& b, Result* result) noexcept
+    {
+        return Intersects(b, a, result);
     }
 
     bool Intersects(const Ray& a, const Cylinder& b, Result* result) noexcept
@@ -2154,6 +2415,11 @@ namespace engine::geometry
         return Intersects(aabb, segment, result);
     }
 
+    bool Intersects(const Segment& a, const Capsule& b, Result* result) noexcept
+    {
+        return Intersects(b, a, result);
+    }
+
     bool Intersects(const Segment& a, const Cylinder& b, Result* result) noexcept
     {
         return Intersects(b, a, result);
@@ -2357,6 +2623,20 @@ namespace engine::geometry
     bool Intersects(const Segment& segment, const Triangle& triangle, Result* result) noexcept
     {
         return Intersects(triangle, segment, result);
+    }
+
+    bool Intersects(const Capsule& capsule, const Sphere& sphere) noexcept
+    {
+        const Segment axis{capsule.point_a, capsule.point_b};
+        const double distance_sq = SquaredDistance(axis, sphere.center);
+        const float radius_sum = capsule.radius + sphere.radius;
+        const double radius_sq = static_cast<double>(radius_sum) * static_cast<double>(radius_sum);
+        return distance_sq <= radius_sq;
+    }
+
+    bool Intersects(const Sphere& sphere, const Capsule& capsule) noexcept
+    {
+        return Intersects(capsule, sphere);
     }
 
     bool Intersects(const Sphere& sphere, const Aabb& aabb) noexcept
@@ -3605,6 +3885,21 @@ namespace engine::geometry
         return true;
     }
 
+    bool Intersects(const Frustum& frustum, const Capsule& capsule) noexcept
+    {
+        for (const auto& plane : frustum.planes)
+        {
+            const float dist_a = SignedDistance(plane, capsule.point_a);
+            const float dist_b = SignedDistance(plane, capsule.point_b);
+            if (dist_a < -capsule.radius && dist_b < -capsule.radius)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     bool Intersects(const Frustum& frustum, const Sphere& sphere) noexcept
     {
         // Sphere intersects frustum if center is within radius distance from all planes
@@ -3805,6 +4100,11 @@ namespace engine::geometry
     bool Intersects(const Sphere& sphere, const Frustum& frustum) noexcept
     {
         return Intersects(frustum, sphere);
+    }
+
+    bool Intersects(const Capsule& capsule, const Frustum& frustum) noexcept
+    {
+        return Intersects(frustum, capsule);
     }
 
     bool Intersects(const Obb& obb, const Frustum& frustum) noexcept

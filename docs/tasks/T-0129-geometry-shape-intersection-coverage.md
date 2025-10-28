@@ -45,7 +45,7 @@ Investigation needed to determine:
 ### High Priority (Tools & Physics)
 - [x] Cylinder-Cylinder
 - [x] Cylinder-Sphere
-- [ ] Capsule-Capsule (if adding capsule shape)
+- [x] Capsule-Capsule (if adding capsule shape)
 - [x] Triangle-Triangle
 - [x] Segment-Sphere
 - [x] Segment-AABB
@@ -185,3 +185,5 @@ Implement missing critical tests:
 - 2025-12-18: Added frustum–cylinder and frustum–ellipsoid intersections powered by support mappings, replaced bounding-sphere fallbacks, and introduced symmetry regressions to lock parity for both overload orders.
 - 2025-12-19: Added frustum–triangle intersections via Sutherland–Hodgman clipping with parity regression tests to cover portal/visibility workloads ahead of T-0122 culling integration.
 - 2025-12-20: Implemented frustum line, ray, and segment clipping with parametric interval results and parity regression tests to support picking rays and portal edge classification for T-0122.
+- 2025-12-21: Added capsule primitive with capsule–capsule, capsule–sphere, capsule–AABB/OBB, capsule–plane, and capsule–frustum intersections plus regression tests, enabling character volumes and bounding capsules to participate in visibility and collision workflows tracked by T-0122 and the physics manifold roadmap.
+- 2025-12-22: Added capsule line, ray, and segment intersection overloads with symmetric interval regression tests so picking and portal classification workloads consume the shared primitive without bespoke math, closing the outstanding capsule follow-up noted in T-0129.
