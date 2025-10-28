@@ -43,3 +43,26 @@ set_tests_properties(geometry_frustum_benchmark
         PROPERTIES
         PASS_REGULAR_EXPRESSION "\"benchmark\":\"geometry_frustum_culling\""
 )
+
+add_executable(engine_geometry_shape_intersection_benchmark
+        shape_intersection_benchmark.cpp
+)
+
+target_link_libraries(engine_geometry_shape_intersection_benchmark
+        PRIVATE
+        engine::project_options
+        engine_geometry
+)
+
+add_test(
+        NAME geometry_shape_intersection_benchmark
+        COMMAND engine_geometry_shape_intersection_benchmark
+        --pairs 100000
+        --iterations 64
+        --output "${CMAKE_CURRENT_BINARY_DIR}/geometry_shape_intersection_benchmark.json"
+)
+
+set_tests_properties(geometry_shape_intersection_benchmark
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "\"benchmark\":\"geometry_shape_intersections\""
+)
