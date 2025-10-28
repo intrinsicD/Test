@@ -1,0 +1,22 @@
+{
+  "schema": {
+    "id": "ai-004.case-studies",
+    "version": 1
+  },
+  "case_studies": [
+    {
+      "id": "geometry-baseline",
+      "label": "Geometry remeshing baseline",
+      "config": "geometry-baseline.json",
+      "description": "Remeshing-centric scenario validating deferred shading against curated dataset metrics.",
+      "tags": ["geometry", "remesh", "baseline"]
+    },
+    {
+      "id": "rendering-debug",
+      "label": "Rendering overlay diagnostics",
+      "config": "rendering-debug.json",
+      "description": "Forward shading with debug overlays enabled to exercise rendering telemetry plumbing.",
+      "tags": ["rendering", "debug", "baseline"]
+    }
+  ]
+}

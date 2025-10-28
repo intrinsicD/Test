@@ -81,10 +81,10 @@ Author two end-to-end case studies (one geometry-focused, one rendering-focused)
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] Deliver two case study manifests (geometry + rendering) stored under `assets/datasets/` and referenced by the harness.
-- [ ] Extend harness CLI with a `--case-study <id>` shortcut that loads presets, datasets, and telemetry export destinations.
+- [x] Deliver two case study manifests (geometry + rendering) stored under `assets/datasets/` and referenced by the harness.
+- [x] Extend harness CLI with a `--case-study <id>` shortcut that loads presets, datasets, and telemetry export destinations.
 - [ ] Sandbox UI enumerates the case studies with pre-baked parameter sets and benchmark capture toggles.
-- [ ] Integration test exercises each case study end-to-end (configure → run → export metrics) using deterministic seeds.
+- [x] Integration test exercises each case study end-to-end (configure → run → export metrics) using deterministic seeds.
 
 ### Non-Functional Requirements
 - [ ] Performance: Each case study reports baseline FPS ±2% across repeated runs.
@@ -92,7 +92,7 @@ Author two end-to-end case studies (one geometry-focused, one rendering-focused)
 - [ ] Latency: Configuration reload applies within two frames when switching case studies.
 
 ### Testing Requirements
-- [ ] Add `pytest` coverage for CLI case study execution.
+- [x] Add `pytest` coverage for CLI case study execution.
 - [ ] Extend `ctest` integration harness to run at least one case study in headless mode.
 - [ ] Update CI pipeline to publish benchmark artefacts for the case studies.
 
@@ -171,3 +171,7 @@ TEST(RuntimePrototypeHarness, LoadsGeometryCaseStudy) {
 ## Notes
 - Align scenario selection with research stakeholders so demo content reflects upcoming publications.
 - Capture screenshots or short clips for the kickoff review deck once scenarios stabilise.
+- 2025-12-28: `assets/datasets/case_studies/index.json` tracks the bundled presets and
+  `scripts.prototyping.run_prototype_harness --case-study <id>` loads
+  `geometry-baseline` and `rendering-debug`, exporting JSON summaries during
+  dry runs and providing pytest coverage via `test_cli_case_study_support`.

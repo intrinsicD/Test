@@ -15,6 +15,11 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(PYTHON_ROOT))
 
+from engine3g.case_studies import (  # type: ignore
+    CaseStudyError,
+    available_case_studies,
+    get_case_study,
+)
 from engine3g.prototype_harness import (  # type: ignore
     configuration_summary_to_dict,
     HarnessExecutionOptions,
@@ -24,6 +29,17 @@ from engine3g.prototype_harness import (  # type: ignore
     load_harness,
     summarize,
 )
+
+
+def _format_case_study_help() -> str:
+    cases = available_case_studies()
+    if not cases:
+        return "Identifier of a packaged case study configuration."
+    entries = ", ".join(
+        f"{case.identifier} ({case.label})" if case.label != case.identifier else case.identifier
+        for case in cases
+    )
+    return f"Identifier of a packaged case study configuration. Available: {entries}."
 
 
 def _make_options(args: argparse.Namespace) -> HarnessExecutionOptions:
@@ -43,12 +59,30 @@ def _write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _resolve_config_argument(args: argparse.Namespace) -> tuple[Path, str | None]:
+    if args.case_study is not None:
+        case = get_case_study(args.case_study)
+        return case.config_path, case.label
+    assert args.config is not None  # argparse enforces mutually exclusive requirements
+    return args.config, None
+
+
 def _run(args: argparse.Namespace) -> int:
     try:
-        harness = load_harness(str(args.config), require_schema=True if args.require_schema else None)
+        config_path, case_label = _resolve_config_argument(args)
+    except CaseStudyError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+
+    try:
+        harness = load_harness(str(config_path), require_schema=True if args.require_schema else None)
     except PrototypeHarnessError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
+
+    if args.case_study is not None:
+        label_suffix = f" ({case_label})" if case_label else ""
+        print(f"Selected case study '{args.case_study}'{label_suffix} from {config_path}")
 
     _print_summary(harness)
 
@@ -78,11 +112,18 @@ def _run(args: argparse.Namespace) -> int:
 
 def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
+    case_studies_list = available_case_studies()
+    case_study_ids = [case.identifier for case in case_studies_list]
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
         "--config",
-        required=True,
         type=Path,
         help="Path to an AI-004 configuration manifest (YAML or JSON).",
+    )
+    group.add_argument(
+        "--case-study",
+        choices=case_study_ids if case_study_ids else None,
+        help=_format_case_study_help(),
     )
     parser.add_argument(
         "--frames",

@@ -262,6 +262,14 @@ ctest --preset linux-gcc-debug -R runtime
   shared library is available locally. Pass `--frames` and `--dt` to control
   execution cadence; use `--dry-run` to perform schema validation without
   loading the native runtime library.
+- Packaged case studies ship under `assets/datasets/case_studies/`. Launch them
+  directly without locating manifests manually:
+  ```bash
+  python -m scripts.prototyping.run_prototype_harness --case-study geometry-baseline --dry-run
+  ```
+  The CLI prints the resolved manifest path, writes summaries when
+  `--summary-json`/`--describe-json` are provided, and keeps the registry in
+  sync with the AI-004 kickoff plan tracked by `RT-321`.
 - Enable strict schema enforcement during the migration by exporting
   `ENGINE_AI004_SCHEMA_V1=1`. When the variable is unset the loaders inject
   default schema headers so legacy manifests remain compatible while teams
