@@ -92,6 +92,8 @@ Kickoff sequencing details and risk ownership live in [`tasks/AI-004-kickoff-bri
   diagnostics bridge, satisfying RE-610 instrumentation requirements.
 - **Priority P1:** Overlay enablement telemetry reports normals/UV/material/light-volume usage to runtime diagnostics to unblock
   tooling overlays and benchmark selectors.
+- **Priority P0:** Experiment sandbox UI scaffolding landed in the tools module, exposing dataset/preset selectors, overlay
+  toggles, benchmark controls, and telemetry panels with persistent preferences to accelerate AI-004 workflow integration.
 - **Priority P1:** Schema document updated with rendering/runtime/benchmark/telemetry sections and validator expanded to cover the
   unified configuration manifest.
 - **Priority P0:** Python-based runtime prototype harness scaffolded with CLI (`python -m scripts.prototyping.run_prototype_harness`)

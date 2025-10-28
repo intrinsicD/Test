@@ -22,6 +22,7 @@ TEST(Profiler, BasicProfiling)
     EXPECT_GT(report.entries[0].duration_ms, 9.0); // At least 10ms
 }
 
+
 TEST(Profiler, MultipleCalls)
 {
     Profiler profiler;
@@ -81,15 +82,3 @@ TEST(Profiler, GlobalProfilerAccess)
 
     EXPECT_EQ(&profiler, &profiler2);
 }
-
-add_executable(test_tools_module
-               test_module.cpp
-               test_profiler.cpp)
-
-target_link_libraries(test_tools_module
-                      PRIVATE
-                      engine_tools
-                      gtest_main
-)
-
-add_test(NAME test_tools_module COMMAND test_tools_module)

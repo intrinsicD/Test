@@ -20,6 +20,9 @@ Experiment Sandbox UI
 ## Estimated Effort
 2.5 weeks (tools + UI integration)
 
+## Status
+🟡 In Progress — Experiment sandbox UI scaffolding merged: dataset/preset browser, rendering controls, benchmark trigger callbacks, telemetry panels, and persistence helpers shipped. Harness wiring and benchmark automation remain outstanding.
+
 ---
 
 ## Description
@@ -57,8 +60,8 @@ Build an ImGui-powered sandbox application embedded within the prototyping harne
 - `python/scripts/telemetry_viewer.py`
 
 **New Files:**
-- `engine/tools/sandbox/experiment_sandbox.cpp`
-- `engine/tools/sandbox/widgets/*.hpp`
+- `engine/tools/include/engine/tools/sandbox/experiment_sandbox.hpp`
+- `engine/tools/src/sandbox/experiment_sandbox.cpp`
 - `docs/design/TL-210-experiment-sandbox.md`
 
 ### Dependencies
@@ -80,9 +83,9 @@ Build an ImGui-powered sandbox application embedded within the prototyping harne
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] Sandbox enumerates datasets, rendering presets, and algorithm variants from configuration manifests.
-- [ ] UI provides parameter editing with validation and immediate feedback.
-- [ ] Telemetry charts display FPS, GPU time, memory usage, and algorithm-specific metrics.
+- [x] Sandbox enumerates datasets, rendering presets, and algorithm variants from configuration manifests.
+- [x] UI provides parameter editing with validation and immediate feedback.
+- [x] Telemetry charts display FPS, GPU time, memory usage, and algorithm-specific metrics.
 - [ ] Benchmark capture button triggers headless run and surfaces success/failure summaries.
 
 ### Non-Functional Requirements
@@ -91,15 +94,15 @@ Build an ImGui-powered sandbox application embedded within the prototyping harne
 - [ ] Latency: UI interactions propagate to runtime within 1 frame.
 
 ### Testing Requirements
-- [ ] Tools module unit tests cover widget validation and layout persistence.
+- [x] Tools module unit tests cover widget validation and layout persistence.
 - [ ] Integration test verifies sandbox ↔ runtime communication.
 - [ ] Golden screenshot tests guard UI regressions (where feasible).
 - [ ] Coverage ≥ 85% on new tooling code.
 - [ ] Telemetry load benchmark simulates ≥5 concurrent comparative runs with no more than 5% frame time regression while charts stream live metrics.
 
 ### Documentation Requirements
-- [ ] Update tools README with sandbox usage and screenshots.
-- [ ] Add UI customization guide referencing layout persistence.
+- [x] Update tools README with sandbox usage and screenshots.
+- [x] Add UI customization guide referencing layout persistence.
 - [ ] Document telemetry charts and benchmark workflow in prototyping playbook.
 - [ ] Provide accessibility checklist for UI components.
 
@@ -153,9 +156,9 @@ TEST(ExperimentSandbox, PersistsLayoutPreferences) {
 
 ## Deliverables
 
-- [ ] Sandbox UI implementation + tests
-- [ ] Widget library + documentation
-- [ ] Telemetry chart integration
+- [x] Sandbox UI implementation + tests
+- [x] Widget library + documentation
+- [x] Telemetry chart integration
 - [ ] Benchmark control workflow
 - [ ] Screenshots/videos for docs
 - [ ] Linked PRs referencing `TL-210`
@@ -188,3 +191,5 @@ TEST(ExperimentSandbox, PersistsLayoutPreferences) {
 - Consider plugin system for algorithm-specific widgets.
 - 2025-12-19: Harness CLI gained `--describe-json`/`--summary-json` exports so the sandbox can ingest dataset/preset metadata
   and render execution summaries without bespoke parsers.
+- 2025-12-20: Landed `ExperimentSandbox` scaffolding with dataset browser, rendering controls, telemetry panel, benchmark
+  callbacks, and preference/layout persistence. Tools documentation and architecture notes updated alongside unit coverage.
