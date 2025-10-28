@@ -3587,6 +3587,70 @@ namespace engine::geometry
         return true;
     }
 
+    bool Intersects(const Frustum& frustum, const Triangle& triangle) noexcept
+    {
+        // Clip the triangle against each frustum plane using Sutherland–Hodgman
+        // clipping. If any portion of the triangle remains after clipping, it
+        // intersects the frustum.
+        std::array<math::vec3, 12> polygon{};
+        std::array<math::vec3, 12> clipped{};
+
+        polygon[0] = triangle.a;
+        polygon[1] = triangle.b;
+        polygon[2] = triangle.c;
+        std::size_t polygon_vertex_count = 3;
+
+        for (const Plane& plane : frustum.planes)
+        {
+            if (polygon_vertex_count == 0)
+            {
+                return false;
+            }
+
+            std::size_t clipped_count = 0;
+            math::vec3 previous_vertex = polygon[polygon_vertex_count - 1];
+            float previous_distance = SignedDistance(plane, previous_vertex);
+            bool previous_inside = previous_distance >= -constants::INTERSECTION_EPSILON;
+
+            for (std::size_t i = 0; i < polygon_vertex_count; ++i)
+            {
+                const math::vec3 current_vertex = polygon[i];
+                const float current_distance = SignedDistance(plane, current_vertex);
+                const bool current_inside = current_distance >= -constants::INTERSECTION_EPSILON;
+
+                if (previous_inside ^ current_inside)
+                {
+                    const math::vec3 edge = current_vertex - previous_vertex;
+                    const float denom = previous_distance - current_distance;
+
+                    if (math::utils::abs(denom) > constants::INTERSECTION_EPSILON)
+                    {
+                        const float t = previous_distance / denom;
+                        clipped[clipped_count++] = previous_vertex + edge * t;
+                    }
+                    else
+                    {
+                        clipped[clipped_count++] = current_vertex;
+                    }
+                }
+
+                if (current_inside)
+                {
+                    clipped[clipped_count++] = current_vertex;
+                }
+
+                previous_vertex = current_vertex;
+                previous_distance = current_distance;
+                previous_inside = current_inside;
+            }
+
+            polygon = clipped;
+            polygon_vertex_count = clipped_count;
+        }
+
+        return polygon_vertex_count > 0;
+    }
+
     // Symmetric overloads
     bool Intersects(const Aabb& aabb, const Frustum& frustum) noexcept
     {
@@ -3611,5 +3675,10 @@ namespace engine::geometry
     bool Intersects(const Ellipsoid& ellipsoid, const Frustum& frustum) noexcept
     {
         return Intersects(frustum, ellipsoid);
+    }
+
+    bool Intersects(const Triangle& triangle, const Frustum& frustum) noexcept
+    {
+        return Intersects(frustum, triangle);
     }
 } // namespace engine::geometry

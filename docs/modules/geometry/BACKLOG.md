@@ -84,3 +84,5 @@ roadmap after each milestone.
   parameterisation, printing telemetry-aligned summaries for `GE-221+` runs.
 - 2025-12-17 — Remesh statistics/telemetry now capture triangle counts and normalised quality scores, feeding AI-004 dataset
   validation and extending `GE-221+` observability.
+- 2025-12-19 — Frustum triangle clipping landed in `shape_interactions` with symmetric overloads/tests so portal visibility (T-0122)
+  can classify geometry without approximating triangles as spheres/boxes.

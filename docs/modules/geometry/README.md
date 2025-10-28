@@ -149,6 +149,7 @@ bool visible = engine::geometry::Intersects(frustum, object_aabb);
 bool sphere_visible = engine::geometry::Intersects(frustum, bounding_sphere);
 bool cylinder_visible = engine::geometry::Intersects(frustum, bounding_cylinder);
 bool ellipsoid_visible = engine::geometry::Intersects(frustum, bounding_ellipsoid);
+bool portal_visible = engine::geometry::Intersects(frustum, portal_triangle); // portal_triangle defined elsewhere
 
 // Get frustum corner points
 auto corners = engine::geometry::GetCorners(frustum);
@@ -160,6 +161,7 @@ The frustum is defined by 6 planes (left, right, bottom, top, near, far) with no
 - **Frustum-OBB**: oriented extents projected onto plane normals for tight classification
 - **Frustum-Cylinder**: support mapping maintains axial and radial extents without resorting to bounding spheres
 - **Frustum-Ellipsoid**: orientation-aware support mapping via the ellipsoid's quadratic form
+- **Frustum-Triangle**: Sutherland–Hodgman clipping preserves partial portal overlaps without relying on bounding volumes
 - **Frustum-Point**: containment test against all planes
 
 ### Remeshing Requests (GE-221+)
