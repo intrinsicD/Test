@@ -62,7 +62,7 @@ def test_main_flags_readme_identifiers_not_in_roadmap(
     docs_dir = repo_root / "docs"
     docs_dir.mkdir()
     tasks_dir = docs_dir / "backlog" / "active"
-    tasks_dir.mkdir()
+    tasks_dir.mkdir(parents=True)
 
     roadmap = docs_dir / "ROADMAP.md"
     roadmap.write_text("# Roadmap\n", encoding="utf-8")
@@ -93,9 +93,9 @@ def test_main_flags_missing_task_file_for_active_roadmap_entry(
     roadmap.write_text(
         "\n".join(
             [
-                "| Task ID | Description | Exit Criteria | Status | Owner |",
+                "| Priority | Backlog | Intent | Owner | Status |",
                 "| --- | --- | --- | --- | --- |",
-                "| `DC-999` | Example | Do the work | 🟡 Planning | Tools |",
+                "| 1 | [`DC-999`](backlog/active/DC-999-ai-004-example.md) | Example | Tools | Planned |",
             ]
         ),
         encoding="utf-8",
@@ -130,9 +130,9 @@ def test_main_passes_when_documents_are_synchronised(
     roadmap.write_text(
         "\n".join(
             [
-                "| Task ID | Description | Exit Criteria | Status | Owner |",
+                "| Priority | Backlog | Intent | Owner | Status |",
                 "| --- | --- | --- | --- | --- |",
-                "| `DC-999` | Example | Do the work | 🟡 Planning | Tools |",
+                "| 1 | [`DC-999`](backlog/active/DC-999-ai-004-example.md) | Example | Tools | Planned |",
             ]
         ),
         encoding="utf-8",
@@ -141,7 +141,7 @@ def test_main_passes_when_documents_are_synchronised(
     readme = repo_root / "README.md"
     readme.write_text("Tracking `DC-999`", encoding="utf-8")
 
-    task_file = tasks_dir / "DC-999-sync.md"
+    task_file = tasks_dir / "DC-999-ai-004-example.md"
     task_file.write_text("# DC-999", encoding="utf-8")
 
     monkeypatch.setattr(validate_docs, "ROOT", repo_root)

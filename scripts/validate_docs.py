@@ -45,7 +45,7 @@ def _extract_active_roadmap_ids(text: str) -> set[str]:
     table_lines: list[str] = []
     lines = text.splitlines()
     for line in lines + [""]:
-        if line.startswith("|"):
+        if line.lstrip().startswith("|"):
             table_lines.append(line)
             continue
 
@@ -53,23 +53,41 @@ def _extract_active_roadmap_ids(text: str) -> set[str]:
             continue
 
         header_cells = _split_table_row(table_lines[0])
-        lowered_header = [cell.lower() for cell in header_cells]
-        status_index = lowered_header.index("status") if "status" in lowered_header else -1
-        if status_index != -1:
-            for row in table_lines[1:]:
-                cells = _split_table_row(row)
-                if not cells or _is_divider_row(cells):
-                    continue
-                if len(cells) <= status_index:
-                    continue
-                identifier = cells[0].strip("`")
-                match = re.match(r"([A-Z]{2,}-\d+)", identifier)
-                if not match:
-                    continue
-                status_cell = cells[status_index].strip()
-                if status_cell.startswith("✅"):
-                    continue
-                active.add(match.group(1))
+        lowered_header = [cell.strip().lower() for cell in header_cells]
+        try:
+            status_index = next(i for i, cell in enumerate(lowered_header) if "status" in cell)
+        except StopIteration:
+            table_lines = []
+            continue
+
+        for row in table_lines[1:]:
+            cells = _split_table_row(row)
+            if not cells or _is_divider_row(cells):
+                continue
+            if len(cells) <= status_index:
+                continue
+
+            identifier = None
+            for cell in cells:
+                match = ROADMAP_ID_RE.search(cell)
+                if match:
+                    identifier = match.group(0)
+                    break
+            if not identifier:
+                continue
+
+            status_cell_raw = cells[status_index]
+            status_normalised = status_cell_raw.strip().lower()
+            if (
+                "✅" in status_cell_raw
+                or status_normalised.startswith("done")
+                or status_normalised.startswith("complete")
+                or status_normalised.startswith("completed")
+                or status_normalised.startswith("archived")
+            ):
+                continue
+
+            active.add(identifier)
 
         table_lines = []
 
