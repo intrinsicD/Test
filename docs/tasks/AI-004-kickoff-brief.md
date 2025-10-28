@@ -10,7 +10,7 @@ risks without ad-hoc status syncs.
 
 | Sequence | Task ID | Deliverable | Owner | Target Date | Dependencies |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `DC-041` | Kickoff readiness packet published (roadmap updates, risk register, cross-linking) | @pm-agent | 2025-12-29 | Schema alignment (`DC-040`), latest module status notes |
+| 1 | `DC-041` | Kickoff readiness packet published (roadmap updates, risk register, cross-linking) | @pm-agent | 2025-12-05 | Schema alignment (`DC-040`), latest module status notes |
 | 2 | `RT-321` | Geometry + rendering case studies executable through harness & sandbox with telemetry baselines | @runtime-lead (with @assets-lead, @tools-lead) | 2026-01-16 | Dataset packaging (`AS-330`), harness schema enforcement (`DC-040`) |
 | 3 | `CC-311` | Comparative benchmark visualisation & CI gating wired to AI-004 case studies | @perf-lead (with @tools-lead) | 2026-01-19 | Case study artefacts (`RT-321`), comparative orchestrator (`CC-310`) |
 
@@ -28,9 +28,17 @@ risks without ad-hoc status syncs.
 
 | Risk | Owner | Mitigation | Deadline |
 | --- | --- | --- | --- |
-| Dataset licensing approvals delay case study manifests | @assets-lead | Finalise permissive asset shortlist; confirm legal review slots | 2025-12-27 |
-| Comparative plotting stack exceeds CI time budget | @perf-lead | Start with reduced case study set, cache artefacts between stages | 2026-01-09 |
-| Sandbox automation flakes on headless runners | @tools-lead | Add deterministic seed + retry harness; run nightly smoke before promo | 2026-01-05 |
+| Dataset licensing approvals delay case study manifests | @assets-lead | Finalise permissive asset shortlist; confirm legal review slots | 2025-11-27 |
+| Comparative plotting stack exceeds CI time budget | @perf-lead | Start with reduced case study set, cache artefacts between stages | 2025-11-27 |
+| Sandbox automation flakes on headless runners | @tools-lead | Add deterministic seed + retry harness; run nightly smoke before promo | 2025-11-27 |
+
+## Agenda & Success Metrics
+
+1. **Schema + risk review (Owner: @pm-agent)** — confirm mitigation deck and roadmap updates complete; success = consensus on schema adoption blockers cleared.
+2. **Case study readiness (Owner: @runtime-lead)** — demonstrate harness + sandbox executing geometry/rendering scenarios; success = telemetry baselines captured for both studies.
+3. **Benchmark visualisation plan (Owner: @perf-lead)** — walk through comparative report flow and CI budget; success = agreed gating criteria and hardware allocation approval path.
+4. **Dataset licensing checkpoint (Owner: @assets-lead)** — validate approval status and fallback assets; success = signed-off asset list with provenance attachments.
+5. **Sandbox automation stability (Owner: @tools-lead)** — review headless automation checklist; success = nightly smoke coverage committed with retry strategy.
 
 ## Coordination Checklist
 

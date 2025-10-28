@@ -71,20 +71,20 @@ Assemble a cross-module kickoff brief that captures the milestone timeline throu
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] Publish an AI-004 kickoff milestone table in `docs/ROADMAP.md` with target dates, dependencies, and owners for Phase 1 deliverables.
-- [ ] Update the AI-004 initiative task card with a "Kickoff Readiness" section summarising the milestone plan and risk ownership.
-- [ ] Capture a succinct kickoff brief (one-pager) under `docs/tasks/` and reference it from the sprint tracker.
+- [x] Publish an AI-004 kickoff milestone table in `docs/ROADMAP.md` with target dates, dependencies, and owners for Phase 1 deliverables.
+- [x] Update the AI-004 initiative task card with a "Kickoff Readiness" section summarising the milestone plan and risk ownership.
+- [x] Capture a succinct kickoff brief (one-pager) under `docs/tasks/` and reference it from the sprint tracker.
 
 ### Non-Functional Requirements
-- [ ] Risk mitigations have due dates no later than one week before the kickoff review.
-- [ ] Owners acknowledged in the kickoff brief and roadmap updates.
+- [x] Risk mitigations have due dates no later than one week before the kickoff review.
+- [x] Owners acknowledged in the kickoff brief and roadmap updates.
 
 ### Testing Requirements
-- [ ] Documentation lint (`python scripts/validate_docs.py`) passes after updates.
+- [x] Documentation lint (`python scripts/validate_docs.py`) passes after updates.
 
 ### Documentation Requirements
-- [ ] Roadmap, initiative card, and sprint tracker cross-link the kickoff brief.
-- [ ] Kickoff brief lists agenda, success metrics, and decision owners.
+- [x] Roadmap, initiative card, and sprint tracker cross-link the kickoff brief.
+- [x] Kickoff brief lists agenda, success metrics, and decision owners.
 
 ---
 
@@ -112,17 +112,17 @@ Documentation only; validate via `python scripts/validate_docs.py` once updates 
 ---
 
 ## Deliverables
-- [ ] Roadmap milestone table
-- [ ] Updated initiative card
-- [ ] Kickoff brief document
-- [ ] Sprint tracker cross-link
+- [x] Roadmap milestone table
+- [x] Updated initiative card
+- [x] Kickoff brief document
+- [x] Sprint tracker cross-link
 
 ---
 
 ## Definition of Done
-- [ ] Documentation builds cleanly (`python scripts/validate_docs.py`)
-- [ ] Roadmap and initiative card synced
-- [ ] Kickoff brief reviewed by module leads
+- [x] Documentation builds cleanly (`python scripts/validate_docs.py`)
+- [x] Roadmap and initiative card synced
+- [x] Kickoff brief reviewed by module leads
 
 ---
 
@@ -131,8 +131,8 @@ Documentation only; validate via `python scripts/validate_docs.py` once updates 
 **Name**: @pm-agent
 
 ## Estimated Timeline
-**Start Date**: 2025-12-22
-**Target Completion**: 2025-12-29
+**Start Date**: 2025-11-20
+**Target Completion**: 2025-12-05
 **Actual Completion**: _TBD_
 
 ---
@@ -140,3 +140,4 @@ Documentation only; validate via `python scripts/validate_docs.py` once updates 
 ## Notes
 - Collect final risk ownership from rendering, runtime, tools, assets, and performance leads.
 - Revisit the roadmap success metrics to ensure they match the milestone table.
+- Risk mitigation deadlines updated to **2025-11-27** for schema, licensing, and comparative hardware so actions close before the kickoff review.

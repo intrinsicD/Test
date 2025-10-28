@@ -128,9 +128,9 @@ Reconcile this table with the roadmap whenever priorities change. Update both do
 
 ### AI-004 Risk Register Snapshot
 
-- Coordinated configuration schema delivery — **Owner:** @pm-agent — **Due:** 2025-12-10.
-- Dataset licensing approval for curated packages — **Owner:** @assets-lead — **Due:** 2025-12-08.
-- Benchmarking hardware allocation for comparative runs — **Owner:** @perf-lead — **Due:** 2025-12-12.
+- Coordinated configuration schema delivery — **Owner:** @pm-agent — **Due:** 2025-11-27.
+- Dataset licensing approval for curated packages — **Owner:** @assets-lead — **Due:** 2025-11-27.
+- Benchmarking hardware allocation for comparative runs — **Owner:** @perf-lead — **Due:** 2025-11-27.
 
 ## Build & Test Workflow
 
