@@ -173,6 +173,17 @@ Line, ray, and segment overloads expose parametric entry/exit intervals so
 visibility picking and portal edge classifiers can consume capsules without
 bespoke math.
 
+Utility helpers provide direct access to capsule metrics:
+
+- `Center(capsule)`, `Axis(capsule)`, and `AxisDirection(capsule)` describe the
+  swept segment and make it easy to derive motion vectors.
+- `Length(capsule)`, `SurfaceArea(capsule)`, and `Volume(capsule)` report
+  analytic properties for telemetry and tuning pipelines.
+- `ClosestPoint(capsule, point)` and `SquaredDistance(capsule, point)` expose
+  deterministic projections for navigation and collision queries.
+- `Random(capsule)` samples valid capsules for fuzzing and benchmark fixtures,
+  matching the existing shape generators used across the test suite.
+
 ### Frustum Culling
 
 Extract view frustums from projection matrices and perform efficient intersection tests:

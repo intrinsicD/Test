@@ -115,6 +115,28 @@ namespace engine::geometry
         Random(cylinder, default_engine());
     }
 
+    void Random(Capsule& capsule, RandomEngine& rng) noexcept
+    {
+        capsule.radius = uniform(rng, 0.1f, 2.5f);
+
+        const math::vec3 center = uniform_vec3(rng, -kDefaultCenterRange, kDefaultCenterRange);
+        math::vec3 direction = uniform_vec3(rng, -1.0f, 1.0f);
+        if (math::length_squared(direction) <= std::numeric_limits<float>::epsilon())
+        {
+            direction = math::vec3{0.0f, 1.0f, 0.0f};
+        }
+        direction = math::normalize(direction);
+        const float half_length = uniform(rng, 0.2f, 3.0f);
+
+        capsule.point_a = center - direction * half_length;
+        capsule.point_b = center + direction * half_length;
+    }
+
+    void Random(Capsule& capsule) noexcept
+    {
+        Random(capsule, default_engine());
+    }
+
     void Random(Ellipsoid& ellipsoid, RandomEngine& rng) noexcept
     {
         ellipsoid.center = uniform_vec3(rng, -kDefaultCenterRange, kDefaultCenterRange);

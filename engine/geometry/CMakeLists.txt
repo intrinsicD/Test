@@ -16,6 +16,7 @@ add_library(${target_name}
         src/remesh/deviation.cpp
         src/remesh/remesh.cpp
         src/remesh/telemetry.cpp
+        src/shapes/capsule.cpp
         src/shapes/aabb.cpp
         src/shapes/cylinder.cpp
         src/shapes/ellipsoid.cpp
