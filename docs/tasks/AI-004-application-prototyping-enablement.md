@@ -47,6 +47,14 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 2. **`RT-321` — Case study validation:** deliver geometry and rendering case studies that run end-to-end through the harness and sandbox with telemetry baselines and regression coverage.
 3. **`CC-311` — Comparative visualisation:** integrate benchmark plots and CI gating so AI-004 demonstrations include side-by-side metrics.
 
+### Kickoff Readiness Summary
+- **Milestone timeline:** See [`docs/tasks/AI-004-kickoff-brief.md`](AI-004-kickoff-brief.md) for the sequenced Phase 1 plan covering `DC-041` (2025-12-29), `RT-321` (2026-01-16), and `CC-311` (2026-01-19).
+- **Risk owners & deadlines:**
+  - Coordinated schema delivery — @pm-agent — mitigation deck due **2025-12-29**.
+  - Dataset licensing approvals — @assets-lead — licensing checkpoint due **2025-12-27**.
+  - Comparative plotting performance — @perf-lead — CI sizing decision due **2026-01-09**.
+- **Coordination cadence:** Weekly runtime/tools/performance syncs continue through the kickoff review; slide deck outline to be published alongside the milestone plan.
+
 ---
 
 ## Technical Details
@@ -163,6 +171,7 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
 - [ ] Updated tasks for each sub-workstream
 - [ ] Shared configuration schema & documentation
 - [ ] Risk register entries reflecting owners/due dates for outstanding blockers
+- [ ] Kickoff brief published and cross-linked from roadmap + sprint tracker
 - [x] Dataset manifest and ingestion scripts
 - [ ] Benchmark automation scripts + CI integration
 - [ ] Demo recordings/screenshots for research workflow

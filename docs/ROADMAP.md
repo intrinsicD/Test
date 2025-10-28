@@ -46,10 +46,20 @@ roadmap.
 - **P1:** Runtime harness + rendering baseline integration demo with sandbox UI prototype.
 - **P2:** Benchmark automation smoke suite active in CI.
 
+#### Phase 1 Kickoff Milestones
+
+| Sequence | Task ID | Deliverable | Owner(s) | Target Date | Key Dependencies |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `DC-041` | Kickoff readiness packet published (roadmap refresh, risk register, cross-links) | @pm-agent | 2025-12-29 | Schema alignment (`DC-040`), latest module status notes |
+| 2 | `RT-321` | Geometry + rendering case studies runnable via harness & sandbox with telemetry baselines | @runtime-lead (w/ @assets-lead, @tools-lead) | 2026-01-16 | Dataset packaging (`AS-330`), harness schema enforcement (`DC-040`) |
+| 3 | `CC-311` | Comparative benchmark visualisation + CI gating integrated with AI-004 case studies | @perf-lead (w/ @tools-lead) | 2026-01-19 | Case study artefacts (`RT-321`), comparative orchestrator (`CC-310`) |
+
+Kickoff sequencing details and risk ownership live in [`tasks/AI-004-kickoff-brief.md`](tasks/AI-004-kickoff-brief.md).
+
 **Risks:**
-- **P0:** Coordinated delivery requires shared configuration schema—Owner: @pm-agent (Product Manager).
-- **P1:** Dataset licensing review could delay publication—Owner: @assets-lead (Assets).
-- **P2:** Benchmarking hardware pool request pending infrastructure approval—Owner: @perf-lead (Performance).
+- **P0:** Coordinated delivery requires shared configuration schema—Owner: @pm-agent (Product Manager); mitigation deck due 2025-12-29.
+- **P1:** Dataset licensing review could delay publication—Owner: @assets-lead (Assets); licensing checkpoint due 2025-12-27.
+- **P2:** Benchmarking hardware pool request pending infrastructure approval—Owner: @perf-lead (Performance); CI sizing decision due 2026-01-09.
 
 **Mitigations:**
 - Bi-weekly integration demos to surface drift early.
