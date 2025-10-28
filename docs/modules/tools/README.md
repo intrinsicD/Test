@@ -304,6 +304,7 @@ ctest --preset linux-gcc-debug -R tools  # When enabled
 - [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Telemetry metric definitions
 - [`../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md): How to add telemetry
 - [`../runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md): Runtime diagnostics reference
+- [`../../specs/ADR-0008-runtime-main-loop-and-tooling.md`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md): Panel registry and runtime loop integration guidance.
 - Python tooling: `python/README.md`, `scripts/README.md`
 
 ## Current Status
