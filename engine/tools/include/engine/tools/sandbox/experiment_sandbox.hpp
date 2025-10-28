@@ -168,6 +168,7 @@ namespace engine::tools::sandbox
 
         [[nodiscard]] bool matches_dataset_filter(std::string_view text) const;
         bool sync_overlay_preferences();
+        void notify_preference_changes(const SandboxPreferences& previous);
 
         ExperimentConfigurationSummary summary_{};
         TelemetrySnapshot telemetry_{};
