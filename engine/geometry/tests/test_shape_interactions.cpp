@@ -190,6 +190,32 @@ namespace engine::geometry
         EXPECT_FALSE(Intersects(column, corner_miss));
     }
 
+    TEST(CapsuleIntersection, CapsuleEllipsoid)
+    {
+        const Capsule capsule{{-0.2f, 0.1f, -1.0f}, {0.2f, -0.1f, 1.0f}, 0.35f};
+
+        const math::quat rotation = math::normalize(
+            math::angle_axis(std::numbers::pi_v<float> / 5.0f, math::normalize(math::vec3{0.0f, 1.0f, 0.25f})));
+        const Ellipsoid intersecting{{0.15f, 0.05f, 0.2f}, {0.6f, 0.35f, 0.5f}, rotation};
+
+        const math::quat separation_rot = math::normalize(
+            math::angle_axis(std::numbers::pi_v<float> / 7.0f, math::vec3{0.0f, 0.0f, 1.0f}));
+        const Ellipsoid separated{{1.8f, 0.0f, 0.0f}, {0.25f, 0.35f, 0.4f}, separation_rot};
+
+        const math::quat grazing_rot = math::normalize(
+            math::angle_axis(std::numbers::pi_v<float> / 9.0f, math::vec3{1.0f, 0.0f, 0.0f}));
+        const Ellipsoid grazing{{0.0f, 0.0f, 1.35f}, {0.35f, 0.45f, 0.3f}, grazing_rot};
+
+        EXPECT_TRUE(Intersects(capsule, intersecting));
+        EXPECT_TRUE(Intersects(intersecting, capsule));
+
+        EXPECT_FALSE(Intersects(capsule, separated));
+        EXPECT_FALSE(Intersects(separated, capsule));
+
+        EXPECT_TRUE(Intersects(capsule, grazing));
+        EXPECT_TRUE(Intersects(grazing, capsule));
+    }
+
     TEST(ShapeInteractionsSphereContains, SphereInsideAabb)
     {
         const Aabb box{{-3.0f, -2.0f, -1.0f}, {3.0f, 2.0f, 1.0f}};
