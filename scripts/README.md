@@ -13,6 +13,10 @@
   [`benchmarks/run_comparative_benchmarks.py`](benchmarks/run_comparative_benchmarks.py);
   it executes engine and reference workloads from a declarative configuration
   and enforces regression thresholds for `CC-310`.
+- AI-004 dataset ingestion lives in
+  [`datasets/ingest_dataset.py`](datasets/ingest_dataset.py); it stages manifests
+  into reproducible caches with checksum metadata and regression coverage to
+  advance `AS-330` deliverables.
 
 ## Usage
 
@@ -20,6 +24,8 @@
 - Use `cmake --preset <name>` for day-to-day configuration/build/test flows.
 - Invoke `./scripts/ci/run_presets.py` in CI and local smoke runs to mirror the documented workflow.
 - Run `python scripts/update_agents_tree.py` after layout changes to refresh the generated hierarchy in `AGENTS.md`.
+- Package dataset manifests into cache directories with
+  `python -m scripts.datasets.ingest_dataset <manifest> --copy-assets`.
 
 ## TODO / Next Steps
 

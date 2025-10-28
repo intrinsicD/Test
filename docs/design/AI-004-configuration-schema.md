@@ -100,6 +100,11 @@ approximate Hausdorff metrics gathered from bidirectional sampling between the
 input mesh and remeshed output (`max_surface_deviation`, `mean_surface_deviation`,
 `rms_surface_deviation`).
 
+Packaging workflows should consume these manifests via
+`python -m scripts.datasets.ingest_dataset` so dataset caches include
+checksummed file metadata and reproducible directory layouts before the runtime
+harness (`RT-320`) stages assets.
+
 Downstream consumers (runtime harness, sandbox UI, benchmark orchestrator) must
 reject entries whose `schema.id`/`schema.version` do not match the supported
 release so misconfigured manifests fail fast.

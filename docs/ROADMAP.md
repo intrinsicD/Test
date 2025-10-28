@@ -90,6 +90,9 @@ roadmap.
 - **Priority P1:** Prototyping harness CLI introduces a `--require-schema` guard and module READMEs
   record migration checklists so strict configuration validation can roll out incrementally across
   AI-004 workstreams during the v1 adoption phase.
+- **Priority P0:** Introduced `scripts/datasets/ingest_dataset.py` with regression coverage and a
+  sample manifest under `assets/datasets/remesh_sample` so AS-330 dataset packages produce
+  reproducible cache metadata for the prototyping harness.
 - **Priority P1:** Remeshing statistics and telemetry now report triangle counts plus normalised
   quality scores, allowing AI-004 dataset validation to flag sliver-heavy outputs without rerunning
   processing, progressing the `GE-221+` execution milestone.

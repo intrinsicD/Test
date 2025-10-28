@@ -158,7 +158,7 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
 - [ ] Updated tasks for each sub-workstream
 - [ ] Shared configuration schema & documentation
 - [ ] Risk register entries reflecting owners/due dates for outstanding blockers
-- [ ] Dataset manifest and ingestion scripts
+- [x] Dataset manifest and ingestion scripts
 - [ ] Benchmark automation scripts + CI integration
 - [ ] Demo recordings/screenshots for research workflow
 - [ ] PRs linked to `AI-004`
@@ -199,3 +199,7 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
   tools, and assets.
 - Geometry remeshing statistics/telemetry emit triangle quality metrics so dataset
   packaging can flag sliver-heavy assets before entering AI-004 workflows.
+- Dataset packaging workflows use `scripts/datasets/ingest_dataset.py` to copy
+  manifests into deterministic caches with checksum metadata validated by
+  regression tests, seeding `AS-330` deliverables with a sample manifest in
+  `assets/datasets/remesh_sample`.

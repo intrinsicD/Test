@@ -82,7 +82,7 @@ Curate a set of permissively licensed datasets covering canonical research cases
 
 ### Functional Requirements
 - [ ] Curated dataset list with at least three categories (geometry processing, rendering, animation).
-- [ ] Automated ingestion script downloads, validates, and registers datasets.
+    - [x] Automated ingestion script downloads, validates, and registers datasets.
 - [ ] Dataset manifest exposes scale, unit, tags, and recommended benchmark scenarios.
 - [ ] Runtime harness consumes manifest to prefetch assets and map to materials/shaders.
 
@@ -151,7 +151,7 @@ TEST(DatasetManifest, ParsesMetadata) {
 
 ## Deliverables
 
-- [ ] Dataset manifests + ingestion scripts
+- [x] Dataset manifests + ingestion scripts
 - [ ] Asset registry extensions + tests
 - [ ] Documentation + licensing notes
 - [ ] CI validation for manifests
@@ -187,3 +187,6 @@ TEST(DatasetManifest, ParsesMetadata) {
 ## Progress Log
 - 2025-12-04: Licensing packet (assets + legal) submitted for primary geometry datasets; awaiting legal approval by 2025-12-08 to unblock harness manifests.
 - 2025-12-16: `geometry_remesh` adds `--manifest-output` to write AI-004 dataset manifest YAML directly, reducing manual steps for dataset ingestion scripts.
+- 2025-12-19: Added `assets/datasets/remesh_sample` seed manifest and `scripts/datasets/ingest_dataset.py`
+  with regression coverage so packaging workflows emit reproducible cache metadata and validated
+  file inventories for AI-004 harness integration.
