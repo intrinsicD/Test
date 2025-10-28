@@ -39,7 +39,20 @@
 
 ## Environment Setup
 
-Follow these steps to configure a clean workspace-local environment:
+Run the automated bootstrap script to provision a workspace-local virtual
+environment and install the shared dependencies:
+
+```bash
+python -m scripts.bootstrap_python_env
+```
+
+The script creates `.venv` by default, upgrades `pip`, installs
+`python/requirements.txt`, and prints activation instructions for POSIX shells
+and PowerShell. Use `--help` for additional options such as
+`--venv-path <path>` or `--skip-install` when provisioning CI caches.
+
+Manual setup instructions remain below for reference or for contributors who
+prefer to manage the environment directly:
 
 1. **Create a virtual environment** (Python 3.12+):
 
