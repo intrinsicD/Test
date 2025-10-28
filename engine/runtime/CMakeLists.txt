@@ -2,6 +2,7 @@ set(target_name engine_runtime)
 
 add_library(${target_name}
         src/api.cpp
+        src/config_schema.cpp
         src/diagnostics_bridge.cpp
         src/subsystem_registry.cpp
 )
@@ -24,6 +25,7 @@ target_link_libraries(${target_name}
         engine_platform
         engine_rendering
         engine_scene
+        yaml-cpp::yaml-cpp
 )
 
 if (TARGET engine_compute_cuda AND ENGINE_ENABLE_COMPUTE_CUDA)

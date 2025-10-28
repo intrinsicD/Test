@@ -299,6 +299,14 @@ predictably. Static analyzers and editors consume the mirrored type stubs in
 so downstream tooling can reason about schema-backed data without importing the
 runtime loader.
 
+Native runtime consumers share the same contract via
+[`engine/runtime/config_schema.hpp`](../../engine/runtime/include/engine/runtime/config_schema.hpp).
+`engine::runtime::config::load_dataset_manifest()` and
+`engine::runtime::config::load_configuration()` parse YAML/JSON manifests with
+`yaml-cpp` and return `RuntimeResult<T>` values so harness integrations surface
+`RuntimeError::configuration_*` codes instead of throwing. The behaviour is
+covered by [`engine/runtime/tests/test_config_schema.cpp`](../../engine/runtime/tests/test_config_schema.cpp).
+
 Cross-referencing is also enforced: runtime configuration and benchmark
 scenarios must reference dataset slugs declared in the manifest, and validators
 raise descriptive errors when a slug is missing or duplicated.

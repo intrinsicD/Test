@@ -14,7 +14,10 @@ namespace engine::runtime
         dependency_invalid_mesh = 1,
         dependency_invalid_binding,
         dependency_invalid_clip,
-        dependency_cycle
+        dependency_cycle,
+        configuration_io_error,
+        configuration_parse_error,
+        configuration_validation_error
     };
 
     [[nodiscard]] constexpr std::string_view to_string(RuntimeError error) noexcept
@@ -29,6 +32,12 @@ namespace engine::runtime
             return "dependency_invalid_clip";
         case RuntimeError::dependency_cycle:
             return "dependency_cycle";
+        case RuntimeError::configuration_io_error:
+            return "configuration_io_error";
+        case RuntimeError::configuration_parse_error:
+            return "configuration_parse_error";
+        case RuntimeError::configuration_validation_error:
+            return "configuration_validation_error";
         }
         return "unknown";
     }
