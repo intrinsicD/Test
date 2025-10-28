@@ -66,6 +66,24 @@ namespace engine::geometry
             return support;
         }
 
+        [[nodiscard]] math::vec3 SupportPoint(const Capsule& capsule, const math::vec3& direction) noexcept
+        {
+            const float dir_len_sq = math::length_squared(direction);
+            if (dir_len_sq <= constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+            {
+                return Center(capsule);
+            }
+
+            const float dir_len = math::utils::sqrt(dir_len_sq);
+            const math::vec3 dir = direction / dir_len;
+
+            const float proj_a = math::dot(capsule.point_a, dir);
+            const float proj_b = math::dot(capsule.point_b, dir);
+            const math::vec3 endpoint = (proj_a > proj_b) ? capsule.point_a : capsule.point_b;
+
+            return endpoint + dir * capsule.radius;
+        }
+
         [[nodiscard]] math::vec3 SupportPoint(const Ellipsoid& ellipsoid,
                                               const EllipsoidSupportInfo& info,
                                               const math::vec3& direction) noexcept
@@ -99,6 +117,14 @@ namespace engine::geometry
                                                              const math::vec3& direction) noexcept
         {
             return SupportPoint(cylinder, direction) - SupportPoint(ellipsoid, info, -direction);
+        }
+
+        [[nodiscard]] math::vec3 SupportMinkowskiDifference(const Capsule& capsule,
+                                                             const Ellipsoid& ellipsoid,
+                                                             const EllipsoidSupportInfo& info,
+                                                             const math::vec3& direction) noexcept
+        {
+            return SupportPoint(capsule, direction) - SupportPoint(ellipsoid, info, -direction);
         }
 
         [[nodiscard]] math::vec3 Perpendicular(const math::vec3& v) noexcept
@@ -323,6 +349,46 @@ namespace engine::geometry
             return false;
         }
 
+        bool GjkIntersects(const Capsule& capsule, const Ellipsoid& ellipsoid) noexcept
+        {
+            const EllipsoidSupportInfo info = MakeSupportInfo(ellipsoid);
+
+            math::vec3 direction = Center(capsule) - ellipsoid.center;
+            if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+            {
+                direction = math::vec3{1.0f, 0.0f, 0.0f};
+            }
+
+            GjkSimplex simplex{};
+            simplex.points[0] = SupportMinkowskiDifference(capsule, ellipsoid, info, direction);
+            simplex.size = 1;
+            direction = -simplex.points[0];
+            if (math::length_squared(direction) <= kGjkDirectionEpsilon)
+            {
+                direction = math::vec3{0.0f, 1.0f, 0.0f};
+            }
+
+            for (int iteration = 0; iteration < kGjkMaxIterations; ++iteration)
+            {
+                const math::vec3 support =
+                    SupportMinkowskiDifference(capsule, ellipsoid, info, direction);
+
+                if (math::dot(support, direction) <= constants::INTERSECTION_EPSILON)
+                {
+                    return false;
+                }
+
+                simplex.points[simplex.size++] = support;
+
+                if (GjkProcessSimplex(simplex, direction))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         bool CylinderEllipsoidFallback(const Cylinder& cylinder, const Ellipsoid& ellipsoid) noexcept
         {
             const Line axis_line{cylinder.center, AxisDirection(cylinder)};
@@ -343,6 +409,43 @@ namespace engine::geometry
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        bool CapsuleEllipsoidFallback(const Capsule& capsule, const Ellipsoid& ellipsoid) noexcept
+        {
+            const math::vec3 axis = capsule.point_b - capsule.point_a;
+            const double radius_sq = static_cast<double>(capsule.radius) * capsule.radius;
+
+            if (math::length_squared(axis) <= constants::INTERSECTION_EPSILON * constants::INTERSECTION_EPSILON)
+            {
+                const Sphere sphere{capsule.point_a, capsule.radius};
+                return Intersects(sphere, ellipsoid);
+            }
+
+            if (SquaredDistance(ellipsoid, capsule.point_a) <= radius_sq) return true;
+            if (SquaredDistance(ellipsoid, capsule.point_b) <= radius_sq) return true;
+
+            constexpr int kSamples = 16;
+            for (int sample = 0; sample <= kSamples; ++sample)
+            {
+                const float t = static_cast<float>(sample) / static_cast<float>(kSamples);
+                const math::vec3 point = capsule.point_a + t * axis;
+                if (SquaredDistance(ellipsoid, point) <= radius_sq)
+                {
+                    return true;
+                }
+            }
+
+            const float ellipsoid_max_radius = math::utils::max(
+                ellipsoid.radii[0],
+                math::utils::max(ellipsoid.radii[1], ellipsoid.radii[2]));
+            const double ellipsoid_radius_sq = static_cast<double>(ellipsoid_max_radius) * ellipsoid_max_radius;
+            if (SquaredDistance(capsule, ellipsoid.center) <= ellipsoid_radius_sq)
+            {
+                return true;
             }
 
             return false;
@@ -1157,6 +1260,16 @@ namespace engine::geometry
         return min_distance_sq <= expanded_radius * expanded_radius;
     }
 
+    bool Intersects(const Capsule& capsule, const Ellipsoid& ellipsoid) noexcept
+    {
+        if (GjkIntersects(capsule, ellipsoid))
+        {
+            return true;
+        }
+
+        return CapsuleEllipsoidFallback(capsule, ellipsoid);
+    }
+
     bool Intersects(const Capsule& capsule, const Line& line, Result* result) noexcept
     {
         std::array<float, 6> hits{};
@@ -1642,6 +1755,11 @@ namespace engine::geometry
     bool Intersects(const Ellipsoid& a, const Cylinder& b) noexcept
     {
         return Intersects(b, a);
+    }
+
+    bool Intersects(const Ellipsoid& ellipsoid, const Capsule& capsule) noexcept
+    {
+        return Intersects(capsule, ellipsoid);
     }
 
     bool Intersects(const Ellipsoid& ellipsoid, const Ellipsoid& other) noexcept
