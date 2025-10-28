@@ -89,10 +89,10 @@ Curate a set of permissively licensed datasets covering canonical research cases
 ### Non-Functional Requirements
 - [ ] Download/install script completes within 10 minutes on 1 Gbps connection.
 - [ ] Storage footprint ≤ 15 GB per dataset bundle.
-- [ ] Integrity checks (hash verification) required before ingest completes.
+- [x] Integrity checks (hash verification) required before ingest completes.
 
 ### Testing Requirements
-- [ ] Unit tests for manifest parsing and validation.
+- [x] Unit tests for manifest parsing and validation.
 - [ ] Integration tests cover ingestion workflow and runtime consumption.
 - [ ] Smoke test ensures dataset selection works in sandbox UI.
 - [ ] Coverage ≥ 85% on new asset ingestion code.
@@ -154,14 +154,14 @@ TEST(DatasetManifest, ParsesMetadata) {
 - [x] Dataset manifests + ingestion scripts
 - [ ] Asset registry extensions + tests
 - [ ] Documentation + licensing notes
-- [ ] CI validation for manifests
+- [x] CI validation for manifests
 - [ ] Linked PRs referencing `AS-330`
 
 ---
 
 ## Definition of Done
 
-- [ ] Ingestion scripts validated in CI
+- [x] Ingestion scripts validated in CI
 - [ ] Runtime harness lists datasets successfully
 - [ ] Documentation reviewed by assets + research leads
 - [ ] Licensing/provenance sign-off recorded
@@ -188,5 +188,8 @@ TEST(DatasetManifest, ParsesMetadata) {
 - 2025-12-04: Licensing packet (assets + legal) submitted for primary geometry datasets; awaiting legal approval by 2025-12-08 to unblock harness manifests.
 - 2025-12-16: `geometry_remesh` adds `--manifest-output` to write AI-004 dataset manifest YAML directly, reducing manual steps for dataset ingestion scripts.
 - 2025-12-19: Added `assets/datasets/remesh_sample` seed manifest and `scripts/datasets/ingest_dataset.py`
-  with regression coverage so packaging workflows emit reproducible cache metadata and validated
-  file inventories for AI-004 harness integration.
+    harness smoke test covering schema headers with regression coverage so packaging workflows emit
+    reproducible cache metadata and validated file inventories for AI-004 harness integration.
+- 2025-12-20: Elevated dataset schema to version 2 with recorded SHA-256 digests and file sizes; ingestion
+  CLI now verifies metadata before caching assets and pytest coverage exercises success and failure
+  paths for manifest integrity.

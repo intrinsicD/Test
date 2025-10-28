@@ -73,7 +73,11 @@ class DatasetSummary:
     kind: str
     tags: Tuple[str, ...]
     source_mesh: str
+    source_mesh_sha256: Optional[str]
+    source_mesh_size_bytes: Optional[int]
     output_mesh: str
+    output_mesh_sha256: Optional[str]
+    output_mesh_size_bytes: Optional[int]
     remeshing_mode: str
     remeshing_targets: Optional[Dict[str, float]]
     parameterization: Optional[Dict[str, float]]
@@ -92,6 +96,14 @@ class DatasetSummary:
             "statistics": dict(self.statistics),
             "metrics": {key: dict(value) for key, value in self.metrics.items()},
         }
+        if self.source_mesh_sha256 is not None:
+            payload["source_mesh_sha256"] = self.source_mesh_sha256
+        if self.source_mesh_size_bytes is not None:
+            payload["source_mesh_size_bytes"] = self.source_mesh_size_bytes
+        if self.output_mesh_sha256 is not None:
+            payload["output_mesh_sha256"] = self.output_mesh_sha256
+        if self.output_mesh_size_bytes is not None:
+            payload["output_mesh_size_bytes"] = self.output_mesh_size_bytes
         if self.remeshing_targets:
             payload["remeshing_targets"] = dict(self.remeshing_targets)
         if self.parameterization:
@@ -306,7 +318,11 @@ class PrototypeHarness:
             kind=entry.kind,
             tags=entry.tags,
             source_mesh=entry.source_mesh,
+            source_mesh_sha256=entry.source_mesh_sha256,
+            source_mesh_size_bytes=entry.source_mesh_size_bytes,
             output_mesh=entry.output_mesh,
+            output_mesh_sha256=entry.output_mesh_sha256,
+            output_mesh_size_bytes=entry.output_mesh_size_bytes,
             remeshing_mode=entry.remeshing_mode,
             remeshing_targets=remeshing_targets,
             parameterization=parameterization,

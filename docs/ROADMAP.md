@@ -96,6 +96,9 @@ roadmap.
 - **Priority P0:** Introduced `scripts/datasets/ingest_dataset.py` with regression coverage and a
   sample manifest under `assets/datasets/remesh_sample` so AS-330 dataset packages produce
   reproducible cache metadata for the prototyping harness.
+- **Priority P0:** Dataset schema version 2 records SHA-256 digests and file sizes for source/output
+  meshes, and the ingestion tooling now verifies those values before caching assets, delivering the
+  AS-330 integrity checks required for AI-004 reproducibility.
 - **Priority P0:** Added AI-004 harness CLI integration smoke test (`python/tests/test_prototype_harness.py::test_cli_integration_with_sample_assets`)
   executing against repository sample manifests to protect schema alignment during CI runs.
 - **Priority P1:** Remeshing statistics and telemetry now report triangle counts plus normalised

@@ -46,7 +46,11 @@ Capture the shared configuration contract required by `AI-004` deliverables so r
 | `job_label` | `string` | ❌ | Optional human-readable label surfaced in telemetry dashboards. |
 | `source.generator` | `string` | ✅ | Tool or pipeline that produced the dataset entry (for example `geometry_remesh`). |
 | `source.mesh` | `string` | ✅ | Path or URI to the source asset consumed by the generator. |
+| `source.mesh_sha256` | `string` | ✅ *(v2+)* | 64-character hexadecimal SHA-256 digest of the source mesh. Required starting with schema version 2. |
+| `source.mesh_size_bytes` | `integer` | ✅ *(v2+)* | Non-negative file size recorded during packaging. Required starting with schema version 2. |
 | `outputs.mesh` | `string` | ✅ | Produced mesh asset registered with runtime/rendering harnesses. |
+| `outputs.mesh_sha256` | `string` | ✅ *(v2+)* | SHA-256 digest of the remeshed output (schema version ≥2). |
+| `outputs.mesh_size_bytes` | `integer` | ✅ *(v2+)* | File size of the remeshed output (schema version ≥2). |
 | `remeshing.mode` | `string` | ✅ | Remeshing policy: `uniform`, `feature_preserving`, or `adaptive`. |
 | `remeshing.targets.*` | numeric | ❌ | Optional edge/error targets; fields omitted when unset. |
 | `feature_preservation.*` | boolean/float | ✅ | Flags controlling boundary/feature locking and threshold angles. |
@@ -66,14 +70,18 @@ datasets:
   - id: remesh-sample
     schema:
       id: ai-004.dataset
-      version: 1
+      version: 2
     kind: geometry.remesh
     tags: [geometry, remesh]
     source:
       generator: geometry_remesh
       mesh: assets/bunny.obj
+      mesh_sha256: 0f6d4e8ab153c90db2e33c2a7b1b8d51b26cc5fb33bb1b7c92b7323ce6c9a4a9
+      mesh_size_bytes: 348160
     outputs:
       mesh: assets/bunny_remeshed.obj
+      mesh_sha256: 12f4d6c97d6a87c4d83219c3ce62837c0f4b0c5fb8b51e0a2d53b6a9d7205c46
+      mesh_size_bytes: 198752
     remeshing:
       mode: uniform
       targets:
@@ -106,6 +114,12 @@ Packaging workflows should consume these manifests via
 `python -m scripts.datasets.ingest_dataset` so dataset caches include
 checksummed file metadata and reproducible directory layouts before the runtime
 harness (`RT-320`) stages assets.
+
+> **Schema Evolution:** Dataset schema version 2 introduces explicit
+> `mesh_sha256` and `mesh_size_bytes` entries for both the source input and
+> remeshed outputs. The ingestion tooling rejects manifests whose recorded
+> values do not match on-disk assets, guaranteeing reproducible packaging and
+> protecting AI-004 benchmark baselines from silent corruption.
 
 Downstream consumers (runtime harness, sandbox UI, benchmark orchestrator) must
 reject entries whose `schema.id`/`schema.version` do not match the supported

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import string
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
@@ -168,6 +169,13 @@ def _require_positive_int(value: object, context: str) -> int:
     return integer
 
 
+def _require_non_negative_int(value: object, context: str) -> int:
+    integer = _require_int(value, context)
+    if integer < 0:
+        raise ConfigurationSchemaError(f"{context} must be non-negative")
+    return integer
+
+
 def _require_float(value: object, context: str) -> float:
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         result = float(value)
@@ -209,6 +217,15 @@ def _require_vec3(value: object, context: str) -> Tuple[float, float, float]:
         _require_float(sequence[1], _child(context, 1)),
         _require_float(sequence[2], _child(context, 2)),
     )
+
+
+def _require_sha256(value: object, context: str) -> str:
+    digest = _require_string(value, context).lower()
+    if len(digest) != 64:
+        raise ConfigurationSchemaError(f"{context} must contain a 64-character SHA-256 digest")
+    if any(character not in string.hexdigits for character in digest):
+        raise ConfigurationSchemaError(f"{context} must contain only hexadecimal characters")
+    return digest
 
 
 @dataclass(frozen=True)
@@ -410,7 +427,11 @@ class DatasetEntry:
     tags: Tuple[str, ...]
     source_generator: str
     source_mesh: str
+    source_mesh_sha256: Optional[str]
+    source_mesh_size_bytes: Optional[int]
     output_mesh: str
+    output_mesh_sha256: Optional[str]
+    output_mesh_size_bytes: Optional[int]
     remeshing_mode: str
     remeshing_targets: Optional[RemeshingTargets]
     feature_preservation: FeaturePreservation
@@ -483,6 +504,34 @@ class DatasetEntry:
         source = _require_mapping(data.get("source"), _child(context, "source"))
         outputs = _require_mapping(data.get("outputs"), _child(context, "outputs"))
 
+        source_mesh_sha256 = None
+        if "mesh_sha256" in source:
+            source_mesh_sha256 = _require_sha256(source.get("mesh_sha256"), _child(context, "source.mesh_sha256"))
+        source_mesh_size_bytes = None
+        if "mesh_size_bytes" in source:
+            source_mesh_size_bytes = _require_non_negative_int(
+                source.get("mesh_size_bytes"), _child(context, "source.mesh_size_bytes")
+            )
+
+        output_mesh_sha256 = None
+        if "mesh_sha256" in outputs:
+            output_mesh_sha256 = _require_sha256(outputs.get("mesh_sha256"), _child(context, "outputs.mesh_sha256"))
+        output_mesh_size_bytes = None
+        if "mesh_size_bytes" in outputs:
+            output_mesh_size_bytes = _require_non_negative_int(
+                outputs.get("mesh_size_bytes"), _child(context, "outputs.mesh_size_bytes")
+            )
+
+        if schema_version >= 2:
+            if source_mesh_sha256 is None or source_mesh_size_bytes is None:
+                raise ConfigurationSchemaError(
+                    f"{_child(context, 'source')} must include mesh_sha256 and mesh_size_bytes when schema.version >= 2"
+                )
+            if output_mesh_sha256 is None or output_mesh_size_bytes is None:
+                raise ConfigurationSchemaError(
+                    f"{_child(context, 'outputs')} must include mesh_sha256 and mesh_size_bytes when schema.version >= 2"
+                )
+
         return cls(
             identifier=identifier,
             schema_id=schema_id,
@@ -491,7 +540,11 @@ class DatasetEntry:
             tags=tuple(tags),
             source_generator=_require_string(source.get("generator"), _child(context, "source.generator")),
             source_mesh=_require_string(source.get("mesh"), _child(context, "source.mesh")),
+            source_mesh_sha256=source_mesh_sha256,
+            source_mesh_size_bytes=source_mesh_size_bytes,
             output_mesh=_require_string(outputs.get("mesh"), _child(context, "outputs.mesh")),
+            output_mesh_sha256=output_mesh_sha256,
+            output_mesh_size_bytes=output_mesh_size_bytes,
             remeshing_mode=remeshing_mode,
             remeshing_targets=targets,
             feature_preservation=feature_preservation,
