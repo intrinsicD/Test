@@ -1,6 +1,6 @@
 # AI-004 Configuration Schema Specification (Draft)
 
-**Status**: In review – dataset, rendering, runtime, benchmark, and telemetry sections captured via shared validator
+**Status**: ✅ Active – dataset, rendering, runtime, benchmark, and telemetry sections captured via shared validator and mirrored type hints
 
 **Related Tasks**: `AI-004`, `DC-040`, `RE-610`, `RT-320`, `TL-210`, `AS-330`, `CC-310`
 
@@ -290,7 +290,10 @@ semantics, and telemetry output declarations. Parsed manifests materialise as
 dataclasses for downstream tooling. Regression tests under
 `python/tests/test_config_schema.py` exercise dataset-only manifests alongside
 full multi-section configurations to guarantee optional sections behave
-predictably.
+predictably. Static analyzers and editors consume the mirrored type stubs in
+[`python/engine3g/config_schema.pyi`](../../python/engine3g/config_schema.pyi)
+so downstream tooling can reason about schema-backed data without importing the
+runtime loader.
 
 `python -m scripts.prototyping.run_prototype_harness --require-schema` toggles
 strict enforcement for individual runs while the `ENGINE_AI004_SCHEMA_V1`
@@ -304,4 +307,4 @@ workflows.
 
 ---
 
-_This draft exists to unblock coordination and will be fleshed out as part of `DC-040`._
+_This record remains the coordination hub for `DC-040`; extend it alongside future schema revisions and module sign-off notes._
