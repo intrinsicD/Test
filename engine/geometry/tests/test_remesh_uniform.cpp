@@ -84,6 +84,36 @@ namespace engine::geometry
     }
 
 
+    TEST(RemeshUniform, ReportsTriangleQualityMetrics)
+    {
+        SurfaceMesh mesh = make_unit_square_mesh();
+
+        RemeshRequest request{};
+        request.input_mesh = &mesh;
+        request.mode = RemeshingMode::kUniform;
+        request.targets.target_edge_length = 0.35F;
+        request.max_iterations = 4U;
+        request.relaxation_factor = 0.5F;
+        request.tangential_smoothing_weight = 0.5F;
+
+        const RemeshResult<RemeshOutput> result = Remesh(request);
+        ASSERT_TRUE(result.has_value());
+
+        const RemeshOutput& output = result.value();
+        ASSERT_EQ(output.statistics.triangle_count, output.mesh.indices.size() / 3U);
+        EXPECT_GT(output.statistics.triangle_count, 0U);
+        EXPECT_GE(output.statistics.min_triangle_quality, 0.0F);
+        EXPECT_LE(output.statistics.max_triangle_quality, 1.0F);
+        EXPECT_LE(output.statistics.min_triangle_quality, output.statistics.max_triangle_quality);
+        EXPECT_GE(output.statistics.mean_triangle_quality, 0.0F);
+        EXPECT_LE(output.statistics.mean_triangle_quality, 1.0F);
+        EXPECT_GE(output.statistics.mean_triangle_quality,
+                  output.statistics.min_triangle_quality - 1e-4F);
+        EXPECT_LE(output.statistics.mean_triangle_quality,
+                  output.statistics.max_triangle_quality + 1e-4F);
+    }
+
+
     TEST(RemeshUniform, RestPositionsMatchPositionsAfterRemesh)
     {
         SurfaceMesh mesh = make_unit_square_mesh();

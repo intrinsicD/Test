@@ -97,6 +97,36 @@ namespace engine::geometry
             return 0.5F * std::fabs(ab_x * ac_y - ab_y * ac_x);
         }
 
+        [[nodiscard]] float triangle_quality(const math::vec3& a,
+                                             const math::vec3& b,
+                                             const math::vec3& c) noexcept
+        {
+            const math::vec3 ab = b - a;
+            const math::vec3 bc = c - b;
+            const math::vec3 ac = c - a;
+            const math::vec3 ca = a - c;
+
+            const float ab_sq = math::length_squared(ab);
+            const float bc_sq = math::length_squared(bc);
+            const float ca_sq = math::length_squared(ca);
+
+            const float perimeter_sq_sum = ab_sq + bc_sq + ca_sq;
+            if (perimeter_sq_sum <= kEpsilon)
+            {
+                return 0.0F;
+            }
+
+            const float area = 0.5F * math::length(math::cross(ab, ac));
+            if (area <= kEpsilon)
+            {
+                return 0.0F;
+            }
+
+            constexpr float kQualityScale = 4.0F * std::sqrt(3.0F);
+            const float quality = (kQualityScale * area) / perimeter_sq_sum;
+            return std::clamp(quality, 0.0F, 1.0F);
+        }
+
         [[nodiscard]] std::unordered_set<std::uint64_t> build_protected_edge_set(
             const SurfaceTopologySummary& summary,
             const RemeshRequest& request)
@@ -2755,6 +2785,64 @@ namespace engine::geometry
         }
 
         std::uint64_t surface_deviation_sample_count = 0U;
+
+        const std::size_t triangle_count = output.mesh.indices.size() / 3U;
+        output.statistics.triangle_count = static_cast<std::uint64_t>(triangle_count);
+        if (triangle_count > 0U)
+        {
+            float min_quality = std::numeric_limits<float>::infinity();
+            float max_quality = 0.0F;
+            double total_quality = 0.0;
+            std::size_t valid_triangles = 0U;
+
+            for (std::size_t triangle = 0; triangle < triangle_count; ++triangle)
+            {
+                const std::size_t base = triangle * 3U;
+                const std::uint32_t i0 = output.mesh.indices[base];
+                const std::uint32_t i1 = output.mesh.indices[base + 1U];
+                const std::uint32_t i2 = output.mesh.indices[base + 2U];
+
+                if (i0 >= output.mesh.positions.size() ||
+                    i1 >= output.mesh.positions.size() ||
+                    i2 >= output.mesh.positions.size())
+                {
+                    continue;
+                }
+
+                const math::vec3& p0 = output.mesh.positions[i0];
+                const math::vec3& p1 = output.mesh.positions[i1];
+                const math::vec3& p2 = output.mesh.positions[i2];
+
+                const float quality = triangle_quality(p0, p1, p2);
+                min_quality = std::min(min_quality, quality);
+                max_quality = std::max(max_quality, quality);
+                total_quality += static_cast<double>(quality);
+                ++valid_triangles;
+            }
+
+            if (valid_triangles == 0U || !std::isfinite(min_quality))
+            {
+                min_quality = 0.0F;
+            }
+
+            output.statistics.min_triangle_quality = std::clamp(min_quality, 0.0F, 1.0F);
+            output.statistics.max_triangle_quality = std::clamp(max_quality, 0.0F, 1.0F);
+            if (valid_triangles > 0U)
+            {
+                output.statistics.mean_triangle_quality = static_cast<float>(
+                    std::clamp(total_quality / static_cast<double>(valid_triangles), 0.0, 1.0));
+            }
+            else
+            {
+                output.statistics.mean_triangle_quality = 0.0F;
+            }
+        }
+        else
+        {
+            output.statistics.min_triangle_quality = 0.0F;
+            output.statistics.max_triangle_quality = 0.0F;
+            output.statistics.mean_triangle_quality = 0.0F;
+        }
 
         if (request.input_mesh != nullptr)
         {

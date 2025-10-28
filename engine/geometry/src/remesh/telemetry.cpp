@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace engine::geometry
 {
@@ -20,7 +21,26 @@ namespace engine::geometry
             {
             }
         }
+
+        template <typename T>
+        void update_min(std::atomic<T>& target, T value) noexcept
+        {
+            T observed = target.load(std::memory_order_relaxed);
+            while (observed > value &&
+                !target.compare_exchange_weak(
+                    observed,
+                    value,
+                    std::memory_order_relaxed,
+                    std::memory_order_relaxed))
+            {
+            }
+        }
     } // namespace
+
+    RemeshTelemetry::RemeshTelemetry()
+    {
+        reset_for_testing();
+    }
 
     RemeshTelemetry& RemeshTelemetry::instance() noexcept
     {
@@ -53,9 +73,50 @@ namespace engine::geometry
         last_vertex_count_[index].store(vertex_count, std::memory_order_relaxed);
         update_max(max_vertex_count_[index], vertex_count);
 
+        const std::uint64_t triangle_count = statistics.triangle_count;
+        last_triangle_count_[index].store(triangle_count, std::memory_order_relaxed);
+
         const double clamped_duration = std::max(duration_ms, 0.0);
         last_duration_ms_[index].store(clamped_duration, std::memory_order_relaxed);
         update_max(max_duration_ms_[index], clamped_duration);
+
+        const auto sanitize_quality = [](float value) -> double
+        {
+            if (!std::isfinite(value))
+            {
+                return 0.0;
+            }
+            return std::clamp(static_cast<double>(value), 0.0, 1.0);
+        };
+
+        if (triangle_count > 0U)
+        {
+            last_min_triangle_quality_[index].store(
+                sanitize_quality(statistics.min_triangle_quality),
+                std::memory_order_relaxed);
+            update_min(min_triangle_quality_[index],
+                       last_min_triangle_quality_[index].load(std::memory_order_relaxed));
+
+            last_max_triangle_quality_[index].store(
+                sanitize_quality(statistics.max_triangle_quality),
+                std::memory_order_relaxed);
+            update_max(max_triangle_quality_[index],
+                       last_max_triangle_quality_[index].load(std::memory_order_relaxed));
+
+            const double mean_quality = sanitize_quality(statistics.mean_triangle_quality);
+            last_mean_triangle_quality_[index].store(mean_quality, std::memory_order_relaxed);
+
+            total_weighted_mean_triangle_quality_[index].fetch_add(
+                mean_quality * static_cast<double>(triangle_count),
+                std::memory_order_relaxed);
+            total_triangle_count_[index].fetch_add(triangle_count, std::memory_order_relaxed);
+        }
+        else
+        {
+            last_min_triangle_quality_[index].store(0.0, std::memory_order_relaxed);
+            last_max_triangle_quality_[index].store(0.0, std::memory_order_relaxed);
+            last_mean_triangle_quality_[index].store(0.0, std::memory_order_relaxed);
+        }
 
         last_surface_deviation_sample_count_[index].store(surface_deviation_sample_count, std::memory_order_relaxed);
         if (surface_deviation_sample_count > 0U)
@@ -128,6 +189,8 @@ namespace engine::geometry
             operation.last_collapses = last_collapses_[i].load(std::memory_order_relaxed);
             operation.last_vertex_count = last_vertex_count_[i].load(std::memory_order_relaxed);
             operation.max_vertex_count = max_vertex_count_[i].load(std::memory_order_relaxed);
+            operation.last_triangle_count = last_triangle_count_[i].load(std::memory_order_relaxed);
+            operation.total_triangle_count = total_triangle_count_[i].load(std::memory_order_relaxed);
             operation.last_duration_ms = last_duration_ms_[i].load(std::memory_order_relaxed);
             operation.max_duration_ms = max_duration_ms_[i].load(std::memory_order_relaxed);
             operation.surface_deviation_invocations =
@@ -155,6 +218,14 @@ namespace engine::geometry
             operation.total_surface_deviation_sample_count =
                 total_surface_deviation_sample_count_[i].load(std::memory_order_relaxed);
 
+            const double last_min_quality = last_min_triangle_quality_[i].load(std::memory_order_relaxed);
+            operation.last_min_triangle_quality = last_min_quality;
+            const double min_quality = min_triangle_quality_[i].load(std::memory_order_relaxed);
+            operation.min_triangle_quality = std::isfinite(min_quality) ? min_quality : 0.0;
+            operation.last_mean_triangle_quality = last_mean_triangle_quality_[i].load(std::memory_order_relaxed);
+            operation.last_max_triangle_quality = last_max_triangle_quality_[i].load(std::memory_order_relaxed);
+            operation.max_triangle_quality = max_triangle_quality_[i].load(std::memory_order_relaxed);
+
             if (operation.total_surface_deviation_sample_count > 0U)
             {
                 const double total_weighted_mean =
@@ -172,6 +243,18 @@ namespace engine::geometry
             {
                 operation.average_mean_surface_deviation = 0.0;
                 operation.average_rms_surface_deviation = 0.0;
+            }
+
+            if (operation.total_triangle_count > 0U)
+            {
+                const double total_weighted_quality =
+                    total_weighted_mean_triangle_quality_[i].load(std::memory_order_relaxed);
+                operation.average_triangle_quality =
+                    total_weighted_quality / static_cast<double>(operation.total_triangle_count);
+            }
+            else
+            {
+                operation.average_triangle_quality = 0.0;
             }
         }
 
@@ -199,6 +282,8 @@ namespace engine::geometry
             last_collapses_[i].store(0U, std::memory_order_relaxed);
             last_vertex_count_[i].store(0U, std::memory_order_relaxed);
             max_vertex_count_[i].store(0U, std::memory_order_relaxed);
+            last_triangle_count_[i].store(0U, std::memory_order_relaxed);
+            total_triangle_count_[i].store(0U, std::memory_order_relaxed);
             last_duration_ms_[i].store(0.0, std::memory_order_relaxed);
             max_duration_ms_[i].store(0.0, std::memory_order_relaxed);
             surface_deviation_invocations_[i].store(0U, std::memory_order_relaxed);
@@ -211,6 +296,12 @@ namespace engine::geometry
             total_weighted_squared_surface_deviation_[i].store(0.0, std::memory_order_relaxed);
             last_surface_deviation_sample_count_[i].store(0U, std::memory_order_relaxed);
             total_surface_deviation_sample_count_[i].store(0U, std::memory_order_relaxed);
+            last_min_triangle_quality_[i].store(0.0, std::memory_order_relaxed);
+            min_triangle_quality_[i].store(std::numeric_limits<double>::infinity(), std::memory_order_relaxed);
+            last_mean_triangle_quality_[i].store(0.0, std::memory_order_relaxed);
+            total_weighted_mean_triangle_quality_[i].store(0.0, std::memory_order_relaxed);
+            last_max_triangle_quality_[i].store(0.0, std::memory_order_relaxed);
+            max_triangle_quality_[i].store(0.0, std::memory_order_relaxed);
         }
 
         std::scoped_lock lock(job_label_mutex_);

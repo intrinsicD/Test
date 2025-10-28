@@ -5,6 +5,7 @@
 #include "engine/platform/filesystem/filesystem.hpp"
 
 #include <array>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <span>
@@ -214,6 +215,11 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     result.output.statistics.split_count = 12U;
     result.output.statistics.collapse_count = 3U;
     result.output.statistics.duration_ms = 12.5;
+    result.output.statistics.triangle_count = 2U;
+    const float expected_quality = std::sqrt(3.0F) * 0.5F;
+    result.output.statistics.min_triangle_quality = expected_quality;
+    result.output.statistics.max_triangle_quality = expected_quality;
+    result.output.statistics.mean_triangle_quality = expected_quality;
 
     geo::ParameterizationSummary parameterization{};
     parameterization.chart_count = 1U;
@@ -254,4 +260,9 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     EXPECT_NE(manifest.find("max_surface_deviation: 0.0150"), std::string::npos);
     EXPECT_NE(manifest.find("mean_surface_deviation: 0.0100"), std::string::npos);
     EXPECT_NE(manifest.find("rms_surface_deviation: 0.0120"), std::string::npos);
+    EXPECT_NE(manifest.find("triangles: 2"), std::string::npos);
+    EXPECT_NE(manifest.find("triangle_quality:"), std::string::npos);
+    EXPECT_NE(manifest.find("min: 0.8660"), std::string::npos);
+    EXPECT_NE(manifest.find("mean: 0.8660"), std::string::npos);
+    EXPECT_NE(manifest.find("max: 0.8660"), std::string::npos);
 }

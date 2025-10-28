@@ -826,6 +826,11 @@ namespace engine::geometry::tools
         yaml << "      max_surface_deviation: " << safe_value(statistics.max_surface_deviation) << "\n";
         yaml << "      mean_surface_deviation: " << safe_value(statistics.mean_surface_deviation) << "\n";
         yaml << "      rms_surface_deviation: " << safe_value(statistics.rms_surface_deviation) << "\n";
+        yaml << "      triangles: " << result.output.statistics.triangle_count << "\n";
+        yaml << "      triangle_quality:\n";
+        yaml << "        min: " << safe_value(statistics.min_triangle_quality) << "\n";
+        yaml << "        mean: " << safe_value(statistics.mean_triangle_quality) << "\n";
+        yaml << "        max: " << safe_value(statistics.max_triangle_quality) << "\n";
 
         return yaml.str();
     }
@@ -858,6 +863,9 @@ namespace engine::geometry::tools
         stream << "  Metrics: min_edge=" << statistics.min_edge_length
             << " max_edge=" << statistics.max_edge_length
             << " max_error=" << statistics.max_error << "\n";
+        stream << "  Triangle quality: min=" << statistics.min_triangle_quality
+            << " mean=" << statistics.mean_triangle_quality
+            << " max=" << statistics.max_triangle_quality << "\n";
         stream << "  Surface deviation: max=" << statistics.max_surface_deviation
             << " mean=" << statistics.mean_surface_deviation
             << " rms=" << statistics.rms_surface_deviation << "\n";

@@ -258,6 +258,13 @@ retain stable bindings even after topology changes, and downstream tooling can
 continue treating rest positions as a deterministic offset from the runtime
 mesh.
 
+`RemeshStatistics` also reports triangle counts alongside minimum, maximum, and
+mean triangle quality scores normalised to `[0, 1]`. These metrics feed AI-004’s
+dataset validation so visibility/culling pipelines can reject sliver-heavy jobs
+without re-running remeshing. `RemeshTelemetry` aggregates the same values,
+exposing per-mode quality averages and worst-case minima for diagnostics
+dashboards.
+
 `RemeshStatistics::max_error` records the maximum absolute deviation between the
 resolved target edge length (or the derived adaptive baseline when no explicit
 target is provided) and the shortest/longest edges observed in the output mesh,
@@ -398,6 +405,11 @@ datasets:
       max_surface_deviation: 0.0150
       mean_surface_deviation: 0.0100
       rms_surface_deviation: 0.0120
+      triangles: 2
+      triangle_quality:
+        min: 0.8660
+        mean: 0.8660
+        max: 0.8660
 ```
 
 Use the CLI in automation or diagnostics pipelines when a lightweight remeshing

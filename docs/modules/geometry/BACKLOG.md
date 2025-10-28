@@ -82,3 +82,5 @@ roadmap after each milestone.
   collapses, and resynchronises Laplacian relaxation updates so animation bindings retain deterministic offsets after topology
   changes, progressing GE-221+ execution.
   parameterisation, printing telemetry-aligned summaries for `GE-221+` runs.
+- 2025-12-17 — Remesh statistics/telemetry now capture triangle counts and normalised quality scores, feeding AI-004 dataset
+  validation and extending `GE-221+` observability.
