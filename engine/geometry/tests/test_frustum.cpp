@@ -2,6 +2,8 @@
 
 #include "engine/geometry/shapes/frustum.hpp"
 #include "engine/geometry/shapes/aabb.hpp"
+#include "engine/geometry/shapes/cylinder.hpp"
+#include "engine/geometry/shapes/ellipsoid.hpp"
 #include "engine/geometry/shapes/obb.hpp"
 #include "engine/geometry/shapes/plane.hpp"
 #include "engine/geometry/shapes/sphere.hpp"
@@ -287,6 +289,64 @@ TEST(FrustumTest, SphereTouchingFrustumPlane)
     EXPECT_TRUE(Intersects(frustum, large_sphere)) << "Large sphere should intersect frustum";
 }
 
+TEST(FrustumTest, CylinderFullyInsideFrustum)
+{
+    const mat4 identity{};
+    const Frustum frustum = ExtractFrustum(identity);
+
+    const Cylinder inside{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, 0.25f, 0.5f};
+    EXPECT_TRUE(Intersects(frustum, inside)) << "Cylinder centered at origin should intersect frustum";
+}
+
+TEST(FrustumTest, CylinderFullyOutsideFrustum)
+{
+    const float fov = utils::radians(45.0f);
+    const float aspect = 1.0f;
+    const float near = 1.0f;
+    const float far = 10.0f;
+
+    mat4 proj{};
+    proj[0][0] = 1.0f / (aspect * std::tan(fov / 2.0f));
+    proj[1][1] = 1.0f / std::tan(fov / 2.0f);
+    proj[2][2] = -(far + near) / (far - near);
+    proj[2][3] = -1.0f;
+    proj[3][2] = -(2.0f * far * near) / (far - near);
+
+    const Frustum frustum = ExtractFrustum(proj);
+
+    const Cylinder outside{{50.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, 0.25f, 0.5f};
+    EXPECT_FALSE(Intersects(frustum, outside)) << "Distant cylinder should not intersect frustum";
+}
+
+TEST(FrustumTest, EllipsoidFullyInsideFrustum)
+{
+    const mat4 identity{};
+    const Frustum frustum = ExtractFrustum(identity);
+
+    const Ellipsoid inside{{0.0f, 0.0f, 0.0f}, {0.3f, 0.4f, 0.5f}, angle_axis(utils::radians(25.0f), vec3{0.0f, 1.0f, 0.0f})};
+    EXPECT_TRUE(Intersects(frustum, inside)) << "Ellipsoid at origin should intersect frustum";
+}
+
+TEST(FrustumTest, EllipsoidFullyOutsideFrustum)
+{
+    const float fov = utils::radians(45.0f);
+    const float aspect = 1.0f;
+    const float near = 0.5f;
+    const float far = 20.0f;
+
+    mat4 proj{};
+    proj[0][0] = 1.0f / (aspect * std::tan(fov / 2.0f));
+    proj[1][1] = 1.0f / std::tan(fov / 2.0f);
+    proj[2][2] = -(far + near) / (far - near);
+    proj[2][3] = -1.0f;
+    proj[3][2] = -(2.0f * far * near) / (far - near);
+
+    const Frustum frustum = ExtractFrustum(proj);
+
+    const Ellipsoid outside{{-60.0f, 0.0f, 0.0f}, {0.5f, 0.75f, 0.9f}, angle_axis(utils::radians(40.0f), vec3{1.0f, 0.0f, 0.0f})};
+    EXPECT_FALSE(Intersects(frustum, outside)) << "Ellipsoid translated far outside should not intersect";
+}
+
 TEST(FrustumTest, ObbFullyInsideFrustum)
 {
     mat4 ortho{};
@@ -365,6 +425,26 @@ TEST(FrustumTest, SymmetricIntersectionObb)
 
     EXPECT_EQ(Intersects(frustum, obb), Intersects(obb, frustum))
         << "Symmetric OBB-Frustum intersection should match";
+}
+
+TEST(FrustumTest, SymmetricIntersectionCylinder)
+{
+    const mat4 identity{};
+    const Frustum frustum = ExtractFrustum(identity);
+
+    const Cylinder cylinder{{0.25f, 0.0f, 0.0f}, {0.0f, 1.0f, 1.0f}, 0.35f, 0.6f};
+    EXPECT_EQ(Intersects(frustum, cylinder), Intersects(cylinder, frustum))
+        << "Symmetric Cylinder-Frustum intersection should match";
+}
+
+TEST(FrustumTest, SymmetricIntersectionEllipsoid)
+{
+    const mat4 identity{};
+    const Frustum frustum = ExtractFrustum(identity);
+
+    const Ellipsoid ellipsoid{{0.0f, 0.2f, 0.0f}, {0.6f, 0.4f, 0.5f}, angle_axis(utils::radians(35.0f), vec3{0.0f, 0.0f, 1.0f})};
+    EXPECT_EQ(Intersects(frustum, ellipsoid), Intersects(ellipsoid, frustum))
+        << "Symmetric Ellipsoid-Frustum intersection should match";
 }
 
 TEST(FrustumTest, GetCornersReturnsEightPoints)

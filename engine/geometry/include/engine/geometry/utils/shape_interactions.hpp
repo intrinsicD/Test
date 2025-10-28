@@ -295,12 +295,16 @@ namespace engine::geometry
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Aabb& aabb) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Sphere& sphere) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Obb& obb) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Cylinder& cylinder) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const Ellipsoid& ellipsoid) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Frustum& frustum, const math::vec3& point) noexcept;
 
     // Symmetric overloads
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Aabb& aabb, const Frustum& frustum) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Sphere& sphere, const Frustum& frustum) noexcept;
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb& obb, const Frustum& frustum) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& cylinder, const Frustum& frustum) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Ellipsoid& ellipsoid, const Frustum& frustum) noexcept;
 
     //------------------------------------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
