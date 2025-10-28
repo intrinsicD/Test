@@ -152,6 +152,21 @@ def test_load_harness_requires_runtime_section(tmp_path: Path) -> None:
         load_harness(config_path)
 
 
+def test_load_harness_respects_require_schema(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    del payload["datasets"][0]["schema"]
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    # Legacy manifests still load when the flag is disabled.
+    harness = load_harness(config_path)
+    assert harness.selected_dataset is not None
+
+    # Enforcing schema headers should now fail.
+    with pytest.raises(PrototypeHarnessError):
+        load_harness(config_path, require_schema=True)
+
+
 def test_summarize_formats_output() -> None:
     summary = HarnessRunSummary(
         dataset_id="remesh-sample",
@@ -169,16 +184,38 @@ def test_summarize_formats_output() -> None:
 def test_cli_dry_run(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     config_path = _write_configuration(tmp_path)
 
-    def _load(path: str, *, runtime_factory: Callable[[], object] | None = None) -> PrototypeHarness:
-        configuration = load_configuration(path)
+    def _load(
+        path: str,
+        *,
+        runtime_factory: Callable[[], object] | None = None,
+        require_schema: bool | None = None,
+    ) -> PrototypeHarness:
+        configuration = load_configuration(path, require_schema=require_schema)
         return PrototypeHarness(configuration, runtime_factory=lambda: _MockRuntime(ticks=[]))
 
-    monkeypatch.setattr("engine3g.prototype_harness.load_harness", _load)
-
     from scripts.prototyping import run_prototype_harness
+
+    monkeypatch.setattr("scripts.prototyping.run_prototype_harness.load_harness", _load)
 
     exit_code = run_prototype_harness.main(["--config", str(config_path), "--dry-run"])
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "Dry run summary" in captured.out
+
+
+def test_cli_require_schema_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    config_path = _write_configuration(tmp_path)
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    del payload["datasets"][0]["schema"]
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        ["--config", str(config_path), "--dry-run", "--require-schema"]
+    )
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "schema" in captured.err
+    assert captured.out == ""
 

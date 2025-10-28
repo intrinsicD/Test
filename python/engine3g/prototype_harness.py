@@ -143,13 +143,14 @@ def load_harness(
     path: str,
     *,
     runtime_factory: RuntimeFactory | None = None,
+    require_schema: bool | None = None,
 ) -> PrototypeHarness:
     """Load an AI-004 configuration from *path* and construct a harness."""
 
     from .config_schema import load_configuration  # Local import to avoid cycle during module init
 
     try:
-        configuration = load_configuration(path)
+        configuration = load_configuration(path, require_schema=require_schema)
     except ConfigurationSchemaError as error:
         raise PrototypeHarnessError(str(error)) from error
     if configuration.runtime is None:

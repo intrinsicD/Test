@@ -184,3 +184,5 @@ TEST(RuntimePrototypeHarness, AppliesConfigurationOverrides) {
 - Provide containerised environment for benchmark reproducibility.
 - 2025-12-11: Added Python-based prototype harness scaffold (`python/engine3g/prototype_harness.py`) and CLI entry point
   (`python -m scripts.prototyping.run_prototype_harness`) to validate AI-004 configurations and execute headless tick loops.
+- 2025-12-14: Harness CLI now supports `--require-schema`, delegating to the shared loader so CI and local smoke tests can
+  enforce `ai-004.*` headers without relying solely on the environment flag.

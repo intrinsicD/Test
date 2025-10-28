@@ -89,7 +89,7 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 
 ### Functional Requirements
 - [ ] Coordinated roadmap published with milestones for `RE-610`, `RT-320`, `TL-210`, `AS-330`, `CC-310`.
-- [ ] Shared configuration schema defined and reviewed by rendering/runtime/tools leads.
+- [x] Shared configuration schema defined and reviewed by rendering/runtime/tools leads.
 - [ ] Roadmap risk register lists owners and due dates for kickoff blockers.
 - [ ] Prototype workflow validated on two research case studies (e.g., geometry processing algorithm and rendering technique).
 - [ ] Benchmark automation produces side-by-side telemetry and plots for engine vs. reference implementations.
@@ -107,7 +107,7 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 
 ### Documentation Requirements
 - [ ] `docs/ROADMAP.md` updated with initiative timeline and task mapping.
-- [ ] Module READMEs reflect new workflows and entry points.
+- [x] Module READMEs reflect new workflows and entry points.
 - [ ] Prototyping playbook added under `docs/design/` with screenshots and scripts.
 - [ ] Benchmark quickstart guide published alongside dataset instructions.
 
@@ -193,3 +193,7 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
 - Schedule bi-weekly demos to maintain cross-module alignment.
 - Leverage telemetry viewer CLI for quick benchmark visualisation until UI work lands.
 - Capture learnings in retrospective to seed future research partnerships.
+- Harness CLI now exposes `--require-schema` to enforce configuration headers
+  per run while `ENGINE_AI004_SCHEMA_V1` remains opt-in during the migration
+  period. Module READMEs document the migration steps for runtime, rendering,
+  tools, and assets.

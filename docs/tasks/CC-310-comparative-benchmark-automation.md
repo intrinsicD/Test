@@ -130,6 +130,10 @@ def test_threshold_regression_detection():
 - Use YAML/JSON for scenario definitions to align with harness and sandbox.
 - Persist benchmark results with metadata (git commit, hardware, drivers) for reproducibility.
 - Provide plugin interface for metric reducers (e.g., PSNR, RMS error) to support cross-domain research.
+- Validate benchmark manifests with the shared schema tooling; CI jobs should
+  execute `scripts.validate_ai004_config` and optionally run the prototyping
+  harness with `--require-schema` before scheduling scenarios to guard against
+  drift once strict validation is mandatory.
 
 ### Risks & Mitigations
 | Risk | Likelihood | Impact | Mitigation |

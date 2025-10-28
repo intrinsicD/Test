@@ -105,6 +105,12 @@ To achieve **actual real-time geometry rendering in a window**, the following ta
    - Hook up command encoder to actual GPU submissions
    - Implement resource barrier transitions
 
+### Schema Alignment
+
+- Continue validating preset manifests with `python -m scripts.validate_ai004_config`
+  and the prototyping harness `--require-schema` flag so rendering-specific
+  overrides remain compliant once strict enforcement becomes the default.
+
 ### Medium Priority
 
 5. **T-0121: Standard Passes Library**
