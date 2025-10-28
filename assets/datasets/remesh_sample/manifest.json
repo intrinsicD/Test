@@ -4,16 +4,20 @@
       "id": "remesh-unit-square",
       "schema": {
         "id": "ai-004.dataset",
-        "version": 1
+        "version": 2
       },
       "kind": "geometry.remesh",
       "tags": ["geometry", "remesh", "sample"],
       "source": {
         "generator": "sample_assets",
-        "mesh": "source_mesh.obj"
+        "mesh": "source_mesh.obj",
+        "mesh_sha256": "cd19dd57831e52bc2e56b40ab7ba0edf8f08723ec145bfb371c596de6a6225d0",
+        "mesh_size_bytes": 196
       },
       "outputs": {
-        "mesh": "output_mesh.obj"
+        "mesh": "output_mesh.obj",
+        "mesh_sha256": "651a849dba9796080df43d1ef1ec7760c7083bcd222f3b3b0996464334c44e65",
+        "mesh_size_bytes": 277
       },
       "remeshing": {
         "mode": "uniform",

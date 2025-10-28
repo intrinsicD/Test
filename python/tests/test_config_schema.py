@@ -32,11 +32,20 @@ except ModuleNotFoundError:  # pragma: no cover
 
 BASE_ENTRY = {
     "id": "remesh-sample",
-    "schema": {"id": "ai-004.dataset", "version": 1},
+    "schema": {"id": "ai-004.dataset", "version": 2},
     "kind": "geometry.remesh",
     "tags": ["geometry", "remesh"],
-    "source": {"generator": "geometry_remesh", "mesh": "input.obj"},
-    "outputs": {"mesh": "output.obj"},
+    "source": {
+        "generator": "geometry_remesh",
+        "mesh": "input.obj",
+        "mesh_sha256": "f" * 64,
+        "mesh_size_bytes": 1024,
+    },
+    "outputs": {
+        "mesh": "output.obj",
+        "mesh_sha256": "0" * 64,
+        "mesh_size_bytes": 2048,
+    },
     "remeshing": {
         "mode": "uniform",
         "targets": {
@@ -98,10 +107,17 @@ BASE_ENTRY = {
     "job_label": "Remesh Sample",
 }
 
+LEGACY_ENTRY = deepcopy(BASE_ENTRY)
+LEGACY_ENTRY["schema"]["version"] = 1
+LEGACY_ENTRY["source"].pop("mesh_sha256")
+LEGACY_ENTRY["source"].pop("mesh_size_bytes")
+LEGACY_ENTRY["outputs"].pop("mesh_sha256")
+LEGACY_ENTRY["outputs"].pop("mesh_size_bytes")
+
 
 @pytest.mark.skipif(yaml is None, reason="PyYAML is required for YAML parsing")
 def test_load_dataset_manifest_from_yaml(tmp_path: Path) -> None:
-    entry = deepcopy(BASE_ENTRY)
+    entry = deepcopy(LEGACY_ENTRY)
     manifest_text = yaml.dump({"datasets": [entry]}, sort_keys=False)  # type: ignore[arg-type]
     path = tmp_path / "manifest.yaml"
     path.write_text(manifest_text, encoding="utf-8")
@@ -111,7 +127,11 @@ def test_load_dataset_manifest_from_yaml(tmp_path: Path) -> None:
     assert len(manifest.datasets) == 1
     dataset = manifest.datasets[0]
     assert dataset.identifier == "remesh-sample"
-    assert dataset.schema_version == 1
+    assert dataset.schema_version == 2
+    assert dataset.source_mesh_sha256 == "f" * 64
+    assert dataset.source_mesh_size_bytes == 1024
+    assert dataset.output_mesh_sha256 == "0" * 64
+    assert dataset.output_mesh_size_bytes == 2048
     assert dataset.parameterization is not None
     assert dataset.parameterization.chart_count == 1
     assert dataset.remeshing_targets is not None
@@ -132,10 +152,12 @@ def test_load_dataset_manifest_from_json_without_parameterization(tmp_path: Path
     assert dataset.parameterization is None
     assert dataset.feature_preservation.lock_feature_edges is True
     assert dataset.output_metrics.edge_length.mean == pytest.approx(0.5)
+    assert dataset.source_mesh_sha256 == "f" * 64
+    assert dataset.output_mesh_size_bytes == 2048
 
 
 def test_dataset_manifest_schema_flag(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    entry = deepcopy(BASE_ENTRY)
+    entry = deepcopy(LEGACY_ENTRY)
     entry.pop("schema")
     path = tmp_path / "legacy_manifest.json"
     path.write_text(json.dumps({"datasets": [entry]}), encoding="utf-8")
@@ -145,6 +167,8 @@ def test_dataset_manifest_schema_flag(monkeypatch: pytest.MonkeyPatch, tmp_path:
     dataset = manifest.datasets[0]
     assert dataset.schema_id == "ai-004.dataset"
     assert dataset.schema_version == 1
+    assert dataset.source_mesh_sha256 is None
+    assert dataset.output_mesh_size_bytes is None
 
     monkeypatch.setenv("ENGINE_AI004_SCHEMA_V1", "1")
     with pytest.raises(ConfigurationSchemaError):
@@ -160,6 +184,28 @@ def test_invalid_dataset_identifier_raises(tmp_path: Path) -> None:
     with pytest.raises(ConfigurationSchemaError) as exc:
         load_dataset_manifest(path)
     assert "datasets[0].id" in str(exc.value)
+
+
+def test_dataset_manifest_version_two_requires_metadata(tmp_path: Path) -> None:
+    entry = deepcopy(BASE_ENTRY)
+    entry["source"].pop("mesh_sha256")
+    path = tmp_path / "missing_hash.json"
+    path.write_text(json.dumps({"datasets": [entry]}), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSchemaError):
+        load_dataset_manifest(path)
+
+
+def test_dataset_manifest_version_one_allows_missing_metadata(tmp_path: Path) -> None:
+    entry = deepcopy(LEGACY_ENTRY)
+    path = tmp_path / "legacy_manifest.json"
+    path.write_text(json.dumps({"datasets": [entry]}), encoding="utf-8")
+
+    manifest = load_dataset_manifest(path)
+    dataset = manifest.datasets[0]
+    assert dataset.schema_version == 1
+    assert dataset.source_mesh_sha256 is None
+    assert dataset.output_mesh_size_bytes is None
 
 
 def test_load_full_configuration(tmp_path: Path) -> None:

@@ -45,6 +45,9 @@ class DatasetFileMetadata:
     size_bytes: int
     sha256: str
     destination_path: Optional[Path]
+    expected_size_bytes: Optional[int]
+    expected_sha256: Optional[str]
+    verified: bool
 
 
 @dataclass(frozen=True)
@@ -162,7 +165,10 @@ def _build_summary(entry: DatasetEntry, files: Iterable[DatasetFileMetadata]) ->
             "source_path": str(metadata.source_path),
             "size_bytes": metadata.size_bytes,
             "sha256": metadata.sha256,
+            "expected_size_bytes": metadata.expected_size_bytes,
+            "expected_sha256": metadata.expected_sha256,
             "copied_to": str(metadata.destination_path) if metadata.destination_path else None,
+            "verified": metadata.verified,
         }
 
     summary: MutableMapping[str, object] = {
@@ -220,9 +226,19 @@ def ingest_manifest(
     for entry in manifest.datasets:
         dataset_dir = destination_root / entry.identifier
         files: list[DatasetFileMetadata] = []
-        for label, relative_path in (
-            ("source", entry.source_mesh),
-            ("output", entry.output_mesh),
+        for label, relative_path, expected_size, expected_sha in (
+            (
+                "source",
+                entry.source_mesh,
+                entry.source_mesh_size_bytes,
+                entry.source_mesh_sha256,
+            ),
+            (
+                "output",
+                entry.output_mesh,
+                entry.output_mesh_size_bytes,
+                entry.output_mesh_sha256,
+            ),
         ):
             file_path = _resolve_file_path(base_dir, relative_path)
             if not file_path.is_file():
@@ -231,6 +247,24 @@ def ingest_manifest(
                 )
             size_bytes = file_path.stat().st_size
             sha256 = _hash_file(file_path)
+            if expected_sha is not None and sha256.lower() != expected_sha:
+                raise DatasetIngestionError(
+                    "dataset '{identifier}' {label} mesh hash mismatch: expected {expected} but computed {actual}".format(
+                        identifier=entry.identifier,
+                        label=label,
+                        expected=expected_sha,
+                        actual=sha256,
+                    )
+                )
+            if expected_size is not None and size_bytes != expected_size:
+                raise DatasetIngestionError(
+                    "dataset '{identifier}' {label} mesh size mismatch: expected {expected} bytes but observed {actual}".format(
+                        identifier=entry.identifier,
+                        label=label,
+                        expected=expected_size,
+                        actual=size_bytes,
+                    )
+                )
             destination_path: Optional[Path] = None
 
             if copy_assets and not dry_run:
@@ -245,6 +279,12 @@ def ingest_manifest(
                     size_bytes=size_bytes,
                     sha256=sha256,
                     destination_path=destination_path,
+                    expected_size_bytes=expected_size,
+                    expected_sha256=expected_sha,
+                    verified=(
+                        (expected_sha is None or sha256.lower() == expected_sha)
+                        and (expected_size is None or size_bytes == expected_size)
+                    ),
                 )
             )
 
@@ -266,9 +306,10 @@ def ingest_manifest(
 def _format_result(result: DatasetIngestionResult) -> str:
     copied = [f.label for f in result.files if f.destination_path]
     copied_summary = ", ".join(copied) if copied else "no files copied"
+    verified = all(file.verified for file in result.files)
     return (
         f"dataset={result.entry.identifier} mode={result.entry.remeshing_mode} "
-        f"files={len(result.files)} copied=[{copied_summary}]"
+        f"files={len(result.files)} copied=[{copied_summary}] verified={'yes' if verified else 'no'}"
     )
 
 

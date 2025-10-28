@@ -81,7 +81,11 @@ class DatasetEntry:
     tags: Tuple[str, ...]
     source_generator: str
     source_mesh: str
+    source_mesh_sha256: Optional[str]
+    source_mesh_size_bytes: Optional[int]
     output_mesh: str
+    output_mesh_sha256: Optional[str]
+    output_mesh_size_bytes: Optional[int]
     remeshing_mode: str
     remeshing_targets: Optional[RemeshingTargets]
     feature_preservation: FeaturePreservation
