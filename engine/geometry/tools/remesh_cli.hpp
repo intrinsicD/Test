@@ -25,6 +25,7 @@ namespace engine::geometry::tools
         bool record_diagnostics{true};
         bool verbose{false};
         std::optional<std::string> job_label{};
+        std::optional<std::filesystem::path> manifest_output_path{};
         bool show_help{false};
     };
 

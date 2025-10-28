@@ -6,7 +6,9 @@
 
 #include <array>
 #include <filesystem>
+#include <fstream>
 #include <span>
+#include <sstream>
 #include <string>
 #include <system_error>
 
@@ -85,6 +87,28 @@ TEST(RemeshCliParsing, ParsesFeatureModeConfiguration)
     EXPECT_EQ(options.parameterization.mode, geo::ParameterizationMode::kGenerateLscm);
 }
 
+TEST(RemeshCliParsing, ParsesManifestOutputPath)
+{
+    const std::array<const char*, 7> argv = {
+        "geometry_remesh",
+        "--input",
+        "mesh.obj",
+        "--manifest-output",
+        "manifest.yaml",
+        "--target-edge-length",
+        "0.25",
+    };
+
+    const auto result = tools::ParseArguments(std::span(argv));
+    ASSERT_TRUE(result.has_value()) << result.error();
+
+    const tools::RemeshCliOptions& options = result.value();
+    ASSERT_TRUE(options.manifest_output_path.has_value());
+    EXPECT_EQ(options.manifest_output_path.value(), std::filesystem::path{"manifest.yaml"});
+    ASSERT_TRUE(options.targets.target_edge_length.has_value());
+    EXPECT_FLOAT_EQ(options.targets.target_edge_length.value(), 0.25F);
+}
+
 TEST(RemeshCliExecution, ProducesRemeshedMesh)
 {
     DirectoryGuard guard{
@@ -115,6 +139,47 @@ TEST(RemeshCliExecution, ProducesRemeshedMesh)
     const geo::SurfaceMesh remeshed = geo::load_surface_mesh(output_path);
     EXPECT_FALSE(remeshed.positions.empty());
     EXPECT_EQ(remeshed.indices.size() % 3U, 0U);
+}
+
+TEST(RemeshCliExecution, WritesDatasetManifest)
+{
+    DirectoryGuard guard{
+        std::filesystem::temp_directory_path() / ("geometry-remesh-cli-" + fs::generate_random_suffix())
+    };
+    std::filesystem::create_directories(guard.path());
+
+    const std::filesystem::path input_path = guard.path() / "input.obj";
+    const std::filesystem::path output_path = guard.path() / "output.obj";
+    const std::filesystem::path manifest_path = guard.path() / "manifest.yaml";
+
+    geo::SurfaceMesh mesh = geo::make_unit_quad();
+    geo::save_surface_mesh(mesh, input_path);
+
+    tools::RemeshCliOptions options{};
+    options.input_path = input_path;
+    options.output_path = output_path;
+    options.mode = geo::RemeshingMode::kUniform;
+    options.targets.relative_edge_scale = 0.75F;
+    options.max_iterations = 6U;
+    options.relaxation_factor = 0.6F;
+    options.tangential_smoothing_weight = 0.0F;
+    options.record_diagnostics = false;
+    options.manifest_output_path = manifest_path;
+
+    const auto execution = tools::ExecuteRemesh(options);
+    ASSERT_TRUE(execution.has_value()) << execution.error();
+
+    ASSERT_TRUE(std::filesystem::exists(output_path));
+    ASSERT_TRUE(std::filesystem::exists(manifest_path));
+
+    std::ifstream stream{manifest_path};
+    ASSERT_TRUE(stream.good());
+    std::stringstream buffer;
+    buffer << stream.rdbuf();
+    const std::string manifest = buffer.str();
+
+    const std::string expected = tools::BuildDatasetManifestEntry(options, execution.value());
+    EXPECT_EQ(manifest, expected);
 }
 
 TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
