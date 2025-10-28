@@ -361,5 +361,25 @@
     "throw std::runtime_error{\"Scene serialization: failed to read entity header\"};": 1,
     "throw std::runtime_error{\"Scene serialization: failed to read scene name\"};": 1,
     "throw std::runtime_error{\"Scene serialization: unknown component type '\" + component_type + \"'\"};": 1
+  },
+  "engine/tools/src/sandbox/configuration_loader.cpp": {
+    "throw std::runtime_error(\"Failed to open configuration summary: \" + path.string());": 1,
+    "throw std::runtime_error(\"Invalid Unicode escape in JSON string\");": 2,
+    "throw std::runtime_error(\"Invalid escape sequence in JSON string\");": 1,
+    "throw std::runtime_error(\"Invalid numeric literal in JSON input\");": 1,
+    "throw std::runtime_error(\"Only ASCII Unicode escapes are supported in JSON string\");": 1,
+    "throw std::runtime_error(\"Unexpected character in JSON input\");": 1,
+    "throw std::runtime_error(\"Unexpected end of JSON input\");": 3,
+    "throw std::runtime_error(\"Unexpected token in JSON input\");": 1,
+    "throw std::runtime_error(\"Unexpected trailing data in JSON input\");": 1,
+    "throw std::runtime_error(\"Unsupported escape sequence in JSON string\");": 1,
+    "throw std::runtime_error(\"Unterminated string literal in JSON input\");": 1,
+    "throw std::runtime_error(\"dataset.statistics must be an object\");": 1,
+    "throw std::runtime_error(\"dataset.tags must be an array\");": 1,
+    "throw std::runtime_error(std::string(context) + \" must be a boolean\");": 1,
+    "throw std::runtime_error(std::string(context) + \" must be a number\");": 1,
+    "throw std::runtime_error(std::string(context) + \" must be a string\");": 1,
+    "throw std::runtime_error(std::string(context) + \" must be an array\");": 1,
+    "throw std::runtime_error(std::string(context) + \" must be an object\");": 1
   }
 }

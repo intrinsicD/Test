@@ -100,6 +100,7 @@ Minimal usage:
 
 ```cpp
 #include "engine/tools/sandbox/experiment_sandbox.hpp"
+#include "engine/tools/sandbox/configuration_loader.hpp"
 
 using namespace engine::tools::sandbox;
 
