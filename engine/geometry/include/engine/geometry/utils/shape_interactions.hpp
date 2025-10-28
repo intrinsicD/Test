@@ -69,6 +69,8 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Capsule& b) noexcept;
 
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Cylinder& b) noexcept;
+
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Capsule& a, const Line& b,
                                                       Result* result = nullptr) noexcept;
 
@@ -89,6 +91,8 @@ namespace engine::geometry
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& a, const Aabb& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& a, const Cylinder& b) noexcept;
+
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& a, const Capsule& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Cylinder& a, const Ellipsoid& b) noexcept;
 
