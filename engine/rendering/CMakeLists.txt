@@ -8,6 +8,7 @@ add_library(${target_name}
         src/backend/opengl/immediate_command_stream.cpp
         src/backend/opengl/resource_provider.cpp
         src/backend/opengl/render_resource_provider.cpp
+        src/backend/opengl/runtime_adapter.cpp
         src/frame_graph.cpp
         src/forward_pipeline.cpp
         src/pipeline/research_baseline_telemetry.cpp

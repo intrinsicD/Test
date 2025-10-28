@@ -249,6 +249,13 @@ for (const auto& barrier : submission.begin_barriers)
   rendering::backend::opengl::OpenGLGpuScheduler scheduler(provider, &stream);
   ```
 
+- For runtime hosts and samples that need a pre-wired submission stack, use
+  `rendering::backend::opengl::OpenGLRuntimeSubmission`. The adapter owns the
+  render resource provider, immediate command stream, GPU resource provider,
+  command encoder provider, and scheduler, exposing a convenience helper for
+  constructing `RuntimeSubmissionContext` instances without threading each
+  dependency manually.
+
 ## Resource Management
 
 ### Texture Resources

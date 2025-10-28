@@ -3,6 +3,7 @@ set(ENGINE_RENDERING_TEST_SOURCES
         test_frame_graph.cpp
         test_forward_pipeline.cpp
         test_opengl_command_encoder.cpp
+        test_opengl_runtime_adapter.cpp
         test_opengl_render_resource_provider.cpp
         test_opengl_resource_provider.cpp
         test_research_baseline.cpp
