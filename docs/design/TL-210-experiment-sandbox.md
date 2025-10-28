@@ -75,6 +75,9 @@ configuration refreshes to prevent user overrides from being lost.
 Benchmark controls gather frame count and timestep parameters. Pressing the
 `Run Benchmark` button invokes the `on_run_benchmark` callback with the current
 `SandboxPreferences`, enabling harness integration to dispatch headless runs.
+The callback now returns a `SandboxBenchmarkResult`, allowing the UI to surface
+success or failure messages inline while preserving the generated summary file
+for later inspection.
 
 ### Telemetry Panel
 

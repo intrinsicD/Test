@@ -89,7 +89,8 @@ Key capabilities:
   toggles that mirror the research baseline options.
 - **Benchmark triggers** – frame-count and timestep inputs with a one-click
   "Run Benchmark" action that surfaces results through the callback
-  interface.
+  interface. The UI records the most recent run outcome and displays the
+  harness summary directly in the panel.
 - **Telemetry panel** – live FPS/CPU/GPU timing counters and plotted series
   aligned with the shared telemetry schema.
 - **Persistence** – user preferences persist via
@@ -131,6 +132,35 @@ sandbox.save_layout(config_dir / "sandbox_layout.ini");
 
 Refer to [`docs/design/TL-210-experiment-sandbox.md`](../../design/TL-210-experiment-sandbox.md)
 for architecture and integration guidance.
+
+### Benchmark Automation
+
+`PrototypeHarnessBenchmarkRunner` provides a ready-to-use integration with the
+headless prototyping harness. Configure it with the command prefix used to
+launch the harness (for example,
+`{"python", "-m", "scripts.prototyping.run_prototype_harness", "--config", ...}`)
+and the directory where summary files should be written. The runner appends the
+frame count, timestep, and `--summary-json` arguments, executes the command, and
+parses the resulting JSON to populate the sandbox callback:
+
+```cpp
+PrototypeHarnessBenchmarkRunner runner({
+    "python", "-m", "scripts.prototyping.run_prototype_harness",
+    "--config", config_path.string(),
+}, summaries_dir);
+
+sandbox.set_callbacks({
+    .on_dataset_selected = update_dataset,
+    .on_rendering_changed = persist_rendering,
+    .on_run_benchmark = [&](const SandboxPreferences& prefs) {
+        return runner.run(prefs);
+    },
+});
+```
+
+The sandbox automatically displays the returned `SandboxBenchmarkResult`,
+highlighting success in green and errors in red, while preserving the summary
+file for audit trails.
 
 ## Runtime Packaging
 
