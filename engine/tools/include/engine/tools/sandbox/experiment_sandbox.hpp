@@ -15,6 +15,13 @@
 
 namespace engine::tools::sandbox
 {
+    struct SandboxBenchmarkResult
+    {
+        bool success{false};
+        std::string headline;
+        std::string details;
+    };
+
     struct DatasetDescriptor
     {
         std::string identifier;
@@ -92,7 +99,7 @@ namespace engine::tools::sandbox
     {
         std::function<void(const std::string& dataset_id)> on_dataset_selected;
         std::function<void(const SandboxPreferences& preferences)> on_rendering_changed;
-        std::function<void(const SandboxPreferences& preferences)> on_run_benchmark;
+        std::function<SandboxBenchmarkResult(const SandboxPreferences& preferences)> on_run_benchmark;
     };
 
     class ENGINE_TOOLS_API ExperimentSandbox
@@ -116,6 +123,9 @@ namespace engine::tools::sandbox
         bool load_layout(const std::filesystem::path& path);
         bool save_layout(const std::filesystem::path& path) const;
 
+        void apply_benchmark_result(SandboxBenchmarkResult result);
+        [[nodiscard]] const std::optional<SandboxBenchmarkResult>& last_benchmark_result() const noexcept;
+
     private:
         void ensure_selection_defaults();
         void render_dataset_panel();
@@ -132,6 +142,7 @@ namespace engine::tools::sandbox
         TelemetrySnapshot telemetry_{};
         SandboxCallbacks callbacks_{};
         SandboxPreferences preferences_{};
+        std::optional<SandboxBenchmarkResult> last_benchmark_result_{};
 
         std::unordered_map<std::string, std::size_t> dataset_lookup_{};
         std::unordered_map<std::string, std::size_t> preset_lookup_{};

@@ -86,7 +86,7 @@ Build an ImGui-powered sandbox application embedded within the prototyping harne
 - [x] Sandbox enumerates datasets, rendering presets, and algorithm variants from configuration manifests.
 - [x] UI provides parameter editing with validation and immediate feedback.
 - [x] Telemetry charts display FPS, GPU time, memory usage, and algorithm-specific metrics.
-- [ ] Benchmark capture button triggers headless run and surfaces success/failure summaries.
+- [x] Benchmark capture button triggers headless run and surfaces success/failure summaries.
 
 ### Non-Functional Requirements
 - [ ] Performance: UI update cost ≤ 1 ms/frame on target hardware.
@@ -196,3 +196,5 @@ TEST(ExperimentSandbox, PersistsLayoutPreferences) {
 - 2025-12-21: Added a JSON configuration loader that ingests harness summaries into `ExperimentSandbox`, flattening metrics and
   runtime descriptors so UI integrations can hydrate datasets, presets, and camera/simulation notes directly from
   `run_prototype_harness.py --describe-json` outputs.
+- 2025-12-24: Introduced `PrototypeHarnessBenchmarkRunner` to execute the harness headlessly from the sandbox, parse the summary,
+  and display success/failure messages inline in the benchmark panel.

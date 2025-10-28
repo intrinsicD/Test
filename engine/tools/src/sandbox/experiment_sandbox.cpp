@@ -66,6 +66,7 @@ namespace engine::tools::sandbox
         summary_ = summary;
         dataset_lookup_.clear();
         preset_lookup_.clear();
+        last_benchmark_result_.reset();
 
         for (std::size_t index = 0; index < summary_.datasets.size(); ++index)
         {
@@ -485,7 +486,21 @@ namespace engine::tools::sandbox
         {
             if (callbacks_.on_run_benchmark)
             {
-                callbacks_.on_run_benchmark(preferences_);
+                apply_benchmark_result(callbacks_.on_run_benchmark(preferences_));
+            }
+        }
+
+        if (last_benchmark_result_)
+        {
+            const auto& result = *last_benchmark_result_;
+            const ImVec4 colour = result.success ? ImVec4(0.2F, 0.8F, 0.2F, 1.0F) : ImVec4(0.9F, 0.2F, 0.2F, 1.0F);
+            ImGui::Spacing();
+            ImGui::TextColored(colour, "%s", result.headline.c_str());
+            if (!result.details.empty())
+            {
+                ImGui::PushTextWrapPos(0.0F);
+                ImGui::TextUnformatted(result.details.c_str());
+                ImGui::PopTextWrapPos();
             }
         }
     }
@@ -639,6 +654,16 @@ namespace engine::tools::sandbox
             synchronised.emplace(overlay.key, enabled);
         }
         preferences_.overlays = std::move(synchronised);
+    }
+
+    void ExperimentSandbox::apply_benchmark_result(SandboxBenchmarkResult result)
+    {
+        last_benchmark_result_ = std::move(result);
+    }
+
+    const std::optional<SandboxBenchmarkResult>& ExperimentSandbox::last_benchmark_result() const noexcept
+    {
+        return last_benchmark_result_;
     }
 } // namespace engine::tools::sandbox
 

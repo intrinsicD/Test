@@ -104,3 +104,19 @@ TEST(ExperimentSandbox, PreferenceRoundTrip)
     std::filesystem::remove(temp_path, ec);
 }
 
+TEST(ExperimentSandbox, RecordsBenchmarkResult)
+{
+    ExperimentSandbox sandbox;
+    SandboxBenchmarkResult result{};
+    result.success = true;
+    result.headline = "Benchmark succeeded";
+    result.details = "frames=600";
+    sandbox.apply_benchmark_result(result);
+
+    const auto& stored = sandbox.last_benchmark_result();
+    ASSERT_TRUE(stored.has_value());
+    EXPECT_TRUE(stored->success);
+    EXPECT_EQ(stored->headline, result.headline);
+    EXPECT_EQ(stored->details, result.details);
+}
+
