@@ -88,3 +88,5 @@ roadmap after each milestone.
   can classify geometry without approximating triangles as spheres/boxes.
 - 2025-12-20 — Frustum clipping now returns intervals for lines, rays, and segments with symmetric tests, covering picking rays
   and portal edges for T-0122 visibility workloads.
+- 2025-12-22 — Capsule intersections gained line, ray, and segment overloads with symmetric interval tests so picking and portal
+  classifiers can use the shared primitive tracked by T-0129.

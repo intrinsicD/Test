@@ -59,6 +59,116 @@ namespace engine::geometry
         EXPECT_TRUE(!Intersects(sphere, miss, nullptr));
     }
 
+    TEST(CapsuleIntersection, CapsuleCapsule)
+    {
+        const Capsule capsule_a{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 2.0f}, 0.5f};
+        const Capsule capsule_b{{0.4f, 0.0f, 0.0f}, {0.4f, 0.0f, 2.0f}, 0.5f};
+        const Capsule separated{{3.0f, 0.0f, 0.0f}, {3.0f, 0.0f, 2.0f}, 0.5f};
+
+        EXPECT_TRUE(Intersects(capsule_a, capsule_b));
+        EXPECT_TRUE(Intersects(capsule_b, capsule_a));
+        EXPECT_FALSE(Intersects(capsule_a, separated));
+        EXPECT_FALSE(Intersects(separated, capsule_a));
+    }
+
+    TEST(CapsuleIntersection, CapsuleSphere)
+    {
+        const Capsule capsule{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 2.0f}, 0.5f};
+        const Sphere intersecting{{0.6f, 0.0f, 1.0f}, 0.6f};
+        const Sphere separated{{2.0f, 0.0f, 1.0f}, 0.25f};
+
+        EXPECT_TRUE(Intersects(capsule, intersecting));
+        EXPECT_TRUE(Intersects(intersecting, capsule));
+        EXPECT_FALSE(Intersects(capsule, separated));
+        EXPECT_FALSE(Intersects(separated, capsule));
+    }
+
+    TEST(CapsuleIntersection, CapsuleAabb)
+    {
+        const Capsule capsule{{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, 0.5f};
+        const Aabb box = MakeAabbFromCenterExtent({0.0f, 0.0f, 0.0f}, {0.6f, 0.6f, 0.6f});
+        const Aabb far_box = MakeAabbFromCenterExtent({2.0f, 0.0f, 0.0f}, {0.4f, 0.4f, 0.4f});
+
+        EXPECT_TRUE(Intersects(capsule, box));
+        EXPECT_TRUE(Intersects(box, capsule));
+        EXPECT_FALSE(Intersects(capsule, far_box));
+        EXPECT_FALSE(Intersects(far_box, capsule));
+    }
+
+    TEST(CapsuleIntersection, CapsuleFrustum)
+    {
+        const math::mat4 identity = math::identity_matrix<float, 4>();
+        const Frustum frustum = ExtractFrustum(identity);
+
+        const Capsule inside{{0.0f, 0.0f, -0.5f}, {0.0f, 0.0f, 0.5f}, 0.25f};
+        const Capsule outside{{5.0f, 0.0f, 0.0f}, {5.0f, 0.0f, 1.0f}, 0.25f};
+
+        EXPECT_TRUE(Intersects(frustum, inside));
+        EXPECT_TRUE(Intersects(inside, frustum));
+        EXPECT_FALSE(Intersects(frustum, outside));
+        EXPECT_FALSE(Intersects(outside, frustum));
+    }
+
+    TEST(CapsuleIntersection, CapsuleLine)
+    {
+        const Capsule capsule{{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, 0.5f};
+        const Line hit{{-2.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+        const Line miss{{-2.0f, 1.5f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+
+        Result result{};
+        ASSERT_TRUE(Intersects(capsule, hit, &result));
+        EXPECT_NEAR(result.t_min, 1.5f, 1e-5f);
+        EXPECT_NEAR(result.t_max, 2.5f, 1e-5f);
+
+        Result symmetric{};
+        ASSERT_TRUE(Intersects(hit, capsule, &symmetric));
+        EXPECT_NEAR(result.t_min, symmetric.t_min, 1e-5f);
+        EXPECT_NEAR(result.t_max, symmetric.t_max, 1e-5f);
+
+        EXPECT_FALSE(Intersects(capsule, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, capsule, nullptr));
+    }
+
+    TEST(CapsuleIntersection, CapsuleRay)
+    {
+        const Capsule capsule{{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, 0.5f};
+        const Ray hit{{-2.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+        const Ray miss{{-2.0f, 2.0f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+
+        Result result{};
+        ASSERT_TRUE(Intersects(capsule, hit, &result));
+        EXPECT_NEAR(result.t_min, 1.5f, 1e-5f);
+        EXPECT_NEAR(result.t_max, 2.5f, 1e-5f);
+
+        Result symmetric{};
+        ASSERT_TRUE(Intersects(hit, capsule, &symmetric));
+        EXPECT_NEAR(result.t_min, symmetric.t_min, 1e-5f);
+        EXPECT_NEAR(result.t_max, symmetric.t_max, 1e-5f);
+
+        EXPECT_FALSE(Intersects(capsule, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, capsule, nullptr));
+    }
+
+    TEST(CapsuleIntersection, CapsuleSegment)
+    {
+        const Capsule capsule{{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, 0.5f};
+        const Segment hit{{-2.0f, 0.0f, 0.0f}, {2.0f, 0.0f, 0.0f}};
+        const Segment miss{{-2.0f, 2.0f, 0.0f}, {2.0f, 2.0f, 0.0f}};
+
+        Result result{};
+        ASSERT_TRUE(Intersects(capsule, hit, &result));
+        EXPECT_NEAR(result.t_min, 0.375f, 1e-5f);
+        EXPECT_NEAR(result.t_max, 0.625f, 1e-5f);
+
+        Result symmetric{};
+        ASSERT_TRUE(Intersects(hit, capsule, &symmetric));
+        EXPECT_NEAR(result.t_min, symmetric.t_min, 1e-5f);
+        EXPECT_NEAR(result.t_max, symmetric.t_max, 1e-5f);
+
+        EXPECT_FALSE(Intersects(capsule, miss, nullptr));
+        EXPECT_FALSE(Intersects(miss, capsule, nullptr));
+    }
+
     TEST(ShapeInteractionsSphereContains, SphereInsideAabb)
     {
         const Aabb box{{-3.0f, -2.0f, -1.0f}, {3.0f, 2.0f, 1.0f}};

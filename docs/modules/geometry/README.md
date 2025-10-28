@@ -133,6 +133,46 @@ engine::geometry::update_bounds(mesh);
 auto center = engine::geometry::centroid(mesh);
 ```
 
+### Capsules
+
+Capsules model a swept sphere defined by two endpoints and a constant radius.
+They are useful for broad-phase collision queries and character proxies:
+
+```cpp
+#include "engine/geometry/shapes/capsule.hpp"
+#include "engine/geometry/utils/shape_interactions.hpp"
+
+engine::geometry::Capsule capsule{{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, 0.5f};
+engine::geometry::Sphere probe{{0.4f, 0.0f, 0.0f}, 0.35f};
+engine::geometry::Aabb query = engine::geometry::MakeAabbFromCenterExtent({0.0f, 0.0f, 0.0f}, {0.75f, 0.75f, 0.75f});
+
+const bool hits_sphere = engine::geometry::Intersects(capsule, probe);
+const bool hits_box = engine::geometry::Intersects(capsule, query);
+
+if (hits_sphere)
+{
+    // Resolve character capsule against probe sphere.
+}
+
+if (hits_box)
+{
+    // Capsule overlaps the navigation cell.
+}
+
+// Derive metrics for telemetry or tuning.
+const auto center = engine::geometry::Center(capsule);
+const float surface_area = static_cast<float>(engine::geometry::SurfaceArea(capsule));
+const float volume = static_cast<float>(engine::geometry::Volume(capsule));
+```
+
+Capsule interactions reuse the shared `shape_interactions` infrastructure, so
+capsules can be culled against frusta, classified against planes, and tested
+against spheres, boxes, and other capsules without duplicating algorithms in
+downstream modules.
+Line, ray, and segment overloads expose parametric entry/exit intervals so
+visibility picking and portal edge classifiers can consume capsules without
+bespoke math.
+
 ### Frustum Culling
 
 Extract view frustums from projection matrices and perform efficient intersection tests:
@@ -164,6 +204,7 @@ The frustum is defined by 6 planes (left, right, bottom, top, near, far) with no
 - **Frustum-Sphere**: signed distance to all planes vs. radius
 - **Frustum-OBB**: oriented extents projected onto plane normals for tight classification
 - **Frustum-Cylinder**: support mapping maintains axial and radial extents without resorting to bounding spheres
+- **Frustum-Capsule**: endpoint distances are compared against plane half-spaces so the swept sphere can be culled tightly
 - **Frustum-Ellipsoid**: orientation-aware support mapping via the ellipsoid's quadratic form
 - **Frustum-Triangle**: Sutherland–Hodgman clipping preserves partial portal overlaps without relying on bounding volumes
 - **Frustum-Point**: containment test against all planes
