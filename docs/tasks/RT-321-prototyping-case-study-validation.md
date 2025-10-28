@@ -93,7 +93,7 @@ Author two end-to-end case studies (one geometry-focused, one rendering-focused)
 
 ### Testing Requirements
 - [x] Add `pytest` coverage for CLI case study execution.
-- [ ] Extend `ctest` integration harness to run at least one case study in headless mode.
+- [x] Extend `ctest` integration harness to run at least one case study in headless mode.
 - [ ] Update CI pipeline to publish benchmark artefacts for the case studies.
 
 ### Documentation Requirements
@@ -144,7 +144,7 @@ TEST(RuntimePrototypeHarness, LoadsGeometryCaseStudy) {
 - [ ] Case study manifests + ingestion scripts
 - [ ] Harness CLI `--case-study` entry point
 - [ ] Sandbox UI bindings
-- [ ] Integration + CI coverage
+- [x] Integration + CI coverage
 - [ ] Updated documentation and initiative card
 
 ---
@@ -175,3 +175,9 @@ TEST(RuntimePrototypeHarness, LoadsGeometryCaseStudy) {
   `scripts.prototyping.run_prototype_harness --case-study <id>` loads
   `geometry-baseline` and `rendering-debug`, exporting JSON summaries during
   dry runs and providing pytest coverage via `test_cli_case_study_support`.
+- 2025-12-29: Added `ctest` integration target `runtime_prototype_harness_geometry_case_study`
+  invoking the harness CLI with `--case-study geometry-baseline --dry-run --require-schema`
+  so AI-004 case studies execute under `ctest` with regression coverage, write
+  JSON summaries into the build artefacts directory, and normalised the CLI
+  search paths so `engine3g` modules resolve when the harness runs from the
+  build tree.

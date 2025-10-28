@@ -113,7 +113,7 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 - [ ] Latency: Hot reload or configuration updates apply within 2 frames.
 
 ### Testing Requirements
-- [ ] Integration tests for prototyping harness exercises sample scenes.
+- [x] Integration tests for prototyping harness exercises sample scenes.
 - [ ] Smoke tests for sandbox UI run in CI.
 - [ ] Benchmark automation validated through deterministic golden outputs.
 - [ ] Coverage ≥ 85% on touched engine/tooling code.
@@ -231,4 +231,9 @@ TEST(RuntimePrototypeHarness, LoadsReferenceScene) {
   python/tests/test_prototype_harness.py::test_cli_integration_with_sample_assets`,
   guarding configuration schema alignment across runtime, rendering, and tooling
   workstreams.
+- CTest now runs `runtime_prototype_harness_geometry_case_study`, invoking the
+  harness CLI with the geometry case study in dry-run mode while enforcing
+  schema headers and normalising module search paths so the kickoff review
+  inherits deterministic regression coverage alongside the existing pytest
+  suite.
 - New tasks `DC-041`, `RT-321`, and `CC-311` capture kickoff planning, case study validation, and comparative reporting deliverables to unblock the P0 milestone.

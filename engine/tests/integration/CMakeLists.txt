@@ -26,3 +26,26 @@ set_tests_properties(engine_integration_tests
         ENVIRONMENT "ENGINE_PLATFORM_WINDOW_BACKEND=mock;ENGINE_WINDOW_BACKEND=MOCK"
         TIMEOUT 90
 )
+
+if(Python3_Interpreter_FOUND)
+    set(_ai004_summary "${CMAKE_BINARY_DIR}/artifacts/ai004/geometry-baseline-summary.json")
+    add_test(NAME runtime_prototype_harness_geometry_case_study
+            COMMAND ${Python3_EXECUTABLE}
+                    -m scripts.prototyping.run_prototype_harness
+                    --case-study geometry-baseline
+                    --dry-run
+                    --require-schema
+                    --summary-json ${_ai004_summary}
+    )
+    set_property(TEST runtime_prototype_harness_geometry_case_study PROPERTY LABELS integration)
+    set_tests_properties(runtime_prototype_harness_geometry_case_study
+            PROPERTIES
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            ENVIRONMENT "ENGINE_PLATFORM_WINDOW_BACKEND=mock;ENGINE_WINDOW_BACKEND=MOCK;PYTHONUNBUFFERED=1"
+            PASS_REGULAR_EXPRESSION "Dry run summary"
+            FAIL_REGULAR_EXPRESSION "error:"
+            TIMEOUT 120
+    )
+else()
+    message(WARNING "Python3 interpreter not found; skipping runtime prototype harness case study integration test.")
+endif()
