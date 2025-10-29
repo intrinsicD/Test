@@ -99,12 +99,25 @@ class HarnessExecutionOptions:
     frames: int = 600
     dt: float = 1.0 / 60.0
     dry_run: bool = False
+    run_index: Optional[int] = None
+    run_count: Optional[int] = None
+    scenario_label: Optional[str] = None
 
     def validate(self) -> None:
         if self.frames <= 0:
             raise PrototypeHarnessError("frames must be greater than zero")
         if not float(self.dt) or self.dt <= 0.0:
             raise PrototypeHarnessError("dt must be a positive number")
+        if self.run_index is not None and self.run_index <= 0:
+            raise PrototypeHarnessError("run_index must be greater than zero when provided")
+        if self.run_count is not None and self.run_count <= 0:
+            raise PrototypeHarnessError("run_count must be greater than zero when provided")
+        if self.run_index is not None and self.run_count is None:
+            raise PrototypeHarnessError("run_index requires run_count to be specified")
+        if self.run_index is not None and self.run_index > self.run_count:
+            raise PrototypeHarnessError("run_index cannot exceed run_count")
+        if self.scenario_label is not None and not self.scenario_label:
+            raise PrototypeHarnessError("scenario_label must be a non-empty string when provided")
 
 
 @dataclass(frozen=True)
@@ -112,6 +125,7 @@ class HarnessRunSummary:
     """Summary of a completed harness execution."""
 
     dataset_id: Optional[str]
+    scenario_label: Optional[str]
     rendering_preset: Optional[str]
     shading_mode: Optional[str]
     frames_executed: int
@@ -419,10 +433,15 @@ class PrototypeHarness:
         self._selected_dataset = self._resolve_dataset(configuration.datasets, configuration.runtime)
         self._dataset_assets: Dict[str, Tuple[DatasetAssetStatus, ...]] = {}
         self._runtime_scene_manifest: Optional[DatasetAssetStatus] = None
-        if self._asset_search_paths:
+        should_verify_assets = self._should_verify_assets()
+        if should_verify_assets:
             for entry in configuration.datasets.datasets:
                 self._dataset_assets[entry.identifier] = self._verify_dataset_assets(entry)
-        if configuration.runtime is not None and configuration.runtime.scene_manifest is not None:
+        if (
+            should_verify_assets
+            and configuration.runtime is not None
+            and configuration.runtime.scene_manifest is not None
+        ):
             self._runtime_scene_manifest = self._verify_scene_manifest(configuration.runtime.scene_manifest)
 
     @property
@@ -490,19 +509,27 @@ class PrototypeHarness:
         return self._describe_dataset(self._selected_dataset)
 
 
-    def _telemetry_outputs(self) -> Tuple[TelemetryOutputSummary, ...]:
+    def _telemetry_outputs(
+        self, *, scenario_override: Optional[str] = None
+    ) -> Tuple[TelemetryOutputSummary, ...]:
         """Return telemetry outputs declared in the configuration."""
 
         if self._configuration.telemetry is None:
             return ()
-        return tuple(self._summarize_telemetry_output(output) for output in self._configuration.telemetry.outputs)
+        return tuple(
+            self._summarize_telemetry_output(output, scenario_override=scenario_override)
+            for output in self._configuration.telemetry.outputs
+        )
 
-    def _telemetry_substitutions(self) -> Mapping[str, str]:
+    def _telemetry_substitutions(
+        self, *, scenario_override: Optional[str] = None
+    ) -> Mapping[str, str]:
         dataset_id = self._selected_dataset.identifier if self._selected_dataset else None
         rendering = self._rendering_config()
+        scenario_value = scenario_override or dataset_id or "default"
         defaults = {
             "dataset": dataset_id or "default",
-            "scenario": dataset_id or "default",
+            "scenario": scenario_value,
             "rendering_preset": rendering.preset if rendering else "default",
             "shading_mode": rendering.shading_mode if rendering else "default",
         }
@@ -512,10 +539,12 @@ class PrototypeHarness:
             defaults["project_root"] = str(self._project_root)
         return defaults
 
-    def _resolve_output_path(self, template: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+    def _resolve_output_path(
+        self, template: Optional[str], *, scenario_override: Optional[str] = None
+    ) -> Tuple[Optional[str], Optional[str]]:
         if template is None:
             return None, None
-        substitutions = self._telemetry_substitutions()
+        substitutions = self._telemetry_substitutions(scenario_override=scenario_override)
         try:
             formatted = template.format_map(_StrictSubstitutions(substitutions))
         except KeyError as error:  # pragma: no cover - defensive guard
@@ -530,8 +559,12 @@ class PrototypeHarness:
         template_value = template if template != resolved else None
         return resolved, template_value
 
-    def _summarize_telemetry_output(self, output: TelemetryOutputConfig) -> TelemetryOutputSummary:
-        resolved_path, template = self._resolve_output_path(output.path)
+    def _summarize_telemetry_output(
+        self, output: TelemetryOutputConfig, *, scenario_override: Optional[str] = None
+    ) -> TelemetryOutputSummary:
+        resolved_path, template = self._resolve_output_path(
+            output.path, scenario_override=scenario_override
+        )
         return TelemetryOutputSummary(kind=output.kind, path=resolved_path, template=template)
 
     def run_headless(self, options: HarnessExecutionOptions | None = None) -> HarnessRunSummary:
@@ -542,7 +575,9 @@ class PrototypeHarness:
 
         rendering = self._rendering_config()
         average_tick_ms: Optional[float] = None
-        telemetry_outputs = self._telemetry_outputs()
+        telemetry_outputs = self._telemetry_outputs(
+            scenario_override=execution.scenario_label
+        )
 
         if execution.dry_run:
             return HarnessRunSummary(
@@ -555,6 +590,9 @@ class PrototypeHarness:
                 dispatch_order=(),
                 dispatch_durations_ms=(),
                 telemetry_outputs=telemetry_outputs,
+                run_index=execution.run_index,
+                run_count=execution.run_count,
+                scenario_label=execution.scenario_label,
             )
 
         try:
@@ -589,6 +627,9 @@ class PrototypeHarness:
             dispatch_order=dispatch_order,
             dispatch_durations_ms=dispatch_durations_ms,
             telemetry_outputs=telemetry_outputs,
+            run_index=execution.run_index,
+            run_count=execution.run_count,
+            scenario_label=execution.scenario_label,
         )
 
     def _describe_dataset(self, entry: DatasetEntry) -> DatasetSummary:
@@ -824,6 +865,13 @@ class PrototypeHarness:
             normalised.setdefault(resolved, None)
         return tuple(normalised.keys())
 
+    def _should_verify_assets(self) -> bool:
+        return (
+            bool(self._asset_search_paths)
+            or self._config_directory is not None
+            or self._project_root is not None
+        )
+
     @staticmethod
     def _compute_sha256(path: Path) -> str:
         digest = hashlib.sha256()
@@ -1042,6 +1090,7 @@ def summarize(summary: HarnessRunSummary) -> str:
     """Render a human-readable summary line for CLI output."""
 
     dataset = summary.dataset_id or "<none>"
+    scenario = f"scenario={summary.scenario_label} " if summary.scenario_label else ""
     preset = summary.rendering_preset or "<unspecified>"
     shading = summary.shading_mode or "<unspecified>"
     average = (
@@ -1054,7 +1103,7 @@ def summarize(summary: HarnessRunSummary) -> str:
     if summary.run_index is not None and summary.run_count is not None:
         run = f" run={summary.run_index}/{summary.run_count}"
     return (
-        f"dataset={dataset} preset={preset} shading={shading} "
+        f"{scenario}dataset={dataset} preset={preset} shading={shading} "
         f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}{run}{dispatch}"
     )
 
@@ -1070,6 +1119,7 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
 
     payload: Dict[str, object] = {
         "dataset": summary.dataset_id,
+        "scenario": summary.scenario_label,
         "rendering_preset": summary.rendering_preset,
         "shading_mode": summary.shading_mode,
         "frames": summary.frames_executed,

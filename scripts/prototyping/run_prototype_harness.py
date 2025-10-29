@@ -182,14 +182,13 @@ def _run(args: argparse.Namespace) -> int:
 
     if args.dry_run:
         total_runs = args.repeat
+        base_options = HarnessExecutionOptions(dry_run=True, frames=1, dt=args.dt)
+        run_count = total_runs if total_runs > 1 else None
         for index in range(1, total_runs + 1):
-            summary = harness.run_headless(HarnessExecutionOptions(dry_run=True, frames=1, dt=args.dt))
-            run_count = total_runs if total_runs > 1 else None
-            summary = replace(
-                summary,
-                run_index=index if run_count is not None else None,
-                run_count=run_count,
-            )
+            options = base_options
+            if run_count is not None:
+                options = replace(base_options, run_index=index, run_count=run_count)
+            summary = harness.run_headless(options)
             print(f"Dry run summary{_format_run_prefix(index, total_runs)}: {summarize(summary)}")
             if args.summary_json is not None:
                 _write_json(
@@ -198,20 +197,18 @@ def _run(args: argparse.Namespace) -> int:
                 )
         return 0
 
-    options = _make_options(args)
+    base_options = _make_options(args)
     total_runs = args.repeat
+    run_count = total_runs if total_runs > 1 else None
     for index in range(1, total_runs + 1):
+        options = base_options
+        if run_count is not None:
+            options = replace(base_options, run_index=index, run_count=run_count)
         try:
             summary = harness.run_headless(options)
         except PrototypeHarnessError as error:
             print(f"error: {error}", file=sys.stderr)
             return 3
-        run_count = total_runs if total_runs > 1 else None
-        summary = replace(
-            summary,
-            run_index=index if run_count is not None else None,
-            run_count=run_count,
-        )
         print(f"Execution summary{_format_run_prefix(index, total_runs)}: {summarize(summary)}")
         if args.summary_json is not None:
             _write_json(
