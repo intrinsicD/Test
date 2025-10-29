@@ -16,6 +16,7 @@ target_link_libraries(${target_name}
         engine::project_options
         engine_runtime
         GTest::gtest_main
+        yaml-cpp::yaml-cpp
 )
 
 add_test(NAME engine_integration_tests COMMAND $<TARGET_FILE:${target_name}>)

@@ -122,7 +122,7 @@ namespace engine::geometry
                 return 0.0F;
             }
 
-            constexpr float kQualityScale = 4.0F * std::sqrt(3.0F);
+            const float kQualityScale = 4.0F * std::sqrt(3.0F);
             const float quality = (kQualityScale * area) / perimeter_sq_sum;
             return std::clamp(quality, 0.0F, 1.0F);
         }

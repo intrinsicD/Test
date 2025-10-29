@@ -11,6 +11,7 @@ target_link_libraries(engine_compute_tests
         engine_compute
         engine_runtime
         GTest::gtest_main
+        yaml-cpp::yaml-cpp
 )
 
 target_include_directories(engine_compute_tests

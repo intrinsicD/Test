@@ -7,7 +7,9 @@ add_executable(test_tools_module
 
 target_link_libraries(test_tools_module
         PRIVATE
+        engine::project_options
         engine_tools
+        yaml-cpp::yaml-cpp
         gtest_main)
 
 add_test(NAME test_tools_module COMMAND test_tools_module)

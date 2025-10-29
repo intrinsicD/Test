@@ -8,6 +8,7 @@ target_link_libraries(engine_runtime_tests
         engine::project_options
         engine_runtime
         GTest::gtest_main
+        yaml-cpp::yaml-cpp
 )
 
 target_compile_definitions(engine_runtime_tests
