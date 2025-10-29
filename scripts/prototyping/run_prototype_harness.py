@@ -46,8 +46,15 @@ def _format_case_study_help() -> str:
     return f"Identifier of a packaged case study configuration. Available: {entries}."
 
 
-def _make_options(args: argparse.Namespace) -> HarnessExecutionOptions:
-    return HarnessExecutionOptions(frames=args.frames, dt=args.dt, dry_run=args.dry_run)
+def _make_options(
+    args: argparse.Namespace, *, scenario_label: Optional[str]
+) -> HarnessExecutionOptions:
+    return HarnessExecutionOptions(
+        frames=args.frames,
+        dt=args.dt,
+        dry_run=args.dry_run,
+        scenario_label=scenario_label,
+    )
 
 
 def _selected_dataset_summary(summary: HarnessConfigurationSummary) -> Optional[DatasetSummary]:
@@ -182,7 +189,12 @@ def _run(args: argparse.Namespace) -> int:
 
     if args.dry_run:
         total_runs = args.repeat
-        base_options = HarnessExecutionOptions(dry_run=True, frames=1, dt=args.dt)
+        base_options = HarnessExecutionOptions(
+            dry_run=True,
+            frames=1,
+            dt=args.dt,
+            scenario_label=args.case_study,
+        )
         run_count = total_runs if total_runs > 1 else None
         for index in range(1, total_runs + 1):
             options = base_options
@@ -197,7 +209,7 @@ def _run(args: argparse.Namespace) -> int:
                 )
         return 0
 
-    base_options = _make_options(args)
+    base_options = _make_options(args, scenario_label=args.case_study)
     total_runs = args.repeat
     run_count = total_runs if total_runs > 1 else None
     for index in range(1, total_runs + 1):

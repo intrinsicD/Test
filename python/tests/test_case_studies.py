@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -13,12 +14,21 @@ if str(_PROJECT_ROOT) not in sys.path:
 if str(_PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(_PYTHON_ROOT))
 
+from engine3g import case_studies as case_studies_module  # type: ignore
 from engine3g.case_studies import (  # type: ignore
+    CaseStudyError,
     CaseStudyNotFoundError,
     available_case_studies,
     describe_case_studies,
     get_case_study,
 )
+
+
+@pytest.fixture(autouse=True)
+def reset_case_study_cache() -> None:
+    case_studies_module._case_study_map.cache_clear()
+    yield
+    case_studies_module._case_study_map.cache_clear()
 
 
 def test_case_study_registry_lists_available_configs() -> None:
@@ -50,3 +60,34 @@ def test_describe_case_studies_exposes_metadata() -> None:
     assert Path(_PROJECT_ROOT, first["config"]).exists()
     assert Path(first["config_absolute"]).exists()
     assert isinstance(first["tags"], list)
+
+
+def test_case_study_index_requires_schema(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    payload = {"case_studies": []}
+    index_path = tmp_path / "index.json"
+    index_path.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(case_studies_module, "_index_path", lambda: index_path)
+
+    with pytest.raises(CaseStudyError):
+        available_case_studies()
+
+
+@pytest.mark.parametrize(
+    "schema_payload",
+    [
+        {"schema": {"id": "ai-004.case-studies", "version": 0}},
+        {"schema": {"id": "ai-004.case-studies", "version": 2}},
+        {"schema": {"id": "ai-004.invalid", "version": 1}},
+    ],
+)
+def test_case_study_index_validates_schema(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, schema_payload: dict[str, object]
+) -> None:
+    payload = dict(schema_payload)
+    payload.setdefault("case_studies", [])
+    index_path = tmp_path / "index.json"
+    index_path.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(case_studies_module, "_index_path", lambda: index_path)
+
+    with pytest.raises(CaseStudyError):
+        available_case_studies()

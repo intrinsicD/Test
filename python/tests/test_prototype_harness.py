@@ -745,9 +745,15 @@ def test_cli_case_study_support(tmp_path: Path, capsys: pytest.CaptureFixture[st
 
     assert summary_payload["dataset"] == "geometry-remesh-baseline"
     assert summary_payload["average_tick_ms"] is None
-    assert summary_payload["scenario"] is None
+    assert summary_payload["scenario"] == "geometry-baseline"
+    telemetry_outputs = summary_payload["telemetry_outputs"]
+    assert telemetry_outputs, "expected telemetry outputs"
+    assert telemetry_outputs[0]["path"].endswith(
+        "telemetry/geometry-baseline/geometry-baseline.json"
+    )
     assert "Selected case study 'geometry-baseline'" in captured.out
     assert "Dry run summary" in captured.out
+    assert "scenario=geometry-baseline" in captured.out
 
     exit_code_rendering = run_prototype_harness.main(
         [
@@ -767,8 +773,14 @@ def test_cli_case_study_support(tmp_path: Path, capsys: pytest.CaptureFixture[st
 
     assert summary_rendering["dataset"] == "rendering-light-volume"
     assert summary_rendering["average_tick_ms"] is None
-    assert summary_rendering["scenario"] is None
+    assert summary_rendering["scenario"] == "rendering-debug"
+    rendering_outputs = summary_rendering["telemetry_outputs"]
+    assert rendering_outputs, "expected telemetry outputs"
+    assert rendering_outputs[0]["path"].endswith(
+        "telemetry/rendering-debug/rendering-debug.json"
+    )
     assert "Selected case study 'rendering-debug'" in captured_rendering.out
+    assert "scenario=rendering-debug" in captured_rendering.out
 
 
 def test_cli_lists_case_studies(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
