@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Iterable
 
@@ -77,6 +78,27 @@ def _write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _summary_path_for_run(base: Path, index: int, total: int) -> Path:
+    if total <= 1:
+        return base
+    width = max(2, len(str(total)))
+    suffix = "".join(base.suffixes)
+    name = base.name
+    if suffix:
+        stem = name[: -len(suffix)]
+    else:
+        stem = name
+    run_token = f"run{index:0{width}d}"
+    new_name = f"{stem}-{run_token}{suffix}"
+    return base.with_name(new_name)
+
+
+def _format_run_prefix(index: int, total: int) -> str:
+    if total <= 1:
+        return ""
+    return f" [{index}/{total}]"
+
+
 def _list_case_studies(json_path: Path | None) -> int:
     summaries = describe_case_studies(relative_to=PROJECT_ROOT)
     if not summaries:
@@ -131,22 +153,43 @@ def _run(args: argparse.Namespace) -> int:
         _print_benchmark_scenarios(description)
 
     if args.dry_run:
-        summary = harness.run_headless(HarnessExecutionOptions(dry_run=True, frames=1, dt=args.dt))
-        print(f"Dry run summary: {summarize(summary)}")
-        if args.summary_json is not None:
-            _write_json(args.summary_json, run_summary_to_dict(summary))
+        total_runs = args.repeat
+        for index in range(1, total_runs + 1):
+            summary = harness.run_headless(HarnessExecutionOptions(dry_run=True, frames=1, dt=args.dt))
+            run_count = total_runs if total_runs > 1 else None
+            summary = replace(
+                summary,
+                run_index=index if run_count is not None else None,
+                run_count=run_count,
+            )
+            print(f"Dry run summary{_format_run_prefix(index, total_runs)}: {summarize(summary)}")
+            if args.summary_json is not None:
+                _write_json(
+                    _summary_path_for_run(args.summary_json, index, total_runs),
+                    run_summary_to_dict(summary),
+                )
         return 0
 
     options = _make_options(args)
-    try:
-        summary = harness.run_headless(options)
-    except PrototypeHarnessError as error:
-        print(f"error: {error}", file=sys.stderr)
-        return 3
-
-    print(f"Execution summary: {summarize(summary)}")
-    if args.summary_json is not None:
-        _write_json(args.summary_json, run_summary_to_dict(summary))
+    total_runs = args.repeat
+    for index in range(1, total_runs + 1):
+        try:
+            summary = harness.run_headless(options)
+        except PrototypeHarnessError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 3
+        run_count = total_runs if total_runs > 1 else None
+        summary = replace(
+            summary,
+            run_index=index if run_count is not None else None,
+            run_count=run_count,
+        )
+        print(f"Execution summary{_format_run_prefix(index, total_runs)}: {summarize(summary)}")
+        if args.summary_json is not None:
+            _write_json(
+                _summary_path_for_run(args.summary_json, index, total_runs),
+                run_summary_to_dict(summary),
+            )
     return 0
 
 
@@ -181,6 +224,12 @@ def main(argv: Iterable[str] | None = None) -> int:
         "--dry-run",
         action="store_true",
         help="Validate configuration without loading the runtime library.",
+    )
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        help="Number of sequential runs to execute (default: 1).",
     )
     parser.add_argument(
         "--require-schema",
@@ -232,6 +281,9 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     if args.frames <= 0 and not args.dry_run:
         parser.error("--frames must be greater than zero unless --dry-run is specified")
+
+    if args.repeat <= 0:
+        parser.error("--repeat must be greater than zero")
 
     if args.config is None and args.case_study is None:
         parser.error("one of --config or --case-study is required")

@@ -330,6 +330,24 @@ def test_summarize_formats_output() -> None:
     assert summary_payload["dispatch_durations_ms"] == [1.5]
 
 
+def test_summarize_includes_run_metadata() -> None:
+    summary = HarnessRunSummary(
+        dataset_id="remesh-sample",
+        rendering_preset="research-baseline",
+        shading_mode="deferred",
+        frames_executed=5,
+        timestep_seconds=0.02,
+        run_index=2,
+        run_count=3,
+    )
+    text = summarize(summary)
+    assert "run=2/3" in text
+
+    summary_payload = run_summary_to_dict(summary)
+    assert summary_payload["run_index"] == 2
+    assert summary_payload["run_count"] == 3
+
+
 def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     config_path = _write_configuration(tmp_path)
     describe_path = tmp_path / "exports" / "describe.json"
@@ -365,6 +383,39 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert summary_payload["dispatch_order"] == []
     assert summary_payload["dispatch_durations_ms"] == []
     assert "Configuration:" in captured.out
+
+
+def test_cli_repeat_generates_multiple_summaries(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    config_path = _write_configuration(tmp_path)
+    base_summary = tmp_path / "summary.json"
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        [
+            "--config",
+            str(config_path),
+            "--dry-run",
+            "--summary-json",
+            str(base_summary),
+            "--repeat",
+            "3",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    for index in range(1, 4):
+        suffix = f"summary-run{index:02d}.json"
+        path = base_summary.with_name(suffix)
+        assert path.exists()
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        assert payload["run_index"] == index
+        assert payload["run_count"] == 3
+    assert "Dry run summary [1/3]" in captured.out
+    assert "Dry run summary [3/3]" in captured.out
 
 
 def test_cli_list_benchmarks(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
