@@ -139,10 +139,10 @@ TEST(PhysicsWorld, BodyAtThrowsWhenIndexIsOutOfRange)
 
     const auto invalid_index = engine::physics::body_count(world);
 
-    EXPECT_THROW(engine::physics::body_at(world, invalid_index), std::out_of_range);
+    EXPECT_THROW(static_cast<void>(engine::physics::body_at(world, invalid_index)), std::out_of_range);
 
     const auto& const_world = static_cast<const engine::physics::PhysicsWorld&>(world);
-    EXPECT_THROW(engine::physics::body_at(const_world, invalid_index), std::out_of_range);
+    EXPECT_THROW(static_cast<void>(engine::physics::body_at(const_world, invalid_index)), std::out_of_range);
 }
 
 TEST(PhysicsWorldColliders, SetAndQueryColliderState)

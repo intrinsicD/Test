@@ -320,7 +320,7 @@ namespace
             auto dispatcher = compute::make_cuda_dispatcher();
             dispatcher->set_clock(make_gpu_clock_configuration());
             dispatcher->clear();
-            dispatcher->add_kernel("animation.sample_clip.gpu", [&controller, &pose]()
+            [[maybe_unused]] auto kernel_id = dispatcher->add_kernel("animation.sample_clip.gpu", [&controller, &pose]()
             {
                 pose = animation::evaluate_controller(controller);
             });

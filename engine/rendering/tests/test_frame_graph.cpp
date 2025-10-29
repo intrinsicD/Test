@@ -754,5 +754,5 @@ TEST(FrameGraph, SerializesDeterministically)
 TEST(FrameGraph, ResourceInfoRejectsInvalidHandle)
 {
     engine::rendering::FrameGraph graph;
-    EXPECT_THROW(graph.resource_info(engine::rendering::FrameGraphResourceHandle{}), std::out_of_range);
+    EXPECT_THROW(static_cast<void>(graph.resource_info(engine::rendering::FrameGraphResourceHandle{})), std::out_of_range);
 }

@@ -90,7 +90,7 @@ TEST(WindowSystem, CapabilityRequirementsRejectMockBackend)
     WindowConfig config;
     config.capability_requirements.require_native_surface = true;
 
-    EXPECT_THROW(create_window(config, WindowBackend::Mock), std::runtime_error);
+    EXPECT_THROW(static_cast<void>(create_window(config, WindowBackend::Mock)), std::runtime_error);
 }
 
 TEST(WindowSystem, AutoSelectionSkipsBackendsWithoutRequiredCapabilities)
