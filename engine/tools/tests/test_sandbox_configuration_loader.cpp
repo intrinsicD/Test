@@ -41,7 +41,28 @@ namespace
       "parameterization": {
         "mode": "reuse_existing",
         "texel_density": 256.0
-      }
+      },
+      "assets": [
+        {
+          "role": "source",
+          "path": "assets/datasets/remesh_sample/source_mesh.obj",
+          "resolved_path": "/tmp/remesh/source_mesh.obj",
+          "exists": true,
+          "verified": true
+        },
+        {
+          "role": "output",
+          "path": "assets/datasets/remesh_sample/output_mesh.obj",
+          "resolved_path": "/tmp/remesh/output_mesh.obj",
+          "exists": false,
+          "verified": false,
+          "expected_size_bytes": 1024,
+          "actual_size_bytes": 512,
+          "expected_sha256": "expected",
+          "actual_sha256": "actual",
+          "message": "asset mismatch"
+        }
+      ]
     }
   ],
   "rendering": {
@@ -71,7 +92,64 @@ namespace
       "enabled": false
     }
   },
-  "selected_dataset": "geometry-remesh-baseline"
+  "selected_dataset": "geometry-remesh-baseline",
+  "telemetry": {
+    "schema_version": 2,
+    "outputs": [
+      {
+        "kind": "file",
+        "path": "/tmp/telemetry.json",
+        "template": "telemetry/{scenario}.json"
+      },
+      {
+        "kind": "stdout"
+      }
+    ],
+    "metrics": [
+      {
+        "name": "frame_time",
+        "statistic": "avg"
+      },
+      {
+        "name": "gpu_time",
+        "statistic": "p95"
+      }
+    ],
+    "sampling": {
+      "frame_interval": 8,
+      "include_debug_overlays": true
+    }
+  },
+  "benchmarks": {
+    "schema_version": 1,
+    "scenarios": [
+      {
+        "id": "remesh-baseline",
+        "name": "Remesh Baseline",
+        "dataset": "geometry-remesh-baseline",
+        "rendering_preset": "research-baseline",
+        "runtime_profile": "default",
+        "engine": {
+          "command": ["python", "run_engine.py"],
+          "output": "telemetry/{scenario}_engine.json"
+        },
+        "reference": {
+          "command": ["python", "run_reference.py"],
+          "output": "telemetry/{scenario}_reference.json"
+        },
+        "metrics": [
+          {
+            "name": "frame_time",
+            "higher_is_better": false,
+            "threshold": {
+              "mode": "relative",
+              "limit": 0.05
+            }
+          }
+        ]
+      }
+    ]
+  }
 }
 )json";
 }
@@ -94,6 +172,14 @@ TEST(SandboxConfigurationLoader, ParsesHarnessSummary)
     ASSERT_TRUE(dataset.metrics.contains("parameterization.texel_density"));
     EXPECT_EQ(dataset.source_asset, "assets/datasets/remesh_sample/source_mesh.obj");
     EXPECT_EQ(dataset.processed_asset, "assets/datasets/remesh_sample/output_mesh.obj");
+    ASSERT_EQ(dataset.assets.size(), 2U);
+    EXPECT_TRUE(dataset.assets[0].verified);
+    EXPECT_FALSE(dataset.assets[0].message.has_value());
+    EXPECT_FALSE(dataset.assets[1].verified);
+    ASSERT_TRUE(dataset.assets[1].actual_size_bytes.has_value());
+    EXPECT_EQ(dataset.assets[1].actual_size_bytes.value(), 512U);
+    ASSERT_TRUE(dataset.assets[1].message.has_value());
+    EXPECT_EQ(dataset.assets[1].message.value(), "asset mismatch");
 
     ASSERT_EQ(summary.rendering_presets.size(), 1U);
     const auto& preset = summary.rendering_presets.front();
@@ -118,6 +204,37 @@ TEST(SandboxConfigurationLoader, ParsesHarnessSummary)
     EXPECT_TRUE(runtime.simulation_description.find("dt=0.016667") != std::string::npos);
     EXPECT_TRUE(runtime.simulation_description.find("max_substeps=2") != std::string::npos);
     EXPECT_FALSE(runtime.hot_reload_enabled);
+
+    ASSERT_TRUE(summary.telemetry.has_value());
+    const auto& telemetry = *summary.telemetry;
+    EXPECT_EQ(telemetry.schema_version, 2);
+    ASSERT_EQ(telemetry.outputs.size(), 2U);
+    EXPECT_EQ(telemetry.outputs[0].kind, "file");
+    ASSERT_TRUE(telemetry.outputs[0].path.has_value());
+    EXPECT_EQ(telemetry.outputs[0].path.value(), "/tmp/telemetry.json");
+    ASSERT_TRUE(telemetry.outputs[0].template_path.has_value());
+    EXPECT_EQ(telemetry.outputs[0].template_path.value(), "telemetry/{scenario}.json");
+    EXPECT_EQ(telemetry.outputs[1].kind, "stdout");
+    EXPECT_FALSE(telemetry.outputs[1].path.has_value());
+    ASSERT_TRUE(telemetry.metrics.size() >= 2U);
+    EXPECT_EQ(telemetry.metrics[0].name, "frame_time");
+    EXPECT_EQ(telemetry.metrics[0].statistic, "avg");
+    ASSERT_TRUE(telemetry.sampling.has_value());
+    EXPECT_EQ(telemetry.sampling->frame_interval, 8);
+    EXPECT_TRUE(telemetry.sampling->include_debug_overlays);
+
+    ASSERT_TRUE(summary.benchmarks.has_value());
+    const auto& benchmarks = *summary.benchmarks;
+    EXPECT_EQ(benchmarks.schema_version, 1);
+    ASSERT_EQ(benchmarks.scenarios.size(), 1U);
+    const auto& scenario = benchmarks.scenarios.front();
+    EXPECT_EQ(scenario.identifier, "remesh-baseline");
+    EXPECT_EQ(scenario.rendering_preset, "research-baseline");
+    ASSERT_EQ(scenario.engine.command.size(), 2U);
+    EXPECT_EQ(scenario.engine.command.front(), "python");
+    ASSERT_EQ(scenario.metrics.size(), 1U);
+    EXPECT_EQ(scenario.metrics.front().threshold.mode, "relative");
+    EXPECT_NEAR(scenario.metrics.front().threshold.limit, 0.05, 1e-6);
 }
 
 TEST(SandboxConfigurationLoader, LoadsSummaryFromFile)

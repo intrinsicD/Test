@@ -3,6 +3,7 @@
 #include "engine/tools/api.hpp"
 
 #include <array>
+#include <cstdint>
 #include <filesystem>
 #include <functional>
 #include <map>
@@ -22,6 +23,20 @@ namespace engine::tools::sandbox
         std::string details;
     };
 
+    struct DatasetAssetDescriptor
+    {
+        std::string role;
+        std::string path;
+        std::string resolved_path;
+        bool exists{false};
+        bool verified{false};
+        std::optional<std::uintmax_t> expected_size_bytes;
+        std::optional<std::uintmax_t> actual_size_bytes;
+        std::optional<std::string> expected_sha256;
+        std::optional<std::string> actual_sha256;
+        std::optional<std::string> message;
+    };
+
     struct DatasetDescriptor
     {
         std::string identifier;
@@ -32,6 +47,7 @@ namespace engine::tools::sandbox
         std::map<std::string, double> metrics;
         std::string source_asset;
         std::string processed_asset;
+        std::vector<DatasetAssetDescriptor> assets;
     };
 
     struct OverlayDescriptor
@@ -58,6 +74,70 @@ namespace engine::tools::sandbox
         std::string simulation_description;
         std::string camera_description;
         bool hot_reload_enabled{false};
+    };
+
+    struct TelemetryOutputDescriptor
+    {
+        std::string kind;
+        std::optional<std::string> path;
+        std::optional<std::string> template_path;
+    };
+
+    struct TelemetryMetricDescriptor
+    {
+        std::string name;
+        std::string statistic;
+    };
+
+    struct TelemetrySamplingDescriptor
+    {
+        int frame_interval{0};
+        bool include_debug_overlays{false};
+    };
+
+    struct TelemetryConfigurationDescriptor
+    {
+        int schema_version{0};
+        std::vector<TelemetryOutputDescriptor> outputs;
+        std::vector<TelemetryMetricDescriptor> metrics;
+        std::optional<TelemetrySamplingDescriptor> sampling;
+    };
+
+    struct BenchmarkCommandDescriptor
+    {
+        std::vector<std::string> command;
+        std::string output;
+    };
+
+    struct BenchmarkMetricThresholdDescriptor
+    {
+        std::string mode;
+        double limit{0.0};
+    };
+
+    struct BenchmarkMetricDescriptor
+    {
+        std::string name;
+        bool higher_is_better{false};
+        BenchmarkMetricThresholdDescriptor threshold;
+    };
+
+    struct BenchmarkScenarioDescriptor
+    {
+        std::string identifier;
+        std::string name;
+        std::string dataset;
+        std::string rendering_preset;
+        std::string runtime_profile;
+        BenchmarkCommandDescriptor engine;
+        BenchmarkCommandDescriptor reference;
+        std::vector<BenchmarkMetricDescriptor> metrics;
+    };
+
+    struct BenchmarkConfigurationDescriptor
+    {
+        int schema_version{0};
+        std::vector<BenchmarkScenarioDescriptor> scenarios;
     };
 
     struct TelemetrySeries
@@ -93,6 +173,8 @@ namespace engine::tools::sandbox
         std::optional<std::string> selected_dataset;
         std::vector<RenderingPresetDescriptor> rendering_presets;
         RuntimeSummary runtime;
+        std::optional<TelemetryConfigurationDescriptor> telemetry;
+        std::optional<BenchmarkConfigurationDescriptor> benchmarks;
     };
 
     struct SandboxCallbacks
