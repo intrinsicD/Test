@@ -14,9 +14,10 @@ This document is the **single entry point** for every AI or human agent contribu
 ## Phase Overview
 The coordination cycle is split into five explicit phases. The **Agent Orchestrator** owns transitions between phases.
 
-1. **Intake & Scoping**  
-   - Product Manager prepares a task brief using [`agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md`](agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md).  
-   - Task is registered in `docs/backlog/active/` with roadmap identifier references.  
+1. **Intake & Scoping**
+   - Product Manager prepares a task brief using [`agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md`](agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md).
+   - Task is registered in `docs/backlog/active/` with roadmap identifier references.
+   - Role roster is populated in the backlog entry and task brief using [`agents/ROLES.md`](agents/ROLES.md) for accountability.
    - Orchestrator validates scope, required roles, and readiness checklist.
 2. **Context Assembly**  
    - Knowledge Librarian curates documentation excerpts and cross-links to ADRs, module READMEs, and prior PRs.  
@@ -30,9 +31,10 @@ The coordination cycle is split into five explicit phases. The **Agent Orchestra
    - Each gate has an accountable role (see `agents/ROLES.md`).  
    - Evidence is captured in [`agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md`](agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md) and linked back to the task brief.  
    - Gates run concurrently once implementation stabilises; blockers escalate to the Orchestrator.
-5. **Release & Documentation Sync**  
-   - Release Manager finalises changelog entries, version bumps, and artifact publication.  
-   - Docs/DevRel updates module READMEs, roadmap items, and `docs/NAVIGATION.md` as required.  
+5. **Release & Documentation Sync**
+   - Release Manager finalises changelog entries, version bumps, and artifact publication.
+   - Docs/DevRel updates module READMEs, roadmap items, and `docs/NAVIGATION.md` as required.
+   - Confirm backlog Role Roster owners have signed off or recorded follow-ups.
    - Final confirmation is recorded in the task brief before merge.
 
 ## Coordination Model

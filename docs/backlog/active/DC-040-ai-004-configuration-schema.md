@@ -9,6 +9,20 @@
 ## Summary
 AI-004 spans rendering presets, runtime harness controls, sandbox layouts, dataset manifests, and benchmark automation. Without a ratified configuration schema the teams ship incompatible knobs and the kickoff review stalls. This backlog item drives a single, versioned schema with validators in both C++ and Python so downstream work can integrate against a stable interface.
 
+## Role Roster
+| Role | Responsibilities | Owner |
+| --- | --- | --- |
+| Agent Orchestrator | Schedule schema review cadence, capture module approvals in the task brief. | Agent Orchestrator (11) |
+| Product Manager | Maintain roadmap alignment, confirm Definition of Done remains representative of kickoff needs. | Product Manager (10) |
+| Knowledge Librarian | Curate ADR-0007, design notes, and historical schema context; ensure citations stay current. | Knowledge Librarian (12) |
+| Specialist Engineer(s) | Runtime, tools, and assets leads implement validators, loaders, and integration tests. | Runtime Lead; Tools Lead; Assets Lead |
+| Docs/DevRel | Update prototyping playbook, module READMEs, and NAVIGATION pointers for the shared schema. | Docs/DevRel (95) |
+| QA/Test Specialist | Expand C++/Python validator coverage, record execution logs in the quality report. | QA/Test Specialist (90) |
+| Performance Engineer | Review telemetry changes for overhead, ensure schema instrumentation meets budgets. | Performance Engineer (80) |
+| Safety Reviewer | Audit config parsing for injection/sandboxing risks; verify dependency diffs. | Safety Reviewer (15) |
+| Reviewer | Apply CONTRIBUTION.md review checklist across cross-module diffs. | Reviewer (99) |
+| Release Manager | Tag schema version updates and publish release notes for downstream teams. | Release Manager (98) |
+
 ## Definition of Done
 - [x] Schema specification published with module sign-off recorded in ADR-0007.
 - [x] Runtime harness and Python tooling load and validate configurations via the shared schema (feature-flagged until adoption completes).
