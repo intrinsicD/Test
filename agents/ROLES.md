@@ -1,6 +1,6 @@
 # Agent Roles and Responsibilities
 
-This guide replaces the legacy stack of numbered role files. All contributors inherit the common ground rules from [`CONTRIBUTION.md`](../CONTRIBUTION.md) and orchestrate work using [`AGENT_WORKFLOW.md`](../AGENT_WORKFLOW.md).
+This guide replaces the legacy stack of numbered role files. All contributors inherit the common ground rules from [`CONTRIBUTION.md`](../CONTRIBUTION.md) and orchestrate work using [`AGENTS.md`](../AGENTS.md).
 
 ## Core Roles
 | Role | Primary Owner | Key Responsibilities | Mandatory Deliverables | Communication Path |

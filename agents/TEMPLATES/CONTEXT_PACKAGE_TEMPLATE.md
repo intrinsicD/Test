@@ -22,7 +22,7 @@
 | Prior PRs / Discussions |  |  |
 
 ## 4. Build & Validation Commands
-Copy the canonical block from [`AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md) and list any task-specific additions. Explain why deviations are required.
+Copy the canonical block from [`AGENTS.md`](../../AGENTS.md) and list any task-specific additions. Explain why deviations are required.
 
 ## 5. Open Questions
 | Question | Owner | Due Date | Resolution |

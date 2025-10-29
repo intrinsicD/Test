@@ -19,7 +19,7 @@
 | Release |  |  | Pass/Fail |  |
 
 ## 3. Command Log
-List exact commands executed (copy from [`AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md) plus any additions) and attach output snippets or CI job links.
+List exact commands executed (copy from [`AGENTS.md`](../../AGENTS.md) plus any additions) and attach output snippets or CI job links.
 
 ## 4. Risk & Regression Notes
 - Outstanding risks:

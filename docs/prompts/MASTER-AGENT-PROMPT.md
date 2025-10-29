@@ -1,6 +1,6 @@
 # MASTER AGENT PROMPT
 
-Purpose: Operate end-to-end as a coding agent in this repository. Follow the phases defined in [`AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md), select the highest-value task, plan it, implement it, verify with quality gates, self-review, and deliver cleanly. Work autonomously; only ask for input if truly blocked by missing facts in the repo.
+Purpose: Operate end-to-end as a coding agent in this repository. Follow the phases defined in [`AGENTS.md`](../../AGENTS.md), select the highest-value task, plan it, implement it, verify with quality gates, self-review, and deliver cleanly. Work autonomously; only ask for input if truly blocked by missing facts in the repo.
 
 How to call this prompt
 - Chat: “Load and execute docs/prompts/MASTER-AGENT-PROMPT.md. Start at Section 1 (Task discovery), produce acceptance criteria, then proceed through Sections 2–7 to fully implement and verify the task.”
@@ -22,7 +22,7 @@ Guardrails:
 - Always run quality gates and ensure green before declaring done.
 
 Workflow alignment checklist:
-- Load [`../../AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md) and map Sections 1–7 below to its phases (Intake & Scoping → §1, Context Assembly → §2, Execution & Collaboration → §3, Quality Gates → §4, Release & Documentation Sync → §§5–7).
+- Load [`../../AGENTS.md`](../../AGENTS.md) and map Sections 1–7 below to its phases (Intake & Scoping → §1, Context Assembly → §2, Execution & Collaboration → §3, Quality Gates → §4, Release & Documentation Sync → §§5–7).
 - Inspect the backlog entry’s **Role Roster** (`docs/backlog/active/<ID>.md`) and confirm each accountable role has a plan before exiting Section 2.
 - Update the task brief/context package templates in [`../../agents/TEMPLATES/`](../../agents/TEMPLATES) whenever scope, roster, or status shifts.
 

@@ -4,7 +4,7 @@
 
 The workspace hosts a modular C++20 engine prototype. Each subsystem builds as an independent library under `engine/` and exports headers through `engine::headers`, while `docs/`, `python/`, and `scripts/` capture design notes, automation helpers, and build orchestration. Follow this breadcrumb trail at the start of every session:
 
-1. Load [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) for the consolidated workflow, role expectations, and quality gates.
+1. Load [AGENTS.md](AGENTS.md) for the consolidated workflow, role expectations, and quality gates.
 2. Review [docs/NAVIGATION.md](docs/NAVIGATION.md) for documentation navigation and task routing order.
 3. Confirm the initiative or module you are touching in [docs/ROADMAP.md](docs/ROADMAP.md) and the relevant `docs/modules/<name>/` README/ROADMAP pair.
 4. Open the matching record under [docs/backlog/](docs/backlog/) to understand acceptance criteria and status notes before editing code.
