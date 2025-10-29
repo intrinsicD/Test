@@ -26,6 +26,7 @@ __all__ = [
     "MeshMetrics",
     "ParameterizationChart",
     "ParameterizationSummary",
+    "TriangleQualityStatistics",
     "DatasetStatistics",
     "RenderingConfig",
     "RuntimeConfig",
@@ -390,19 +391,59 @@ class ParameterizationSummary:
 
 
 @dataclass(frozen=True)
+class TriangleQualityStatistics:
+    minimum: float
+    mean: float
+    maximum: float
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "TriangleQualityStatistics":
+        minimum = _require_float(data.get("min"), _child(context, "min"))
+        mean = _require_float(data.get("mean"), _child(context, "mean"))
+        maximum = _require_float(data.get("max"), _child(context, "max"))
+        return cls(minimum=minimum, mean=mean, maximum=maximum)
+
+
+@dataclass(frozen=True)
 class DatasetStatistics:
     iteration_count: int
+    split_count: Optional[int]
+    collapse_count: Optional[int]
+    duration_ms: Optional[float]
     max_error: float
     min_edge_length: float
     max_edge_length: float
     max_surface_deviation: float
     mean_surface_deviation: float
     rms_surface_deviation: float
+    triangle_count: Optional[int]
+    triangle_quality: Optional[TriangleQualityStatistics]
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, object], context: str) -> "DatasetStatistics":
+        splits = None
+        if "splits" in data:
+            splits = _require_non_negative_int(data.get("splits"), _child(context, "splits"))
+        collapses = None
+        if "collapses" in data:
+            collapses = _require_non_negative_int(data.get("collapses"), _child(context, "collapses"))
+        duration_ms = None
+        if "duration_ms" in data:
+            duration_ms = _require_non_negative_float(data.get("duration_ms"), _child(context, "duration_ms"))
+        triangle_count = None
+        if "triangles" in data:
+            triangle_count = _require_non_negative_int(data.get("triangles"), _child(context, "triangles"))
+        triangle_quality = None
+        if "triangle_quality" in data:
+            triangle_quality = TriangleQualityStatistics.from_mapping(
+                _require_mapping(data.get("triangle_quality"), _child(context, "triangle_quality")),
+                _child(context, "triangle_quality"),
+            )
         return cls(
             iteration_count=_require_int(data.get("iterations"), _child(context, "iterations")),
+            split_count=splits,
+            collapse_count=collapses,
+            duration_ms=duration_ms,
             max_error=_require_float(data.get("max_error"), _child(context, "max_error")),
             min_edge_length=_require_float(data.get("min_edge_length"), _child(context, "min_edge_length")),
             max_edge_length=_require_float(data.get("max_edge_length"), _child(context, "max_edge_length")),
@@ -415,6 +456,8 @@ class DatasetStatistics:
             rms_surface_deviation=_require_float(
                 data.get("rms_surface_deviation"), _child(context, "rms_surface_deviation")
             ),
+            triangle_count=triangle_count,
+            triangle_quality=triangle_quality,
         )
 
 

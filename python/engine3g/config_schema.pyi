@@ -64,14 +64,26 @@ class ParameterizationSummary:
 
 
 @dataclass
+class TriangleQualityStatistics:
+    minimum: float
+    mean: float
+    maximum: float
+
+
+@dataclass
 class DatasetStatistics:
     iteration_count: int
+    split_count: Optional[int]
+    collapse_count: Optional[int]
+    duration_ms: Optional[float]
     max_error: float
     min_edge_length: float
     max_edge_length: float
     max_surface_deviation: float
     mean_surface_deviation: float
     rms_surface_deviation: float
+    triangle_count: Optional[int]
+    triangle_quality: Optional[TriangleQualityStatistics]
 
 
 @dataclass

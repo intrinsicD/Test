@@ -63,8 +63,8 @@ EngineRuntimeHandle (ctypes wrapper)
 
 - **Configuration**: `Ai004Configuration` composed of dataset manifests, rendering presets, runtime overrides, benchmark scenarios, and telemetry options. The `PrototypeHarness.describe_configuration()` helper now projects this into a structured summary that includes schema versions for datasets/runtime/rendering plus telemetry outputs/metrics so UI clients can verify compatibility at a glance.
 - **Harness Options**: `HarnessExecutionOptions` (new) capturing frame count, timestep, and dry-run semantics.
-- **Configuration Summary**: `HarnessConfigurationSummary` materialises dataset provenance (tags, statistics, feature-preservation flags, parameterisation metrics, checksums), runtime defaults, and telemetry descriptors for consumption by tools automation.
-- **Execution Result**: `HarnessRunSummary` capturing dataset slug, rendered preset, frames executed, and placeholder telemetry fields ready for integration with diagnostics exports.
+- **Configuration Summary**: `HarnessConfigurationSummary` materialises dataset provenance (tags, statistics, feature-preservation flags, parameterisation metrics, checksums), runtime defaults, and telemetry descriptors for consumption by tools automation. Statistics now include remeshing operation counts, execution duration, and triangle-quality ranges so downstream tooling mirrors dataset manifests without reparsing them.
+- **Execution Result**: `HarnessRunSummary` capturing dataset slug, rendered preset, frames executed, telemetry output targets, and dispatch telemetry ready for integration with diagnostics exports.
 
 ### Error Handling
 
@@ -76,7 +76,7 @@ EngineRuntimeHandle (ctypes wrapper)
 ### Logging & Telemetry
 
 - Harness prints structured summaries (slug, preset, frames, dt, and average tick time) to stdout for CI consumption.
-- Execution summaries now include the runtime's rolling `average_tick_ms` diagnostics and per-kernel dispatch telemetry (execution order + durations in milliseconds) so benchmark automation can flag timing regressions without parsing native logs. The native `runtime_prototype_harness` sample mirrors this behaviour by serialising dispatch order and millisecond durations alongside the JSON summary consumed by CI.
+- Execution summaries now include the runtime's rolling `average_tick_ms` diagnostics, per-kernel dispatch telemetry (execution order + durations in milliseconds), and resolved telemetry output targets so benchmark automation can flag timing regressions and validate export paths without parsing native logs. The native `runtime_prototype_harness` sample mirrors this behaviour by serialising dispatch order, millisecond durations, and telemetry outputs alongside the JSON summary consumed by CI.
 - Telemetry capture hooks record dispatch order samples and kernel durations; future work will integrate Tracy + diagnostics bridges. The configuration summary additionally surfaces telemetry schema version, outputs, metrics, and sampling cadence so downstream tooling can validate expectations without parsing manifests directly.
 
 ### Extensibility

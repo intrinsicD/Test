@@ -97,6 +97,11 @@ BASE_ENTRY = {
     },
     "statistics": {
         "iterations": 8,
+        "splits": 12,
+        "collapses": 3,
+        "duration_ms": 12.5,
+        "triangles": 28,
+        "triangle_quality": {"min": 0.75, "mean": 0.85, "max": 0.95},
         "max_error": 0.0025,
         "min_edge_length": 0.2,
         "max_edge_length": 1.0,
@@ -139,6 +144,14 @@ def test_load_dataset_manifest_from_yaml(tmp_path: Path) -> None:
     assert pytest.approx(dataset.statistics.max_surface_deviation, rel=1e-6) == 0.015
     assert pytest.approx(dataset.statistics.mean_surface_deviation, rel=1e-6) == 0.010
     assert pytest.approx(dataset.statistics.rms_surface_deviation, rel=1e-6) == 0.012
+    assert dataset.statistics.split_count == 12
+    assert dataset.statistics.collapse_count == 3
+    assert pytest.approx(dataset.statistics.duration_ms, rel=1e-6) == 12.5
+    assert dataset.statistics.triangle_count == 28
+    assert dataset.statistics.triangle_quality is not None
+    assert pytest.approx(dataset.statistics.triangle_quality.minimum, rel=1e-6) == 0.75
+    assert pytest.approx(dataset.statistics.triangle_quality.mean, rel=1e-6) == 0.85
+    assert pytest.approx(dataset.statistics.triangle_quality.maximum, rel=1e-6) == 0.95
 
 
 def test_load_dataset_manifest_from_json_without_parameterization(tmp_path: Path) -> None:

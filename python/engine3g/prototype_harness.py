@@ -76,6 +76,7 @@ class HarnessRunSummary:
     average_tick_ms: Optional[float] = None
     dispatch_order: Tuple[str, ...] = ()
     dispatch_durations_ms: Tuple[float, ...] = ()
+    telemetry_outputs: Tuple[TelemetryOutputSummary, ...] = ()
     run_index: Optional[int] = None
     run_count: Optional[int] = None
 
@@ -104,7 +105,7 @@ class DatasetSummary:
     remeshing_targets: Optional[Dict[str, float]]
     feature_preservation: Dict[str, object]
     parameterization: Optional[Dict[str, object]]
-    statistics: Dict[str, float]
+    statistics: Dict[str, object]
     metrics: Dict[str, Dict[str, float]]
 
     def to_dict(self) -> Dict[str, object]:
@@ -417,6 +418,17 @@ class PrototypeHarness:
             benchmarks=benchmark_summary,
         )
 
+
+    def _telemetry_outputs(self) -> Tuple[TelemetryOutputSummary, ...]:
+        """Return telemetry outputs declared in the configuration."""
+
+        if self._configuration.telemetry is None:
+            return ()
+        return tuple(
+            TelemetryOutputSummary(kind=output.kind, path=output.path)
+            for output in self._configuration.telemetry.outputs
+        )
+
     def run_headless(self, options: HarnessExecutionOptions | None = None) -> HarnessRunSummary:
         """Execute a fixed-timestep runtime loop and return a summary."""
 
@@ -425,6 +437,7 @@ class PrototypeHarness:
 
         rendering = self._rendering_config()
         average_tick_ms: Optional[float] = None
+        telemetry_outputs = self._telemetry_outputs()
 
         if execution.dry_run:
             return HarnessRunSummary(
@@ -436,6 +449,7 @@ class PrototypeHarness:
                 average_tick_ms=None,
                 dispatch_order=(),
                 dispatch_durations_ms=(),
+                telemetry_outputs=telemetry_outputs,
             )
 
         try:
@@ -469,6 +483,7 @@ class PrototypeHarness:
             average_tick_ms=average_tick_ms,
             dispatch_order=dispatch_order,
             dispatch_durations_ms=dispatch_durations_ms,
+            telemetry_outputs=telemetry_outputs,
         )
 
     @staticmethod
@@ -512,7 +527,7 @@ class PrototypeHarness:
                     for chart in entry.parameterization.charts
                 ]
 
-        statistics: Dict[str, float] = {
+        statistics: Dict[str, object] = {
             "iterations": float(entry.statistics.iteration_count),
             "max_error": entry.statistics.max_error,
             "min_edge_length": entry.statistics.min_edge_length,
@@ -521,6 +536,20 @@ class PrototypeHarness:
             "mean_surface_deviation": entry.statistics.mean_surface_deviation,
             "rms_surface_deviation": entry.statistics.rms_surface_deviation,
         }
+        if entry.statistics.split_count is not None:
+            statistics["splits"] = float(entry.statistics.split_count)
+        if entry.statistics.collapse_count is not None:
+            statistics["collapses"] = float(entry.statistics.collapse_count)
+        if entry.statistics.duration_ms is not None:
+            statistics["duration_ms"] = entry.statistics.duration_ms
+        if entry.statistics.triangle_count is not None:
+            statistics["triangles"] = float(entry.statistics.triangle_count)
+        if entry.statistics.triangle_quality is not None:
+            statistics["triangle_quality"] = {
+                "min": entry.statistics.triangle_quality.minimum,
+                "mean": entry.statistics.triangle_quality.mean,
+                "max": entry.statistics.triangle_quality.maximum,
+            }
 
         metrics: Dict[str, Dict[str, float]] = {
             "input": {
@@ -738,6 +767,7 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
         "average_tick_ms": summary.average_tick_ms,
         "dispatch_order": list(summary.dispatch_order),
         "dispatch_durations_ms": list(summary.dispatch_durations_ms),
+        "telemetry_outputs": [output.to_dict() for output in summary.telemetry_outputs],
     }
     if summary.run_index is not None:
         payload["run_index"] = summary.run_index
