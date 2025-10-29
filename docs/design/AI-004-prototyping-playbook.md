@@ -111,7 +111,7 @@ python -m scripts.prototyping.run_prototype_harness \
 ```
 
 - `--frames`/`--dt` control simulation cadence.
-- `--summary-json` writes telemetry and benchmark metadata to disk.
+- `--summary-json` writes telemetry and benchmark metadata (including `average_tick_ms`) to disk.
 - Provide `--case-study <id>` to resolve configurations from
   `assets/datasets/case_studies/` once they are published.
 

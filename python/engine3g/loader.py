@@ -92,6 +92,12 @@ class EngineRuntimeHandle:
             ctypes.POINTER(ctypes.c_float),
             ctypes.POINTER(ctypes.c_float),
         ]
+        self._supports_average_tick_ms = hasattr(
+            self.library, "engine_runtime_diagnostic_average_tick_ms"
+        )
+        if self._supports_average_tick_ms:
+            self.library.engine_runtime_diagnostic_average_tick_ms.restype = ctypes.c_double
+            self.library.engine_runtime_diagnostic_average_tick_ms.argtypes = []
         self._is_initialized: bool = False
         self._context_owns_runtime: bool = False
 
@@ -195,6 +201,13 @@ class EngineRuntimeHandle:
         for index in range(count):
             durations.append(float(self.library.engine_runtime_dispatch_duration(index)))
         return durations
+
+    def average_tick_ms(self) -> Optional[float]:
+        """Return the rolling average tick duration reported by the runtime."""
+
+        if not self._supports_average_tick_ms:
+            return None
+        return float(self.library.engine_runtime_diagnostic_average_tick_ms())
 
     def scene_nodes(
         self,

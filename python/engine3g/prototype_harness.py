@@ -59,6 +59,7 @@ class HarnessRunSummary:
     shading_mode: Optional[str]
     frames_executed: int
     timestep_seconds: float
+    average_tick_ms: Optional[float] = None
 
 
 RuntimeFactory = Callable[[], EngineRuntimeHandle]
@@ -237,6 +238,7 @@ class PrototypeHarness:
         execution.validate()
 
         rendering = self._rendering_config()
+        average_tick_ms: Optional[float] = None
 
         if execution.dry_run:
             return HarnessRunSummary(
@@ -245,6 +247,7 @@ class PrototypeHarness:
                 shading_mode=rendering.shading_mode if rendering else None,
                 frames_executed=0,
                 timestep_seconds=execution.dt,
+                average_tick_ms=None,
             )
 
         try:
@@ -257,6 +260,7 @@ class PrototypeHarness:
             for _ in range(execution.frames):
                 runtime.tick(execution.dt)
                 frames_executed += 1
+            average_tick_ms = runtime.average_tick_ms()
 
         return HarnessRunSummary(
             dataset_id=self._selected_dataset.identifier if self._selected_dataset else None,
@@ -264,6 +268,7 @@ class PrototypeHarness:
             shading_mode=rendering.shading_mode if rendering else None,
             frames_executed=frames_executed,
             timestep_seconds=execution.dt,
+            average_tick_ms=average_tick_ms,
         )
 
     @staticmethod
@@ -405,9 +410,12 @@ def summarize(summary: HarnessRunSummary) -> str:
     dataset = summary.dataset_id or "<none>"
     preset = summary.rendering_preset or "<unspecified>"
     shading = summary.shading_mode or "<unspecified>"
+    average = (
+        f" avg_ms={summary.average_tick_ms:.6f}" if summary.average_tick_ms is not None else ""
+    )
     return (
         f"dataset={dataset} preset={preset} shading={shading} "
-        f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}"
+        f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}"
     )
 
 
@@ -426,5 +434,6 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
         "shading_mode": summary.shading_mode,
         "frames": summary.frames_executed,
         "timestep_seconds": summary.timestep_seconds,
+        "average_tick_ms": summary.average_tick_ms,
     }
 
