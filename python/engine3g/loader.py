@@ -2,25 +2,58 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 import ctypes
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, MutableMapping, Optional, Tuple
+from types import MappingProxyType
+from typing import (
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 __all__ = [
     "EngineLibraryNotFound",
     "EngineModuleHandle",
     "EngineRuntimeHandle",
+    "RuntimeSession",
     "load_all_modules",
     "load_module",
     "load_runtime",
+    "runtime_session",
 ]
 
 
 class EngineLibraryNotFound(RuntimeError):
     """Raised when a requested engine library cannot be located."""
+
+    def __init__(
+        self,
+        identifier: str,
+        library_name: str,
+        attempted_paths: Sequence[Path],
+        last_error: Optional[OSError],
+    ) -> None:
+        self.identifier = identifier
+        self.library_name = library_name
+        self.attempted_paths = tuple(Path(path) for path in attempted_paths)
+        self.last_error = last_error
+        search_hint = ", ".join(str(path) for path in self.attempted_paths) or "<none>"
+        message = (
+            f"Unable to locate the shared library '{library_name}'. "
+            "Set ENGINE3G_LIBRARY_PATH or provide explicit search paths. "
+            f"Looked in: {search_hint}."
+        )
+        super().__init__(message)
 
 
 @dataclass
@@ -294,6 +327,24 @@ class EngineRuntimeHandle:
         return modules
 
 
+@dataclass(frozen=True)
+class RuntimeSession:
+    """Managed runtime scope exposed as a typed helper."""
+
+    runtime: EngineRuntimeHandle
+    modules: Mapping[str, EngineModuleHandle]
+
+    def tick(self, dt: float) -> None:
+        """Advance the runtime using the managed handle."""
+
+        self.runtime.tick(dt)
+
+    def module(self, name: str) -> EngineModuleHandle:
+        """Return the loaded module named *name* or raise ``KeyError``."""
+
+        return self.modules[name]
+
+
 def load_runtime(search_paths: Optional[Iterable[os.PathLike[str] | str]] = None) -> EngineRuntimeHandle:
     """Load the aggregate runtime library and return a handle."""
     library = _load_shared_library("engine_runtime", search_paths)
@@ -347,11 +398,11 @@ def _load_shared_library(identifier: str, search_paths: Optional[Iterable[os.Pat
         return ctypes.CDLL(library_name)
     except OSError as error:
         last_error = error
-    search_hint = ", ".join(str(path) for path in attempted_paths) or "<none>"
     raise EngineLibraryNotFound(
-        f"Unable to locate the shared library '{library_name}'. "
-        "Set ENGINE3G_LIBRARY_PATH or provide explicit search paths. "
-        f"Looked in: {search_hint}."
+        identifier=identifier,
+        library_name=library_name,
+        attempted_paths=attempted_paths,
+        last_error=last_error,
     ) from last_error
 
 
@@ -396,4 +447,23 @@ def _default_search_paths() -> List[Path]:
     paths.append(package_root)
     paths.append(Path.cwd())
     return paths
+
+
+@contextmanager
+def runtime_session(
+    search_paths: Optional[Iterable[os.PathLike[str] | str]] = None,
+    *,
+    load_modules: bool = False,
+) -> Iterator[RuntimeSession]:
+    """Load the runtime, manage its lifetime, and yield a :class:`RuntimeSession`."""
+
+    runtime = load_runtime(search_paths=search_paths)
+    modules: Mapping[str, EngineModuleHandle]
+    with runtime:
+        if load_modules:
+            loaded = runtime.load_modules(search_paths=search_paths)
+            modules = MappingProxyType(dict(loaded))
+        else:
+            modules = MappingProxyType({})
+        yield RuntimeSession(runtime=runtime, modules=modules)
 
