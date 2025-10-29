@@ -10,7 +10,7 @@ previously stored under `docs/archive/prints/`.
 
 ## Prerequisites Checklist
 Before invoking the prompt, confirm:
-- [ ] You have read [`../NAVIGATION.md`](../NAVIGATION.md), [`../../README.md`](../../README.md), and [`../../AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md) for the current workflow snapshot.
+- [ ] You have read [`../NAVIGATION.md`](../NAVIGATION.md), [`../../README.md`](../../README.md), and [`../../AGENTS.md`](../../AGENTS.md) for the current workflow snapshot.
 - [ ] The active backlog record in [`../backlog/active/`](../backlog/active/) (and its **Role Roster**) is open. Consult [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) for historical context if needed.
 - [ ] Module-specific READMEs and roadmaps in [`../modules/`](../modules/) are reviewed for impacted subsystems.
 - [ ] Applicable specs or ADRs in [`../specs/`](../specs/) are identified.

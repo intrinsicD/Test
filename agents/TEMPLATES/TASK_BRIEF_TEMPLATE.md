@@ -1,7 +1,7 @@
 # Task Brief Template
 
 > Owner: Product Manager (Role 10)  
-> Linked Workflow: [`AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md)
+> Linked Workflow: [`AGENTS.md`](../../AGENTS.md)
 
 ## 1. Summary
 - **Title:**

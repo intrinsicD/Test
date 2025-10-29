@@ -9,10 +9,12 @@ When working as an AI agent, prioritize in this order:
 3. **Performance** – ensure changes respect the existing profiling budgets and telemetry.
 4. **Velocity** – prefer incremental, well-scoped tasks over sweeping refactors.
 
+## 0. Portal Overview
+This file is the **single entry point** for every AI or human contributor operating in the Test Engine workspace. Treat it as the authoritative workflow manual and keep it open for the entire session. All other guides, templates, and checklists extend the process described here.
+
 ### Always Do
 
 - Cite every file path or command you reference.
-- Start each session by loading [`AGENT_WORKFLOW.md`](AGENT_WORKFLOW.md) to align on phases, coordination, and quality gates.
 - Follow the session checklist in [`docs/NAVIGATION.md`](docs/NAVIGATION.md) before modifying anything.
 - When collaborating across multiple roles, review the coordination guidance in [`agents/AGENTS.md`](agents/AGENTS.md) so hand-offs and context packs stay aligned.
 - Update or add tests for every behaviour change. Place C++ coverage under the owning module in `engine/<module>/tests/` and Python coverage under `python/tests/` or `scripts/tests/`.
@@ -25,9 +27,57 @@ When working as an AI agent, prioritize in this order:
 - Merge changes without aligning task status and documentation.
 - Introduce new dependencies without documenting installation and runtime implications.
 
+### Workflow Phases
+The coordination cycle is split into five phases. The **Agent Orchestrator** owns the transitions between them. Every task must record phase outcomes inside the task brief defined in [`agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md`](agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md).
+
+1. **Intake & Scoping** – Product Manager prepares the brief, registers the task in `docs/backlog/active/`, and validates required roles against [`agents/ROLES.md`](agents/ROLES.md).
+2. **Context Assembly** – Knowledge Librarian curates documentation excerpts and ADR links, delivering the context pack using [`agents/TEMPLATES/CONTEXT_PACKAGE_TEMPLATE.md`](agents/TEMPLATES/CONTEXT_PACKAGE_TEMPLATE.md).
+3. **Execution & Collaboration** – Specialists implement while logging communication in the brief and following [`CONTRIBUTION.md`](CONTRIBUTION.md).
+4. **Quality Gates** – Each gate (testing, performance, security & safety, documentation, review, release) signs off with evidence captured in [`agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md`](agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md).
+5. **Release & Documentation Sync** – Release Manager finalises artefacts and Docs/DevRel synchronises READMEs, the roadmap, and `docs/NAVIGATION.md` before close-out.
+
+### Coordination Model
+- **Communication Ledger:** Every hand-off must update the task brief with timestamped notes.
+- **Sync Rhythm:** Daily async updates via the task brief; urgent blockers escalate to the Orchestrator who convenes relevant roles.
+- **Conflict Resolution:** The Chief Architect resolves architectural disputes. The Docs/DevRel representative ensures documentation decisions are captured.
+- **Escalation Paths:**
+  1. Missing context → Knowledge Librarian.
+  2. Architectural ambiguity → Chief Architect, referencing `docs/specs/ADR-*.md`.
+  3. Tooling/build failures → Build Engineer.
+  4. Quality gate disagreements → Orchestrator for arbitration.
+
+### Documentation Integration Checklist
+For every task, confirm:
+
+1. **Roadmap Alignment:** Reference the owning item in `docs/ROADMAP.md` and the corresponding backlog file.
+2. **Module Documentation:** Update the affected module README using `docs/README_TEMPLATE.md`.
+3. **Architecture Records:** Reflect design-impacting changes in the relevant ADR or create a new one under `docs/specs/`.
+4. **Navigation Update:** If new docs are introduced, add entries to `docs/NAVIGATION.md`.
+5. **Contribution Standards:** Cite the sections in `CONTRIBUTION.md` that apply to the work (naming, testing, coding style).
+
+### Central Build Workflow
+Use these commands across all roles to guarantee reproducible validation. Copy/paste this block into status updates and task briefs.
+
+```bash
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug
+ctest --preset linux-gcc-debug
+pytest python/tests scripts/tests
+python scripts/validate_docs.py
+```
+
+Add additional presets only when mandated by the task scope. Document any deviation inside the quality report template.
+
+### Artefact Overview
+- **Roles and responsibilities:** [`agents/ROLES.md`](agents/ROLES.md)
+- **Task coordination templates:** [`agents/TEMPLATES/`](agents/TEMPLATES)
+- **Contribution standards:** [`CONTRIBUTION.md`](CONTRIBUTION.md)
+- **Documentation index:** [`docs/NAVIGATION.md`](docs/NAVIGATION.md)
+
+Keep this document authoritative; when the workflow evolves, update it alongside the linked artefacts in the same commit.
+
 ## 1. Always Start With the Documentation
 - Read the repository root `README.md` before making changes; it summarises the workspace layout, build presets, and current TODO backlog.
-- Load [`AGENT_WORKFLOW.md`](AGENT_WORKFLOW.md) for the canonical workflow and quality gates.
 - Open [`docs/NAVIGATION.md`](docs/NAVIGATION.md) immediately afterwards. It provides a directory index and links the working agreement in this file with subsystem invariants, task backlogs, and ADRs so contributors follow the same workflow as our AI collaborators.
 - When touching any module, review its local `README.md`. Create or update it using `docs/README_TEMPLATE.md` so every directory explains:
   - What the component does and how it relates to neighbouring modules.
@@ -89,6 +139,7 @@ When working as an AI agent, prioritize in this order:
 - [ ] No warnings or regressions introduced in existing tests.
 
 Keep this guidance up to date as workflows evolve so newcomers can build, test, and extend the engine without surprises.
+
 
 ## Repository Hierarchy
 

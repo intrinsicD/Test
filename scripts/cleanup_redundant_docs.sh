@@ -1,5 +1,5 @@
 #!/bin/bash
-# Cleanup redundant documentation files after hybrid workflow migration
+# Cleanup redundant documentation files after workflow consolidation
 # Date: 2025-10-24
 
 set -e
@@ -35,12 +35,12 @@ echo "  - Archived: 3 historical restructure documents"
 echo "  - Removed: agents/README.md (if present)"
 echo "  - Retained: AGENTS.md and agents/AGENTS.md (authoritative manuals)"
 echo ""
-echo "🔍 Authoritative workflow artefacts now:" 
-echo "  - AGENT_WORKFLOW.md (single portal)"
+echo "🔍 Authoritative workflow artefacts now:"
+echo "  - AGENTS.md (single portal)"
 echo "  - agents/ROLES.md (responsibility map)"
 echo "  - agents/TEMPLATES/ (task, context, quality templates)"
 echo ""
-echo "💡 Tip: Keep AGENT_WORKFLOW.md and the linked templates updated together to"
+echo "💡 Tip: Keep AGENTS.md and the linked templates updated together to"
 echo "   avoid documentation drift."
 echo ""
 echo "🔗 Validating documentation links..."

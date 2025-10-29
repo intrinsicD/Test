@@ -2,7 +2,7 @@
 
 ## Scope & Method
 
-This review evaluates the Test Engine roadmap and trajectory through the dual lenses of the **Product Manager** and **Chief Architect** roles. Inputs included the authoritative backlog in [`docs/ROADMAP.md`](../ROADMAP.md), the workspace snapshot in [`README.md`](../../README.md), and module-level references cited there. Each role applied the hybrid workflow guardrails to score roadmap health, delivery confidence, and architectural alignment on a 1–5 scale (5 = exemplary, 1 = critical risk).
+This review evaluates the Test Engine roadmap and trajectory through the dual lenses of the **Product Manager** and **Chief Architect** roles. Inputs included the authoritative backlog in [`docs/ROADMAP.md`](../ROADMAP.md), the workspace snapshot in [`README.md`](../../README.md), and module-level references cited there. Each role applied the agent workflow guardrails outlined in [`../../AGENTS.md`](../../AGENTS.md) to score roadmap health, delivery confidence, and architectural alignment on a 1–5 scale (5 = exemplary, 1 = critical risk).
 
 ## Product Management Assessment
 

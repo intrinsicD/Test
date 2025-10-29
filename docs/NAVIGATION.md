@@ -4,7 +4,7 @@
 
 **First-time or general questions?**
 1. Read [`../README.md`](../README.md) – workspace overview, build steps, module health.
-2. Load [`../AGENT_WORKFLOW.md`](../AGENT_WORKFLOW.md) – single entry point for the agent workflow.
+2. Load [`../AGENTS.md`](../AGENTS.md) – single entry point for the agent workflow.
 3. Review [`../agents/ROLES.md`](../agents/ROLES.md) and the templates in [`../agents/TEMPLATES/`](../agents/TEMPLATES) for task-specific execution.
 4. Return here for specialised documentation and directory references.
 
@@ -34,7 +34,7 @@
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
-| [`../AGENT_WORKFLOW.md`](../AGENT_WORKFLOW.md) | Single entry portal covering phases, coordination, quality gates | Beginning any contribution |
+| [`../AGENTS.md`](../AGENTS.md) | Single entry portal covering phases, coordination, quality gates | Beginning any contribution |
 | [`../agents/AGENTS.md`](../agents/AGENTS.md) | Directory overview and maintenance guardrails | Managing artefacts inside `agents/` |
 | [`../agents/ROLES.md`](../agents/ROLES.md) | Specialised role responsibilities and approvals | Assigning or fulfilling roles |
 | [`../agents/TEMPLATES/`](../agents/TEMPLATES) | Task brief, context package, and quality report templates | Documenting and auditing work |
@@ -98,7 +98,7 @@ Run `python scripts/validate_docs.py` after editing to catch broken links.
 - Archive completed work to `archive/` after 30 days of inactivity.
 
 **Precedence for Conflicts:**
-`../AGENT_WORKFLOW.md` → `../AGENTS.md` → `NAVIGATION.md` (this file) → `ARCHITECTURE.md` → `design/` or `specs/` → module READMEs → code comments.
+`../AGENTS.md` → `NAVIGATION.md` (this file) → `ARCHITECTURE.md` → `design/` or `specs/` → module READMEs → code comments.
 
 When a lower-precedence document conflicts with a higher one, update the higher-precedence document first, then cascade changes downstream.
 

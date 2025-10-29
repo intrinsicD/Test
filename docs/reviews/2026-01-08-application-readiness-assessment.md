@@ -5,7 +5,7 @@
 This review evaluates how close the Test Engine is to powering a research or prototyping application. Inputs included the module
 health snapshot in [`README.md`](../../README.md), the active initiative breakdown in [`docs/ROADMAP.md`](../ROADMAP.md), and the
 P0 task briefs for `AI-004` and its constituent workstreams (`RE-610`, `RT-320`, `T-0119`, `T-0120`, `TL-210`, `CC-310`). The
-assessment follows the hybrid workflow guardrails: inspect authoritative docs first, score readiness along product and technical
+assessment follows the agent workflow guardrails in [`../../AGENTS.md`](../../AGENTS.md): inspect authoritative docs first, score readiness along product and technical
 dimensions, and surface the minimum set of actions required to ship an end-to-end prototype experience.
 
 ## Readiness Summary

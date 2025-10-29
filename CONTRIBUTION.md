@@ -3,9 +3,9 @@
 This document centralises coding style, naming conventions, validation expectations, and documentation policies for the Test Engine workspace. It supersedes the legacy `CODING_STYLE.md` and dispersed guardrails.
 
 ## Core Principles
-1. **Correctness first** – Preserve architectural invariants defined in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and follow the workflow in [`AGENT_WORKFLOW.md`](AGENT_WORKFLOW.md).
+1. **Correctness first** – Preserve architectural invariants defined in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and follow the workflow in [`AGENTS.md`](AGENTS.md).
 2. **Traceability** – Every change cites roadmap/backlog items and updates the associated documentation.
-3. **Reproducibility** – Use the central build workflow defined in [`AGENT_WORKFLOW.md`](AGENT_WORKFLOW.md) unless explicitly justified.
+3. **Reproducibility** – Use the central build workflow defined in [`AGENTS.md`](AGENTS.md) unless explicitly justified.
 
 ## Naming & Formatting
 | Concern | Convention | Example |

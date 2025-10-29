@@ -12,7 +12,7 @@ triage, and roadmap alignment rather than single-change pull-request reviews.
 ## Prerequisites Checklist
 - [ ] Review [`../NAVIGATION.md`](../NAVIGATION.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), and [`../../agents/ROLES.md`](../../agents/ROLES.md) to
       refresh invariants and reviewer expectations.
-- [ ] Align on workflow phases and quality gates in [`../../AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md).
+- [ ] Align on workflow phases and quality gates in [`../../AGENTS.md`](../../AGENTS.md).
 - [ ] Inspect the architecture improvement plan tables in
       [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked backlog records via [`../backlog/active/`](../backlog/active/).
 - [ ] Open relevant specs under [`../specs/`](../specs/) and design notes in [`../design/`](../design/).

@@ -9,7 +9,7 @@ Use this prompt to perform consistent, high-signal reviews for Test Engine pull 
 
 ## Prerequisites Checklist
 - [ ] Read [`../NAVIGATION.md`](../NAVIGATION.md) for reviewer expectations and documentation structure.
-- [ ] Refresh invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md), workflow phases in [`../../AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md), and coding/testing standards in
+- [ ] Refresh invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md), workflow phases in [`../../AGENTS.md`](../../AGENTS.md), and coding/testing standards in
       [`../../CONTRIBUTION.md`](../../CONTRIBUTION.md).
 - [ ] Open module READMEs/ROADMAPs for affected subsystems.
 - [ ] Locate referenced tasks in [`../backlog/active/`](../backlog/active/) (verify Role Roster coverage) and consult [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) plus archived prints when historical context is required.

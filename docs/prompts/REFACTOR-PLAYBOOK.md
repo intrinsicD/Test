@@ -11,7 +11,7 @@ invariants, roadmap intent, and determinism.
 
 ## Prerequisites Checklist
 - [ ] Map the work to a roadmap/backlog identifier in [`../ROADMAP.md`](../ROADMAP.md) and the matching record under [`../backlog/active/`](../backlog/active/) (Role Roster, Definition of Done). Use [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) for historical context if needed.
-- [ ] Align on workflow phases and quality gates in [`../../AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md).
+- [ ] Align on workflow phases and quality gates in [`../../AGENTS.md`](../../AGENTS.md).
 - [ ] Review relevant specs/ADRs in [`../specs/`](../specs/) and design notes in [`../design/`](../design/).
 - [ ] Collect READMEs/ROADMAPs for impacted modules under [`../modules/`](../modules/).
 - [ ] Confirm rollback strategy, migration guardrails, and observability expectations.

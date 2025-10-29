@@ -2,7 +2,7 @@
 
 ## Scope
 
-This audit reviewed the cross-module architecture of the Test Engine workspace, spanning C++ subsystems under `engine/`, the hybrid workflow documentation set in `docs/`, Python bindings, and supporting automation in `scripts/`. The focus areas were:
+This audit reviewed the cross-module architecture of the Test Engine workspace, spanning C++ subsystems under `engine/`, the agent workflow documentation set in [`../../AGENTS.md`](../../AGENTS.md) and `docs/`, Python bindings, and supporting automation in `scripts/`. The focus areas were:
 
 - Dependency orchestration across runtime subsystems and their interaction with the module plugin model.
 - Consistency between authoritative documentation (roadmap, architecture overview, module READMEs) and the current implementation.
