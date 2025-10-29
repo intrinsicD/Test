@@ -16,7 +16,7 @@ This file is the **single entry point** for every AI or human contributor operat
 
 - Cite every file path or command you reference.
 - Follow the session checklist in [`docs/NAVIGATION.md`](docs/NAVIGATION.md) before modifying anything.
-- When collaborating across multiple roles, review the coordination guidance in [`agents/AGENTS.md`](agents/AGENTS.md) so hand-offs and context packs stay aligned.
+- When collaborating across multiple roles, review the coordination guidance in the [Agent Directory Workflow](#agent-directory-workflow) section so hand-offs and context packs stay aligned.
 - Update or add tests for every behaviour change. Place C++ coverage under the owning module in `engine/<module>/tests/` and Python coverage under `python/tests/` or `scripts/tests/`.
 - Mirror behavioural or dependency changes into module READMEs, module roadmaps, the central roadmap, and relevant task files.
 - Escalate missing context by listing the exact files or specifications you require.
@@ -73,6 +73,20 @@ Add additional presets only when mandated by the task scope. Document any deviat
 - **Task coordination templates:** [`agents/TEMPLATES/`](agents/TEMPLATES)
 - **Contribution standards:** [`CONTRIBUTION.md`](CONTRIBUTION.md)
 - **Documentation index:** [`docs/NAVIGATION.md`](docs/NAVIGATION.md)
+
+## Agent Directory Workflow
+
+The [`agents/`](agents/) directory houses the focused artefacts that extend the workflow defined in this guidance file.
+
+### Start Here
+1. Identify the responsibilities relevant to your role in [`agents/ROLES.md`](agents/ROLES.md).
+2. Use the templates under [`agents/TEMPLATES/`](agents/TEMPLATES) to capture task briefs, context packages, and quality reports.
+3. Run `python scripts/update_agents_tree.py` after adding or removing artefacts so repository guidance stays synchronised.
+
+### Maintenance Rules
+- Keep links to backlog entries, ADRs, and module documentation accurate.
+- Update `agents/ROLES.md` and the templates in the same change when responsibilities shift.
+- Legacy role files were removed in favour of the streamlined assets above. Refer to repository history if archival context is required.
 
 Keep this document authoritative; when the workflow evolves, update it alongside the linked artefacts in the same commit.
 
@@ -148,14 +162,12 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
 <!-- BEGIN GENERATED FILE TREE -->
 ```text
 .
-    AGENT_WORKFLOW.md
     AGENTS.md
     CMakeLists.txt
     CMakePresets.json
     CONTRIBUTION.md
     README.md
     agents/
-        AGENTS.md
         ROLES.md
         TEMPLATES/
             ADR_TEMPLATE.md
