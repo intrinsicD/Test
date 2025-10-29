@@ -129,6 +129,8 @@ def _write_configuration(tmp_path: Path) -> Path:
                     "splits": 1,
                     "collapses": 1,
                     "duration_ms": 1.0,
+                    "triangles": 2,
+                    "triangle_quality": {"min": 0.8, "mean": 0.9, "max": 0.95},
                     "max_error": 0.1,
                     "min_edge_length": 0.5,
                     "max_edge_length": 1.5,
@@ -214,6 +216,9 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.dispatch_order == ("geometry::remesh", "render::composite")
     assert summary.dispatch_durations_ms == pytest.approx((1.0, 2.5))
     assert summary.average_tick_ms == pytest.approx(1.5)
+    assert tuple(output.kind for output in summary.telemetry_outputs) == ("file", "stdout")
+    assert summary.telemetry_outputs[0].path == "telemetry/{scenario}.json"
+    assert summary.telemetry_outputs[1].path is None
 
 
 def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
@@ -230,6 +235,13 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description.datasets[0].feature_preservation["lock_feature_edges"] is True
     assert description.datasets[0].parameterization is not None
     assert description.datasets[0].parameterization["chart_count"] == 1
+    assert pytest.approx(description.datasets[0].statistics["splits"], rel=1e-6) == 1.0
+    assert pytest.approx(description.datasets[0].statistics["collapses"], rel=1e-6) == 1.0
+    assert pytest.approx(description.datasets[0].statistics["duration_ms"], rel=1e-6) == 1.0
+    assert pytest.approx(description.datasets[0].statistics["triangles"], rel=1e-6) == 2.0
+    assert description.datasets[0].statistics["triangle_quality"]["min"] == pytest.approx(0.8)
+    assert description.datasets[0].statistics["triangle_quality"]["mean"] == pytest.approx(0.9)
+    assert description.datasets[0].statistics["triangle_quality"]["max"] == pytest.approx(0.95)
     assert description.runtime.dataset == "remesh-sample"
     assert description.rendering is not None
     assert description.rendering.preset == "research-baseline"
@@ -254,6 +266,14 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description_payload["datasets"][0]["id"] == "remesh-sample"
     assert description_payload["datasets"][0]["kind"] == "geometry.remesh"
     assert description_payload["datasets"][0]["schema_version"] == 2
+    stats_payload = description_payload["datasets"][0]["statistics"]
+    assert pytest.approx(stats_payload["splits"], rel=1e-6) == 1.0
+    assert pytest.approx(stats_payload["collapses"], rel=1e-6) == 1.0
+    assert pytest.approx(stats_payload["duration_ms"], rel=1e-6) == 1.0
+    assert pytest.approx(stats_payload["triangles"], rel=1e-6) == 2.0
+    assert pytest.approx(stats_payload["triangle_quality"]["min"], rel=1e-6) == 0.8
+    assert pytest.approx(stats_payload["triangle_quality"]["mean"], rel=1e-6) == 0.9
+    assert pytest.approx(stats_payload["triangle_quality"]["max"], rel=1e-6) == 0.95
     assert description_payload["telemetry"]["schema_version"] == 2
     assert description_payload["telemetry"]["outputs"][0]["kind"] == "file"
     assert description_payload["benchmarks"]["schema_version"] == 1
@@ -328,6 +348,7 @@ def test_summarize_formats_output() -> None:
     assert summary_payload["frames"] == 10
     assert summary_payload["dispatch_order"] == ["geometry::remesh"]
     assert summary_payload["dispatch_durations_ms"] == [1.5]
+    assert summary_payload["telemetry_outputs"] == []
 
 
 def test_summarize_includes_run_metadata() -> None:
@@ -346,6 +367,7 @@ def test_summarize_includes_run_metadata() -> None:
     summary_payload = run_summary_to_dict(summary)
     assert summary_payload["run_index"] == 2
     assert summary_payload["run_count"] == 3
+    assert summary_payload["telemetry_outputs"] == []
 
 
 def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -382,6 +404,9 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert summary_payload["average_tick_ms"] is None
     assert summary_payload["dispatch_order"] == []
     assert summary_payload["dispatch_durations_ms"] == []
+    assert len(summary_payload["telemetry_outputs"]) == 2
+    assert summary_payload["telemetry_outputs"][0] == {"kind": "file", "path": "telemetry/{scenario}.json"}
+    assert summary_payload["telemetry_outputs"][1] == {"kind": "stdout"}
     assert "Configuration:" in captured.out
 
 
@@ -414,6 +439,7 @@ def test_cli_repeat_generates_multiple_summaries(
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload["run_index"] == index
         assert payload["run_count"] == 3
+        assert len(payload["telemetry_outputs"]) == 2
     assert "Dry run summary [1/3]" in captured.out
     assert "Dry run summary [3/3]" in captured.out
 
