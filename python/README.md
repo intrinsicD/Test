@@ -27,8 +27,10 @@
   headers during the migration window. Provide `--describe-json <path>` to export dataset/rendering/runtime metadata for the
   TL-210 sandbox UI and `--summary-json <path>` to capture execution results for benchmark automation. Use
   `--case-study <id>` to launch packaged manifests from `assets/datasets/case_studies/` (for example,
-  `geometry-baseline` or `rendering-debug`) without copying paths by hand. The repository ships a ready-to-run manifest at
-  `docs/examples/ai004_sample.json` alongside the case study presets for quick smoke tests.
+  `geometry-baseline` or `rendering-debug`) without copying paths by hand. Use `--list-case-studies` (optionally with
+  `--case-studies-json <path>`) to inspect packaged presets and export metadata for the TL-210 sandbox UI before selecting a
+  configuration. The repository ships a ready-to-run manifest at `docs/examples/ai004_sample.json` alongside the case study
+  presets for quick smoke tests.
 - Set the environment variable `ENGINE_AI004_SCHEMA_V1=1` to require schema headers in manifests. When unset, the loaders
   tolerate legacy manifests by injecting default headers so existing workflows remain functional during the migration window.
 - Manage runtime lifetime ergonomically using the context manager exposed by `engine3g.loader.load_runtime()` or

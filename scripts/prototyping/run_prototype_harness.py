@@ -18,6 +18,7 @@ if str(PYTHON_ROOT) not in sys.path:
 from engine3g.case_studies import (  # type: ignore
     CaseStudyError,
     available_case_studies,
+    describe_case_studies,
     get_case_study,
 )
 from engine3g.prototype_harness import (  # type: ignore
@@ -76,11 +77,29 @@ def _write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _list_case_studies(json_path: Path | None) -> int:
+    summaries = describe_case_studies(relative_to=PROJECT_ROOT)
+    if not summaries:
+        print("No case studies registered.")
+    else:
+        print("Available case studies:")
+        for entry in summaries:
+            tags = ", ".join(entry["tags"]) if entry["tags"] else "<none>"
+            print(
+                "  - "
+                f"{entry['id']} ({entry['label']}) "
+                f"tags=[{tags}] config={entry['config']}"
+            )
+    if json_path is not None:
+        _write_json(json_path, {"case_studies": list(summaries)})
+    return 0
+
+
 def _resolve_config_argument(args: argparse.Namespace) -> tuple[Path, str | None]:
     if args.case_study is not None:
         case = get_case_study(args.case_study)
         return case.config_path, case.label
-    assert args.config is not None  # argparse enforces mutually exclusive requirements
+    assert args.config is not None  # validated by main()
     return args.config, None
 
 
@@ -135,7 +154,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     case_studies_list = available_case_studies()
     case_study_ids = [case.identifier for case in case_studies_list]
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--config",
         type=Path,
@@ -189,10 +208,33 @@ def main(argv: Iterable[str] | None = None) -> int:
         action="store_true",
         help="List benchmark scenarios defined in the configuration before execution.",
     )
+    parser.add_argument(
+        "--list-case-studies",
+        action="store_true",
+        help="List bundled case studies without executing the harness.",
+    )
+    parser.add_argument(
+        "--case-studies-json",
+        type=Path,
+        help="Write the registered case studies and resolved paths to the specified JSON file.",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
+
+    if args.list_case_studies:
+        if args.summary_json is not None or args.describe_json is not None or args.list_benchmarks:
+            parser.error("--list-case-studies cannot be combined with configuration execution options")
+        if args.case_studies_json is not None and args.case_studies_json.is_dir():
+            parser.error("--case-studies-json must reference a file path")
+        return _list_case_studies(args.case_studies_json)
+
+    if args.case_studies_json is not None:
+        parser.error("--case-studies-json requires --list-case-studies")
 
     if args.frames <= 0 and not args.dry_run:
         parser.error("--frames must be greater than zero unless --dry-run is specified")
+
+    if args.config is None and args.case_study is None:
+        parser.error("one of --config or --case-study is required")
 
     return _run(args)
 

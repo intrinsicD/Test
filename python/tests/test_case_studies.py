@@ -16,6 +16,7 @@ if str(_PYTHON_ROOT) not in sys.path:
 from engine3g.case_studies import (  # type: ignore
     CaseStudyNotFoundError,
     available_case_studies,
+    describe_case_studies,
     get_case_study,
 )
 
@@ -38,3 +39,14 @@ def test_get_case_study_returns_definition() -> None:
 def test_get_case_study_unknown_identifier() -> None:
     with pytest.raises(CaseStudyNotFoundError):
         get_case_study("unknown-case-study")
+
+
+def test_describe_case_studies_exposes_metadata() -> None:
+    summaries = describe_case_studies(relative_to=_PROJECT_ROOT)
+    assert summaries, "expected case study metadata"
+    first = summaries[0]
+    assert "id" in first and first["id"]
+    assert first["config"].startswith("assets/datasets/case_studies/")
+    assert Path(_PROJECT_ROOT, first["config"]).exists()
+    assert Path(first["config_absolute"]).exists()
+    assert isinstance(first["tags"], list)
