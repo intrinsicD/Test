@@ -100,6 +100,8 @@ EngineRuntimeHandle (ctypes wrapper)
 
 **2026-02-09** — Harness configuration and execution summaries now resolve telemetry output templates (for example `{scenario}`) against the active dataset, emitting absolute paths alongside the original template for CC-310 automation and TL-210 tooling consumers.
 
+**2026-02-10** — Harness construction now validates runtime scene manifests and exposes resolved paths in configuration summaries so tooling surfaces actionable locations before launching interactive flows.
+
 ---
 
 ## Risks & Mitigations

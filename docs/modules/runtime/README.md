@@ -304,6 +304,9 @@ ctest --preset linux-gcc-debug -R runtime
   enforcement request directly to the loader for per-run validation. Use it in
   CI or local smoke tests to guarantee manifests declare `ai-004.*` headers
   before runtime ticks execute.
+- Harness construction validates runtime scene manifests and configuration
+  summaries expose `runtime.scene_manifest_path` so tooling surfaces the
+  resolved asset location alongside dataset integrity checks.
 - Native runtime integrations consume the same schema helpers through
   `engine::runtime::config::load_dataset_manifest()` and
   `engine::runtime::config::load_configuration()` in

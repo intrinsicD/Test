@@ -215,6 +215,7 @@ class RuntimeSummary:
     simulation: Optional[Dict[str, object]]
     schema_version: int
     hot_reload: Dict[str, object]
+    scene_manifest_path: Optional[str] = None
 
     def to_dict(self) -> Dict[str, object]:
         payload: Dict[str, object] = {
@@ -228,6 +229,8 @@ class RuntimeSummary:
             payload["camera"] = dict(self.camera)
         if self.simulation is not None:
             payload["simulation"] = dict(self.simulation)
+        if self.scene_manifest_path is not None:
+            payload["scene_manifest_path"] = self.scene_manifest_path
         return payload
 
 
@@ -415,9 +418,12 @@ class PrototypeHarness:
         self._config_directory = config_directory.resolve() if config_directory is not None else None
         self._selected_dataset = self._resolve_dataset(configuration.datasets, configuration.runtime)
         self._dataset_assets: Dict[str, Tuple[DatasetAssetStatus, ...]] = {}
+        self._runtime_scene_manifest: Optional[DatasetAssetStatus] = None
         if self._asset_search_paths:
             for entry in configuration.datasets.datasets:
                 self._dataset_assets[entry.identifier] = self._verify_dataset_assets(entry)
+        if configuration.runtime is not None and configuration.runtime.scene_manifest is not None:
+            self._runtime_scene_manifest = self._verify_scene_manifest(configuration.runtime.scene_manifest)
 
     @property
     def configuration(self) -> Ai004Configuration:
@@ -715,8 +721,7 @@ class PrototypeHarness:
             overlays=overlays,
         )
 
-    @staticmethod
-    def _describe_runtime(runtime: RuntimeConfig) -> RuntimeSummary:
+    def _describe_runtime(self, runtime: RuntimeConfig) -> RuntimeSummary:
         camera: Optional[Dict[str, object]] = None
         if runtime.camera is not None:
             camera = {
@@ -738,6 +743,10 @@ class PrototypeHarness:
         if runtime.hot_reload.watch_interval_seconds is not None:
             hot_reload["watch_interval_seconds"] = runtime.hot_reload.watch_interval_seconds
 
+        resolved_scene_manifest: Optional[str] = None
+        if self._runtime_scene_manifest is not None and runtime.scene_manifest is not None:
+            resolved_scene_manifest = self._runtime_scene_manifest.resolved_path
+
         return RuntimeSummary(
             dataset=runtime.dataset,
             scene_manifest=runtime.scene_manifest,
@@ -746,6 +755,7 @@ class PrototypeHarness:
             simulation=simulation,
             schema_version=runtime.schema_version,
             hot_reload=hot_reload,
+            scene_manifest_path=resolved_scene_manifest,
         )
 
     def _describe_telemetry(self, telemetry: TelemetryConfig) -> HarnessTelemetrySummary:
@@ -826,14 +836,16 @@ class PrototypeHarness:
         declared = Path(declared_path)
         if declared.is_absolute():
             return (declared,)
-        candidates: Iterable[Path]
+        candidates: Iterable[Path] = ()
         if self._asset_search_paths:
             candidates = ((base / declared).resolve() for base in self._asset_search_paths)
-        else:
-            candidates = (Path.cwd() / declared,)
         resolved: Dict[Path, None] = {}
         for candidate in candidates:
             resolved.setdefault(candidate, None)
+        if self._config_directory is not None:
+            resolved.setdefault((self._config_directory / declared).resolve(), None)
+        if self._project_root is not None:
+            resolved.setdefault((self._project_root / declared).resolve(), None)
         if self._project_root is not None:
             dataset_root = (self._project_root / "assets" / "datasets").resolve()
             if dataset_root.exists():
@@ -976,6 +988,20 @@ class PrototypeHarness:
                 f"dataset '{entry.identifier}' assets failed verification: {details}"
             )
         return statuses
+
+    def _verify_scene_manifest(self, declared_path: str) -> DatasetAssetStatus:
+        status = self._build_asset_status(
+            role="scene_manifest",
+            declared_path=declared_path,
+            expected_sha256=None,
+            expected_size=None,
+        )
+        if not status.exists:
+            details = status.message or "asset not found"
+            raise PrototypeHarnessError(
+                "runtime scene manifest '{}' not found: {}".format(declared_path, details)
+            )
+        return status
 
 
 def load_harness(
