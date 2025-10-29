@@ -7,7 +7,7 @@ import json
 import sys
 from dataclasses import replace
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PYTHON_ROOT = PROJECT_ROOT / "python"
@@ -23,6 +23,8 @@ from engine3g.case_studies import (  # type: ignore
     get_case_study,
 )
 from engine3g.prototype_harness import (  # type: ignore
+    DatasetSummary,
+    HarnessConfigurationSummary,
     configuration_summary_to_dict,
     HarnessExecutionOptions,
     PrototypeHarness,
@@ -48,12 +50,40 @@ def _make_options(args: argparse.Namespace) -> HarnessExecutionOptions:
     return HarnessExecutionOptions(frames=args.frames, dt=args.dt, dry_run=args.dry_run)
 
 
-def _print_summary(harness: PrototypeHarness) -> None:
-    dataset = harness.selected_dataset.identifier if harness.selected_dataset else "<none>"
-    rendering = harness.configuration.rendering
+def _selected_dataset_summary(summary: HarnessConfigurationSummary) -> Optional[DatasetSummary]:
+    if summary.selected_dataset is None:
+        return None
+    for dataset in summary.datasets:
+        if dataset.identifier == summary.selected_dataset:
+            return dataset
+    return None
+
+
+def _print_summary(summary: HarnessConfigurationSummary) -> None:
+    dataset = summary.selected_dataset or "<none>"
+    rendering = summary.rendering
     preset = rendering.preset if rendering else "<unspecified>"
     shading = rendering.shading_mode if rendering else "<unspecified>"
     print(f"Configuration: dataset={dataset} preset={preset} shading={shading}")
+
+    dataset_summary = _selected_dataset_summary(summary)
+    if dataset_summary is None:
+        print("Dataset assets: <none>")
+        return
+
+    assets = dataset_summary.assets
+    total = len(assets)
+    failures = sum(1 for asset in assets if not asset.verified)
+    failure_label = "failure" if failures == 1 else "failures"
+    print(
+        f"Dataset assets ({dataset_summary.identifier}): "
+        f"{total} total, {failures} {failure_label}"
+    )
+    for asset in assets:
+        status = "ok" if asset.verified else "FAILED"
+        message = f" — {asset.message}" if asset.message else ""
+        print(f"  - {asset.role}: {status}{message}")
+        print(f"    path={asset.resolved_path}")
 
 
 def _print_benchmark_scenarios(summary) -> None:
@@ -142,14 +172,12 @@ def _run(args: argparse.Namespace) -> int:
         label_suffix = f" ({case_label})" if case_label else ""
         print(f"Selected case study '{args.case_study}'{label_suffix} from {config_path}")
 
-    _print_summary(harness)
+    description = harness.describe_configuration()
+    _print_summary(description)
 
-    description = None
-    if args.describe_json is not None or args.list_benchmarks:
-        description = harness.describe_configuration()
-    if args.describe_json is not None and description is not None:
+    if args.describe_json is not None:
         _write_json(args.describe_json, configuration_summary_to_dict(description))
-    if args.list_benchmarks and description is not None:
+    if args.list_benchmarks:
         _print_benchmark_scenarios(description)
 
     if args.dry_run:

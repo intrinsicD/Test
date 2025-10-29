@@ -322,6 +322,23 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert asset_payloads and asset_payloads[0]["verified"] is True
 
 
+def test_describe_selected_dataset_returns_summary(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+    summary = harness.describe_selected_dataset()
+    assert summary is not None
+    assert summary.identifier == "remesh-sample"
+    assert summary.assets
+    assert all(status.verified for status in summary.assets)
+
+
 def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     text = json.loads(config_path.read_text(encoding="utf-8"))
@@ -471,6 +488,10 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert describe_path.exists()
     assert summary_path.exists()
 
+    assert "Dataset assets (remesh-sample): 2 total, 0 failures" in captured.out
+    assert "- source_mesh" in captured.out
+    assert "- output_mesh" in captured.out
+
     description_payload = json.loads(describe_path.read_text(encoding="utf-8"))
     summary_payload = json.loads(summary_path.read_text(encoding="utf-8"))
 
@@ -515,6 +536,7 @@ def test_cli_repeat_generates_multiple_summaries(
 
     captured = capsys.readouterr()
     assert exit_code == 0
+    assert "Dataset assets (remesh-sample): 2 total, 0 failures" in captured.out
     for index in range(1, 4):
         suffix = f"summary-run{index:02d}.json"
         path = base_summary.with_name(suffix)
