@@ -13,9 +13,13 @@ from unittest import mock
 _TESTS_DIR = Path(__file__).resolve().parent
 _PROJECT_ROOT = _TESTS_DIR.parent
 _PYTHON_SRC = _PROJECT_ROOT
-sys.path.insert(0, str(_PYTHON_SRC))
+if str(_PYTHON_SRC) not in sys.path:
+    sys.path.insert(0, str(_PYTHON_SRC))
+if str(_TESTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_TESTS_DIR))
 
 from engine3g import loader
+from _helpers import temporary_directory, temporary_env
 
 
 class _DummyFunction:
@@ -116,6 +120,19 @@ class CandidatePathsTests(unittest.TestCase):
         expected = base_path.expanduser().resolve() / library
         self.assertEqual(candidates, [expected])
 
+    def test_default_search_paths_respects_environment(self) -> None:
+        with temporary_directory() as custom_dir:
+            other_dir = custom_dir.parent
+            env_value = os.pathsep.join([str(custom_dir), str(other_dir)])
+            with temporary_env({"ENGINE3G_LIBRARY_PATH": env_value}):
+                with mock.patch("pathlib.Path.cwd", return_value=Path("/workspace")):
+                    paths = loader._default_search_paths()
+
+        self.assertEqual(paths[0], custom_dir.resolve())
+        self.assertEqual(paths[1], other_dir.resolve())
+        self.assertEqual(paths[2], Path(loader.__file__).resolve().parent)
+        self.assertEqual(paths[3], Path("/workspace"))
+
 
 class LoadSharedLibraryTests(unittest.TestCase):
     def test_load_shared_library_tries_candidates_until_success(self) -> None:
@@ -154,6 +171,12 @@ class LoadSharedLibraryTests(unittest.TestCase):
         self.assertIn(str(candidates[0]), str(ctx.exception))
         self.assertIsInstance(ctx.exception.__cause__, OSError)
         self.assertEqual(str(ctx.exception.__cause__), "missing")
+        self.assertEqual(ctx.exception.identifier, "engine_core")
+        self.assertEqual(ctx.exception.library_name, "libengine_core.so")
+        self.assertEqual(
+            ctx.exception.attempted_paths,
+            (candidates[0], Path("libengine_core.so")),
+        )
 
     def test_load_shared_library_falls_back_to_bare_name(self) -> None:
         with mock.patch.object(loader, "_candidate_paths", return_value=()):
@@ -398,6 +421,56 @@ class PublicLoaderHelpersTests(unittest.TestCase):
         self.assertEqual(handle.name, "rendering.core")
         self.assertEqual(handle.identifier, "engine_rendering_core")
         self.assertIs(handle.library, mock.sentinel.module_lib)
+
+
+class RuntimeSessionTests(unittest.TestCase):
+    def test_runtime_session_manages_lifecycle(self) -> None:
+        events: list[str] = []
+
+        fake_library = _make_runtime_namespace(
+            engine_runtime_initialize=_DummyFunction(lambda: events.append("init")),
+            engine_runtime_shutdown=_DummyFunction(lambda: events.append("shutdown")),
+            engine_runtime_tick=_DummyFunction(lambda dt: events.append(f"tick:{dt}")),
+        )
+        runtime_handle = loader.EngineRuntimeHandle(fake_library)
+
+        with mock.patch.object(loader, "load_runtime", return_value=runtime_handle) as mocked_load:
+            with loader.runtime_session() as session:
+                self.assertIsInstance(session, loader.RuntimeSession)
+                self.assertIs(session.runtime, runtime_handle)
+                self.assertEqual(dict(session.modules), {})
+                session.tick(0.5)
+            mocked_load.assert_called_once_with(search_paths=None)
+
+        self.assertEqual(len(events), 3)
+        self.assertEqual(events[0], "init")
+        self.assertIn("tick", events[1])
+        self.assertEqual(events[2], "shutdown")
+
+    def test_runtime_session_optionally_loads_modules(self) -> None:
+        runtime_handle = loader.EngineRuntimeHandle(
+            _make_runtime_namespace(
+                engine_runtime_module_count=_DummyFunction(lambda: 1),
+                engine_runtime_module_at=_DummyFunction(lambda index: b"geometry"),
+            )
+        )
+        module_handle = loader.EngineModuleHandle(
+            name="geometry",
+            identifier="engine_geometry",
+            library=mock.sentinel.geometry_lib,
+        )
+
+        with mock.patch.object(loader, "load_runtime", return_value=runtime_handle):
+            with mock.patch.object(
+                runtime_handle,
+                "load_modules",
+                return_value={"geometry": module_handle},
+            ) as mocked_load_modules:
+                with loader.runtime_session(search_paths=["/libs"], load_modules=True) as session:
+                    self.assertEqual(session.module("geometry"), module_handle)
+                    self.assertEqual(set(session.modules.keys()), {"geometry"})
+
+        mocked_load_modules.assert_called_once_with(search_paths=["/libs"])
 
     def test_load_module_accepts_canonical_identifier(self) -> None:
         with mock.patch.object(
