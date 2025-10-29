@@ -89,13 +89,15 @@ Key capabilities:
 
 - **Dataset browser** – searchable list of datasets with statistics, schema
   metadata, metric snapshots, feature-preservation flags, parameterisation
-  metrics, and source/output asset references.
+  metrics, and asset verification summaries (existence, size/hash checks,
+  and harness-supplied diagnostics for each source/output artefact).
 - **Rendering controls** – preset and shading-mode selection with overlay
   toggles that mirror the research baseline options.
 - **Benchmark triggers** – frame-count and timestep inputs with a one-click
   "Run Benchmark" action that surfaces results through the callback
-  interface. The UI records the most recent run outcome and displays the
-  harness summary directly in the panel.
+  interface. The UI records the most recent run outcome, lists configured
+  benchmark scenarios (dataset/preset/profile assignments plus metric
+  thresholds), and displays the harness summary directly in the panel.
 - **Telemetry panel** – live FPS/CPU/GPU timing counters and plotted series
   aligned with the shared telemetry schema, validating streams against the
   telemetry summary provided by the harness.

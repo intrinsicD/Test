@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iterator>
 #include <map>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -445,6 +446,41 @@ namespace engine::tools::sandbox
             return default_value;
         }
 
+        [[nodiscard]] std::optional<std::string> get_optional_string(const JsonValue::object_type& object,
+                                                                     std::string_view key,
+                                                                     std::string_view context)
+        {
+            if (const auto* value = find_member(object, key))
+            {
+                if (value->is_null())
+                {
+                    return std::nullopt;
+                }
+                return value->as_string(context);
+            }
+            return std::nullopt;
+        }
+
+        [[nodiscard]] std::optional<std::uintmax_t> get_optional_size(const JsonValue::object_type& object,
+                                                                      std::string_view key,
+                                                                      std::string_view context)
+        {
+            if (const auto* value = find_member(object, key))
+            {
+                if (value->is_null())
+                {
+                    return std::nullopt;
+                }
+                const double numeric = value->as_number(context);
+                if (numeric < 0.0)
+                {
+                    return std::nullopt;
+                }
+                return static_cast<std::uintmax_t>(numeric);
+            }
+            return std::nullopt;
+        }
+
         void flatten_numeric_entries(const JsonValue& value, std::string prefix,
                                      std::map<std::string, double>& output)
         {
@@ -530,6 +566,34 @@ namespace engine::tools::sandbox
             if (const auto* parameterization = find_member(dataset, "parameterization"))
             {
                 flatten_numeric_entries(*parameterization, std::string{"parameterization"}, descriptor.metrics);
+            }
+
+            descriptor.assets.clear();
+            if (const auto* assets_value = find_member(dataset, "assets"))
+            {
+                const auto& assets = assets_value->as_array("dataset.assets");
+                descriptor.assets.reserve(assets.size());
+                for (const auto& asset_value : assets)
+                {
+                    const auto& asset = asset_value.as_object("dataset.assets[]");
+                    DatasetAssetDescriptor asset_descriptor{};
+                    asset_descriptor.role = get_string(asset, "role", "dataset.assets[].role");
+                    asset_descriptor.path = get_string(asset, "path", "dataset.assets[].path");
+                    asset_descriptor.resolved_path = get_string(asset, "resolved_path", "dataset.assets[].resolved_path");
+                    asset_descriptor.exists = get_bool(asset, "exists", "dataset.assets[].exists", false);
+                    asset_descriptor.verified = get_bool(asset, "verified", "dataset.assets[].verified", false);
+                    asset_descriptor.expected_size_bytes =
+                        get_optional_size(asset, "expected_size_bytes", "dataset.assets[].expected_size_bytes");
+                    asset_descriptor.actual_size_bytes =
+                        get_optional_size(asset, "actual_size_bytes", "dataset.assets[].actual_size_bytes");
+                    asset_descriptor.expected_sha256 =
+                        get_optional_string(asset, "expected_sha256", "dataset.assets[].expected_sha256");
+                    asset_descriptor.actual_sha256 =
+                        get_optional_string(asset, "actual_sha256", "dataset.assets[].actual_sha256");
+                    asset_descriptor.message =
+                        get_optional_string(asset, "message", "dataset.assets[].message");
+                    descriptor.assets.push_back(std::move(asset_descriptor));
+                }
             }
         }
 
@@ -703,6 +767,176 @@ namespace engine::tools::sandbox
                                                                "runtime.hot_reload.enabled", false);
             }
         }
+
+        void populate_telemetry(const JsonValue::object_type& root, ExperimentConfigurationSummary& summary)
+        {
+            const auto* telemetry_value = find_member(root, "telemetry");
+            if (telemetry_value == nullptr || telemetry_value->is_null())
+            {
+                summary.telemetry.reset();
+                return;
+            }
+
+            const auto& telemetry = telemetry_value->as_object("telemetry");
+            TelemetryConfigurationDescriptor descriptor{};
+            descriptor.schema_version = static_cast<int>(std::lround(
+                get_number(telemetry, "schema_version", "telemetry.schema_version", 0.0)));
+
+            descriptor.outputs.clear();
+            if (const auto* outputs_value = find_member(telemetry, "outputs"))
+            {
+                const auto& outputs = outputs_value->as_array("telemetry.outputs");
+                descriptor.outputs.reserve(outputs.size());
+                for (const auto& output_value : outputs)
+                {
+                    const auto& output = output_value.as_object("telemetry.outputs[]");
+                    TelemetryOutputDescriptor entry{};
+                    entry.kind = get_string(output, "kind", "telemetry.outputs[].kind");
+                    entry.path = get_optional_string(output, "path", "telemetry.outputs[].path");
+                    entry.template_path = get_optional_string(output, "template", "telemetry.outputs[].template");
+                    descriptor.outputs.push_back(std::move(entry));
+                }
+            }
+
+            descriptor.metrics.clear();
+            if (const auto* metrics_value = find_member(telemetry, "metrics"))
+            {
+                const auto& metrics = metrics_value->as_array("telemetry.metrics");
+                descriptor.metrics.reserve(metrics.size());
+                for (const auto& metric_value : metrics)
+                {
+                    const auto& metric = metric_value.as_object("telemetry.metrics[]");
+                    TelemetryMetricDescriptor entry{};
+                    entry.name = get_string(metric, "name", "telemetry.metrics[].name");
+                    entry.statistic = get_string(metric, "statistic", "telemetry.metrics[].statistic");
+                    descriptor.metrics.push_back(std::move(entry));
+                }
+            }
+
+            descriptor.sampling.reset();
+            if (const auto* sampling_value = find_member(telemetry, "sampling"))
+            {
+                if (!sampling_value->is_null())
+                {
+                    const auto& sampling = sampling_value->as_object("telemetry.sampling");
+                    TelemetrySamplingDescriptor sampling_descriptor{};
+                    sampling_descriptor.frame_interval = static_cast<int>(std::lround(
+                        get_number(sampling, "frame_interval", "telemetry.sampling.frame_interval", 0.0)));
+                    sampling_descriptor.include_debug_overlays =
+                        get_bool(sampling, "include_debug_overlays",
+                                 "telemetry.sampling.include_debug_overlays", false);
+                    descriptor.sampling = sampling_descriptor;
+                }
+            }
+
+            summary.telemetry = std::move(descriptor);
+        }
+
+        [[nodiscard]] BenchmarkCommandDescriptor parse_benchmark_command(const JsonValue::object_type& object,
+                                                                         std::string_view context)
+        {
+            BenchmarkCommandDescriptor descriptor{};
+            const std::string output_context = std::string{context} + ".output";
+            descriptor.output = get_string(object, "output", output_context);
+            if (const auto* command_value = find_member(object, "command"))
+            {
+                if (!command_value->is_null())
+                {
+                    const std::string command_context = std::string{context} + ".command";
+                    const auto& commands = command_value->as_array(command_context);
+                    descriptor.command.reserve(commands.size());
+                    for (const auto& token : commands)
+                    {
+                        const std::string element_context = command_context + "[]";
+                        descriptor.command.push_back(token.as_string(element_context));
+                    }
+                }
+            }
+            return descriptor;
+        }
+
+        void populate_benchmarks(const JsonValue::object_type& root, ExperimentConfigurationSummary& summary)
+        {
+            const auto* benchmarks_value = find_member(root, "benchmarks");
+            if (benchmarks_value == nullptr || benchmarks_value->is_null())
+            {
+                summary.benchmarks.reset();
+                return;
+            }
+
+            const auto& benchmarks = benchmarks_value->as_object("benchmarks");
+            BenchmarkConfigurationDescriptor descriptor{};
+            descriptor.schema_version = static_cast<int>(std::lround(
+                get_number(benchmarks, "schema_version", "benchmarks.schema_version", 0.0)));
+
+            descriptor.scenarios.clear();
+            if (const auto* scenarios_value = find_member(benchmarks, "scenarios"))
+            {
+                const auto& scenarios = scenarios_value->as_array("benchmarks.scenarios");
+                descriptor.scenarios.reserve(scenarios.size());
+                for (const auto& scenario_value : scenarios)
+                {
+                    const auto& scenario = scenario_value.as_object("benchmarks.scenarios[]");
+                    BenchmarkScenarioDescriptor scenario_descriptor{};
+                    scenario_descriptor.identifier = get_string(scenario, "id", "benchmarks.scenarios[].id");
+                    scenario_descriptor.name = get_string(scenario, "name", "benchmarks.scenarios[].name",
+                                                          scenario_descriptor.identifier);
+                    scenario_descriptor.dataset = get_string(scenario, "dataset", "benchmarks.scenarios[].dataset");
+                    scenario_descriptor.rendering_preset =
+                        get_string(scenario, "rendering_preset", "benchmarks.scenarios[].rendering_preset");
+                    scenario_descriptor.runtime_profile =
+                        get_string(scenario, "runtime_profile", "benchmarks.scenarios[].runtime_profile");
+                    if (const auto* engine_value = find_member(scenario, "engine"))
+                    {
+                        scenario_descriptor.engine =
+                            parse_benchmark_command(engine_value->as_object("benchmarks.scenarios[].engine"),
+                                                    "benchmarks.scenarios[].engine");
+                    }
+                    if (const auto* reference_value = find_member(scenario, "reference"))
+                    {
+                        scenario_descriptor.reference =
+                            parse_benchmark_command(reference_value->as_object("benchmarks.scenarios[].reference"),
+                                                    "benchmarks.scenarios[].reference");
+                    }
+
+                    scenario_descriptor.metrics.clear();
+                    if (const auto* metrics_value = find_member(scenario, "metrics"))
+                    {
+                        const auto& metrics = metrics_value->as_array("benchmarks.scenarios[].metrics");
+                        scenario_descriptor.metrics.reserve(metrics.size());
+                        for (const auto& metric_value : metrics)
+                        {
+                            const auto& metric = metric_value.as_object("benchmarks.scenarios[].metrics[]");
+                            BenchmarkMetricDescriptor metric_descriptor{};
+                            metric_descriptor.name =
+                                get_string(metric, "name", "benchmarks.scenarios[].metrics[].name");
+                            metric_descriptor.higher_is_better =
+                                get_bool(metric, "higher_is_better", "benchmarks.scenarios[].metrics[].higher_is_better",
+                                         false);
+                            if (const auto* threshold_value = find_member(metric, "threshold"))
+                            {
+                                if (!threshold_value->is_null())
+                                {
+                                    const auto& threshold =
+                                        threshold_value->as_object("benchmarks.scenarios[].metrics[].threshold");
+                                    metric_descriptor.threshold.mode =
+                                        get_string(threshold, "mode",
+                                                   "benchmarks.scenarios[].metrics[].threshold.mode");
+                                    metric_descriptor.threshold.limit =
+                                        get_number(threshold, "limit",
+                                                   "benchmarks.scenarios[].metrics[].threshold.limit", 0.0);
+                                }
+                            }
+                            scenario_descriptor.metrics.push_back(std::move(metric_descriptor));
+                        }
+                    }
+
+                    descriptor.scenarios.push_back(std::move(scenario_descriptor));
+                }
+            }
+
+            summary.benchmarks = std::move(descriptor);
+        }
     } // namespace
 
     ExperimentConfigurationSummary load_summary_from_json(std::string_view json_buffer)
@@ -734,6 +968,8 @@ namespace engine::tools::sandbox
 
         populate_rendering(root, summary);
         populate_runtime(root, summary.runtime);
+        populate_telemetry(root, summary);
+        populate_benchmarks(root, summary);
 
         return summary;
     }

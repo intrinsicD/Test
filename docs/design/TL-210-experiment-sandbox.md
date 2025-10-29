@@ -61,7 +61,10 @@ researchers to iterate without editing configuration files.
 Datasets are rendered in a searchable list. The class maintains an internal
 lookup map so selection persists even when summaries refresh. Tags, statistics,
 schema metadata, feature-preservation flags, parameterisation metrics, and
-asset provenance populate the detail column for quick inspection.
+asset provenance populate the detail column for quick inspection. Asset rows
+now include verification summaries (existence, size/hash comparisons, and any
+diagnostic message supplied by the harness) so researchers can triage missing or
+stale packages without leaving the UI.
 
 ### Rendering Controls
 
@@ -81,7 +84,9 @@ Benchmark controls gather frame count and timestep parameters. Pressing the
 `SandboxPreferences`, enabling harness integration to dispatch headless runs.
 The callback now returns a `SandboxBenchmarkResult`, allowing the UI to surface
 success or failure messages inline while preserving the generated summary file
-for later inspection.
+for later inspection. The panel mirrors the harness benchmark summary so users
+can review available scenarios (dataset/preset/runtime assignments) and their
+metric thresholds before launching runs.
 
 ### Telemetry Panel
 

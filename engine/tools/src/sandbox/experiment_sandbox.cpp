@@ -54,6 +54,71 @@ namespace engine::tools::sandbox
             auto result = std::from_chars(begin, end, out_value);
             return result.ec == std::errc{};
         }
+
+        std::string format_uintmax(std::uintmax_t value)
+        {
+            std::ostringstream stream;
+            stream << value;
+            return stream.str();
+        }
+
+        void render_dataset_asset(const DatasetAssetDescriptor& asset)
+        {
+            const ImVec4 success_colour{0.2F, 0.8F, 0.2F, 1.0F};
+            const ImVec4 failure_colour{0.9F, 0.2F, 0.2F, 1.0F};
+            const bool verified = asset.verified;
+            const ImVec4 colour = verified ? success_colour : failure_colour;
+            const char* status = verified ? "Verified" : "Verification failed";
+
+            ImGui::TextColored(colour, "%s — %s", asset.role.c_str(), status);
+            ImGui::Indent();
+
+            const std::string& resolved = asset.resolved_path.empty() ? asset.path : asset.resolved_path;
+            if (!resolved.empty())
+            {
+                ImGui::TextWrapped("Path: %s", resolved.c_str());
+            }
+
+            if (!verified)
+            {
+                ImGui::Text("Exists: %s", asset.exists ? "yes" : "no");
+
+                if (asset.expected_size_bytes)
+                {
+                    const std::string expected = format_uintmax(*asset.expected_size_bytes);
+                    if (asset.actual_size_bytes)
+                    {
+                        const std::string actual = format_uintmax(*asset.actual_size_bytes);
+                        ImGui::Text("Size (expected/actual): %s / %s bytes", expected.c_str(), actual.c_str());
+                    }
+                    else
+                    {
+                        ImGui::Text("Expected size: %s bytes", expected.c_str());
+                    }
+                }
+                else if (asset.actual_size_bytes)
+                {
+                    const std::string actual = format_uintmax(*asset.actual_size_bytes);
+                    ImGui::Text("Actual size: %s bytes", actual.c_str());
+                }
+
+                if (asset.expected_sha256)
+                {
+                    ImGui::Text("Expected sha256: %s", asset.expected_sha256->c_str());
+                }
+                if (asset.actual_sha256)
+                {
+                    ImGui::Text("Actual sha256: %s", asset.actual_sha256->c_str());
+                }
+            }
+
+            if (asset.message && !asset.message->empty())
+            {
+                ImGui::TextWrapped("Note: %s", asset.message->c_str());
+            }
+
+            ImGui::Unindent();
+        }
     } // namespace
 
     ExperimentSandbox::ExperimentSandbox()
@@ -630,6 +695,50 @@ namespace engine::tools::sandbox
             }
         }
 
+        if (summary_.benchmarks && !summary_.benchmarks->scenarios.empty())
+        {
+            ImGui::Spacing();
+            ImGui::TextUnformatted("Scenarios");
+            ImGui::Separator();
+            ImGui::Indent();
+            for (const auto& scenario : summary_.benchmarks->scenarios)
+            {
+                std::string headline = scenario.identifier;
+                if (!scenario.name.empty() && scenario.name != scenario.identifier)
+                {
+                    headline += " — " + scenario.name;
+                }
+                ImGui::BulletText("%s", headline.c_str());
+                ImGui::Indent();
+                if (!scenario.dataset.empty())
+                {
+                    ImGui::Text("Dataset: %s", scenario.dataset.c_str());
+                }
+                if (!scenario.rendering_preset.empty())
+                {
+                    ImGui::Text("Rendering preset: %s", scenario.rendering_preset.c_str());
+                }
+                if (!scenario.runtime_profile.empty())
+                {
+                    ImGui::Text("Runtime profile: %s", scenario.runtime_profile.c_str());
+                }
+                if (!scenario.metrics.empty())
+                {
+                    ImGui::TextUnformatted("Metrics:");
+                    ImGui::Indent();
+                    for (const auto& metric : scenario.metrics)
+                    {
+                        const char* direction = metric.higher_is_better ? "higher is better" : "lower is better";
+                        ImGui::BulletText("%s (%s, limit %.3f)", metric.name.c_str(), direction,
+                                          metric.threshold.limit);
+                    }
+                    ImGui::Unindent();
+                }
+                ImGui::Unindent();
+            }
+            ImGui::Unindent();
+        }
+
         if (last_benchmark_result_)
         {
             const auto& result = *last_benchmark_result_;
@@ -737,6 +846,16 @@ namespace engine::tools::sandbox
             {
                 ImGui::Text("Output: %s", dataset.processed_asset.c_str());
             }
+            if (!dataset.assets.empty())
+            {
+                ImGui::TextUnformatted("Assets:");
+                ImGui::Indent();
+                for (const auto& asset : dataset.assets)
+                {
+                    render_dataset_asset(asset);
+                }
+                ImGui::Unindent();
+            }
         }
 
         ImGui::Spacing();
@@ -764,6 +883,52 @@ namespace engine::tools::sandbox
             ImGui::TextWrapped("Simulation: %s", summary_.runtime.simulation_description.c_str());
         }
         ImGui::Text("Hot reload: %s", summary_.runtime.hot_reload_enabled ? "enabled" : "disabled");
+
+        if (summary_.telemetry)
+        {
+            const auto& telemetry = *summary_.telemetry;
+            ImGui::Spacing();
+            ImGui::TextUnformatted("Telemetry Configuration");
+            ImGui::Separator();
+            ImGui::Text("Schema version: %d", telemetry.schema_version);
+            if (!telemetry.outputs.empty())
+            {
+                ImGui::TextUnformatted("Outputs:");
+                ImGui::Indent();
+                for (const auto& output : telemetry.outputs)
+                {
+                    std::string target = output.path ? *output.path : std::string{"<unspecified>"};
+                    if (output.template_path && !output.template_path->empty())
+                    {
+                        target += " (template: " + *output.template_path + ')';
+                    }
+                    ImGui::BulletText("%s → %s", output.kind.c_str(), target.c_str());
+                }
+                ImGui::Unindent();
+            }
+            else
+            {
+                ImGui::TextDisabled("No telemetry outputs configured");
+            }
+
+            if (!telemetry.metrics.empty())
+            {
+                ImGui::TextUnformatted("Metrics:");
+                ImGui::Indent();
+                for (const auto& metric : telemetry.metrics)
+                {
+                    ImGui::BulletText("%s (%s)", metric.name.c_str(), metric.statistic.c_str());
+                }
+                ImGui::Unindent();
+            }
+
+            if (telemetry.sampling)
+            {
+                ImGui::Text("Sampling interval: %d frame(s)", telemetry.sampling->frame_interval);
+                ImGui::Text("Include debug overlays: %s",
+                             telemetry.sampling->include_debug_overlays ? "yes" : "no");
+            }
+        }
     }
 
     bool ExperimentSandbox::matches_dataset_filter(std::string_view text) const
