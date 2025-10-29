@@ -19,8 +19,8 @@ mv -v docs/DOCUMENTATION_RESTRUCTURE_CHANGELOG.md docs/archive/workflow-migratio
 mv -v docs/RESTRUCTURE_SUMMARY.md docs/archive/workflow-migration/ 2>/dev/null || true
 
 # Remove old/redundant AGENTS.md files
-echo "🗑️  Removing redundant AGENTS.md files..."
-echo "  ℹ️  Skipping removal — AGENTS.md and agents/AGENTS.md are now authoritative."
+echo "🗑️  Removing redundant documentation files..."
+echo "  ℹ️  agents/AGENTS.md content has been merged into root AGENTS.md"
 rm -v agents/README.md || echo "  ⚠️  agents/README.md already removed"
 
 # Optional: Remove README_TEMPLATE.md if unused
@@ -33,10 +33,10 @@ echo ""
 echo "📊 Summary:"
 echo "  - Archived: 3 historical restructure documents"
 echo "  - Removed: agents/README.md (if present)"
-echo "  - Retained: AGENTS.md and agents/AGENTS.md (authoritative manuals)"
+echo "  - Content merged: agents/AGENTS.md merged into root AGENTS.md"
 echo ""
 echo "🔍 Authoritative workflow artifacts now:"
-echo "  - AGENTS.md (single portal)"
+echo "  - AGENTS.md (single portal with agents directory overview)"
 echo "  - agents/ROLES.md (responsibility map)"
 echo "  - agents/TEMPLATES/ (task, context, quality templates)"
 echo ""

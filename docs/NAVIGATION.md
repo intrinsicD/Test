@@ -34,8 +34,7 @@
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
-| [`../AGENTS.md`](../AGENTS.md) | Single entry portal covering phases, coordination, quality gates | Beginning any contribution |
-| [`../agents/AGENTS.md`](../agents/AGENTS.md) | Directory overview and maintenance guardrails | Managing artefacts inside `agents/` |
+| [`../AGENTS.md`](../AGENTS.md) | Single entry portal covering phases, coordination, quality gates, and agents directory overview | Beginning any contribution or managing artefacts inside `agents/` |
 | [`../agents/ROLES.md`](../agents/ROLES.md) | Specialised role responsibilities and approvals | Assigning or fulfilling roles |
 | [`../agents/TEMPLATES/`](../agents/TEMPLATES) | Task brief, context package, and quality report templates | Documenting and auditing work |
 
@@ -98,7 +97,6 @@ Run `python scripts/validate_docs.py` after editing to catch broken links.
 - Archive completed work to `archive/` after 30 days of inactivity.
 
 **Precedence for Conflicts:**
-> **Note:** `../AGENTS.md` (the workflow portal at the root) is distinct from `agents/AGENTS.md` (the directory overview). Only the root `AGENTS.md` is referenced in the precedence chain below.
 `../AGENTS.md` → `NAVIGATION.md` (this file) → `ARCHITECTURE.md` → `design/` or `specs/` → module READMEs → code comments.
 
 When a lower-precedence document conflicts with a higher one, update the higher-precedence document first, then cascade changes downstream.

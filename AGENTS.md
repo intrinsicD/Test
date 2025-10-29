@@ -16,7 +16,7 @@ This file is the **single entry point** for every AI or human contributor operat
 
 - Cite every file path or command you reference.
 - Follow the session checklist in [`docs/NAVIGATION.md`](docs/NAVIGATION.md) before modifying anything.
-- When collaborating across multiple roles, review the coordination guidance in [`agents/AGENTS.md`](agents/AGENTS.md) so hand-offs and context packs stay aligned.
+- When collaborating across multiple roles, review the coordination guidance in the "Artefact Overview" section below and consult [`agents/ROLES.md`](agents/ROLES.md) so hand-offs and context packs stay aligned.
 - Update or add tests for every behaviour change. Place C++ coverage under the owning module in `engine/<module>/tests/` and Python coverage under `python/tests/` or `scripts/tests/`.
 - Mirror behavioural or dependency changes into module READMEs, module roadmaps, the central roadmap, and relevant task files.
 - Escalate missing context by listing the exact files or specifications you require.
@@ -69,12 +69,24 @@ python scripts/validate_docs.py
 Add additional presets only when mandated by the task scope. Document any deviation inside the quality report template.
 
 ### Artefact Overview
+The `agents/` directory hosts the focused artefacts that extend the workflow defined in this document.
+
+**Key Resources:**
 - **Roles and responsibilities:** [`agents/ROLES.md`](agents/ROLES.md)
 - **Task coordination templates:** [`agents/TEMPLATES/`](agents/TEMPLATES)
 - **Contribution standards:** [`CONTRIBUTION.md`](CONTRIBUTION.md)
 - **Documentation index:** [`docs/NAVIGATION.md`](docs/NAVIGATION.md)
 
-Keep this document authoritative; when the workflow evolves, update it alongside the linked artefacts in the same commit.
+**How to Use:**
+1. Start with this document (AGENTS.md) as your portal to the agent workflow.
+2. Identify your responsibilities in [`agents/ROLES.md`](agents/ROLES.md).
+3. Use the templates under [`agents/TEMPLATES/`](agents/TEMPLATES) to document briefs, context packs, and quality reports.
+
+**Maintenance Rules:**
+- Keep links to backlog entries, ADRs, and module documentation accurate.
+- Update `agents/ROLES.md` and the templates in the same change when responsibilities shift.
+- Run `python scripts/update_agents_tree.py` after adding or removing artefacts so repository guidance stays synchronized.
+- Keep this document authoritative; when the workflow evolves, update it alongside the linked artefacts in the same commit.
 
 ## 1. Always Start With the Documentation
 - Read the repository root `README.md` before making changes; it summarises the workspace layout, build presets, and current TODO backlog.
@@ -155,7 +167,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
     CONTRIBUTION.md
     README.md
     agents/
-        AGENTS.md
         ROLES.md
         TEMPLATES/
             ADR_TEMPLATE.md
