@@ -367,6 +367,56 @@ def test_prototype_harness_detects_missing_assets(tmp_path: Path) -> None:
     assert "asset" in str(excinfo.value)
 
 
+def test_prototype_harness_validates_scene_manifest(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    scene_dir = tmp_path / "scenes"
+    scene_dir.mkdir(parents=True, exist_ok=True)
+    scene_manifest = scene_dir / "sample.scene"
+    scene_manifest.write_text("scene {}", encoding="utf-8")
+    payload["runtime"]["scene"] = {
+        "manifest": scene_manifest.relative_to(tmp_path).as_posix(),
+        "entry_point": "main",
+    }
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    configuration = load_configuration(config_path)
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    description = harness.describe_configuration()
+    assert description.runtime.scene_manifest_path == str(scene_manifest.resolve())
+    runtime_payload = configuration_summary_to_dict(description)["runtime"]
+    assert runtime_payload["scene_manifest_path"] == str(scene_manifest.resolve())
+
+
+def test_prototype_harness_missing_scene_manifest_raises(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    payload["runtime"]["scene"] = {
+        "manifest": "scenes/missing.scene",
+        "entry_point": "main",
+    }
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+    configuration = load_configuration(config_path)
+
+    with pytest.raises(PrototypeHarnessError) as excinfo:
+        PrototypeHarness(
+            configuration,
+            asset_search_paths=[tmp_path],
+            project_root=tmp_path,
+            config_directory=tmp_path,
+        )
+
+    message = str(excinfo.value)
+    assert "scene manifest" in message
+    assert "missing.scene" in message
+
+
 def test_run_headless_unknown_telemetry_placeholder(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     payload = json.loads(config_path.read_text(encoding="utf-8"))
