@@ -266,6 +266,33 @@ def test_run_headless_supports_custom_scenario_label(tmp_path: Path) -> None:
     assert payload["scenario"] == "custom-scenario"
 
 
+def test_run_headless_supports_run_metadata_placeholders(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    payload["telemetry"]["outputs"][0]["path"] = (
+        "telemetry/{dataset}-run{run_index:02d}-of-{run_count:02d}.json"
+    )
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    configuration = load_configuration(config_path)
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+    options = HarnessExecutionOptions(dry_run=True, run_index=2, run_count=5)
+    summary = harness.run_headless(options)
+
+    assert summary.telemetry_outputs
+    first_output = summary.telemetry_outputs[0]
+    assert first_output.template == (
+        "telemetry/{dataset}-run{run_index:02d}-of-{run_count:02d}.json"
+    )
+    assert first_output.path is not None
+    assert first_output.path.endswith("telemetry/remesh-sample-run02-of-05.json")
+
+
 def test_execution_options_validate_run_metadata() -> None:
     options = HarnessExecutionOptions(frames=1, dt=0.5, run_index=1)
     with pytest.raises(PrototypeHarnessError):

@@ -53,7 +53,7 @@ class PrototypeHarnessError(RuntimeError):
     """Raised when harness configuration cannot be resolved."""
 
 
-class _StrictSubstitutions(dict):
+class _StrictSubstitutions(dict[str, object]):
     """Mapping that raises on missing template substitutions."""
 
     def __missing__(self, key: str) -> str:  # pragma: no cover - defensive guard
@@ -510,29 +510,46 @@ class PrototypeHarness:
 
 
     def _telemetry_outputs(
-        self, *, scenario_override: Optional[str] = None
+        self,
+        *,
+        scenario_override: Optional[str] = None,
+        execution: Optional[HarnessExecutionOptions] = None,
     ) -> Tuple[TelemetryOutputSummary, ...]:
         """Return telemetry outputs declared in the configuration."""
 
         if self._configuration.telemetry is None:
             return ()
         return tuple(
-            self._summarize_telemetry_output(output, scenario_override=scenario_override)
+            self._summarize_telemetry_output(
+                output,
+                scenario_override=scenario_override,
+                execution=execution,
+            )
             for output in self._configuration.telemetry.outputs
         )
 
     def _telemetry_substitutions(
-        self, *, scenario_override: Optional[str] = None
-    ) -> Mapping[str, str]:
+        self,
+        *,
+        scenario_override: Optional[str] = None,
+        execution: Optional[HarnessExecutionOptions] = None,
+    ) -> Mapping[str, object]:
         dataset_id = self._selected_dataset.identifier if self._selected_dataset else None
         rendering = self._rendering_config()
         scenario_value = scenario_override or dataset_id or "default"
-        defaults = {
+        defaults: Dict[str, object] = {
             "dataset": dataset_id or "default",
             "scenario": scenario_value,
             "rendering_preset": rendering.preset if rendering else "default",
             "shading_mode": rendering.shading_mode if rendering else "default",
         }
+        if execution is not None:
+            defaults["frames"] = execution.frames
+            defaults["dt"] = execution.dt
+            if execution.run_index is not None:
+                defaults["run_index"] = execution.run_index
+            if execution.run_count is not None:
+                defaults["run_count"] = execution.run_count
         if self._config_directory is not None:
             defaults["config_dir"] = str(self._config_directory)
         if self._project_root is not None:
@@ -540,11 +557,18 @@ class PrototypeHarness:
         return defaults
 
     def _resolve_output_path(
-        self, template: Optional[str], *, scenario_override: Optional[str] = None
+        self,
+        template: Optional[str],
+        *,
+        scenario_override: Optional[str] = None,
+        execution: Optional[HarnessExecutionOptions] = None,
     ) -> Tuple[Optional[str], Optional[str]]:
         if template is None:
             return None, None
-        substitutions = self._telemetry_substitutions(scenario_override=scenario_override)
+        substitutions = self._telemetry_substitutions(
+            scenario_override=scenario_override,
+            execution=execution,
+        )
         try:
             formatted = template.format_map(_StrictSubstitutions(substitutions))
         except KeyError as error:  # pragma: no cover - defensive guard
@@ -560,10 +584,16 @@ class PrototypeHarness:
         return resolved, template_value
 
     def _summarize_telemetry_output(
-        self, output: TelemetryOutputConfig, *, scenario_override: Optional[str] = None
+        self,
+        output: TelemetryOutputConfig,
+        *,
+        scenario_override: Optional[str] = None,
+        execution: Optional[HarnessExecutionOptions] = None,
     ) -> TelemetryOutputSummary:
         resolved_path, template = self._resolve_output_path(
-            output.path, scenario_override=scenario_override
+            output.path,
+            scenario_override=scenario_override,
+            execution=execution,
         )
         return TelemetryOutputSummary(kind=output.kind, path=resolved_path, template=template)
 
@@ -576,7 +606,8 @@ class PrototypeHarness:
         rendering = self._rendering_config()
         average_tick_ms: Optional[float] = None
         telemetry_outputs = self._telemetry_outputs(
-            scenario_override=execution.scenario_label
+            scenario_override=execution.scenario_label,
+            execution=execution,
         )
 
         if execution.dry_run:
