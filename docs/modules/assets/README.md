@@ -259,6 +259,10 @@ ctest --preset linux-gcc-debug -R assets
 - Run C++ tests for assets:
   - `ctest --preset linux-gcc-debug -R assets`
 - See examples above and tests under `engine/assets/tests/` for end-to-end usage.
+- The
+  [`AI-004 Prototyping Playbook`](../../design/AI-004-prototyping-playbook.md)
+  outlines how dataset packaging, schema validation, and harness integration
+  interact; consult it before publishing new manifests or ingestion scripts.
 - During AI-004 migration, dataset packaging must emit `ai-004.dataset` schema
   headers so downstream harnesses enforce consistent metadata:
   1. Generate manifests with `geometry_remesh --manifest-output` or the dataset

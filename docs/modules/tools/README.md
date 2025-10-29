@@ -329,6 +329,10 @@ Once modularization is complete, the module will be re-enabled and integrated in
 - Run tools tests:
   - `pytest scripts/tests/`
   - `ctest --preset linux-gcc-debug -R tools` (when C++ tools are enabled)
+- Review the
+  [`AI-004 Prototyping Playbook`](../../design/AI-004-prototyping-playbook.md)
+  for the cross-module workflow that governs schema validation, dataset
+  selection, sandbox integration, and benchmarking hand-offs.
 - Sandbox UI and prototyping harness consumers should adopt the shared AI-004
   configuration schema during migration:
   1. Validate manifests with `python -m scripts.validate_ai004_config` before

@@ -1,6 +1,6 @@
 # Backlog Item DC-040 — AI-004 Configuration Schema Alignment
 
-- **Status**: In Progress
+- **Status**: Complete
 - **Priority**: 1
 - **Owner**: Agent Orchestrator + Module Leads
 - **Module(s)**: Runtime, Rendering, Tools, Assets, Benchmarking
@@ -10,10 +10,10 @@
 AI-004 spans rendering presets, runtime harness controls, sandbox layouts, dataset manifests, and benchmark automation. Without a ratified configuration schema the teams ship incompatible knobs and the kickoff review stalls. This backlog item drives a single, versioned schema with validators in both C++ and Python so downstream work can integrate against a stable interface.
 
 ## Definition of Done
-- [ ] Schema specification published with module sign-off recorded in ADR-0007.
-- [ ] Runtime harness and Python tooling load and validate configurations via the shared schema (feature-flagged until adoption completes).
-- [ ] Migration guidance added to affected module READMEs and the prototyping playbook.
-- [ ] Roadmap and risk register reference the schema owner and version.
+- [x] Schema specification published with module sign-off recorded in ADR-0007.
+- [x] Runtime harness and Python tooling load and validate configurations via the shared schema (feature-flagged until adoption completes).
+- [x] Migration guidance added to affected module READMEs and the prototyping playbook.
+- [x] Roadmap and risk register reference the schema owner and version.
 
 ## Dependencies
 - AI-001/AI-002/AI-003 groundwork completed (resource + telemetry invariants).
@@ -33,3 +33,6 @@ Kickoff readiness (`DC-041`) depends on this task closing; escalate blockers wit
   [`engine/runtime/config_schema.hpp`](../../../engine/runtime/include/engine/runtime/config_schema.hpp) backed by `yaml-cpp`
   with regression tests under
   [`engine/runtime/tests/test_config_schema.cpp`](../../../engine/runtime/tests/test_config_schema.cpp).
+- The AI-004 prototyping workflow is documented in
+  [`docs/design/AI-004-prototyping-playbook.md`](../../design/AI-004-prototyping-playbook.md), providing migration guidance for
+  runtime, tools, assets, and benchmarking teams.
