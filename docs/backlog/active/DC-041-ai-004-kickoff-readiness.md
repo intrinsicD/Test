@@ -9,6 +9,20 @@
 ## Summary
 The initiative lacks a single source of truth for the kickoff review. This item produces the milestone timeline, assigns accountable owners for risks, and synchronises roadmap and initiative documents so every agent knows the next integration demo and sign-off checkpoints.
 
+## Role Roster
+| Role | Responsibilities | Owner |
+| --- | --- | --- |
+| Agent Orchestrator | Coordinate milestone sequencing, ensure risk mitigations have active escalation paths. | Agent Orchestrator (11) |
+| Product Manager | Own kickoff brief content, confirm acceptance criteria and roadmap cross-links. | Product Manager (10) |
+| Knowledge Librarian | Maintain references to roadmap, sprint tracker, and initiative archives. | Knowledge Librarian (12) |
+| Specialist Engineer(s) | Runtime, tools, assets, and performance leads supply status updates and demo readiness evidence. | Module Leads |
+| Docs/DevRel | Update kickoff packet docs, NAVIGATION pointers, and announcement templates. | Docs/DevRel (95) |
+| QA/Test Specialist | Validate recorded smoke tests referenced in the brief; attach evidence to quality report. | QA/Test Specialist (90) |
+| Performance Engineer | Provide benchmark baselines feeding the risk register and success metrics. | Performance Engineer (80) |
+| Safety Reviewer | Review risk register for compliance, licensing, and security mitigation tracking. | Safety Reviewer (15) |
+| Reviewer | Audit the kickoff artefacts for completeness before sign-off. | Reviewer (99) |
+| Release Manager | Align kickoff timeline with release calendar and communications plan. | Release Manager (98) |
+
 ## Definition of Done
 - [x] Roadmap milestone table lists Phase 1 deliverables in chronological order with dependencies and owners.
 - [x] Kickoff brief captures agenda, success metrics, and risk ownership, and is linked from the roadmap and sprint tracker.

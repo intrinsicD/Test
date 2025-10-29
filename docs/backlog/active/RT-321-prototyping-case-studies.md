@@ -9,6 +9,20 @@
 ## Summary
 After RT-320 delivers the harness we must prove it supports real workflows. RT-321 curates two case studies—one geometry-heavy, one rendering-heavy—that run end to end through the AI-004 configuration schema. Each scenario loads packaged datasets, configures the research baseline, exports telemetry compatible with CC-310, and is callable from both the CLI and the sandbox UI.
 
+## Role Roster
+| Role | Responsibilities | Owner |
+| --- | --- | --- |
+| Agent Orchestrator | Sequence dependencies (RT-320, AS-330, TL-210) and coordinate validation timelines. | Agent Orchestrator (11) |
+| Product Manager | Align case study acceptance criteria with roadmap success metrics. | Product Manager (10) |
+| Knowledge Librarian | Archive case study documentation, telemetry baselines, and dataset provenance references. | Knowledge Librarian (12) |
+| Specialist Engineer(s) | Runtime lead develops presets; assets and tools engineers wire datasets/UI toggles. | Runtime Lead; Assets Lead; Tools Lead |
+| Docs/DevRel | Document case study workflows in prototyping playbook and module READMEs. | Docs/DevRel (95) |
+| QA/Test Specialist | Add integration tests covering CLI and sandbox execution; record baseline telemetry artefacts. | QA/Test Specialist (90) |
+| Performance Engineer | Evaluate comparative metrics for each case study and feed data into CC-310/CC-311. | Performance Engineer (80) |
+| Safety Reviewer | Review dataset licensing and telemetry handling before publication. | Safety Reviewer (15) |
+| Reviewer | Validate case study implementation and documentation updates. | Reviewer (99) |
+| Release Manager | Publish packaged case study presets and ensure availability for kickoff review. | Release Manager (98) |
+
 ## Definition of Done
 - [ ] Case study manifests live under `assets/datasets/` and are referenced by harness CLI/SDK helpers.
 - [ ] Harness CLI exposes `--case-study` presets that configure datasets, algorithms, and telemetry sinks.

@@ -9,10 +9,10 @@ Use this prompt to perform consistent, high-signal reviews for Test Engine pull 
 
 ## Prerequisites Checklist
 - [ ] Read [`../NAVIGATION.md`](../NAVIGATION.md) for reviewer expectations and documentation structure.
-- [ ] Refresh invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md) and coding/testing standards in
+- [ ] Refresh invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md), workflow phases in [`../../AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md), and coding/testing standards in
       [`../../CONTRIBUTION.md`](../../CONTRIBUTION.md).
 - [ ] Open module READMEs/ROADMAPs for affected subsystems.
-- [ ] Locate referenced tasks in [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) and related specs/prints.
+- [ ] Locate referenced tasks in [`../backlog/active/`](../backlog/active/) (verify Role Roster coverage) and consult [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) plus archived prints when historical context is required.
 - [ ] Ensure access to build/test tooling to reproduce results if needed.
 
 ## Prompt Template
@@ -120,7 +120,7 @@ PROJECT STANDARDS (Test Engine)
 3. File follow-up task if remediation exceeds PR scope.
 
 ## Review Workflow Reminders
-1. Confirm PR references a task (`docs/backlog/active/T-XXXX-*.md`) and acceptance criteria.
+1. Confirm PR references a task (`docs/backlog/active/<ID>-*.md`) and acceptance criteria (Role Roster owners engaged).
 2. Review documentation updates for affected modules and central artefacts.
 3. Execute targeted tests locally when behaviour is complex or determinism is at risk.
 4. Record findings in `docs/reviews/` if performing post-merge audits.

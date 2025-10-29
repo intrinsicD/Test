@@ -19,6 +19,20 @@ dependencies, and risk mitigations.
 - Risk mitigations closed or re-scoped with documented follow-ups by
   **2026-02-13**.
 
+## Role Roster
+| Role | Responsibilities | Owner |
+| --- | --- | --- |
+| Agent Orchestrator | Facilitate daily syncs, update task brief, escalate blockers across streams. | Agent Orchestrator (11) |
+| Product Manager | Own agenda/success metrics, ensure backlog items map to kickoff outcomes. | Product Manager (10) |
+| Knowledge Librarian | Aggregate context packs, archive meeting notes, maintain cross-links to roadmap/backlog. | Knowledge Librarian (12) |
+| Specialist Engineer(s) | Runtime, tools, assets, rendering, and performance leads deliver stream milestones. | Module Leads |
+| Docs/DevRel | Refresh kickoff packet docs, NAVIGATION pointers, and share slide materials. | Docs/DevRel (95) |
+| QA/Test Specialist | Capture harness/sandbox smoke outputs and attach logs to quality reports. | QA/Test Specialist (90) |
+| Performance Engineer | Provide comparative benchmark baselines for demo readiness. | Performance Engineer (80) |
+| Safety Reviewer | Validate dataset licensing and schema security notes before the review. | Safety Reviewer (15) |
+| Reviewer | Audit final packet for completeness ahead of executive review. | Reviewer (99) |
+| Release Manager | Coordinate post-review release cadence and communications. | Release Manager (98) |
+
 ## Milestone Timeline
 
 | Sequence | Target Date | Backlog | Owner | Dependencies | Notes |

@@ -12,8 +12,9 @@ triage, and roadmap alignment rather than single-change pull-request reviews.
 ## Prerequisites Checklist
 - [ ] Review [`../NAVIGATION.md`](../NAVIGATION.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), and [`../../agents/ROLES.md`](../../agents/ROLES.md) to
       refresh invariants and reviewer expectations.
+- [ ] Align on workflow phases and quality gates in [`../../AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md).
 - [ ] Inspect the architecture improvement plan tables in
-      [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked tasks/prints.
+      [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked backlog records via [`../backlog/active/`](../backlog/active/).
 - [ ] Open relevant specs under [`../specs/`](../specs/) and design notes in [`../design/`](../design/).
 - [ ] Collect module READMEs/ROADMAPs for the subsystems in scope.
 - [ ] Confirm required tooling is available (`cmake`, `python`, telemetry scripts).
@@ -181,6 +182,6 @@ dot -Tpng engine_deps.dot -o engine_deps.png
 
 ## Post-Audit Actions
 1. **Triage** — create roadmap/task updates for 🔴 issues; file backlog entries for ⚠️; document 💡 suggestions.
-2. **Update Artefacts** — synchronise module READMEs, module roadmaps, central roadmap, and relevant specs/prints with findings.
-3. **Communicate** — brief module owners, share in architecture review, and log outcomes in `docs/prints/` if required.
+2. **Update Artefacts** — synchronise module READMEs, module roadmaps, central roadmap, and relevant specs/backlog records with findings.
+3. **Communicate** — brief module owners, share in architecture review, and log outcomes in `docs/archive/prints/` if required.
 4. **Schedule Follow-Up** — set next audit cadence, monitor improvement plan progress, and capture telemetry trends validating fixes.

@@ -1,7 +1,7 @@
 # Implementation + Self-Review Prompt
 
 Use this prompt to run a full implementer plus independent reviewer loop for Test Engine changes. It replaces the legacy prompt
-previously stored under `docs/prints/`.
+previously stored under `docs/archive/prints/`.
 
 ## When to Use
 - Developing a new feature or bug fix that affects the engine, runtime tooling, or documentation.
@@ -10,9 +10,8 @@ previously stored under `docs/prints/`.
 
 ## Prerequisites Checklist
 Before invoking the prompt, confirm:
-- [ ] You have read [`../NAVIGATION.md`](../NAVIGATION.md) and [`../../README.md`](../../README.md) for the current workspace snapshot.
-- [ ] The relevant task record(s) in [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) are open in another tab (e.g., `T-0104`, `T-0112`, `T-0115`,
-      `T-0116`, `T-0117`).
+- [ ] You have read [`../NAVIGATION.md`](../NAVIGATION.md), [`../../README.md`](../../README.md), and [`../../AGENT_WORKFLOW.md`](../../AGENT_WORKFLOW.md) for the current workflow snapshot.
+- [ ] The active backlog record in [`../backlog/active/`](../backlog/active/) (and its **Role Roster**) is open. Consult [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) for historical context if needed.
 - [ ] Module-specific READMEs and roadmaps in [`../modules/`](../modules/) are reviewed for impacted subsystems.
 - [ ] Applicable specs or ADRs in [`../specs/`](../specs/) are identified.
 - [ ] Build and validation presets from [`../../README.md#build--test-workflow`](../../README.md#build--test-workflow) are
@@ -40,13 +39,7 @@ checklists.
 
 **Repository Context**
 - Review the subsystem overview in [`../../README.md`](../../README.md) and invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
-- Inspect the active backlog via [`../archive/backlog/legacy/tasks/README.md`](../archive/backlog/legacy/tasks/README.md) with emphasis on:
-  - `T-0104 Runtime frame-graph integration`
-  - `T-0112 Geometry/IO round-trip hardening`
-  - `T-0113 Animation runtime skinning`
-  - `T-0115 Assets async streaming MVP`
-  - `T-0116 Rendering Vulkan resource translation`
-  - `T-0117 Physics contact manifolds`
+- Inspect the active backlog via [`../backlog/active/`](../backlog/active/) (Role Roster + Definition of Done). Use [`../archive/backlog/legacy/tasks/README.md`](../archive/backlog/legacy/tasks/README.md) for historical audits when needed.
 - Honour non-goals described in [`../design/ASYNC_STREAMING.md#non-goals`](../design/ASYNC_STREAMING.md#non-goals) unless a task
   explicitly lifts them.
 

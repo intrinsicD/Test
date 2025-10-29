@@ -10,7 +10,7 @@
 
 **Working on a specific task?**
 1. Check [`ROADMAP.md`](ROADMAP.md) – confirm the milestone and priority band.
-2. Open the relevant backlog entry under [`backlog/active/`](backlog/active/) – it defines ownership, definition of done, dependencies, and artefacts.
+2. Open the relevant backlog entry under [`backlog/active/`](backlog/active/) – review its Role Roster, definition of done, dependencies, and artefacts.
 3. Read the module notes in [`modules/<name>/README.md`](modules/) – understand subsystem invariants.
 4. Consult related specs in [`specs/`](specs/) – respect architectural decisions.
 

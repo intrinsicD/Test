@@ -18,8 +18,8 @@ Each backlog item includes status, ownership, definition of done, dependencies, 
 
 ## Workflow
 
-1. **Create** a new backlog file in `active/` using the template below.
-2. **Update** the central roadmap (`../ROADMAP.md`) to reference the new file.
+1. **Create** a new backlog file in `active/` using the template below and map responsibilities to roles defined in [`../../agents/ROLES.md`](../../agents/ROLES.md).
+2. **Update** the central roadmap (`../ROADMAP.md`) to reference the new file and capture the same role ownership.
 3. **Deliver** the work and update status to `Complete` when acceptance criteria are met.
 4. **Archive** the file by moving it into `archive/` and noting the completion date.
 
@@ -36,6 +36,20 @@ Each backlog item includes status, ownership, definition of done, dependencies, 
 
 ## Summary
 Concise description of the problem and the intended outcome.
+
+## Role Roster
+| Role | Responsibilities | Owner |
+| --- | --- | --- |
+| Agent Orchestrator | | |
+| Product Manager | | |
+| Knowledge Librarian | | |
+| Specialist Engineer(s) | | |
+| Docs/DevRel | | |
+| QA/Test Specialist | | |
+| Performance Engineer | | |
+| Safety Reviewer | | |
+| Reviewer | | |
+| Release Manager | | |
 
 ## Definition of Done
 - [ ] Criterion 1
