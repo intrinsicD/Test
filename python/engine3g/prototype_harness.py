@@ -7,6 +7,10 @@ from typing import Callable, Dict, Optional, Tuple
 
 from .config_schema import (
     Ai004Configuration,
+    BenchmarkCommandConfig,
+    BenchmarkConfig,
+    BenchmarkMetricConfig,
+    BenchmarkScenarioConfig,
     ConfigurationSchemaError,
     DatasetEntry,
     DatasetManifest,
@@ -17,10 +21,15 @@ from .config_schema import (
 from .loader import EngineRuntimeHandle, EngineLibraryNotFound, load_runtime
 
 __all__ = [
+    "BenchmarkCommandSummary",
+    "BenchmarkMetricSummary",
+    "BenchmarkMetricThresholdSummary",
+    "BenchmarkScenarioSummary",
     "HarnessExecutionOptions",
     "HarnessRunSummary",
     "DatasetSummary",
     "HarnessConfigurationSummary",
+    "HarnessBenchmarkSummary",
     "HarnessTelemetrySummary",
     "PrototypeHarness",
     "PrototypeHarnessError",
@@ -198,6 +207,87 @@ class TelemetryMetricSummary:
 
 
 @dataclass(frozen=True)
+class BenchmarkMetricThresholdSummary:
+    """Regression threshold metadata for benchmark metrics."""
+
+    mode: str
+    limit: float
+
+    def to_dict(self) -> Dict[str, object]:
+        return {"mode": self.mode, "limit": self.limit}
+
+
+@dataclass(frozen=True)
+class BenchmarkMetricSummary:
+    """Benchmark metric descriptor exposed to tooling."""
+
+    name: str
+    higher_is_better: bool
+    threshold: BenchmarkMetricThresholdSummary
+
+    def to_dict(self) -> Dict[str, object]:
+        return {
+            "name": self.name,
+            "higher_is_better": self.higher_is_better,
+            "threshold": self.threshold.to_dict(),
+        }
+
+
+@dataclass(frozen=True)
+class BenchmarkCommandSummary:
+    """Execution details for a benchmark scenario command."""
+
+    command: Optional[Tuple[str, ...]]
+    output: str
+
+    def to_dict(self) -> Dict[str, object]:
+        payload: Dict[str, object] = {"output": self.output}
+        if self.command is not None:
+            payload["command"] = list(self.command)
+        return payload
+
+
+@dataclass(frozen=True)
+class BenchmarkScenarioSummary:
+    """Aggregated benchmark scenario metadata for UI integrations."""
+
+    identifier: str
+    name: str
+    dataset: Optional[str]
+    rendering_preset: Optional[str]
+    runtime_profile: Optional[str]
+    engine: BenchmarkCommandSummary
+    reference: BenchmarkCommandSummary
+    metrics: Tuple[BenchmarkMetricSummary, ...]
+
+    def to_dict(self) -> Dict[str, object]:
+        return {
+            "id": self.identifier,
+            "name": self.name,
+            "dataset": self.dataset,
+            "rendering_preset": self.rendering_preset,
+            "runtime_profile": self.runtime_profile,
+            "engine": self.engine.to_dict(),
+            "reference": self.reference.to_dict(),
+            "metrics": [metric.to_dict() for metric in self.metrics],
+        }
+
+
+@dataclass(frozen=True)
+class HarnessBenchmarkSummary:
+    """Benchmark configuration summary surfaced by the harness."""
+
+    schema_version: int
+    scenarios: Tuple[BenchmarkScenarioSummary, ...]
+
+    def to_dict(self) -> Dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "scenarios": [scenario.to_dict() for scenario in self.scenarios],
+        }
+
+
+@dataclass(frozen=True)
 class TelemetrySamplingSummary:
     """Telemetry sampling cadence used by the harness."""
 
@@ -240,6 +330,7 @@ class HarnessConfigurationSummary:
     rendering: Optional[RenderingSummary]
     runtime: RuntimeSummary
     telemetry: Optional[HarnessTelemetrySummary]
+    benchmarks: Optional[HarnessBenchmarkSummary]
 
     def to_dict(self) -> Dict[str, object]:
         return {
@@ -248,6 +339,7 @@ class HarnessConfigurationSummary:
             "rendering": self.rendering.to_dict() if self.rendering else None,
             "runtime": self.runtime.to_dict(),
             "telemetry": self.telemetry.to_dict() if self.telemetry else None,
+            "benchmarks": self.benchmarks.to_dict() if self.benchmarks else None,
         }
 
 
@@ -307,12 +399,18 @@ class PrototypeHarness:
             if self._configuration.telemetry
             else None
         )
+        benchmark_summary = (
+            self._describe_benchmarks(self._configuration.benchmarks)
+            if self._configuration.benchmarks
+            else None
+        )
         return HarnessConfigurationSummary(
             datasets=datasets,
             selected_dataset=self._selected_dataset.identifier if self._selected_dataset else None,
             rendering=rendering_summary,
             runtime=runtime_summary,
             telemetry=telemetry_summary,
+            benchmarks=benchmark_summary,
         )
 
     def run_headless(self, options: HarnessExecutionOptions | None = None) -> HarnessRunSummary:
@@ -524,6 +622,42 @@ class PrototypeHarness:
             metrics=metrics,
             sampling=sampling,
         )
+
+    @staticmethod
+    def _describe_benchmark_command(command: BenchmarkCommandConfig) -> BenchmarkCommandSummary:
+        return BenchmarkCommandSummary(command=command.command, output=command.output)
+
+    @classmethod
+    def _describe_benchmark_metric(
+        cls, metric: BenchmarkMetricConfig
+    ) -> BenchmarkMetricSummary:
+        threshold = BenchmarkMetricThresholdSummary(mode=metric.threshold.mode, limit=metric.threshold.limit)
+        return BenchmarkMetricSummary(
+            name=metric.name,
+            higher_is_better=metric.higher_is_better,
+            threshold=threshold,
+        )
+
+    @classmethod
+    def _describe_benchmark_scenario(
+        cls, scenario: BenchmarkScenarioConfig
+    ) -> BenchmarkScenarioSummary:
+        metrics = tuple(cls._describe_benchmark_metric(metric) for metric in scenario.metrics)
+        return BenchmarkScenarioSummary(
+            identifier=scenario.identifier,
+            name=scenario.name,
+            dataset=scenario.dataset,
+            rendering_preset=scenario.rendering_preset,
+            runtime_profile=scenario.runtime_profile,
+            engine=cls._describe_benchmark_command(scenario.engine),
+            reference=cls._describe_benchmark_command(scenario.reference),
+            metrics=metrics,
+        )
+
+    @classmethod
+    def _describe_benchmarks(cls, benchmarks: BenchmarkConfig) -> HarnessBenchmarkSummary:
+        scenarios = tuple(cls._describe_benchmark_scenario(scenario) for scenario in benchmarks.scenarios)
+        return HarnessBenchmarkSummary(schema_version=benchmarks.schema_version, scenarios=scenarios)
 
 
 def load_harness(

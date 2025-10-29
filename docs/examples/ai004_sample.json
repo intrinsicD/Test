@@ -143,6 +143,48 @@
       "enabled": false
     }
   },
+  "benchmarks": {
+    "schema": {
+      "id": "ai-004.benchmarks",
+      "version": 1
+    },
+    "scenarios": [
+      {
+        "id": "remesh-baseline",
+        "name": "Remesh Baseline",
+        "dataset": "remesh-unit-square",
+        "rendering_preset": "research-baseline",
+        "engine": {
+          "command": [
+            "python",
+            "run_engine.py",
+            "--output",
+            "{output_path}"
+          ],
+          "output": "telemetry/{scenario}_engine.json"
+        },
+        "reference": {
+          "command": [
+            "python",
+            "run_reference.py",
+            "--output",
+            "{output_path}"
+          ],
+          "output": "telemetry/{scenario}_reference.json"
+        },
+        "metrics": [
+          {
+            "name": "frame_time",
+            "higher_is_better": false,
+            "threshold": {
+              "type": "relative",
+              "max_regression": 0.05
+            }
+          }
+        ]
+      }
+    ]
+  },
   "telemetry": {
     "schema": {
       "id": "ai-004.telemetry",

@@ -112,6 +112,7 @@ python -m scripts.prototyping.run_prototype_harness \
 
 - `--frames`/`--dt` control simulation cadence.
 - `--summary-json` writes telemetry and benchmark metadata (including `average_tick_ms`) to disk.
+- `--list-benchmarks` enumerates the declared scenarios (identifier, dataset, preset) before execution so tooling can confirm coverage.
 - Provide `--case-study <id>` to resolve configurations from
   `assets/datasets/case_studies/` once they are published.
 
@@ -194,6 +195,7 @@ Communicate schedule changes in `docs/ROADMAP.md` and module READMEs.
 | Validate manifests | `python -m scripts.validate_ai004_config --dataset <path> --config <path>` |
 | Dry-run harness | `python -m scripts.prototyping.run_prototype_harness --dry-run --require-schema --config <path>` |
 | Execute harness | `python -m scripts.prototyping.run_prototype_harness --frames N --dt 0.0166667 --summary-json <path> --config <path>` |
+| List benchmark scenarios | `python -m scripts.prototyping.run_prototype_harness --dry-run --list-benchmarks --config <path>` |
 | Launch sandbox | `./out/build/<preset>/tools/experiment_sandbox --config <path>` |
 | Run benchmark helper | `python scripts/diagnostics/compute_dispatch_benchmark.py --sample <binary> --runs 3 --frames 1024 --baseline` |
 
