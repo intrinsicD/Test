@@ -280,6 +280,17 @@ ctest --preset linux-gcc-debug -R runtime
   The test launches the harness CLI in dry-run mode with schema enforcement
   enabled, writes run summaries into the build artefact directory, and applies
   the mock window backend so it remains deterministic on headless runners.
+- A native C++ sample (`runtime_prototype_harness`) mirrors the Python CLI for
+  dry-run validation:
+  ```bash
+  ./out/build/<preset>/engine/runtime/runtime_prototype_harness \
+      --config docs/examples/ai004_sample.json \
+      --dry-run --require-schema \
+      --summary-json telemetry/runtime_sample_summary.json
+  ```
+  The executable resolves AI-004 manifests through the shared configuration
+  loader, validates dataset references, and records execution summaries that the
+  integration test `runtime_prototype_harness_sample_dry_run` consumes.
 - Enable strict schema enforcement during the migration by exporting
   `ENGINE_AI004_SCHEMA_V1=1`. When the variable is unset the loaders inject
   default schema headers so legacy manifests remain compatible while teams

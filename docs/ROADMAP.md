@@ -27,7 +27,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | --- | --- | --- | --- | --- |
 | 1 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Ratify shared configuration schema and validators. | Agent Orchestrator + Module Leads | Complete |
 | 1 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Publish kickoff plan, risk ownership, and milestone sequencing. | Product Manager | Complete |
-| 2 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Ship schema-driven harness with interactive + headless flows. | Runtime Lead | Planned |
+| 2 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Ship schema-driven harness with interactive + headless flows. | Runtime Lead | In Progress |
 
 **Exit Criteria:** Schema approved, kickoff brief published, harness prototype booting sample datasets.
 
@@ -67,7 +67,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | --- | --- | --- | --- |
 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | Complete | Schema ADR, cross-language validators, and prototyping playbook published. |
 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Complete | Kickoff brief + roadmap timeline published. |
-| [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | Planned | Blocks TL-210/RT-321/CC-310. |
+| [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | In Progress | Blocks TL-210/RT-321/CC-310. |
 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Planned | Licensing review pending. |
 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | 3 | In Progress | UI scaffolding merged; harness wiring outstanding. |
 | [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | 3 | Planned | Depends on datasets + harness. |

@@ -50,3 +50,21 @@ if(Python3_Interpreter_FOUND)
 else()
     message(WARNING "Python3 interpreter not found; skipping runtime prototype harness case study integration test.")
 endif()
+
+set(_runtime_harness_summary "${CMAKE_BINARY_DIR}/artifacts/ai004/runtime-sample-summary.json")
+add_test(NAME runtime_prototype_harness_sample_dry_run
+        COMMAND $<TARGET_FILE:runtime_prototype_harness>
+                --config ${CMAKE_SOURCE_DIR}/docs/examples/ai004_sample.json
+                --dry-run
+                --require-schema
+                --summary-json ${_runtime_harness_summary}
+)
+set_property(TEST runtime_prototype_harness_sample_dry_run PROPERTY LABELS integration)
+set_tests_properties(runtime_prototype_harness_sample_dry_run
+        PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        ENVIRONMENT "ENGINE_PLATFORM_WINDOW_BACKEND=mock;ENGINE_WINDOW_BACKEND=MOCK"
+        PASS_REGULAR_EXPRESSION "Dry run summary"
+        FAIL_REGULAR_EXPRESSION "error:"
+        TIMEOUT 60
+)
