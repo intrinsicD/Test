@@ -13,6 +13,7 @@ __all__ = [
     "CaseStudyError",
     "CaseStudyNotFoundError",
     "available_case_studies",
+    "describe_case_studies",
     "get_case_study",
 ]
 
@@ -34,6 +35,27 @@ class CaseStudy:
     description: str
     tags: Tuple[str, ...]
     config_path: Path
+
+    def to_dict(self, *, relative_to: Path | None = None) -> Dict[str, object]:
+        """Serialise the case study for tooling integrations."""
+
+        config_value = self.config_path
+        relative_value: str | None = None
+        if relative_to is not None:
+            try:
+                relative_value = str(config_value.relative_to(relative_to))
+            except ValueError:
+                relative_value = None
+
+        payload: Dict[str, object] = {
+            "id": self.identifier,
+            "label": self.label,
+            "description": self.description,
+            "tags": list(self.tags),
+            "config": str(relative_value or config_value),
+            "config_absolute": str(config_value),
+        }
+        return payload
 
 
 def _project_root() -> Path:
@@ -115,5 +137,12 @@ def get_case_study(identifier: str) -> CaseStudy:
             f"case study '{identifier}' references missing configuration '{case_study.config_path}'"
         )
     return case_study
+
+
+def describe_case_studies(*, relative_to: Path | None = None) -> Tuple[Dict[str, object], ...]:
+    """Return case study metadata suitable for UI layers and CLIs."""
+
+    base = relative_to or _project_root()
+    return tuple(case.to_dict(relative_to=base) for case in available_case_studies())
 
 

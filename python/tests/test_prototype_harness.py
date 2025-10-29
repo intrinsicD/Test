@@ -469,6 +469,26 @@ def test_cli_case_study_support(tmp_path: Path, capsys: pytest.CaptureFixture[st
     assert "Selected case study 'rendering-debug'" in captured_rendering.out
 
 
+def test_cli_lists_case_studies(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    json_path = tmp_path / "case_studies.json"
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        ["--list-case-studies", "--case-studies-json", str(json_path)]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert "Available case studies" in captured.out
+    assert json_path.exists()
+
+    payload = json.loads(json_path.read_text(encoding="utf-8"))
+    assert "case_studies" in payload
+    assert isinstance(payload["case_studies"], list)
+    assert payload["case_studies"], "expected registered case studies"
+
+
 def test_cli_integration_with_sample_assets(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

@@ -53,6 +53,8 @@ EngineRuntimeHandle (ctypes wrapper)
 ### Control Flow
 
 1. CLI (`scripts/prototyping/run_prototype_harness.py`) parses arguments and loads configuration via `load_configuration`.
+   - Use `--list-case-studies` to surface bundled presets (from `assets/datasets/case_studies/`) and optionally
+     `--case-studies-json <path>` to export metadata for TL-210's sandbox selectors without executing the runtime loop.
 2. `PrototypeHarness` validates dataset references and prepares runtime execution parameters.
 3. `PrototypeHarness.run_headless()` acquires an `EngineRuntimeHandle` from the injected factory, initializes the runtime, executes a fixed timestep loop, and records summary telemetry (frame count, dataset slug, dispatch order placeholder).
 4. Results are returned to the caller for reporting or persisted for benchmark automation.

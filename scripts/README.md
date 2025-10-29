@@ -28,6 +28,10 @@
   `python -m scripts.datasets.ingest_dataset <manifest> --copy-assets`.
 - Bootstrap the Python environment for contributors and CI workers with
   `python -m scripts.bootstrap_python_env` (implements roadmap item `PY-015`).
+- Inspect bundled AI-004 case studies without executing the runtime by running
+  `python -m scripts.prototyping.run_prototype_harness --list-case-studies`
+  and optionally providing `--case-studies-json <path>` to export metadata for
+  tooling integrations (`RT-320`, `TL-210`).
 
 ## TODO / Next Steps
 
