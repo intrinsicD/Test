@@ -45,14 +45,14 @@ Your documentation has been completely restructured and optimized for AI agent w
 - ✅ Updated 25+ cross-references to module backlogs
 
 ### Phase 3: Style Guide Consolidation
-- ✅ Merged `CONVENTIONS.md` into comprehensive `CODING_STYLE.md`
+- ✅ Merged `CONVENTIONS.md` into comprehensive `CONTRIBUTION.md`
 - ✅ Expanded `GLOSSARY.md` from 7 to 100+ entries with:
   - All initiative IDs (DC-*, AI-*, RT-*, CC-*, TI-*)
   - Technical terms by category
   - All acronyms
   - Module responsibilities
   - File/directory conventions
-- ✅ Updated 6+ references to point to unified `CODING_STYLE.md`
+- ✅ Updated 6+ references to point to unified `CONTRIBUTION.md`
 
 ### Phase 4: Validation & Link Fixes
 - ✅ Homogenized all .md filenames to UPPERCASE
@@ -74,7 +74,7 @@ Your documentation has been completely restructured and optimized for AI agent w
 
 ### 3. **Reduced Clutter**
 **Before:** 29 historical files mixed with active docs, 3 overlapping style guides  
-**After:** Historical files archived, single comprehensive `CODING_STYLE.md`
+**After:** Historical files archived, single comprehensive `CONTRIBUTION.md`
 
 ### 4. **Better Navigation**
 **Before:** No central index, inconsistent naming  
@@ -142,7 +142,7 @@ docs/
 → `docs/ARCHITECTURE.md` (module boundaries, data flow, invariants)
 
 ### Need Coding Standards?
-→ `CODING_STYLE.md` (comprehensive guide with all conventions)
+→ `CONTRIBUTION.md` (comprehensive guide with all conventions)
 
 ---
 
@@ -166,7 +166,7 @@ The validation script reports a few remaining items (non-critical):
 |------|---------|--------|
 | `README.md` | Workspace overview, module health, build instructions | ✅ Updated |
 | `AGENTS.md` | AI agent working agreement and priority stack | ✅ Expanded |
-| `CODING_STYLE.md` | Comprehensive style guide (consolidated) | ✅ Complete |
+| `CONTRIBUTION.md` | Comprehensive style guide (consolidated) | ✅ Complete |
 | `docs/NAVIGATION.md` | Documentation index and navigation hub | ✅ New |
 | `docs/ROADMAP.md` | Strategic initiatives and module queues | ✅ Restructured |
 | `docs/GLOSSARY.md` | 100+ terms, IDs, acronyms | ✅ Expanded |

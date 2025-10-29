@@ -30,8 +30,8 @@ This proposal recommends a streamlined structure optimized for agentic workflows
 
 ### Moderate Issues
 
-- **docs/architecture.md** vs **CODING_STYLE.md** have overlapping "invariants" sections
-- **docs/conventions.md** vs **CODING_STYLE.md** duplicate C++ guidelines
+- **docs/architecture.md** vs **CONTRIBUTION.md** have overlapping "invariants" sections
+- **docs/conventions.md** vs **CONTRIBUTION.md** duplicate C++ guidelines
 - **docs/glossary.md** is incomplete (only 7 terms for a large project)
 - **Module README template** exists but inconsistently applied
 
@@ -79,10 +79,10 @@ docs/
 #### 1.3 Consolidate Style & Convention Docs
 
 **MERGE:**
-- `docs/conventions.md` + `docs/architecture.md` (invariants section) → `CODING_STYLE.md`
+- `docs/conventions.md` + `docs/architecture.md` (invariants section) → `CONTRIBUTION.md`
 
 **RESULT:**
-- `CODING_STYLE.md` - Comprehensive: C++, Python, testing, architectural invariants
+- `CONTRIBUTION.md` - Comprehensive: C++, Python, testing, architectural invariants
 - `docs/architecture.md` - Focus ONLY on: module map, data flow, key design decisions
 
 #### 1.4 Streamline Roadmap
@@ -218,7 +218,7 @@ docs/modules/<name>/
 
 ## 📊 Key References
 
-- **Coding Standards:** [`../CODING_STYLE.md`](../CODING_STYLE.md)
+- **Coding Standards:** [`../CONTRIBUTION.md`](../CONTRIBUTION.md)
 - **Telemetry:** [`design/TELEMETRY_SCHEMA.md`](design/TELEMETRY_SCHEMA.md), [`design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](design/TELEMETRY_INSTRUMENTATION_GUIDE.md)
 - **Error Handling:** [`design/ERROR_HANDLING_MIGRATION.md`](design/ERROR_HANDLING_MIGRATION.md)
 - **Resource Management:** [`design/RESOURCE_MANAGEMENT.md`](design/RESOURCE_MANAGEMENT.md)
@@ -266,7 +266,7 @@ Current glossary has only 7 terms. Should be comprehensive reference.
 - [ ] Audit all 13 modules for README template compliance
 
 ### Week 3: Style Guide Consolidation
-- [ ] Merge conventions + architecture invariants into `CODING_STYLE.md`
+- [ ] Merge conventions + architecture invariants into `CONTRIBUTION.md`
 - [ ] Trim `docs/architecture.md` to focus on module map + data flow
 - [ ] Expand `docs/glossary.md` to 50+ terms
 

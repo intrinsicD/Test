@@ -10,7 +10,7 @@ triage, and roadmap alignment rather than single-change pull-request reviews.
 - Whenever telemetry or review findings hint at architectural drift.
 
 ## Prerequisites Checklist
-- [ ] Review [`../NAVIGATION.md`](../NAVIGATION.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), and [`../../agents/AGENTS-INDEX.md`](../../agents/AGENTS-INDEX.md) to
+- [ ] Review [`../NAVIGATION.md`](../NAVIGATION.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), and [`../../agents/ROLES.md`](../../agents/ROLES.md) to
       refresh invariants and reviewer expectations.
 - [ ] Inspect the architecture improvement plan tables in
       [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked tasks/prints.
@@ -109,7 +109,7 @@ OUTPUT SCHEMA (strict)
 9. ## APPENDIX — optional tool outputs or additional references.
 ==============================================================================
 PROJECT STANDARDS (Test Engine)
-- Respect invariants and policies in `docs/ARCHITECTURE.md` and `CODING_STYLE.md`.
+- Respect invariants and policies in `docs/ARCHITECTURE.md` and `CONTRIBUTION.md`.
 - Use `engine::Result<T, Error>` for recoverable failures; document ownership semantics.
 - Keep roadmap/task/docs artefacts synchronised with audit findings.
 ```

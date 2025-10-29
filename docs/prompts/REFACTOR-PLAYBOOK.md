@@ -23,7 +23,7 @@ You are guiding a Test Engine refactor.
 Do NOT reveal chain-of-thought. Provide only the requested artefacts with citations to files, specs, and tasks.
 
 **Global Guardrails**
-- Preserve invariants in `docs/ARCHITECTURE.md` and policies in `../../CODING_STYLE.md`.
+- Preserve invariants in `docs/ARCHITECTURE.md` and policies in `../../CONTRIBUTION.md`.
 - Maintain deterministic behaviour, resource lifetime safety, and structured error handling (`engine::Result<T, Error>`).
 - Keep documentation, roadmap checklists, and tasks synchronised with the refactor plan.
 
@@ -82,7 +82,7 @@ OUTPUT SCHEMA (strict)
 8. ## FOLLOW_UP — explicit tasks with owners, priorities, and links.
 ==============================================================================
 PROJECT STANDARDS (Test Engine)
-- Follow `CODING_STYLE.md`, structured logging policies, and observability guidelines.
+- Follow `CONTRIBUTION.md`, structured logging policies, and observability guidelines.
 - Use `engine::Result<T, Error>`; document ownership semantics and apply `[[nodiscard]]` to fallible APIs.
 - Keep public headers minimal and hide implementation details within `src/` or unnamed namespaces.
 - Run `cmake --build`, `ctest`, `pytest`, and `python scripts/validate_docs.py` for affected presets.

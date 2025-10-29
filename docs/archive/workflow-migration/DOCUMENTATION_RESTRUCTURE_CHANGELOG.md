@@ -107,9 +107,9 @@ modules/tools/BACKLOG.md
 
 ## Phase 3: Style Guide Consolidation ✅
 
-### 3.1 CODING_STYLE.md Expanded
+### 3.1 CONTRIBUTION.md Expanded
 
-**Merged content from `docs/CONVENTIONS.md` into `CODING_STYLE.md`:**
+**Merged content from `docs/CONVENTIONS.md` into `CONTRIBUTION.md`:**
 
 New comprehensive sections:
 - General Principles (updated with architecture reference)
@@ -190,7 +190,7 @@ Categories of fixes:
 - Lowercase module docs → UPPERCASE (~40 references)
 - docs/README.md → docs/NAVIGATION.md (~10 references)
 - docs/agents.md → root AGENTS.md (~5 references)
-- docs/CONVENTIONS.md → CODING_STYLE.md (~6 references)
+- docs/CONVENTIONS.md → CONTRIBUTION.md (~6 references)
 
 ---
 
@@ -211,7 +211,7 @@ Categories of fixes:
 - Module backlogs clearly distinguished from strategic roadmap
 
 ### 4. Better Context
-- Consolidated CODING_STYLE.md includes architectural invariants
+- Consolidated CONTRIBUTION.md includes architectural invariants
 - Expanded glossary provides instant definitions
 - NAVIGATION.md acts as comprehensive index
 
@@ -241,7 +241,7 @@ See git log for complete change history. Key files:
 
 **Root:**
 - AGENTS.md (expanded with priority stack)
-- CODING_STYLE.md (consolidated from CONVENTIONS)
+- CONTRIBUTION.md (consolidated from CONVENTIONS)
 - README.md (updated references)
 
 **docs/:**

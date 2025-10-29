@@ -12,6 +12,7 @@ When working as an AI agent, prioritize in this order:
 ### Always Do
 
 - Cite every file path or command you reference.
+- Start each session by loading [`AGENT_WORKFLOW.md`](AGENT_WORKFLOW.md) to align on phases, coordination, and quality gates.
 - Follow the session checklist in [`docs/NAVIGATION.md`](docs/NAVIGATION.md) before modifying anything.
 - When collaborating across multiple roles, review the coordination guidance in [`agents/AGENTS.md`](agents/AGENTS.md) so hand-offs and context packs stay aligned.
 - Update or add tests for every behaviour change. Place C++ coverage under the owning module in `engine/<module>/tests/` and Python coverage under `python/tests/` or `scripts/tests/`.
@@ -26,6 +27,7 @@ When working as an AI agent, prioritize in this order:
 
 ## 1. Always Start With the Documentation
 - Read the repository root `README.md` before making changes; it summarises the workspace layout, build presets, and current TODO backlog.
+- Load [`AGENT_WORKFLOW.md`](AGENT_WORKFLOW.md) for the canonical workflow and quality gates.
 - Open [`docs/NAVIGATION.md`](docs/NAVIGATION.md) immediately afterwards. It provides a directory index and links the working agreement in this file with subsystem invariants, task backlogs, and ADRs so contributors follow the same workflow as our AI collaborators.
 - When touching any module, review its local `README.md`. Create or update it using `docs/README_TEMPLATE.md` so every directory explains:
   - What the component does and how it relates to neighbouring modules.
@@ -74,7 +76,7 @@ When working as an AI agent, prioritize in this order:
 6. Extend CI orchestration via the scripts in `scripts/ci/` when you add new presets or automation paths.
 
 ## 4. Coding & Testing Standards
-- Follow the conventions in `CODING_STYLE.md` (modern, high-performance C++20+). Do not wrap imports in try/catch blocks. Match the existing naming, formatting, and error-handling patterns.
+- Follow the conventions in `CONTRIBUTION.md` (modern, high-performance C++20+). Do not wrap imports in try/catch blocks. Match the existing naming, formatting, and error-handling patterns.
 - Comment complex algorithms with *why* and *how* rationales, not just *what*. Leverage docstrings or Doxygen-style comments for public headers.
 - Every new feature must include accompanying unit/integration tests inside the relevant `engine/<module>/tests/` directory and be wired into CTest.
 - Keep the aggregated TODO table in `README.md` synchronised with per-module README TODO sections.
@@ -82,7 +84,7 @@ When working as an AI agent, prioritize in this order:
 ## 5. Submission Checklist
 - [ ] All affected README files updated to describe the current behaviour, dependencies, and TODO items.
 - [ ] Required dependencies documented and, when possible, install scripts updated.
-- [ ] Code adheres to `CODING_STYLE.md` and is sufficiently commented.
+- [ ] Code adheres to `CONTRIBUTION.md` and is sufficiently commented.
 - [ ] `cmake --build`, `ctest`, Python tests, and `scripts/validate_docs.py` executed for the relevant presets; record the commands and results.
 - [ ] No warnings or regressions introduced in existing tests.
 
@@ -95,55 +97,75 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
 <!-- BEGIN GENERATED FILE TREE -->
 ```text
 .
+    AGENT_WORKFLOW.md
     AGENTS.md
     CMakeLists.txt
     CMakePresets.json
-    CODING_STYLE.md
+    CONTRIBUTION.md
     README.md
     agents/
-        00-COMMON-GUARDRAILS.md
-        10-Product-Manager.md
-        11-Agent-Orchestrator.md
-        12-Knowledge-Librarian.md
-        13-Research-Scientist.md
-        14-Auto-Improver.md
-        15-Security-Safety-Gate.md
-        16-Community-Maintainer.md
-        17-Example-Session.md
-        20-Chief-Architect.md
-        30-Tech-Lead.md
-        40-Rendering-Engineer.md
-        50-Geometry-Math-Engineer.md
-        60-Physics-Engineer.md
-        70-Tools-Build-CI-Engineer.md
-        80-Performance-Engineer.md
-        90-QA-Test-Engineer.md
-        95-Docs-DevRel.md
-        98-Release-Manager.md
-        99-Reviewer.md
-        AGENTS-INDEX.md
-        AGENTS-QUICKSTART.md
         AGENTS.md
+        ROLES.md
         TEMPLATES/
             ADR_TEMPLATE.md
-            CONTEXT_PACK.md
-            ISSUE_TEMPLATE.md
-            PR_TEMPLATE.md
-            TASK_CARD.md
+            CONTEXT_PACKAGE_TEMPLATE.md
+            QUALITY_REPORT_TEMPLATE.md
+            TASK_BRIEF_TEMPLATE.md
+    assets/
+        datasets/
+            case_studies/
+                geometry-baseline.json
+                index.json
+                rendering-debug.json
+            remesh_sample/
+                manifest.json
+                output_mesh.obj
+                source_mesh.obj
     docs/
-        AGENTIC_WORKFLOW_ENHANCEMENT.md
         ARCHITECTURE.md
-        CODEX_PROMPTING_GUIDE.md
         GLOSSARY.md
-        HYBRID_WORKFLOW.md
-        HYBRID_WORKFLOW_DIAGRAM.md
-        HYBRID_WORKFLOW_SUMMARY.md
         NAVIGATION.md
         README_TEMPLATE.md
         ROADMAP.md
-        WORKFLOW_COMPARISON.md
         archive/
             README.md
+            backlog/
+                legacy/
+                    README.md
+                    tasks/
+                        2025-02-17-sprint-06.md
+                        AI-004-application-prototyping-enablement.md
+                        AI-004-kickoff-brief.md
+                        AS-330-reference-dataset-packages.md
+                        CC-310-comparative-benchmark-automation.md
+                        CC-311-benchmark-visualization-integration.md
+                        CO-170-runtime-integration-sample.md
+                        DC-040-ai-004-configuration-schema-alignment.md
+                        DC-041-ai-004-kickoff-readiness.md
+                        RE-610-research-rendering-baseline.md
+                        README.md
+                        RT-320-runtime-prototyping-harness.md
+                        RT-321-prototyping-case-study-validation.md
+                        T-0104-runtime-frame-graph-integration.md
+                        T-0112-geometry-io-roundtrip-hardening.md
+                        T-0113-animation-runtime-skinning.md
+                        T-0114-testing-integration-suites.md
+                        T-0115-assets-async-streaming-mvp.md
+                        T-0116-rendering-vulkan-resource-translation.md
+                        T-0117-physics-contact-manifolds.md
+                        T-0118-testing-framework-upgrade.md
+                        T-0119-rendering-command-encoder-implementation.md
+                        T-0120-rendering-gpu-resource-provider-implementation.md
+                        T-0121-rendering-standard-passes-library.md
+                        T-0122-rendering-visibility-culling-system.md
+                        T-0123-rendering-pipeline-state-management.md
+                        T-0124-rendering-lighting-system.md
+                        T-0125-math-convenience-rotation-builders.md
+                        T-0126-math-documentation-alignment.md
+                        T-0127-math-optional-curve-utilities.md
+                        T-0128-geometry-frustum-utilities.md
+                        T-0129-geometry-shape-intersection-coverage.md
+                        TL-210-experiment-sandbox-ui.md
             prints/
                 AI-002-STREAMING-GEOMETRY-TELEMETRY.md
                 AN-201-IMPLEMENTATION.md
@@ -182,17 +204,41 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 DOCUMENTATION_RESTRUCTURE_CHANGELOG.md
                 DOCUMENTATION_RESTRUCTURE_PROPOSAL.md
                 RESTRUCTURE_SUMMARY.md
+        backlog/
+            README.md
+            active/
+                2026-02-03-sprint-11.md
+                AI-004-kickoff-brief.md
+                AS-330-reference-dataset-packages.md
+                CC-310-comparative-benchmark-automation.md
+                CC-311-benchmark-visualisation.md
+                DC-040-ai-004-configuration-schema.md
+                DC-041-ai-004-kickoff-readiness.md
+                RT-320-runtime-prototyping-harness.md
+                RT-321-prototyping-case-studies.md
+                TL-210-experiment-sandbox-ui.md
+            archive/
+                RE-610-research-rendering-baseline.md
         design/
+            AI-004-configuration-schema.md
+            AI-004-prototyping-playbook.md
+            AN-230-benchmark-harness-design.md
+            AN-230.2-gpu-telemetry.md
             ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md
             ARCHITECTURE_IMPROVEMENT_PLAN.md
             ASYNC_STREAMING.md
+            CO-170-runtime-integration-playbook.md
             ERROR_HANDLING_MIGRATION.md
             GE-212-REMESHING_PARAMETERIZATION_RFP.md
             MATERIAL_PERSISTENCE_STRATEGY.md
             PLUGIN_ARCHITECTURE.md
             RESOURCE_MANAGEMENT.md
+            RT-320-prototyping-harness.md
             TELEMETRY_INSTRUMENTATION_GUIDE.md
             TELEMETRY_SCHEMA.md
+            TL-210-experiment-sandbox.md
+        examples/
+            ai004_sample.json
         modules/
             README.md
             animation/
@@ -226,13 +272,15 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             platform/
                 BACKLOG.md
                 README.md
-                SDL_BACKEND_CHECKLIST.md
             rendering/
                 BACKEND_CHECKLIST.md
                 BACKLOG.md
                 METADATA_SCHEMA.md
+                PROGRESS_2025-10-27.md
+                QUICKSTART.md
                 README.md
             runtime/
+                AI004_CONFIGURATION_LOADER_DESIGN.md
                 ASYNC_STREAMING_INTEGRATION.md
                 BACKLOG.md
                 DIAGNOSTICS.md
@@ -252,34 +300,17 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             REVIEW-CHECKLIST.md
         reviews/
             2025-03-22-scene-docs.md
+            2025-10-26-architecture-audit.md
+            2025-12-05-roadmap-direction-review.md
+            2026-01-08-application-readiness-assessment.md
         specs/
             ADR-0003-runtime-frame-graph.md
             ADR-0005-geometry-io-roundtrip.md
             ADR-0006-animation-deformation.md
+            ADR-0007-ai-004-configuration-schema.md
+            ADR-0008-runtime-main-loop-and-tooling.md
             AN-240-state-machine-authoring.md
             README.md
-        tasks/
-            2025-02-17-sprint-06.md
-            README.md
-            T-0104-runtime-frame-graph-integration.md
-            T-0112-geometry-io-roundtrip-hardening.md
-            T-0113-animation-runtime-skinning.md
-            T-0114-testing-integration-suites.md
-            T-0115-assets-async-streaming-mvp.md
-            T-0116-rendering-vulkan-resource-translation.md
-            T-0117-physics-contact-manifolds.md
-            T-0118-testing-framework-upgrade.md
-            T-0119-rendering-command-encoder-implementation.md
-            T-0120-rendering-gpu-resource-provider-implementation.md
-            T-0121-rendering-standard-passes-library.md
-            T-0122-rendering-visibility-culling-system.md
-            T-0123-rendering-pipeline-state-management.md
-            T-0124-rendering-lighting-system.md
-            T-0125-math-convenience-rotation-builders.md
-            T-0126-math-documentation-alignment.md
-            T-0127-math-optional-curve-utilities.md
-            T-0128-geometry-frustum-utilities.md
-            T-0129-geometry-shape-intersection-coverage.md
     engine/
         CMakeLists.txt
         animation/
@@ -288,6 +319,9 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 engine/
                     animation/
                         api.hpp
+                        benchmarking/
+                            statistics.hpp
+                            telemetry.hpp
                         deformation/
                             linear_blend_skinning.hpp
                         rigging/
@@ -296,15 +330,26 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             src/
                 api.cpp
                 serialization.cpp
+                benchmarking/
+                    statistics.cpp
+                    telemetry.cpp
                 deformation/
                     linear_blend_skinning.cpp
             tests/
                 CMakeLists.txt
+                test_benchmark_statistics.cpp
+                test_benchmark_telemetry.cpp
                 test_blend_tree.cpp
                 test_clip_serialization.cpp
                 test_module.cpp
                 test_rig_binding.cpp
                 test_skinning.cpp
+            tools/
+                CMakeLists.txt
+                benchmark_driver/
+                    benchmark_driver.cpp
+                    CMakeLists.txt
+                    README.md
         assets/
             CMakeLists.txt
             include/
@@ -324,6 +369,11 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                             filesystem_utils.hpp
                             reload_utils.hpp
             samples/
+                hot_reload_failure.obj
+                quad.obj
+                test_mesh.obj
+                test_mesh_corrupted.obj
+                triangle.obj
             shaders/
             src/
                 api.cpp
@@ -359,12 +409,23 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                     compute/
                         api.hpp
                         dependency_analysis.hpp
+            samples/
+                CMakeLists.txt
+                runtime_dispatch_demo/
+                    CMakeLists.txt
+                    queue_assignment.hpp
+                    README.md
+                    runtime_dispatch_demo.cpp
+                    workload_configuration.cpp
+                    workload_configuration.hpp
             src/
                 api.cpp
                 dependency_analysis.cpp
             tests/
                 CMakeLists.txt
                 test_module.cpp
+                test_runtime_dispatch_queue_assignment.cpp
+                test_runtime_dispatch_workload_configuration.cpp
         core/
             CMakeLists.txt
             include/
@@ -411,13 +472,16 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             CMakeLists.txt
             benchmarks/
                 CMakeLists.txt
+                frustum_culling_benchmark.cpp
                 normal_recompute_benchmark.cpp
+                shape_intersection_benchmark.cpp
             include/
                 engine/
                     geometry/
                         api.hpp
                         export.hpp
                         random.hpp
+                        remesh.hpp
                         shapes.hpp
                         telemetry.hpp
                         csg/
@@ -439,8 +503,14 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                             property_handle.hpp
                             property_registry.hpp
                             property_set.hpp
+                        remesh/
+                            deviation.hpp
+                            errors.hpp
+                            remesh.hpp
+                            telemetry.hpp
                         shapes/
                             aabb.hpp
+                            capsule.hpp
                             cylinder.hpp
                             ellipsoid.hpp
                             frustum.hpp
@@ -453,6 +523,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                             triangle.hpp
                         surfaces/
                         topology/
+                            surface_topology.hpp
                         utils/
                             bounded_heap.hpp
                             circulators.hpp
@@ -480,8 +551,13 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 properties/
                     property_handle.cpp
                     property_registry.cpp
+                remesh/
+                    deviation.cpp
+                    remesh.cpp
+                    telemetry.cpp
                 shapes/
                     aabb.cpp
+                    capsule.cpp
                     cylinder.cpp
                     ellipsoid.cpp
                     frustum.cpp
@@ -493,6 +569,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                     segment.cpp
                     sphere.cpp
                     triangle.cpp
+                topology/
+                    surface_topology.cpp
                 utils/
                     shape_interactions.cpp
             tests/
@@ -508,10 +586,24 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 test_octree.cpp
                 test_point_cloud.cpp
                 test_property_registry.cpp
+                test_remesh_adaptive.cpp
+                test_remesh_cli.cpp
+                test_remesh_feature_preserving.cpp
+                test_remesh_parameterization.cpp
+                test_remesh_request.cpp
+                test_remesh_telemetry.cpp
+                test_remesh_uniform.cpp
                 test_shape_interactions.cpp
                 test_shapes.cpp
+                test_surface_deviation.cpp
                 test_surface_mesh_conversion.cpp
                 test_surface_mesh_io.cpp
+                test_surface_topology.cpp
+            tools/
+                CMakeLists.txt
+                geometry_remesh.cpp
+                remesh_cli.cpp
+                remesh_cli.hpp
         io/
             CMakeLists.txt
             include/
@@ -571,6 +663,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         sparse_matrix.hpp
                         transform.hpp
                         vector.hpp
+                        telemetry/
+                            conversion_telemetry.hpp
                         utils/
                             svd_jacobi.hpp
                             utils.hpp
@@ -579,6 +673,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                             utils_rotation.hpp
             tests/
                 CMakeLists.txt
+                test_conversion_telemetry.cpp
                 test_math.cpp
                 test_math_simd.cpp
                 test_solvers.cpp
@@ -662,7 +757,12 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                             metal/
                                 gpu_scheduler.hpp
                             opengl/
+                                command_encoder.hpp
                                 gpu_scheduler.hpp
+                                immediate_command_stream.hpp
+                                render_resource_provider.hpp
+                                resource_provider.hpp
+                                runtime_adapter.hpp
                             vulkan/
                                 gpu_scheduler.hpp
                                 resource_translation.hpp
@@ -676,6 +776,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                             textures/
                         passes/
                         pipeline/
+                            research_baseline.hpp
+                            research_baseline_telemetry.hpp
                         resources/
                             recording_gpu_resource_provider.hpp
                             resource_provider.hpp
@@ -691,9 +793,17 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 backend/
                     validation.cpp
                     opengl/
+                        command_encoder.cpp
                         command_stream.cpp
+                        immediate_command_stream.cpp
+                        render_resource_provider.cpp
+                        resource_provider.cpp
+                        runtime_adapter.cpp
                     vulkan/
                         resource_translation.cpp
+                pipeline/
+                    research_baseline.cpp
+                    research_baseline_telemetry.cpp
                 resources/
                     recording_gpu_resource_provider.cpp
             tests/
@@ -705,6 +815,11 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 test_forward_pipeline.cpp
                 test_frame_graph.cpp
                 test_module.cpp
+                test_opengl_command_encoder.cpp
+                test_opengl_render_resource_provider.cpp
+                test_opengl_resource_provider.cpp
+                test_opengl_runtime_adapter.cpp
+                test_research_baseline.cpp
                 test_vulkan_resource_translation.cpp
         runtime/
             CMakeLists.txt
@@ -712,15 +827,21 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 engine/
                     runtime/
                         api.hpp
+                        config_schema.hpp
                         diagnostics_bridge.hpp
                         errors.hpp
                         subsystem_registry.hpp
+            samples/
+                CMakeLists.txt
+                prototype_harness.cpp
             src/
                 api.cpp
+                config_schema.cpp
                 diagnostics_bridge.cpp
                 subsystem_registry.cpp
             tests/
                 CMakeLists.txt
+                test_config_schema.cpp
                 test_module.cpp
         scene/
             CMakeLists.txt
@@ -782,6 +903,10 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         tools/
             CMakeLists.txt
             editor/
+            examples/
+                CMakeLists.txt
+                geometry_viewer.cpp
+                README.md
             include/
                 engine/
                     tools/
@@ -789,6 +914,10 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         imgui_helpers.hpp
                         profiling/
                             profiler.hpp
+                        sandbox/
+                            benchmark_runner.hpp
+                            configuration_loader.hpp
+                            experiment_sandbox.hpp
             pipelines/
             profiling/
             src/
@@ -796,33 +925,59 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 imgui_helpers.cpp
                 profiling/
                     profiler.cpp
+                sandbox/
+                    benchmark_runner.cpp
+                    configuration_loader.cpp
+                    experiment_sandbox.cpp
             tests/
                 CMakeLists.txt
+                test_benchmark_runner.cpp
+                test_experiment_sandbox.cpp
                 test_module.cpp
                 test_profiler.cpp
+                test_sandbox_configuration_loader.cpp
     python/
         README.md
         requirements.txt
         engine3g/
             __init__.py
+            case_studies.py
+            config_schema.py
+            config_schema.pyi
             loader.py
             loader.pyi
+            prototype_harness.py
             README.md
         tests/
             README.md
+            test_case_studies.py
+            test_config_schema.py
+            test_dataset_ingestion.py
             test_loader.py
+            test_prototype_harness.py
     scripts/
         __init__.py
+        bootstrap_python_env.py
         cleanup_redundant_docs.sh
         README.md
         update_agents_tree.py
+        validate_ai004_config.py
         validate_docs.py
+        benchmarks/
+            __init__.py
+            run_comparative_benchmarks.py
         ci/
             package_runtime_artifacts.py
             README.md
             run_presets.py
+        datasets/
+            __init__.py
+            ingest_dataset.py
         diagnostics/
+            animation_sampling_report.py
             collision_benchmark_report.py
+            compute_dispatch_benchmark.py
+            compute_dispatch_report.py
             geometry_normals_benchmark_report.py
             README.md
             runtime_frame_telemetry.py
@@ -832,16 +987,26 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             __init__.py
             error_handling.py
             legacy_error_allowlist.json
+        prototyping/
+            __init__.py
+            run_prototype_harness.py
         tests/
+            test_animation_sampling_report.py
+            test_bootstrap_python_env.py
             test_check_error_handling.py
             test_collision_benchmark_report.py
+            test_compute_dispatch_benchmark.py
+            test_compute_dispatch_report.py
             test_geometry_normals_benchmark_report.py
+            test_ingest_dataset.py
             test_package_runtime_artifacts.py
+            test_run_comparative_benchmarks.py
             test_runtime_frame_telemetry.py
             test_streaming_report.py
             test_telemetry_viewer.py
             test_telemetry_viewer_smoke.py
             test_update_agents_tree.py
+            test_validate_ai004_config.py
             test_validate_docs.py
 ```
 <!-- END GENERATED FILE TREE -->
