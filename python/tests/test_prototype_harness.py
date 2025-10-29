@@ -141,9 +141,11 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     description_payload = configuration_summary_to_dict(description)
 
     assert description.selected_dataset == "remesh-sample"
+    assert description.datasets[0].label == "remesh-sample"
     assert description.runtime.dataset == "remesh-sample"
     assert description.rendering is not None
     assert description.rendering.preset == "research-baseline"
+    assert description_payload["datasets"][0]["label"] == "remesh-sample"
     assert description_payload["runtime"]["hot_reload"] == {"enabled": False}
     assert description_payload["datasets"][0]["id"] == "remesh-sample"
     assert description_payload["datasets"][0]["kind"] == "geometry.remesh"
