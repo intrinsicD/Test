@@ -1,6 +1,6 @@
 # Backlog Item RT-320 — Runtime Prototyping Harness
 
-- **Status**: Planned
+- **Status**: In Progress
 - **Priority**: 2
 - **Owner**: Runtime Lead
 - **Module(s)**: Runtime, Scene, Rendering, Assets, Python Tooling
@@ -26,3 +26,6 @@ Researchers currently assemble ad-hoc executables to validate algorithms. RT-320
 
 ## Notes
 This item unblocks TL-210, CC-310, and RT-321. Coordinate daily with rendering/tools leads during implementation.
+
+**2026-02-05** — Native `runtime_prototype_harness` sample added under `engine/runtime/samples/`. Provides schema-backed CLI,
+dry-run summary generation, and CTest coverage aligned with the Python scaffold.

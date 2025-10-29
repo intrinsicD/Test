@@ -1,6 +1,7 @@
 # RT-320 Prototyping Harness Design (Preview)
 
-**Status**: Draft implementation in progress – headless harness scaffold delivered in Python to unblock AI-004 integration.
+**Status**: Draft implementation in progress – Python scaffold plus native C++ sample (`runtime_prototype_harness`) available for
+dry-run validation and CI coverage.
 
 **Related Tasks**: `RT-320`, `AI-004`, `DC-040`, `RE-610`, `TL-210`, `AS-330`
 
@@ -83,7 +84,7 @@ EngineRuntimeHandle (ctypes wrapper)
 | Integrate rendering preset wiring (`RE-610`) | Rendering | Map `RenderingConfig` into runtime initialization. |
 | Surface telemetry outputs (`CC-310`) | Performance | Populate `HarnessRunSummary.telemetry_paths` once runtime exports metrics. |
 | Interactive mode bridge (`TL-210`) | Tools | Embed ImGui controls and expose hot-reload toggles. |
-| Native C++ harness sample | Runtime | Mirror Python scaffold in `engine/runtime/samples/prototype_harness.cpp`. |
+| Native C++ harness sample | Runtime | ✅ `runtime_prototype_harness` CLI sample mirrors Python dry-run flow (2026-02-05). |
 | Dataset asset preloading (`AS-330`) | Assets | Resolve manifest entries into asset streaming requests pre-run. |
 
 ---
