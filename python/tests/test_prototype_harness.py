@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, List
 
@@ -35,6 +35,8 @@ class _MockRuntime:
     initialized: bool = False
     shutdown_count: int = 0
     average_tick_value: float = 0.25
+    dispatch_names: List[str] = field(default_factory=list)
+    dispatch_times: List[float] = field(default_factory=list)
 
     def __enter__(self) -> "_MockRuntime":
         self.initialized = True
@@ -56,6 +58,12 @@ class _MockRuntime:
 
     def average_tick_ms(self) -> float:
         return self.average_tick_value
+
+    def dispatch_order(self) -> List[str]:
+        return list(self.dispatch_names)
+
+    def dispatch_durations(self) -> List[float]:
+        return list(self.dispatch_times)
 
 
 def _write_configuration(tmp_path: Path) -> Path:
@@ -188,7 +196,12 @@ def _write_configuration(tmp_path: Path) -> Path:
 def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     configuration = load_configuration(config_path)
-    runtime = _MockRuntime(ticks=[], average_tick_value=1.5)
+    runtime = _MockRuntime(
+        ticks=[],
+        average_tick_value=1.5,
+        dispatch_names=["geometry::remesh", "render::composite"],
+        dispatch_times=[0.001, 0.0025],
+    )
 
     harness = PrototypeHarness(configuration, runtime_factory=lambda: runtime)
     summary = harness.run_headless(HarnessExecutionOptions(frames=3, dt=0.5))
@@ -198,6 +211,8 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.frames_executed == 3
     assert summary.dataset_id == "remesh-sample"
     assert summary.rendering_preset == "research-baseline"
+    assert summary.dispatch_order == ("geometry::remesh", "render::composite")
+    assert summary.dispatch_durations_ms == pytest.approx((1.0, 2.5))
     assert summary.average_tick_ms == pytest.approx(1.5)
 
 
@@ -297,18 +312,22 @@ def test_summarize_formats_output() -> None:
         frames_executed=10,
         timestep_seconds=0.016,
         average_tick_ms=0.75,
+        dispatch_order=("geometry::remesh",),
+        dispatch_durations_ms=(1.5,),
     )
     assert (
         summarize(summary)
         == (
             "dataset=remesh-sample preset=research-baseline shading=deferred "
-            "frames=10 dt=0.016000 avg_ms=0.750000"
+            "frames=10 dt=0.016000 avg_ms=0.750000 dispatches=1"
         )
     )
 
     summary_payload = run_summary_to_dict(summary)
     assert summary_payload["dataset"] == "remesh-sample"
     assert summary_payload["frames"] == 10
+    assert summary_payload["dispatch_order"] == ["geometry::remesh"]
+    assert summary_payload["dispatch_durations_ms"] == [1.5]
 
 
 def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -343,6 +362,8 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert description_payload["benchmarks"]["scenarios"][0]["id"] == "remesh-baseline"
     assert summary_payload["frames"] == 0
     assert summary_payload["average_tick_ms"] is None
+    assert summary_payload["dispatch_order"] == []
+    assert summary_payload["dispatch_durations_ms"] == []
     assert "Configuration:" in captured.out
 
 

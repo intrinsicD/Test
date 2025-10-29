@@ -51,3 +51,6 @@ dry-run summary generation, and CTest coverage aligned with the Python scaffold.
 
 **2026-02-06** — Python harness now records `average_tick_ms` telemetry in headless execution summaries and JSON exports,
 enabling CC-310 automation to surface timing drift without native log parsing.
+
+**2026-02-07** — Harness run summaries now include dispatch execution order and kernel durations (milliseconds) so CC-310
+automation can track kernel scheduling drift without parsing native runtime logs.
