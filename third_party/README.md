@@ -8,6 +8,7 @@ External libraries vendored into the repository are tracked here. Each dependenc
 - `imgui/` – Bloat-free Immediate Mode Graphical User interface for C++ used by the tooling experiments.
 - `spdlog/` – Fast C++ logging library shared by runtime and diagnostics layers.
 - `googletest/` – Upstream GoogleTest source and headers for unit testing across C++ modules.
+- `yaml-cpp/` – YAML 1.2 parser/emitter fetched via CMake to validate AI-004 configuration manifests.
 
 Each directory mirrors the upstream project layout and is consumed via `add_subdirectory` within the CMake build.
 If a dependency submodule is absent locally (e.g., after a shallow clone), or present but missing its source

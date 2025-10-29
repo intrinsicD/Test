@@ -108,6 +108,27 @@ if(TARGET spdlog::spdlog AND NOT TARGET spdlog::spdlog_header_only)
     add_library(spdlog::spdlog_header_only ALIAS spdlog_header_only)
 endif()
 
+# yaml-cpp (YAML parser for configuration manifests)
+set(_LOCAL_YAMLCPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp")
+if(EXISTS "${_LOCAL_YAMLCPP_DIR}/CMakeLists.txt")
+    add_subdirectory("${_LOCAL_YAMLCPP_DIR}" "${CMAKE_BINARY_DIR}/third_party/yaml-cpp")
+else()
+    FetchContent_Declare(yaml_cpp_external
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG yaml-cpp-0.7.0
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(yaml_cpp_external)
+endif()
+
+if(TARGET yaml-cpp)
+    target_compile_features(yaml-cpp PUBLIC cxx_std_17)
+endif()
+
+if(NOT TARGET yaml-cpp::yaml-cpp AND TARGET yaml-cpp)
+    add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+endif()
+
 # EnTT (header-only)
 set(_LOCAL_ENTT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/entt")
 if(EXISTS "${_LOCAL_ENTT_DIR}/CMakeLists.txt")

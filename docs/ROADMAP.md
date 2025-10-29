@@ -53,7 +53,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
-| [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | In Progress | Schema ADR drafted; validators underway. |
+| [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | In Progress | Schema ADR drafted; Python + native runtime validators landed. |
 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Planned | Awaits schema sign-off. |
 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | Planned | Blocks TL-210/RT-321/CC-310. |
 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Planned | Licensing review pending. |
