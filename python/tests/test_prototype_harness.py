@@ -62,17 +62,47 @@ def _write_configuration(tmp_path: Path) -> Path:
     config = {
         "datasets": [
             {
-                "schema": {"id": "ai-004.dataset", "version": 1},
+                "schema": {"id": "ai-004.dataset", "version": 2},
                 "id": "remesh-sample",
                 "kind": "geometry.remesh",
                 "tags": ["geometry", "remesh"],
-                "source": {"generator": "geometry_remesh", "mesh": "assets/input.obj"},
-                "outputs": {"mesh": "assets/output.obj"},
+                "source": {
+                    "generator": "geometry_remesh",
+                    "mesh": "assets/input.obj",
+                    "mesh_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                    "mesh_size_bytes": 128,
+                },
+                "outputs": {
+                    "mesh": "assets/output.obj",
+                    "mesh_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+                    "mesh_size_bytes": 256,
+                },
                 "remeshing": {"mode": "uniform"},
                 "feature_preservation": {
                     "lock_boundary_edges": True,
                     "lock_feature_edges": True,
                     "minimum_feature_angle_degrees": 45.0,
+                },
+                "parameterization": {
+                    "mode": "reuse_existing",
+                    "texel_density": 256.0,
+                    "target_texel_density": 256.0,
+                    "chart_count": 1,
+                    "average_stretch": 1.0,
+                    "max_stretch": 1.05,
+                    "fill_ratio": 0.95,
+                    "total_seam_length": 4.0,
+                    "charts": [
+                        {
+                            "index": 0,
+                            "min_uv": [0.0, 0.0],
+                            "max_uv": [1.0, 1.0],
+                            "translation": [0.0, 0.0],
+                            "scale": 1.0,
+                            "area": 1.0,
+                            "boundary_length": 4.0,
+                        }
+                    ],
                 },
                 "metrics": {
                     "input": {
@@ -106,9 +136,22 @@ def _write_configuration(tmp_path: Path) -> Path:
             "options": {"shading_mode": "deferred"},
         },
         "runtime": {
-            "schema": {"id": "ai-004.runtime", "version": 1},
+            "schema": {"id": "ai-004.runtime", "version": 2},
             "dataset": "remesh-sample",
             "simulation": {"timestep_seconds": 0.01, "max_substeps": 1},
+            "hot_reload": {"enabled": False, "watch_interval_seconds": 0.5},
+        },
+        "telemetry": {
+            "schema": {"id": "ai-004.telemetry", "version": 2},
+            "outputs": [
+                {"type": "file", "path": "telemetry/{scenario}.json"},
+                {"type": "stdout"},
+            ],
+            "metrics": [
+                {"name": "frame_time", "statistic": "mean"},
+                {"name": "frame_time", "statistic": "p95"},
+            ],
+            "sampling": {"frame_interval": 8, "include_debug_overlays": True},
         },
     }
     path = tmp_path / "config.json"
@@ -142,13 +185,29 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
 
     assert description.selected_dataset == "remesh-sample"
     assert description.datasets[0].label == "remesh-sample"
+    assert description.datasets[0].schema_version == 2
+    assert description.datasets[0].feature_preservation["lock_feature_edges"] is True
+    assert description.datasets[0].parameterization is not None
+    assert description.datasets[0].parameterization["chart_count"] == 1
     assert description.runtime.dataset == "remesh-sample"
     assert description.rendering is not None
     assert description.rendering.preset == "research-baseline"
+    assert description.rendering.schema_version == 1
+    assert description.runtime.schema_version == 2
+    assert description.telemetry is not None
+    assert description.telemetry.schema_version == 2
+    assert len(description.telemetry.outputs) == 2
+    assert description.telemetry.metrics[1].statistic == "p95"
     assert description_payload["datasets"][0]["label"] == "remesh-sample"
-    assert description_payload["runtime"]["hot_reload"] == {"enabled": False}
+    assert description_payload["runtime"]["hot_reload"] == {
+        "enabled": False,
+        "watch_interval_seconds": 0.5,
+    }
     assert description_payload["datasets"][0]["id"] == "remesh-sample"
     assert description_payload["datasets"][0]["kind"] == "geometry.remesh"
+    assert description_payload["datasets"][0]["schema_version"] == 2
+    assert description_payload["telemetry"]["schema_version"] == 2
+    assert description_payload["telemetry"]["outputs"][0]["kind"] == "file"
 
 
 def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:

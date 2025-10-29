@@ -9,6 +9,12 @@ dry-run validation and CI coverage.
 
 ---
 
+## Priority Context
+
+RT-320 anchors the Phase 1 AI-004 kickoff plan: the roadmap commits to a 2026-02-12 smoke test ahead of TL-210 sandbox wiring and AS-330 dataset validation. The harness must therefore project schema versions, telemetry descriptors, and dataset provenance so neighbouring workstreams can assert compatibility without reverse-engineering manifests. Failing to deliver those summaries blocks TL-210’s UI widgets from enabling preset/dataset selection, prevents AS-330 from signing off its package validation scripts, and leaves CC-310’s comparative automation without telemetry inputs to detect regressions.
+
+---
+
 ## Purpose
 
 Provide an immediately usable prototyping harness that consumes the shared AI-004 configuration schema, boots the engine runtime, and executes deterministic headless simulations suitable for benchmarking and automation. The harness must offer:
@@ -53,8 +59,9 @@ EngineRuntimeHandle (ctypes wrapper)
 
 ### Data Model
 
-- **Configuration**: `Ai004Configuration` composed of dataset manifests, rendering presets, runtime overrides, benchmark scenarios, and telemetry options.
+- **Configuration**: `Ai004Configuration` composed of dataset manifests, rendering presets, runtime overrides, benchmark scenarios, and telemetry options. The `PrototypeHarness.describe_configuration()` helper now projects this into a structured summary that includes schema versions for datasets/runtime/rendering plus telemetry outputs/metrics so UI clients can verify compatibility at a glance.
 - **Harness Options**: `HarnessExecutionOptions` (new) capturing frame count, timestep, and dry-run semantics.
+- **Configuration Summary**: `HarnessConfigurationSummary` materialises dataset provenance (tags, statistics, feature-preservation flags, parameterisation metrics, checksums), runtime defaults, and telemetry descriptors for consumption by tools automation.
 - **Execution Result**: `HarnessRunSummary` capturing dataset slug, rendered preset, frames executed, and placeholder telemetry fields ready for integration with diagnostics exports.
 
 ### Error Handling
@@ -68,7 +75,7 @@ EngineRuntimeHandle (ctypes wrapper)
 
 - Harness prints structured summaries (slug, preset, frames, dt, and average tick time) to stdout for CI consumption.
 - Execution summaries now include the runtime's rolling `average_tick_ms` diagnostics so benchmark automation can flag timing regressions without parsing native logs.
-- Telemetry capture hooks currently record dispatch order samples; future work will integrate Tracy + diagnostics bridges.
+- Telemetry capture hooks currently record dispatch order samples; future work will integrate Tracy + diagnostics bridges. The configuration summary additionally surfaces telemetry schema version, outputs, metrics, and sampling cadence so downstream tooling can validate expectations without parsing manifests directly.
 
 ### Extensibility
 

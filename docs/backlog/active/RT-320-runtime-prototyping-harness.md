@@ -9,6 +9,11 @@
 ## Summary
 Researchers currently assemble ad-hoc executables to validate algorithms. RT-320 establishes a supported harness built on `RuntimeHost` with both interactive and headless flows. It consumes the shared AI-004 configuration schema, exposes scripting hooks, and produces telemetry artefacts compatible with benchmarking automation.
 
+## Priority Rationale
+- **Roadmap commitment:** [docs/ROADMAP.md](../../ROADMAP.md) lists RT-320 as a Phase 1, priority-2 deliverable with a 2026-02-12 milestone ahead of the AI-004 kickoff review. Missing this gate stalls the readiness scorecard tracked in `DC-041`.
+- **Downstream blockers:** TL-210 (sandbox UI), AS-330 (reference dataset packages), and RT-321 (case studies) all depend on a schema-rich harness summary to validate their workstreams. Without RT-320 exporting schema versions and telemetry descriptors, those teams cannot certify compatibility or run their demo scenarios.
+- **Automation risk:** CC-310 comparative benchmarks require headless telemetry captured by RT-320. Delaying this task prevents the automation pipeline from detecting performance regressions before the kickoff demo.
+
 ## Role Roster
 | Role | Responsibilities | Owner |
 | --- | --- | --- |
