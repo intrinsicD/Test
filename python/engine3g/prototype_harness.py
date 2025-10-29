@@ -317,9 +317,11 @@ class PrototypeHarness:
             },
         }
 
+        label = entry.job_label or entry.identifier
+
         return DatasetSummary(
             identifier=entry.identifier,
-            label=entry.job_label,
+            label=label,
             kind=entry.kind,
             tags=entry.tags,
             source_mesh=entry.source_mesh,
