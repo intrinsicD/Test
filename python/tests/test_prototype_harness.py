@@ -225,6 +225,7 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
         runtime_factory=lambda: runtime,
         asset_search_paths=[tmp_path],
         project_root=tmp_path,
+        config_directory=tmp_path,
     )
     summary = harness.run_headless(HarnessExecutionOptions(frames=3, dt=0.5))
 
@@ -237,8 +238,11 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.dispatch_durations_ms == pytest.approx((1.0, 2.5))
     assert summary.average_tick_ms == pytest.approx(1.5)
     assert tuple(output.kind for output in summary.telemetry_outputs) == ("file", "stdout")
-    assert summary.telemetry_outputs[0].path == "telemetry/{scenario}.json"
+    expected_output_path = (tmp_path / "telemetry" / "remesh-sample.json").resolve()
+    assert summary.telemetry_outputs[0].path == str(expected_output_path)
+    assert summary.telemetry_outputs[0].template == "telemetry/{scenario}.json"
     assert summary.telemetry_outputs[1].path is None
+    assert summary.telemetry_outputs[1].template is None
 
 
 def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
@@ -249,6 +253,7 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
         configuration,
         asset_search_paths=[tmp_path],
         project_root=tmp_path,
+        config_directory=tmp_path,
     )
     description = harness.describe_configuration()
     description_payload = configuration_summary_to_dict(description)
@@ -274,6 +279,9 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description.telemetry is not None
     assert description.telemetry.schema_version == 2
     assert len(description.telemetry.outputs) == 2
+    expected_output_path = (tmp_path / "telemetry" / "remesh-sample.json").resolve()
+    assert description.telemetry.outputs[0].path == str(expected_output_path)
+    assert description.telemetry.outputs[0].template == "telemetry/{scenario}.json"
     assert description.telemetry.metrics[1].statistic == "p95"
     assert description.benchmarks is not None
     assert description.benchmarks.schema_version == 1
@@ -299,7 +307,10 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert pytest.approx(stats_payload["triangle_quality"]["mean"], rel=1e-6) == 0.9
     assert pytest.approx(stats_payload["triangle_quality"]["max"], rel=1e-6) == 0.95
     assert description_payload["telemetry"]["schema_version"] == 2
-    assert description_payload["telemetry"]["outputs"][0]["kind"] == "file"
+    telemetry_output_payload = description_payload["telemetry"]["outputs"][0]
+    assert telemetry_output_payload["kind"] == "file"
+    assert telemetry_output_payload["path"] == str(expected_output_path)
+    assert telemetry_output_payload["template"] == "telemetry/{scenario}.json"
     assert description_payload["benchmarks"]["schema_version"] == 1
     assert (
         description_payload["benchmarks"]["scenarios"][0]["engine"]["command"][0]
@@ -332,10 +343,31 @@ def test_prototype_harness_detects_missing_assets(tmp_path: Path) -> None:
             configuration,
             asset_search_paths=[tmp_path],
             project_root=tmp_path,
+            config_directory=tmp_path,
         )
 
     assert "remesh-sample" in str(excinfo.value)
     assert "asset" in str(excinfo.value)
+
+
+def test_run_headless_unknown_telemetry_placeholder(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    payload["telemetry"]["outputs"][0]["path"] = "telemetry/{unknown}.json"
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+    configuration = load_configuration(config_path)
+
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    with pytest.raises(PrototypeHarnessError) as excinfo:
+        harness.run_headless(HarnessExecutionOptions(dry_run=True))
+
+    assert "placeholder" in str(excinfo.value)
 
 
 def test_load_harness_validates_sections(tmp_path: Path) -> None:
@@ -450,8 +482,14 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert summary_payload["dispatch_order"] == []
     assert summary_payload["dispatch_durations_ms"] == []
     assert len(summary_payload["telemetry_outputs"]) == 2
-    assert summary_payload["telemetry_outputs"][0] == {"kind": "file", "path": "telemetry/{scenario}.json"}
-    assert summary_payload["telemetry_outputs"][1] == {"kind": "stdout"}
+    telemetry_outputs = summary_payload["telemetry_outputs"]
+    expected_output_path = (tmp_path / "telemetry" / "remesh-sample.json").resolve()
+    assert telemetry_outputs[0] == {
+        "kind": "file",
+        "path": str(expected_output_path),
+        "template": "telemetry/{scenario}.json",
+    }
+    assert telemetry_outputs[1] == {"kind": "stdout"}
     assert "Configuration:" in captured.out
 
 
@@ -484,7 +522,10 @@ def test_cli_repeat_generates_multiple_summaries(
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload["run_index"] == index
         assert payload["run_count"] == 3
-        assert len(payload["telemetry_outputs"]) == 2
+        outputs = payload["telemetry_outputs"]
+        assert len(outputs) == 2
+        assert outputs[0]["template"] == "telemetry/{scenario}.json"
+        assert outputs[0]["path"].endswith("telemetry/remesh-sample.json")
     assert "Dry run summary [1/3]" in captured.out
     assert "Dry run summary [3/3]" in captured.out
 
@@ -521,6 +562,7 @@ def test_cli_dry_run(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: py
             runtime_factory=factory,
             asset_search_paths=[config_path.parent],
             project_root=config_path.parent,
+            config_directory=config_path.parent,
         )
 
     from scripts.prototyping import run_prototype_harness

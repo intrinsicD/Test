@@ -112,6 +112,7 @@ python -m scripts.prototyping.run_prototype_harness \
 
 - `--frames`/`--dt` control simulation cadence.
 - `--summary-json` writes telemetry and benchmark metadata (including `average_tick_ms` and dispatch execution order/durations) to disk.
+- Telemetry outputs in configuration/summary JSON now include absolute paths resolved from templates (for example `{scenario}`) alongside the original template so automation can locate artefacts deterministically.
 - `--list-benchmarks` enumerates the declared scenarios (identifier, dataset, preset) before execution so tooling can confirm coverage.
 - Provide `--case-study <id>` to resolve configurations from
   `assets/datasets/case_studies/` once they are published.
