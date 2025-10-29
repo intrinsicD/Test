@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, Iterable, Optional, Sequence, Tuple
+from typing import Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
 from .config_schema import (
     Ai004Configuration,
@@ -19,6 +19,7 @@ from .config_schema import (
     RenderingConfig,
     RuntimeConfig,
     TelemetryConfig,
+    TelemetryOutputConfig,
 )
 from .loader import EngineRuntimeHandle, EngineLibraryNotFound, load_runtime
 
@@ -50,6 +51,13 @@ __all__ = [
 
 class PrototypeHarnessError(RuntimeError):
     """Raised when harness configuration cannot be resolved."""
+
+
+class _StrictSubstitutions(dict):
+    """Mapping that raises on missing template substitutions."""
+
+    def __missing__(self, key: str) -> str:  # pragma: no cover - defensive guard
+        raise PrototypeHarnessError(f"missing substitution for placeholder '{key}'")
 
 
 @dataclass(frozen=True)
@@ -229,11 +237,14 @@ class TelemetryOutputSummary:
 
     kind: str
     path: Optional[str]
+    template: Optional[str] = None
 
     def to_dict(self) -> Dict[str, object]:
         payload: Dict[str, object] = {"kind": self.kind}
         if self.path is not None:
             payload["path"] = self.path
+        if self.template is not None:
+            payload["template"] = self.template
         return payload
 
 
@@ -395,11 +406,13 @@ class PrototypeHarness:
         runtime_factory: RuntimeFactory | None = None,
         asset_search_paths: Sequence[Path | str] | None = None,
         project_root: Path | None = None,
+        config_directory: Path | None = None,
     ) -> None:
         self._configuration = configuration
         self._runtime_factory = runtime_factory or load_runtime
         self._asset_search_paths = self._normalise_asset_search_paths(asset_search_paths)
         self._project_root = project_root.resolve() if project_root is not None else None
+        self._config_directory = config_directory.resolve() if config_directory is not None else None
         self._selected_dataset = self._resolve_dataset(configuration.datasets, configuration.runtime)
         self._dataset_assets: Dict[str, Tuple[DatasetAssetStatus, ...]] = {}
         if self._asset_search_paths:
@@ -469,10 +482,44 @@ class PrototypeHarness:
 
         if self._configuration.telemetry is None:
             return ()
-        return tuple(
-            TelemetryOutputSummary(kind=output.kind, path=output.path)
-            for output in self._configuration.telemetry.outputs
-        )
+        return tuple(self._summarize_telemetry_output(output) for output in self._configuration.telemetry.outputs)
+
+    def _telemetry_substitutions(self) -> Mapping[str, str]:
+        dataset_id = self._selected_dataset.identifier if self._selected_dataset else None
+        rendering = self._rendering_config()
+        defaults = {
+            "dataset": dataset_id or "default",
+            "scenario": dataset_id or "default",
+            "rendering_preset": rendering.preset if rendering else "default",
+            "shading_mode": rendering.shading_mode if rendering else "default",
+        }
+        if self._config_directory is not None:
+            defaults["config_dir"] = str(self._config_directory)
+        if self._project_root is not None:
+            defaults["project_root"] = str(self._project_root)
+        return defaults
+
+    def _resolve_output_path(self, template: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+        if template is None:
+            return None, None
+        substitutions = self._telemetry_substitutions()
+        try:
+            formatted = template.format_map(_StrictSubstitutions(substitutions))
+        except KeyError as error:  # pragma: no cover - defensive guard
+            raise PrototypeHarnessError(f"missing substitution for placeholder '{error.args[0]}'") from error
+        except ValueError as error:
+            raise PrototypeHarnessError(f"invalid telemetry output template '{template}': {error}") from error
+        path = Path(formatted)
+        if not path.is_absolute():
+            base = self._config_directory or Path.cwd()
+            path = (base / path).resolve()
+        resolved = str(path)
+        template_value = template if template != resolved else None
+        return resolved, template_value
+
+    def _summarize_telemetry_output(self, output: TelemetryOutputConfig) -> TelemetryOutputSummary:
+        resolved_path, template = self._resolve_output_path(output.path)
+        return TelemetryOutputSummary(kind=output.kind, path=resolved_path, template=template)
 
     def run_headless(self, options: HarnessExecutionOptions | None = None) -> HarnessRunSummary:
         """Execute a fixed-timestep runtime loop and return a summary."""
@@ -694,12 +741,8 @@ class PrototypeHarness:
             hot_reload=hot_reload,
         )
 
-    @staticmethod
-    def _describe_telemetry(telemetry: TelemetryConfig) -> HarnessTelemetrySummary:
-        outputs = tuple(
-            TelemetryOutputSummary(kind=output.kind, path=output.path)
-            for output in telemetry.outputs
-        )
+    def _describe_telemetry(self, telemetry: TelemetryConfig) -> HarnessTelemetrySummary:
+        outputs = tuple(self._summarize_telemetry_output(output) for output in telemetry.outputs)
         metrics = tuple(
             TelemetryMetricSummary(name=metric.name, statistic=metric.statistic)
             for metric in telemetry.metrics
@@ -958,6 +1001,7 @@ def load_harness(
         runtime_factory=runtime_factory,
         asset_search_paths=asset_paths,
         project_root=project_root,
+        config_directory=config_path.parent.resolve(),
     )
 
 

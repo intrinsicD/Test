@@ -92,11 +92,13 @@ EngineRuntimeHandle (ctypes wrapper)
 | Item | Owner | Notes |
 |------|-------|-------|
 | Integrate rendering preset wiring (`RE-610`) | Rendering | Map `RenderingConfig` into runtime initialization. |
-| Surface telemetry outputs (`CC-310`) | Performance | Populate `HarnessRunSummary.telemetry_paths` once runtime exports metrics. |
+| Surface telemetry outputs (`CC-310`) | Performance | ✅ Telemetry output templates now resolve to absolute paths in harness summaries (2026-02-09). |
 | Interactive mode bridge (`TL-210`) | Tools | Embed ImGui controls and expose hot-reload toggles. |
 | Native C++ harness sample | Runtime | ✅ `runtime_prototype_harness` CLI sample mirrors Python dry-run flow (2026-02-05). |
 
 **2026-02-08** — Harness construction now validates dataset asset existence, file sizes, and sha256 hashes. Configuration summaries expose per-asset integrity status for TL-210 selectors and AS-330 packaging checks.
+
+**2026-02-09** — Harness configuration and execution summaries now resolve telemetry output templates (for example `{scenario}`) against the active dataset, emitting absolute paths alongside the original template for CC-310 automation and TL-210 tooling consumers.
 
 ---
 
