@@ -64,7 +64,7 @@ set_tests_properties(runtime_prototype_harness_sample_dry_run
         PROPERTIES
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         ENVIRONMENT "ENGINE_PLATFORM_WINDOW_BACKEND=mock;ENGINE_WINDOW_BACKEND=MOCK"
-        PASS_REGULAR_EXPRESSION "Dry run summary"
+        PASS_REGULAR_EXPRESSION "dispatch count: 0"
         FAIL_REGULAR_EXPRESSION "error:"
         TIMEOUT 60
 )

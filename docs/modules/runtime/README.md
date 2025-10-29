@@ -293,7 +293,9 @@ ctest --preset linux-gcc-debug -R runtime
   ```
   The executable resolves AI-004 manifests through the shared configuration
   loader, validates dataset references, and records execution summaries that the
-  integration test `runtime_prototype_harness_sample_dry_run` consumes.
+  integration test `runtime_prototype_harness_sample_dry_run` consumes. Those
+  summaries now report dispatch counts, execution order, and kernel durations in
+  milliseconds so CC-310 automation can diff native runs without parsing logs.
 - Enable strict schema enforcement during the migration by exporting
   `ENGINE_AI004_SCHEMA_V1=1`. When the variable is unset the loaders inject
   default schema headers so legacy manifests remain compatible while teams
