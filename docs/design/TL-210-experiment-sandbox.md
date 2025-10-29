@@ -33,8 +33,11 @@ researchers to iterate without editing configuration files.
 ```
 
 1. The harness exports a configuration summary via
-   `--describe-json`, detailing datasets, rendering presets, runtime
-   parameters, and telemetry expectations.
+   `--describe-json`, detailing datasets (including schema versions,
+   provenance, feature-preservation flags, and parameterisation metrics),
+   rendering presets (with schema versions and overlay defaults), runtime
+   parameters, and telemetry expectations (schema version, outputs,
+   metrics, sampling cadence).
 2. `ExperimentSandbox` ingests the summary through
    `set_configuration`, keeping the UI state in sync with runtime data.
 3. User interactions fire callbacks so harness callers can apply
@@ -57,7 +60,8 @@ researchers to iterate without editing configuration files.
 
 Datasets are rendered in a searchable list. The class maintains an internal
 lookup map so selection persists even when summaries refresh. Tags, statistics,
-metrics, and asset provenance populate the detail column for quick inspection.
+schema metadata, feature-preservation flags, parameterisation metrics, and
+asset provenance populate the detail column for quick inspection.
 
 ### Rendering Controls
 
@@ -83,7 +87,9 @@ for later inspection.
 
 Telemetry metrics are provided externally and plotted using ImGui's `PlotLines`
 primitive. The sandbox does not sample metrics itself; it simply renders the
-latest snapshot pushed by the runtime or diagnostics bridge.
+latest snapshot pushed by the runtime or diagnostics bridge. Harness summaries
+now expose telemetry schema version, outputs, metrics, and sampling cadence so
+the panel can validate incoming streams before rendering them.
 
 ## Persistence Strategy
 
