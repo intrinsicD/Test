@@ -26,10 +26,22 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
 | 1 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Ratify shared configuration schema and validators. | Agent Orchestrator + Module Leads | Complete |
-| 1 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Publish kickoff plan, risk ownership, and milestone sequencing. | Product Manager | Planned |
+| 1 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Publish kickoff plan, risk ownership, and milestone sequencing. | Product Manager | Complete |
 | 2 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Ship schema-driven harness with interactive + headless flows. | Runtime Lead | Planned |
 
 **Exit Criteria:** Schema approved, kickoff brief published, harness prototype booting sample datasets.
+
+<a id="ai004-phase1-timeline"></a>
+#### Phase 1 Milestone Timeline (Kickoff Review 2026-02-20)
+
+| Sequence | Target Date | Backlog | Owner | Dependencies | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 2026-02-07 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Product Manager | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Kickoff packet: roadmap timeline, sprint tracker, and risk register cross-linked. |
+| 2 | 2026-02-12 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Runtime Lead | `DC-041` | Harness smoke demo exercising schema sample + telemetry export recorded. |
+| 3 | 2026-02-14 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox integrates harness presets, dataset selectors ready for review walk-through. |
+| 4 | 2026-02-16 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Dataset package validated against harness + sandbox handoff for demo content. |
+
+> Kickoff coordination artefacts: [`AI-004-kickoff-brief.md`](backlog/active/AI-004-kickoff-brief.md), [`2026-02-03-sprint-11.md`](backlog/active/2026-02-03-sprint-11.md).
 
 ### Phase 2 — Harness & Dataset Integration *(Priorities 2–3)*
 | Priority | Backlog | Intent | Owner | Status |
@@ -54,7 +66,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | Complete | Schema ADR, cross-language validators, and prototyping playbook published. |
-| [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Planned | Awaits schema sign-off. |
+| [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Complete | Kickoff brief + roadmap timeline published. |
 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | Planned | Blocks TL-210/RT-321/CC-310. |
 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Planned | Licensing review pending. |
 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | 3 | In Progress | UI scaffolding merged; harness wiring outstanding. |
@@ -64,12 +76,12 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 ## Risks & Mitigations
 
-| Priority | Risk | Owner | Mitigation |
-| --- | --- | --- | --- |
-| 1 | Schema consensus slips, delaying harness integration. | Agent Orchestrator | Timebox reviews; escalate to Chief Architect after 2 business days. |
-| 2 | Harness complexity outpaces test coverage. | Runtime Lead | Land integration smoke tests before expanding feature scope. |
-| 3 | Dataset licensing blocks case study publication. | Assets Lead | Finalise licensing shortlist early; provide fallback synthetic datasets. |
-| 4 | Benchmark automation exceeds CI time budget. | Performance Lead | Maintain smoke preset (<5 min) separate from nightly full suite. |
+| Priority | Risk | Owner | Mitigation | Mitigation Due |
+| --- | --- | --- | --- | --- |
+| 1 | Schema consensus slips, delaying harness integration. | Agent Orchestrator | Timebox reviews; escalate to Chief Architect after 2 business days. | 2026-02-09 |
+| 2 | Harness complexity outpaces test coverage. | Runtime Lead | Land integration smoke tests before expanding feature scope. | 2026-02-13 |
+| 3 | Dataset licensing blocks case study publication. | Assets Lead | Finalise licensing shortlist early; provide fallback synthetic datasets. | 2026-02-13 |
+| 4 | Benchmark automation exceeds CI time budget. | Performance Lead | Maintain smoke preset (<5 min) separate from nightly full suite. | 2026-02-13 |
 
 ## Maintenance Checklist
 
