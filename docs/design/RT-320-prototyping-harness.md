@@ -66,7 +66,8 @@ EngineRuntimeHandle (ctypes wrapper)
 
 ### Logging & Telemetry
 
-- Harness prints structured summaries (slug, preset, frames, dt) to stdout for CI consumption.
+- Harness prints structured summaries (slug, preset, frames, dt, and average tick time) to stdout for CI consumption.
+- Execution summaries now include the runtime's rolling `average_tick_ms` diagnostics so benchmark automation can flag timing regressions without parsing native logs.
 - Telemetry capture hooks currently record dispatch order samples; future work will integrate Tracy + diagnostics bridges.
 
 ### Extensibility

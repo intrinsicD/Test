@@ -34,6 +34,7 @@ class _MockRuntime:
     ticks: List[float]
     initialized: bool = False
     shutdown_count: int = 0
+    average_tick_value: float = 0.25
 
     def __enter__(self) -> "_MockRuntime":
         self.initialized = True
@@ -52,6 +53,9 @@ class _MockRuntime:
 
     def tick(self, dt: float) -> None:
         self.ticks.append(dt)
+
+    def average_tick_ms(self) -> float:
+        return self.average_tick_value
 
 
 def _write_configuration(tmp_path: Path) -> Path:
@@ -115,7 +119,7 @@ def _write_configuration(tmp_path: Path) -> Path:
 def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     configuration = load_configuration(config_path)
-    runtime = _MockRuntime(ticks=[])
+    runtime = _MockRuntime(ticks=[], average_tick_value=1.5)
 
     harness = PrototypeHarness(configuration, runtime_factory=lambda: runtime)
     summary = harness.run_headless(HarnessExecutionOptions(frames=3, dt=0.5))
@@ -125,6 +129,7 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.frames_executed == 3
     assert summary.dataset_id == "remesh-sample"
     assert summary.rendering_preset == "research-baseline"
+    assert summary.average_tick_ms == pytest.approx(1.5)
 
 
 def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
@@ -192,10 +197,14 @@ def test_summarize_formats_output() -> None:
         shading_mode="deferred",
         frames_executed=10,
         timestep_seconds=0.016,
+        average_tick_ms=0.75,
     )
     assert (
         summarize(summary)
-        == "dataset=remesh-sample preset=research-baseline shading=deferred frames=10 dt=0.016000"
+        == (
+            "dataset=remesh-sample preset=research-baseline shading=deferred "
+            "frames=10 dt=0.016000 avg_ms=0.750000"
+        )
     )
 
     summary_payload = run_summary_to_dict(summary)
@@ -233,6 +242,7 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert description_payload["selected_dataset"] == "remesh-sample"
     assert description_payload["rendering"]["preset"] == "research-baseline"
     assert summary_payload["frames"] == 0
+    assert summary_payload["average_tick_ms"] is None
     assert "Configuration:" in captured.out
 
 
@@ -298,6 +308,7 @@ def test_cli_case_study_support(tmp_path: Path, capsys: pytest.CaptureFixture[st
     summary_payload = json.loads(summary_path.read_text(encoding="utf-8"))
 
     assert summary_payload["dataset"] == "geometry-remesh-baseline"
+    assert summary_payload["average_tick_ms"] is None
     assert "Selected case study 'geometry-baseline'" in captured.out
     assert "Dry run summary" in captured.out
 
@@ -318,6 +329,7 @@ def test_cli_case_study_support(tmp_path: Path, capsys: pytest.CaptureFixture[st
     summary_rendering = json.loads(summary_path_rendering.read_text(encoding="utf-8"))
 
     assert summary_rendering["dataset"] == "rendering-light-volume"
+    assert summary_rendering["average_tick_ms"] is None
     assert "Selected case study 'rendering-debug'" in captured_rendering.out
 
 
