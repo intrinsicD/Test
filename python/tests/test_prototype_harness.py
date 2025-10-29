@@ -141,6 +141,32 @@ def _write_configuration(tmp_path: Path) -> Path:
             "simulation": {"timestep_seconds": 0.01, "max_substeps": 1},
             "hot_reload": {"enabled": False, "watch_interval_seconds": 0.5},
         },
+        "benchmarks": {
+            "schema": {"id": "ai-004.benchmarks", "version": 1},
+            "scenarios": [
+                {
+                    "id": "remesh-baseline",
+                    "name": "Remesh Baseline",
+                    "dataset": "remesh-sample",
+                    "rendering_preset": "research-baseline",
+                    "engine": {
+                        "command": ["python", "run_engine.py", "--output", "{output_path}"],
+                        "output": "telemetry/{scenario}_engine.json",
+                    },
+                    "reference": {
+                        "command": ["python", "run_reference.py", "--output", "{output_path}"],
+                        "output": "telemetry/{scenario}_reference.json",
+                    },
+                    "metrics": [
+                        {
+                            "name": "frame_time",
+                            "higher_is_better": False,
+                            "threshold": {"type": "relative", "max_regression": 0.05},
+                        }
+                    ],
+                }
+            ],
+        },
         "telemetry": {
             "schema": {"id": "ai-004.telemetry", "version": 2},
             "outputs": [
@@ -198,6 +224,13 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description.telemetry.schema_version == 2
     assert len(description.telemetry.outputs) == 2
     assert description.telemetry.metrics[1].statistic == "p95"
+    assert description.benchmarks is not None
+    assert description.benchmarks.schema_version == 1
+    assert len(description.benchmarks.scenarios) == 1
+    scenario = description.benchmarks.scenarios[0]
+    assert scenario.identifier == "remesh-baseline"
+    assert scenario.engine.command == ("python", "run_engine.py", "--output", "{output_path}")
+    assert scenario.metrics[0].threshold.limit == pytest.approx(0.05)
     assert description_payload["datasets"][0]["label"] == "remesh-sample"
     assert description_payload["runtime"]["hot_reload"] == {
         "enabled": False,
@@ -208,6 +241,11 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description_payload["datasets"][0]["schema_version"] == 2
     assert description_payload["telemetry"]["schema_version"] == 2
     assert description_payload["telemetry"]["outputs"][0]["kind"] == "file"
+    assert description_payload["benchmarks"]["schema_version"] == 1
+    assert (
+        description_payload["benchmarks"]["scenarios"][0]["engine"]["command"][0]
+        == "python"
+    )
 
 
 def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:
@@ -302,9 +340,25 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
 
     assert description_payload["selected_dataset"] == "remesh-sample"
     assert description_payload["rendering"]["preset"] == "research-baseline"
+    assert description_payload["benchmarks"]["scenarios"][0]["id"] == "remesh-baseline"
     assert summary_payload["frames"] == 0
     assert summary_payload["average_tick_ms"] is None
     assert "Configuration:" in captured.out
+
+
+def test_cli_list_benchmarks(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    config_path = _write_configuration(tmp_path)
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        ["--config", str(config_path), "--dry-run", "--list-benchmarks"]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Benchmark scenarios:" in captured.out
+    assert "remesh-baseline" in captured.out
 
 
 def test_cli_dry_run(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

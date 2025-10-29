@@ -54,6 +54,23 @@ def _print_summary(harness: PrototypeHarness) -> None:
     print(f"Configuration: dataset={dataset} preset={preset} shading={shading}")
 
 
+def _print_benchmark_scenarios(summary) -> None:
+    benchmarks = summary.benchmarks
+    if benchmarks is None or not benchmarks.scenarios:
+        print("Benchmark scenarios: <none>")
+        return
+    print("Benchmark scenarios:")
+    for scenario in benchmarks.scenarios:
+        dataset = scenario.dataset or "<unspecified>"
+        preset = scenario.rendering_preset or "<unspecified>"
+        runtime_profile = scenario.runtime_profile or "<unspecified>"
+        print(
+            "  - "
+            f"{scenario.identifier} ({scenario.name}) "
+            f"dataset={dataset} preset={preset} runtime_profile={runtime_profile}"
+        )
+
+
 def _write_json(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -86,9 +103,13 @@ def _run(args: argparse.Namespace) -> int:
 
     _print_summary(harness)
 
-    if args.describe_json is not None:
+    description = None
+    if args.describe_json is not None or args.list_benchmarks:
         description = harness.describe_configuration()
+    if args.describe_json is not None and description is not None:
         _write_json(args.describe_json, configuration_summary_to_dict(description))
+    if args.list_benchmarks and description is not None:
+        _print_benchmark_scenarios(description)
 
     if args.dry_run:
         summary = harness.run_headless(HarnessExecutionOptions(dry_run=True, frames=1, dt=args.dt))
@@ -162,6 +183,11 @@ def main(argv: Iterable[str] | None = None) -> int:
         "--summary-json",
         type=Path,
         help="Write the execution summary to the specified JSON file.",
+    )
+    parser.add_argument(
+        "--list-benchmarks",
+        action="store_true",
+        help="List benchmark scenarios defined in the configuration before execution.",
     )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
