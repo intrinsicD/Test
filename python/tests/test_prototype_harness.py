@@ -245,6 +245,41 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.telemetry_outputs[1].template is None
 
 
+def test_run_headless_supports_custom_scenario_label(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+    options = HarnessExecutionOptions(dry_run=True, scenario_label="custom-scenario")
+    summary = harness.run_headless(options)
+
+    assert summary.scenario_label == "custom-scenario"
+    assert summary.telemetry_outputs
+    assert summary.telemetry_outputs[0].path is not None
+    assert summary.telemetry_outputs[0].path.endswith("telemetry/custom-scenario.json")
+    payload = run_summary_to_dict(summary)
+    assert payload["scenario"] == "custom-scenario"
+
+
+def test_execution_options_validate_run_metadata() -> None:
+    options = HarnessExecutionOptions(frames=1, dt=0.5, run_index=1)
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=0.5, run_index=0, run_count=1)
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=0.5, run_index=2, run_count=1)
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+
 def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     configuration = load_configuration(config_path)
@@ -367,6 +402,22 @@ def test_prototype_harness_detects_missing_assets(tmp_path: Path) -> None:
     assert "asset" in str(excinfo.value)
 
 
+def test_prototype_harness_verifies_assets_without_explicit_paths(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+
+    harness = PrototypeHarness(
+        configuration,
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    dataset_summary = harness.describe_selected_dataset()
+    assert dataset_summary is not None
+    assert dataset_summary.assets
+    assert all(status.verified for status in dataset_summary.assets)
+
+
 def test_prototype_harness_validates_scene_manifest(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     payload = json.loads(config_path.read_text(encoding="utf-8"))
@@ -471,6 +522,7 @@ def test_load_harness_respects_require_schema(tmp_path: Path) -> None:
 def test_summarize_formats_output() -> None:
     summary = HarnessRunSummary(
         dataset_id="remesh-sample",
+        scenario_label="remesh-baseline",
         rendering_preset="research-baseline",
         shading_mode="deferred",
         frames_executed=10,
@@ -482,13 +534,14 @@ def test_summarize_formats_output() -> None:
     assert (
         summarize(summary)
         == (
-            "dataset=remesh-sample preset=research-baseline shading=deferred "
+            "scenario=remesh-baseline dataset=remesh-sample preset=research-baseline shading=deferred "
             "frames=10 dt=0.016000 avg_ms=0.750000 dispatches=1"
         )
     )
 
     summary_payload = run_summary_to_dict(summary)
     assert summary_payload["dataset"] == "remesh-sample"
+    assert summary_payload["scenario"] == "remesh-baseline"
     assert summary_payload["frames"] == 10
     assert summary_payload["dispatch_order"] == ["geometry::remesh"]
     assert summary_payload["dispatch_durations_ms"] == [1.5]
@@ -498,6 +551,7 @@ def test_summarize_formats_output() -> None:
 def test_summarize_includes_run_metadata() -> None:
     summary = HarnessRunSummary(
         dataset_id="remesh-sample",
+        scenario_label=None,
         rendering_preset="research-baseline",
         shading_mode="deferred",
         frames_executed=5,
@@ -509,6 +563,7 @@ def test_summarize_includes_run_metadata() -> None:
     assert "run=2/3" in text
 
     summary_payload = run_summary_to_dict(summary)
+    assert summary_payload["scenario"] is None
     assert summary_payload["run_index"] == 2
     assert summary_payload["run_count"] == 3
     assert summary_payload["telemetry_outputs"] == []
@@ -550,6 +605,7 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert description_payload["benchmarks"]["scenarios"][0]["id"] == "remesh-baseline"
     assert summary_payload["frames"] == 0
     assert summary_payload["average_tick_ms"] is None
+    assert summary_payload["scenario"] is None
     assert summary_payload["dispatch_order"] == []
     assert summary_payload["dispatch_durations_ms"] == []
     assert len(summary_payload["telemetry_outputs"]) == 2
@@ -594,6 +650,7 @@ def test_cli_repeat_generates_multiple_summaries(
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload["run_index"] == index
         assert payload["run_count"] == 3
+        assert payload["scenario"] is None
         outputs = payload["telemetry_outputs"]
         assert len(outputs) == 2
         assert outputs[0]["template"] == "telemetry/{scenario}.json"
@@ -688,6 +745,7 @@ def test_cli_case_study_support(tmp_path: Path, capsys: pytest.CaptureFixture[st
 
     assert summary_payload["dataset"] == "geometry-remesh-baseline"
     assert summary_payload["average_tick_ms"] is None
+    assert summary_payload["scenario"] is None
     assert "Selected case study 'geometry-baseline'" in captured.out
     assert "Dry run summary" in captured.out
 
@@ -709,6 +767,7 @@ def test_cli_case_study_support(tmp_path: Path, capsys: pytest.CaptureFixture[st
 
     assert summary_rendering["dataset"] == "rendering-light-volume"
     assert summary_rendering["average_tick_ms"] is None
+    assert summary_rendering["scenario"] is None
     assert "Selected case study 'rendering-debug'" in captured_rendering.out
 
 
