@@ -98,6 +98,7 @@ Run `python scripts/validate_docs.py` after editing to catch broken links.
 - Archive completed work to `archive/` after 30 days of inactivity.
 
 **Precedence for Conflicts:**
+> **Note:** `../AGENTS.md` (the workflow portal at the root) is distinct from `agents/AGENTS.md` (the directory overview). Only the root `AGENTS.md` is referenced in the precedence chain below.
 `../AGENTS.md` → `NAVIGATION.md` (this file) → `ARCHITECTURE.md` → `design/` or `specs/` → module READMEs → code comments.
 
 When a lower-precedence document conflicts with a higher one, update the higher-precedence document first, then cascade changes downstream.
