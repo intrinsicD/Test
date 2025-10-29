@@ -72,6 +72,24 @@ def _load_index() -> Dict[str, CaseStudy]:
         return {}
 
     payload = json.loads(index_file.read_text(encoding="utf-8"))
+    schema = payload.get("schema")
+    if not isinstance(schema, dict):
+        raise CaseStudyError("case study index must include a schema header")
+    schema_id = schema.get("id")
+    if not isinstance(schema_id, str):
+        raise CaseStudyError("case study index schema.id must be a string")
+    if schema_id != "ai-004.case-studies":
+        raise CaseStudyError(
+            f"case study index schema.id must be 'ai-004.case-studies'; received '{schema_id}'"
+        )
+    schema_version = schema.get("version")
+    if not isinstance(schema_version, int):
+        raise CaseStudyError("case study index schema.version must be an integer")
+    if schema_version != 1:
+        raise CaseStudyError(
+            f"unsupported case study index schema.version '{schema_version}' (expected 1)"
+        )
+
     case_studies_value = payload.get("case_studies", [])
     if not isinstance(case_studies_value, list):
         raise CaseStudyError("case_studies entry must be a list in case study index")
