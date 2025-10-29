@@ -76,6 +76,8 @@ class HarnessRunSummary:
     average_tick_ms: Optional[float] = None
     dispatch_order: Tuple[str, ...] = ()
     dispatch_durations_ms: Tuple[float, ...] = ()
+    run_index: Optional[int] = None
+    run_count: Optional[int] = None
 
 
 RuntimeFactory = Callable[[], EngineRuntimeHandle]
@@ -709,9 +711,12 @@ def summarize(summary: HarnessRunSummary) -> str:
     dispatch = (
         f" dispatches={len(summary.dispatch_order)}" if summary.dispatch_order else ""
     )
+    run = ""
+    if summary.run_index is not None and summary.run_count is not None:
+        run = f" run={summary.run_index}/{summary.run_count}"
     return (
         f"dataset={dataset} preset={preset} shading={shading} "
-        f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}{dispatch}"
+        f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}{run}{dispatch}"
     )
 
 
@@ -724,7 +729,7 @@ def configuration_summary_to_dict(summary: HarnessConfigurationSummary) -> Dict[
 def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
     """Convert a run summary to a JSON-serialisable dictionary."""
 
-    return {
+    payload: Dict[str, object] = {
         "dataset": summary.dataset_id,
         "rendering_preset": summary.rendering_preset,
         "shading_mode": summary.shading_mode,
@@ -734,4 +739,9 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
         "dispatch_order": list(summary.dispatch_order),
         "dispatch_durations_ms": list(summary.dispatch_durations_ms),
     }
+    if summary.run_index is not None:
+        payload["run_index"] = summary.run_index
+    if summary.run_count is not None:
+        payload["run_count"] = summary.run_count
+    return payload
 
