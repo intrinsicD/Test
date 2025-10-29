@@ -74,6 +74,8 @@ class HarnessRunSummary:
     frames_executed: int
     timestep_seconds: float
     average_tick_ms: Optional[float] = None
+    dispatch_order: Tuple[str, ...] = ()
+    dispatch_durations_ms: Tuple[float, ...] = ()
 
 
 RuntimeFactory = Callable[[], EngineRuntimeHandle]
@@ -430,6 +432,8 @@ class PrototypeHarness:
                 frames_executed=0,
                 timestep_seconds=execution.dt,
                 average_tick_ms=None,
+                dispatch_order=(),
+                dispatch_durations_ms=(),
             )
 
         try:
@@ -438,11 +442,21 @@ class PrototypeHarness:
             raise PrototypeHarnessError(str(error)) from error
 
         frames_executed = 0
+        dispatch_order: Tuple[str, ...] = ()
+        dispatch_durations_ms: Tuple[float, ...] = ()
         with runtime:
             for _ in range(execution.frames):
                 runtime.tick(execution.dt)
                 frames_executed += 1
             average_tick_ms = runtime.average_tick_ms()
+            order = tuple(runtime.dispatch_order())
+            durations = tuple(runtime.dispatch_durations())
+            if len(order) != len(durations):
+                count = min(len(order), len(durations))
+                order = order[:count]
+                durations = durations[:count]
+            dispatch_order = order
+            dispatch_durations_ms = tuple(duration * 1000.0 for duration in durations)
 
         return HarnessRunSummary(
             dataset_id=self._selected_dataset.identifier if self._selected_dataset else None,
@@ -451,6 +465,8 @@ class PrototypeHarness:
             frames_executed=frames_executed,
             timestep_seconds=execution.dt,
             average_tick_ms=average_tick_ms,
+            dispatch_order=dispatch_order,
+            dispatch_durations_ms=dispatch_durations_ms,
         )
 
     @staticmethod
@@ -690,9 +706,12 @@ def summarize(summary: HarnessRunSummary) -> str:
     average = (
         f" avg_ms={summary.average_tick_ms:.6f}" if summary.average_tick_ms is not None else ""
     )
+    dispatch = (
+        f" dispatches={len(summary.dispatch_order)}" if summary.dispatch_order else ""
+    )
     return (
         f"dataset={dataset} preset={preset} shading={shading} "
-        f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}"
+        f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}{dispatch}"
     )
 
 
@@ -712,5 +731,7 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
         "frames": summary.frames_executed,
         "timestep_seconds": summary.timestep_seconds,
         "average_tick_ms": summary.average_tick_ms,
+        "dispatch_order": list(summary.dispatch_order),
+        "dispatch_durations_ms": list(summary.dispatch_durations_ms),
     }
 

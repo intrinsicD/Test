@@ -263,7 +263,8 @@ ctest --preset linux-gcc-debug -R runtime
   The harness consumes the shared configuration schema, reports the selected
   dataset/preset pairing, and can execute a headless tick loop once the runtime
   shared library is available locally. Execution summaries surface the runtime's
-  rolling `average_tick_ms` diagnostic so teams can monitor timing drift without
+  rolling `average_tick_ms` diagnostic and per-kernel dispatch telemetry (order +
+  milliseconds) so teams can monitor timing and scheduling drift without
   additional tooling. Pass `--frames` and `--dt` to control
   execution cadence; use `--dry-run` to perform schema validation without
   loading the native runtime library.
