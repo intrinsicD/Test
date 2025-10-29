@@ -61,7 +61,7 @@ EngineRuntimeHandle (ctypes wrapper)
 
 ### Data Model
 
-- **Configuration**: `Ai004Configuration` composed of dataset manifests, rendering presets, runtime overrides, benchmark scenarios, and telemetry options. The `PrototypeHarness.describe_configuration()` helper now projects this into a structured summary that includes schema versions for datasets/runtime/rendering plus telemetry outputs/metrics so UI clients can verify compatibility at a glance.
+- **Configuration**: `Ai004Configuration` composed of dataset manifests, rendering presets, runtime overrides, benchmark scenarios, and telemetry options. The `PrototypeHarness.describe_configuration()` helper now projects this into a structured summary that includes schema versions for datasets/runtime/rendering plus telemetry outputs/metrics so UI clients can verify compatibility at a glance. Dataset assets now surface resolved paths, checksum comparisons, and verification state so tooling can highlight missing or stale packages without rerunning ingestion scripts.
 - **Harness Options**: `HarnessExecutionOptions` (new) capturing frame count, timestep, and dry-run semantics.
 - **Configuration Summary**: `HarnessConfigurationSummary` materialises dataset provenance (tags, statistics, feature-preservation flags, parameterisation metrics, checksums), runtime defaults, and telemetry descriptors for consumption by tools automation. Statistics now include remeshing operation counts, execution duration, and triangle-quality ranges so downstream tooling mirrors dataset manifests without reparsing them.
 - **Execution Result**: `HarnessRunSummary` capturing dataset slug, rendered preset, frames executed, telemetry output targets, and dispatch telemetry ready for integration with diagnostics exports.
@@ -95,7 +95,8 @@ EngineRuntimeHandle (ctypes wrapper)
 | Surface telemetry outputs (`CC-310`) | Performance | Populate `HarnessRunSummary.telemetry_paths` once runtime exports metrics. |
 | Interactive mode bridge (`TL-210`) | Tools | Embed ImGui controls and expose hot-reload toggles. |
 | Native C++ harness sample | Runtime | ✅ `runtime_prototype_harness` CLI sample mirrors Python dry-run flow (2026-02-05). |
-| Dataset asset preloading (`AS-330`) | Assets | Resolve manifest entries into asset streaming requests pre-run. |
+
+**2026-02-08** — Harness construction now validates dataset asset existence, file sizes, and sha256 hashes. Configuration summaries expose per-asset integrity status for TL-210 selectors and AS-330 packaging checks.
 
 ---
 

@@ -115,6 +115,7 @@ python -m scripts.prototyping.run_prototype_harness \
 - `--list-benchmarks` enumerates the declared scenarios (identifier, dataset, preset) before execution so tooling can confirm coverage.
 - Provide `--case-study <id>` to resolve configurations from
   `assets/datasets/case_studies/` once they are published.
+- Harness construction validates dataset assets before execution, checking file existence, byte sizes, and sha256 hashes. The exported configuration summaries include per-asset integrity metadata so TL-210 selectors and AS-330 packaging automation can report missing or stale datasets immediately.
 
 ### 4.3 Troubleshooting
 
