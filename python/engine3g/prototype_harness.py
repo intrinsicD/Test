@@ -476,6 +476,13 @@ class PrototypeHarness:
             benchmarks=benchmark_summary,
         )
 
+    def describe_selected_dataset(self) -> Optional[DatasetSummary]:
+        """Return a summary for the dataset referenced by the runtime configuration."""
+
+        if self._selected_dataset is None:
+            return None
+        return self._describe_dataset(self._selected_dataset)
+
 
     def _telemetry_outputs(self) -> Tuple[TelemetryOutputSummary, ...]:
         """Return telemetry outputs declared in the configuration."""
