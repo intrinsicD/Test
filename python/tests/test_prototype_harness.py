@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 import json
 import sys
 from dataclasses import dataclass, field
@@ -293,6 +294,26 @@ def test_run_headless_supports_run_metadata_placeholders(tmp_path: Path) -> None
     assert first_output.path.endswith("telemetry/remesh-sample-run02-of-05.json")
 
 
+def test_telemetry_output_sanitizes_scenario_label(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+    options = HarnessExecutionOptions(dry_run=True, scenario_label="Scenario 01/../..")
+    summary = harness.run_headless(options)
+
+    assert summary.telemetry_outputs
+    first_output = summary.telemetry_outputs[0]
+    assert first_output.path is not None
+    assert first_output.path.endswith("telemetry/scenario-01.json")
+    assert first_output.template == "telemetry/{scenario}.json"
+
+
 def test_execution_options_validate_run_metadata() -> None:
     options = HarnessExecutionOptions(frames=1, dt=0.5, run_index=1)
     with pytest.raises(PrototypeHarnessError):
@@ -303,6 +324,14 @@ def test_execution_options_validate_run_metadata() -> None:
         options.validate()
 
     options = HarnessExecutionOptions(frames=1, dt=0.5, run_index=2, run_count=1)
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=math.nan)
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=math.inf)
     with pytest.raises(PrototypeHarnessError):
         options.validate()
 

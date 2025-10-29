@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import hashlib
+import math
+import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
@@ -106,8 +109,8 @@ class HarnessExecutionOptions:
     def validate(self) -> None:
         if self.frames <= 0:
             raise PrototypeHarnessError("frames must be greater than zero")
-        if not float(self.dt) or self.dt <= 0.0:
-            raise PrototypeHarnessError("dt must be a positive number")
+        if not math.isfinite(self.dt) or self.dt <= 0.0:
+            raise PrototypeHarnessError("dt must be a positive, finite number")
         if self.run_index is not None and self.run_index <= 0:
             raise PrototypeHarnessError("run_index must be greater than zero when provided")
         if self.run_count is not None and self.run_count <= 0:
@@ -416,6 +419,8 @@ class HarnessConfigurationSummary:
 class PrototypeHarness:
     """Headless harness that validates AI-004 configurations and executes runtime ticks."""
 
+    _PLACEHOLDER_SAFE_PATTERN = re.compile(r"[^a-z0-9_-]+")
+
     def __init__(
         self,
         configuration: Ai004Configuration,
@@ -537,11 +542,19 @@ class PrototypeHarness:
         dataset_id = self._selected_dataset.identifier if self._selected_dataset else None
         rendering = self._rendering_config()
         scenario_value = scenario_override or dataset_id or "default"
+        dataset_token = self._sanitize_placeholder_token(dataset_id or "default")
+        scenario_token = self._sanitize_placeholder_token(scenario_value)
+        preset_token = self._sanitize_placeholder_token(rendering.preset) if rendering else "default"
+        shading_token = (
+            self._sanitize_placeholder_token(rendering.shading_mode)
+            if rendering and rendering.shading_mode is not None
+            else "default"
+        )
         defaults: Dict[str, object] = {
-            "dataset": dataset_id or "default",
-            "scenario": scenario_value,
-            "rendering_preset": rendering.preset if rendering else "default",
-            "shading_mode": rendering.shading_mode if rendering else "default",
+            "dataset": dataset_token,
+            "scenario": scenario_token,
+            "rendering_preset": preset_token,
+            "shading_mode": shading_token,
         }
         if execution is not None:
             defaults["frames"] = execution.frames
@@ -555,6 +568,34 @@ class PrototypeHarness:
         if self._project_root is not None:
             defaults["project_root"] = str(self._project_root)
         return defaults
+
+    @classmethod
+    def _sanitize_placeholder_token(cls, value: str) -> str:
+        """Return a filesystem-safe token for telemetry placeholders."""
+
+        normalized = value.strip().lower()
+        if not normalized:
+            return "default"
+
+        separators = {"/", "\\"}
+        if os.sep:
+            separators.add(os.sep)
+        if os.altsep:
+            separators.add(os.altsep)
+
+        sanitized_chars: list[str] = []
+        for char in normalized:
+            if char in separators or char.isspace():
+                sanitized_chars.append("-")
+            elif char.isalnum() or char in {"-", "_"}:
+                sanitized_chars.append(char)
+            else:
+                sanitized_chars.append("-")
+
+        sanitized = "".join(sanitized_chars)
+        sanitized = cls._PLACEHOLDER_SAFE_PATTERN.sub("-", sanitized)
+        sanitized = re.sub(r"-+", "-", sanitized).strip("-")
+        return sanitized or "default"
 
     def _resolve_output_path(
         self,
