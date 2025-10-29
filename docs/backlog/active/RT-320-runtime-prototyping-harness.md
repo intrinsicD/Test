@@ -54,3 +54,5 @@ enabling CC-310 automation to surface timing drift without native log parsing.
 
 **2026-02-07** — Harness run summaries now include dispatch execution order and kernel durations (milliseconds) so CC-310
 automation can track kernel scheduling drift without parsing native runtime logs.
+**2026-02-08** — Harness construction verifies dataset asset existence, size, and hashes, raising actionable errors and exposing
+asset integrity metadata in configuration summaries for TL-210 and AS-330 consumers.

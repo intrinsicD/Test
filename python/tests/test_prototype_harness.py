@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from dataclasses import dataclass, field
@@ -67,6 +68,20 @@ class _MockRuntime:
 
 
 def _write_configuration(tmp_path: Path) -> Path:
+    assets_dir = tmp_path / "assets"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    source_mesh = assets_dir / "input.obj"
+    output_mesh = assets_dir / "output.obj"
+    source_mesh.write_text("v 0 0 0\n", encoding="utf-8")
+    output_mesh.write_text("f 1 2 3\n", encoding="utf-8")
+
+    def _sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(65536), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
     config = {
         "datasets": [
             {
@@ -76,14 +91,14 @@ def _write_configuration(tmp_path: Path) -> Path:
                 "tags": ["geometry", "remesh"],
                 "source": {
                     "generator": "geometry_remesh",
-                    "mesh": "assets/input.obj",
-                    "mesh_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-                    "mesh_size_bytes": 128,
+                    "mesh": source_mesh.relative_to(tmp_path).as_posix(),
+                    "mesh_sha256": _sha256(source_mesh),
+                    "mesh_size_bytes": source_mesh.stat().st_size,
                 },
                 "outputs": {
-                    "mesh": "assets/output.obj",
-                    "mesh_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
-                    "mesh_size_bytes": 256,
+                    "mesh": output_mesh.relative_to(tmp_path).as_posix(),
+                    "mesh_sha256": _sha256(output_mesh),
+                    "mesh_size_bytes": output_mesh.stat().st_size,
                 },
                 "remeshing": {"mode": "uniform"},
                 "feature_preservation": {
@@ -205,7 +220,12 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
         dispatch_times=[0.001, 0.0025],
     )
 
-    harness = PrototypeHarness(configuration, runtime_factory=lambda: runtime)
+    harness = PrototypeHarness(
+        configuration,
+        runtime_factory=lambda: runtime,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+    )
     summary = harness.run_headless(HarnessExecutionOptions(frames=3, dt=0.5))
 
     assert runtime.ticks == [0.5, 0.5, 0.5]
@@ -225,7 +245,11 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     configuration = load_configuration(config_path)
 
-    harness = PrototypeHarness(configuration)
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+    )
     description = harness.describe_configuration()
     description_payload = configuration_summary_to_dict(description)
 
@@ -281,6 +305,10 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
         description_payload["benchmarks"]["scenarios"][0]["engine"]["command"][0]
         == "python"
     )
+    assert description.datasets[0].assets
+    assert all(status.verified for status in description.datasets[0].assets)
+    asset_payloads = description_payload["datasets"][0]["assets"]
+    assert asset_payloads and asset_payloads[0]["verified"] is True
 
 
 def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:
@@ -291,6 +319,23 @@ def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:
 
     with pytest.raises(ConfigurationSchemaError):
         load_configuration(config_path)
+
+
+def test_prototype_harness_detects_missing_assets(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    missing_asset = tmp_path / "assets" / "input.obj"
+    missing_asset.unlink()
+    configuration = load_configuration(config_path)
+
+    with pytest.raises(PrototypeHarnessError) as excinfo:
+        PrototypeHarness(
+            configuration,
+            asset_search_paths=[tmp_path],
+            project_root=tmp_path,
+        )
+
+    assert "remesh-sample" in str(excinfo.value)
+    assert "asset" in str(excinfo.value)
 
 
 def test_load_harness_validates_sections(tmp_path: Path) -> None:
@@ -468,8 +513,15 @@ def test_cli_dry_run(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: py
         runtime_factory: Callable[[], object] | None = None,
         require_schema: bool | None = None,
     ) -> PrototypeHarness:
-        configuration = load_configuration(path, require_schema=require_schema)
-        return PrototypeHarness(configuration, runtime_factory=lambda: _MockRuntime(ticks=[]))
+        config_path = Path(path)
+        configuration = load_configuration(config_path, require_schema=require_schema)
+        factory = runtime_factory or (lambda: _MockRuntime(ticks=[]))
+        return PrototypeHarness(
+            configuration,
+            runtime_factory=factory,
+            asset_search_paths=[config_path.parent],
+            project_root=config_path.parent,
+        )
 
     from scripts.prototyping import run_prototype_harness
 

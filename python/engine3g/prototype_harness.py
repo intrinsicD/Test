@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
-from typing import Callable, Dict, Optional, Tuple
+from pathlib import Path
+from typing import Callable, Dict, Iterable, Optional, Sequence, Tuple
 
 from .config_schema import (
     Ai004Configuration,
@@ -27,6 +29,7 @@ __all__ = [
     "BenchmarkScenarioSummary",
     "HarnessExecutionOptions",
     "HarnessRunSummary",
+    "DatasetAssetStatus",
     "DatasetSummary",
     "HarnessConfigurationSummary",
     "HarnessBenchmarkSummary",
@@ -47,6 +50,38 @@ __all__ = [
 
 class PrototypeHarnessError(RuntimeError):
     """Raised when harness configuration cannot be resolved."""
+
+
+@dataclass(frozen=True)
+class DatasetAssetStatus:
+    """Integrity summary for an asset declared within a dataset entry."""
+
+    role: str
+    path: str
+    resolved_path: str
+    exists: bool
+    expected_size_bytes: Optional[int]
+    actual_size_bytes: Optional[int]
+    expected_sha256: Optional[str]
+    actual_sha256: Optional[str]
+    verified: bool
+    message: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, object]:
+        payload: Dict[str, object] = {
+            "role": self.role,
+            "path": self.path,
+            "resolved_path": self.resolved_path,
+            "exists": self.exists,
+            "expected_size_bytes": self.expected_size_bytes,
+            "actual_size_bytes": self.actual_size_bytes,
+            "expected_sha256": self.expected_sha256,
+            "actual_sha256": self.actual_sha256,
+            "verified": self.verified,
+        }
+        if self.message is not None:
+            payload["message"] = self.message
+        return payload
 
 
 @dataclass(frozen=True)
@@ -107,6 +142,7 @@ class DatasetSummary:
     parameterization: Optional[Dict[str, object]]
     statistics: Dict[str, object]
     metrics: Dict[str, Dict[str, float]]
+    assets: Tuple[DatasetAssetStatus, ...]
 
     def to_dict(self) -> Dict[str, object]:
         payload: Dict[str, object] = {
@@ -123,6 +159,7 @@ class DatasetSummary:
             "feature_preservation": dict(self.feature_preservation),
             "statistics": dict(self.statistics),
             "metrics": {key: dict(value) for key, value in self.metrics.items()},
+            "assets": [asset.to_dict() for asset in self.assets],
         }
         if self.source_mesh_sha256 is not None:
             payload["source_mesh_sha256"] = self.source_mesh_sha256
@@ -356,10 +393,18 @@ class PrototypeHarness:
         configuration: Ai004Configuration,
         *,
         runtime_factory: RuntimeFactory | None = None,
+        asset_search_paths: Sequence[Path | str] | None = None,
+        project_root: Path | None = None,
     ) -> None:
         self._configuration = configuration
         self._runtime_factory = runtime_factory or load_runtime
+        self._asset_search_paths = self._normalise_asset_search_paths(asset_search_paths)
+        self._project_root = project_root.resolve() if project_root is not None else None
         self._selected_dataset = self._resolve_dataset(configuration.datasets, configuration.runtime)
+        self._dataset_assets: Dict[str, Tuple[DatasetAssetStatus, ...]] = {}
+        if self._asset_search_paths:
+            for entry in configuration.datasets.datasets:
+                self._dataset_assets[entry.identifier] = self._verify_dataset_assets(entry)
 
     @property
     def configuration(self) -> Ai004Configuration:
@@ -486,8 +531,9 @@ class PrototypeHarness:
             telemetry_outputs=telemetry_outputs,
         )
 
-    @staticmethod
-    def _describe_dataset(entry: DatasetEntry) -> DatasetSummary:
+    def _describe_dataset(self, entry: DatasetEntry) -> DatasetSummary:
+        assets = self._dataset_assets.get(entry.identifier, tuple())
+
         remeshing_targets: Optional[Dict[str, float]] = None
         if entry.remeshing_targets is not None:
             remeshing_targets = {
@@ -596,6 +642,7 @@ class PrototypeHarness:
             parameterization=parameterization,
             statistics=statistics,
             metrics=metrics,
+            assets=assets,
         )
 
     @staticmethod
@@ -707,6 +754,180 @@ class PrototypeHarness:
         return HarnessBenchmarkSummary(schema_version=benchmarks.schema_version, scenarios=scenarios)
 
 
+    @staticmethod
+    def _normalise_asset_search_paths(paths: Sequence[Path | str] | None) -> Tuple[Path, ...]:
+        if not paths:
+            return tuple()
+        normalised: Dict[Path, None] = {}
+        for entry in paths:
+            resolved = Path(entry).resolve()
+            normalised.setdefault(resolved, None)
+        return tuple(normalised.keys())
+
+    @staticmethod
+    def _compute_sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(65536), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    def _candidate_asset_paths(self, declared_path: str) -> Tuple[Path, ...]:
+        declared = Path(declared_path)
+        if declared.is_absolute():
+            return (declared,)
+        candidates: Iterable[Path]
+        if self._asset_search_paths:
+            candidates = ((base / declared).resolve() for base in self._asset_search_paths)
+        else:
+            candidates = (Path.cwd() / declared,)
+        resolved: Dict[Path, None] = {}
+        for candidate in candidates:
+            resolved.setdefault(candidate, None)
+        if self._project_root is not None:
+            dataset_root = (self._project_root / "assets" / "datasets").resolve()
+            if dataset_root.exists():
+                if len(declared.parts) > 1:
+                    candidate = (dataset_root / declared).resolve()
+                    resolved.setdefault(candidate, None)
+                else:
+                    for match in dataset_root.rglob(declared.name):
+                        resolved.setdefault(match.resolve(), None)
+        fallback = (Path.cwd() / declared).resolve()
+        resolved.setdefault(fallback, None)
+        return tuple(resolved.keys())
+
+    def _build_asset_status(
+        self,
+        *,
+        role: str,
+        declared_path: str,
+        expected_sha256: Optional[str],
+        expected_size: Optional[int],
+    ) -> DatasetAssetStatus:
+        candidates = self._candidate_asset_paths(declared_path)
+        resolved_path = candidates[0] if candidates else Path(declared_path).resolve()
+        actual_path: Optional[Path] = None
+        for candidate in candidates:
+            if candidate.exists():
+                actual_path = candidate
+                break
+        if actual_path is None:
+            message = "asset not found"
+            if candidates:
+                message = f"asset not found (searched: {', '.join(str(candidate) for candidate in candidates)})"
+            return DatasetAssetStatus(
+                role=role,
+                path=declared_path,
+                resolved_path=str(resolved_path),
+                exists=False,
+                expected_size_bytes=expected_size,
+                actual_size_bytes=None,
+                expected_sha256=expected_sha256,
+                actual_sha256=None,
+                verified=False,
+                message=message,
+            )
+
+        if not actual_path.is_file():
+            return DatasetAssetStatus(
+                role=role,
+                path=declared_path,
+                resolved_path=str(actual_path),
+                exists=False,
+                expected_size_bytes=expected_size,
+                actual_size_bytes=None,
+                expected_sha256=expected_sha256,
+                actual_sha256=None,
+                verified=False,
+                message="resolved path is not a file",
+            )
+
+        try:
+            actual_size = int(actual_path.stat().st_size)
+        except OSError as error:
+            return DatasetAssetStatus(
+                role=role,
+                path=declared_path,
+                resolved_path=str(actual_path),
+                exists=False,
+                expected_size_bytes=expected_size,
+                actual_size_bytes=None,
+                expected_sha256=expected_sha256,
+                actual_sha256=None,
+                verified=False,
+                message=f"unable to stat asset: {error}",
+            )
+
+        actual_sha256: Optional[str] = None
+        try:
+            actual_sha256 = self._compute_sha256(actual_path)
+        except OSError as error:
+            return DatasetAssetStatus(
+                role=role,
+                path=declared_path,
+                resolved_path=str(actual_path),
+                exists=True,
+                expected_size_bytes=expected_size,
+                actual_size_bytes=actual_size,
+                expected_sha256=expected_sha256,
+                actual_sha256=None,
+                verified=False,
+                message=f"unable to read asset: {error}",
+            )
+
+        verified = True
+        message_parts: list[str] = []
+        if expected_size is not None and actual_size != expected_size:
+            verified = False
+            message_parts.append(
+                f"size mismatch (expected {expected_size}, found {actual_size})"
+            )
+        if expected_sha256 is not None and actual_sha256 != expected_sha256:
+            verified = False
+            message_parts.append("sha256 mismatch")
+        message = ", ".join(message_parts) if message_parts else None
+
+        return DatasetAssetStatus(
+            role=role,
+            path=declared_path,
+            resolved_path=str(actual_path),
+            exists=True,
+            expected_size_bytes=expected_size,
+            actual_size_bytes=actual_size,
+            expected_sha256=expected_sha256,
+            actual_sha256=actual_sha256,
+            verified=verified,
+            message=message,
+        )
+
+    def _verify_dataset_assets(self, entry: DatasetEntry) -> Tuple[DatasetAssetStatus, ...]:
+        statuses = (
+            self._build_asset_status(
+                role="source_mesh",
+                declared_path=entry.source_mesh,
+                expected_sha256=entry.source_mesh_sha256,
+                expected_size=entry.source_mesh_size_bytes,
+            ),
+            self._build_asset_status(
+                role="output_mesh",
+                declared_path=entry.output_mesh,
+                expected_sha256=entry.output_mesh_sha256,
+                expected_size=entry.output_mesh_size_bytes,
+            ),
+        )
+        failures = [status for status in statuses if not status.verified]
+        if failures:
+            details = "; ".join(
+                f"{status.role}: {status.message or 'verification failed'} (path={status.resolved_path})"
+                for status in failures
+            )
+            raise PrototypeHarnessError(
+                f"dataset '{entry.identifier}' assets failed verification: {details}"
+            )
+        return statuses
+
+
 def load_harness(
     path: str,
     *,
@@ -717,15 +938,27 @@ def load_harness(
 
     from .config_schema import load_configuration  # Local import to avoid cycle during module init
 
+    config_path = Path(path)
     try:
-        configuration = load_configuration(path, require_schema=require_schema)
+        configuration = load_configuration(config_path, require_schema=require_schema)
     except ConfigurationSchemaError as error:
         raise PrototypeHarnessError(str(error)) from error
     if configuration.runtime is None:
         raise PrototypeHarnessError("configuration.runtime section is required for harness execution")
     if not configuration.datasets.datasets:
         raise PrototypeHarnessError("configuration must provide at least one dataset entry")
-    return PrototypeHarness(configuration, runtime_factory=runtime_factory)
+    asset_paths = [config_path.parent.resolve()]
+    project_root = _discover_project_root(config_path.parent.resolve())
+    if project_root is None:
+        project_root = Path(__file__).resolve().parents[2]
+    if project_root is not None:
+        asset_paths.append(project_root)
+    return PrototypeHarness(
+        configuration,
+        runtime_factory=runtime_factory,
+        asset_search_paths=asset_paths,
+        project_root=project_root,
+    )
 
 
 def summarize(summary: HarnessRunSummary) -> str:
@@ -774,4 +1007,11 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
     if summary.run_count is not None:
         payload["run_count"] = summary.run_count
     return payload
+
+
+def _discover_project_root(start: Path) -> Optional[Path]:
+    for candidate in (start, *start.parents):
+        if (candidate / ".git").exists() or (candidate / "CMakeLists.txt").exists():
+            return candidate
+    return None
 
