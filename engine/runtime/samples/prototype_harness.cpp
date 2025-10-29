@@ -2,7 +2,9 @@
 #include "engine/runtime/config_schema.hpp"
 #include "engine/runtime/errors.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -16,6 +18,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -51,6 +54,8 @@ namespace
         std::size_t frames_executed = 0U;
         double timestep_seconds = 0.0;
         double average_tick_ms = 0.0;
+        std::vector<std::string> dispatch_order{};
+        std::vector<double> dispatch_durations_ms{};
     };
 
     [[nodiscard]] std::string format_error(const engine::runtime::RuntimeErrorCode& error)
@@ -259,6 +264,16 @@ namespace
                 ++summary.frames_executed;
             }
             summary.average_tick_ms = host.diagnostics().average_tick_ms;
+            const auto& report = host.last_dispatch_report();
+            const auto dispatch_count = std::min(report.execution_order.size(), report.kernel_durations.size());
+            summary.dispatch_order.assign(report.execution_order.begin(),
+                                          report.execution_order.begin() + static_cast<std::ptrdiff_t>(dispatch_count));
+            summary.dispatch_durations_ms.clear();
+            summary.dispatch_durations_ms.reserve(dispatch_count);
+            for (std::size_t index = 0; index < dispatch_count; ++index)
+            {
+                summary.dispatch_durations_ms.push_back(report.kernel_durations[index] * 1000.0);
+            }
             host.shutdown();
         }
         catch (...)
@@ -303,11 +318,48 @@ namespace
         {
             std::cout << "(none)\n";
         }
-        std::cout << "  timestep: " << std::fixed << std::setprecision(6) << summary.timestep_seconds << '\n';
+        {
+            const auto previous_flags = std::cout.flags();
+            const auto previous_precision = std::cout.precision();
+            std::cout << "  timestep: " << std::fixed << std::setprecision(6) << summary.timestep_seconds << '\n';
+            std::cout.flags(previous_flags);
+            std::cout.precision(previous_precision);
+        }
+        std::cout << "  dispatch count: " << summary.dispatch_order.size() << '\n';
+        if (!summary.dispatch_order.empty())
+        {
+            std::cout << "  dispatch order: ";
+            for (std::size_t index = 0; index < summary.dispatch_order.size(); ++index)
+            {
+                if (index != 0U)
+                {
+                    std::cout << ", ";
+                }
+                std::cout << summary.dispatch_order[index];
+            }
+            std::cout << '\n';
+        }
         if (!dry_run)
         {
+            const auto previous_flags = std::cout.flags();
+            const auto previous_precision = std::cout.precision();
             std::cout << "  frames executed: " << summary.frames_executed << '\n';
             std::cout << "  average tick (ms): " << std::setprecision(3) << summary.average_tick_ms << '\n';
+            if (!summary.dispatch_durations_ms.empty())
+            {
+                std::cout << "  dispatch durations (ms): " << std::fixed << std::setprecision(3);
+                for (std::size_t index = 0; index < summary.dispatch_durations_ms.size(); ++index)
+                {
+                    if (index != 0U)
+                    {
+                        std::cout << ", ";
+                    }
+                    std::cout << summary.dispatch_durations_ms[index];
+                }
+                std::cout << '\n';
+            }
+            std::cout.flags(previous_flags);
+            std::cout.precision(previous_precision);
         }
     }
 
@@ -347,15 +399,49 @@ namespace
         }
         stream << ",\n";
         stream << "  \"frames_executed\": " << summary.frames_executed << ",\n";
-        stream << "  \"timestep_seconds\": " << std::setprecision(7) << summary.timestep_seconds;
+        {
+            const auto previous_flags = stream.flags();
+            const auto previous_precision = stream.precision();
+            stream << "  \"timestep_seconds\": " << std::setprecision(7) << summary.timestep_seconds << ",\n";
+            stream.flags(previous_flags);
+            stream.precision(previous_precision);
+        }
         if (!dry_run)
         {
-            stream << ",\n  \"average_tick_ms\": " << std::setprecision(6) << summary.average_tick_ms << '\n';
+            const auto previous_flags = stream.flags();
+            const auto previous_precision = stream.precision();
+            stream << "  \"average_tick_ms\": " << std::setprecision(6) << summary.average_tick_ms << ",\n";
+            stream.flags(previous_flags);
+            stream.precision(previous_precision);
         }
-        else
+        stream << "  \"dispatch_order\": [";
+        for (std::size_t index = 0; index < summary.dispatch_order.size(); ++index)
         {
-            stream << '\n';
+            if (index != 0U)
+            {
+                stream << ", ";
+            }
+            stream << '\"' << summary.dispatch_order[index] << '\"';
         }
+        stream << "],\n";
+        stream << "  \"dispatch_durations_ms\": [";
+        if (!summary.dispatch_durations_ms.empty())
+        {
+            const auto previous_flags = stream.flags();
+            const auto previous_precision = stream.precision();
+            stream << std::fixed << std::setprecision(6);
+            for (std::size_t index = 0; index < summary.dispatch_durations_ms.size(); ++index)
+            {
+                if (index != 0U)
+                {
+                    stream << ", ";
+                }
+                stream << summary.dispatch_durations_ms[index];
+            }
+            stream.flags(previous_flags);
+            stream.precision(previous_precision);
+        }
+        stream << "]\n";
         stream << "}\n";
         return stream.str();
     }
