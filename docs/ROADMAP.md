@@ -25,7 +25,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 ### Phase 1 — Kickoff Ready *(Priorities 1–2)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 1 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Ratify shared configuration schema and validators. | Agent Orchestrator + Module Leads | In Progress |
+| 1 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Ratify shared configuration schema and validators. | Agent Orchestrator + Module Leads | Complete |
 | 1 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Publish kickoff plan, risk ownership, and milestone sequencing. | Product Manager | Planned |
 | 2 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Ship schema-driven harness with interactive + headless flows. | Runtime Lead | Planned |
 
@@ -53,7 +53,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
-| [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | In Progress | Schema ADR drafted; Python + native runtime validators landed. |
+| [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | Complete | Schema ADR, cross-language validators, and prototyping playbook published. |
 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Planned | Awaits schema sign-off. |
 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | Planned | Blocks TL-210/RT-321/CC-310. |
 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Planned | Licensing review pending. |

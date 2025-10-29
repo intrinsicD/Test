@@ -54,6 +54,9 @@
 ### Architecture Audit
 → [`prompts/ARCHITECTURE-AUDIT.md`](prompts/ARCHITECTURE-AUDIT.md)
 
+### AI-004 Prototyping Workflow
+→ [`design/AI-004-prototyping-playbook.md`](design/AI-004-prototyping-playbook.md)
+
 ## 📊 Key References
 
 - **Coding Standards:** [`../CODING_STYLE.md`](../CODING_STYLE.md)

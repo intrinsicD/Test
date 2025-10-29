@@ -250,6 +250,9 @@ ctest --preset linux-gcc-debug -R runtime
 
 ### Prototyping Harness (AI-004)
 
+- Follow the end-to-end workflow in the
+  [`AI-004 Prototyping Playbook`](../../design/AI-004-prototyping-playbook.md) to align schema validation, dataset packaging,
+  harness execution, sandbox integration, and benchmarking automation steps.
 - A sample configuration lives at `docs/examples/ai004_sample.json` and
   references the `assets/datasets/remesh_sample` manifest so new contributors
   can exercise the harness without authoring manifests from scratch. Validate
