@@ -172,12 +172,13 @@ namespace engine::runtime::config
             {
                 if (std::isalnum(static_cast<unsigned char>(ch)))
                 {
-                    if (std::islower(static_cast<unsigned char>(ch)))
+                    if (std::isalpha(static_cast<unsigned char>(ch)) &&
+                        !std::islower(static_cast<unsigned char>(ch)))
                     {
-                        has_alphanumeric = true;
-                        continue;
+                        throw_validation(context, "must contain lowercase alphanumeric characters separated by hyphens");
                     }
-                    throw_validation(context, "must contain lowercase alphanumeric characters separated by hyphens");
+                    has_alphanumeric = true;
+                    continue;
                 }
                 if (ch != '-')
                 {

@@ -288,11 +288,11 @@ ctest --preset linux-gcc-debug -R runtime
 - Native runtime integrations consume the same schema helpers through
   `engine::runtime::config::load_dataset_manifest()` and
   `engine::runtime::config::load_configuration()` in
-  [`engine/runtime/config_schema.hpp`](../../engine/runtime/include/engine/runtime/config_schema.hpp).
+  [`engine/runtime/config_schema.hpp`](../../../engine/runtime/include/engine/runtime/config_schema.hpp).
   The implementation relies on `yaml-cpp` and returns
   `RuntimeResult<T>` so harness code can surface actionable errors. Regression
   coverage lives in
-  [`engine/runtime/tests/test_config_schema.cpp`](../../engine/runtime/tests/test_config_schema.cpp).
+  [`engine/runtime/tests/test_config_schema.cpp`](../../../engine/runtime/tests/test_config_schema.cpp).
 - Migration checklist for legacy manifests:
   1. Run `python -m scripts.validate_ai004_config --dataset <path> --config <path>`
      to surface missing headers or field violations.

@@ -30,6 +30,6 @@ Kickoff readiness (`DC-041`) depends on this task closing; escalate blockers wit
 - Cross-references now validate dataset slugs across runtime and benchmark sections, rejecting manifests that point at missing
   or duplicated dataset identifiers.
 - Native runtime loader (`engine::runtime::config::load_configuration`) now ships in
-  [`engine/runtime/config_schema.hpp`](../../engine/runtime/include/engine/runtime/config_schema.hpp) backed by `yaml-cpp` with
-  regression tests under
-  [`engine/runtime/tests/test_config_schema.cpp`](../../engine/runtime/tests/test_config_schema.cpp).
+  [`engine/runtime/config_schema.hpp`](../../../engine/runtime/include/engine/runtime/config_schema.hpp) backed by `yaml-cpp`
+  with regression tests under
+  [`engine/runtime/tests/test_config_schema.cpp`](../../../engine/runtime/tests/test_config_schema.cpp).

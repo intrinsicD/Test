@@ -142,7 +142,7 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestWithoutSchemaInjectsDefaults)
     const auto manifest_path = write_file(
         temp.path / "manifest.yaml",
         R"(datasets:
-  - id: remesh-sample
+  - id: remesh-sample-01
     kind: geometry.remesh
     tags: [geometry]
     source:
@@ -198,7 +198,7 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestHonoursSchemaFlag)
     const auto manifest_path = write_file(
         temp.path / "manifest.yaml",
         R"(datasets:
-  - id: remesh-sample
+  - id: remesh-sample-01
     kind: geometry.remesh
     tags: [geometry]
     source:
@@ -256,7 +256,7 @@ TEST(RuntimeConfigSchema, LoadConfigurationParsesSections)
     const auto config_path = write_file(
         temp.path / "config.yaml",
         R"(datasets:
-  - id: remesh-sample
+  - id: remesh-sample-01
     schema:
       id: ai-004.dataset
       version: 2
@@ -314,7 +314,7 @@ runtime:
   schema:
     id: ai-004.runtime
     version: 1
-  dataset: remesh-sample
+  dataset: remesh-sample-01
   scene:
     manifest: scenes/sample.scene
     entry_point: main
@@ -328,7 +328,7 @@ benchmarks:
   scenarios:
     - name: Baseline
       id: baseline
-      dataset: remesh-sample
+      dataset: remesh-sample-01
       rendering_preset: research-baseline
       engine:
         command: ["python", "engine.py"]
@@ -365,11 +365,11 @@ telemetry:
     EXPECT_EQ(configuration.rendering->shading_mode, "deferred");
     ASSERT_TRUE(configuration.runtime.has_value());
     ASSERT_TRUE(configuration.runtime->dataset.has_value());
-    EXPECT_EQ(*configuration.runtime->dataset, "remesh-sample");
+    EXPECT_EQ(*configuration.runtime->dataset, "remesh-sample-01");
     ASSERT_TRUE(configuration.benchmarks.has_value());
     ASSERT_EQ(configuration.benchmarks->scenarios.size(), 1U);
     ASSERT_TRUE(configuration.benchmarks->scenarios.front().dataset.has_value());
-    EXPECT_EQ(*configuration.benchmarks->scenarios.front().dataset, "remesh-sample");
+    EXPECT_EQ(*configuration.benchmarks->scenarios.front().dataset, "remesh-sample-01");
     ASSERT_TRUE(configuration.telemetry.has_value());
     EXPECT_EQ(configuration.telemetry->metrics.size(), 1U);
 }
