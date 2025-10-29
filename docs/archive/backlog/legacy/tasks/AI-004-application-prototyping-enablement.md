@@ -48,13 +48,14 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 3. **`CC-311` — Comparative visualisation:** integrate benchmark plots and CI gating so AI-004 demonstrations include side-by-side metrics.
 
 ### Kickoff Readiness Summary
-- **Milestone timeline:** See [`docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md`](AI-004-kickoff-brief.md) for the sequenced Phase 1 plan covering `DC-041` (2025-12-05 review prep), `RT-321` (2026-01-16), and `CC-311` (2026-01-19).
-- **Risk owners & deadlines (all due ≥1 week before the 2025-12-05 kickoff review):**
-  - Coordinated schema delivery — @pm-agent — mitigation deck due **2025-11-27**.
-  - Dataset licensing approvals — @assets-lead — licensing checkpoint due **2025-11-27**.
-  - Comparative plotting performance — @perf-lead — CI sizing decision due **2025-11-27**.
-- **Sprint tracker cross-link:** [`2025-02-17-sprint-06.md`](2025-02-17-sprint-06.md#ai-004-kickoff-readiness) surfaces the brief in the ongoing coordination checklist.
-- **Coordination cadence:** Weekly runtime/tools/performance syncs continue through the kickoff review; slide deck outline to be published alongside the milestone plan.
+- **Milestone timeline:** See [`docs/backlog/active/AI-004-kickoff-brief.md`](../../../../backlog/active/AI-004-kickoff-brief.md) for the sequenced Phase 1 plan covering `DC-041` (kickoff packet, due 2026-02-07), `RT-320` (harness smoke, due 2026-02-12), `TL-210` (sandbox wiring, due 2026-02-14), and `AS-330` (dataset validation, due 2026-02-16).
+- **Risk owners & deadlines (all due ≥1 week before the 2026-02-20 kickoff review):**
+  - Coordinated schema delivery — @pm-agent — mitigation deck due **2026-02-09**.
+  - Dataset licensing approvals — @assets-lead — licensing checkpoint due **2026-02-13**.
+  - Comparative plotting performance — @perf-lead — CI smoke sizing decision due **2026-02-13**.
+  - Harness coverage assurance — @runtime-lead — schema + telemetry smoke confirmation due **2026-02-13**.
+- **Sprint tracker cross-link:** [`2026-02-03-sprint-11.md`](../../../../backlog/active/2026-02-03-sprint-11.md) surfaces the brief in the current coordination checklist.
+- **Coordination cadence:** Weekly runtime/tools/performance syncs continue through the kickoff review; slide deck outline published **2026-02-09** alongside the milestone plan.
 
 ---
 
