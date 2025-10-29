@@ -32,7 +32,7 @@ When working on similar features, you may consult these to:
 2. Learn from iteration patterns
 3. Avoid repeating past mistakes
 
-**However:** Always verify that patterns here align with current `../../../CODING_STYLE.md` and architectural decisions in `../../specs/`.
+**However:** Always verify that patterns here align with current `../../../CONTRIBUTION.md` and architectural decisions in `../../specs/`.
 
 ---
 

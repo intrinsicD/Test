@@ -22,7 +22,7 @@ None.
    - **Recommendation:** Refactor into the standard prompt layout so contributors know when and how to apply it.
 2. **Repository standards drift.**
    - The "PROJECT_STANDARDS" section references JavaScript, Go, and generic API/DB policies that do not exist in this
-     repository, while omitting C++ requirements from `CODING_STYLE.md`.
+     repository, while omitting C++ requirements from `CONTRIBUTION.md`.
    - **Recommendation:** Replace the mixed-language list with Test Engine-specific C++/Python expectations.
 
 ### Suggestions 💡

@@ -16,7 +16,7 @@ providing a reusable harness under `engine/tests/integration/` with documentatio
 - Build scripts: `CMakeLists.txt` root plus module-specific test registrations.
 - Tooling: `scripts/ci/run_presets.py` for CI orchestration.
 - Docs: [`docs/modules/runtime/README.md`](../../../../modules/runtime/README.md),
-  [`docs/modules/rendering/README.md`](../../../../modules/rendering/README.md), [`CODING_STYLE.md`](../../../../../CODING_STYLE.md).
+  [`docs/modules/rendering/README.md`](../../../../modules/rendering/README.md), [`CONTRIBUTION.md`](../../../../../CONTRIBUTION.md).
 
 ## Constraints
 - Tests must run headless using the mock platform backend (`ENGINE_WINDOW_BACKEND=MOCK`).

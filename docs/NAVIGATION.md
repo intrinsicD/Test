@@ -4,8 +4,8 @@
 
 **First-time or general questions?**
 1. Read [`../README.md`](../README.md) – workspace overview, build steps, module health.
-2. Read [`HYBRID_WORKFLOW.md`](HYBRID_WORKFLOW.md) – canonical hybrid workflow for humans + AI agents.
-3. Read [`../agents/AGENTS-INDEX.md`](../agents/AGENTS-INDEX.md) – pick your role and load its guidance.
+2. Load [`../AGENT_WORKFLOW.md`](../AGENT_WORKFLOW.md) – single entry point for the agent workflow.
+3. Review [`../agents/ROLES.md`](../agents/ROLES.md) and the templates in [`../agents/TEMPLATES/`](../agents/TEMPLATES) for task-specific execution.
 4. Return here for specialised documentation and directory references.
 
 **Working on a specific task?**
@@ -34,11 +34,10 @@
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
-| [`../agents/AGENTS.md`](../agents/AGENTS.md) | Operating manual for multi-agent coordination | Coordinating hand-offs and context packs |
-| [`HYBRID_WORKFLOW.md`](HYBRID_WORKFLOW.md) | Full hybrid workflow (single authoritative doc) | Understanding the collaboration model |
-| [`HYBRID_WORKFLOW_SUMMARY.md`](HYBRID_WORKFLOW_SUMMARY.md) | Quick reference & FAQ | Fast refresh on responsibilities |
-| [`WORKFLOW_COMPARISON.md`](WORKFLOW_COMPARISON.md) | Old vs new workflow analysis | Historical reasoning |
-| [`CODEX_PROMPTING_GUIDE.md`](CODEX_PROMPTING_GUIDE.md) | Prompting best practices | Starting AI-assisted work |
+| [`../AGENT_WORKFLOW.md`](../AGENT_WORKFLOW.md) | Single entry portal covering phases, coordination, quality gates | Beginning any contribution |
+| [`../agents/AGENTS.md`](../agents/AGENTS.md) | Directory overview and maintenance guardrails | Managing artefacts inside `agents/` |
+| [`../agents/ROLES.md`](../agents/ROLES.md) | Specialised role responsibilities and approvals | Assigning or fulfilling roles |
+| [`../agents/TEMPLATES/`](../agents/TEMPLATES) | Task brief, context package, and quality report templates | Documenting and auditing work |
 
 ## 🔧 Common Tasks
 
@@ -59,7 +58,7 @@
 
 ## 📊 Key References
 
-- **Coding Standards:** [`../CODING_STYLE.md`](../CODING_STYLE.md)
+- **Coding Standards:** [`../CONTRIBUTION.md`](../CONTRIBUTION.md)
 - **Telemetry:** [`design/TELEMETRY_SCHEMA.md`](design/TELEMETRY_SCHEMA.md), [`design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](design/TELEMETRY_INSTRUMENTATION_GUIDE.md)
 - **Error Handling:** [`design/ERROR_HANDLING_MIGRATION.md`](design/ERROR_HANDLING_MIGRATION.md)
 - **Resource Management:** [`design/RESOURCE_MANAGEMENT.md`](design/RESOURCE_MANAGEMENT.md)
@@ -99,10 +98,10 @@ Run `python scripts/validate_docs.py` after editing to catch broken links.
 - Archive completed work to `archive/` after 30 days of inactivity.
 
 **Precedence for Conflicts:**
-`../AGENTS.md` → `NAVIGATION.md` (this file) → `ARCHITECTURE.md` → `design/` or `specs/` → module READMEs → code comments.
+`../AGENT_WORKFLOW.md` → `../AGENTS.md` → `NAVIGATION.md` (this file) → `ARCHITECTURE.md` → `design/` or `specs/` → module READMEs → code comments.
 
 When a lower-precedence document conflicts with a higher one, update the higher-precedence document first, then cascade changes downstream.
 
 ---
 
-**Last updated:** 2026-01-08 (Restructured backlog + workflow references)
+**Last updated:** 2026-02-10 (Agent workflow consolidation)

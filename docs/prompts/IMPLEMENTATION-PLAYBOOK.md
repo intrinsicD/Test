@@ -35,8 +35,8 @@ checklists.
 - Performance: respect hot paths (frame-graph, geometry kernels, physics solvers); avoid unbounded allocations.
 - Observability: emit actionable logs/metrics without leaking PII/PHI; prefer structured logging.
 - Documentation discipline: keep README/ROADMAP/spec entries in sync with the change set.
-- Compliance: follow [`CODING_STYLE.md`](../../CODING_STYLE.md) and
-  [`../../agents/AGENTS-INDEX.md`](../../agents/AGENTS-INDEX.md).
+- Compliance: follow [`CONTRIBUTION.md`](../../CONTRIBUTION.md) and
+  [`../../agents/ROLES.md`](../../agents/ROLES.md).
 
 **Repository Context**
 - Review the subsystem overview in [`../../README.md`](../../README.md) and invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
@@ -139,7 +139,7 @@ OUTPUT SCHEMA (strict; no extra prose)
 
 ==============================================================================
 PROJECT STANDARDS (Test Engine)
-- C++20: follow `CODING_STYLE.md`; prefer `engine::Result` over exceptions; document ownership semantics; enforce
+- C++20: follow `CONTRIBUTION.md`; prefer `engine::Result` over exceptions; document ownership semantics; enforce
   `[[nodiscard]]` on fallible APIs.
 - Python: adhere to PEP 8/257; type annotate (PEP 484); format with `black`; lint with `ruff`; run `pytest`.
 - Build: integrate new targets with CMake presets and CTest; avoid hard-coded absolute paths.
