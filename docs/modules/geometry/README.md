@@ -133,6 +133,27 @@ engine::geometry::update_bounds(mesh);
 auto center = engine::geometry::centroid(mesh);
 ```
 
+### Curvature
+
+`ComputeSurfaceCurvature` evaluates discrete mean and Gaussian curvature on
+each vertex using cotangent weights and angle deficits. Boundary vertices retain
+the mean curvature magnitude while Gaussian curvature is clamped to zero so open
+meshes avoid spurious spikes.
+
+```cpp
+#include "engine/geometry/topology/surface_curvature.hpp"
+
+const engine::geometry::SurfaceCurvatureResult curvature =
+    engine::geometry::ComputeSurfaceCurvature(mesh);
+
+for (std::size_t vertex = 0; vertex < mesh.positions.size(); ++vertex)
+{
+    const float mean = curvature.mean_curvature[vertex];
+    const float gaussian = curvature.gaussian_curvature[vertex];
+    // Feed curvature-derived metrics into remeshing heuristics or telemetry.
+}
+```
+
 ### Capsules
 
 Capsules model a swept sphere defined by two endpoints and a constant radius.
