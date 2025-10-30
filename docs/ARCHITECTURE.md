@@ -6,8 +6,8 @@ This document captures the stable truths about the engine. Treat it as the autho
 
 - **Core & Runtime:** `engine/core` wraps the EnTT registry and discovery utilities. `engine/runtime` orchestrates animation, physics, geometry updates, and rendering submission through `RuntimeHost`.
 - **Animation:** Clip sampling, validation, and controller/blend-tree evaluation feed pose data into the runtime. Outputs drive deformation systems downstream.
-- **Physics:** A rigid-body world with sweep-and-prune broad phase, collider primitives (sphere, capsule, AABB), and configurable substepping. Physics publishes transforms and contact events back into the runtime.
-- **Geometry & IO:** Geometry owns mesh/point-cloud/graph types plus spatial indices (kd-tree, octree). IO handles import/export pipelines, with ASCII formats as the current baseline. Geometry services expose bounds, centroid, and procedural primitive helpers.
+- **Physics:** A rigid-body world with sweep-and-prune broad phase, collider primitives (sphere, capsule, AABB), and configurable substepping. Physics publishes transforms and contact events back into the runtime. Physics depends on Geometry for shape intersection/containment tests and implements world-space collision detection (broadphase + manifold generation) and a simple constraint solver.
+- **Geometry & IO:** Geometry owns mesh/point-cloud/graph types plus spatial indices (kd-tree, octree). IO handles import/export pipelines, with ASCII formats as the current baseline. Geometry services expose bounds, centroid, procedural primitives, and shape interactions (e.g. AABB/Sphere/Capsule intersections) used by Physics and Rendering.
 - **Rendering:** Frame-graph compilation and execution, command encoder hooks, and GPU resource lifetime tracking. Backends (Vulkan, DirectX, OpenGL) plug into a scheduler abstraction.
 - **Compute:** Dispatch infrastructure for CPU/GPU kernels, CUDA interop, and math helpers. The runtime consumes these services for simulation and deformation workloads.
 - **Assets, Math, Scene, Tools:** Asset caches with hot reload, math primitives, scene graph serialization, and tooling scaffolding (Dear ImGui) round out the workspace.
@@ -27,7 +27,7 @@ This document captures the stable truths about the engine. Treat it as the autho
 - **Runtime Subsystem Ordering:** `SubsystemRegistry` resolves dependency closure and loads subsystems in topological order so initialization always observes prerequisites before dependents, regardless of registration order.
 - **Resource Ownership:** Assets expose handles via `engine::headers`. Lifetime is reference-counted; releasing a handle must free GPU/CPU resources deterministically.
 - **Geometry Fidelity:** Spatial structures (kd-tree, octree) must stay in sync with mesh/point-cloud mutations. All geometry changes update bounds and centroid data before publishing to other systems. Linear blend skinning validates rig bindings and recomputes normals/bounds after deformation.
-- **Physics Integration:** The physics world clamps mass/damping and maintains monotonic substep progression. Sweeps respect branchless hot loops to avoid perf regressions.
+- **Physics Integration:** The physics world clamps mass/damping and maintains monotonic substep progression. Sweeps respect branchless hot loops to avoid perf regressions. Collision detection in physics uses Geometry's shape interactions for narrowphase and owns contact manifold generation and constraint solving.
 - **Documentation Discipline:** Module READMEs are canonical for local behaviour. Architectural shifts must also update this document and the relevant ADR in [`docs/specs/`](specs/).
 
 ## Related Documents
