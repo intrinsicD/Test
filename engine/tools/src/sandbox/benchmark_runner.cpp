@@ -75,6 +75,26 @@ namespace engine::tools::sandbox
         command.emplace_back(format_timestep(safe_timestep));
         command.emplace_back("--summary-json");
         command.emplace_back(summary_path.string());
+        if (!preferences.selected_dataset.empty())
+        {
+            command.emplace_back("--dataset");
+            command.emplace_back(preferences.selected_dataset);
+        }
+        if (!preferences.selected_preset.empty())
+        {
+            command.emplace_back("--rendering-preset");
+            command.emplace_back(preferences.selected_preset);
+        }
+        if (!preferences.shading_mode.empty())
+        {
+            command.emplace_back("--shading-mode");
+            command.emplace_back(preferences.shading_mode);
+        }
+        for (const auto& [key, value] : preferences.overlays)
+        {
+            command.emplace_back("--overlay");
+            command.emplace_back(key + '=' + std::string{value ? "1" : "0"});
+        }
 
         const int exit_code = execute_command(command);
         if (exit_code != 0)

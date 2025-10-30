@@ -129,6 +129,9 @@ state in per-user configuration locations.
     emitting the rendering callback only when state changes.
   - `sync_overlay_preferences()` now reports whether preset switches changed
     overlay defaults so automation can react accordingly.
+- `PrototypeHarnessBenchmarkRunner` forwards sandbox selections to the harness
+  CLI (`--dataset`, `--rendering-preset`, `--shading-mode`, `--overlay`), so
+  headless benchmarks mirror the current UI configuration without custom glue.
 
 ## Next Steps
 

@@ -8,6 +8,7 @@ import os
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
+from types import MappingProxyType
 from typing import Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
 from .config_schema import (
@@ -106,6 +107,21 @@ class HarnessExecutionOptions:
     run_index: Optional[int] = None
     run_count: Optional[int] = None
     scenario_label: Optional[str] = None
+    dataset_id: Optional[str] = None
+    rendering_preset: Optional[str] = None
+    shading_mode: Optional[str] = None
+    overlays: Optional[Mapping[str, bool]] = None
+
+    def __post_init__(self) -> None:
+        if self.dataset_id is not None:
+            object.__setattr__(self, "dataset_id", self.dataset_id.strip())
+        if self.rendering_preset is not None:
+            object.__setattr__(self, "rendering_preset", self.rendering_preset.strip())
+        if self.shading_mode is not None:
+            object.__setattr__(self, "shading_mode", self.shading_mode.strip().lower())
+        if self.overlays is not None:
+            normalized = {str(key): bool(value) for key, value in self.overlays.items()}
+            object.__setattr__(self, "overlays", MappingProxyType(normalized))
 
     def validate(self) -> None:
         if self.frames <= 0:
@@ -122,6 +138,18 @@ class HarnessExecutionOptions:
             raise PrototypeHarnessError("run_index cannot exceed run_count")
         if self.scenario_label is not None and not self.scenario_label:
             raise PrototypeHarnessError("scenario_label must be a non-empty string when provided")
+        if self.dataset_id is not None and not self.dataset_id:
+            raise PrototypeHarnessError("dataset_id must be a non-empty string when provided")
+        if self.rendering_preset is not None and not self.rendering_preset:
+            raise PrototypeHarnessError("rendering_preset must be a non-empty string when provided")
+        if self.shading_mode is not None and self.shading_mode not in {"forward", "deferred"}:
+            raise PrototypeHarnessError("shading_mode must be 'forward' or 'deferred'")
+        if self.overlays is not None:
+            if not self.overlays:
+                raise PrototypeHarnessError("overlay overrides must include at least one entry")
+            for key in self.overlays:
+                if not key:
+                    raise PrototypeHarnessError("overlay keys must be non-empty strings")
 
 
 @dataclass(frozen=True)
@@ -646,6 +674,14 @@ class PrototypeHarness:
             f"runtime.dataset references unknown dataset '{slug}'. Provide a matching entry in datasets[].",
         )
 
+    def _lookup_dataset(self, dataset_id: str) -> DatasetEntry:
+        for entry in self._configuration.datasets.datasets:
+            if entry.identifier == dataset_id:
+                return entry
+        raise PrototypeHarnessError(
+            f"unknown dataset override '{dataset_id}'. Provide an identifier from datasets[]."
+        )
+
     def _rendering_config(self) -> Optional[RenderingConfig]:
         return self._configuration.rendering
 
@@ -665,6 +701,37 @@ class PrototypeHarness:
             height=rendering.height,
             overlays=overlays,
         )
+
+    def _apply_rendering_overrides(
+        self, rendering: Optional[RenderingConfig], options: HarnessExecutionOptions
+    ) -> Optional[RenderingConfig]:
+        if rendering is None:
+            if options.rendering_preset or options.shading_mode or options.overlays is not None:
+                raise PrototypeHarnessError("rendering configuration is not available")
+            return None
+
+        updated = rendering
+        if options.rendering_preset is not None:
+            updated = replace(updated, preset=options.rendering_preset)
+        if options.shading_mode is not None:
+            updated = replace(updated, shading_mode=options.shading_mode)
+        if options.overlays is not None:
+            overrides = dict(options.overlays)
+            valid_keys = {"normals", "uv", "material", "light_volume"}
+            invalid = sorted(key for key in overrides if key not in valid_keys)
+            if invalid:
+                joined = ", ".join(invalid)
+                raise PrototypeHarnessError(
+                    f"unknown rendering overlay override(s): {joined}"
+                )
+            updated = replace(
+                updated,
+                overlay_normals=overrides.get("normals", updated.overlay_normals),
+                overlay_uv=overrides.get("uv", updated.overlay_uv),
+                overlay_material=overrides.get("material", updated.overlay_material),
+                overlay_light_volume=overrides.get("light_volume", updated.overlay_light_volume),
+            )
+        return updated
 
     def describe_configuration(self) -> HarnessConfigurationSummary:
         """Return metadata describing datasets and runtime presets for UI layers."""
@@ -720,6 +787,8 @@ class PrototypeHarness:
     def _telemetry_outputs(
         self,
         *,
+        dataset_override: Optional[DatasetEntry] = None,
+        rendering_override: Optional[RenderingConfig] = None,
         scenario_override: Optional[str] = None,
         execution: Optional[HarnessExecutionOptions] = None,
     ) -> Tuple[TelemetryOutputSummary, ...]:
@@ -730,6 +799,8 @@ class PrototypeHarness:
         return tuple(
             self._summarize_telemetry_output(
                 output,
+                dataset_override=dataset_override,
+                rendering_override=rendering_override,
                 scenario_override=scenario_override,
                 execution=execution,
             )
@@ -739,11 +810,14 @@ class PrototypeHarness:
     def _telemetry_substitutions(
         self,
         *,
+        dataset_override: Optional[DatasetEntry] = None,
+        rendering_override: Optional[RenderingConfig] = None,
         scenario_override: Optional[str] = None,
         execution: Optional[HarnessExecutionOptions] = None,
     ) -> Mapping[str, object]:
-        dataset_id = self._selected_dataset.identifier if self._selected_dataset else None
-        rendering = self._rendering_config()
+        dataset_entry = dataset_override or self._selected_dataset
+        dataset_id = dataset_entry.identifier if dataset_entry else None
+        rendering = rendering_override or self._rendering_config()
         scenario_value = scenario_override or dataset_id or "default"
         dataset_token = self._sanitize_placeholder_token(dataset_id or "default")
         scenario_token = self._sanitize_placeholder_token(scenario_value)
@@ -804,12 +878,16 @@ class PrototypeHarness:
         self,
         template: Optional[str],
         *,
+        dataset_override: Optional[DatasetEntry] = None,
+        rendering_override: Optional[RenderingConfig] = None,
         scenario_override: Optional[str] = None,
         execution: Optional[HarnessExecutionOptions] = None,
     ) -> Tuple[Optional[str], Optional[str]]:
         if template is None:
             return None, None
         substitutions = self._telemetry_substitutions(
+            dataset_override=dataset_override,
+            rendering_override=rendering_override,
             scenario_override=scenario_override,
             execution=execution,
         )
@@ -831,11 +909,15 @@ class PrototypeHarness:
         self,
         output: TelemetryOutputConfig,
         *,
+        dataset_override: Optional[DatasetEntry] = None,
+        rendering_override: Optional[RenderingConfig] = None,
         scenario_override: Optional[str] = None,
         execution: Optional[HarnessExecutionOptions] = None,
     ) -> TelemetryOutputSummary:
         resolved_path, template = self._resolve_output_path(
             output.path,
+            dataset_override=dataset_override,
+            rendering_override=rendering_override,
             scenario_override=scenario_override,
             execution=execution,
         )
@@ -847,16 +929,22 @@ class PrototypeHarness:
         execution = options or HarnessExecutionOptions()
         execution.validate()
 
-        rendering = self._rendering_config()
+        selected_dataset = self._selected_dataset
+        if execution.dataset_id is not None:
+            selected_dataset = self._lookup_dataset(execution.dataset_id)
+
+        rendering = self._apply_rendering_overrides(self._rendering_config(), execution)
         average_tick_ms: Optional[float] = None
         telemetry_outputs = self._telemetry_outputs(
+            dataset_override=selected_dataset,
+            rendering_override=rendering,
             scenario_override=execution.scenario_label,
             execution=execution,
         )
 
         if execution.dry_run:
             return HarnessRunSummary(
-                dataset_id=self._selected_dataset.identifier if self._selected_dataset else None,
+                dataset_id=selected_dataset.identifier if selected_dataset else None,
                 rendering_preset=rendering.preset if rendering else None,
                 shading_mode=rendering.shading_mode if rendering else None,
                 frames_executed=0,
@@ -901,7 +989,7 @@ class PrototypeHarness:
             dispatch_durations_ms = tuple(duration * 1000.0 for duration in durations)
 
         return HarnessRunSummary(
-            dataset_id=self._selected_dataset.identifier if self._selected_dataset else None,
+            dataset_id=selected_dataset.identifier if selected_dataset else None,
             rendering_preset=rendering.preset if rendering else None,
             shading_mode=rendering.shading_mode if rendering else None,
             frames_executed=frames_executed,

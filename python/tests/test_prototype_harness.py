@@ -178,55 +178,108 @@ def _write_configuration(tmp_path: Path) -> Path:
                 },
             }
         ],
-        "rendering": {
-            "schema": {"id": "ai-004.rendering", "version": 1},
-            "preset": "research-baseline",
-            "options": {"shading_mode": "deferred"},
+    }
+
+    secondary_dataset = {
+        "schema": {"id": "ai-004.dataset", "version": 2},
+        "id": "remesh-variant",
+        "kind": "geometry.remesh",
+        "tags": ["geometry", "variant"],
+        "source": {
+            "generator": "geometry_remesh",
+            "mesh": source_mesh.relative_to(tmp_path).as_posix(),
+            "mesh_sha256": _sha256(source_mesh),
+            "mesh_size_bytes": source_mesh.stat().st_size,
         },
-        "runtime": {
-            "schema": {"id": "ai-004.runtime", "version": 2},
-            "dataset": "remesh-sample",
-            "simulation": {"timestep_seconds": 0.01, "max_substeps": 1},
-            "hot_reload": {"enabled": False, "watch_interval_seconds": 0.5},
+        "outputs": {
+            "mesh": output_mesh.relative_to(tmp_path).as_posix(),
+            "mesh_sha256": _sha256(output_mesh),
+            "mesh_size_bytes": output_mesh.stat().st_size,
         },
-        "benchmarks": {
-            "schema": {"id": "ai-004.benchmarks", "version": 1},
-            "scenarios": [
-                {
-                    "id": "remesh-baseline",
-                    "name": "Remesh Baseline",
-                    "dataset": "remesh-sample",
-                    "rendering_preset": "research-baseline",
-                    "engine": {
-                        "command": ["python", "run_engine.py", "--output", "{output_path}"],
-                        "output": "telemetry/{scenario}_engine.json",
-                    },
-                    "reference": {
-                        "command": ["python", "run_reference.py", "--output", "{output_path}"],
-                        "output": "telemetry/{scenario}_reference.json",
-                    },
-                    "metrics": [
-                        {
-                            "name": "frame_time",
-                            "higher_is_better": False,
-                            "threshold": {"type": "relative", "max_regression": 0.05},
-                        }
-                    ],
-                }
-            ],
+        "remeshing": {"mode": "uniform"},
+        "feature_preservation": {
+            "lock_boundary_edges": False,
+            "lock_feature_edges": True,
+            "minimum_feature_angle_degrees": 35.0,
         },
-        "telemetry": {
-            "schema": {"id": "ai-004.telemetry", "version": 2},
-            "outputs": [
-                {"type": "file", "path": "telemetry/{scenario}.json"},
-                {"type": "stdout"},
-            ],
-            "metrics": [
-                {"name": "frame_time", "statistic": "mean"},
-                {"name": "frame_time", "statistic": "p95"},
-            ],
-            "sampling": {"frame_interval": 8, "include_debug_overlays": True},
+        "metrics": {
+            "input": {
+                "vertices": 4,
+                "faces": 2,
+                "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
+            },
+            "output": {
+                "vertices": 4,
+                "faces": 2,
+                "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
+            },
         },
+        "statistics": {
+            "iterations": 3,
+            "splits": 1,
+            "collapses": 1,
+            "duration_ms": 0.75,
+            "triangles": 2,
+            "triangle_quality": {"min": 0.78, "mean": 0.88, "max": 0.94},
+            "max_error": 0.08,
+            "min_edge_length": 0.45,
+            "max_edge_length": 1.6,
+            "max_surface_deviation": 0.09,
+            "mean_surface_deviation": 0.045,
+            "rms_surface_deviation": 0.065,
+        },
+    }
+
+    config["datasets"].append(secondary_dataset)
+
+    config["rendering"] = {
+        "schema": {"id": "ai-004.rendering", "version": 1},
+        "preset": "research-baseline",
+        "options": {"shading_mode": "deferred"},
+    }
+    config["runtime"] = {
+        "schema": {"id": "ai-004.runtime", "version": 2},
+        "dataset": "remesh-sample",
+        "simulation": {"timestep_seconds": 0.01, "max_substeps": 1},
+        "hot_reload": {"enabled": False, "watch_interval_seconds": 0.5},
+    }
+    config["benchmarks"] = {
+        "schema": {"id": "ai-004.benchmarks", "version": 1},
+        "scenarios": [
+            {
+                "id": "remesh-baseline",
+                "name": "Remesh Baseline",
+                "dataset": "remesh-sample",
+                "rendering_preset": "research-baseline",
+                "engine": {
+                    "command": ["python", "run_engine.py", "--output", "{output_path}"],
+                    "output": "telemetry/{scenario}_engine.json",
+                },
+                "reference": {
+                    "command": ["python", "run_reference.py", "--output", "{output_path}"],
+                    "output": "telemetry/{scenario}_reference.json",
+                },
+                "metrics": [
+                    {
+                        "name": "frame_time",
+                        "higher_is_better": False,
+                        "threshold": {"type": "relative", "max_regression": 0.05},
+                    }
+                ],
+            }
+        ],
+    }
+    config["telemetry"] = {
+        "schema": {"id": "ai-004.telemetry", "version": 2},
+        "outputs": [
+            {"type": "file", "path": "telemetry/{scenario}.json"},
+            {"type": "stdout"},
+        ],
+        "metrics": [
+            {"name": "frame_time", "statistic": "mean"},
+            {"name": "frame_time", "statistic": "p95"},
+        ],
+        "sampling": {"frame_interval": 8, "include_debug_overlays": True},
     }
     path = tmp_path / "config.json"
     path.write_text(json.dumps(config), encoding="utf-8")
@@ -279,6 +332,64 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.telemetry_outputs[0].template == "telemetry/{scenario}.json"
     assert summary.telemetry_outputs[1].path is None
     assert summary.telemetry_outputs[1].template is None
+
+
+def test_run_headless_applies_dataset_override(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    options = HarnessExecutionOptions(dry_run=True, dataset_id="remesh-variant")
+    summary = harness.run_headless(options)
+
+    assert summary.dataset_id == "remesh-variant"
+    paths = [output.path for output in summary.telemetry_outputs if output.path is not None]
+    assert any("remesh-variant" in path for path in paths)
+
+
+def test_run_headless_applies_rendering_overrides(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+    runtime = _MockRuntime(
+        ticks=[],
+        average_tick_value=2.0,
+        dispatch_names=["geometry::remesh"],
+        dispatch_times=[0.001],
+    )
+
+    harness = PrototypeHarness(
+        configuration,
+        runtime_factory=lambda: runtime,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    options = HarnessExecutionOptions(
+        frames=1,
+        dt=0.5,
+        rendering_preset="diagnostics",
+        shading_mode="forward",
+        overlays={"normals": True, "uv": True},
+    )
+    summary = harness.run_headless(options)
+
+    assert summary.rendering_preset == "diagnostics"
+    assert summary.shading_mode == "forward"
+    configuration_snapshot = runtime.rendering_configurations[-1]
+    assert configuration_snapshot["shading_mode"] == "forward"
+    assert configuration_snapshot["overlays"]["normals"] is True
+    assert configuration_snapshot["overlays"]["uv"] is True
+
+    invalid = HarnessExecutionOptions(frames=1, dt=0.5, overlays={"unknown": True})
+    with pytest.raises(PrototypeHarnessError):
+        harness.run_headless(invalid)
 
 
 def test_prototype_harness_reports_rendering_configuration_failures(tmp_path: Path) -> None:
@@ -491,6 +602,35 @@ def test_execution_options_validate_run_metadata() -> None:
     options = HarnessExecutionOptions(frames=1, dt=math.inf)
     with pytest.raises(PrototypeHarnessError):
         options.validate()
+
+
+def test_execution_options_validate_overrides() -> None:
+    options = HarnessExecutionOptions(frames=1, dt=0.5, dataset_id="")
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=0.5, rendering_preset="")
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=0.5, shading_mode="invalid")
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=0.5, overlays={})
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=0.5, overlays={"": True})
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+
+def test_execution_options_normalizes_overlays() -> None:
+    options = HarnessExecutionOptions(frames=1, dt=0.5, overlays={"normals": 1, "uv": 0})
+    assert options.overlays is not None
+    assert options.overlays["normals"] is True
+    assert options.overlays["uv"] is False
 
 
 def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
@@ -831,6 +971,41 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     }
     assert telemetry_outputs[1] == {"kind": "stdout"}
     assert "Configuration:" in captured.out
+
+
+def test_cli_applies_overrides(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    summary_path = tmp_path / "override_summary.json"
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        [
+            "--config",
+            str(config_path),
+            "--dry-run",
+            "--dataset",
+            "remesh-variant",
+            "--rendering-preset",
+            "diagnostics",
+            "--shading-mode",
+            "forward",
+            "--overlay",
+            "normals=1",
+            "--overlay",
+            "uv=0",
+            "--summary-json",
+            str(summary_path),
+        ]
+    )
+
+    assert exit_code == 0
+    payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert payload["dataset"] == "remesh-variant"
+    assert payload["rendering_preset"] == "diagnostics"
+    assert payload["shading_mode"] == "forward"
+    output_paths = [entry["path"] for entry in payload["telemetry_outputs"] if entry.get("path")]
+    assert any("remesh-variant" in path for path in output_paths)
 
 
 def test_cli_repeat_generates_multiple_summaries(
