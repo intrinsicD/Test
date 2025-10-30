@@ -144,25 +144,13 @@ This prototype is designed to be extended with:
 - Platform/GLFW: `engine/platform/src/windowing/glfw_window.cpp`
 - ImGui Integration: `engine/tools/src/imgui_helpers.cpp`
 - Rendering Pipeline: `engine/rendering/src/pipeline/research_baseline.cpp`
-
-## Status
-
-✅ **Complete** - Window creation, camera controls, and UI working
-⏳ **Next**: Integration with rendering pipeline and 3D model loading
-
----
-
-## Related Code
-
-- Research Baseline: `engine/rendering/src/pipeline/research_baseline.cpp`
 - Frame Graph: `engine/rendering/include/engine/rendering/frame_graph.hpp`
 - Render Components: `engine/rendering/include/engine/rendering/components.hpp`
 - OpenGL Scheduler: `engine/rendering/src/backend/opengl/`
 
 ## Status
 
-✅ **Complete** - Example builds and runs successfully, demonstrating the research baseline rendering preset (RE-610).
+✅ **Complete** - Window creation, camera controls, and UI working  
+⏳ **Next**: Integration with rendering pipeline and 3D model loading
 
-The next priority is to implement actual window creation and frame graph execution to achieve real-time geometry
-rendering.
 
