@@ -35,6 +35,32 @@ def test_ingest_manifest_detects_hash_mismatch(tmp_path: Path) -> None:
         ingest_manifest(faulty_manifest, tmp_path, dry_run=True, require_schema=True)
 
 
+def test_ingest_manifest_accepts_uppercase_hashes(tmp_path: Path) -> None:
+    manifest_path = _REPO_ROOT / "assets" / "datasets" / "remesh_sample" / "manifest.json"
+    manifest_data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    dataset = manifest_data["datasets"][0]
+    dataset["source"]["mesh_sha256"] = dataset["source"]["mesh_sha256"].upper()
+    dataset["outputs"]["mesh_sha256"] = dataset["outputs"]["mesh_sha256"].upper()
+    dataset_dir = manifest_path.parent
+    dataset["source"]["mesh"] = str((dataset_dir / dataset["source"]["mesh"]).resolve())
+    dataset["outputs"]["mesh"] = str((dataset_dir / dataset["outputs"]["mesh"]).resolve())
+    uppercase_manifest = tmp_path / "uppercase_manifest.json"
+    uppercase_manifest.write_text(json.dumps(manifest_data), encoding="utf-8")
+
+    results = ingest_manifest(uppercase_manifest, tmp_path, dry_run=False, require_schema=True)
+    assert len(results) == 1
+    dataset_result = results[0]
+    assert all(metadata.verified for metadata in dataset_result.files)
+
+    summary_path = dataset_result.summary_path
+    assert summary_path is not None
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    source_file = summary["files"]["source"]
+    output_file = summary["files"]["output"]
+    assert source_file["expected_sha256"] == source_file["sha256"]
+    assert output_file["expected_sha256"] == output_file["sha256"]
+
+
 def test_ingest_manifest_writes_summary_with_extended_statistics(tmp_path: Path) -> None:
     manifest_path = _REPO_ROOT / "assets" / "datasets" / "remesh_sample" / "manifest.json"
     results = ingest_manifest(manifest_path, tmp_path, dry_run=False, require_schema=True)

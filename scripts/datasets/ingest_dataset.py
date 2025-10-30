@@ -267,7 +267,9 @@ def ingest_manifest(
                 )
             size_bytes = file_path.stat().st_size
             sha256 = _hash_file(file_path)
-            if expected_sha is not None and sha256.lower() != expected_sha:
+            normalized_sha256 = sha256.lower()
+            normalized_expected_sha = expected_sha.lower() if expected_sha is not None else None
+            if normalized_expected_sha is not None and normalized_sha256 != normalized_expected_sha:
                 raise DatasetIngestionError(
                     "dataset '{identifier}' {label} mesh hash mismatch: expected {expected} but computed {actual}".format(
                         identifier=entry.identifier,
@@ -297,12 +299,12 @@ def ingest_manifest(
                     label=label,
                     source_path=file_path,
                     size_bytes=size_bytes,
-                    sha256=sha256,
+                    sha256=normalized_sha256,
                     destination_path=destination_path,
                     expected_size_bytes=expected_size,
-                    expected_sha256=expected_sha,
+                    expected_sha256=normalized_expected_sha,
                     verified=(
-                        (expected_sha is None or sha256.lower() == expected_sha)
+                        (normalized_expected_sha is None or normalized_sha256 == normalized_expected_sha)
                         and (expected_size is None or size_bytes == expected_size)
                     ),
                 )

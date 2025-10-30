@@ -1372,7 +1372,14 @@ class PrototypeHarness:
             message_parts.append(
                 f"size mismatch (expected {expected_size}, found {actual_size})"
             )
-        if expected_sha256 is not None and actual_sha256 != expected_sha256:
+        normalized_expected_sha256 = (
+            expected_sha256.lower() if expected_sha256 is not None else None
+        )
+        normalized_actual_sha256 = actual_sha256.lower() if actual_sha256 is not None else None
+        if (
+            normalized_expected_sha256 is not None
+            and normalized_actual_sha256 != normalized_expected_sha256
+        ):
             verified = False
             message_parts.append("sha256 mismatch")
         message = ", ".join(message_parts) if message_parts else None
@@ -1384,8 +1391,8 @@ class PrototypeHarness:
             exists=True,
             expected_size_bytes=expected_size,
             actual_size_bytes=actual_size,
-            expected_sha256=expected_sha256,
-            actual_sha256=actual_sha256,
+            expected_sha256=normalized_expected_sha256,
+            actual_sha256=normalized_actual_sha256,
             verified=verified,
             message=message,
         )

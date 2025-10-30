@@ -786,6 +786,34 @@ def test_prototype_harness_verifies_assets_without_explicit_paths(tmp_path: Path
     assert all(status.verified for status in dataset_summary.assets)
 
 
+def test_prototype_harness_asset_hash_comparison_is_case_insensitive(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    dataset = payload["datasets"][0]
+    dataset["source"]["mesh_sha256"] = dataset["source"]["mesh_sha256"].upper()
+    dataset["outputs"]["mesh_sha256"] = dataset["outputs"]["mesh_sha256"].upper()
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    configuration = load_configuration(config_path)
+
+    harness = PrototypeHarness(
+        configuration,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    dataset_summary = harness.describe_selected_dataset()
+    assert dataset_summary is not None
+    assets = {status.role: status for status in dataset_summary.assets}
+    source_status = assets["source_mesh"]
+    output_status = assets["output_mesh"]
+    assert source_status.verified is True
+    assert output_status.verified is True
+    assert source_status.expected_sha256 == source_status.actual_sha256
+    assert output_status.expected_sha256 == output_status.actual_sha256
+
+
 def test_prototype_harness_validates_scene_manifest(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     payload = json.loads(config_path.read_text(encoding="utf-8"))
