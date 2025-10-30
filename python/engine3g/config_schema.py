@@ -199,6 +199,13 @@ def _require_non_negative_float(value: object, context: str) -> float:
     return number
 
 
+def _require_unit_interval_float(value: object, context: str) -> float:
+    number = _require_float(value, context)
+    if number < 0.0 or number > 1.0:
+        raise ConfigurationSchemaError(f"{context} must be between 0 and 1 inclusive")
+    return number
+
+
 def _require_vec2(value: object, context: str) -> Tuple[float, float]:
     sequence = _require_sequence(value, context)
     if len(sequence) != 2:
@@ -398,9 +405,17 @@ class TriangleQualityStatistics:
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, object], context: str) -> "TriangleQualityStatistics":
-        minimum = _require_float(data.get("min"), _child(context, "min"))
-        mean = _require_float(data.get("mean"), _child(context, "mean"))
-        maximum = _require_float(data.get("max"), _child(context, "max"))
+        minimum = _require_unit_interval_float(data.get("min"), _child(context, "min"))
+        mean = _require_unit_interval_float(data.get("mean"), _child(context, "mean"))
+        maximum = _require_unit_interval_float(data.get("max"), _child(context, "max"))
+        if minimum > maximum:
+            raise ConfigurationSchemaError(
+                f"{_child(context, 'min')} must be less than or equal to {_child(context, 'max')}"
+            )
+        if mean < minimum or mean > maximum:
+            raise ConfigurationSchemaError(
+                f"{_child(context, 'mean')} must lie between {_child(context, 'min')} and {_child(context, 'max')}"
+            )
         return cls(minimum=minimum, mean=mean, maximum=maximum)
 
 

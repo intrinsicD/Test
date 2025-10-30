@@ -199,6 +199,31 @@ def test_invalid_dataset_identifier_raises(tmp_path: Path) -> None:
     assert "datasets[0].id" in str(exc.value)
 
 
+def test_triangle_quality_requires_unit_interval(tmp_path: Path) -> None:
+    entry = deepcopy(BASE_ENTRY)
+    entry["statistics"]["triangle_quality"]["max"] = 1.25
+    path = tmp_path / "invalid_quality.json"
+    path.write_text(json.dumps({"datasets": [entry]}), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSchemaError) as exc:
+        load_dataset_manifest(path)
+    assert "datasets[0].statistics.triangle_quality.max" in str(exc.value)
+
+
+def test_triangle_quality_mean_must_be_ordered(tmp_path: Path) -> None:
+    entry = deepcopy(BASE_ENTRY)
+    quality = entry["statistics"]["triangle_quality"]
+    quality["min"] = 0.7
+    quality["mean"] = 0.6
+    quality["max"] = 0.9
+    path = tmp_path / "invalid_quality_mean.json"
+    path.write_text(json.dumps({"datasets": [entry]}), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSchemaError) as exc:
+        load_dataset_manifest(path)
+    assert "datasets[0].statistics.triangle_quality.mean" in str(exc.value)
+
+
 def test_dataset_manifest_version_two_requires_metadata(tmp_path: Path) -> None:
     entry = deepcopy(BASE_ENTRY)
     entry["source"].pop("mesh_sha256")
