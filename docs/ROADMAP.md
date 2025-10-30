@@ -34,12 +34,12 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 <a id="ai004-phase1-timeline"></a>
 #### Phase 1 Milestone Timeline (Kickoff Review 2026-02-20)
 
-| Sequence | Target Date | Backlog | Owner | Dependencies | Notes |
-| --- | --- | --- | --- | --- | --- |
-| 1 | 2026-02-07 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Product Manager | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Kickoff packet: roadmap timeline, sprint tracker, and risk register cross-linked. |
-| 2 | 2026-02-12 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Runtime Lead | `DC-041` | Harness smoke demo exercising schema sample + telemetry export recorded. |
-| 3 | 2026-02-14 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox integrates harness presets, dataset selectors ready for review walk-through. |
-| 4 | 2026-02-16 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Dataset package validated against harness + sandbox handoff for demo content. |
+| Sequence | Target Date | Backlog | Owner | Dependencies | Notes | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 2026-02-07 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Product Manager | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Kickoff packet: roadmap timeline, sprint tracker, and risk register cross-linked. | ✅ Complete |
+| 2 | 2026-02-12 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Runtime Lead | `DC-041` | Harness smoke demo exercising schema sample + telemetry export recorded; kickoff brief now carries dataset hash appendix. | ✅ Complete |
+| 3 | 2026-02-14 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox integrates harness presets and dataset selectors ready for review walk-through; overlay telemetry tuning continues. | 🔄 In Progress |
+| 4 | 2026-02-16 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Dataset package validated against harness + sandbox handoff for demo content. | ⏳ Planned |
 
 > Kickoff coordination artefacts: [`AI-004-kickoff-brief.md`](backlog/active/AI-004-kickoff-brief.md), [`2026-02-03-sprint-11.md`](backlog/active/2026-02-03-sprint-11.md).
 

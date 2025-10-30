@@ -51,12 +51,71 @@ dependencies, and risk mitigations.
 | Harness coverage gaps hide schema regressions. | Runtime Lead | 2026-02-13 | Extend RT-320 smoke to assert schema version + telemetry channels before review. |
 
 ## Prep Checklist
-- [ ] Circulate slide outline covering agenda, timeline, and risk mitigations by
-      **2026-02-09**.
-- [ ] Confirm demo scene and dataset availability across runtime, tools, and
-      rendering teams.
-- [ ] Capture benchmark baseline from harness + sandbox combo for inclusion in
-      kickoff packet.
+- [x] Circulate slide outline covering agenda, timeline, and risk mitigations by
+      **2026-02-09** (see [Slide Outline](#slide-outline-published-2026-02-09)).
+- [x] Confirm demo scene and dataset availability across runtime, tools, and
+      rendering teams (see [Demo Scene & Dataset Availability](#demo-scene--dataset-availability)).
+- [x] Capture benchmark baseline from harness + sandbox combo for inclusion in
+      kickoff packet (see [Benchmark Baseline Snapshot](#benchmark-baseline-snapshot)).
+
+### Slide Outline (Published 2026-02-09)
+1. **Kickoff Objectives** – revisit AI-004 readiness scorecard, milestone
+   cadence, and success metrics.
+2. **Schema Contract Recap** – highlight validator coverage, enforcement flags,
+   and Python/C++ integration points.
+3. **Harness Walkthrough** – dry-run demo of
+   `python -m scripts.prototyping.run_prototype_harness --case-study geometry-baseline`
+   showing configuration resolution, dataset validation, and telemetry targets.
+4. **Sandbox Wiring** – ImGui layout for preset selection, telemetry overlays,
+   and benchmark trigger entry points (paired with TL-210 follow-ups).
+5. **Dataset Packaging** – manifest provenance summary, checksum table, and
+   ingestion automation checkpoints for AS-330.
+6. **Benchmark Baseline** – geometry remesh case-study snapshot (see below) plus
+   comparative benchmark rollout plan.
+7. **Risk Register & Mitigations** – review current owners, mitigation deadlines,
+   and escalation paths ahead of 2026-02-13 gate.
+8. **Next Steps** – sprint 12 focus, CI enablement, and review cadence through
+   the 2026-02-20 kickoff.
+
+The slide outline lives alongside the kickoff deck storyboard so module leads
+can attach updated screenshots and telemetry exports without reworking the
+agenda.
+
+### Demo Scene & Dataset Availability
+- **Harness validation** – The dry-run harness execution confirmed that the
+  `geometry-baseline` case study resolves the `geometry-remesh-baseline`
+  dataset, validates both mesh artefacts, and reports zero asset failures.
+  Output from the `--describe-json` capture records:
+  - `assets/datasets/remesh_sample/source_mesh.obj` (`cd19dd57…6a6225d0`, 196 B)
+  - `assets/datasets/remesh_sample/output_mesh.obj` (`651a849d…34c44e65`, 277 B)
+  Both hashes match the manifest expectations and are now linked in the kickoff
+  packet dataset appendix.
+- **Rendering preset** – The resolved rendering schema locks the
+  `research-baseline` preset at 1280×720 deferred shading with overlays
+  disabled, matching the sandbox defaults documented in TL-210.
+- **Runtime configuration** – Orbit camera defaults (position `⟨0,0,4⟩`, target
+  `⟨0,0,0⟩`) and simulation cadence (`Δt = 1/60 s`, two max substeps) mirror the
+  sandbox preview so switching between interactive and headless runs no longer
+  reinitialises scene state.
+
+### Benchmark Baseline Snapshot
+Harness dry-run summaries and sandbox metadata now provide the initial geometry
+remeshing baseline shipped with the kickoff packet:
+
+| Metric | Value | Source |
+| --- | --- | --- |
+| Scenario | `geometry-baseline` | Harness dry-run summary |
+| Dataset | `geometry-remesh-baseline` | Harness dry-run summary |
+| Telemetry target | `telemetry/geometry-baseline/{scenario}.json` | Harness dry-run summary |
+| Input mesh | 4 vertices, 2 faces, edge length range 1.0–1.4142 | Dataset manifest |
+| Output mesh | 5 vertices, 4 faces, edge length range 0.5–1.118 | Dataset manifest |
+| Remeshing mode | Uniform, target edge length 0.5 | Dataset manifest |
+| UV reuse | Single chart, stretch ≤1.05, fill ratio 0.95 | Dataset manifest |
+
+The native runtime shared library is not packaged in this workspace snapshot, so
+`average_tick_ms` and dispatch timings remain `N/A`. Once the CI build publishes
+`libengine_runtime.so`, rerun the case study with `--frames 120` to extend the
+table with timing data before the 2026-02-20 review.
 
 ## Links
 - Roadmap Phase 1 timeline: [`docs/ROADMAP.md#phase-1-milestone-timeline-kickoff-review-2026-02-20`](../../ROADMAP.md#phase-1-milestone-timeline-kickoff-review-2026-02-20)
