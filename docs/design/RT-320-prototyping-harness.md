@@ -87,6 +87,7 @@ EngineRuntimeHandle (ctypes wrapper)
 - Runtime factory injection enables unit testing with mock runtimes and future substitution of native C++ harness components.
 - Result dataclass provides stable contract for benchmark orchestration (`scripts/benchmarks` follow-ups).
 - CLI exposes `--dry-run` for schema validation without runtime startup, enabling dataset/package CI checks.
+- `PrototypeHarness.interactive_session()` yields a context-managed runtime controller so TL-210 can toggle overlays, advance ticks, and harvest telemetry snapshots during interactive sessions without reloading configurations.
 
 ---
 
@@ -96,7 +97,7 @@ EngineRuntimeHandle (ctypes wrapper)
 |------|-------|-------|
 | Integrate rendering preset wiring (`RE-610`) | Rendering | ✅ Rendering presets now configure Research Baseline telemetry via the runtime API (2026-02-11). |
 | Surface telemetry outputs (`CC-310`) | Performance | ✅ Telemetry output templates now resolve to absolute paths in harness summaries (2026-02-09). |
-| Interactive mode bridge (`TL-210`) | Tools | Embed ImGui controls and expose hot-reload toggles. |
+| Interactive mode bridge (`TL-210`) | Tools | ✅ `PrototypeHarness.interactive_session()` exposes overlay toggles, tick control, and telemetry capture for the sandbox UI. |
 | Native C++ harness sample | Runtime | ✅ `runtime_prototype_harness` CLI sample mirrors Python dry-run flow (2026-02-05). |
 
 **2026-02-08** — Harness construction now validates dataset asset existence, file sizes, and sha256 hashes. Configuration summaries expose per-asset integrity status for TL-210 selectors and AS-330 packaging checks.

@@ -30,8 +30,8 @@ Researchers currently assemble ad-hoc executables to validate algorithms. RT-320
 
 ## Definition of Done
 - [x] Harness boots from a schema-driven configuration, loads reference datasets, and configures the research rendering baseline.
-- [ ] Interactive mode offers camera/navigation controls, overlay toggles, and telemetry capture integrated with the tools sandbox.
-- [ ] Headless mode runs scripted scenarios and writes reproducible telemetry outputs.
+- [x] Interactive mode offers camera/navigation controls, overlay toggles, and telemetry capture integrated with the tools sandbox.
+- [x] Headless mode runs scripted scenarios and writes reproducible telemetry outputs.
 - [ ] Runtime documentation and samples include setup instructions plus example configuration files.
 
 ## Dependencies
@@ -57,4 +57,4 @@ automation can track kernel scheduling drift without parsing native runtime logs
 **2026-02-08** — Harness construction verifies dataset asset existence, size, and hashes, raising actionable errors and exposing
 asset integrity metadata in configuration summaries for TL-210 and AS-330 consumers.
 
-**2026-02-11** — Harness configures research rendering presets through the runtime API, propagating shading mode, resolution, and overlay toggles into Research Baseline telemetry for sandbox and benchmarking consumers.
+**2026-02-11** — Harness configures research rendering presets through the runtime API, propagating shading mode, resolution, and overlay toggles into Research Baseline telemetry for sandbox and benchmarking consumers. `PrototypeHarness.interactive_session()` now exposes a context-managed runtime bridge so TL-210 can toggle overlays, advance ticks, and capture telemetry summaries without reloading configurations.

@@ -6,7 +6,7 @@ import hashlib
 import math
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
@@ -36,6 +36,7 @@ __all__ = [
     "DatasetAssetStatus",
     "DatasetSummary",
     "HarnessConfigurationSummary",
+    "InteractiveHarnessSession",
     "HarnessBenchmarkSummary",
     "HarnessTelemetrySummary",
     "PrototypeHarness",
@@ -416,6 +417,174 @@ class HarnessConfigurationSummary:
         }
 
 
+class InteractiveHarnessSession:
+    """Interactive runtime controller mirroring headless harness telemetry."""
+
+    def __init__(
+        self,
+        harness: "PrototypeHarness",
+        runtime: EngineRuntimeHandle,
+        *,
+        runtime_config: Optional[RuntimeConfig],
+        rendering_config: Optional[RenderingConfig],
+        scenario_label: Optional[str],
+    ) -> None:
+        self._harness = harness
+        self._runtime = runtime
+        self._runtime_config = runtime_config
+        self._base_rendering_config = rendering_config
+        self._active_rendering_config = rendering_config
+        self._scenario_label = scenario_label
+        self._frames_executed = 0
+        self._active = False
+        if runtime_config is not None and runtime_config.simulation is not None:
+            self._timestep = runtime_config.simulation.timestep_seconds
+        else:
+            self._timestep = 1.0 / 60.0
+
+    def __enter__(self) -> "InteractiveHarnessSession":
+        self._runtime.__enter__()
+        self._active = True
+        if self._active_rendering_config is not None:
+            self._configure_runtime(
+                self._active_rendering_config.shading_mode,
+                self._rendering_overlays(self._active_rendering_config),
+            )
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        try:
+            self._runtime.__exit__(exc_type, exc, tb)
+        finally:
+            self._active = False
+
+    @property
+    def shading_mode(self) -> Optional[str]:
+        if self._active_rendering_config is None:
+            return None
+        return self._active_rendering_config.shading_mode
+
+    @property
+    def overlays(self) -> Dict[str, bool]:
+        if self._active_rendering_config is None:
+            return {}
+        return self._rendering_overlays(self._active_rendering_config)
+
+    @property
+    def frames_executed(self) -> int:
+        return self._frames_executed
+
+    @property
+    def timestep_seconds(self) -> float:
+        return self._timestep
+
+    def reset_frame_counter(self) -> None:
+        self._frames_executed = 0
+
+    def tick(self, dt: Optional[float] = None) -> None:
+        if not self._active:
+            raise PrototypeHarnessError("interactive session is not active")
+        step = self._timestep if dt is None else dt
+        if not math.isfinite(step) or step <= 0.0:
+            raise PrototypeHarnessError("dt must be a positive, finite number")
+        self._runtime.tick(step)
+        self._frames_executed += 1
+
+    def apply_rendering(
+        self,
+        *,
+        shading_mode: Optional[str] = None,
+        overlays: Optional[Mapping[str, bool]] = None,
+    ) -> None:
+        if not self._active:
+            raise PrototypeHarnessError("interactive session is not active")
+        if self._base_rendering_config is None:
+            raise PrototypeHarnessError("rendering configuration is not available")
+        overlay_state: Dict[str, bool] = self._rendering_overlays(
+            self._active_rendering_config or self._base_rendering_config
+        )
+        if overlays is not None:
+            overlay_state.update({key: bool(value) for key, value in overlays.items()})
+        target_mode = shading_mode or self.shading_mode or self._base_rendering_config.shading_mode
+        self._configure_runtime(target_mode, overlay_state)
+
+    def capture_summary(self) -> HarnessRunSummary:
+        if not self._active:
+            raise PrototypeHarnessError("interactive session is not active")
+        telemetry_outputs = self._harness._telemetry_outputs(
+            scenario_override=self._scenario_label,
+            execution=HarnessExecutionOptions(
+                frames=self._frames_executed,
+                dt=self._timestep,
+                dry_run=True,
+                scenario_label=self._scenario_label,
+            ),
+        )
+        order = tuple(self._runtime.dispatch_order())
+        durations = tuple(self._runtime.dispatch_durations())
+        if len(order) != len(durations):
+            count = min(len(order), len(durations))
+            order = order[:count]
+            durations = durations[:count]
+        dispatch_ms = tuple(value * 1000.0 for value in durations)
+        dataset_id = (
+            self._harness._selected_dataset.identifier
+            if self._harness._selected_dataset
+            else None
+        )
+        rendering_preset = None
+        shading_mode = self.shading_mode
+        if self._active_rendering_config is not None:
+            rendering_preset = self._active_rendering_config.preset
+        return HarnessRunSummary(
+            dataset_id=dataset_id,
+            scenario_label=self._scenario_label,
+            rendering_preset=rendering_preset,
+            shading_mode=shading_mode,
+            frames_executed=self._frames_executed,
+            timestep_seconds=self._timestep,
+            average_tick_ms=self._runtime.average_tick_ms(),
+            dispatch_order=order,
+            dispatch_durations_ms=dispatch_ms,
+            telemetry_outputs=telemetry_outputs,
+        )
+
+    def _configure_runtime(
+        self,
+        shading_mode: Optional[str],
+        overlays: Mapping[str, bool],
+    ) -> None:
+        if self._base_rendering_config is None:
+            raise PrototypeHarnessError("rendering configuration is not available")
+        mode = (shading_mode or self._base_rendering_config.shading_mode or "").strip().lower()
+        if not mode:
+            mode = self._base_rendering_config.shading_mode
+        updated = replace(
+            self._base_rendering_config,
+            shading_mode=mode,
+            overlay_normals=bool(overlays.get("normals", False)),
+            overlay_uv=bool(overlays.get("uv", False)),
+            overlay_material=bool(overlays.get("material", False)),
+            overlay_light_volume=bool(overlays.get("light_volume", False)),
+        )
+        try:
+            self._harness._configure_research_rendering(self._runtime, updated)
+        except (RuntimeError, ValueError) as error:
+            raise PrototypeHarnessError(
+                f"failed to apply interactive rendering update: {error}"
+            ) from error
+        self._active_rendering_config = updated
+
+    @staticmethod
+    def _rendering_overlays(config: RenderingConfig) -> Dict[str, bool]:
+        return {
+            "normals": config.overlay_normals,
+            "uv": config.overlay_uv,
+            "material": config.overlay_material,
+            "light_volume": config.overlay_light_volume,
+        }
+
+
 class PrototypeHarness:
     """Headless harness that validates AI-004 configurations and executes runtime ticks."""
 
@@ -529,6 +698,23 @@ class PrototypeHarness:
         if self._selected_dataset is None:
             return None
         return self._describe_dataset(self._selected_dataset)
+
+    def interactive_session(
+        self, *, scenario_label: Optional[str] = None
+    ) -> InteractiveHarnessSession:
+        """Create an interactive runtime session for UI-driven workflows."""
+
+        try:
+            runtime = self._runtime_factory()
+        except EngineLibraryNotFound as error:  # pragma: no cover - depends on local environment
+            raise PrototypeHarnessError(str(error)) from error
+        return InteractiveHarnessSession(
+            self,
+            runtime,
+            runtime_config=self._configuration.runtime,
+            rendering_config=self._rendering_config(),
+            scenario_label=scenario_label,
+        )
 
 
     def _telemetry_outputs(

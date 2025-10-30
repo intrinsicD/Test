@@ -23,6 +23,7 @@ from engine3g.prototype_harness import (
     configuration_summary_to_dict,
     HarnessExecutionOptions,
     HarnessRunSummary,
+    InteractiveHarnessSession,
     PrototypeHarness,
     PrototypeHarnessError,
     run_summary_to_dict,
@@ -345,6 +346,109 @@ def test_run_headless_supports_run_metadata_placeholders(tmp_path: Path) -> None
     )
     assert first_output.path is not None
     assert first_output.path.endswith("telemetry/remesh-sample-run02-of-05.json")
+
+
+def test_interactive_session_configures_runtime(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+    runtime = _MockRuntime(ticks=[])
+
+    harness = PrototypeHarness(
+        configuration,
+        runtime_factory=lambda: runtime,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    with harness.interactive_session() as session:
+        assert isinstance(session, InteractiveHarnessSession)
+        assert runtime.initialized is True
+        assert runtime.rendering_configurations
+        config = runtime.rendering_configurations[0]
+        assert config["shading_mode"] == "deferred"
+        assert config["overlays"] == {
+            "normals": False,
+            "uv": False,
+            "material": False,
+            "light_volume": False,
+        }
+        session.tick()
+        assert runtime.ticks == [pytest.approx(0.01)]
+
+    assert runtime.shutdown_count == 1
+
+
+def test_interactive_session_allows_rendering_overrides(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+    runtime = _MockRuntime(ticks=[])
+
+    harness = PrototypeHarness(
+        configuration,
+        runtime_factory=lambda: runtime,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    with harness.interactive_session() as session:
+        session.apply_rendering(shading_mode="FORWARD", overlays={"normals": True, "uv": True})
+        assert session.shading_mode == "forward"
+        overlays = session.overlays
+        assert overlays["normals"] is True
+        assert overlays["uv"] is True
+        assert runtime.rendering_configurations[-1]["shading_mode"] == "forward"
+        assert runtime.rendering_configurations[-1]["overlays"]["normals"] is True
+
+
+def test_interactive_session_captures_summary(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+    runtime = _MockRuntime(
+        ticks=[],
+        average_tick_value=2.0,
+        dispatch_names=["geometry::remesh"],
+        dispatch_times=[0.001],
+    )
+
+    harness = PrototypeHarness(
+        configuration,
+        runtime_factory=lambda: runtime,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    with harness.interactive_session() as session:
+        session.tick()
+        session.tick()
+        summary = session.capture_summary()
+
+    assert summary.frames_executed == 2
+    assert summary.timestep_seconds == pytest.approx(0.01)
+    assert summary.average_tick_ms == pytest.approx(2.0)
+    assert summary.dispatch_order == ("geometry::remesh",)
+    assert summary.dispatch_durations_ms == pytest.approx((1.0,))
+    assert summary.telemetry_outputs
+
+
+def test_interactive_session_validates_tick_delta(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+    runtime = _MockRuntime(ticks=[])
+
+    harness = PrototypeHarness(
+        configuration,
+        runtime_factory=lambda: runtime,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    with harness.interactive_session() as session:
+        with pytest.raises(PrototypeHarnessError):
+            session.tick(0.0)
 
 
 def test_telemetry_output_sanitizes_scenario_label(tmp_path: Path) -> None:
