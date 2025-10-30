@@ -8,6 +8,8 @@ add_library(${target_name}
         src/point_cloud_asset.cpp
         src/shader_asset.cpp
         src/texture_asset.cpp
+        src/texture_decoder.cpp
+        src/decoders/stb_texture_decoder.cpp
         src/validation.cpp
 )
 
@@ -26,6 +28,7 @@ target_link_libraries(${target_name}
         engine_geometry
         engine_io
         engine_platform
+        third_party::stb_image
 )
 
 if (BUILD_TESTING)

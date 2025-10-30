@@ -62,6 +62,67 @@ namespace
         stream.write(reinterpret_cast<const char*>(content.data()),
                      static_cast<std::streamsize>(content.size()));
     }
+
+    std::vector<std::byte> decode_base64(std::string_view encoded)
+    {
+        static const auto lut = []
+        {
+            std::array<int, 256> table{};
+            table.fill(-1);
+            for (int i = 0; i < 26; ++i)
+            {
+                table['A' + i] = i;
+                table['a' + i] = i + 26;
+            }
+            for (int i = 0; i < 10; ++i)
+            {
+                table['0' + i] = i + 52;
+            }
+            table[static_cast<unsigned char>('+')] = 62;
+            table[static_cast<unsigned char>('/')] = 63;
+            return table;
+        }();
+
+        std::vector<std::byte> output{};
+        output.reserve((encoded.size() / 4U) * 3U);
+        int value = 0;
+        int bits = 0;
+        for (unsigned char c : encoded)
+        {
+            if (c == '=')
+            {
+                break;
+            }
+            const int decoded = lut[c];
+            if (decoded < 0)
+            {
+                continue;
+            }
+            value = (value << 6) | decoded;
+            bits += 6;
+            if (bits >= 8)
+            {
+                bits -= 8;
+                const unsigned char byte = static_cast<unsigned char>((value >> bits) & 0xFF);
+                output.push_back(static_cast<std::byte>(byte));
+            }
+        }
+        return output;
+    }
+
+    const std::vector<std::byte>& gradient_png()
+    {
+        static const std::vector<std::byte> data = decode_base64(
+            "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAKUlEQVR4nBXIMQEAMAzDsJAMn+Exycw99CjJW4WmpIbQeoEhNC5mCE0ftNQn4VOSi94AAAAASUVORK5CYII=");
+        return data;
+    }
+
+    const std::vector<std::byte>& alternate_png()
+    {
+        static const std::vector<std::byte> data = decode_base64(
+            "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAM0lEQVR4nBXIQREAMQDCQPTUD3rqJ3rOT8oND2YTjXjsFu+vI4wMsNBK727ot5ArwWaIPoR/J9XDmnFHAAAAAElFTkSuQmCC");
+        return data;
+    }
 } // namespace
 
 TEST(MeshCache, LoadsMeshData)
@@ -434,38 +495,66 @@ TEST(GraphCache, HotReloadNotifies)
     EXPECT_TRUE(reloaded);
 }
 
-TEST(TextureCache, ProvidesBinaryPayload)
+TEST(TextureCache, LoadsTexturesWithMetadata)
 {
     TempDirectory temp;
-    const auto path = temp.path / "texture.bin";
-    const std::array<std::byte, 4> payload{std::byte{0x00}, std::byte{0xFF}, std::byte{0x80}, std::byte{0x40}};
-    write_binary(path, payload);
+    const auto path = temp.path / "texture.png";
+    write_binary(path, std::span{gradient_png()});
 
     engine::assets::TextureCache cache;
-    const auto descriptor = engine::assets::TextureAssetDescriptor::from_file(path);
+    engine::assets::TextureLoadingOptions options{};
+    options.generate_mipmaps = true;
+    options.max_mip_levels = 0;
+    const auto descriptor = engine::assets::TextureAssetDescriptor::from_file(
+        path, engine::assets::TextureColorSpace::srgb, options);
 
     const auto& asset = cache.load(descriptor);
-    ASSERT_EQ(asset.data.size(), payload.size());
-    EXPECT_EQ(std::to_integer<unsigned char>(asset.data[1]),
-              std::to_integer<unsigned char>(payload[1]));
+    EXPECT_EQ(asset.format, engine::assets::TextureFormat::rgba8_unorm);
+    EXPECT_EQ(asset.dimensions.width, 4U);
+    EXPECT_EQ(asset.dimensions.height, 4U);
+    ASSERT_EQ(asset.mip_levels.size(), 3U);
+
+    const auto& base_level = asset.mip_levels.front();
+    EXPECT_EQ(base_level.extent.width, 4U);
+    EXPECT_EQ(base_level.extent.height, 4U);
+    ASSERT_EQ(base_level.texels.size(), 4U * 4U * engine::assets::texture_bytes_per_pixel(
+        engine::assets::TextureFormat::rgba8_unorm));
+
+    const auto* base_pixels = reinterpret_cast<const unsigned char*>(base_level.texels.data());
+    EXPECT_EQ(base_pixels[0], 0U);
+    EXPECT_EQ(base_pixels[1], 0U);
+    EXPECT_EQ(base_pixels[2], 128U);
+    EXPECT_EQ(base_pixels[3], 255U);
+
+    EXPECT_EQ(asset.encoded_payload.size(), gradient_png().size());
 
     bool reloaded = false;
     cache.register_hot_reload_callback(descriptor.handle,
                                        [&](const engine::assets::TextureAsset& updated)
                                        {
                                            reloaded = true;
-                                           EXPECT_GT(updated.data.size(), payload.size());
+                                           EXPECT_EQ(updated.format, engine::assets::TextureFormat::rgba8_unorm);
+                                           EXPECT_FALSE(updated.mip_levels.empty());
                                        });
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    const std::array<std::byte, 6> new_payload{
-        std::byte{0x01}, std::byte{0x02}, std::byte{0x03},
-        std::byte{0x04}, std::byte{0x05}, std::byte{0x06}
-    };
-    write_binary(path, new_payload);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    write_binary(path, std::span{alternate_png()});
 
-    cache.poll();
+    const auto& updated = cache.load(descriptor);
     EXPECT_TRUE(reloaded);
+    EXPECT_EQ(updated.encoded_payload.size(), alternate_png().size());
+    ASSERT_FALSE(updated.mip_levels.empty());
+    const auto& last_level = updated.mip_levels.back();
+    EXPECT_EQ(last_level.extent.width, 1U);
+    EXPECT_EQ(last_level.extent.height, 1U);
+}
+
+TEST(TextureFormatUtilities, ComputesProperties)
+{
+    using namespace engine::assets;
+    EXPECT_EQ(texture_channel_count(TextureFormat::rgba8_unorm), 4U);
+    EXPECT_EQ(texture_bytes_per_pixel(TextureFormat::rgba32_float), 16U);
+    EXPECT_EQ(compute_max_mip_levels(TextureDimensions{4U, 4U, 1U}), 3U);
 }
 
 TEST(ShaderCache, CompilesAndHotReloads)

@@ -1,0 +1,5 @@
+if (NOT TARGET third_party::stb_image)
+    add_library(stb_image INTERFACE)
+    target_include_directories(stb_image INTERFACE ${THIRD_PARTY_DIR}/stb)
+    add_library(third_party::stb_image ALIAS stb_image)
+endif ()
