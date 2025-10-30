@@ -43,6 +43,8 @@ namespace engine::geometry::tools
         std::size_t input_vertex_count{0U};
         std::size_t input_face_count{0U};
         MeshEdgeStatistics input_edge_statistics{};
+        float input_surface_area{0.0F};
+        float output_surface_area{0.0F};
         DatasetFileDigest input_file{};
         DatasetFileDigest output_file{};
     };

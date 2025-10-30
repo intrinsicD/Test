@@ -43,6 +43,10 @@ def test_ingest_manifest_writes_summary_with_extended_statistics(tmp_path: Path)
     assert summary_path is not None
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
 
+    metrics = summary["metrics"]
+    assert metrics["input"]["surface_area"] == pytest.approx(1.0)
+    assert metrics["output"]["surface_area"] == pytest.approx(1.0)
+
     statistics = summary["statistics"]
     assert statistics["iterations"] == 6
     assert statistics["splits"] == 2

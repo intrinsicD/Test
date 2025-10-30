@@ -109,6 +109,7 @@ remeshing baseline shipped with the kickoff packet:
 | Telemetry target | `telemetry/geometry-baseline/{scenario}.json` | Harness dry-run summary |
 | Input mesh | 4 vertices, 2 faces, edge length range 1.0–1.4142 | Dataset manifest |
 | Output mesh | 5 vertices, 4 faces, edge length range 0.5–1.118 | Dataset manifest |
+| Surface area | Input 1.0, output 1.0 | Dataset manifest |
 | Remeshing mode | Uniform, target edge length 0.5 | Dataset manifest |
 | UV reuse | Single chart, stretch ≤1.05, fill ratio 0.95 | Dataset manifest |
 | Remesh operations | 2 splits, 1 collapse | Dataset manifest |

@@ -34,6 +34,7 @@ class EdgeLengthMetrics:
 class MeshMetrics:
     vertices: int
     faces: int
+    surface_area: float
     edge_length: EdgeLengthMetrics
 
 

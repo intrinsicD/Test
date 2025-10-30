@@ -472,6 +472,11 @@ namespace engine::runtime::config
             MeshMetrics metrics;
             metrics.vertices = require_int(node["vertices"], join_context(context, "vertices"));
             metrics.faces = require_int(node["faces"], join_context(context, "faces"));
+            metrics.surface_area = require_float(node["surface_area"], join_context(context, "surface_area"));
+            if (metrics.surface_area < 0.0)
+            {
+                throw_validation(join_context(context, "surface_area"), "must be non-negative");
+            }
             metrics.edge_length = parse_edge_length_metrics(require_mapping(node["edge_length"],
                                                                            join_context(context, "edge_length")),
                                                             join_context(context, "edge_length"));

@@ -37,11 +37,13 @@ _BASE_DATASET_ENTRY: dict[str, object] = {
         "input": {
             "vertices": 8,
             "faces": 12,
+            "surface_area": 1.0,
             "edge_length": {"min": 0.4, "max": 1.2, "mean": 0.8},
         },
         "output": {
             "vertices": 16,
             "faces": 24,
+            "surface_area": 1.5,
             "edge_length": {"min": 0.2, "max": 1.0, "mean": 0.6},
         },
     },

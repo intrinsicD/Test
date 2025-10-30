@@ -34,6 +34,7 @@
         "input": {
           "vertices": 4,
           "faces": 2,
+          "surface_area": 1.0,
           "edge_length": {
             "min": 1.0,
             "mean": 1.1381,
@@ -43,6 +44,7 @@
         "output": {
           "vertices": 5,
           "faces": 4,
+          "surface_area": 1.0,
           "edge_length": {
             "min": 0.5,
             "mean": 0.7906,

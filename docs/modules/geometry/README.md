@@ -28,6 +28,8 @@ const auto c = engine::geometry::centroid(mesh);
 - Notes:
   - Call `recompute_vertex_normals(mesh)` after you change positions.
   - Call `update_bounds(mesh)` after you change positions or topology.
+  - Use `surface_area(mesh)` to compute the triangle-summed area for manifests or
+    telemetry; degenerate and out-of-range triangles are ignored.
   - Texture coordinates (if present) are preserved when converting between `SurfaceMesh` and the
     halfedge representation; mismatched counts are rejected early.
 
