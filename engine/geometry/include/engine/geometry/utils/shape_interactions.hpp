@@ -173,6 +173,8 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb& a, const Aabb& b) noexcept;
 
+    [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb& a, const Capsule& b) noexcept;
+
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb& a, const Cylinder& b) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API bool Intersects(const Obb& a, const Ellipsoid& b) noexcept;

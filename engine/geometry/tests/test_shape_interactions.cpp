@@ -216,6 +216,40 @@ namespace engine::geometry
         EXPECT_TRUE(Intersects(grazing, capsule));
     }
 
+    TEST(CapsuleIntersection, CapsulePlane)
+    {
+        const Plane plane{{0.0f, 1.0f, 0.0f}, 0.0f};
+
+        const Capsule straddling{{0.0f, -0.25f, 0.0f}, {0.0f, 0.25f, 0.0f}, 0.1f};
+        EXPECT_TRUE(Intersects(straddling, plane));
+        EXPECT_TRUE(Intersects(plane, straddling));
+
+        const Capsule grazing{{0.0f, 0.75f, 0.0f}, {0.0f, 1.25f, 0.0f}, 0.8f};
+        EXPECT_TRUE(Intersects(grazing, plane));
+        EXPECT_TRUE(Intersects(plane, grazing));
+
+        const Capsule separated{{0.0f, 1.5f, 0.0f}, {0.0f, 2.0f, 0.0f}, 0.2f};
+        EXPECT_FALSE(Intersects(separated, plane));
+        EXPECT_FALSE(Intersects(plane, separated));
+    }
+
+    TEST(CapsuleIntersection, CapsuleObb)
+    {
+        const Obb box{{0.0f, 0.0f, 0.0f}, {0.75f, 0.5f, 0.5f}, math::quat{1.0f, 0.0f, 0.0f, 0.0f}};
+
+        const Capsule axis_through{{0.0f, -2.0f, 0.0f}, {0.0f, 2.0f, 0.0f}, 0.3f};
+        EXPECT_TRUE(Intersects(axis_through, box));
+        EXPECT_TRUE(Intersects(box, axis_through));
+
+        const Capsule side_grazing{{1.4f, -0.5f, 0.0f}, {1.4f, 0.5f, 0.0f}, 0.7f};
+        EXPECT_TRUE(Intersects(side_grazing, box));
+        EXPECT_TRUE(Intersects(box, side_grazing));
+
+        const Capsule separated{{2.0f, -0.5f, 0.0f}, {2.0f, 0.5f, 0.0f}, 0.2f};
+        EXPECT_FALSE(Intersects(separated, box));
+        EXPECT_FALSE(Intersects(box, separated));
+    }
+
     TEST(ShapeInteractionsSphereContains, SphereInsideAabb)
     {
         const Aabb box{{-3.0f, -2.0f, -1.0f}, {3.0f, 2.0f, 1.0f}};
