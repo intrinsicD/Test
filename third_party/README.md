@@ -11,10 +11,11 @@ External libraries vendored into the repository are tracked here. Each dependenc
 - `cmake/spdlog.cmake` – Fast C++ logging library shared by runtime and diagnostics layers.
 - `cmake/vma.cmake` – Vulkan Memory Allocator to simplify and optimize memory management for Vulkan applications.
 - `cmake/yaml-cpp.cmake` – YAML 1.2 parser/emitter fetched via CMake to validate AI-004 configuration manifests.
+- `cmake/stb.cmake` – Header-only stb_image loader used by the texture pipeline for HDR/LDR decoding.
 
 Each directory mirrors the upstream project layout and is consumed via `add_subdirectory` within the CMake build.
 If a dependency submodule is absent locally (e.g., after a shallow clone), or present but missing its source
 files (such as an empty checkout directory), CMake will fetch the required sources on-demand using
 `FetchContent` during configuration.
 
-_Last updated: 2025-10-06_
+_Last updated: 2026-02-15_

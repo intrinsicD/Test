@@ -35,7 +35,7 @@ The module manages the following asset types:
 - **MeshAsset**: Surface meshes with vertices, indices, and optional vertex attributes
 - **PointCloudAsset**: Point cloud data with positions and optional attributes
 - **GraphAsset**: Graph structures (adjacency lists, navigation graphs)
-- **TextureAsset**: 2D/3D textures with mipmap support
+- **TextureAsset**: 2D textures with automatic colour-space tagging, CPU mipmap generation, and HDR-aware decoding
 - **ShaderAsset**: Shader programs and bytecode
 - **MaterialAsset**: Material definitions referencing textures and shader parameters
 
@@ -63,6 +63,37 @@ if (!mesh_cache.is_valid(handle)) {
     // Handle load failure
 }
 ```
+
+Textures expose additional loading parameters via `TextureLoadingOptions` so call sites can request
+automatic mip generation, bound the number of levels, or discard the encoded payload when CPU memory
+pressure is a concern:
+
+```cpp
+using namespace engine::assets;
+
+TextureLoadingOptions options{
+    .generate_mipmaps = true,
+    .max_mip_levels = 0, // 0 = full chain, otherwise clamp to the requested count
+    .retain_encoded_payload = false,
+};
+
+TextureCache texture_cache;
+
+auto descriptor = TextureAssetDescriptor::from_file(
+    "assets/textures/albedo.png",
+    TextureColorSpace::srgb,
+    options);
+
+const TextureAsset& texture = texture_cache.load(descriptor);
+fmt::print("{} mip levels, format = {}\n",
+           texture.mip_levels.size(),
+           static_cast<int>(texture.format));
+```
+
+`TextureAsset` now records per-mip texel buffers alongside the decoded format, colour space, and
+original file payload (when `retain_encoded_payload` remains enabled). HDR sources decode to
+`TextureFormat::rgba32_float` while LDR content uses `TextureFormat::rgba8_unorm`, keeping the data
+layout explicit for downstream GPU uploaders.
 
 ### Asynchronous Loading
 
@@ -106,15 +137,16 @@ Assets can be reloaded when source files change:
 
 ```cpp
 // Register reload callback
-mesh_cache.register_reload_callback([](MeshHandle handle) {
-    fmt::print("Mesh {} reloaded\n", handle.id());
-});
-
-// Trigger reload (typically called by filesystem watcher)
-mesh_cache.reload("character.obj");
+texture_cache.register_hot_reload_callback(texture_handle,
+    [&](const TextureAsset& updated)
+    {
+        fmt::print("{} now exposes {} mip levels\n",
+            updated.descriptor.handle.id(),
+            updated.mip_levels.size());
+    });
 ```
 
-The platform module's filesystem watcher automatically triggers reload when files change. See `CC-002` in the roadmap for hot reload infrastructure details.
+The platform module's filesystem watcher automatically triggers reload when files change. See `CC-002` in the roadmap for hot reload infrastructure details. The texture cache records decode failures with actionable hints when a file becomes unreadable or an unsupported format is introduced, keeping telemetry dashboards consistent with runtime state.
 
 Hot reload attempts validate that OBJ sources still contain usable geometry. If a watched mesh is replaced with content that
 omits vertices or faces, the cache now raises a validation failure, preserves the previous asset, and records the error in
@@ -248,6 +280,7 @@ ctest --preset linux-gcc-debug -R assets
 ## Current State
 
 - Generational handle caches for meshes, point clouds, graphs, textures, shaders, and materials with hot-reload callbacks.
+- Texture decoding pipeline backed by stb_image with HDR+LDR support, CPU mipmap generation, colour-space aware descriptors, and retained source payloads for diagnostics or deferred transcoding.
 - Async loading pipeline with telemetry integrated into runtime diagnostics; handle validation hooks enabled in debug builds.
 - Diagnostics shell (`scripts/diagnostics/telemetry_viewer.py`) surfaces recent asset reload failures with per-asset hints to
   accelerate hot-reload triage (`AS-330`).

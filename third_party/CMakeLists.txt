@@ -33,6 +33,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/entt.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/imgui.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/glad.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/vma.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/stb.cmake")
 
 # Googletest (tests only)
 if(BUILD_TESTING)

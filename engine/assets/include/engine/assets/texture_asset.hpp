@@ -24,26 +24,62 @@ namespace engine::assets
         srgb
     };
 
+    enum class TextureFormat : std::uint8_t
+    {
+        unknown = 0,
+        rgba8_unorm,
+        rgba32_float,
+    };
+
+    struct TextureDimensions
+    {
+        std::uint32_t width{0};
+        std::uint32_t height{0};
+        std::uint32_t depth{1};
+    };
+
+    struct TextureMipLevel
+    {
+        TextureDimensions extent{};
+        std::vector<std::byte> texels{};
+    };
+
+    struct TextureLoadingOptions
+    {
+        bool generate_mipmaps{true};
+        std::uint32_t max_mip_levels{0};
+        bool retain_encoded_payload{true};
+    };
+
     struct TextureAssetDescriptor
     {
-        TextureHandle handle;
-        std::filesystem::path source;
+        TextureHandle handle{};
+        std::filesystem::path source{};
         TextureColorSpace color_space{TextureColorSpace::linear};
+        TextureLoadingOptions options{};
 
         [[nodiscard]] static TextureAssetDescriptor from_file(
             const std::filesystem::path& path,
-            TextureColorSpace space = TextureColorSpace::linear)
+            TextureColorSpace space = TextureColorSpace::linear,
+            TextureLoadingOptions options = {})
         {
-            return TextureAssetDescriptor{TextureHandle{path}, path, space};
+            return TextureAssetDescriptor{TextureHandle{path}, path, space, options};
         }
     };
 
     struct TextureAsset
     {
         TextureAssetDescriptor descriptor{};
-        std::vector<std::byte> data{};
+        TextureFormat format{TextureFormat::unknown};
+        TextureDimensions dimensions{};
+        std::vector<TextureMipLevel> mip_levels{};
+        std::vector<std::byte> encoded_payload{};
         std::filesystem::file_time_type last_write{};
     };
+
+    [[nodiscard]] std::uint32_t texture_channel_count(TextureFormat format) noexcept;
+    [[nodiscard]] std::uint32_t texture_bytes_per_pixel(TextureFormat format) noexcept;
+    [[nodiscard]] std::uint32_t compute_max_mip_levels(TextureDimensions extent) noexcept;
 
     class TextureCache
     {
@@ -73,8 +109,7 @@ namespace engine::assets
         std::unordered_map<std::string, RawHandle> bindings_{};
         std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
         std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
-        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_
-            {};
+        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_{};
         platform::filesystem::FilesystemWatcher watcher_{};
         mutable std::mutex mutex_{};
         std::shared_ptr<void> handle_validator_registration_{};
