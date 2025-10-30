@@ -17,6 +17,11 @@ namespace engine::geometry
         octree_query_segment,
         octree_query_knn,
         octree_query_nearest,
+        kd_tree_build,
+        kd_tree_query_aabb,
+        kd_tree_query_radius,
+        kd_tree_query_knn,
+        kd_tree_query_nearest,
         count
     };
 

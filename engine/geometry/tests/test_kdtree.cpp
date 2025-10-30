@@ -3,9 +3,11 @@
 #include "engine/geometry/kdtree/kdtree.hpp"
 #include "engine/geometry/properties/property_set.hpp"
 #include "engine/geometry/random.hpp"
+#include "engine/geometry/telemetry.hpp"
 #include "engine/math/vector.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <limits>
 #include <random>
 #include <vector>
@@ -209,4 +211,79 @@ TEST(KdTree, QueryNearestMatchesBruteForce)
         tree.query_nearest(query, actual);
         EXPECT_EQ(actual, expected);
     }
+}
+
+TEST(KdTreeTelemetry, RecordsQueries)
+{
+    auto& telemetry = geo::GeometrySpatialTelemetry::instance();
+    telemetry.reset_for_testing();
+
+    geo::PropertySet elements;
+    auto position_property = elements.add<math::vec3>("e:position", {});
+    position_property.vector() = {
+        {0.0F, 0.0F, 0.0F},
+        {1.0F, 0.0F, 0.0F},
+        {0.0F, 1.0F, 0.0F},
+        {0.0F, 0.0F, 1.0F},
+    };
+
+    geo::KdTree tree;
+    ASSERT_TRUE(tree.build(position_property, 2U, 8U));
+    ASSERT_TRUE(tree.validate_structure());
+
+    auto snapshot = telemetry.snapshot();
+    const auto expect_metrics = [](const geo::GeometrySpatialQueryOperationSnapshot& metrics,
+                                   std::uint64_t invocations,
+                                   std::size_t results)
+    {
+        const auto expected = static_cast<std::uint64_t>(results);
+        EXPECT_EQ(invocations, metrics.invocations);
+        EXPECT_EQ(expected, metrics.total_results);
+        EXPECT_EQ(expected, metrics.last_results);
+        EXPECT_EQ(expected, metrics.max_results);
+    };
+
+    expect_metrics(
+        snapshot.operation(geo::GeometrySpatialQueryOperation::kd_tree_build),
+        1U,
+        position_property.vector().size());
+
+    std::vector<std::size_t> hits;
+
+    geo::Aabb region{};
+    region.min = math::vec3{-0.1F, -0.1F, -0.1F};
+    region.max = math::vec3{0.1F, 0.1F, 0.1F};
+    tree.query(region, hits);
+    const auto aabb_results = hits.size();
+
+    tree.query_radius(math::vec3{1.0F, 0.0F, 0.0F}, 0.25F, hits);
+    const auto radius_results = hits.size();
+
+    tree.query_knn(math::vec3{0.2F, 0.0F, 0.0F}, 3U, hits);
+    const auto knn_results = hits.size();
+
+    std::size_t nearest = std::numeric_limits<std::size_t>::max();
+    tree.query_nearest(math::vec3{0.9F, 0.1F, 0.0F}, nearest);
+    const auto nearest_results = (nearest == std::numeric_limits<std::size_t>::max()) ? 0U : 1U;
+
+    snapshot = telemetry.snapshot();
+
+    expect_metrics(
+        snapshot.operation(geo::GeometrySpatialQueryOperation::kd_tree_query_aabb),
+        1U,
+        aabb_results);
+    expect_metrics(
+        snapshot.operation(geo::GeometrySpatialQueryOperation::kd_tree_query_radius),
+        1U,
+        radius_results);
+    expect_metrics(
+        snapshot.operation(geo::GeometrySpatialQueryOperation::kd_tree_query_knn),
+        1U,
+        knn_results);
+    expect_metrics(
+        snapshot.operation(geo::GeometrySpatialQueryOperation::kd_tree_query_nearest),
+        1U,
+        nearest_results);
+
+    telemetry.reset_for_testing();
 }
