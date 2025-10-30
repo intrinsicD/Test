@@ -27,7 +27,7 @@
 | `modules/` | Per-module README + roadmap | Working in specific subsystem |
 | `prompts/` | Reusable agent instruction templates | Standardising AI workflows |
 | `specs/` | ADRs, RFPs – binding architectural decisions | Before designing new features |
-| `examples/` | Usage samples and tutorials | Learning API usage |
+| `examples/` | Usage samples and tutorials ([README](examples/README.md)) | Learning API usage |
 | `archive/` | Historical artefacts (completed tasks, reviews) | Research and provenance |
 
 ## 🔀 Workflow References

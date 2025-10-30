@@ -255,8 +255,9 @@ ctest --preset linux-gcc-debug -R runtime
   harness execution, sandbox integration, and benchmarking automation steps.
 - A sample configuration lives at `docs/examples/ai004_sample.json` and
   references the `assets/datasets/remesh_sample` manifest so new contributors
-  can exercise the harness without authoring manifests from scratch. Validate
-  AI-004 configurations with the Python harness scaffold:
+  can exercise the harness without authoring manifests from scratch. Review
+  `docs/examples/README.md` for a field-by-field breakdown before iterating.
+  Validate AI-004 configurations with the Python harness scaffold:
   ```bash
   python -m scripts.prototyping.run_prototype_harness --config docs/examples/ai004_sample.json --dry-run
   ```
@@ -296,6 +297,7 @@ ctest --preset linux-gcc-debug -R runtime
   integration test `runtime_prototype_harness_sample_dry_run` consumes. Those
   summaries now report dispatch counts, execution order, and kernel durations in
   milliseconds so CC-310 automation can diff native runs without parsing logs.
+  Build and smoke-test instructions live in `engine/runtime/samples/README.md`.
 - Enable strict schema enforcement during the migration by exporting
   `ENGINE_AI004_SCHEMA_V1=1`. When the variable is unset the loaders inject
   default schema headers so legacy manifests remain compatible while teams

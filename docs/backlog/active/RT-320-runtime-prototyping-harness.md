@@ -32,7 +32,7 @@ Researchers currently assemble ad-hoc executables to validate algorithms. RT-320
 - [x] Harness boots from a schema-driven configuration, loads reference datasets, and configures the research rendering baseline.
 - [x] Interactive mode offers camera/navigation controls, overlay toggles, and telemetry capture integrated with the tools sandbox.
 - [x] Headless mode runs scripted scenarios and writes reproducible telemetry outputs.
-- [ ] Runtime documentation and samples include setup instructions plus example configuration files.
+- [x] Runtime documentation and samples include setup instructions plus example configuration files (see `engine/runtime/samples/README.md` and `docs/examples/README.md`).
 
 ## Dependencies
 - [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
@@ -58,3 +58,5 @@ automation can track kernel scheduling drift without parsing native runtime logs
 asset integrity metadata in configuration summaries for TL-210 and AS-330 consumers.
 
 **2026-02-11** — Harness configures research rendering presets through the runtime API, propagating shading mode, resolution, and overlay toggles into Research Baseline telemetry for sandbox and benchmarking consumers. `PrototypeHarness.interactive_session()` now exposes a context-managed runtime bridge so TL-210 can toggle overlays, advance ticks, and capture telemetry summaries without reloading configurations.
+
+**2026-02-12** — Documented native sample usage in `engine/runtime/samples/README.md`, published schema walkthrough for `docs/examples/ai004_sample.json`, and linked CTest smoke coverage (`runtime_prototype_harness_sample_dry_run`, `runtime_prototype_harness_geometry_case_study`) for sprint acceptance tracking.
