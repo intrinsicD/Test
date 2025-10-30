@@ -5,6 +5,7 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <optional>
 
 using namespace engine::tools::sandbox;
@@ -66,11 +67,16 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
                "parser.add_argument('--frames', type=int, required=True)\n"
                "parser.add_argument('--dt', type=float, required=True)\n"
                "parser.add_argument('--summary-json', required=True)\n"
+               "parser.add_argument('--dataset')\n"
+               "parser.add_argument('--rendering-preset')\n"
+               "parser.add_argument('--shading-mode')\n"
+               "parser.add_argument('--overlay', action='append', default=[])\n"
                "args = parser.parse_args()\n"
                "payload = {\n"
-               "    'dataset': 'geometry-baseline',\n"
-               "    'rendering_preset': 'research',\n"
-               "    'shading_mode': 'Forward',\n"
+               "    'dataset': args.dataset,\n"
+               "    'rendering_preset': args.rendering_preset,\n"
+               "    'shading_mode': args.shading_mode,\n"
+               "    'overlays': args.overlay,\n"
                "    'frames': args.frames,\n"
                "    'timestep_seconds': args.dt,\n"
                "}\n"
@@ -82,6 +88,11 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
     SandboxPreferences preferences{};
     preferences.benchmark_frames = 240;
     preferences.benchmark_timestep = 1.0F / 120.0F;
+    preferences.selected_dataset = "geometry-baseline";
+    preferences.selected_preset = "research";
+    preferences.shading_mode = "forward";
+    preferences.overlays["normals"] = true;
+    preferences.overlays["uv"] = false;
 
     const auto result = runner.run(preferences);
     SCOPED_TRACE(result.details);
@@ -89,6 +100,22 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
     EXPECT_EQ(result.headline, "Benchmark succeeded");
     EXPECT_NE(result.details.find("frames=240"), std::string::npos);
     EXPECT_NE(result.details.find("dt=0.008333"), std::string::npos);
+
+    std::filesystem::path summary_path;
+    for (const auto& entry : std::filesystem::directory_iterator(temp_dir))
+    {
+        if (entry.path().extension() == ".json")
+        {
+            summary_path = entry.path();
+            break;
+        }
+    }
+    ASSERT_FALSE(summary_path.empty());
+    std::ifstream summary_stream(summary_path);
+    ASSERT_TRUE(summary_stream.is_open());
+    const std::string summary_content{std::istreambuf_iterator<char>{summary_stream}, std::istreambuf_iterator<char>{}};
+    EXPECT_NE(summary_content.find("geometry-baseline"), std::string::npos);
+    EXPECT_NE(summary_content.find("normals=1"), std::string::npos);
 }
 
 TEST(PrototypeHarnessBenchmarkRunner, ReportsFailure)
