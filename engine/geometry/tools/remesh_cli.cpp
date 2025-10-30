@@ -1014,17 +1014,17 @@ namespace engine::geometry::tools
 
         yaml << "    metrics:\n";
         yaml << "      input:\n";
+        yaml << "        surface_area: " << safe_value(result.input_surface_area) << "\n";
         yaml << "        vertices: " << result.input_vertex_count << "\n";
         yaml << "        faces: " << result.input_face_count << "\n";
-        yaml << "        surface_area: " << safe_value(result.input_surface_area) << "\n";
         yaml << "        edge_length:\n";
         yaml << "          min: " << safe_value(result.input_edge_statistics.min_edge_length) << "\n";
         yaml << "          max: " << safe_value(result.input_edge_statistics.max_edge_length) << "\n";
         yaml << "          mean: " << safe_value(result.input_edge_statistics.mean_edge_length()) << "\n";
         yaml << "      output:\n";
+        yaml << "        surface_area: " << safe_value(result.output_surface_area) << "\n";
         yaml << "        vertices: " << result.output.mesh.positions.size() << "\n";
         yaml << "        faces: " << (result.output.mesh.indices.size() / 3U) << "\n";
-        yaml << "        surface_area: " << safe_value(result.output_surface_area) << "\n";
         yaml << "        edge_length:\n";
         yaml << "          min: " << safe_value(statistics.min_edge_length) << "\n";
         yaml << "          max: " << safe_value(statistics.max_edge_length) << "\n";
