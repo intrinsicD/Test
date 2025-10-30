@@ -74,6 +74,7 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
                "parser.add_argument('--overlay', action='append', default=[])\n"
                "args = parser.parse_args()\n"
                "payload = {\n"
+               "    'scenario': 'geometry-baseline',\n"
                "    'dataset': args.dataset,\n"
                "    'rendering_preset': args.rendering_preset,\n"
                "    'shading_mode': args.shading_mode,\n"
@@ -81,6 +82,14 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
                "    'overlays': args.overlay,\n"
                "    'frames': args.frames,\n"
                "    'timestep_seconds': args.dt,\n"
+               "    'average_tick_ms': 8.3,\n"
+               "    'run_index': 1,\n"
+               "    'run_count': 3,\n"
+               "    'dispatch_order': ['runtime.dispatch'],\n"
+               "    'dispatch_durations_ms': [0.53],\n"
+               "    'telemetry_outputs': [\n"
+               "        {'kind': 'json', 'path': 'out/benchmark.json'}\n"
+               "    ],\n"
                "}\n"
                "with open(args.summary_json, 'w', encoding='utf-8') as handle:\n"
                "    json.dump(payload, handle)\n");
@@ -101,8 +110,12 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
     SCOPED_TRACE(result.details);
     EXPECT_TRUE(result.success);
     EXPECT_EQ(result.headline, "Benchmark succeeded");
+    EXPECT_NE(result.details.find("scenario=geometry-baseline"), std::string::npos);
+    EXPECT_NE(result.details.find("runtime=baseline"), std::string::npos);
     EXPECT_NE(result.details.find("frames=240"), std::string::npos);
     EXPECT_NE(result.details.find("dt=0.008333"), std::string::npos);
+    EXPECT_NE(result.details.find("avg_ms=8.300"), std::string::npos);
+    EXPECT_NE(result.details.find("run=1/3"), std::string::npos);
 
     std::filesystem::path summary_path;
     for (const auto& entry : std::filesystem::directory_iterator(temp_dir))
@@ -117,7 +130,7 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
     std::ifstream summary_stream(summary_path);
     ASSERT_TRUE(summary_stream.is_open());
     const std::string summary_content{std::istreambuf_iterator<char>{summary_stream}, std::istreambuf_iterator<char>{}};
-    EXPECT_NE(summary_content.find("geometry-baseline"), std::string::npos);
+    EXPECT_NE(summary_content.find("\"scenario\": \"geometry-baseline\""), std::string::npos);
     EXPECT_NE(summary_content.find("normals=1"), std::string::npos);
     EXPECT_NE(summary_content.find("\"runtime_profile\": \"baseline\""), std::string::npos);
 }
