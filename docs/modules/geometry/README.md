@@ -442,9 +442,10 @@ parameterisation summaries so tooling or CI can ingest the results directly.
 
 To align with the shared AI-004 configuration schema (`ADR-0007`/`DC-040`), the
 CLI now emits a ready-to-paste `datasets` manifest snippet summarising the job.
-The snippet carries the schema identifier/version and records `geometry_remesh`
-as the generator so downstream validators can assert compatibility without
-inspecting output assets.
+The snippet carries the schema identifier/version, embeds SHA-256 hashes and
+byte sizes for input/output meshes, and records `geometry_remesh` as the
+generator so downstream validators can assert compatibility without inspecting
+output assets.
 Automation can capture this block to register remeshed assets in prototyping
 manifests without re-deriving telemetry:
 
@@ -453,30 +454,64 @@ datasets:
   - id: remesh-sample
     schema:
       id: ai-004.dataset
-      version: 1
+      version: 2
     kind: geometry.remesh
     source:
       generator: geometry_remesh
       mesh: input.obj
+      mesh_sha256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      mesh_size_bytes: 196
     outputs:
       mesh: output.obj
+      mesh_sha256: fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210
+      mesh_size_bytes: 277
     remeshing:
       mode: uniform
       targets:
         target_edge_length: 0.2500
+    feature_preservation:
+      lock_boundary_edges: true
+      lock_feature_edges: true
+      minimum_feature_angle_degrees: 30.0000
     metrics:
+      input:
+        vertices: 4
+        faces: 2
+        edge_length:
+          min: 1.0000
+          max: 1.4142
+          mean: 1.2071
       output:
         vertices: 4
         faces: 2
+        edge_length:
+          min: 0.2500
+          max: 0.7500
+          mean: 0.5000
     parameterization:
       mode: generate_lscm
       texel_density: 256.0000
+      chart_count: 1
+      average_stretch: 1.0150
+      max_stretch: 1.1250
+      fill_ratio: 0.8750
+      total_seam_length: 4.0000
+      charts:
+        - index: 0
+          min_uv: [0.0000, 0.0000]
+          max_uv: [1.0000, 1.0000]
+          translation: [0.0000, 0.0000]
+          scale: 1.0000
+          area: 1.0000
+          boundary_length: 4.0000
     statistics:
       iterations: 8
       splits: 12
       collapses: 3
       duration_ms: 12.5000
       max_error: 0.0025
+      min_edge_length: 0.2500
+      max_edge_length: 0.7500
       max_surface_deviation: 0.0150
       mean_surface_deviation: 0.0100
       rms_surface_deviation: 0.0120

@@ -240,14 +240,31 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     parameterization.charts.push_back(chart);
     result.output.parameterization = parameterization;
 
+    result.input_file.path = options.input_path;
+    result.input_file.size_bytes = 196U;
+    result.input_file.sha256 =
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    result.output_file.path = options.output_path;
+    result.output_file.size_bytes = 277U;
+    result.output_file.sha256 =
+        "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
+
     const std::string manifest = tools::BuildDatasetManifestEntry(options, result);
 
     EXPECT_NE(manifest.find("datasets:"), std::string::npos);
     EXPECT_NE(manifest.find("schema:\n      id: ai-004.dataset"), std::string::npos);
-    EXPECT_NE(manifest.find("version: 1"), std::string::npos);
+    EXPECT_NE(manifest.find("version: 2"), std::string::npos);
     EXPECT_NE(manifest.find("id: remesh-sample"), std::string::npos);
     EXPECT_NE(manifest.find("job_label: \"Remesh Sample\""), std::string::npos);
     EXPECT_NE(manifest.find("generator: geometry_remesh"), std::string::npos);
+    EXPECT_NE(manifest.find("mesh_sha256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
+              std::string::npos);
+    EXPECT_NE(manifest.find("mesh_size_bytes: 196"), std::string::npos);
+    EXPECT_NE(manifest.find("outputs:\n      mesh:"), std::string::npos);
+    EXPECT_NE(manifest.find(
+                  "mesh_sha256: fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"),
+              std::string::npos);
+    EXPECT_NE(manifest.find("mesh_size_bytes: 277"), std::string::npos);
     EXPECT_NE(manifest.find("mode: uniform"), std::string::npos);
     EXPECT_NE(manifest.find("target_edge_length: 0.2500"), std::string::npos);
     EXPECT_NE(manifest.find("texel_density: 256.0000"), std::string::npos);

@@ -3,6 +3,7 @@
 #include "engine/core/diagnostics/result.hpp"
 #include "engine/geometry/remesh/remesh.hpp"
 
+#include <cstdint>
 #include <filesystem>
 #include <iosfwd>
 #include <optional>
@@ -11,6 +12,13 @@
 
 namespace engine::geometry::tools
 {
+    struct DatasetFileDigest
+    {
+        std::filesystem::path path{};
+        std::uintmax_t size_bytes{0U};
+        std::string sha256{};
+    };
+
     struct RemeshCliOptions
     {
         std::filesystem::path input_path{};
@@ -35,6 +43,8 @@ namespace engine::geometry::tools
         std::size_t input_vertex_count{0U};
         std::size_t input_face_count{0U};
         MeshEdgeStatistics input_edge_statistics{};
+        DatasetFileDigest input_file{};
+        DatasetFileDigest output_file{};
     };
 
     using RemeshCliOptionsResult = engine::Result<RemeshCliOptions, std::string>;
