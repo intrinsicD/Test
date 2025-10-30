@@ -152,6 +152,67 @@ def _write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _list_datasets(
+    summary: HarnessConfigurationSummary,
+    *,
+    config_label: str | None,
+    config_path: Path | None,
+    json_path: Path | None,
+) -> int:
+    header_parts: list[str] = []
+    if config_label:
+        header_parts.append(f"{config_label}")
+    if config_path is not None:
+        header_parts.append(str(config_path))
+    if header_parts:
+        joined = ", ".join(header_parts)
+        print(f"Datasets for {joined}:")
+    else:
+        print("Datasets:")
+
+    if not summary.datasets:
+        print("  <none>")
+    else:
+        for dataset in summary.datasets:
+            label = dataset.label or dataset.identifier
+            tags = ", ".join(dataset.tags) if dataset.tags else "<none>"
+            asset_total = len(dataset.assets)
+            verified_assets = sum(1 for asset in dataset.assets if asset.verified)
+            if asset_total == 0:
+                verification = "no assets declared"
+            elif verified_assets == asset_total:
+                verification = "all assets verified"
+            else:
+                verification = f"{verified_assets}/{asset_total} assets verified"
+            print(
+                "  - "
+                f"{dataset.identifier} ({label}) "
+                f"kind={dataset.kind} tags=[{tags}] {verification}"
+            )
+            if asset_total and verified_assets != asset_total:
+                for asset in dataset.assets:
+                    if asset.verified:
+                        continue
+                    reason = asset.message or "verification failed"
+                    print(f"    • {asset.role}: {reason}")
+
+    if summary.selected_dataset is not None:
+        print(f"Selected dataset: {summary.selected_dataset}")
+
+    if json_path is not None:
+        payload = configuration_summary_to_dict(summary)
+        export: dict[str, object] = {
+            "datasets": payload.get("datasets", []),
+            "selected_dataset": payload.get("selected_dataset"),
+        }
+        if config_label is not None:
+            export["source_label"] = config_label
+        if config_path is not None:
+            export["config_path"] = str(config_path)
+        _write_json(json_path, export)
+    return 0
+
+
 def _summary_path_for_run(base: Path, index: int, total: int) -> Path:
     if total <= 1:
         return base
@@ -355,6 +416,16 @@ def main(argv: Iterable[str] | None = None) -> int:
         help="Write the execution summary to the specified JSON file.",
     )
     parser.add_argument(
+        "--list-datasets",
+        action="store_true",
+        help="List datasets declared in the configuration without executing the harness.",
+    )
+    parser.add_argument(
+        "--datasets-json",
+        type=Path,
+        help="Write dataset metadata extracted from the configuration to the specified JSON file.",
+    )
+    parser.add_argument(
         "--list-benchmarks",
         action="store_true",
         help="List benchmark scenarios defined in the configuration before execution.",
@@ -380,6 +451,37 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     if args.case_studies_json is not None:
         parser.error("--case-studies-json requires --list-case-studies")
+
+    if args.datasets_json is not None and not args.list_datasets:
+        parser.error("--datasets-json requires --list-datasets")
+
+    if args.list_datasets:
+        if args.summary_json is not None or args.describe_json is not None or args.list_benchmarks:
+            parser.error("--list-datasets cannot be combined with execution options")
+        if args.config is None and args.case_study is None:
+            parser.error("--list-datasets requires --config or --case-study")
+        if args.datasets_json is not None and args.datasets_json.is_dir():
+            parser.error("--datasets-json must reference a file path")
+        try:
+            config_path, case_label = _resolve_config_argument(args)
+        except CaseStudyError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 2
+        try:
+            harness = load_harness(
+                str(config_path),
+                require_schema=True if args.require_schema else None,
+            )
+        except PrototypeHarnessError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 2
+        summary = harness.describe_configuration()
+        return _list_datasets(
+            summary,
+            config_label=case_label,
+            config_path=config_path,
+            json_path=args.datasets_json,
+        )
 
     if args.frames <= 0 and not args.dry_run:
         parser.error("--frames must be greater than zero unless --dry-run is specified")

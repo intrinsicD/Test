@@ -81,3 +81,31 @@ def test_ingest_manifest_writes_summary_with_extended_statistics(tmp_path: Path)
     assert statistics["triangles"] == 4
     assert statistics["triangle_quality"] == {"min": 0.64, "mean": 0.82, "max": 0.99}
     assert summary["source_generator"] == "sample_assets"
+
+
+def test_cli_summary_generates_aggregated_payload(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    manifest_path = _REPO_ROOT / "assets" / "datasets" / "remesh_sample" / "manifest.json"
+    summary_path = tmp_path / "artifacts" / "summary.json"
+
+    from scripts.datasets import ingest_dataset
+
+    exit_code = ingest_dataset.main(
+        [
+            str(manifest_path),
+            "--dry-run",
+            "--summary",
+            str(summary_path),
+            "--require-schema",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert summary_path.exists()
+    assert "dataset=remesh-unit-square" in captured.out
+
+    payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert "manifests" in payload
+    assert payload["manifests"][0]["datasets"][0]["id"] == "remesh-unit-square"
+    files = payload["manifests"][0]["datasets"][0]["files"]
+    assert "source" in files and "output" in files

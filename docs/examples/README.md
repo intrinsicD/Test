@@ -62,3 +62,15 @@ python -m scripts.prototyping.run_prototype_harness \
 The native sample `engine/runtime/runtime_prototype_harness` accepts the same
 configuration; see `engine/runtime/samples/README.md` for build instructions and
 integration smoke tests.
+
+List dataset metadata and verification status without executing the runtime by
+invoking:
+
+```bash
+python -m scripts.prototyping.run_prototype_harness \
+    --config docs/examples/ai004_sample.json \
+    --list-datasets --datasets-json telemetry/dataset_inventory.json
+```
+
+The JSON export mirrors the sandbox configuration summary so dataset packaging
+(`AS-330`) and tooling integrations can consume the same verification payload.

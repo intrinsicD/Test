@@ -335,6 +335,14 @@ def _format_result(result: DatasetIngestionResult) -> str:
     )
 
 
+def _write_json(path: Path, payload: object, *, context: str) -> None:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    except OSError as error:
+        raise DatasetIngestionError(f"failed to write {context} '{path}': {error}") from error
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifests", nargs="+", help="Dataset manifest paths to ingest")
@@ -362,11 +370,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="Validate manifests without copying files or writing summaries",
     )
+    parser.add_argument(
+        "--summary",
+        type=Path,
+        help="Write an aggregated JSON summary for all processed manifests",
+    )
 
     args = parser.parse_args(argv)
     destination = Path(args.output)
 
+    if args.summary is not None and args.summary.is_dir():
+        parser.error("--summary must reference a file path")
+
     try:
+        aggregated: list[dict[str, object]] = []
         for manifest_path in args.manifests:
             results = ingest_manifest(
                 Path(manifest_path),
@@ -375,8 +392,19 @@ def main(argv: Sequence[str] | None = None) -> int:
                 dry_run=args.dry_run,
                 require_schema=args.require_schema,
             )
+            if args.summary is not None:
+                datasets = [_build_summary(result.entry, result.files) for result in results]
+                aggregated.append(
+                    {
+                        "manifest": str(Path(manifest_path).resolve()),
+                        "datasets": datasets,
+                    }
+                )
             for result in results:
                 print(_format_result(result))
+        if args.summary is not None:
+            payload = {"manifests": aggregated}
+            _write_json(args.summary, payload, context="summary")
     except DatasetIngestionError as error:
         parser.error(str(error))
         return 2  # pragma: no cover - argparse already exits
