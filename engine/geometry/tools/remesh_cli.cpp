@@ -3,15 +3,18 @@
 #include "engine/geometry/api.hpp"
 
 #include <algorithm>
+#include <array>
 #include <charconv>
 #include <cctype>
 #include <cstddef>
 #include <cmath>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <cstring>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -196,6 +199,234 @@ namespace engine::geometry::tools
             {
                 return value;
             }
+        }
+
+        class Sha256
+        {
+        public:
+            Sha256() noexcept
+            {
+                reset();
+            }
+
+            void update(const std::uint8_t* data, std::size_t size) noexcept
+            {
+                if (size == 0)
+                {
+                    return;
+                }
+
+                total_bits_ += static_cast<std::uint64_t>(size) * 8ULL;
+
+                while (size > 0)
+                {
+                    const std::size_t space = block_.size() - buffer_size_;
+                    const std::size_t to_copy = std::min(space, size);
+                    std::memcpy(block_.data() + buffer_size_, data, to_copy);
+                    buffer_size_ += to_copy;
+                    data += to_copy;
+                    size -= to_copy;
+
+                    if (buffer_size_ == block_.size())
+                    {
+                        transform(block_.data());
+                        buffer_size_ = 0U;
+                    }
+                }
+            }
+
+            void finalize(std::uint8_t digest[32]) noexcept
+            {
+                const std::uint64_t total_bits = total_bits_;
+
+                block_[buffer_size_] = 0x80U;
+                ++buffer_size_;
+
+                if (buffer_size_ > 56U)
+                {
+                    std::fill(block_.begin() + buffer_size_, block_.end(), 0);
+                    transform(block_.data());
+                    buffer_size_ = 0U;
+                }
+
+                std::fill(block_.begin() + buffer_size_, block_.begin() + 56U, 0);
+
+                for (std::size_t index = 0; index < 8U; ++index)
+                {
+                    const std::size_t shift = 56U - (index * 8U);
+                    block_[56U + index] = static_cast<std::uint8_t>((total_bits >> shift) & 0xFFU);
+                }
+
+                transform(block_.data());
+                buffer_size_ = 0U;
+
+                for (std::size_t index = 0; index < state_.size(); ++index)
+                {
+                    digest[index * 4U] = static_cast<std::uint8_t>((state_[index] >> 24U) & 0xFFU);
+                    digest[index * 4U + 1U] = static_cast<std::uint8_t>((state_[index] >> 16U) & 0xFFU);
+                    digest[index * 4U + 2U] = static_cast<std::uint8_t>((state_[index] >> 8U) & 0xFFU);
+                    digest[index * 4U + 3U] = static_cast<std::uint8_t>(state_[index] & 0xFFU);
+                }
+            }
+
+        private:
+            void reset() noexcept
+            {
+                state_ = {
+                    0x6A09E667U,
+                    0xBB67AE85U,
+                    0x3C6EF372U,
+                    0xA54FF53AU,
+                    0x510E527FU,
+                    0x9B05688CU,
+                    0x1F83D9ABU,
+                    0x5BE0CD19U,
+                };
+                total_bits_ = 0U;
+                buffer_size_ = 0U;
+            }
+
+            void transform(const std::uint8_t* chunk) noexcept
+            {
+                static constexpr std::array<std::uint32_t, 64> kConstants{
+                    0x428A2F98U, 0x71374491U, 0xB5C0FBCFU, 0xE9B5DBA5U, 0x3956C25BU, 0x59F111F1U, 0x923F82A4U,
+                    0xAB1C5ED5U, 0xD807AA98U, 0x12835B01U, 0x243185BEU, 0x550C7DC3U, 0x72BE5D74U, 0x80DEB1FEU,
+                    0x9BDC06A7U, 0xC19BF174U, 0xE49B69C1U, 0xEFBE4786U, 0x0FC19DC6U, 0x240CA1CCU, 0x2DE92C6FU,
+                    0x4A7484AAU, 0x5CB0A9DCU, 0x76F988DAU, 0x983E5152U, 0xA831C66DU, 0xB00327C8U, 0xBF597FC7U,
+                    0xC6E00BF3U, 0xD5A79147U, 0x06CA6351U, 0x14292967U, 0x27B70A85U, 0x2E1B2138U, 0x4D2C6DFCU,
+                    0x53380D13U, 0x650A7354U, 0x766A0ABBU, 0x81C2C92EU, 0x92722C85U, 0xA2BFE8A1U, 0xA81A664BU,
+                    0xC24B8B70U, 0xC76C51A3U, 0xD192E819U, 0xD6990624U, 0xF40E3585U, 0x106AA070U, 0x19A4C116U,
+                    0x1E376C08U, 0x2748774CU, 0x34B0BCB5U, 0x391C0CB3U, 0x4ED8AA4AU, 0x5B9CCA4FU, 0x682E6FF3U,
+                    0x748F82EEU, 0x78A5636FU, 0x84C87814U, 0x8CC70208U, 0x90BEFFFAU, 0xA4506CEBU, 0xBEF9A3F7U,
+                    0xC67178F2U,
+                };
+
+                auto right_rotate = [](std::uint32_t value, std::uint32_t bits) noexcept -> std::uint32_t
+                {
+                    return (value >> bits) | (value << (32U - bits));
+                };
+
+                std::array<std::uint32_t, 64> w{};
+                for (std::size_t index = 0; index < 16U; ++index)
+                {
+                    w[index] = (static_cast<std::uint32_t>(chunk[index * 4U]) << 24U) |
+                        (static_cast<std::uint32_t>(chunk[index * 4U + 1U]) << 16U) |
+                        (static_cast<std::uint32_t>(chunk[index * 4U + 2U]) << 8U) |
+                        static_cast<std::uint32_t>(chunk[index * 4U + 3U]);
+                }
+
+                for (std::size_t index = 16U; index < 64U; ++index)
+                {
+                    const std::uint32_t s0 = right_rotate(w[index - 15U], 7U) ^ right_rotate(w[index - 15U], 18U) ^
+                        (w[index - 15U] >> 3U);
+                    const std::uint32_t s1 = right_rotate(w[index - 2U], 17U) ^ right_rotate(w[index - 2U], 19U) ^
+                        (w[index - 2U] >> 10U);
+                    w[index] = w[index - 16U] + s0 + w[index - 7U] + s1;
+                }
+
+                std::uint32_t a = state_[0];
+                std::uint32_t b = state_[1];
+                std::uint32_t c = state_[2];
+                std::uint32_t d = state_[3];
+                std::uint32_t e = state_[4];
+                std::uint32_t f = state_[5];
+                std::uint32_t g = state_[6];
+                std::uint32_t h = state_[7];
+
+                for (std::size_t index = 0; index < 64U; ++index)
+                {
+                    const std::uint32_t S1 = right_rotate(e, 6U) ^ right_rotate(e, 11U) ^ right_rotate(e, 25U);
+                    const std::uint32_t ch = (e & f) ^ ((~e) & g);
+                    const std::uint32_t temp1 = h + S1 + ch + kConstants[index] + w[index];
+                    const std::uint32_t S0 = right_rotate(a, 2U) ^ right_rotate(a, 13U) ^ right_rotate(a, 22U);
+                    const std::uint32_t maj = (a & b) ^ (a & c) ^ (b & c);
+                    const std::uint32_t temp2 = S0 + maj;
+
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = d + temp1;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = temp1 + temp2;
+                }
+
+                state_[0] += a;
+                state_[1] += b;
+                state_[2] += c;
+                state_[3] += d;
+                state_[4] += e;
+                state_[5] += f;
+                state_[6] += g;
+                state_[7] += h;
+            }
+
+            std::array<std::uint32_t, 8> state_{};
+            std::uint64_t total_bits_{0U};
+            std::array<std::uint8_t, 64> block_{};
+            std::size_t buffer_size_{0U};
+        };
+
+        [[nodiscard]] std::string to_hex_string(const std::uint8_t* data, std::size_t length)
+        {
+            static constexpr char digits[] = "0123456789abcdef";
+            std::string hex;
+            hex.resize(length * 2U);
+            for (std::size_t index = 0; index < length; ++index)
+            {
+                const std::uint8_t value = data[index];
+                hex[index * 2U] = digits[value >> 4U];
+                hex[index * 2U + 1U] = digits[value & 0x0FU];
+            }
+            return hex;
+        }
+
+        [[nodiscard]] engine::Result<DatasetFileDigest, std::string> compute_file_digest(const std::filesystem::path& path)
+        {
+            std::ifstream stream{path, std::ios::binary};
+            if (!stream)
+            {
+                std::ostringstream message;
+                message << "Failed to open file '" << path.string() << "' for hashing";
+                return message.str();
+            }
+
+            Sha256 hasher{};
+            std::array<std::uint8_t, 4096> buffer{};
+            std::uintmax_t total_size = 0U;
+
+            while (true)
+            {
+                stream.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
+                const std::streamsize count = stream.gcount();
+                if (count > 0)
+                {
+                    hasher.update(buffer.data(), static_cast<std::size_t>(count));
+                    total_size += static_cast<std::uintmax_t>(count);
+                }
+
+                if (stream.eof())
+                {
+                    break;
+                }
+
+                if (stream.fail())
+                {
+                    std::ostringstream message;
+                    message << "Failed to read file '" << path.string() << "' while computing SHA-256";
+                    return message.str();
+                }
+            }
+
+            std::array<std::uint8_t, 32> digest{};
+            hasher.finalize(digest.data());
+
+            DatasetFileDigest metadata{};
+            metadata.path = path;
+            metadata.size_bytes = total_size;
+            metadata.sha256 = to_hex_string(digest.data(), digest.size());
+            return metadata;
         }
 
         [[nodiscard]] std::filesystem::path default_output_path(const std::filesystem::path& input)
@@ -627,6 +858,13 @@ namespace engine::geometry::tools
         summary.input_face_count = input_mesh.indices.size() / 3U;
         summary.input_edge_statistics = ComputeMeshEdgeStatistics(input_mesh);
 
+        const auto input_digest = compute_file_digest(options.input_path);
+        if (!input_digest.has_value())
+        {
+            return RemeshCliExecution{input_digest.error()};
+        }
+        summary.input_file = input_digest.value();
+
         RemeshRequest request{};
         request.input_mesh = &input_mesh;
         request.mode = options.mode;
@@ -658,6 +896,13 @@ namespace engine::geometry::tools
         {
             return RemeshCliExecution{std::string{"Failed to save remeshed output: "}.append(exception.what())};
         }
+
+        const auto output_digest = compute_file_digest(options.output_path);
+        if (!output_digest.has_value())
+        {
+            return RemeshCliExecution{output_digest.error()};
+        }
+        summary.output_file = output_digest.value();
 
         if (options.manifest_output_path.has_value())
         {
@@ -711,7 +956,7 @@ namespace engine::geometry::tools
         yaml << "  - id: " << dataset_id << "\n";
         yaml << "    schema:\n";
         yaml << "      id: ai-004.dataset\n";
-        yaml << "      version: 1\n";
+        yaml << "      version: 2\n";
         yaml << "    kind: geometry.remesh\n";
         if (options.job_label.has_value())
         {
@@ -721,8 +966,12 @@ namespace engine::geometry::tools
         yaml << "    source:\n";
         yaml << "      generator: geometry_remesh\n";
         yaml << "      mesh: " << path_or_placeholder(options.input_path, "<unknown>") << "\n";
+        yaml << "      mesh_sha256: " << result.input_file.sha256 << "\n";
+        yaml << "      mesh_size_bytes: " << result.input_file.size_bytes << "\n";
         yaml << "    outputs:\n";
         yaml << "      mesh: " << path_or_placeholder(options.output_path, "<unspecified>") << "\n";
+        yaml << "      mesh_sha256: " << result.output_file.sha256 << "\n";
+        yaml << "      mesh_size_bytes: " << result.output_file.size_bytes << "\n";
         yaml << "    remeshing:\n";
         yaml << "      mode: " << to_mode_string(options.mode) << "\n";
 
