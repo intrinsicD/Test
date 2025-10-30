@@ -297,6 +297,7 @@ class EdgeLengthMetrics:
 class MeshMetrics:
     vertices: int
     faces: int
+    surface_area: float
     edge_length: EdgeLengthMetrics
 
     @classmethod
@@ -304,6 +305,9 @@ class MeshMetrics:
         return cls(
             vertices=_require_int(data.get("vertices"), _child(context, "vertices")),
             faces=_require_int(data.get("faces"), _child(context, "faces")),
+            surface_area=_require_non_negative_float(
+                data.get("surface_area"), _child(context, "surface_area")
+            ),
             edge_length=EdgeLengthMetrics.from_mapping(
                 _require_mapping(data.get("edge_length"), _child(context, "edge_length")), _child(context, "edge_length")
             ),

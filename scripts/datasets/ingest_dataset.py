@@ -87,6 +87,7 @@ def _serialize_mesh_metrics(metrics: MeshMetrics) -> Mapping[str, object]:
     return {
         "vertices": metrics.vertices,
         "faces": metrics.faces,
+        "surface_area": metrics.surface_area,
         "edge_length": _serialize_edge_metrics(metrics.edge_length),
     }
 

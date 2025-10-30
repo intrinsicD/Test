@@ -37,3 +37,25 @@ TEST(GeometryModule, UpdateBoundsZeroesEmptyMeshes)
         EXPECT_FLOAT_EQ(mesh.bounds.max[axis], 0.0F);
     }
 }
+
+TEST(GeometryModule, SurfaceAreaMatchesUnitQuad)
+{
+    const auto mesh = engine::geometry::make_unit_quad();
+    EXPECT_NEAR(engine::geometry::surface_area(mesh), 1.0F, 1e-4F);
+}
+
+TEST(GeometryModule, SurfaceAreaIgnoresInvalidTriangles)
+{
+    engine::geometry::SurfaceMesh mesh{};
+    mesh.positions = {
+        engine::math::vec3{0.0F, 0.0F, 0.0F},
+        engine::math::vec3{1.0F, 0.0F, 0.0F},
+        engine::math::vec3{0.0F, 1.0F, 0.0F},
+    };
+    mesh.indices = {0U, 1U, 2U, 0U, 3U, 1U};
+
+    EXPECT_NEAR(engine::geometry::surface_area(mesh), 0.5F, 1e-4F);
+
+    mesh.indices = {0U, 1U, 3U};
+    EXPECT_FLOAT_EQ(engine::geometry::surface_area(mesh), 0.0F);
+}

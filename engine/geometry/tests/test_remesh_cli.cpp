@@ -203,6 +203,8 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     result.input_face_count = 2U;
     result.output.mesh = geo::make_unit_quad();
     result.input_edge_statistics = geo::ComputeMeshEdgeStatistics(result.output.mesh);
+    result.input_surface_area = geo::surface_area(result.output.mesh);
+    result.output_surface_area = geo::surface_area(result.output.mesh);
 
     const geo::MeshEdgeStatistics output_edges = geo::ComputeMeshEdgeStatistics(result.output.mesh);
     result.output.statistics.iteration_count = 8U;
@@ -267,6 +269,8 @@ TEST(RemeshCliSummary, EmitsDatasetManifestEntry)
     EXPECT_NE(manifest.find("mesh_size_bytes: 277"), std::string::npos);
     EXPECT_NE(manifest.find("mode: uniform"), std::string::npos);
     EXPECT_NE(manifest.find("target_edge_length: 0.2500"), std::string::npos);
+    EXPECT_NE(manifest.find("      input:\n        surface_area: 1.0000"), std::string::npos);
+    EXPECT_NE(manifest.find("      output:\n        surface_area: 1.0000"), std::string::npos);
     EXPECT_NE(manifest.find("texel_density: 256.0000"), std::string::npos);
     EXPECT_NE(manifest.find("chart_count: 1"), std::string::npos);
     EXPECT_NE(manifest.find("iterations: 8"), std::string::npos);

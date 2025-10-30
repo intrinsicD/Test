@@ -857,6 +857,7 @@ namespace engine::geometry::tools
         summary.input_vertex_count = input_mesh.positions.size();
         summary.input_face_count = input_mesh.indices.size() / 3U;
         summary.input_edge_statistics = ComputeMeshEdgeStatistics(input_mesh);
+        summary.input_surface_area = surface_area(input_mesh);
 
         const auto input_digest = compute_file_digest(options.input_path);
         if (!input_digest.has_value())
@@ -887,6 +888,7 @@ namespace engine::geometry::tools
         }
 
         summary.output = remesh_result.value();
+        summary.output_surface_area = surface_area(summary.output.mesh);
 
         try
         {
@@ -1014,6 +1016,7 @@ namespace engine::geometry::tools
         yaml << "      input:\n";
         yaml << "        vertices: " << result.input_vertex_count << "\n";
         yaml << "        faces: " << result.input_face_count << "\n";
+        yaml << "        surface_area: " << safe_value(result.input_surface_area) << "\n";
         yaml << "        edge_length:\n";
         yaml << "          min: " << safe_value(result.input_edge_statistics.min_edge_length) << "\n";
         yaml << "          max: " << safe_value(result.input_edge_statistics.max_edge_length) << "\n";
@@ -1021,6 +1024,7 @@ namespace engine::geometry::tools
         yaml << "      output:\n";
         yaml << "        vertices: " << result.output.mesh.positions.size() << "\n";
         yaml << "        faces: " << (result.output.mesh.indices.size() / 3U) << "\n";
+        yaml << "        surface_area: " << safe_value(result.output_surface_area) << "\n";
         yaml << "        edge_length:\n";
         yaml << "          min: " << safe_value(statistics.min_edge_length) << "\n";
         yaml << "          max: " << safe_value(statistics.max_edge_length) << "\n";
@@ -1097,6 +1101,8 @@ namespace engine::geometry::tools
         stream << "  Output: vertices=" << output_vertices << ", faces=" << output_faces << "\n";
 
         stream << std::fixed << std::setprecision(4);
+        stream << "  Surface area (input):  " << result.input_surface_area << "\n";
+        stream << "  Surface area (output): " << result.output_surface_area << "\n";
         stream << "  Edge length (input):  min=" << result.input_edge_statistics.min_edge_length
             << " max=" << result.input_edge_statistics.max_edge_length
             << " mean=" << result.input_edge_statistics.mean_edge_length() << "\n";

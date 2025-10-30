@@ -39,6 +39,7 @@ namespace engine::runtime::config
     {
         int vertices = 0;
         int faces = 0;
+        double surface_area = 0.0;
         EdgeLengthMetrics edge_length;
     };
 

@@ -154,11 +154,13 @@ def _write_configuration(tmp_path: Path) -> Path:
                     "input": {
                         "vertices": 4,
                         "faces": 2,
+                        "surface_area": 1.0,
                         "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
                     },
                     "output": {
                         "vertices": 4,
                         "faces": 2,
+                        "surface_area": 1.0,
                         "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
                     },
                 },
@@ -206,11 +208,13 @@ def _write_configuration(tmp_path: Path) -> Path:
             "input": {
                 "vertices": 4,
                 "faces": 2,
+                "surface_area": 1.0,
                 "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
             },
             "output": {
                 "vertices": 4,
                 "faces": 2,
+                "surface_area": 1.0,
                 "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
             },
         },
@@ -661,7 +665,9 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description.datasets[0].statistics["triangle_quality"]["max"] == pytest.approx(0.95)
     metrics_summary = description.datasets[0].metrics
     assert metrics_summary["input"]["vertices"] == 4
+    assert metrics_summary["input"]["surface_area"] == pytest.approx(1.0)
     assert metrics_summary["input"]["edge_length"]["max"] == pytest.approx(1.0)
+    assert metrics_summary["output"]["surface_area"] == pytest.approx(1.0)
     assert metrics_summary["output"]["edge_length"]["mean"] == pytest.approx(1.0)
     assert description.runtime.dataset == "remesh-sample"
     assert description.rendering is not None
@@ -699,7 +705,9 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert pytest.approx(stats_payload["triangle_quality"]["mean"], rel=1e-6) == 0.9
     assert pytest.approx(stats_payload["triangle_quality"]["max"], rel=1e-6) == 0.95
     metrics_payload = description_payload["datasets"][0]["metrics"]
+    assert metrics_payload["input"]["surface_area"] == pytest.approx(1.0)
     assert metrics_payload["input"]["edge_length"]["min"] == pytest.approx(1.0)
+    assert metrics_payload["output"]["surface_area"] == pytest.approx(1.0)
     assert metrics_payload["output"]["edge_length"]["max"] == pytest.approx(1.0)
     assert description_payload["telemetry"]["schema_version"] == 2
     telemetry_output_payload = description_payload["telemetry"]["outputs"][0]

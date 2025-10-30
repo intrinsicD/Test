@@ -1075,6 +1075,7 @@ class PrototypeHarness:
             "input": {
                 "vertices": entry.input_metrics.vertices,
                 "faces": entry.input_metrics.faces,
+                "surface_area": entry.input_metrics.surface_area,
                 "edge_length": {
                     "min": entry.input_metrics.edge_length.minimum,
                     "mean": entry.input_metrics.edge_length.mean,
@@ -1084,6 +1085,7 @@ class PrototypeHarness:
             "output": {
                 "vertices": entry.output_metrics.vertices,
                 "faces": entry.output_metrics.faces,
+                "surface_area": entry.output_metrics.surface_area,
                 "edge_length": {
                     "min": entry.output_metrics.edge_length.minimum,
                     "mean": entry.output_metrics.edge_length.mean,

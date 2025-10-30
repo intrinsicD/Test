@@ -7,6 +7,7 @@
 #include <array>
 #include <filesystem>
 #include <limits>
+#include <cmath>
 
 namespace engine::geometry
 {
@@ -125,6 +126,38 @@ namespace engine::geometry
             sum += position;
         }
         return sum / static_cast<float>(mesh.positions.size());
+    }
+
+    float surface_area(const SurfaceMesh& mesh) noexcept
+    {
+        if (mesh.positions.empty() || mesh.indices.size() < 3U)
+        {
+            return 0.0F;
+        }
+
+        float area = 0.0F;
+        for (std::size_t i = 0; i + 2 < mesh.indices.size(); i += 3U)
+        {
+            const std::uint32_t ia = mesh.indices[i];
+            const std::uint32_t ib = mesh.indices[i + 1U];
+            const std::uint32_t ic = mesh.indices[i + 2U];
+            if (ia >= mesh.positions.size() || ib >= mesh.positions.size() || ic >= mesh.positions.size())
+            {
+                continue;
+            }
+
+            const math::vec3& a = mesh.positions[ia];
+            const math::vec3& b = mesh.positions[ib];
+            const math::vec3& c = mesh.positions[ic];
+            const math::vec3 cross = math::cross(b - a, c - a);
+            const float triangle_area = 0.5F * math::length(cross);
+            if (std::isfinite(triangle_area))
+            {
+                area += triangle_area;
+            }
+        }
+
+        return area;
     }
 
     SurfaceMesh load_surface_mesh(const std::filesystem::path& path)

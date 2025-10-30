@@ -41,6 +41,8 @@ ENGINE_GEOMETRY_API void apply_uniform_translation(SurfaceMesh& mesh, const math
 
     [[nodiscard]] ENGINE_GEOMETRY_API math::vec3 centroid(const SurfaceMesh& mesh);
 
+    [[nodiscard]] ENGINE_GEOMETRY_API float surface_area(const SurfaceMesh& mesh) noexcept;
+
     [[nodiscard]] ENGINE_GEOMETRY_API SurfaceMesh load_surface_mesh(const std::filesystem::path& path);
 
 ENGINE_GEOMETRY_API void save_surface_mesh(const SurfaceMesh& mesh, const std::filesystem::path& path);

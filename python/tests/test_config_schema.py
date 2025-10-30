@@ -64,11 +64,13 @@ BASE_ENTRY = {
         "input": {
             "vertices": 8,
             "faces": 12,
+            "surface_area": 1.0,
             "edge_length": {"min": 0.4, "max": 1.2, "mean": 0.8},
         },
         "output": {
             "vertices": 16,
             "faces": 28,
+            "surface_area": 1.6,
             "edge_length": {"min": 0.2, "max": 1.0, "mean": 0.5},
         },
     },
@@ -141,6 +143,8 @@ def test_load_dataset_manifest_from_yaml(tmp_path: Path) -> None:
     assert dataset.parameterization.chart_count == 1
     assert dataset.remeshing_targets is not None
     assert pytest.approx(dataset.remeshing_targets.target_edge_length, rel=1e-6) == 0.25
+    assert pytest.approx(dataset.input_metrics.surface_area, rel=1e-6) == 1.0
+    assert pytest.approx(dataset.output_metrics.surface_area, rel=1e-6) == 1.6
     assert pytest.approx(dataset.statistics.max_surface_deviation, rel=1e-6) == 0.015
     assert pytest.approx(dataset.statistics.mean_surface_deviation, rel=1e-6) == 0.010
     assert pytest.approx(dataset.statistics.rms_surface_deviation, rel=1e-6) == 0.012
@@ -165,6 +169,8 @@ def test_load_dataset_manifest_from_json_without_parameterization(tmp_path: Path
     assert dataset.parameterization is None
     assert dataset.feature_preservation.lock_feature_edges is True
     assert dataset.output_metrics.edge_length.mean == pytest.approx(0.5)
+    assert dataset.input_metrics.surface_area == pytest.approx(1.0)
+    assert dataset.output_metrics.surface_area == pytest.approx(1.6)
     assert dataset.source_mesh_sha256 == "f" * 64
     assert dataset.output_mesh_size_bytes == 2048
 
@@ -182,6 +188,8 @@ def test_dataset_manifest_schema_flag(monkeypatch: pytest.MonkeyPatch, tmp_path:
     assert dataset.schema_version == 1
     assert dataset.source_mesh_sha256 is None
     assert dataset.output_mesh_size_bytes is None
+    assert dataset.input_metrics.surface_area == pytest.approx(1.0)
+    assert dataset.output_metrics.surface_area == pytest.approx(1.6)
 
     monkeypatch.setenv("ENGINE_AI004_SCHEMA_V1", "1")
     with pytest.raises(ConfigurationSchemaError):

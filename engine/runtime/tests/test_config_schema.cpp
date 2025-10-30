@@ -160,6 +160,7 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestWithoutSchemaInjectsDefaults)
       input:
         vertices: 8
         faces: 12
+        surface_area: 1.0
         edge_length:
           min: 0.4
           max: 1.2
@@ -167,6 +168,7 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestWithoutSchemaInjectsDefaults)
       output:
         vertices: 16
         faces: 24
+        surface_area: 1.5
         edge_length:
           min: 0.2
           max: 0.9
@@ -195,6 +197,8 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestWithoutSchemaInjectsDefaults)
     EXPECT_FALSE(dataset.statistics.duration_ms.has_value());
     EXPECT_FALSE(dataset.statistics.triangle_count.has_value());
     EXPECT_FALSE(dataset.statistics.triangle_quality.has_value());
+    EXPECT_DOUBLE_EQ(dataset.input_metrics.surface_area, 1.0);
+    EXPECT_DOUBLE_EQ(dataset.output_metrics.surface_area, 1.5);
 }
 
 TEST(RuntimeConfigSchema, LoadDatasetManifestHonoursSchemaFlag)
@@ -221,6 +225,7 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestHonoursSchemaFlag)
       input:
         vertices: 4
         faces: 4
+        surface_area: 1.0
         edge_length:
           min: 0.2
           max: 0.6
@@ -228,6 +233,7 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestHonoursSchemaFlag)
       output:
         vertices: 8
         faces: 12
+        surface_area: 1.6
         edge_length:
           min: 0.1
           max: 0.5
@@ -246,6 +252,9 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestHonoursSchemaFlag)
         EnvVarGuard guard{"ENGINE_AI004_SCHEMA_V1", std::nullopt};
         auto result = load_dataset_manifest(manifest_path);
         ASSERT_TRUE(result);
+        const auto& dataset = result.value().datasets.front();
+        EXPECT_DOUBLE_EQ(dataset.input_metrics.surface_area, 1.0);
+        EXPECT_DOUBLE_EQ(dataset.output_metrics.surface_area, 1.6);
     }
 
     EnvVarGuard guard{"ENGINE_AI004_SCHEMA_V1", std::string{"1"}};
@@ -286,6 +295,7 @@ TEST(RuntimeConfigSchema, LoadConfigurationParsesSections)
       input:
         vertices: 8
         faces: 12
+        surface_area: 1.0
         edge_length:
           min: 0.4
           max: 1.2
@@ -293,6 +303,7 @@ TEST(RuntimeConfigSchema, LoadConfigurationParsesSections)
       output:
         vertices: 16
         faces: 24
+        surface_area: 1.6
         edge_length:
           min: 0.2
           max: 0.9
@@ -375,6 +386,8 @@ telemetry:
     const Ai004Configuration& configuration = result.value();
     ASSERT_EQ(configuration.datasets.datasets.size(), 1U);
     const auto& dataset = configuration.datasets.datasets.front();
+    EXPECT_DOUBLE_EQ(dataset.input_metrics.surface_area, 1.0);
+    EXPECT_DOUBLE_EQ(dataset.output_metrics.surface_area, 1.6);
     ASSERT_TRUE(dataset.statistics.split_count.has_value());
     EXPECT_EQ(*dataset.statistics.split_count, 2);
     ASSERT_TRUE(dataset.statistics.collapse_count.has_value());
@@ -427,6 +440,7 @@ TEST(RuntimeConfigSchema, LoadConfigurationRejectsUnknownDataset)
       input:
         vertices: 4
         faces: 4
+        surface_area: 0.8
         edge_length:
           min: 0.2
           max: 0.6
@@ -434,6 +448,7 @@ TEST(RuntimeConfigSchema, LoadConfigurationRejectsUnknownDataset)
       output:
         vertices: 8
         faces: 8
+        surface_area: 1.2
         edge_length:
           min: 0.1
           max: 0.5
