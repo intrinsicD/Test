@@ -39,3 +39,8 @@ AI-004 requires canonical datasets so harness runs are reproducible and comparab
 
 ## Notes
 Ensure licensing review completes before publishing manifests. Provide smaller subsets for CI usage to keep runtimes deterministic.
+
+**2026-02-13** — Remesh sample manifest now records split/collapse counts, run duration,
+triangle totals, and triangle quality metrics. The ingestion summary exports these
+fields to simplify telemetry comparisons in harness describe outputs and benchmark
+automation.
