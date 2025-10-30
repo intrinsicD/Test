@@ -1016,6 +1016,36 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert "Configuration:" in captured.out
 
 
+def test_cli_list_datasets(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    config_path = _write_configuration(tmp_path)
+    datasets_path = tmp_path / "exports" / "datasets.json"
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        [
+            "--config",
+            str(config_path),
+            "--list-datasets",
+            "--datasets-json",
+            str(datasets_path),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert datasets_path.exists()
+    assert captured.out.splitlines()[0].startswith("Datasets")
+    assert "remesh-sample" in captured.out
+    assert "all assets verified" in captured.out
+
+    payload = json.loads(datasets_path.read_text(encoding="utf-8"))
+    assert payload["selected_dataset"] == "remesh-sample"
+    dataset_entries = payload["datasets"]
+    assert isinstance(dataset_entries, list)
+    assert dataset_entries and dataset_entries[0]["id"] == "remesh-sample"
+
+
 def test_cli_applies_overrides(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     summary_path = tmp_path / "override_summary.json"

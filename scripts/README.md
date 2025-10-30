@@ -26,12 +26,18 @@
 - Run `python scripts/update_agents_tree.py` after layout changes to refresh the generated hierarchy in `AGENTS.md`.
 - Package dataset manifests into cache directories with
   `python -m scripts.datasets.ingest_dataset <manifest> --copy-assets`.
+- Preview manifest metadata for packaging reviews using
+  `python -m scripts.datasets.ingest_dataset <manifest> --dry-run --summary artifacts/datasets_summary.json`.
 - Bootstrap the Python environment for contributors and CI workers with
   `python -m scripts.bootstrap_python_env` (implements roadmap item `PY-015`).
 - Inspect bundled AI-004 case studies without executing the runtime by running
   `python -m scripts.prototyping.run_prototype_harness --list-case-studies`
   and optionally providing `--case-studies-json <path>` to export metadata for
   tooling integrations (`RT-320`, `TL-210`).
+- Enumerate datasets declared in a configuration with
+  `python -m scripts.prototyping.run_prototype_harness --config <path> --list-datasets`
+  and optionally `--datasets-json <path>` to export the verification summary for
+  tooling consumers (`AS-330`).
 
 ## TODO / Next Steps
 
