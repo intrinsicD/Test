@@ -150,7 +150,7 @@ This prototype is designed to be extended with:
 
 ## Status
 
-✅ **Complete** - Window creation, camera controls, and UI working  
+✅ **Complete** - Window creation, camera controls, and UI working
 ⏳ **Next**: Integration with rendering pipeline and 3D model loading
 
 
