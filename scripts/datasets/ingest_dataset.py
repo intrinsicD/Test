@@ -194,6 +194,7 @@ def _build_summary(entry: DatasetEntry, files: Iterable[DatasetFileMetadata]) ->
         "schema": {"id": entry.schema_id, "version": entry.schema_version},
         "kind": entry.kind,
         "tags": list(entry.tags),
+        "source_generator": entry.source_generator,
         "remeshing_mode": entry.remeshing_mode,
         "source_mesh": entry.source_mesh,
         "output_mesh": entry.output_mesh,
