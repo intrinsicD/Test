@@ -32,8 +32,16 @@ namespace
       "remeshing_mode": "adaptive",
       "statistics": {
         "iterations": 6,
+        "splits": 12,
+        "collapses": 5,
+        "duration_ms": 1234.5,
         "max_edge_length": 1.118,
-        "min_edge_length": 0.5
+        "min_edge_length": 0.5,
+        "triangle_quality": {
+          "min": 0.78,
+          "mean": 0.92,
+          "max": 0.99
+        }
       },
       "metrics": {
         "input": {
@@ -202,11 +210,34 @@ TEST(SandboxConfigurationLoader, ParsesHarnessSummary)
     EXPECT_EQ(dataset.tags[0], "geometry");
     ASSERT_TRUE(dataset.statistics.contains("iterations"));
     EXPECT_DOUBLE_EQ(dataset.statistics.at("iterations"), 6.0);
+    ASSERT_TRUE(dataset.statistics.contains("splits"));
+    EXPECT_DOUBLE_EQ(dataset.statistics.at("splits"), 12.0);
+    ASSERT_TRUE(dataset.statistics.contains("collapses"));
+    EXPECT_DOUBLE_EQ(dataset.statistics.at("collapses"), 5.0);
+    ASSERT_TRUE(dataset.statistics.contains("duration_ms"));
+    EXPECT_DOUBLE_EQ(dataset.statistics.at("duration_ms"), 1234.5);
     ASSERT_TRUE(dataset.metrics.contains("input.edge_length.max"));
     EXPECT_NEAR(dataset.metrics.at("input.edge_length.max"), 1.4142, 1e-4);
     ASSERT_TRUE(dataset.metrics.contains("output.vertices"));
     EXPECT_DOUBLE_EQ(dataset.metrics.at("output.vertices"), 5.0);
     ASSERT_TRUE(dataset.metrics.contains("parameterization.texel_density"));
+    ASSERT_EQ(dataset.statistic_groups.size(), 1U);
+    const auto& triangle_quality = dataset.statistic_groups.front();
+    EXPECT_EQ(triangle_quality.name, "triangle_quality");
+    ASSERT_EQ(triangle_quality.entries.size(), 3U);
+    const auto find_triangle_value = [&](std::string_view key) {
+        auto it = std::find_if(triangle_quality.entries.begin(), triangle_quality.entries.end(),
+                               [&](const auto& entry) { return entry.first == key; });
+        if (it == triangle_quality.entries.end())
+        {
+            ADD_FAILURE() << "triangle_quality missing entry '" << key << "'";
+            return 0.0;
+        }
+        return it->second;
+    };
+    EXPECT_NEAR(find_triangle_value("min"), 0.78, 1e-6);
+    EXPECT_NEAR(find_triangle_value("mean"), 0.92, 1e-6);
+    EXPECT_NEAR(find_triangle_value("max"), 0.99, 1e-6);
     EXPECT_EQ(dataset.source_generator, "scripts/datasets/ingest_dataset.py");
     EXPECT_EQ(dataset.source_asset, "assets/datasets/remesh_sample/source_mesh.obj");
     ASSERT_TRUE(dataset.source_asset_sha256.has_value());

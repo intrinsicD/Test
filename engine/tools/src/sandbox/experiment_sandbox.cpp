@@ -65,6 +65,15 @@ namespace engine::tools::sandbox
 
         std::string format_double(double value)
         {
+            if (std::isfinite(value))
+            {
+                const long long rounded = std::llround(value);
+                if (std::abs(value - static_cast<double>(rounded)) < 1e-6)
+                {
+                    return std::to_string(rounded);
+                }
+            }
+
             std::ostringstream stream;
             stream.setf(std::ios::fixed, std::ios::floatfield);
             stream << std::setprecision(3) << value;
@@ -955,23 +964,32 @@ namespace engine::tools::sandbox
             }
             if (!dataset.statistics.empty())
             {
-                ImGui::TextUnformatted("Statistics:");
-                ImGui::Indent();
+                std::vector<std::pair<std::string, double>> entries;
+                entries.reserve(dataset.statistics.size());
                 for (const auto& [name, value] : dataset.statistics)
                 {
-                    ImGui::BulletText("%s: %.3f", name.c_str(), value);
+                    entries.emplace_back(name, value);
                 }
-                ImGui::Unindent();
+                render_numeric_property_block("Statistics", entries);
+            }
+            for (const auto& group : dataset.statistic_groups)
+            {
+                if (group.entries.empty())
+                {
+                    continue;
+                }
+                std::string heading = "Statistics (" + group.name + ')';
+                render_numeric_property_block(heading, group.entries);
             }
             if (!dataset.metrics.empty())
             {
-                ImGui::TextUnformatted("Metrics:");
-                ImGui::Indent();
+                std::vector<std::pair<std::string, double>> entries;
+                entries.reserve(dataset.metrics.size());
                 for (const auto& [name, value] : dataset.metrics)
                 {
-                    ImGui::BulletText("%s: %.3f", name.c_str(), value);
+                    entries.emplace_back(name, value);
                 }
-                ImGui::Unindent();
+                render_numeric_property_block("Metrics", entries);
             }
             if (!dataset.source_asset.empty())
             {

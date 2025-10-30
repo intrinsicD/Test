@@ -46,6 +46,12 @@ namespace engine::tools::sandbox
         int schema_version{0};
         std::vector<std::string> tags;
         std::map<std::string, double> statistics;
+        struct StatisticGroup
+        {
+            std::string name;
+            std::vector<std::pair<std::string, double>> entries;
+        };
+        std::vector<StatisticGroup> statistic_groups;
         std::map<std::string, double> metrics;
         std::string source_generator;
         std::string source_asset;
