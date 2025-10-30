@@ -12,4 +12,12 @@ namespace engine::io
         import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override;
     };
 
+    class PlyGraphImporter final : public GraphImporter
+    {
+    public:
+        [[nodiscard]] GraphFileFormat format() const noexcept override;
+        [[nodiscard]] GeometryIoResult<void>
+        import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override;
+    };
+
 }

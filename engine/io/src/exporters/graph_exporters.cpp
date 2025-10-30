@@ -74,6 +74,80 @@ namespace engine::io
                                           "I/O failure while writing edge list: " + path.string());
             }
         }
+
+        void write_graph_ply(const std::filesystem::path& path, const geometry::GraphInterface& graph)
+        {
+            ensure_parent_directory(path);
+            std::ofstream stream{path};
+            if (!stream)
+            {
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "Failed to open PLY file for writing: " + path.string());
+            }
+
+            const std::size_t invalid = std::numeric_limits<std::size_t>::max();
+            std::vector<std::size_t> vertex_indices(graph.vertices_size(), invalid);
+            std::vector<geometry::VertexHandle> exported_vertices;
+            exported_vertices.reserve(graph.vertex_count());
+            for (const auto v : graph.vertices())
+            {
+                if (graph.is_deleted(v)) { continue; }
+                vertex_indices[v.index()] = exported_vertices.size();
+                exported_vertices.push_back(v);
+            }
+
+            std::vector<std::pair<std::size_t, std::size_t>> edges;
+            edges.reserve(graph.edge_count());
+            for (const auto e : graph.edges())
+            {
+                if (graph.is_deleted(e)) { continue; }
+                const auto va = graph.vertex(e, 0);
+                const auto vb = graph.vertex(e, 1);
+                const auto ia = vertex_indices[va.index()];
+                const auto ib = vertex_indices[vb.index()];
+                if (ia == invalid || ib == invalid)
+                {
+                    throw GeometryIoException(GeometryIoError::invalid_argument,
+                                              "Graph contains edge with unregistered vertex while writing PLY: "
+                                                  + path.string());
+                }
+
+                if (ia == ib)
+                {
+                    continue;
+                }
+
+                edges.emplace_back(ia, ib);
+            }
+
+            stream << "ply\n";
+            stream << "format ascii 1.0\n";
+            stream << "element vertex " << exported_vertices.size() << "\n";
+            stream << "property float x\n";
+            stream << "property float y\n";
+            stream << "property float z\n";
+            stream << "element edge " << edges.size() << "\n";
+            stream << "property int vertex1\n";
+            stream << "property int vertex2\n";
+            stream << "end_header\n";
+
+            for (const auto v : exported_vertices)
+            {
+                const auto& p = graph.position(v);
+                stream << p[0] << ' ' << p[1] << ' ' << p[2] << "\n";
+            }
+
+            for (const auto& [a, b] : edges)
+            {
+                stream << a << ' ' << b << "\n";
+            }
+
+            if (!stream)
+            {
+                throw GeometryIoException(GeometryIoError::io_failure,
+                                          "I/O failure while writing PLY graph: " + path.string());
+            }
+        }
     } // namespace
 
     GraphFileFormat EdgeListGraphExporter::format() const noexcept
@@ -85,5 +159,16 @@ namespace engine::io
     EdgeListGraphExporter::export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const
     {
         return detail::translate_io_exceptions(path, [&]() { write_graph_edgelist(path, graph); });
+    }
+
+    GraphFileFormat PlyGraphExporter::format() const noexcept
+    {
+        return GraphFileFormat::ply;
+    }
+
+    GeometryIoResult<void>
+    PlyGraphExporter::export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const
+    {
+        return detail::translate_io_exceptions(path, [&]() { write_graph_ply(path, graph); });
     }
 } // namespace engine::io

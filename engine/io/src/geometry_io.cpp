@@ -1645,7 +1645,7 @@ namespace engine::io
 
         [[nodiscard]] GraphFileFormat graph_format_from_extension(const std::string& ext)
         {
-            if (ext == ".edgelist" || ext == ".elist" || ext == ".edges")
+            if (ext == ".edgelist" || ext == ".elist" || ext == ".edges" || ext == ".graph")
             {
                 return GraphFileFormat::edgelist;
             }

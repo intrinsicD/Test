@@ -74,6 +74,7 @@ set(ENGINE_RENDERING_VULKAN_AVAILABLE ${Vulkan_FOUND})
 target_link_libraries(${target_name}
         PUBLIC
         engine_core
+        engine_geometry
         engine_assets
         engine_platform
         engine_scene
