@@ -73,6 +73,8 @@ Rendering presets expose:
 - Shading mode selection (`Forward`, `Deferred`, ...)
 - Overlay toggles (normals, UVs, material inspection)
 - Default resolution metadata for future viewport wiring
+- Algorithm variant drop-down mirroring the harness `algorithm_variants` list so
+  runtime profiles can be swapped without reloading configurations.
 
 Overlay states merge descriptor defaults with stored preferences during
 configuration refreshes to prevent user overrides from being lost.
@@ -130,7 +132,8 @@ state in per-user configuration locations.
   - `sync_overlay_preferences()` now reports whether preset switches changed
     overlay defaults so automation can react accordingly.
 - `PrototypeHarnessBenchmarkRunner` forwards sandbox selections to the harness
-  CLI (`--dataset`, `--rendering-preset`, `--shading-mode`, `--overlay`), so
+  CLI (`--dataset`, `--runtime-profile`, `--rendering-preset`, `--shading-mode`,
+  `--overlay`), so
   headless benchmarks mirror the current UI configuration without custom glue.
 
 ## Next Steps

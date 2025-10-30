@@ -80,6 +80,11 @@ namespace engine::tools::sandbox
             command.emplace_back("--dataset");
             command.emplace_back(preferences.selected_dataset);
         }
+        if (!preferences.selected_algorithm_variant.empty())
+        {
+            command.emplace_back("--runtime-profile");
+            command.emplace_back(preferences.selected_algorithm_variant);
+        }
         if (!preferences.selected_preset.empty())
         {
             command.emplace_back("--rendering-preset");

@@ -133,6 +133,7 @@ namespace engine::tools::sandbox
         summary_ = summary;
         dataset_lookup_.clear();
         preset_lookup_.clear();
+        algorithm_lookup_.clear();
         last_benchmark_result_.reset();
 
         for (std::size_t index = 0; index < summary_.datasets.size(); ++index)
@@ -145,9 +146,24 @@ namespace engine::tools::sandbox
             preset_lookup_.emplace(summary_.rendering_presets[index].identifier, index);
         }
 
+        for (std::size_t index = 0; index < summary_.algorithm_variants.size(); ++index)
+        {
+            algorithm_lookup_.emplace(summary_.algorithm_variants[index].identifier, index);
+        }
+
         if (summary_.selected_dataset)
         {
             preferences_.selected_dataset = *summary_.selected_dataset;
+        }
+
+        if (summary_.selected_rendering_preset)
+        {
+            preferences_.selected_preset = *summary_.selected_rendering_preset;
+        }
+
+        if (summary_.selected_algorithm_variant)
+        {
+            preferences_.selected_algorithm_variant = *summary_.selected_algorithm_variant;
         }
 
         ensure_selection_defaults();
@@ -175,6 +191,13 @@ namespace engine::tools::sandbox
         if (callbacks_.on_rendering_changed && has_preset_selection)
         {
             callbacks_.on_rendering_changed(preferences_);
+        }
+
+        const bool has_algorithm_selection = selected_algorithm_index_ >= 0
+            && selected_algorithm_index_ < static_cast<int>(summary_.algorithm_variants.size());
+        if (callbacks_.on_algorithm_selected && has_algorithm_selection)
+        {
+            callbacks_.on_algorithm_selected(preferences_.selected_algorithm_variant);
         }
     }
 
@@ -206,6 +229,32 @@ namespace engine::tools::sandbox
         preferences_ = preferences;
         ensure_selection_defaults();
         notify_preference_changes(previous_preferences);
+    }
+
+    bool ExperimentSandbox::select_algorithm_variant(std::string_view variant_identifier)
+    {
+        const std::string identifier{variant_identifier};
+        const auto lookup = algorithm_lookup_.find(identifier);
+        if (lookup == algorithm_lookup_.end())
+        {
+            return false;
+        }
+
+        const int index = static_cast<int>(lookup->second);
+        if (selected_algorithm_index_ == index && preferences_.selected_algorithm_variant == identifier)
+        {
+            return true;
+        }
+
+        selected_algorithm_index_ = index;
+        preferences_.selected_algorithm_variant = identifier;
+
+        if (callbacks_.on_algorithm_selected)
+        {
+            callbacks_.on_algorithm_selected(preferences_.selected_algorithm_variant);
+        }
+
+        return true;
     }
 
     bool ExperimentSandbox::select_dataset(std::string_view dataset_identifier)
@@ -387,6 +436,10 @@ namespace engine::tools::sandbox
             {
                 loaded.selected_preset = value;
             }
+            else if (key == "selected_algorithm_variant")
+            {
+                loaded.selected_algorithm_variant = value;
+            }
             else if (key == "shading_mode")
             {
                 loaded.shading_mode = value;
@@ -439,6 +492,7 @@ namespace engine::tools::sandbox
         stream << "# Experiment sandbox preferences\n";
         stream << "selected_dataset=" << preferences_.selected_dataset << '\n';
         stream << "selected_preset=" << preferences_.selected_preset << '\n';
+        stream << "selected_algorithm_variant=" << preferences_.selected_algorithm_variant << '\n';
         stream << "shading_mode=" << preferences_.shading_mode << '\n';
         stream << "benchmark_frames=" << preferences_.benchmark_frames << '\n';
         stream << "benchmark_timestep=" << preferences_.benchmark_timestep << '\n';
@@ -530,6 +584,25 @@ namespace engine::tools::sandbox
             preferences_.selected_preset.clear();
             preferences_.shading_mode.clear();
             preferences_.overlays.clear();
+        }
+
+        selected_algorithm_index_ = -1;
+        if (!summary_.algorithm_variants.empty())
+        {
+            auto it = algorithm_lookup_.find(preferences_.selected_algorithm_variant);
+            if (it != algorithm_lookup_.end())
+            {
+                selected_algorithm_index_ = static_cast<int>(it->second);
+            }
+            else
+            {
+                selected_algorithm_index_ = 0;
+                preferences_.selected_algorithm_variant = summary_.algorithm_variants.front().identifier;
+            }
+        }
+        else
+        {
+            preferences_.selected_algorithm_variant.clear();
         }
 
         static_cast<void>(sync_overlay_preferences());
@@ -884,6 +957,50 @@ namespace engine::tools::sandbox
         }
         ImGui::Text("Hot reload: %s", summary_.runtime.hot_reload_enabled ? "enabled" : "disabled");
 
+        if (!summary_.algorithm_variants.empty())
+        {
+            ImGui::Spacing();
+            ImGui::TextUnformatted("Algorithm Variant");
+            ImGui::Separator();
+
+            std::string current_label = "<select>";
+            if (selected_algorithm_index_ >= 0
+                && selected_algorithm_index_ < static_cast<int>(summary_.algorithm_variants.size()))
+            {
+                const auto& variant = summary_.algorithm_variants[static_cast<std::size_t>(selected_algorithm_index_)];
+                current_label = variant.label.empty() ? variant.identifier : variant.label;
+            }
+
+            if (ImGui::BeginCombo("Variant", current_label.c_str()))
+            {
+                for (std::size_t index = 0; index < summary_.algorithm_variants.size(); ++index)
+                {
+                    const auto& variant = summary_.algorithm_variants[index];
+                    const bool selected = static_cast<int>(index) == selected_algorithm_index_;
+                    std::string option_label = variant.label.empty() ? variant.identifier : variant.label;
+                    if (ImGui::Selectable(option_label.c_str(), selected))
+                    {
+                        static_cast<void>(select_algorithm_variant(variant.identifier));
+                    }
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            if (selected_algorithm_index_ >= 0
+                && selected_algorithm_index_ < static_cast<int>(summary_.algorithm_variants.size()))
+            {
+                const auto& variant = summary_.algorithm_variants[static_cast<std::size_t>(selected_algorithm_index_)];
+                if (variant.description && !variant.description->empty())
+                {
+                    ImGui::TextWrapped("%s", variant.description->c_str());
+                }
+            }
+        }
+
         if (summary_.telemetry)
         {
             const auto& telemetry = *summary_.telemetry;
@@ -969,6 +1086,12 @@ namespace engine::tools::sandbox
         if (callbacks_.on_dataset_selected && preferences_.selected_dataset != previous.selected_dataset)
         {
             callbacks_.on_dataset_selected(preferences_.selected_dataset);
+        }
+
+        if (callbacks_.on_algorithm_selected
+            && preferences_.selected_algorithm_variant != previous.selected_algorithm_variant)
+        {
+            callbacks_.on_algorithm_selected(preferences_.selected_algorithm_variant);
         }
 
         if (callbacks_.on_rendering_changed)

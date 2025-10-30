@@ -66,6 +66,13 @@ namespace engine::tools::sandbox
         std::vector<OverlayDescriptor> overlays;
     };
 
+    struct AlgorithmVariantDescriptor
+    {
+        std::string identifier;
+        std::string label;
+        std::optional<std::string> description;
+    };
+
     struct RuntimeSummary
     {
         std::string dataset_identifier;
@@ -161,6 +168,7 @@ namespace engine::tools::sandbox
     {
         std::string selected_dataset;
         std::string selected_preset;
+        std::string selected_algorithm_variant;
         std::string shading_mode;
         std::unordered_map<std::string, bool> overlays;
         int benchmark_frames{600};
@@ -172,6 +180,9 @@ namespace engine::tools::sandbox
         std::vector<DatasetDescriptor> datasets;
         std::optional<std::string> selected_dataset;
         std::vector<RenderingPresetDescriptor> rendering_presets;
+        std::optional<std::string> selected_rendering_preset;
+        std::vector<AlgorithmVariantDescriptor> algorithm_variants;
+        std::optional<std::string> selected_algorithm_variant;
         RuntimeSummary runtime;
         std::optional<TelemetryConfigurationDescriptor> telemetry;
         std::optional<BenchmarkConfigurationDescriptor> benchmarks;
@@ -180,6 +191,7 @@ namespace engine::tools::sandbox
     struct SandboxCallbacks
     {
         std::function<void(const std::string& dataset_id)> on_dataset_selected;
+        std::function<void(const std::string& variant_id)> on_algorithm_selected;
         std::function<void(const SandboxPreferences& preferences)> on_rendering_changed;
         std::function<SandboxBenchmarkResult(const SandboxPreferences& preferences)> on_run_benchmark;
     };
@@ -198,6 +210,11 @@ namespace engine::tools::sandbox
 
         [[nodiscard]] const SandboxPreferences& preferences() const noexcept;
         void set_preferences(const SandboxPreferences& preferences);
+
+        /**
+         * @brief Select an algorithm variant programmatically and emit the callback.
+         */
+        bool select_algorithm_variant(std::string_view variant_identifier);
 
         /**
          * @brief Select a dataset programmatically and emit the selection callback.
@@ -260,9 +277,11 @@ namespace engine::tools::sandbox
 
         std::unordered_map<std::string, std::size_t> dataset_lookup_{};
         std::unordered_map<std::string, std::size_t> preset_lookup_{};
+        std::unordered_map<std::string, std::size_t> algorithm_lookup_{};
 
         int selected_dataset_index_{-1};
         int selected_preset_index_{-1};
+        int selected_algorithm_index_{-1};
 
         std::array<char, 128> dataset_filter_buffer_{};
         std::string dataset_filter_{};

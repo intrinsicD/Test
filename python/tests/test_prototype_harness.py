@@ -255,6 +255,7 @@ def _write_configuration(tmp_path: Path) -> Path:
                 "name": "Remesh Baseline",
                 "dataset": "remesh-sample",
                 "rendering_preset": "research-baseline",
+                "runtime_profile": "baseline",
                 "engine": {
                     "command": ["python", "run_engine.py", "--output", "{output_path}"],
                     "output": "telemetry/{scenario}_engine.json",
@@ -326,6 +327,7 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     ]
     assert summary.frames_executed == 3
     assert summary.dataset_id == "remesh-sample"
+    assert summary.runtime_profile == "baseline"
     assert summary.rendering_preset == "research-baseline"
     assert summary.dispatch_order == ("geometry::remesh", "render::composite")
     assert summary.dispatch_durations_ms == pytest.approx((1.0, 2.5))
@@ -353,6 +355,7 @@ def test_run_headless_applies_dataset_override(tmp_path: Path) -> None:
     summary = harness.run_headless(options)
 
     assert summary.dataset_id == "remesh-variant"
+    assert summary.runtime_profile == "baseline"
     paths = [output.path for output in summary.telemetry_outputs if output.path is not None]
     assert any("remesh-variant" in path for path in paths)
 
@@ -386,6 +389,7 @@ def test_run_headless_applies_rendering_overrides(tmp_path: Path) -> None:
 
     assert summary.rendering_preset == "diagnostics"
     assert summary.shading_mode == "forward"
+    assert summary.runtime_profile == "baseline"
     configuration_snapshot = runtime.rendering_configurations[-1]
     assert configuration_snapshot["shading_mode"] == "forward"
     assert configuration_snapshot["overlays"]["normals"] is True
@@ -429,11 +433,13 @@ def test_run_headless_supports_custom_scenario_label(tmp_path: Path) -> None:
     summary = harness.run_headless(options)
 
     assert summary.scenario_label == "custom-scenario"
+    assert summary.runtime_profile == "baseline"
     assert summary.telemetry_outputs
     assert summary.telemetry_outputs[0].path is not None
     assert summary.telemetry_outputs[0].path.endswith("telemetry/custom-scenario.json")
     payload = run_summary_to_dict(summary)
     assert payload["scenario"] == "custom-scenario"
+    assert payload["runtime_profile"] == "baseline"
 
 
 def test_run_headless_supports_run_metadata_placeholders(tmp_path: Path) -> None:
@@ -461,6 +467,7 @@ def test_run_headless_supports_run_metadata_placeholders(tmp_path: Path) -> None
     )
     assert first_output.path is not None
     assert first_output.path.endswith("telemetry/remesh-sample-run02-of-05.json")
+    assert summary.runtime_profile == "baseline"
 
 
 def test_interactive_session_configures_runtime(tmp_path: Path) -> None:
@@ -479,6 +486,7 @@ def test_interactive_session_configures_runtime(tmp_path: Path) -> None:
     with harness.interactive_session() as session:
         assert isinstance(session, InteractiveHarnessSession)
         assert runtime.initialized is True
+        assert session.runtime_profile == "baseline"
         assert runtime.rendering_configurations
         config = runtime.rendering_configurations[0]
         assert config["shading_mode"] == "deferred"
@@ -515,6 +523,26 @@ def test_interactive_session_allows_rendering_overrides(tmp_path: Path) -> None:
         assert overlays["uv"] is True
         assert runtime.rendering_configurations[-1]["shading_mode"] == "forward"
         assert runtime.rendering_configurations[-1]["overlays"]["normals"] is True
+
+
+def test_interactive_session_allows_runtime_profile_updates(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+    runtime = _MockRuntime(ticks=[])
+
+    harness = PrototypeHarness(
+        configuration,
+        runtime_factory=lambda: runtime,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    with harness.interactive_session() as session:
+        session.set_runtime_profile("diagnostics")
+        assert session.runtime_profile == "diagnostics"
+        with pytest.raises(PrototypeHarnessError):
+            session.set_runtime_profile(" ")
 
 
 def test_interactive_session_captures_summary(tmp_path: Path) -> None:
@@ -621,6 +649,10 @@ def test_execution_options_validate_overrides() -> None:
     with pytest.raises(PrototypeHarnessError):
         options.validate()
 
+    options = HarnessExecutionOptions(frames=1, dt=0.5, runtime_profile="")
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
     options = HarnessExecutionOptions(frames=1, dt=0.5, overlays={})
     with pytest.raises(PrototypeHarnessError):
         options.validate()
@@ -673,6 +705,10 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description.rendering is not None
     assert description.rendering.preset == "research-baseline"
     assert description.rendering.schema_version == 1
+    assert description.rendering_presets[0].identifier == "research-baseline"
+    assert description.selected_rendering_preset == "research-baseline"
+    assert description.algorithm_variants[0].identifier == "baseline"
+    assert description.selected_algorithm_variant == "baseline"
     assert description.runtime.schema_version == 2
     assert description.telemetry is not None
     assert description.telemetry.schema_version == 2
@@ -696,6 +732,10 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description_payload["datasets"][0]["id"] == "remesh-sample"
     assert description_payload["datasets"][0]["kind"] == "geometry.remesh"
     assert description_payload["datasets"][0]["schema_version"] == 2
+    assert description_payload["rendering_presets"][0]["id"] == "research-baseline"
+    assert description_payload["selected_rendering_preset"] == "research-baseline"
+    assert description_payload["algorithm_variants"][0]["id"] == "baseline"
+    assert description_payload["selected_algorithm_variant"] == "baseline"
     stats_payload = description_payload["datasets"][0]["statistics"]
     assert pytest.approx(stats_payload["splits"], rel=1e-6) == 1.0
     assert pytest.approx(stats_payload["collapses"], rel=1e-6) == 1.0
@@ -919,6 +959,7 @@ def test_summarize_formats_output() -> None:
     summary = HarnessRunSummary(
         dataset_id="remesh-sample",
         scenario_label="remesh-baseline",
+        runtime_profile="baseline",
         rendering_preset="research-baseline",
         shading_mode="deferred",
         frames_executed=10,
@@ -930,7 +971,8 @@ def test_summarize_formats_output() -> None:
     assert (
         summarize(summary)
         == (
-            "scenario=remesh-baseline dataset=remesh-sample preset=research-baseline shading=deferred "
+            "scenario=remesh-baseline runtime=baseline dataset=remesh-sample "
+            "preset=research-baseline shading=deferred "
             "frames=10 dt=0.016000 avg_ms=0.750000 dispatches=1"
         )
     )
@@ -938,6 +980,7 @@ def test_summarize_formats_output() -> None:
     summary_payload = run_summary_to_dict(summary)
     assert summary_payload["dataset"] == "remesh-sample"
     assert summary_payload["scenario"] == "remesh-baseline"
+    assert summary_payload["runtime_profile"] == "baseline"
     assert summary_payload["frames"] == 10
     assert summary_payload["dispatch_order"] == ["geometry::remesh"]
     assert summary_payload["dispatch_durations_ms"] == [1.5]
@@ -948,6 +991,7 @@ def test_summarize_includes_run_metadata() -> None:
     summary = HarnessRunSummary(
         dataset_id="remesh-sample",
         scenario_label=None,
+        runtime_profile=None,
         rendering_preset="research-baseline",
         shading_mode="deferred",
         frames_executed=5,
@@ -960,6 +1004,7 @@ def test_summarize_includes_run_metadata() -> None:
 
     summary_payload = run_summary_to_dict(summary)
     assert summary_payload["scenario"] is None
+    assert summary_payload["runtime_profile"] is None
     assert summary_payload["run_index"] == 2
     assert summary_payload["run_count"] == 3
     assert summary_payload["telemetry_outputs"] == []
@@ -999,9 +1044,11 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert description_payload["selected_dataset"] == "remesh-sample"
     assert description_payload["rendering"]["preset"] == "research-baseline"
     assert description_payload["benchmarks"]["scenarios"][0]["id"] == "remesh-baseline"
+    assert description_payload["selected_algorithm_variant"] == "baseline"
     assert summary_payload["frames"] == 0
     assert summary_payload["average_tick_ms"] is None
     assert summary_payload["scenario"] is None
+    assert summary_payload["runtime_profile"] == "baseline"
     assert summary_payload["dispatch_order"] == []
     assert summary_payload["dispatch_durations_ms"] == []
     assert len(summary_payload["telemetry_outputs"]) == 2
@@ -1059,6 +1106,8 @@ def test_cli_applies_overrides(tmp_path: Path) -> None:
             "--dry-run",
             "--dataset",
             "remesh-variant",
+            "--runtime-profile",
+            "diagnostics",
             "--rendering-preset",
             "diagnostics",
             "--shading-mode",
@@ -1075,6 +1124,7 @@ def test_cli_applies_overrides(tmp_path: Path) -> None:
     assert exit_code == 0
     payload = json.loads(summary_path.read_text(encoding="utf-8"))
     assert payload["dataset"] == "remesh-variant"
+    assert payload["runtime_profile"] == "diagnostics"
     assert payload["rendering_preset"] == "diagnostics"
     assert payload["shading_mode"] == "forward"
     output_paths = [entry["path"] for entry in payload["telemetry_outputs"] if entry.get("path")]
@@ -1112,6 +1162,7 @@ def test_cli_repeat_generates_multiple_summaries(
         assert payload["run_index"] == index
         assert payload["run_count"] == 3
         assert payload["scenario"] is None
+        assert payload["runtime_profile"] == "baseline"
         outputs = payload["telemetry_outputs"]
         assert len(outputs) == 2
         assert outputs[0]["template"] == "telemetry/{scenario}.json"

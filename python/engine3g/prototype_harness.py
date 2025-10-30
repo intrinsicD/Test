@@ -47,6 +47,9 @@ __all__ = [
     "TelemetryMetricSummary",
     "TelemetryOutputSummary",
     "TelemetrySamplingSummary",
+    "RenderingOverlaySummary",
+    "RenderingPresetSummary",
+    "AlgorithmVariantSummary",
     "RenderingSummary",
     "RuntimeSummary",
     "configuration_summary_to_dict",
@@ -114,6 +117,8 @@ class HarnessExecutionOptions:
     shading_mode: Optional[str] = None
     overlays: Optional[Mapping[str, bool]] = None
 
+    runtime_profile: Optional[str] = None
+
     def __post_init__(self) -> None:
         if self.dataset_id is not None:
             object.__setattr__(self, "dataset_id", self.dataset_id.strip())
@@ -121,6 +126,8 @@ class HarnessExecutionOptions:
             object.__setattr__(self, "rendering_preset", self.rendering_preset.strip())
         if self.shading_mode is not None:
             object.__setattr__(self, "shading_mode", self.shading_mode.strip().lower())
+        if self.runtime_profile is not None:
+            object.__setattr__(self, "runtime_profile", self.runtime_profile.strip())
         if self.overlays is not None:
             normalized = {str(key): bool(value) for key, value in self.overlays.items()}
             object.__setattr__(self, "overlays", MappingProxyType(normalized))
@@ -146,6 +153,8 @@ class HarnessExecutionOptions:
             raise PrototypeHarnessError("rendering_preset must be a non-empty string when provided")
         if self.shading_mode is not None and self.shading_mode not in {"forward", "deferred"}:
             raise PrototypeHarnessError("shading_mode must be 'forward' or 'deferred'")
+        if self.runtime_profile is not None and not self.runtime_profile:
+            raise PrototypeHarnessError("runtime_profile must be a non-empty string when provided")
         if self.overlays is not None:
             if not self.overlays:
                 raise PrototypeHarnessError("overlay overrides must include at least one entry")
@@ -160,6 +169,7 @@ class HarnessRunSummary:
 
     dataset_id: Optional[str]
     scenario_label: Optional[str]
+    runtime_profile: Optional[str]
     rendering_preset: Optional[str]
     shading_mode: Optional[str]
     frames_executed: int
@@ -233,6 +243,49 @@ class DatasetSummary:
 
 
 @dataclass(frozen=True)
+class RenderingOverlaySummary:
+    """Overlay toggle metadata for a rendering preset."""
+
+    key: str
+    label: Optional[str]
+    default_enabled: bool
+
+    def to_dict(self) -> Dict[str, object]:
+        payload: Dict[str, object] = {
+            "key": self.key,
+            "default_enabled": self.default_enabled,
+        }
+        if self.label is not None:
+            payload["label"] = self.label
+        return payload
+
+
+@dataclass(frozen=True)
+class RenderingPresetSummary:
+    """Rendering preset metadata surfaced to the sandbox UI."""
+
+    identifier: str
+    label: Optional[str]
+    shading_modes: Tuple[str, ...]
+    overlays: Tuple[RenderingOverlaySummary, ...]
+    default_resolution: Tuple[int, int]
+
+    def to_dict(self) -> Dict[str, object]:
+        payload: Dict[str, object] = {
+            "id": self.identifier,
+            "shading_modes": list(self.shading_modes),
+            "overlays": [overlay.to_dict() for overlay in self.overlays],
+            "default_resolution": {
+                "width": self.default_resolution[0],
+                "height": self.default_resolution[1],
+            },
+        }
+        if self.label is not None:
+            payload["label"] = self.label
+        return payload
+
+
+@dataclass(frozen=True)
 class RenderingSummary:
     """Rendering preset details used by the sandbox UI."""
 
@@ -250,6 +303,23 @@ class RenderingSummary:
             "schema_version": self.schema_version,
             "overlays": dict(self.overlays),
         }
+
+
+@dataclass(frozen=True)
+class AlgorithmVariantSummary:
+    """Runtime algorithm/profile option available to the sandbox."""
+
+    identifier: str
+    label: Optional[str]
+    description: Optional[str]
+
+    def to_dict(self) -> Dict[str, object]:
+        payload: Dict[str, object] = {"id": self.identifier}
+        if self.label is not None:
+            payload["label"] = self.label
+        if self.description is not None:
+            payload["description"] = self.description
+        return payload
 
 
 @dataclass(frozen=True)
@@ -431,6 +501,10 @@ class HarnessConfigurationSummary:
 
     datasets: Tuple[DatasetSummary, ...]
     selected_dataset: Optional[str]
+    rendering_presets: Tuple[RenderingPresetSummary, ...]
+    selected_rendering_preset: Optional[str]
+    algorithm_variants: Tuple[AlgorithmVariantSummary, ...]
+    selected_algorithm_variant: Optional[str]
     rendering: Optional[RenderingSummary]
     runtime: RuntimeSummary
     telemetry: Optional[HarnessTelemetrySummary]
@@ -440,6 +514,10 @@ class HarnessConfigurationSummary:
         return {
             "datasets": [dataset.to_dict() for dataset in self.datasets],
             "selected_dataset": self.selected_dataset,
+            "rendering_presets": [preset.to_dict() for preset in self.rendering_presets],
+            "selected_rendering_preset": self.selected_rendering_preset,
+            "algorithm_variants": [variant.to_dict() for variant in self.algorithm_variants],
+            "selected_algorithm_variant": self.selected_algorithm_variant,
             "rendering": self.rendering.to_dict() if self.rendering else None,
             "runtime": self.runtime.to_dict(),
             "telemetry": self.telemetry.to_dict() if self.telemetry else None,
@@ -458,6 +536,7 @@ class InteractiveHarnessSession:
         runtime_config: Optional[RuntimeConfig],
         rendering_config: Optional[RenderingConfig],
         scenario_label: Optional[str],
+        runtime_profile: Optional[str],
     ) -> None:
         self._harness = harness
         self._runtime = runtime
@@ -465,6 +544,7 @@ class InteractiveHarnessSession:
         self._base_rendering_config = rendering_config
         self._active_rendering_config = rendering_config
         self._scenario_label = scenario_label
+        self._runtime_profile = runtime_profile
         self._frames_executed = 0
         self._active = False
         if runtime_config is not None and runtime_config.simulation is not None:
@@ -508,6 +588,19 @@ class InteractiveHarnessSession:
     def timestep_seconds(self) -> float:
         return self._timestep
 
+    @property
+    def runtime_profile(self) -> Optional[str]:
+        return self._runtime_profile
+
+    def set_runtime_profile(self, runtime_profile: Optional[str]) -> None:
+        if runtime_profile is not None:
+            normalized = runtime_profile.strip()
+            if not normalized:
+                raise PrototypeHarnessError("runtime profile must be a non-empty string when provided")
+            self._runtime_profile = normalized
+        else:
+            self._runtime_profile = None
+
     def reset_frame_counter(self) -> None:
         self._frames_executed = 0
 
@@ -548,6 +641,7 @@ class InteractiveHarnessSession:
                 dt=self._timestep,
                 dry_run=True,
                 scenario_label=self._scenario_label,
+                runtime_profile=self._runtime_profile,
             ),
         )
         order = tuple(self._runtime.dispatch_order())
@@ -569,6 +663,7 @@ class InteractiveHarnessSession:
         return HarnessRunSummary(
             dataset_id=dataset_id,
             scenario_label=self._scenario_label,
+            runtime_profile=self._runtime_profile,
             rendering_preset=rendering_preset,
             shading_mode=shading_mode,
             frames_executed=self._frames_executed,
@@ -637,6 +732,10 @@ class PrototypeHarness:
         self._selected_dataset = self._resolve_dataset(configuration.datasets, configuration.runtime)
         self._dataset_assets: Dict[str, Tuple[DatasetAssetStatus, ...]] = {}
         self._runtime_scene_manifest: Optional[DatasetAssetStatus] = None
+        self._algorithm_variants = self._describe_algorithm_variants(self._configuration.benchmarks)
+        self._default_runtime_profile = (
+            self._algorithm_variants[0].identifier if self._algorithm_variants else None
+        )
         should_verify_assets = self._should_verify_assets()
         if should_verify_assets:
             for entry in configuration.datasets.datasets:
@@ -741,6 +840,8 @@ class PrototypeHarness:
         datasets = tuple(self._describe_dataset(entry) for entry in self._configuration.datasets.datasets)
         rendering_config = self._rendering_config()
         rendering_summary = self._describe_rendering(rendering_config) if rendering_config else None
+        rendering_presets = self._describe_rendering_presets(rendering_config)
+        selected_rendering = rendering_config.preset if rendering_config else None
         runtime_summary = self._describe_runtime(self._configuration.runtime)
         telemetry_summary = (
             self._describe_telemetry(self._configuration.telemetry)
@@ -755,6 +856,10 @@ class PrototypeHarness:
         return HarnessConfigurationSummary(
             datasets=datasets,
             selected_dataset=self._selected_dataset.identifier if self._selected_dataset else None,
+            rendering_presets=rendering_presets,
+            selected_rendering_preset=selected_rendering,
+            algorithm_variants=self._algorithm_variants,
+            selected_algorithm_variant=self._default_runtime_profile,
             rendering=rendering_summary,
             runtime=runtime_summary,
             telemetry=telemetry_summary,
@@ -783,6 +888,7 @@ class PrototypeHarness:
             runtime_config=self._configuration.runtime,
             rendering_config=self._rendering_config(),
             scenario_label=scenario_label,
+            runtime_profile=self._default_runtime_profile,
         )
 
 
@@ -838,6 +944,12 @@ class PrototypeHarness:
         if execution is not None:
             defaults["frames"] = execution.frames
             defaults["dt"] = execution.dt
+            runtime_token = (
+                self._sanitize_placeholder_token(execution.runtime_profile)
+                if execution.runtime_profile is not None
+                else "default"
+            )
+            defaults["runtime_profile"] = runtime_token
             if execution.run_index is not None:
                 defaults["run_index"] = execution.run_index
             if execution.run_count is not None:
@@ -936,28 +1048,34 @@ class PrototypeHarness:
             selected_dataset = self._lookup_dataset(execution.dataset_id)
 
         rendering = self._apply_rendering_overrides(self._rendering_config(), execution)
+        active_runtime_profile = execution.runtime_profile or self._default_runtime_profile
+        execution_with_profile = execution
+        if execution.runtime_profile != active_runtime_profile:
+            execution_with_profile = replace(execution, runtime_profile=active_runtime_profile)
+
         average_tick_ms: Optional[float] = None
         telemetry_outputs = self._telemetry_outputs(
             dataset_override=selected_dataset,
             rendering_override=rendering,
-            scenario_override=execution.scenario_label,
-            execution=execution,
+            scenario_override=execution_with_profile.scenario_label,
+            execution=execution_with_profile,
         )
 
-        if execution.dry_run:
+        if execution_with_profile.dry_run:
             return HarnessRunSummary(
                 dataset_id=selected_dataset.identifier if selected_dataset else None,
+                runtime_profile=active_runtime_profile,
                 rendering_preset=rendering.preset if rendering else None,
                 shading_mode=rendering.shading_mode if rendering else None,
                 frames_executed=0,
-                timestep_seconds=execution.dt,
+                timestep_seconds=execution_with_profile.dt,
                 average_tick_ms=None,
                 dispatch_order=(),
                 dispatch_durations_ms=(),
                 telemetry_outputs=telemetry_outputs,
-                run_index=execution.run_index,
-                run_count=execution.run_count,
-                scenario_label=execution.scenario_label,
+                run_index=execution_with_profile.run_index,
+                run_count=execution_with_profile.run_count,
+                scenario_label=execution_with_profile.scenario_label,
             )
 
         try:
@@ -977,8 +1095,8 @@ class PrototypeHarness:
         dispatch_order: Tuple[str, ...] = ()
         dispatch_durations_ms: Tuple[float, ...] = ()
         with runtime:
-            for _ in range(execution.frames):
-                runtime.tick(execution.dt)
+            for _ in range(execution_with_profile.frames):
+                runtime.tick(execution_with_profile.dt)
                 frames_executed += 1
             average_tick_ms = runtime.average_tick_ms()
             order = tuple(runtime.dispatch_order())
@@ -992,17 +1110,18 @@ class PrototypeHarness:
 
         return HarnessRunSummary(
             dataset_id=selected_dataset.identifier if selected_dataset else None,
+            runtime_profile=active_runtime_profile,
             rendering_preset=rendering.preset if rendering else None,
             shading_mode=rendering.shading_mode if rendering else None,
             frames_executed=frames_executed,
-            timestep_seconds=execution.dt,
+            timestep_seconds=execution_with_profile.dt,
             average_tick_ms=average_tick_ms,
             dispatch_order=dispatch_order,
             dispatch_durations_ms=dispatch_durations_ms,
             telemetry_outputs=telemetry_outputs,
-            run_index=execution.run_index,
-            run_count=execution.run_count,
-            scenario_label=execution.scenario_label,
+            run_index=execution_with_profile.run_index,
+            run_count=execution_with_profile.run_count,
+            scenario_label=execution_with_profile.scenario_label,
         )
 
     def _describe_dataset(self, entry: DatasetEntry) -> DatasetSummary:
@@ -1140,6 +1259,59 @@ class PrototypeHarness:
             schema_version=rendering.schema_version,
             overlays=overlays,
         )
+
+    @staticmethod
+    def _humanize_identifier(identifier: str) -> Optional[str]:
+        normalized = identifier.strip()
+        if not normalized:
+            return None
+        tokens = normalized.replace("_", " ").replace("-", " ").split()
+        if not tokens:
+            return normalized
+        return " ".join(token.capitalize() for token in tokens)
+
+    def _describe_rendering_presets(
+        self, rendering: Optional[RenderingConfig]
+    ) -> Tuple[RenderingPresetSummary, ...]:
+        if rendering is None:
+            return tuple()
+
+        overlays = (
+            RenderingOverlaySummary("normals", "Normals", rendering.overlay_normals),
+            RenderingOverlaySummary("uv", "UV", rendering.overlay_uv),
+            RenderingOverlaySummary("material", "Material", rendering.overlay_material),
+            RenderingOverlaySummary("light_volume", "Light Volume", rendering.overlay_light_volume),
+        )
+        shading_modes: Tuple[str, ...] = (rendering.shading_mode,) if rendering.shading_mode else tuple()
+        return (
+            RenderingPresetSummary(
+                identifier=rendering.preset,
+                label=self._humanize_identifier(rendering.preset),
+                shading_modes=shading_modes,
+                overlays=overlays,
+                default_resolution=(rendering.width, rendering.height),
+            ),
+        )
+
+    def _describe_algorithm_variants(
+        self, benchmarks: Optional[BenchmarkConfig]
+    ) -> Tuple[AlgorithmVariantSummary, ...]:
+        if benchmarks is None:
+            return tuple()
+
+        variants: Dict[str, AlgorithmVariantSummary] = {}
+        for scenario in benchmarks.scenarios:
+            if scenario.runtime_profile is None:
+                continue
+            if scenario.runtime_profile in variants:
+                continue
+            variants[scenario.runtime_profile] = AlgorithmVariantSummary(
+                identifier=scenario.runtime_profile,
+                label=self._humanize_identifier(scenario.runtime_profile),
+                description=None,
+            )
+
+        return tuple(variants.values())
 
     def _describe_runtime(self, runtime: RuntimeConfig) -> RuntimeSummary:
         camera: Optional[Dict[str, object]] = None
@@ -1477,6 +1649,7 @@ def summarize(summary: HarnessRunSummary) -> str:
 
     dataset = summary.dataset_id or "<none>"
     scenario = f"scenario={summary.scenario_label} " if summary.scenario_label else ""
+    runtime_profile = summary.runtime_profile or "<unspecified>"
     preset = summary.rendering_preset or "<unspecified>"
     shading = summary.shading_mode or "<unspecified>"
     average = (
@@ -1489,7 +1662,7 @@ def summarize(summary: HarnessRunSummary) -> str:
     if summary.run_index is not None and summary.run_count is not None:
         run = f" run={summary.run_index}/{summary.run_count}"
     return (
-        f"{scenario}dataset={dataset} preset={preset} shading={shading} "
+        f"{scenario}runtime={runtime_profile} dataset={dataset} preset={preset} shading={shading} "
         f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}{run}{dispatch}"
     )
 
@@ -1506,6 +1679,7 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
     payload: Dict[str, object] = {
         "dataset": summary.dataset_id,
         "scenario": summary.scenario_label,
+        "runtime_profile": summary.runtime_profile,
         "rendering_preset": summary.rendering_preset,
         "shading_mode": summary.shading_mode,
         "frames": summary.frames_executed,

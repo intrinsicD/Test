@@ -41,6 +41,13 @@ namespace
         };
 
         summary.rendering_presets = {preset};
+        summary.selected_rendering_preset = preset.identifier;
+
+        AlgorithmVariantDescriptor variant{};
+        variant.identifier = "baseline";
+        variant.label = "Baseline";
+        summary.algorithm_variants = {variant};
+        summary.selected_algorithm_variant = variant.identifier;
 
         RuntimeSummary runtime{};
         runtime.dataset_identifier = dataset_a.identifier;
@@ -65,6 +72,7 @@ TEST(ExperimentSandbox, DefaultsToSummarySelection)
     EXPECT_EQ(prefs.selected_dataset, "dataset_a");
     EXPECT_EQ(prefs.selected_preset, "research");
     EXPECT_EQ(prefs.shading_mode, "Forward");
+    EXPECT_EQ(prefs.selected_algorithm_variant, "baseline");
 }
 
 TEST(ExperimentSandbox, ConfigurationDispatchesCallbacksWhenStateChanges)
@@ -350,5 +358,39 @@ TEST(ExperimentSandbox, OverlayToggleInvokesCallback)
 
     EXPECT_FALSE(sandbox.set_overlay_enabled("unknown", true));
     EXPECT_EQ(render_callback_count, 2) << "Unknown overlays should not trigger callbacks";
+}
+
+TEST(ExperimentSandbox, AlgorithmSelectionInvokesCallback)
+{
+    ExperimentSandbox sandbox;
+    auto summary = make_summary();
+
+    AlgorithmVariantDescriptor secondary{};
+    secondary.identifier = "diagnostics";
+    secondary.label = "Diagnostics";
+    secondary.description = "Alternative runtime profile";
+    summary.algorithm_variants.push_back(secondary);
+
+    std::string selected_variant;
+    int algorithm_callback_count = 0;
+    SandboxCallbacks callbacks{};
+    callbacks.on_algorithm_selected = [&](const std::string& identifier) {
+        ++algorithm_callback_count;
+        selected_variant = identifier;
+    };
+
+    sandbox.set_configuration(summary);
+    sandbox.set_callbacks(callbacks);
+
+    EXPECT_EQ(algorithm_callback_count, 1);
+    EXPECT_EQ(selected_variant, "baseline");
+
+    ASSERT_TRUE(sandbox.select_algorithm_variant("diagnostics"));
+    EXPECT_EQ(algorithm_callback_count, 2);
+    EXPECT_EQ(selected_variant, "diagnostics");
+    EXPECT_EQ(sandbox.preferences().selected_algorithm_variant, "diagnostics");
+
+    EXPECT_FALSE(sandbox.select_algorithm_variant("unknown"));
+    EXPECT_EQ(algorithm_callback_count, 2) << "Callback should not trigger for invalid variant";
 }
 
