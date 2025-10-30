@@ -11,6 +11,7 @@ target_link_libraries(engine_io_tests
         PRIVATE
         engine::project_options
         engine_io
+        engine_geometry
         GTest::gtest_main
 )
 

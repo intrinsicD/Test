@@ -21,6 +21,7 @@ target_link_libraries(geometry_remesh
         PRIVATE
         engine::project_options
         engine_geometry_remesh_cli
+        engine_geometry_io
 )
 
 set_target_properties(geometry_remesh

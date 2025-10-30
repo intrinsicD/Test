@@ -19,6 +19,7 @@ target_link_libraries(${target_name}
         engine_compute
         engine_core
         engine_geometry
+        engine_geometry_io
         engine_io
         engine_math
         engine_physics

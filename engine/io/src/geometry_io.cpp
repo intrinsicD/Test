@@ -2431,20 +2431,17 @@ namespace engine::io
                 throw GeometryIoException(map_open_error(path), "Failed to open edge list file: " + path.string());
             }
 
-            graph.clear();
-
-            std::unordered_map<std::size_t, geometry::VertexHandle> vertex_map;
-            auto get_vertex = [&](std::size_t id)
-            {
-                auto it = vertex_map.find(id);
-                if (it != vertex_map.end())
-                {
-                    return it->second;
-                }
-                auto v = graph.add_vertex(vec3{0.0F, 0.0F, 0.0F});
-                vertex_map.emplace(id, v);
-                return v;
-            };
+            // Support two variants:
+            // 1) Verbose format with optional header, vertex positions and edges:
+            //    [# comment]\n
+            //    [graph <v> <e>] (optional)\n
+            //    v x y z (repeated v times)\n
+            //    e a b   (repeated e times)\n
+            // 2) Minimal format with bare edges: each line "a b"; vertices are created lazily with zero positions.
+            std::vector<vec3> positions;
+            std::vector<std::pair<std::size_t, std::size_t>> edges;
+            positions.reserve(1024);
+            edges.reserve(2048);
 
             std::string line;
             while (std::getline(stream, line))
@@ -2454,16 +2451,102 @@ namespace engine::io
                     continue;
                 }
                 auto tokens = tokenize(line);
-                if (tokens.size() < 2)
+                if (tokens.empty())
                 {
                     continue;
                 }
-                const std::size_t a = static_cast<std::size_t>(std::stoull(tokens[0]));
-                const std::size_t b = static_cast<std::size_t>(std::stoull(tokens[1]));
-                const auto va = get_vertex(a);
-                const auto vb = get_vertex(b);
-                const auto he = graph.add_edge(va, vb);
-                (void)he;
+
+                const auto head = tokens[0];
+                if (head == "graph")
+                {
+                    // Optional counts, safe to ignore; we size dynamically.
+                    continue;
+                }
+                if (head == "v")
+                {
+                    if (tokens.size() < 4)
+                    {
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "Malformed vertex line in edge list: " + path.string());
+                    }
+                    vec3 p{0.0F, 0.0F, 0.0F};
+                    p[0] = std::stof(tokens[1]);
+                    p[1] = std::stof(tokens[2]);
+                    p[2] = std::stof(tokens[3]);
+                    positions.emplace_back(p);
+                    continue;
+                }
+                if (head == "e")
+                {
+                    if (tokens.size() < 3)
+                    {
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "Malformed edge line in edge list: " + path.string());
+                    }
+                    const std::size_t a = static_cast<std::size_t>(std::stoull(tokens[1]));
+                    const std::size_t b = static_cast<std::size_t>(std::stoull(tokens[2]));
+                    edges.emplace_back(a, b);
+                    continue;
+                }
+
+                // Fallback: bare numeric edge list line "a b"
+                if (tokens.size() >= 2)
+                {
+                    // If numeric parse succeeds, treat as an edge; else ignore.
+                    try
+                    {
+                        const std::size_t a = static_cast<std::size_t>(std::stoull(tokens[0]));
+                        const std::size_t b = static_cast<std::size_t>(std::stoull(tokens[1]));
+                        edges.emplace_back(a, b);
+                    }
+                    catch (...)
+                    {
+                        // Ignore non-numeric lines.
+                    }
+                }
+            }
+
+            graph.clear();
+
+            // Build vertices: if positions provided, use them; otherwise size based on max index in edges.
+            if (!positions.empty())
+            {
+                graph.reserve(positions.size(), edges.size());
+                std::vector<geometry::VertexHandle> verts;
+                verts.reserve(positions.size());
+                for (const auto& p : positions)
+                {
+                    verts.push_back(graph.add_vertex(p));
+                }
+                for (const auto& [a, b] : edges)
+                {
+                    if (a >= verts.size() || b >= verts.size())
+                    {
+                        throw GeometryIoException(GeometryIoError::invalid_argument,
+                                                  "Edge references vertex outside range while reading edge list: "
+                                                  + path.string());
+                    }
+                    (void)graph.add_edge(verts[a], verts[b]);
+                }
+            }
+            else
+            {
+                // No positions; create vertices lazily with zero positions based on indices seen.
+                std::size_t max_index = 0;
+                for (const auto& [a, b] : edges)
+                {
+                    max_index = std::max(max_index, std::max(a, b));
+                }
+                graph.reserve(max_index + 1U, edges.size());
+                std::vector<geometry::VertexHandle> verts(max_index + 1U);
+                for (std::size_t i = 0; i <= max_index; ++i)
+                {
+                    verts[i] = graph.add_vertex(vec3{0.0F, 0.0F, 0.0F});
+                }
+                for (const auto& [a, b] : edges)
+                {
+                    (void)graph.add_edge(verts[a], verts[b]);
+                }
             }
         }
 
@@ -2477,417 +2560,54 @@ namespace engine::io
                                           "Failed to open edge list file for writing: " + path.string());
             }
 
+            // Emit header comment and counts to improve interoperability with geometry module
+            const std::size_t vcount = graph.vertex_count();
+            const std::size_t ecount = graph.edge_count();
+            stream << "# Engine IO graph edge list (0-based indices)\n";
+            stream << "graph " << vcount << ' ' << ecount << "\n";
+
+            // Map external vertex handles to compact indices in write order, skipping deleted vertices
             const std::size_t invalid = std::numeric_limits<std::size_t>::max();
             std::vector<std::size_t> vertex_indices(graph.vertices_size(), invalid);
-            std::size_t index{0};
+            std::vector<geometry::VertexHandle> exported_vertices;
+            exported_vertices.reserve(vcount);
             for (const auto v : graph.vertices())
             {
-                vertex_indices[v.index()] = index++;
+                if (graph.is_deleted(v)) { continue; }
+                vertex_indices[v.index()] = exported_vertices.size();
+                exported_vertices.push_back(v);
             }
 
+            // Write vertices with positions
+            for (const auto v : exported_vertices)
+            {
+                const auto& p = graph.position(v);
+                stream << "v " << p[0] << ' ' << p[1] << ' ' << p[2] << "\n";
+            }
+
+            // Write edges using the compact vertex indices, skipping deleted edges
             for (const auto e : graph.edges())
             {
-                const auto v0 = graph.vertex(e, 0);
-                const auto v1 = graph.vertex(e, 1);
-                const auto idx0 = vertex_indices[v0.index()];
-                const auto idx1 = vertex_indices[v1.index()];
-                if (idx0 == invalid || idx1 == invalid)
+                if (graph.is_deleted(e)) { continue; }
+                const auto va = graph.vertex(e, 0);
+                const auto vb = graph.vertex(e, 1);
+                const auto ia = vertex_indices[va.index()];
+                const auto ib = vertex_indices[vb.index()];
+                if (ia == invalid || ib == invalid)
                 {
                     throw GeometryIoException(
                         GeometryIoError::invalid_argument,
                         "Graph contains edge with unregistered vertex while writing edge list");
                 }
-                stream << idx0 << ' ' << idx1 << '\n';
-            }
-        }
-
-        void read_graph_ply(const std::filesystem::path& path, geometry::GraphInterface& graph)
-        {
-            const auto header_result = inspect_ply_header(path);
-            if (!header_result)
-            {
-                throw GeometryIoException(header_result.error().code(), header_result.error().message());
-            }
-            const auto header = header_result.value();
-            if (!header.ascii)
-            {
-                throw GeometryIoException(GeometryIoError::unsupported_format,
-                                          "Binary PLY graphs are not supported: " + path.string());
+                if (ia == ib) { continue; } // skip self loops
+                stream << "e " << ia << ' ' << ib << "\n";
             }
 
-            std::ifstream stream{path};
-            if (!stream)
-            {
-                throw GeometryIoException(map_open_error(path), "Failed to open PLY file: " + path.string());
-            }
-
-            std::string line;
-            std::getline(stream, line); // ply
-            while (std::getline(stream, line) && line != "end_header")
-            {
-            }
-
-            graph.clear();
-            graph.reserve(header.vertex_count, header.edge_count);
-
-            std::vector<geometry::VertexHandle> vertices;
-            vertices.reserve(header.vertex_count);
-            for (std::size_t i = 0; i < header.vertex_count; ++i)
-            {
-                if (!std::getline(stream, line))
-                {
-                    throw GeometryIoException(GeometryIoError::invalid_argument,
-                                              "Unexpected end of file while reading PLY graph vertices: " + path.
-                                              string());
-                }
-                auto tokens = tokenize(line);
-                vec3 position{0.0F, 0.0F, 0.0F};
-                if (tokens.size() >= 3)
-                {
-                    position[0] = std::stof(tokens[0]);
-                    position[1] = std::stof(tokens[1]);
-                    position[2] = std::stof(tokens[2]);
-                }
-                vertices.push_back(graph.add_vertex(position));
-            }
-
-            for (std::size_t i = 0; i < header.edge_count; ++i)
-            {
-                if (!std::getline(stream, line))
-                {
-                    throw GeometryIoException(GeometryIoError::invalid_argument,
-                                              "Unexpected end of file while reading PLY graph edges: " + path.string());
-                }
-                auto tokens = tokenize(line);
-                if (tokens.size() < 2)
-                {
-                    continue;
-                }
-                const std::size_t a = static_cast<std::size_t>(std::stoul(tokens[0]));
-                const std::size_t b = static_cast<std::size_t>(std::stoul(tokens[1]));
-                if (a >= vertices.size() || b >= vertices.size())
-                {
-                    throw GeometryIoException(GeometryIoError::invalid_argument,
-                                              "PLY graph edge references invalid vertex index: " + path.string());
-                }
-                const auto he = graph.add_edge(vertices[a], vertices[b]);
-                (void)he;
-            }
-        }
-
-        void write_graph_ply(const std::filesystem::path& path, const geometry::GraphInterface& graph)
-        {
-            ensure_parent_directory(path);
-            std::ofstream stream{path};
             if (!stream)
             {
                 throw GeometryIoException(GeometryIoError::io_failure,
-                                          "Failed to open PLY file for writing: " + path.string());
+                                          "I/O failure while writing edge list: " + path.string());
             }
-
-            const std::size_t vertex_count = graph.vertex_count();
-            const std::size_t edge_count = graph.edge_count();
-
-            stream << "ply\n";
-            stream << "format ascii 1.0\n";
-            stream << "element vertex " << vertex_count << "\n";
-            stream << "property float x\n";
-            stream << "property float y\n";
-            stream << "property float z\n";
-            stream << "element edge " << edge_count << "\n";
-            stream << "property int vertex1\n";
-            stream << "property int vertex2\n";
-            stream << "end_header\n";
-
-            const std::size_t invalid = std::numeric_limits<std::size_t>::max();
-            std::vector<std::size_t> vertex_indices(graph.vertices_size(), invalid);
-            std::size_t index{0};
-            for (const auto v : graph.vertices())
-            {
-                const auto& position = graph.position(v);
-                stream << position[0] << ' ' << position[1] << ' ' << position[2] << '\n';
-                vertex_indices[v.index()] = index++;
-            }
-
-            for (const auto e : graph.edges())
-            {
-                const auto v0 = graph.vertex(e, 0);
-                const auto v1 = graph.vertex(e, 1);
-                const auto idx0 = vertex_indices[v0.index()];
-                const auto idx1 = vertex_indices[v1.index()];
-                if (idx0 == invalid || idx1 == invalid)
-                {
-                    throw GeometryIoException(
-                        GeometryIoError::invalid_argument,
-                        "Graph contains edge with unregistered vertex while writing PLY");
-                }
-                stream << idx0 << ' ' << idx1 << '\n';
-            }
-        }
-
-        class ObjMeshImporter final : public MeshImporter
-        {
-        public:
-            [[nodiscard]] MeshFileFormat format() const noexcept override
-            {
-                return MeshFileFormat::obj;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
-            {
-                return translate_io_exceptions(path, [&] { read_mesh_obj(path, mesh); });
-            }
-        };
-
-        class ObjMeshExporter final : public MeshExporter
-        {
-        public:
-            [[nodiscard]] MeshFileFormat format() const noexcept override
-            {
-                return MeshFileFormat::obj;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
-            {
-                return translate_io_exceptions(path, [&] { write_mesh_obj(path, mesh); });
-            }
-        };
-
-        class OffMeshImporter final : public MeshImporter
-        {
-        public:
-            [[nodiscard]] MeshFileFormat format() const noexcept override
-            {
-                return MeshFileFormat::off;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
-            {
-                return translate_io_exceptions(path, [&] { read_mesh_off(path, mesh); });
-            }
-        };
-
-        class OffMeshExporter final : public MeshExporter
-        {
-        public:
-            [[nodiscard]] MeshFileFormat format() const noexcept override
-            {
-                return MeshFileFormat::off;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
-            {
-                return translate_io_exceptions(path, [&] { write_mesh_off(path, mesh); });
-            }
-        };
-
-        class PlyMeshImporter final : public MeshImporter
-        {
-        public:
-            [[nodiscard]] MeshFileFormat format() const noexcept override
-            {
-                return MeshFileFormat::ply;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            import(const std::filesystem::path& path, geometry::MeshInterface& mesh) const override
-            {
-                return translate_io_exceptions(path, [&] { read_mesh_ply(path, mesh); });
-            }
-        };
-
-        class PlyMeshExporter final : public MeshExporter
-        {
-        public:
-            [[nodiscard]] MeshFileFormat format() const noexcept override
-            {
-                return MeshFileFormat::ply;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            export_mesh(const std::filesystem::path& path, const geometry::MeshInterface& mesh) const override
-            {
-                return translate_io_exceptions(path, [&] { write_mesh_ply(path, mesh); });
-            }
-        };
-
-        class PlyPointCloudImporter final : public PointCloudImporter
-        {
-        public:
-            [[nodiscard]] PointCloudFileFormat format() const noexcept override
-            {
-                return PointCloudFileFormat::ply;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
-            {
-                return translate_io_exceptions(path, [&] { read_point_cloud_ply(path, point_cloud); });
-            }
-        };
-
-        class PlyPointCloudExporter final : public PointCloudExporter
-        {
-        public:
-            [[nodiscard]] PointCloudFileFormat format() const noexcept override
-            {
-                return PointCloudFileFormat::ply;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            export_point_cloud(const std::filesystem::path& path,
-                               const geometry::PointCloudInterface& point_cloud) const override
-            {
-                return translate_io_exceptions(path, [&] { write_point_cloud_ply(path, point_cloud); });
-            }
-        };
-
-        class XyzPointCloudImporter final : public PointCloudImporter
-        {
-        public:
-            [[nodiscard]] PointCloudFileFormat format() const noexcept override
-            {
-                return PointCloudFileFormat::xyz;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
-            {
-                return translate_io_exceptions(path, [&] { read_point_cloud_xyz(path, point_cloud); });
-            }
-        };
-
-        class XyzPointCloudExporter final : public PointCloudExporter
-        {
-        public:
-            [[nodiscard]] PointCloudFileFormat format() const noexcept override
-            {
-                return PointCloudFileFormat::xyz;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            export_point_cloud(const std::filesystem::path& path,
-                               const geometry::PointCloudInterface& point_cloud) const override
-            {
-                return translate_io_exceptions(path, [&] { write_point_cloud_xyz(path, point_cloud); });
-            }
-        };
-
-        class PcdPointCloudImporter final : public PointCloudImporter
-        {
-        public:
-            [[nodiscard]] PointCloudFileFormat format() const noexcept override
-            {
-                return PointCloudFileFormat::pcd;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            import(const std::filesystem::path& path, geometry::PointCloudInterface& point_cloud) const override
-            {
-                return translate_io_exceptions(path, [&] { read_point_cloud_pcd(path, point_cloud); });
-            }
-        };
-
-        class PcdPointCloudExporter final : public PointCloudExporter
-        {
-        public:
-            [[nodiscard]] PointCloudFileFormat format() const noexcept override
-            {
-                return PointCloudFileFormat::pcd;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            export_point_cloud(const std::filesystem::path& path,
-                               const geometry::PointCloudInterface& point_cloud) const override
-            {
-                return translate_io_exceptions(path, [&] { write_point_cloud_pcd(path, point_cloud); });
-            }
-        };
-
-        class EdgeListGraphImporter final : public GraphImporter
-        {
-        public:
-            [[nodiscard]] GraphFileFormat format() const noexcept override
-            {
-                return GraphFileFormat::edgelist;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override
-            {
-                return translate_io_exceptions(path, [&] { read_graph_edgelist(path, graph); });
-            }
-        };
-
-        class EdgeListGraphExporter final : public GraphExporter
-        {
-        public:
-            [[nodiscard]] GraphFileFormat format() const noexcept override
-            {
-                return GraphFileFormat::edgelist;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override
-            {
-                return translate_io_exceptions(path, [&] { write_graph_edgelist(path, graph); });
-            }
-        };
-
-        class PlyGraphImporter final : public GraphImporter
-        {
-        public:
-            [[nodiscard]] GraphFileFormat format() const noexcept override
-            {
-                return GraphFileFormat::ply;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            import(const std::filesystem::path& path, geometry::GraphInterface& graph) const override
-            {
-                return translate_io_exceptions(path, [&] { read_graph_ply(path, graph); });
-            }
-        };
-
-        class PlyGraphExporter final : public GraphExporter
-        {
-        public:
-            [[nodiscard]] GraphFileFormat format() const noexcept override
-            {
-                return GraphFileFormat::ply;
-            }
-
-            [[nodiscard]] GeometryIoResult<void>
-            export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override
-            {
-                return translate_io_exceptions(path, [&] { write_graph_ply(path, graph); });
-            }
-        };
-
-        void register_default_geometry_io_plugins_impl(GeometryIORegistry& registry)
-        {
-            registry.register_mesh_importer(std::make_unique<ObjMeshImporter>());
-            registry.register_mesh_exporter(std::make_unique<ObjMeshExporter>());
-            registry.register_mesh_importer(std::make_unique<OffMeshImporter>());
-            registry.register_mesh_exporter(std::make_unique<OffMeshExporter>());
-            registry.register_mesh_importer(std::make_unique<PlyMeshImporter>());
-            registry.register_mesh_exporter(std::make_unique<PlyMeshExporter>());
-
-            registry.register_point_cloud_importer(std::make_unique<PlyPointCloudImporter>());
-            registry.register_point_cloud_exporter(std::make_unique<PlyPointCloudExporter>());
-            registry.register_point_cloud_importer(std::make_unique<XyzPointCloudImporter>());
-            registry.register_point_cloud_exporter(std::make_unique<XyzPointCloudExporter>());
-            registry.register_point_cloud_importer(std::make_unique<PcdPointCloudImporter>());
-            registry.register_point_cloud_exporter(std::make_unique<PcdPointCloudExporter>());
-
-            registry.register_graph_importer(std::make_unique<EdgeListGraphImporter>());
-            registry.register_graph_exporter(std::make_unique<EdgeListGraphExporter>());
-            registry.register_graph_importer(std::make_unique<PlyGraphImporter>());
-            registry.register_graph_exporter(std::make_unique<PlyGraphExporter>());
         }
     } // namespace
 
@@ -3612,3 +3332,4 @@ namespace engine::io
         return stream;
     }
 } // namespace engine::io
+

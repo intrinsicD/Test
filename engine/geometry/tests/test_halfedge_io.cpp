@@ -167,3 +167,42 @@ TEST(HalfedgeMeshIO, WritesAndReadsQuadObj)
 
     remove_if_exists(path);
 }
+
+TEST(HalfedgeMeshIO, ThrowsOnInvalidObj)
+{
+    const auto path = make_temporary_obj_path("invalid");
+    {
+        std::ofstream stream(path);
+        ASSERT_TRUE(stream.is_open());
+        stream << "v 0 0\n"; // malformed vertex
+        stream << "f 1 2\n"; // malformed face, not enough vertices
+    }
+
+    engine::geometry::Mesh mesh;
+    EXPECT_THROW(read(mesh.interface, path), std::runtime_error);
+
+    remove_if_exists(path);
+}
+
+TEST(HalfedgeMeshIO, ReadsOffViaWrapper)
+{
+    // Create a simple OFF mesh file and ensure geometry::mesh::read can read it via engine::io
+    const auto path = std::filesystem::temp_directory_path() / ("triangle-off" + fs::generate_random_suffix() + ".off");
+    {
+        std::ofstream stream(path);
+        ASSERT_TRUE(stream.is_open());
+        stream << "OFF\n";
+        stream << "3 1 0\n";
+        stream << "0 0 0\n";
+        stream << "1 0 0\n";
+        stream << "0 1 0\n";
+        stream << "3 0 1 2\n";
+    }
+
+    engine::geometry::Mesh mesh;
+    ASSERT_NO_THROW(read(mesh.interface, path));
+    EXPECT_EQ(mesh.interface.vertex_count(), 3U);
+    EXPECT_EQ(mesh.interface.face_count(), 1U);
+
+    remove_if_exists(path);
+}

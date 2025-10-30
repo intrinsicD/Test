@@ -1,4 +1,5 @@
 #include "engine/geometry/point_cloud/point_cloud.hpp"
+#include "../../io/include/engine/io/geometry_io.hpp"
 
 #include <algorithm>
 #include <array>
@@ -735,25 +736,35 @@ namespace engine::geometry::point_cloud
 
     void read(PointCloudInterface& cloud, const std::filesystem::path& path)
     {
-        std::ifstream input(path, std::ios::in | std::ios::binary);
-        if (!input)
+        const auto result = engine::io::read_point_cloud(path, cloud, engine::io::PointCloudFileFormat::unknown);
+        if (!result)
         {
-            throw std::runtime_error("Failed to open PLY file for reading");
+            const auto err = result.error();
+            const auto msg = std::string{err.has_message() ? err.message() : err.identifier()};
+            throw std::runtime_error(msg.empty() ? std::string{engine::io::to_string(err.code())} : msg);
         }
-
-        read_ply(cloud, input);
     }
 
     void write(const PointCloudInterface& cloud, const std::filesystem::path& path, const IOFlags& flags)
     {
-        switch (const auto format = resolve_format(flags, path))
+        engine::io::PointCloudFileFormat fmt = engine::io::PointCloudFileFormat::unknown;
+        switch (resolve_format(flags, path))
         {
         case IOFlags::Format::kPLY:
-        case IOFlags::Format::kAuto:
-            write_ply(cloud, path, flags);
+            fmt = engine::io::PointCloudFileFormat::ply;
             break;
+        case IOFlags::Format::kAuto:
         default:
-            throw std::runtime_error("Unsupported point cloud output format");
+            fmt = engine::io::PointCloudFileFormat::unknown;
+            break;
+        }
+
+        const auto result = engine::io::write_point_cloud(path, cloud, fmt);
+        if (!result)
+        {
+            const auto err = result.error();
+            const auto msg = std::string{err.has_message() ? err.message() : err.identifier()};
+            throw std::runtime_error(msg.empty() ? std::string{engine::io::to_string(err.code())} : msg);
         }
     }
 } // namespace engine::geometry::point_cloud

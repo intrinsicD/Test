@@ -1,4 +1,5 @@
 #include "engine/geometry/mesh/halfedge_mesh.hpp"
+#include "../../io/include/engine/io/geometry_io.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -292,14 +293,13 @@ namespace engine::geometry::mesh
 
     void read(HalfedgeMeshInterface& mesh, const std::filesystem::path& path)
     {
-        const IOFlags::Format format = resolve_format(IOFlags::Format::kAuto, path);
-        switch (format)
+        // Delegate to engine::io with detection; translate structured error to exception
+        const auto result = engine::io::read_mesh(path, mesh, engine::io::MeshFileFormat::unknown);
+        if (!result)
         {
-        case IOFlags::Format::kOBJ:
-            read_obj(mesh, path);
-            break;
-        default:
-            throw std::runtime_error("Unsupported mesh format for file \"" + path.string() + "\"");
+            const auto err = result.error();
+            const auto msg = std::string{err.has_message() ? err.message() : err.identifier()};
+            throw std::runtime_error(msg.empty() ? std::string{engine::io::to_string(err.code())} : msg);
         }
     }
 
@@ -307,14 +307,25 @@ namespace engine::geometry::mesh
                const std::filesystem::path& path,
                const IOFlags& flags)
     {
-        const IOFlags::Format format = resolve_format(flags.format, path);
-        switch (format)
+        // Map geometry flags to io format; precision/header flags are not supported in io and are ignored here.
+        engine::io::MeshFileFormat fmt = engine::io::MeshFileFormat::unknown;
+        switch (flags.format)
         {
         case IOFlags::Format::kOBJ:
-            write_obj(mesh, path, flags);
+            fmt = engine::io::MeshFileFormat::obj;
             break;
+        case IOFlags::Format::kAuto:
         default:
-            throw std::runtime_error("Unsupported mesh format for file \"" + path.string() + "\"");
+            fmt = engine::io::MeshFileFormat::unknown;
+            break;
+        }
+
+        const auto result = engine::io::write_mesh(path, mesh, fmt);
+        if (!result)
+        {
+            const auto err = result.error();
+            const auto msg = std::string{err.has_message() ? err.message() : err.identifier()};
+            throw std::runtime_error(msg.empty() ? std::string{engine::io::to_string(err.code())} : msg);
         }
     }
 } // namespace engine::geometry::mesh

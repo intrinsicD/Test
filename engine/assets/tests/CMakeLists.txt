@@ -9,6 +9,10 @@ target_link_libraries(engine_assets_tests
         PRIVATE
         engine::project_options
         engine_assets
+        engine_geometry
+        engine_geometry_io
+        engine_io
+        engine_platform
         GTest::gtest_main
 )
 

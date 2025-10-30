@@ -4,15 +4,15 @@ add_library(${target_name}
         src/api.cpp
         src/deform/linear_blend_skinning.cpp
         src/graph/graph.cpp
-        src/graph/graph_io.cpp
+        # src/graph/graph_io.cpp moved to engine_geometry_io
         src/properties/property_registry.cpp
         src/properties/property_handle.cpp
         src/mesh/halfedge_mesh.cpp
-        src/mesh/halfedge_mesh_io.cpp
+        # src/mesh/halfedge_mesh_io.cpp moved to engine_geometry_io
         src/mesh/surface_mesh_conversion.cpp
         src/topology/surface_topology.cpp
         src/point_cloud/point_cloud.cpp
-        src/point_cloud/point_cloud_io.cpp
+        # src/point_cloud/point_cloud_io.cpp moved to engine_geometry_io
         src/remesh/deviation.cpp
         src/remesh/remesh.cpp
         src/remesh/telemetry.cpp
@@ -48,6 +48,32 @@ target_link_libraries(${target_name}
 target_compile_definitions(${target_name}
         PRIVATE
         ENGINE_GEOMETRY_EXPORTS
+)
+
+# IO wrappers library that depends on both geometry and io
+add_library(engine_geometry_io STATIC
+        src/mesh/halfedge_mesh_io.cpp
+        src/point_cloud/point_cloud_io.cpp
+        src/graph/graph_io.cpp
+)
+
+set_target_properties(engine_geometry_io PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_link_libraries(engine_geometry_io
+        PUBLIC
+        engine_io
+)
+
+target_include_directories(engine_geometry_io
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# Link wrappers and io into engine_geometry so its exported API has definitions
+target_link_libraries(${target_name}
+        PRIVATE
+        engine_geometry_io
+        engine_io
 )
 
 add_subdirectory(tools)

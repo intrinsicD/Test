@@ -37,10 +37,13 @@ target_link_libraries(engine_geometry_shape_interactions_tests
 
 add_test(NAME engine_geometry_shape_interactions_tests COMMAND engine_geometry_shape_interactions_tests)
 
+# Link tests against the adapter library that depends on both engine_geometry and engine_io
+# so read/write wrappers and io detection are available.
 target_link_libraries(engine_geometry_tests
         PRIVATE
         engine::project_options
         engine_geometry
+        engine_geometry_io
         engine_geometry_remesh_cli
         engine_platform
         GTest::gtest_main
