@@ -1,0 +1,12 @@
+# CMake generated Testfile for 
+# Source directory: /home/runner/work/Test/Test/engine/tests/integration
+# Build directory: /home/runner/work/Test/Test/_codeql_build_dir/engine/tests/integration
+# 
+# This file includes the relevant testing commands required for 
+# testing this directory and lists subdirectories to be tested as well.
+add_test([=[engine_integration_tests]=] "/home/runner/work/Test/Test/_codeql_build_dir/engine/tests/integration/engine_integration_tests")
+set_tests_properties([=[engine_integration_tests]=] PROPERTIES  ENVIRONMENT "ENGINE_PLATFORM_WINDOW_BACKEND=mock;ENGINE_WINDOW_BACKEND=MOCK" LABELS "integration" TIMEOUT "90" _BACKTRACE_TRIPLES "/home/runner/work/Test/Test/engine/tests/integration/CMakeLists.txt;22;add_test;/home/runner/work/Test/Test/engine/tests/integration/CMakeLists.txt;0;")
+add_test([=[runtime_prototype_harness_geometry_case_study]=] "/usr/bin/python3.12" "-m" "scripts.prototyping.run_prototype_harness" "--case-study" "geometry-baseline" "--dry-run" "--require-schema" "--summary-json" "/home/runner/work/Test/Test/_codeql_build_dir/artifacts/ai004/geometry-baseline-summary.json")
+set_tests_properties([=[runtime_prototype_harness_geometry_case_study]=] PROPERTIES  ENVIRONMENT "ENGINE_PLATFORM_WINDOW_BACKEND=mock;ENGINE_WINDOW_BACKEND=MOCK;PYTHONUNBUFFERED=1" FAIL_REGULAR_EXPRESSION "error:" LABELS "integration" PASS_REGULAR_EXPRESSION "Dry run summary" TIMEOUT "120" WORKING_DIRECTORY "/home/runner/work/Test/Test" _BACKTRACE_TRIPLES "/home/runner/work/Test/Test/engine/tests/integration/CMakeLists.txt;33;add_test;/home/runner/work/Test/Test/engine/tests/integration/CMakeLists.txt;0;")
+add_test([=[runtime_prototype_harness_sample_dry_run]=] "/home/runner/work/Test/Test/_codeql_build_dir/engine/runtime/runtime_prototype_harness" "--config" "/home/runner/work/Test/Test/docs/examples/ai004_sample.json" "--dry-run" "--require-schema" "--summary-json" "/home/runner/work/Test/Test/_codeql_build_dir/artifacts/ai004/runtime-sample-summary.json")
+set_tests_properties([=[runtime_prototype_harness_sample_dry_run]=] PROPERTIES  ENVIRONMENT "ENGINE_PLATFORM_WINDOW_BACKEND=mock;ENGINE_WINDOW_BACKEND=MOCK" FAIL_REGULAR_EXPRESSION "error:" LABELS "integration" PASS_REGULAR_EXPRESSION "dispatch count: 0" TIMEOUT "60" WORKING_DIRECTORY "/home/runner/work/Test/Test" _BACKTRACE_TRIPLES "/home/runner/work/Test/Test/engine/tests/integration/CMakeLists.txt;55;add_test;/home/runner/work/Test/Test/engine/tests/integration/CMakeLists.txt;0;")

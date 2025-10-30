@@ -1,0 +1,1 @@
+--out-path /home/runner/work/Test/Test/_codeql_build_dir/third_party/gladsources/glad_gl_core --api gl:core=4.6 --reproducible c
