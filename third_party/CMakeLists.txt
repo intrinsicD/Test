@@ -30,8 +30,8 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/glfw.cmake") # sets ENGINE_GLFW_AVAIL
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/spdlog.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/yaml-cpp.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/entt.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/glad.cmake")  # Must come before imgui for backend support
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/imgui.cmake")
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/glad.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/vma.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/stb.cmake")
 
