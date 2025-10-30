@@ -3,8 +3,16 @@ set(target_name engine_io)
 add_library(${target_name} STATIC
         src/api.cpp
         src/animation_importer.cpp
-        src/geometry_io_registry.cpp
+        src/detail/geometry_io_common.cpp
+        src/exporters/graph_exporters.cpp
+        src/exporters/mesh_exporters.cpp
+        src/exporters/point_cloud_exporters.cpp
         src/geometry_io.cpp
+        src/geometry_io_plugins.cpp
+        src/geometry_io_registry.cpp
+        src/importers/graph_importers.cpp
+        src/importers/mesh_importers.cpp
+        src/importers/point_cloud_importers.cpp
         src/telemetry.cpp
 )
 
