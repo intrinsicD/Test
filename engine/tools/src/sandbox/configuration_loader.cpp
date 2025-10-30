@@ -4,6 +4,7 @@
 #include <cctype>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <iterator>
 #include <map>
 #include <optional>
@@ -461,6 +462,21 @@ namespace engine::tools::sandbox
             return std::nullopt;
         }
 
+        [[nodiscard]] std::optional<double> get_optional_number(const JsonValue::object_type& object,
+                                                                 std::string_view key,
+                                                                 std::string_view context)
+        {
+            if (const auto* value = find_member(object, key))
+            {
+                if (value->is_null())
+                {
+                    return std::nullopt;
+                }
+                return value->as_number(context);
+            }
+            return std::nullopt;
+        }
+
         [[nodiscard]] std::optional<std::uintmax_t> get_optional_size(const JsonValue::object_type& object,
                                                                       std::string_view key,
                                                                       std::string_view context)
@@ -519,7 +535,10 @@ namespace engine::tools::sandbox
             descriptor.identifier = get_string(dataset, "id", "dataset.id");
             descriptor.label = get_string(dataset, "label", "dataset.label", descriptor.identifier);
             descriptor.kind = get_string(dataset, "kind", "dataset.kind");
-
+            descriptor.schema_id = get_string(dataset, "schema_id", "dataset.schema_id");
+            descriptor.schema_version = static_cast<int>(std::lround(
+                get_number(dataset, "schema_version", "dataset.schema_version", 0.0)));
+            
             if (const auto* tags_value = find_member(dataset, "tags"))
             {
                 if (!tags_value->is_array())
@@ -535,8 +554,18 @@ namespace engine::tools::sandbox
                 }
             }
 
+            descriptor.source_generator = get_string(dataset, "source_generator", "dataset.source_generator");
             descriptor.source_asset = get_string(dataset, "source_mesh", "dataset.source_mesh");
+            descriptor.source_asset_sha256 =
+                get_optional_string(dataset, "source_mesh_sha256", "dataset.source_mesh_sha256");
+            descriptor.source_asset_size_bytes =
+                get_optional_size(dataset, "source_mesh_size_bytes", "dataset.source_mesh_size_bytes");
             descriptor.processed_asset = get_string(dataset, "output_mesh", "dataset.output_mesh");
+            descriptor.processed_asset_sha256 =
+                get_optional_string(dataset, "output_mesh_sha256", "dataset.output_mesh_sha256");
+            descriptor.processed_asset_size_bytes =
+                get_optional_size(dataset, "output_mesh_size_bytes", "dataset.output_mesh_size_bytes");
+            descriptor.remeshing_mode = get_string(dataset, "remeshing_mode", "dataset.remeshing_mode");
 
             descriptor.statistics.clear();
             if (const auto* statistics = find_member(dataset, "statistics"))
@@ -559,13 +588,79 @@ namespace engine::tools::sandbox
             {
                 flatten_numeric_entries(*metrics, std::string{}, descriptor.metrics);
             }
+            descriptor.remeshing_targets.clear();
             if (const auto* targets = find_member(dataset, "remeshing_targets"))
             {
+                if (targets->is_object())
+                {
+                    const auto& target_object = targets->as_object("dataset.remeshing_targets");
+                    for (const auto& [key, value] : target_object)
+                    {
+                        if (value.is_number())
+                        {
+                            descriptor.remeshing_targets.emplace_back(
+                                key, value.as_number("dataset.remeshing_targets value"));
+                        }
+                    }
+                }
                 flatten_numeric_entries(*targets, std::string{"remeshing"}, descriptor.metrics);
             }
+            descriptor.parameterization_properties.clear();
             if (const auto* parameterization = find_member(dataset, "parameterization"))
             {
+                if (parameterization->is_object())
+                {
+                    const auto& parameterization_object = parameterization->as_object("dataset.parameterization");
+                    if (const auto* mode_value = find_member(parameterization_object, "mode"))
+                    {
+                        if (mode_value->is_string())
+                        {
+                            descriptor.parameterization_properties.emplace_back(
+                                "mode", mode_value->as_string("dataset.parameterization.mode"));
+                        }
+                    }
+                    if (const auto* charts_value = find_member(parameterization_object, "charts"))
+                    {
+                        if (charts_value->is_array())
+                        {
+                            const auto& charts = charts_value->as_array("dataset.parameterization.charts");
+                            descriptor.parameterization_properties.emplace_back(
+                                "charts", std::to_string(charts.size()));
+                        }
+                    }
+                }
                 flatten_numeric_entries(*parameterization, std::string{"parameterization"}, descriptor.metrics);
+            }
+
+            descriptor.feature_preservation.clear();
+            if (const auto* preservation = find_member(dataset, "feature_preservation"))
+            {
+                if (preservation->is_object())
+                {
+                    const auto& preservation_object =
+                        preservation->as_object("dataset.feature_preservation");
+                    for (const auto& [key, value] : preservation_object)
+                    {
+                        if (value.is_bool())
+                        {
+                            descriptor.feature_preservation.emplace_back(
+                                key, value.as_bool("dataset.feature_preservation") ? "true" : "false");
+                        }
+                        else if (value.is_number())
+                        {
+                            std::ostringstream stream;
+                            stream.setf(std::ios::fixed, std::ios::floatfield);
+                            stream << std::setprecision(3)
+                                   << value.as_number("dataset.feature_preservation value");
+                            descriptor.feature_preservation.emplace_back(key, stream.str());
+                        }
+                        else if (value.is_string())
+                        {
+                            descriptor.feature_preservation.emplace_back(
+                                key, value.as_string("dataset.feature_preservation value"));
+                        }
+                    }
+                }
             }
 
             descriptor.assets.clear();
@@ -856,15 +951,24 @@ namespace engine::tools::sandbox
             const auto& runtime = runtime_value->as_object("runtime");
             runtime_summary.dataset_identifier = get_string(runtime, "dataset", "runtime.dataset");
             runtime_summary.scene_manifest = get_string(runtime, "scene_manifest", "runtime.scene_manifest");
+            runtime_summary.scene_manifest_path =
+                get_optional_string(runtime, "scene_manifest_path", "runtime.scene_manifest_path");
             runtime_summary.scene_entry_point = get_string(runtime, "scene_entry_point", "runtime.scene_entry_point");
             runtime_summary.camera_description = describe_camera(runtime);
             runtime_summary.simulation_description = describe_simulation(runtime);
+            runtime_summary.schema_version = static_cast<int>(std::lround(
+                get_number(runtime, "schema_version", "runtime.schema_version", 0.0)));
 
-            runtime_summary.hot_reload_enabled = false;
+            runtime_summary.hot_reload.enabled = false;
+            runtime_summary.hot_reload.watch_interval_seconds.reset();
             if (const auto* hot_reload = find_member(runtime, "hot_reload"))
             {
-                runtime_summary.hot_reload_enabled = get_bool(hot_reload->as_object("runtime.hot_reload"), "enabled",
-                                                               "runtime.hot_reload.enabled", false);
+                const auto& hot_reload_object = hot_reload->as_object("runtime.hot_reload");
+                runtime_summary.hot_reload.enabled =
+                    get_bool(hot_reload_object, "enabled", "runtime.hot_reload.enabled", false);
+                runtime_summary.hot_reload.watch_interval_seconds =
+                    get_optional_number(hot_reload_object, "watch_interval_seconds",
+                                         "runtime.hot_reload.watch_interval_seconds");
             }
         }
 

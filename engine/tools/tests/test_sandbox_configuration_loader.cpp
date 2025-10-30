@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -17,10 +18,18 @@ namespace
     {
       "id": "geometry-remesh-baseline",
       "kind": "geometry.remesh",
+      "schema_id": "ai004.dataset.geometry.remesh",
+      "schema_version": 3,
       "label": "Geometry Remesh Baseline",
       "tags": ["geometry", "remesh", "case-study"],
+      "source_generator": "scripts/datasets/ingest_dataset.py",
       "source_mesh": "assets/datasets/remesh_sample/source_mesh.obj",
+      "source_mesh_sha256": "source-hash",
+      "source_mesh_size_bytes": 2048,
       "output_mesh": "assets/datasets/remesh_sample/output_mesh.obj",
+      "output_mesh_sha256": "output-hash",
+      "output_mesh_size_bytes": 4096,
+      "remeshing_mode": "adaptive",
       "statistics": {
         "iterations": 6,
         "max_edge_length": 1.118,
@@ -52,6 +61,11 @@ namespace
       "parameterization": {
         "mode": "reuse_existing",
         "texel_density": 256.0
+      },
+      "feature_preservation": {
+        "lock_boundary_edges": true,
+        "minimum_feature_angle_degrees": 30.0,
+        "lock_feature_edges": false
       },
       "assets": [
         {
@@ -94,7 +108,9 @@ namespace
   ],
   "selected_algorithm_variant": "baseline",
   "runtime": {
+    "schema_version": 4,
     "dataset": "geometry-remesh-baseline",
+    "scene_manifest_path": "/tmp/runtime_scene.json",
     "camera": {
       "mode": "orbit",
       "position": [0.0, 0.0, 4.0],
@@ -105,7 +121,8 @@ namespace
       "max_substeps": 2
     },
     "hot_reload": {
-      "enabled": false
+      "enabled": false,
+      "watch_interval_seconds": 0.25
     }
   },
   "selected_dataset": "geometry-remesh-baseline",
@@ -179,6 +196,8 @@ TEST(SandboxConfigurationLoader, ParsesHarnessSummary)
     EXPECT_EQ(dataset.identifier, "geometry-remesh-baseline");
     EXPECT_EQ(dataset.label, "Geometry Remesh Baseline");
     EXPECT_EQ(dataset.kind, "geometry.remesh");
+    EXPECT_EQ(dataset.schema_id, "ai004.dataset.geometry.remesh");
+    EXPECT_EQ(dataset.schema_version, 3);
     ASSERT_EQ(dataset.tags.size(), 3U);
     EXPECT_EQ(dataset.tags[0], "geometry");
     ASSERT_TRUE(dataset.statistics.contains("iterations"));
@@ -188,8 +207,38 @@ TEST(SandboxConfigurationLoader, ParsesHarnessSummary)
     ASSERT_TRUE(dataset.metrics.contains("output.vertices"));
     EXPECT_DOUBLE_EQ(dataset.metrics.at("output.vertices"), 5.0);
     ASSERT_TRUE(dataset.metrics.contains("parameterization.texel_density"));
+    EXPECT_EQ(dataset.source_generator, "scripts/datasets/ingest_dataset.py");
     EXPECT_EQ(dataset.source_asset, "assets/datasets/remesh_sample/source_mesh.obj");
+    ASSERT_TRUE(dataset.source_asset_sha256.has_value());
+    EXPECT_EQ(dataset.source_asset_sha256.value(), "source-hash");
+    ASSERT_TRUE(dataset.source_asset_size_bytes.has_value());
+    EXPECT_EQ(dataset.source_asset_size_bytes.value(), 2048U);
     EXPECT_EQ(dataset.processed_asset, "assets/datasets/remesh_sample/output_mesh.obj");
+    ASSERT_TRUE(dataset.processed_asset_sha256.has_value());
+    EXPECT_EQ(dataset.processed_asset_sha256.value(), "output-hash");
+    ASSERT_TRUE(dataset.processed_asset_size_bytes.has_value());
+    EXPECT_EQ(dataset.processed_asset_size_bytes.value(), 4096U);
+    EXPECT_EQ(dataset.remeshing_mode, "adaptive");
+    ASSERT_EQ(dataset.remeshing_targets.size(), 1U);
+    EXPECT_EQ(dataset.remeshing_targets.front().first, "target_edge_length");
+    EXPECT_NEAR(dataset.remeshing_targets.front().second, 0.5, 1e-6);
+    ASSERT_EQ(dataset.feature_preservation.size(), 3U);
+    const auto find_feature = [&](std::string_view key) {
+        return std::find_if(dataset.feature_preservation.begin(), dataset.feature_preservation.end(),
+                            [&](const auto& entry) { return entry.first == key; });
+    };
+    auto lock_boundary = find_feature("lock_boundary_edges");
+    ASSERT_NE(lock_boundary, dataset.feature_preservation.end());
+    EXPECT_EQ(lock_boundary->second, "true");
+    auto lock_feature = find_feature("lock_feature_edges");
+    ASSERT_NE(lock_feature, dataset.feature_preservation.end());
+    EXPECT_EQ(lock_feature->second, "false");
+    auto feature_angle = find_feature("minimum_feature_angle_degrees");
+    ASSERT_NE(feature_angle, dataset.feature_preservation.end());
+    EXPECT_EQ(feature_angle->second, "30.000");
+    ASSERT_EQ(dataset.parameterization_properties.size(), 1U);
+    EXPECT_EQ(dataset.parameterization_properties.front().first, "mode");
+    EXPECT_EQ(dataset.parameterization_properties.front().second, "reuse_existing");
     ASSERT_EQ(dataset.assets.size(), 2U);
     EXPECT_TRUE(dataset.assets[0].verified);
     EXPECT_FALSE(dataset.assets[0].message.has_value());
@@ -229,12 +278,17 @@ TEST(SandboxConfigurationLoader, ParsesHarnessSummary)
     EXPECT_EQ(*summary.selected_dataset, "geometry-remesh-baseline");
 
     const auto& runtime = summary.runtime;
+    EXPECT_EQ(runtime.schema_version, 4);
     EXPECT_EQ(runtime.dataset_identifier, "geometry-remesh-baseline");
     EXPECT_TRUE(runtime.camera_description.find("mode=orbit") != std::string::npos);
     EXPECT_TRUE(runtime.camera_description.find("position=(0.0000, 0.0000, 4.0000)") != std::string::npos);
     EXPECT_TRUE(runtime.simulation_description.find("dt=0.016667") != std::string::npos);
     EXPECT_TRUE(runtime.simulation_description.find("max_substeps=2") != std::string::npos);
-    EXPECT_FALSE(runtime.hot_reload_enabled);
+    ASSERT_TRUE(runtime.scene_manifest_path.has_value());
+    EXPECT_EQ(runtime.scene_manifest_path.value(), "/tmp/runtime_scene.json");
+    EXPECT_FALSE(runtime.hot_reload.enabled);
+    ASSERT_TRUE(runtime.hot_reload.watch_interval_seconds.has_value());
+    EXPECT_NEAR(runtime.hot_reload.watch_interval_seconds.value(), 0.25, 1e-6);
 
     ASSERT_TRUE(summary.telemetry.has_value());
     const auto& telemetry = *summary.telemetry;

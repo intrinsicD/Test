@@ -6,6 +6,7 @@
 #include <cctype>
 #include <charconv>
 #include <cmath>
+#include <iomanip>
 #include <filesystem>
 #include <fstream>
 #include <limits>
@@ -60,6 +61,48 @@ namespace engine::tools::sandbox
             std::ostringstream stream;
             stream << value;
             return stream.str();
+        }
+
+        std::string format_double(double value)
+        {
+            std::ostringstream stream;
+            stream.setf(std::ios::fixed, std::ios::floatfield);
+            stream << std::setprecision(3) << value;
+            return stream.str();
+        }
+
+        void render_property_block(std::string_view heading,
+                                   const std::vector<std::pair<std::string, std::string>>& entries)
+        {
+            if (entries.empty())
+            {
+                return;
+            }
+
+            ImGui::TextUnformatted(std::string{heading}.c_str());
+            ImGui::Indent();
+            for (const auto& [key, value] : entries)
+            {
+                ImGui::BulletText("%s: %s", key.c_str(), value.c_str());
+            }
+            ImGui::Unindent();
+        }
+
+        void render_numeric_property_block(std::string_view heading,
+                                           const std::vector<std::pair<std::string, double>>& entries)
+        {
+            if (entries.empty())
+            {
+                return;
+            }
+
+            ImGui::TextUnformatted(std::string{heading}.c_str());
+            ImGui::Indent();
+            for (const auto& [key, value] : entries)
+            {
+                ImGui::BulletText("%s: %s", key.c_str(), format_double(value).c_str());
+            }
+            ImGui::Unindent();
         }
 
         void render_dataset_asset(const DatasetAssetDescriptor& asset)
@@ -881,6 +924,25 @@ namespace engine::tools::sandbox
             {
                 ImGui::Text("Kind: %s", dataset.kind.c_str());
             }
+            if (!dataset.schema_id.empty() || dataset.schema_version > 0)
+            {
+                if (!dataset.schema_id.empty() && dataset.schema_version > 0)
+                {
+                    ImGui::Text("Schema: %s (v%d)", dataset.schema_id.c_str(), dataset.schema_version);
+                }
+                else if (!dataset.schema_id.empty())
+                {
+                    ImGui::Text("Schema: %s", dataset.schema_id.c_str());
+                }
+                else
+                {
+                    ImGui::Text("Schema version: %d", dataset.schema_version);
+                }
+            }
+            if (!dataset.source_generator.empty())
+            {
+                ImGui::Text("Generator: %s", dataset.source_generator.c_str());
+            }
             if (!dataset.tags.empty())
             {
                 ImGui::TextUnformatted("Tags:");
@@ -914,11 +976,36 @@ namespace engine::tools::sandbox
             if (!dataset.source_asset.empty())
             {
                 ImGui::Text("Source: %s", dataset.source_asset.c_str());
+                if (dataset.source_asset_sha256)
+                {
+                    ImGui::Text("Source sha256: %s", dataset.source_asset_sha256->c_str());
+                }
+                if (dataset.source_asset_size_bytes)
+                {
+                    ImGui::Text("Source size: %s bytes",
+                                 format_uintmax(*dataset.source_asset_size_bytes).c_str());
+                }
             }
             if (!dataset.processed_asset.empty())
             {
                 ImGui::Text("Output: %s", dataset.processed_asset.c_str());
+                if (dataset.processed_asset_sha256)
+                {
+                    ImGui::Text("Output sha256: %s", dataset.processed_asset_sha256->c_str());
+                }
+                if (dataset.processed_asset_size_bytes)
+                {
+                    ImGui::Text("Output size: %s bytes",
+                                 format_uintmax(*dataset.processed_asset_size_bytes).c_str());
+                }
             }
+            if (!dataset.remeshing_mode.empty())
+            {
+                ImGui::Text("Remeshing mode: %s", dataset.remeshing_mode.c_str());
+            }
+            render_numeric_property_block("Remeshing targets", dataset.remeshing_targets);
+            render_property_block("Feature preservation", dataset.feature_preservation);
+            render_property_block("Parameterisation", dataset.parameterization_properties);
             if (!dataset.assets.empty())
             {
                 ImGui::TextUnformatted("Assets:");
@@ -943,9 +1030,17 @@ namespace engine::tools::sandbox
         {
             ImGui::Text("Scene manifest: %s", summary_.runtime.scene_manifest.c_str());
         }
+        if (summary_.runtime.scene_manifest_path && !summary_.runtime.scene_manifest_path->empty())
+        {
+            ImGui::Text("Resolved manifest: %s", summary_.runtime.scene_manifest_path->c_str());
+        }
         if (!summary_.runtime.scene_entry_point.empty())
         {
             ImGui::Text("Scene entry: %s", summary_.runtime.scene_entry_point.c_str());
+        }
+        if (summary_.runtime.schema_version > 0)
+        {
+            ImGui::Text("Runtime schema version: %d", summary_.runtime.schema_version);
         }
         if (!summary_.runtime.camera_description.empty())
         {
@@ -955,7 +1050,11 @@ namespace engine::tools::sandbox
         {
             ImGui::TextWrapped("Simulation: %s", summary_.runtime.simulation_description.c_str());
         }
-        ImGui::Text("Hot reload: %s", summary_.runtime.hot_reload_enabled ? "enabled" : "disabled");
+        ImGui::Text("Hot reload: %s", summary_.runtime.hot_reload.enabled ? "enabled" : "disabled");
+        if (summary_.runtime.hot_reload.watch_interval_seconds)
+        {
+            ImGui::Text("Watch interval: %.3f s", *summary_.runtime.hot_reload.watch_interval_seconds);
+        }
 
         if (!summary_.algorithm_variants.empty())
         {

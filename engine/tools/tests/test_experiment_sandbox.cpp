@@ -17,11 +17,22 @@ namespace
         dataset_a.identifier = "dataset_a";
         dataset_a.label = "Dataset A";
         dataset_a.kind = "remesh";
+        dataset_a.schema_id = "ai004.dataset.remesh";
+        dataset_a.schema_version = 1;
         dataset_a.tags = {"baseline", "geometry"};
         dataset_a.statistics = {{"faces", 4200.0}, {"vertices", 2150.0}};
         dataset_a.metrics = {{"mean_edge", 0.82}};
+        dataset_a.source_generator = "ingest";
         dataset_a.source_asset = "assets/raw/a.obj";
+        dataset_a.source_asset_sha256 = std::string{"sha-src"};
+        dataset_a.source_asset_size_bytes = 1024U;
         dataset_a.processed_asset = "assets/processed/a.mesh";
+        dataset_a.processed_asset_sha256 = std::string{"sha-out"};
+        dataset_a.processed_asset_size_bytes = 2048U;
+        dataset_a.remeshing_mode = "adaptive";
+        dataset_a.remeshing_targets = {{"target_edge_length", 0.5}};
+        dataset_a.feature_preservation = {{"lock_boundary_edges", "true"}};
+        dataset_a.parameterization_properties = {{"mode", "reuse"}};
 
         DatasetDescriptor dataset_b{};
         dataset_b.identifier = "dataset_b";
@@ -52,10 +63,13 @@ namespace
         RuntimeSummary runtime{};
         runtime.dataset_identifier = dataset_a.identifier;
         runtime.scene_manifest = "docs/examples/ai004_sample.json";
+        runtime.scene_manifest_path = std::string{"/tmp/runtime_scene.json"};
         runtime.scene_entry_point = "geometry_viewer";
         runtime.camera_description = "Orbit camera (1.5m radius)";
         runtime.simulation_description = "Static showcase";
-        runtime.hot_reload_enabled = true;
+        runtime.schema_version = 3;
+        runtime.hot_reload.enabled = true;
+        runtime.hot_reload.watch_interval_seconds = 0.5;
 
         summary.runtime = runtime;
         return summary;
