@@ -421,6 +421,17 @@ namespace engine::runtime::detail
 
 namespace engine::runtime
 {
+#if ENGINE_ENABLE_RENDERING
+    namespace
+    {
+        rendering::ResearchBaselineOptions& shared_research_rendering_options() noexcept
+        {
+            static rendering::ResearchBaselineOptions options{};
+            return options;
+        }
+    } // namespace
+#endif
+
     struct RuntimeHost::Impl
     {
         RuntimeHostDependencies dependencies{};
@@ -451,6 +462,7 @@ namespace engine::runtime
         std::string renderable_name{"runtime.renderable"};
         scene::Entity render_entity{};
         rendering::ForwardPipeline forward_pipeline{};
+        rendering::ResearchBaselineOptions research_options{};
 #endif
 #if ENGINE_ENABLE_ASSETS
         assets::MeshCache* mesh_cache{nullptr};
@@ -488,6 +500,7 @@ namespace engine::runtime
             {
                 renderable_name = dependencies.renderable_name;
             }
+            research_options = shared_research_rendering_options();
 #endif
             reset_state();
         }
@@ -1585,6 +1598,17 @@ namespace engine::runtime
             registry.emplace_or_replace<rendering::components::RenderGeometry>(entt_entity, render_geometry);
             scene::systems::mark_transform_dirty(registry, entt_entity);
         }
+
+        void set_research_rendering_options(const rendering::ResearchBaselineOptions& options) noexcept
+        {
+            research_options = options;
+#if ENGINE_ENABLE_RENDERING
+            shared_research_rendering_options() = options;
+#endif
+            auto& telemetry = rendering::ResearchBaselineTelemetry::instance();
+            telemetry.set_shading_mode(options.shading_mode);
+            telemetry.set_overlays(options);
+        }
 #endif
 
         void reset_state()
@@ -2255,6 +2279,15 @@ namespace engine::runtime
         const auto& events = context.frame_graph.resource_events();
         impl_->diagnostics.frame_graph_events.assign(events.begin(), events.end());
     }
+
+    void RuntimeHost::configure_research_rendering(const rendering::ResearchBaselineOptions& options) noexcept
+    {
+        if (impl_ == nullptr)
+        {
+            return;
+        }
+        impl_->set_research_rendering_options(options);
+    }
 #endif
 
     namespace
@@ -2409,6 +2442,12 @@ namespace engine::runtime
     {
         auto& host = ensure_initialized_host();
         host.submit_render_graph(context);
+    }
+
+    void configure_research_rendering(const rendering::ResearchBaselineOptions& options) noexcept
+    {
+        auto& host = global_host();
+        host.configure_research_rendering(options);
     }
 #endif
 
@@ -2749,6 +2788,40 @@ namespace engine::runtime
         {
         }
     }
+}
+
+extern "C" ENGINE_RUNTIME_API void engine_runtime_configure_research_rendering(
+    const struct ::engine_runtime_research_rendering_options* options) noexcept
+{
+#if ENGINE_ENABLE_RENDERING
+    engine::rendering::ResearchBaselineOptions baseline{};
+    if (options != nullptr)
+    {
+        baseline.width = options->width;
+        baseline.height = options->height;
+        if (options->shading_mode == ENGINE_RUNTIME_RESEARCH_SHADING_MODE_FORWARD)
+        {
+            baseline.shading_mode = engine::rendering::ResearchShadingMode::Forward;
+        }
+        else
+        {
+            baseline.shading_mode = engine::rendering::ResearchShadingMode::Deferred;
+        }
+        baseline.enable_normals_overlay = options->overlay_normals != 0U;
+        baseline.enable_uv_overlay = options->overlay_uv != 0U;
+        baseline.enable_material_overlay = options->overlay_material != 0U;
+        baseline.enable_light_volume_overlay = options->overlay_light_volume != 0U;
+    }
+    try
+    {
+        engine::runtime::configure_research_rendering(baseline);
+    }
+    catch (...)
+    {
+    }
+#else
+    (void)options;
+#endif
 }
 
 extern "C" ENGINE_RUNTIME_API std::size_t

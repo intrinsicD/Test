@@ -300,6 +300,68 @@ class HandleBehaviourTests(unittest.TestCase):
         self.assertEqual(init_calls, ["init"])
         self.assertEqual(shutdown_calls, ["shutdown"])
 
+    def test_engine_runtime_handle_configures_research_rendering(self) -> None:
+        captured: dict[str, int] = {}
+
+        def fake_configure(options_ptr):
+            self.assertIsNotNone(options_ptr)
+            struct = options_ptr.contents
+            captured["width"] = struct.width
+            captured["height"] = struct.height
+            captured["shading_mode"] = struct.shading_mode
+            captured["overlay_normals"] = struct.overlay_normals
+            captured["overlay_uv"] = struct.overlay_uv
+            captured["overlay_material"] = struct.overlay_material
+            captured["overlay_light_volume"] = struct.overlay_light_volume
+
+        fake_library = _make_runtime_namespace(
+            engine_runtime_configure_research_rendering=_DummyFunction(fake_configure)
+        )
+        handle = loader.EngineRuntimeHandle(fake_library)
+
+        handle.configure_research_rendering(
+            shading_mode="forward",
+            width=2048,
+            height=1080,
+            overlays={"normals": True, "uv": False, "material": True, "light_volume": False},
+        )
+
+        self.assertEqual(
+            captured,
+            {
+                "width": 2048,
+                "height": 1080,
+                "shading_mode": 0,
+                "overlay_normals": 1,
+                "overlay_uv": 0,
+                "overlay_material": 1,
+                "overlay_light_volume": 0,
+            },
+        )
+
+    def test_engine_runtime_handle_configure_research_rendering_requires_symbol(self) -> None:
+        handle = loader.EngineRuntimeHandle(_make_runtime_namespace())
+        with self.assertRaises(RuntimeError):
+            handle.configure_research_rendering(
+                shading_mode="deferred", width=1920, height=1080, overlays={}
+            )
+
+    def test_engine_runtime_handle_configure_research_rendering_validates_inputs(self) -> None:
+        fake_library = _make_runtime_namespace(
+            engine_runtime_configure_research_rendering=_DummyFunction(lambda _: None)
+        )
+        handle = loader.EngineRuntimeHandle(fake_library)
+
+        with self.assertRaises(ValueError):
+            handle.configure_research_rendering(
+                shading_mode="unknown", width=1920, height=1080, overlays={}
+            )
+
+        with self.assertRaises(ValueError):
+            handle.configure_research_rendering(
+                shading_mode="forward", width=0, height=1080, overlays={}
+            )
+
     def test_engine_runtime_handle_load_modules(self) -> None:
         runtime = loader.EngineRuntimeHandle(
             _make_runtime_namespace(

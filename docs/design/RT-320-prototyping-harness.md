@@ -94,7 +94,7 @@ EngineRuntimeHandle (ctypes wrapper)
 
 | Item | Owner | Notes |
 |------|-------|-------|
-| Integrate rendering preset wiring (`RE-610`) | Rendering | Map `RenderingConfig` into runtime initialization. |
+| Integrate rendering preset wiring (`RE-610`) | Rendering | ✅ Rendering presets now configure Research Baseline telemetry via the runtime API (2026-02-11). |
 | Surface telemetry outputs (`CC-310`) | Performance | ✅ Telemetry output templates now resolve to absolute paths in harness summaries (2026-02-09). |
 | Interactive mode bridge (`TL-210`) | Tools | Embed ImGui controls and expose hot-reload toggles. |
 | Native C++ harness sample | Runtime | ✅ `runtime_prototype_harness` CLI sample mirrors Python dry-run flow (2026-02-05). |

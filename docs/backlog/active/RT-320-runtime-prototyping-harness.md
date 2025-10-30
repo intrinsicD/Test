@@ -29,7 +29,7 @@ Researchers currently assemble ad-hoc executables to validate algorithms. RT-320
 | Release Manager | Coordinate sample packaging and preset publication for kickoff review. | Release Manager (98) |
 
 ## Definition of Done
-- [ ] Harness boots from a schema-driven configuration, loads reference datasets, and configures the research rendering baseline.
+- [x] Harness boots from a schema-driven configuration, loads reference datasets, and configures the research rendering baseline.
 - [ ] Interactive mode offers camera/navigation controls, overlay toggles, and telemetry capture integrated with the tools sandbox.
 - [ ] Headless mode runs scripted scenarios and writes reproducible telemetry outputs.
 - [ ] Runtime documentation and samples include setup instructions plus example configuration files.
@@ -56,3 +56,5 @@ enabling CC-310 automation to surface timing drift without native log parsing.
 automation can track kernel scheduling drift without parsing native runtime logs.
 **2026-02-08** — Harness construction verifies dataset asset existence, size, and hashes, raising actionable errors and exposing
 asset integrity metadata in configuration summaries for TL-210 and AS-330 consumers.
+
+**2026-02-11** — Harness configures research rendering presets through the runtime API, propagating shading mode, resolution, and overlay toggles into Research Baseline telemetry for sandbox and benchmarking consumers.
