@@ -42,11 +42,22 @@ namespace engine::tools::sandbox
         std::string identifier;
         std::string label;
         std::string kind;
+        std::string schema_id;
+        int schema_version{0};
         std::vector<std::string> tags;
         std::map<std::string, double> statistics;
         std::map<std::string, double> metrics;
+        std::string source_generator;
         std::string source_asset;
+        std::optional<std::string> source_asset_sha256;
+        std::optional<std::uintmax_t> source_asset_size_bytes;
         std::string processed_asset;
+        std::optional<std::string> processed_asset_sha256;
+        std::optional<std::uintmax_t> processed_asset_size_bytes;
+        std::string remeshing_mode;
+        std::vector<std::pair<std::string, double>> remeshing_targets;
+        std::vector<std::pair<std::string, std::string>> feature_preservation;
+        std::vector<std::pair<std::string, std::string>> parameterization_properties;
         std::vector<DatasetAssetDescriptor> assets;
     };
 
@@ -73,14 +84,22 @@ namespace engine::tools::sandbox
         std::optional<std::string> description;
     };
 
+    struct RuntimeHotReloadDescriptor
+    {
+        bool enabled{false};
+        std::optional<double> watch_interval_seconds;
+    };
+
     struct RuntimeSummary
     {
         std::string dataset_identifier;
         std::string scene_manifest;
+        std::optional<std::string> scene_manifest_path;
         std::string scene_entry_point;
         std::string simulation_description;
         std::string camera_description;
-        bool hot_reload_enabled{false};
+        int schema_version{0};
+        RuntimeHotReloadDescriptor hot_reload;
     };
 
     struct TelemetryOutputDescriptor
