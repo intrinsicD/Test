@@ -28,6 +28,8 @@
 - Load failures now raise `EngineLibraryNotFound` with structured context. Inspect `identifier`, `library_name`, and
   `attempted_paths` to surface actionable diagnostics in CLI wrappers or UI layers.
 - Add ergonomic wrappers or CLI entry points alongside new runtime capabilities.
+- `PrototypeHarness.interactive_session()` exposes a context-managed runtime controller for TL-210 and other interactive
+  clients, enabling overlay toggles, deterministic tick control, and telemetry snapshots without reinitialising the harness.
 
 ## TODO / Next Steps
 
