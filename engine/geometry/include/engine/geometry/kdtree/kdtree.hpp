@@ -3,6 +3,7 @@
 #include "engine/geometry/api.hpp"
 #include "engine/geometry/properties/property_set.hpp"
 #include "engine/geometry/properties/property_handle.hpp"
+#include "engine/geometry/telemetry.hpp"
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/geometry/utils/shape_interactions.hpp"
 #include "engine/geometry/utils/bounded_heap.hpp"
@@ -110,6 +111,9 @@ namespace engine::geometry
 
             // The root owns the entire index span and recursively partitions it.
             build_node(root, 0, 0, num_points);
+            GeometrySpatialTelemetry::instance().record_invocation(
+                GeometrySpatialQueryOperation::kd_tree_build,
+                static_cast<std::uint64_t>(num_points));
             return true;
         }
 
@@ -117,7 +121,11 @@ namespace engine::geometry
         void query(const Aabb& region, std::vector<std::size_t>& result) const
         {
             result.clear();
-            if (node_props_.empty()) return;
+            if (node_props_.empty())
+            {
+                record_kdtree_query(GeometrySpatialQueryOperation::kd_tree_query_aabb, 0U);
+                return;
+            }
 
             std::vector<NodeHandle> stack{NodeHandle{0}};
             while (!stack.empty())
@@ -154,13 +162,21 @@ namespace engine::geometry
                     }
                 }
             }
+
+            record_kdtree_query(
+                GeometrySpatialQueryOperation::kd_tree_query_aabb,
+                result.size());
         }
 
         // Collect all points whose Euclidean distance from the query point is below the radius.
         void query_radius(const math::vec3& query_point, float radius, std::vector<std::size_t>& result) const
         {
             result.clear();
-            if (node_props_.empty() || radius < 0.0f) return;
+            if (node_props_.empty() || radius < 0.0f)
+            {
+                record_kdtree_query(GeometrySpatialQueryOperation::kd_tree_query_radius, 0U);
+                return;
+            }
 
             const float radius_sq = radius * radius;
             std::vector<NodeHandle> stack{NodeHandle{0}};
@@ -199,13 +215,21 @@ namespace engine::geometry
                     }
                 }
             }
+
+            record_kdtree_query(
+                GeometrySpatialQueryOperation::kd_tree_query_radius,
+                result.size());
         }
 
         // Return the indices of the k closest points using a best-first traversal.
         void query_knn(const math::vec3& query_point, std::size_t k, std::vector<std::size_t>& results) const
         {
             results.clear();
-            if (node_props_.empty() || k == 0) return;
+            if (node_props_.empty() || k == 0)
+            {
+                record_kdtree_query(GeometrySpatialQueryOperation::kd_tree_query_knn, 0U);
+                return;
+            }
 
             using QueueElement = std::pair<float, std::size_t>;
             utils::BoundedHeap<QueueElement> heap(k);
@@ -281,6 +305,10 @@ namespace engine::geometry
             {
                 results[i] = data[i].second;
             }
+
+            record_kdtree_query(
+                GeometrySpatialQueryOperation::kd_tree_query_knn,
+                results.size());
         }
 
         // Return the index of the closest point, or max() if the tree is empty.
@@ -289,6 +317,7 @@ namespace engine::geometry
             result = std::numeric_limits<std::size_t>::max();
             if (node_props_.empty())
             {
+                record_kdtree_query(GeometrySpatialQueryOperation::kd_tree_query_nearest, 0U);
                 return;
             }
 
@@ -351,6 +380,11 @@ namespace engine::geometry
                     }
                 }
             }
+
+            const std::size_t count = (result == std::numeric_limits<std::size_t>::max()) ? 0U : 1U;
+            record_kdtree_query(
+                GeometrySpatialQueryOperation::kd_tree_query_nearest,
+                count);
         }
 
         [[nodiscard]] bool validate_structure() const
@@ -363,6 +397,13 @@ namespace engine::geometry
         }
 
     private:
+        static void record_kdtree_query(GeometrySpatialQueryOperation operation, std::size_t count) noexcept
+        {
+            GeometrySpatialTelemetry::instance().record_invocation(
+                operation,
+                static_cast<std::uint64_t>(count));
+        }
+
         [[nodiscard]] NodeHandle create_node()
         {
             node_props_.push_back();

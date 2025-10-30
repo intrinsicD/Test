@@ -64,6 +64,12 @@ engine::geometry::KdTree tree(mesh.positions);
 auto nearest = tree.nearest({0, 0, 0});
 ```
 
+Building a kd-tree or issuing queries updates `GeometrySpatialTelemetry`
+counters (`kd_tree_build`, `kd_tree_query_aabb`, `kd_tree_query_radius`,
+`kd_tree_query_knn`, `kd_tree_query_nearest`). Harnesses and diagnostics can
+sample these gauges to quantify spatial-query workloads alongside the existing
+octree metrics.
+
 ### Octree
 
 ```cpp
@@ -593,4 +599,5 @@ Surface mesh utilities, shapes and intersections, kd-tree and octree accelerator
 
 - Track remeshing and parameterization work per `GE-221+` planning (see [docs/ROADMAP.md](../../ROADMAP.md)).
 - Extend decimation and UV parameterization utilities aligned to the published RFPs (see [docs/ROADMAP.md](../../ROADMAP.md)).
-- Expand telemetry coverage for spatial queries and IO round-trips.
+- Expand telemetry coverage for IO round-trips (spatial queries now record
+  both octree and kd-tree usage via `GeometrySpatialTelemetry`).
