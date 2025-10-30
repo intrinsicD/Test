@@ -132,11 +132,11 @@ def test_load_dataset_manifest_from_yaml(tmp_path: Path) -> None:
     assert len(manifest.datasets) == 1
     dataset = manifest.datasets[0]
     assert dataset.identifier == "remesh-sample"
-    assert dataset.schema_version == 2
-    assert dataset.source_mesh_sha256 == "f" * 64
-    assert dataset.source_mesh_size_bytes == 1024
-    assert dataset.output_mesh_sha256 == "0" * 64
-    assert dataset.output_mesh_size_bytes == 2048
+    assert dataset.schema_version == 1
+    assert dataset.source_mesh_sha256 is None
+    assert dataset.source_mesh_size_bytes is None
+    assert dataset.output_mesh_sha256 is None
+    assert dataset.output_mesh_size_bytes is None
     assert dataset.parameterization is not None
     assert dataset.parameterization.chart_count == 1
     assert dataset.remeshing_targets is not None

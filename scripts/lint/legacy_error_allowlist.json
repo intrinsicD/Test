@@ -66,6 +66,9 @@
     "throw std::out_of_range(\"Texture asset handle not found\");": 1,
     "throw std::runtime_error(\"Failed to open texture file: \" + path.generic_string());": 1,
     "throw std::runtime_error(\"Failed to read texture file: \" + path.generic_string());": 1,
+    "throw std::runtime_error(\"Mipmap generation only supports 2D textures\");": 1,
+    "throw std::runtime_error(\"Unsupported bytes-per-channel for mipmap generation\");": 1,
+    "throw std::runtime_error(\"Unsupported texture format for mipmap generation\");": 1,
     "throw std::runtime_error(message.empty()": 1
   },
   "engine/compute/samples/runtime_dispatch_demo/runtime_dispatch_demo.cpp": {
@@ -118,17 +121,8 @@
     "throw std::invalid_argument(\"skinning_transforms span is too small for joint count\");": 1
   },
   "engine/geometry/src/graph/graph_io.cpp": {
-    "throw std::runtime_error(": 1,
-    "throw std::runtime_error(\"Failed to add edge while importing graph file \\\"\" + path.string() + \"\\\"\");": 1,
-    "throw std::runtime_error(\"Failed while writing graph file \\\"\" + path.string() + \"\\\"\");": 1,
-    "throw std::runtime_error(\"Graph file \\\"\" + path.string() + \"\\\" declares \" +": 2,
-    "throw std::runtime_error(\"Invalid edge specification on line \" + std::to_string(line_number) +": 1,
-    "throw std::runtime_error(\"Invalid vertex specification on line \" + std::to_string(line_number) +": 1,
-    "throw std::runtime_error(\"Malformed graph header on line \" + std::to_string(line_number) +": 1,
-    "throw std::runtime_error(\"Self-edge encountered while importing graph file \\\"\" + path.string() + \"\\\"\");": 1,
-    "throw std::runtime_error(\"Unknown directive \\\"\" + token + \"\\\" on line \" + std::to_string(line_number) +": 1,
-    "throw std::runtime_error(\"Unsupported graph format for file \\\"\" + path.string() + \"\\\"\");": 3,
-    "throw std::system_error(std::error_code(errno, std::generic_category()),": 2
+    "throw std::runtime_error(\"Unsupported graph format for file \\\"\" + path.string() + \"\\\"\");": 1,
+    "throw std::runtime_error(msg.empty() ? std::string{engine::io::to_string(err.code())} : msg);": 2
   },
   "engine/geometry/src/mesh/halfedge_mesh_io.cpp": {
     "throw std::runtime_error(": 4,
@@ -138,7 +132,8 @@
     "throw std::runtime_error(\"Invalid vertex specification on line \" + std::to_string(line_number) +": 1,
     "throw std::runtime_error(\"Missing vertex index in OBJ face on line \" + std::to_string(line_number) +": 1,
     "throw std::runtime_error(\"OBJ face on line \" + std::to_string(line_number) + \" of \\\"\" + path.string() +": 1,
-    "throw std::runtime_error(\"Unsupported mesh format for file \\\"\" + path.string() + \"\\\"\");": 3,
+    "throw std::runtime_error(\"Unsupported mesh format for file \\\"\" + path.string() + \"\\\"\");": 1,
+    "throw std::runtime_error(msg.empty() ? std::string{engine::io::to_string(err.code())} : msg);": 2,
     "throw std::system_error(std::error_code(errno, std::generic_category()),": 2
   },
   "engine/geometry/src/mesh/surface_mesh_conversion.cpp": {
@@ -151,7 +146,6 @@
   },
   "engine/geometry/src/point_cloud/point_cloud_io.cpp": {
     "throw std::runtime_error(\"Expected PLY signature at beginning of file\");": 1,
-    "throw std::runtime_error(\"Failed to open PLY file for reading\");": 1,
     "throw std::runtime_error(\"Failed to open PLY file for writing\");": 1,
     "throw std::runtime_error(\"Failed to write PLY vertex data\");": 1,
     "throw std::runtime_error(\"PLY stream is empty\");": 1,
@@ -159,20 +153,24 @@
     "throw std::runtime_error(\"Unexpected end of PLY vertex data\");": 2,
     "throw std::runtime_error(\"Unsupported PLY format: \" + format);": 1,
     "throw std::runtime_error(\"Unsupported PLY property type: \" + std::string{token});": 1,
-    "throw std::runtime_error(\"Unsupported point cloud output format\");": 1
+    "throw std::runtime_error(msg.empty() ? std::string{engine::io::to_string(err.code())} : msg);": 2
+  },
+  "engine/io/include/engine/io/detail/geometry_io_common.hpp": {
+    "throw;": 1
+  },
+  "engine/io/src/exporters/graph_exporters.cpp": {
+    "throw GeometryIoException(": 1,
+    "throw GeometryIoException(GeometryIoError::invalid_argument,": 1,
+    "throw GeometryIoException(GeometryIoError::io_failure,": 4
+  },
+  "engine/io/src/exporters/mesh_exporters.cpp": {
+    "throw GeometryIoException(": 3,
+    "throw GeometryIoException(GeometryIoError::io_failure,": 3
+  },
+  "engine/io/src/exporters/point_cloud_exporters.cpp": {
+    "throw GeometryIoException(GeometryIoError::io_failure,": 6
   },
   "engine/io/src/geometry_io.cpp": {
-    "throw GeometryIoException(": 6,
-    "throw GeometryIoException(GeometryIoError::invalid_argument,": 21,
-    "throw GeometryIoException(GeometryIoError::io_failure,": 8,
-    "throw GeometryIoException(GeometryIoError::unsupported_format,": 4,
-    "throw GeometryIoException(header_result.error().code(), header_result.error().message());": 3,
-    "throw GeometryIoException(map_open_error(path), \"Failed to open OBJ file: \" + path.string());": 1,
-    "throw GeometryIoException(map_open_error(path), \"Failed to open OFF file: \" + path.string());": 1,
-    "throw GeometryIoException(map_open_error(path), \"Failed to open PCD file: \" + path.string());": 1,
-    "throw GeometryIoException(map_open_error(path), \"Failed to open PLY file: \" + path.string());": 3,
-    "throw GeometryIoException(map_open_error(path), \"Failed to open XYZ file: \" + path.string());": 1,
-    "throw GeometryIoException(map_open_error(path), \"Failed to open edge list file: \" + path.string());": 1,
     "throw std::runtime_error(": 2,
     "throw std::runtime_error(\"Expected boolean value in signature database\");": 1,
     "throw std::runtime_error(\"Expected literal '\" + std::string{literal} + \"' in signature database\");": 1,
@@ -197,8 +195,7 @@
     "throw std::runtime_error(\"Unknown mesh format in signature rule: \" + value);": 1,
     "throw std::runtime_error(\"Unknown point cloud format in signature rule: \" + value);": 1,
     "throw std::runtime_error(\"Unsupported escape sequence in signature database string\");": 1,
-    "throw std::runtime_error(\"Unterminated string in signature database\");": 1,
-    "throw;": 1
+    "throw std::runtime_error(\"Unterminated string in signature database\");": 1
   },
   "engine/io/src/geometry_io_registry.cpp": {
     "throw std::invalid_argument(\"Graph exporter cannot target unknown format\");": 1,
@@ -213,6 +210,30 @@
     "throw std::invalid_argument(\"Point cloud exporter must not be null\");": 1,
     "throw std::invalid_argument(\"Point cloud importer cannot target unknown format\");": 1,
     "throw std::invalid_argument(\"Point cloud importer must not be null\");": 1
+  },
+  "engine/io/src/importers/graph_importers.cpp": {
+    "[[nodiscard]] detail::PlyHeaderInfo read_ply_header_or_throw(const std::filesystem::path& path)": 1,
+    "const auto header = read_ply_header_or_throw(path);": 1,
+    "throw GeometryIoException(GeometryIoError::invalid_argument,": 20,
+    "throw GeometryIoException(GeometryIoError::unsupported_format,": 1,
+    "throw GeometryIoException(code.code(), std::string{code.message()});": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open PLY file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open edge list file: \" + path.string());": 1
+  },
+  "engine/io/src/importers/mesh_importers.cpp": {
+    "throw GeometryIoException(GeometryIoError::invalid_argument,": 18,
+    "throw GeometryIoException(GeometryIoError::unsupported_format,": 1,
+    "throw GeometryIoException(header_result.error().code(), header_result.error().message());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open OBJ file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open OFF file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open PLY file: \" + path.string());": 1
+  },
+  "engine/io/src/importers/point_cloud_importers.cpp": {
+    "throw GeometryIoException(GeometryIoError::invalid_argument,": 6,
+    "throw GeometryIoException(GeometryIoError::unsupported_format,": 3,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open PCD file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open PLY file: \" + path.string());": 1,
+    "throw GeometryIoException(map_open_error(path), \"Failed to open XYZ file: \" + path.string());": 1
   },
   "engine/physics/src/api.cpp": {
     "throw std::out_of_range{\"physics::body_at index out of range\"};": 2
@@ -347,16 +368,17 @@
   "engine/runtime/src/config_schema.cpp": {
     "[[noreturn]] void throw_validation(std::string_view context, std::string_view message)": 1,
     "throw SchemaValidationError{builder.str()};": 1,
+    "throw_validation(context, \"exceeds supported integer range\");": 1,
     "throw_validation(context, \"must be a boolean\");": 2,
     "throw_validation(context, \"must be a finite number\");": 2,
     "throw_validation(context, \"must be a mapping\");": 1,
-    "throw_validation(context, \"must be a non-negative integer\");": 2,
+    "throw_validation(context, \"must be a non-negative integer\");": 4,
     "throw_validation(context, \"must be a number\");": 1,
     "throw_validation(context, \"must be a sequence\");": 1,
     "throw_validation(context, \"must be a string\");": 1,
     "throw_validation(context, \"must be an integer\");": 2,
     "throw_validation(context, \"must be greater than zero\");": 2,
-    "throw_validation(context, \"must be non-negative\");": 2,
+    "throw_validation(context, \"must be non-negative\");": 3,
     "throw_validation(context, \"must contain a 64-character SHA-256 digest\");": 1,
     "throw_validation(context, \"must contain exactly three elements\");": 1,
     "throw_validation(context, \"must contain exactly two elements\");": 1,
