@@ -597,21 +597,88 @@ namespace engine::tools::sandbox
             }
         }
 
-        [[nodiscard]] OverlayDescriptor make_overlay_descriptor(std::string key, bool enabled)
+        [[nodiscard]] OverlayDescriptor make_overlay_descriptor(std::string key, bool enabled,
+                                                                std::optional<std::string> label = std::nullopt)
         {
             OverlayDescriptor descriptor{};
             descriptor.key = std::move(key);
-            descriptor.label = descriptor.key;
+            descriptor.label = label.value_or(descriptor.key);
             descriptor.default_enabled = enabled;
             return descriptor;
         }
 
         void populate_rendering(const JsonValue::object_type& root, ExperimentConfigurationSummary& summary)
         {
+            summary.rendering_presets.clear();
+            summary.selected_rendering_preset.reset();
+
+            if (const auto* selected = find_member(root, "selected_rendering_preset"))
+            {
+                if (!selected->is_null())
+                {
+                    summary.selected_rendering_preset = selected->as_string("selected_rendering_preset");
+                }
+            }
+
+            if (const auto* presets_value = find_member(root, "rendering_presets"))
+            {
+                const auto& presets = presets_value->as_array("rendering_presets");
+                summary.rendering_presets.reserve(presets.size());
+                for (const auto& preset_value : presets)
+                {
+                    const auto& preset_object = preset_value.as_object("rendering_presets[]");
+                    RenderingPresetDescriptor preset{};
+                    preset.identifier = get_string(preset_object, "id", "rendering_presets[].id", "research");
+                    preset.label = get_string(preset_object, "label", "rendering_presets[].label", preset.identifier);
+
+                    if (const auto* resolution = find_member(preset_object, "default_resolution"))
+                    {
+                        const auto& resolution_object = resolution->as_object("rendering_presets[].default_resolution");
+                        preset.default_resolution.first = static_cast<int>(std::lround(
+                            get_number(resolution_object, "width",
+                                      "rendering_presets[].default_resolution.width", 1280.0)));
+                        preset.default_resolution.second = static_cast<int>(std::lround(
+                            get_number(resolution_object, "height",
+                                      "rendering_presets[].default_resolution.height", 720.0)));
+                    }
+                    else
+                    {
+                        preset.default_resolution = {1280, 720};
+                    }
+
+                    preset.shading_modes.clear();
+                    if (const auto* shading_modes = find_member(preset_object, "shading_modes"))
+                    {
+                        for (const auto& entry : shading_modes->as_array("rendering_presets[].shading_modes"))
+                        {
+                            preset.shading_modes.push_back(entry.as_string("rendering_presets[].shading_modes[]"));
+                        }
+                    }
+
+                    preset.overlays.clear();
+                    if (const auto* overlays = find_member(preset_object, "overlays"))
+                    {
+                        for (const auto& overlay_value : overlays->as_array("rendering_presets[].overlays"))
+                        {
+                            const auto& overlay_object = overlay_value.as_object("rendering_presets[].overlays[]");
+                            const std::string key = get_string(overlay_object, "key",
+                                                               "rendering_presets[].overlays[].key");
+                            const std::string label = get_string(overlay_object, "label",
+                                                                 "rendering_presets[].overlays[].label", key);
+                            const bool enabled = get_bool(overlay_object, "default_enabled",
+                                                          "rendering_presets[].overlays[].default_enabled", false);
+                            preset.overlays.push_back(make_overlay_descriptor(key, enabled, label));
+                        }
+                    }
+
+                    summary.rendering_presets.push_back(std::move(preset));
+                }
+                return;
+            }
+
             const auto* rendering_value = find_member(root, "rendering");
             if (rendering_value == nullptr || rendering_value->is_null())
             {
-                summary.rendering_presets.clear();
                 return;
             }
 
@@ -648,12 +715,45 @@ namespace engine::tools::sandbox
             {
                 for (const auto& [key, value] : overlays->as_object("rendering.overlays"))
                 {
-                    preset.overlays.push_back(make_overlay_descriptor(key, value.as_bool("rendering.overlays value")));
+                    preset.overlays.push_back(
+                        make_overlay_descriptor(key, value.as_bool("rendering.overlays value")));
                 }
             }
 
-            summary.rendering_presets.clear();
             summary.rendering_presets.push_back(std::move(preset));
+        }
+
+        void populate_algorithm_variants(const JsonValue::object_type& root, ExperimentConfigurationSummary& summary)
+        {
+            summary.algorithm_variants.clear();
+            summary.selected_algorithm_variant.reset();
+
+            if (const auto* selected = find_member(root, "selected_algorithm_variant"))
+            {
+                if (!selected->is_null())
+                {
+                    summary.selected_algorithm_variant = selected->as_string("selected_algorithm_variant");
+                }
+            }
+
+            const auto* variants_value = find_member(root, "algorithm_variants");
+            if (variants_value == nullptr || variants_value->is_null())
+            {
+                return;
+            }
+
+            const auto& variants = variants_value->as_array("algorithm_variants");
+            summary.algorithm_variants.reserve(variants.size());
+            for (const auto& variant_value : variants)
+            {
+                const auto& variant_object = variant_value.as_object("algorithm_variants[]");
+                AlgorithmVariantDescriptor descriptor{};
+                descriptor.identifier = get_string(variant_object, "id", "algorithm_variants[].id");
+                descriptor.label = get_string(variant_object, "label", "algorithm_variants[].label", descriptor.identifier);
+                descriptor.description =
+                    get_optional_string(variant_object, "description", "algorithm_variants[].description");
+                summary.algorithm_variants.push_back(std::move(descriptor));
+            }
         }
 
         [[nodiscard]] std::string format_vec3(const JsonValue& value, std::string_view context)
@@ -967,6 +1067,7 @@ namespace engine::tools::sandbox
         }
 
         populate_rendering(root, summary);
+        populate_algorithm_variants(root, summary);
         populate_runtime(root, summary.runtime);
         populate_telemetry(root, summary);
         populate_benchmarks(root, summary);

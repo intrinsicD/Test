@@ -90,6 +90,7 @@ def _make_options(
         dataset_id=args.dataset,
         rendering_preset=args.rendering_preset,
         shading_mode=args.shading_mode,
+        runtime_profile=args.runtime_profile,
         overlays=overlays,
     )
 
@@ -108,7 +109,10 @@ def _print_summary(summary: HarnessConfigurationSummary) -> None:
     rendering = summary.rendering
     preset = rendering.preset if rendering else "<unspecified>"
     shading = rendering.shading_mode if rendering else "<unspecified>"
-    print(f"Configuration: dataset={dataset} preset={preset} shading={shading}")
+    runtime_profile = summary.selected_algorithm_variant or "<unspecified>"
+    print(
+        f"Configuration: dataset={dataset} preset={preset} shading={shading} runtime={runtime_profile}"
+    )
 
     dataset_summary = _selected_dataset_summary(summary)
     if dataset_summary is None:
@@ -297,6 +301,7 @@ def _run(args: argparse.Namespace) -> int:
             dataset_id=args.dataset,
             rendering_preset=args.rendering_preset,
             shading_mode=args.shading_mode,
+            runtime_profile=args.runtime_profile,
             overlays=overlay_overrides,
         )
         run_count = total_runs if total_runs > 1 else None
@@ -384,6 +389,10 @@ def main(argv: Iterable[str] | None = None) -> int:
         "--shading-mode",
         type=_parse_shading_mode,
         help="Override the research rendering shading mode (forward or deferred).",
+    )
+    parser.add_argument(
+        "--runtime-profile",
+        help="Override the runtime profile / algorithm variant before executing the harness.",
     )
     parser.add_argument(
         "--overlay",

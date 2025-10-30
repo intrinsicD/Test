@@ -76,18 +76,23 @@ namespace
       ]
     }
   ],
-  "rendering": {
-    "preset": "research-baseline",
-    "shading_mode": "deferred",
-    "resolution": {
-      "width": 1280,
-      "height": 720
-    },
-    "overlays": {
-      "normals": false,
-      "uv": true
+  "rendering_presets": [
+    {
+      "id": "research-baseline",
+      "label": "Research Baseline",
+      "shading_modes": ["deferred"],
+      "overlays": [
+        {"key": "normals", "label": "Normals", "default_enabled": false},
+        {"key": "uv", "label": "UV", "default_enabled": true}
+      ],
+      "default_resolution": {"width": 1280, "height": 720}
     }
-  },
+  ],
+  "selected_rendering_preset": "research-baseline",
+  "algorithm_variants": [
+    {"id": "baseline", "label": "Baseline", "description": "Reference runtime profile"}
+  ],
+  "selected_algorithm_variant": "baseline",
   "runtime": {
     "dataset": "geometry-remesh-baseline",
     "camera": {
@@ -197,15 +202,28 @@ TEST(SandboxConfigurationLoader, ParsesHarnessSummary)
     ASSERT_EQ(summary.rendering_presets.size(), 1U);
     const auto& preset = summary.rendering_presets.front();
     EXPECT_EQ(preset.identifier, "research-baseline");
+    ASSERT_TRUE(summary.selected_rendering_preset.has_value());
+    EXPECT_EQ(*summary.selected_rendering_preset, "research-baseline");
     ASSERT_EQ(preset.shading_modes.size(), 1U);
     EXPECT_EQ(preset.shading_modes.front(), "deferred");
     ASSERT_EQ(preset.overlays.size(), 2U);
     EXPECT_EQ(preset.overlays[0].key, "normals");
+    EXPECT_EQ(preset.overlays[0].label, "Normals");
     EXPECT_FALSE(preset.overlays[0].default_enabled);
     EXPECT_EQ(preset.overlays[1].key, "uv");
+    EXPECT_EQ(preset.overlays[1].label, "UV");
     EXPECT_TRUE(preset.overlays[1].default_enabled);
     EXPECT_EQ(preset.default_resolution.first, 1280);
     EXPECT_EQ(preset.default_resolution.second, 720);
+
+    ASSERT_EQ(summary.algorithm_variants.size(), 1U);
+    const auto& variant = summary.algorithm_variants.front();
+    EXPECT_EQ(variant.identifier, "baseline");
+    EXPECT_EQ(variant.label, "Baseline");
+    ASSERT_TRUE(variant.description.has_value());
+    EXPECT_EQ(*variant.description, "Reference runtime profile");
+    ASSERT_TRUE(summary.selected_algorithm_variant.has_value());
+    EXPECT_EQ(*summary.selected_algorithm_variant, "baseline");
 
     ASSERT_TRUE(summary.selected_dataset.has_value());
     EXPECT_EQ(*summary.selected_dataset, "geometry-remesh-baseline");

@@ -53,7 +53,7 @@ the harness CLI options introduced for TL-210/CC-310 integration:
 ```bash
 python -m scripts.prototyping.run_prototype_harness \
     --config docs/examples/ai004_sample.json \
-    --dry-run --dataset remesh-variant \
+    --dry-run --dataset remesh-variant --runtime-profile diagnostics \
     --rendering-preset diagnostics --shading-mode forward \
     --overlay normals=1 --overlay uv=0 \
     --summary-json telemetry/diagnostics.json

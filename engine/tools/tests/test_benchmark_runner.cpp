@@ -70,12 +70,14 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
                "parser.add_argument('--dataset')\n"
                "parser.add_argument('--rendering-preset')\n"
                "parser.add_argument('--shading-mode')\n"
+               "parser.add_argument('--runtime-profile')\n"
                "parser.add_argument('--overlay', action='append', default=[])\n"
                "args = parser.parse_args()\n"
                "payload = {\n"
                "    'dataset': args.dataset,\n"
                "    'rendering_preset': args.rendering_preset,\n"
                "    'shading_mode': args.shading_mode,\n"
+               "    'runtime_profile': args.runtime_profile,\n"
                "    'overlays': args.overlay,\n"
                "    'frames': args.frames,\n"
                "    'timestep_seconds': args.dt,\n"
@@ -89,6 +91,7 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
     preferences.benchmark_frames = 240;
     preferences.benchmark_timestep = 1.0F / 120.0F;
     preferences.selected_dataset = "geometry-baseline";
+    preferences.selected_algorithm_variant = "baseline";
     preferences.selected_preset = "research";
     preferences.shading_mode = "forward";
     preferences.overlays["normals"] = true;
@@ -116,6 +119,7 @@ TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
     const std::string summary_content{std::istreambuf_iterator<char>{summary_stream}, std::istreambuf_iterator<char>{}};
     EXPECT_NE(summary_content.find("geometry-baseline"), std::string::npos);
     EXPECT_NE(summary_content.find("normals=1"), std::string::npos);
+    EXPECT_NE(summary_content.find("\"runtime_profile\": \"baseline\""), std::string::npos);
 }
 
 TEST(PrototypeHarnessBenchmarkRunner, ReportsFailure)
