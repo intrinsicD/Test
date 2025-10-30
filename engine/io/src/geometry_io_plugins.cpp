@@ -30,6 +30,8 @@ namespace engine::io
         registry.register_point_cloud_exporter(std::make_unique<PcdPointCloudExporter>());
 
         registry.register_graph_importer(std::make_unique<EdgeListGraphImporter>());
+        registry.register_graph_importer(std::make_unique<PlyGraphImporter>());
         registry.register_graph_exporter(std::make_unique<EdgeListGraphExporter>());
+        registry.register_graph_exporter(std::make_unique<PlyGraphExporter>());
     }
 } // namespace engine::io

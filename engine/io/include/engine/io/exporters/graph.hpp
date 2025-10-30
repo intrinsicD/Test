@@ -12,4 +12,12 @@ namespace engine::io
         export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override;
     };
 
+    class PlyGraphExporter final : public GraphExporter
+    {
+    public:
+        [[nodiscard]] GraphFileFormat format() const noexcept override;
+        [[nodiscard]] GeometryIoResult<void>
+        export_graph(const std::filesystem::path& path, const geometry::GraphInterface& graph) const override;
+    };
+
 }

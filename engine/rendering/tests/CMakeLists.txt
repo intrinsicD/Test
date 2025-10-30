@@ -24,8 +24,13 @@ add_executable(engine_rendering_tests
 target_link_libraries(engine_rendering_tests
         PRIVATE
         engine::project_options
+        engine_geometry
         engine_rendering
         GTest::gtest_main
 )
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(engine_rendering_tests PRIVATE -Wl,--no-as-needed)
+endif ()
 
 add_test(NAME engine_rendering_tests COMMAND engine_rendering_tests)

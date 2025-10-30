@@ -11,8 +11,10 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <set>
 #include <string>
 #include <system_error>
+#include <utility>
 
 namespace engine::io::detail
 {
@@ -451,6 +453,50 @@ TEST(GeometryIO, ReadAndWriteGraph)
     const auto& info = detection.value();
     EXPECT_EQ(info.kind, engine::io::GeometryKind::graph);
     EXPECT_EQ(info.graph_format, engine::io::GraphFileFormat::ply);
+}
+
+TEST(GeometryIO, ReadGraphPlyWithEdgeScalars)
+{
+    TempDirectory temp;
+    const auto path = temp.path / "graph_weighted.ply";
+    write_file(path,
+               "ply\n"
+               "format ascii 1.0\n"
+               "element vertex 3\n"
+               "property float x\n"
+               "property float y\n"
+               "property float z\n"
+               "element edge 2\n"
+               "property float weight\n"
+               "property list uchar int vertex_indices\n"
+               "property float reliability\n"
+               "end_header\n"
+               "0 0 0\n"
+               "1 0 0\n"
+               "0 1 0\n"
+               "0.5 2 0 1 1.0\n"
+               "0.25 2 1 2 0.5\n");
+
+    engine::geometry::Graph graph;
+    ASSERT_TRUE(engine::io::read_graph(path, graph.interface, engine::io::GraphFileFormat::ply));
+
+    EXPECT_EQ(graph.interface.vertex_count(), 3U);
+    EXPECT_EQ(graph.interface.edge_count(), 2U);
+
+    std::set<std::pair<std::size_t, std::size_t>> edges;
+    for (const auto edge : graph.interface.edges())
+    {
+        if (graph.interface.is_deleted(edge))
+        {
+            continue;
+        }
+        const auto a = graph.interface.vertex(edge, 0).index();
+        const auto b = graph.interface.vertex(edge, 1).index();
+        edges.emplace(std::min(a, b), std::max(a, b));
+    }
+
+    const std::set<std::pair<std::size_t, std::size_t>> expected{{0, 1}, {1, 2}};
+    EXPECT_EQ(edges, expected);
 }
 
 TEST(GeometryIO, ReadMeshMissingFileReturnsFileNotFound)
