@@ -327,18 +327,25 @@ namespace engine::tools::sandbox
             return std::nullopt;
         }
 
+        const auto scenario = extract_string_field(content, "scenario");
         const auto dataset = extract_string_field(content, "dataset");
         const auto preset = extract_string_field(content, "rendering_preset");
         const auto shading = extract_string_field(content, "shading_mode");
+        const auto runtime_profile = extract_string_field(content, "runtime_profile");
         const auto frames = extract_numeric_field<int>(content, "frames");
         const auto timestep = extract_numeric_field<double>(content, "timestep_seconds");
+        const auto average_tick_ms = extract_numeric_field<double>(content, "average_tick_ms");
+        const auto run_index = extract_numeric_field<int>(content, "run_index");
+        const auto run_count = extract_numeric_field<int>(content, "run_count");
 
         SandboxBenchmarkResult result{};
         result.success = true;
         result.headline = "Benchmark succeeded";
 
         std::ostringstream details;
-        details << "dataset=" << (dataset ? *dataset : std::string{"<none>"});
+        details << "scenario=" << (scenario ? *scenario : std::string{"<unspecified>"});
+        details << " runtime=" << (runtime_profile ? *runtime_profile : std::string{"<unspecified>"});
+        details << " dataset=" << (dataset ? *dataset : std::string{"<none>"});
         details << " preset=" << (preset ? *preset : std::string{"<unspecified>"});
         details << " shading=" << (shading ? *shading : std::string{"<unspecified>"});
         if (frames)
@@ -347,9 +354,26 @@ namespace engine::tools::sandbox
         }
         if (timestep)
         {
+            const auto previous_precision = details.precision();
             details << " dt=";
             details.setf(std::ios::fixed, std::ios::floatfield);
             details << std::setprecision(6) << *timestep;
+            details << std::setprecision(previous_precision);
+        }
+        if (average_tick_ms)
+        {
+            const auto previous_precision = details.precision();
+            details << " avg_ms=";
+            details << std::setprecision(3) << *average_tick_ms;
+            details << std::setprecision(previous_precision);
+        }
+        if (run_index && run_count && *run_count > 0)
+        {
+            details << " run=" << *run_index << '/' << *run_count;
+        }
+        else if (run_index)
+        {
+            details << " run_index=" << *run_index;
         }
         details << "\nSummary saved to " << path.string();
         result.details = details.str();
