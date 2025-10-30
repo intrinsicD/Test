@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import math
 import math
@@ -196,7 +197,7 @@ class DatasetSummary:
     feature_preservation: Dict[str, object]
     parameterization: Optional[Dict[str, object]]
     statistics: Dict[str, object]
-    metrics: Dict[str, Dict[str, float]]
+    metrics: Dict[str, object]
     assets: Tuple[DatasetAssetStatus, ...]
 
     def to_dict(self) -> Dict[str, object]:
@@ -211,9 +212,9 @@ class DatasetSummary:
             "source_mesh": self.source_mesh,
             "output_mesh": self.output_mesh,
             "remeshing_mode": self.remeshing_mode,
-            "feature_preservation": dict(self.feature_preservation),
-            "statistics": dict(self.statistics),
-            "metrics": {key: dict(value) for key, value in self.metrics.items()},
+            "feature_preservation": copy.deepcopy(self.feature_preservation),
+            "statistics": copy.deepcopy(self.statistics),
+            "metrics": copy.deepcopy(self.metrics),
             "assets": [asset.to_dict() for asset in self.assets],
         }
         if self.source_mesh_sha256 is not None:
@@ -1047,7 +1048,7 @@ class PrototypeHarness:
                 ]
 
         statistics: Dict[str, object] = {
-            "iterations": float(entry.statistics.iteration_count),
+            "iterations": entry.statistics.iteration_count,
             "max_error": entry.statistics.max_error,
             "min_edge_length": entry.statistics.min_edge_length,
             "max_edge_length": entry.statistics.max_edge_length,
@@ -1056,13 +1057,13 @@ class PrototypeHarness:
             "rms_surface_deviation": entry.statistics.rms_surface_deviation,
         }
         if entry.statistics.split_count is not None:
-            statistics["splits"] = float(entry.statistics.split_count)
+            statistics["splits"] = entry.statistics.split_count
         if entry.statistics.collapse_count is not None:
-            statistics["collapses"] = float(entry.statistics.collapse_count)
+            statistics["collapses"] = entry.statistics.collapse_count
         if entry.statistics.duration_ms is not None:
             statistics["duration_ms"] = entry.statistics.duration_ms
         if entry.statistics.triangle_count is not None:
-            statistics["triangles"] = float(entry.statistics.triangle_count)
+            statistics["triangles"] = entry.statistics.triangle_count
         if entry.statistics.triangle_quality is not None:
             statistics["triangle_quality"] = {
                 "min": entry.statistics.triangle_quality.minimum,
@@ -1070,20 +1071,24 @@ class PrototypeHarness:
                 "max": entry.statistics.triangle_quality.maximum,
             }
 
-        metrics: Dict[str, Dict[str, float]] = {
+        metrics: Dict[str, object] = {
             "input": {
-                "vertices": float(entry.input_metrics.vertices),
-                "faces": float(entry.input_metrics.faces),
-                "edge_length_min": entry.input_metrics.edge_length.minimum,
-                "edge_length_max": entry.input_metrics.edge_length.maximum,
-                "edge_length_mean": entry.input_metrics.edge_length.mean,
+                "vertices": entry.input_metrics.vertices,
+                "faces": entry.input_metrics.faces,
+                "edge_length": {
+                    "min": entry.input_metrics.edge_length.minimum,
+                    "mean": entry.input_metrics.edge_length.mean,
+                    "max": entry.input_metrics.edge_length.maximum,
+                },
             },
             "output": {
-                "vertices": float(entry.output_metrics.vertices),
-                "faces": float(entry.output_metrics.faces),
-                "edge_length_min": entry.output_metrics.edge_length.minimum,
-                "edge_length_max": entry.output_metrics.edge_length.maximum,
-                "edge_length_mean": entry.output_metrics.edge_length.mean,
+                "vertices": entry.output_metrics.vertices,
+                "faces": entry.output_metrics.faces,
+                "edge_length": {
+                    "min": entry.output_metrics.edge_length.minimum,
+                    "mean": entry.output_metrics.edge_length.mean,
+                    "max": entry.output_metrics.edge_length.maximum,
+                },
             },
         }
 

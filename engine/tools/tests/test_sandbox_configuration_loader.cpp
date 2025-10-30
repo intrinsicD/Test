@@ -22,17 +22,28 @@ namespace
       "source_mesh": "assets/datasets/remesh_sample/source_mesh.obj",
       "output_mesh": "assets/datasets/remesh_sample/output_mesh.obj",
       "statistics": {
-        "iterations": 6.0,
+        "iterations": 6,
         "max_edge_length": 1.118,
         "min_edge_length": 0.5
       },
       "metrics": {
         "input": {
-          "edge_length_max": 1.4142,
-          "edge_length_min": 1.0
+          "vertices": 4,
+          "faces": 2,
+          "edge_length": {
+            "min": 1.0,
+            "mean": 1.1381,
+            "max": 1.4142
+          }
         },
         "output": {
-          "edge_length_max": 1.118
+          "vertices": 5,
+          "faces": 4,
+          "edge_length": {
+            "min": 0.5,
+            "mean": 0.75,
+            "max": 1.118
+          }
         }
       },
       "remeshing_targets": {
@@ -167,8 +178,10 @@ TEST(SandboxConfigurationLoader, ParsesHarnessSummary)
     EXPECT_EQ(dataset.tags[0], "geometry");
     ASSERT_TRUE(dataset.statistics.contains("iterations"));
     EXPECT_DOUBLE_EQ(dataset.statistics.at("iterations"), 6.0);
-    ASSERT_TRUE(dataset.metrics.contains("input.edge_length_max"));
-    EXPECT_NEAR(dataset.metrics.at("input.edge_length_max"), 1.4142, 1e-4);
+    ASSERT_TRUE(dataset.metrics.contains("input.edge_length.max"));
+    EXPECT_NEAR(dataset.metrics.at("input.edge_length.max"), 1.4142, 1e-4);
+    ASSERT_TRUE(dataset.metrics.contains("output.vertices"));
+    EXPECT_DOUBLE_EQ(dataset.metrics.at("output.vertices"), 5.0);
     ASSERT_TRUE(dataset.metrics.contains("parameterization.texel_density"));
     EXPECT_EQ(dataset.source_asset, "assets/datasets/remesh_sample/source_mesh.obj");
     EXPECT_EQ(dataset.processed_asset, "assets/datasets/remesh_sample/output_mesh.obj");
