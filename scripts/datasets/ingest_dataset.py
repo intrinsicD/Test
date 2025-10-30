@@ -20,6 +20,7 @@ from python.engine3g.config_schema import (
     ParameterizationChart,
     ParameterizationSummary,
     RemeshingTargets,
+    TriangleQualityStatistics,
     load_dataset_manifest,
 )
 
@@ -78,6 +79,10 @@ def _serialize_edge_metrics(metrics: EdgeLengthMetrics) -> Mapping[str, float]:
     return {"min": metrics.minimum, "mean": metrics.mean, "max": metrics.maximum}
 
 
+def _serialize_triangle_quality(metrics: TriangleQualityStatistics) -> Mapping[str, float]:
+    return {"min": metrics.minimum, "mean": metrics.mean, "max": metrics.maximum}
+
+
 def _serialize_mesh_metrics(metrics: MeshMetrics) -> Mapping[str, object]:
     return {
         "vertices": metrics.vertices,
@@ -95,7 +100,7 @@ def _serialize_feature_preservation(preservation: FeaturePreservation) -> Mappin
 
 
 def _serialize_statistics(statistics: DatasetStatistics) -> Mapping[str, object]:
-    return {
+    result: MutableMapping[str, object] = {
         "iterations": statistics.iteration_count,
         "max_error": statistics.max_error,
         "min_edge_length": statistics.min_edge_length,
@@ -104,6 +109,19 @@ def _serialize_statistics(statistics: DatasetStatistics) -> Mapping[str, object]
         "mean_surface_deviation": statistics.mean_surface_deviation,
         "rms_surface_deviation": statistics.rms_surface_deviation,
     }
+
+    if statistics.split_count is not None:
+        result["splits"] = statistics.split_count
+    if statistics.collapse_count is not None:
+        result["collapses"] = statistics.collapse_count
+    if statistics.duration_ms is not None:
+        result["duration_ms"] = statistics.duration_ms
+    if statistics.triangle_count is not None:
+        result["triangles"] = statistics.triangle_count
+    if statistics.triangle_quality is not None:
+        result["triangle_quality"] = _serialize_triangle_quality(statistics.triangle_quality)
+
+    return result
 
 
 def _serialize_parameterization(parameterization: Optional[ParameterizationSummary]) -> Optional[Mapping[str, object]]:
