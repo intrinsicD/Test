@@ -568,17 +568,42 @@ namespace engine::tools::sandbox
             descriptor.remeshing_mode = get_string(dataset, "remeshing_mode", "dataset.remeshing_mode");
 
             descriptor.statistics.clear();
+            descriptor.statistic_groups.clear();
             if (const auto* statistics = find_member(dataset, "statistics"))
             {
                 if (!statistics->is_object())
                 {
                     throw std::runtime_error("dataset.statistics must be an object");
                 }
-                for (const auto& [key, value] : statistics->as_object("dataset.statistics"))
+
+                const auto& statistics_object = statistics->as_object("dataset.statistics");
+                for (const auto& [key, value] : statistics_object)
                 {
                     if (value.is_number())
                     {
-                        descriptor.statistics.insert_or_assign(key, value.as_number("dataset.statistics value"));
+                        descriptor.statistics.insert_or_assign(
+                            key, value.as_number("dataset.statistics value"));
+                        continue;
+                    }
+
+                    if (value.is_object())
+                    {
+                        DatasetDescriptor::StatisticGroup group{};
+                        group.name = key;
+                        const std::string context = std::string{"dataset.statistics."} + key;
+                        for (const auto& [child_key, child_value] : value.as_object(context))
+                        {
+                            if (!child_value.is_number())
+                            {
+                                continue;
+                            }
+                            const std::string child_context = context + '.' + child_key;
+                            group.entries.emplace_back(child_key, child_value.as_number(child_context));
+                        }
+                        if (!group.entries.empty())
+                        {
+                            descriptor.statistic_groups.push_back(std::move(group));
+                        }
                     }
                 }
             }
