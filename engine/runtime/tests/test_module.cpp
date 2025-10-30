@@ -1680,11 +1680,15 @@ TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
 {
     auto& telemetry = engine::rendering::ResearchBaselineTelemetry::instance();
     telemetry.reset_for_testing();
-    telemetry.set_shading_mode(engine::rendering::ResearchShadingMode::Deferred);
-    engine::rendering::ResearchBaselineOptions overlay_options{};
-    overlay_options.enable_normals_overlay = true;
-    overlay_options.enable_material_overlay = true;
-    telemetry.set_overlays(overlay_options);
+    engine_runtime_research_rendering_options options{};
+    options.width = 2560U;
+    options.height = 1440U;
+    options.shading_mode = ENGINE_RUNTIME_RESEARCH_SHADING_MODE_DEFERRED;
+    options.overlay_normals = 1U;
+    options.overlay_uv = 0U;
+    options.overlay_material = 1U;
+    options.overlay_light_volume = 0U;
+    engine_runtime_configure_research_rendering(&options);
     telemetry.record_pass("Research.GBuffer", engine::rendering::PassPhase::Geometry, 3U, 0.5);
     telemetry.record_pass("Research.LightingComposite", engine::rendering::PassPhase::Lighting, 0U, 0.25);
 

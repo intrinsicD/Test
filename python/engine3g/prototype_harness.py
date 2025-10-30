@@ -480,6 +480,23 @@ class PrototypeHarness:
     def _rendering_config(self) -> Optional[RenderingConfig]:
         return self._configuration.rendering
 
+    @staticmethod
+    def _configure_research_rendering(
+        runtime: EngineRuntimeHandle, rendering: RenderingConfig
+    ) -> None:
+        overlays = {
+            "normals": rendering.overlay_normals,
+            "uv": rendering.overlay_uv,
+            "material": rendering.overlay_material,
+            "light_volume": rendering.overlay_light_volume,
+        }
+        runtime.configure_research_rendering(
+            shading_mode=rendering.shading_mode,
+            width=rendering.width,
+            height=rendering.height,
+            overlays=overlays,
+        )
+
     def describe_configuration(self) -> HarnessConfigurationSummary:
         """Return metadata describing datasets and runtime presets for UI layers."""
 
@@ -671,6 +688,14 @@ class PrototypeHarness:
             runtime = self._runtime_factory()
         except EngineLibraryNotFound as error:  # pragma: no cover - depends on local environment
             raise PrototypeHarnessError(str(error)) from error
+
+        if rendering is not None:
+            try:
+                self._configure_research_rendering(runtime, rendering)
+            except (RuntimeError, ValueError) as error:
+                raise PrototypeHarnessError(
+                    f"failed to configure research rendering preset: {error}"
+                ) from error
 
         frames_executed = 0
         dispatch_order: Tuple[str, ...] = ()

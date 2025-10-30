@@ -34,6 +34,7 @@
 #    include "engine/rendering/gpu_scheduler.hpp"
 #    include "engine/rendering/runtime_submission.hpp"
 #    include "engine/rendering/resources/resource_provider.hpp"
+#    include "engine/rendering/pipeline/research_baseline.hpp"
 #endif
 
 #if defined(_WIN32)
@@ -259,6 +260,7 @@ namespace engine::runtime
         using RenderSubmissionContext = rendering::RuntimeSubmissionContext;
 
         void submit_render_graph(RenderSubmissionContext& context);
+        void configure_research_rendering(const rendering::ResearchBaselineOptions& options) noexcept;
 #endif
 
 #if ENGINE_ENABLE_ASSETS
@@ -304,6 +306,8 @@ namespace engine::runtime
 
 #if ENGINE_ENABLE_RENDERING
 ENGINE_RUNTIME_API void submit_render_graph(RuntimeHost::RenderSubmissionContext & context);
+ENGINE_RUNTIME_API void configure_research_rendering(
+    const rendering::ResearchBaselineOptions& options) noexcept;
 #endif
 } // namespace engine::runtime
 
@@ -333,6 +337,26 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_scene_node_transform(
     float* out_scale,
     float* out_rotation,
     float* out_translation) noexcept;
+
+enum engine_runtime_research_shading_mode
+{
+    ENGINE_RUNTIME_RESEARCH_SHADING_MODE_FORWARD = 0,
+    ENGINE_RUNTIME_RESEARCH_SHADING_MODE_DEFERRED = 1,
+};
+
+struct engine_runtime_research_rendering_options
+{
+    std::uint32_t width;
+    std::uint32_t height;
+    int shading_mode;
+    std::uint8_t overlay_normals;
+    std::uint8_t overlay_uv;
+    std::uint8_t overlay_material;
+    std::uint8_t overlay_light_volume;
+};
+
+extern "C" ENGINE_RUNTIME_API void engine_runtime_configure_research_rendering(
+    const struct engine_runtime_research_rendering_options* options) noexcept;
 constexpr std::size_t engine_runtime_streaming_geometry_failure_capacity =
     engine::io::geometry_io_error_count();
 

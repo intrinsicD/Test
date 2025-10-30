@@ -6,7 +6,7 @@ import json
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import pytest
 
@@ -39,6 +39,8 @@ class _MockRuntime:
     average_tick_value: float = 0.25
     dispatch_names: List[str] = field(default_factory=list)
     dispatch_times: List[float] = field(default_factory=list)
+    rendering_configurations: List[dict] = field(default_factory=list)
+    configure_exception: Optional[Exception] = None
 
     def __enter__(self) -> "_MockRuntime":
         self.initialized = True
@@ -66,6 +68,25 @@ class _MockRuntime:
 
     def dispatch_durations(self) -> List[float]:
         return list(self.dispatch_times)
+
+    def configure_research_rendering(
+        self,
+        *,
+        shading_mode: str,
+        width: int,
+        height: int,
+        overlays,
+    ) -> None:
+        if self.configure_exception is not None:
+            raise self.configure_exception
+        self.rendering_configurations.append(
+            {
+                "shading_mode": shading_mode,
+                "width": width,
+                "height": height,
+                "overlays": dict(overlays),
+            }
+        )
 
 
 def _write_configuration(tmp_path: Path) -> Path:
@@ -232,6 +253,19 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
 
     assert runtime.ticks == [0.5, 0.5, 0.5]
     assert runtime.shutdown_count == 1
+    assert runtime.rendering_configurations == [
+        {
+            "shading_mode": "deferred",
+            "width": 1920,
+            "height": 1080,
+            "overlays": {
+                "normals": False,
+                "uv": False,
+                "material": False,
+                "light_volume": False,
+            },
+        }
+    ]
     assert summary.frames_executed == 3
     assert summary.dataset_id == "remesh-sample"
     assert summary.rendering_preset == "research-baseline"
@@ -244,6 +278,25 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.telemetry_outputs[0].template == "telemetry/{scenario}.json"
     assert summary.telemetry_outputs[1].path is None
     assert summary.telemetry_outputs[1].template is None
+
+
+def test_prototype_harness_reports_rendering_configuration_failures(tmp_path: Path) -> None:
+    config_path = _write_configuration(tmp_path)
+    configuration = load_configuration(config_path)
+    runtime = _MockRuntime(ticks=[], configure_exception=RuntimeError("no support"))
+
+    harness = PrototypeHarness(
+        configuration,
+        runtime_factory=lambda: runtime,
+        asset_search_paths=[tmp_path],
+        project_root=tmp_path,
+        config_directory=tmp_path,
+    )
+
+    with pytest.raises(PrototypeHarnessError) as excinfo:
+        harness.run_headless(HarnessExecutionOptions(frames=1, dt=0.5))
+
+    assert "rendering" in str(excinfo.value)
 
 
 def test_run_headless_supports_custom_scenario_label(tmp_path: Path) -> None:

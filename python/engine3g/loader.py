@@ -56,6 +56,20 @@ class EngineLibraryNotFound(RuntimeError):
         super().__init__(message)
 
 
+class _ResearchRenderingOptions(ctypes.Structure):
+    """ctypes mirror of ``engine_runtime_research_rendering_options``."""
+
+    _fields_ = [
+        ("width", ctypes.c_uint32),
+        ("height", ctypes.c_uint32),
+        ("shading_mode", ctypes.c_int),
+        ("overlay_normals", ctypes.c_uint8),
+        ("overlay_uv", ctypes.c_uint8),
+        ("overlay_material", ctypes.c_uint8),
+        ("overlay_light_volume", ctypes.c_uint8),
+    ]
+
+
 @dataclass
 class EngineModuleHandle:
     """Represents a loaded engine module shared library."""
@@ -131,6 +145,11 @@ class EngineRuntimeHandle:
         if self._supports_average_tick_ms:
             self.library.engine_runtime_diagnostic_average_tick_ms.restype = ctypes.c_double
             self.library.engine_runtime_diagnostic_average_tick_ms.argtypes = []
+        configure_rendering = getattr(library, "engine_runtime_configure_research_rendering", None)
+        if configure_rendering is not None:
+            configure_rendering.restype = None
+            configure_rendering.argtypes = [ctypes.POINTER(_ResearchRenderingOptions)]
+        self._configure_research_rendering = configure_rendering
         self._is_initialized: bool = False
         self._context_owns_runtime: bool = False
 
@@ -199,6 +218,40 @@ class EngineRuntimeHandle:
             self.library.engine_runtime_body_position(index, vector)
             positions.append((float(vector[0]), float(vector[1]), float(vector[2])))
         return positions
+
+    def configure_research_rendering(
+        self,
+        *,
+        shading_mode: str,
+        width: int,
+        height: int,
+        overlays: Mapping[str, bool],
+    ) -> None:
+        """Configure research rendering options exposed by the runtime."""
+
+        if self._configure_research_rendering is None:
+            raise RuntimeError("runtime library does not expose research rendering configuration")
+        if width <= 0 or height <= 0:
+            raise ValueError("width and height must be positive integers")
+
+        shading_value = shading_mode.strip().lower()
+        if shading_value not in {"forward", "deferred"}:
+            raise ValueError("shading_mode must be 'forward' or 'deferred'")
+
+        options = _ResearchRenderingOptions()
+        options.width = int(width)
+        options.height = int(height)
+        options.shading_mode = 0 if shading_value == "forward" else 1
+        options.overlay_normals = 1 if overlays.get("normals", False) else 0
+        options.overlay_uv = 1 if overlays.get("uv", False) else 0
+        options.overlay_material = 1 if overlays.get("material", False) else 0
+        options.overlay_light_volume = 1 if overlays.get("light_volume", False) else 0
+        # ``ctypes.byref`` returns a lightweight proxy that lacks the ``contents``
+        # attribute expected by our tests and harness diagnostics. ``pointer``
+        # materialises a stable pointer instance whose lifetime is bound to the
+        # ``options`` structure, keeping behaviour consistent for both mocks and
+        # the native runtime symbol.
+        self._configure_research_rendering(ctypes.pointer(options))
 
     def joint_translations(self) -> Dict[str, Tuple[float, float, float]]:
         """Return joint translations for the current animation pose."""
