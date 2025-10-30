@@ -87,12 +87,21 @@
       },
       "statistics": {
         "iterations": 6,
+        "splits": 2,
+        "collapses": 1,
+        "duration_ms": 3.2,
         "max_error": 0.0025,
         "min_edge_length": 0.5,
         "max_edge_length": 1.118,
         "max_surface_deviation": 0.001,
         "mean_surface_deviation": 0.0005,
-        "rms_surface_deviation": 0.0006
+        "rms_surface_deviation": 0.0006,
+        "triangles": 4,
+        "triangle_quality": {
+          "min": 0.64,
+          "mean": 0.82,
+          "max": 0.99
+        }
       }
     }
   ],

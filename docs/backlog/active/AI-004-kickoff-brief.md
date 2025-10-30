@@ -111,6 +111,9 @@ remeshing baseline shipped with the kickoff packet:
 | Output mesh | 5 vertices, 4 faces, edge length range 0.5–1.118 | Dataset manifest |
 | Remeshing mode | Uniform, target edge length 0.5 | Dataset manifest |
 | UV reuse | Single chart, stretch ≤1.05, fill ratio 0.95 | Dataset manifest |
+| Remesh operations | 2 splits, 1 collapse | Dataset manifest |
+| Remesh duration | 3.2 ms | Dataset manifest |
+| Triangle quality | 4 triangles, quality 0.64/0.82/0.99 | Dataset manifest |
 
 The native runtime shared library is not packaged in this workspace snapshot, so
 `average_tick_ms` and dispatch timings remain `N/A`. Once the CI build publishes
