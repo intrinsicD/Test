@@ -46,14 +46,51 @@ def _format_case_study_help() -> str:
     return f"Identifier of a packaged case study configuration. Available: {entries}."
 
 
+def _parse_boolean_token(value: str) -> bool:
+    lowered = value.strip().lower()
+    if lowered in {"1", "true", "yes", "on"}:
+        return True
+    if lowered in {"0", "false", "no", "off"}:
+        return False
+    raise argparse.ArgumentTypeError(f"invalid boolean value '{value}'")
+
+
+def _parse_overlay_argument(value: str) -> tuple[str, bool]:
+    if "=" not in value:
+        raise argparse.ArgumentTypeError("overlay overrides must be provided as key=value")
+    key, raw = value.split("=", 1)
+    key = key.strip()
+    if not key:
+        raise argparse.ArgumentTypeError("overlay overrides require a non-empty key")
+    return key, _parse_boolean_token(raw)
+
+
+def _collect_overlay_overrides(entries: Iterable[tuple[str, bool]]) -> Optional[dict[str, bool]]:
+    overrides: dict[str, bool] = {}
+    for key, value in entries:
+        overrides[key] = value
+    return overrides or None
+
+
+def _parse_shading_mode(value: str) -> str:
+    lowered = value.strip().lower()
+    if lowered not in {"forward", "deferred"}:
+        raise argparse.ArgumentTypeError("shading mode must be 'forward' or 'deferred'")
+    return lowered
+
+
 def _make_options(
-    args: argparse.Namespace, *, scenario_label: Optional[str]
+    args: argparse.Namespace, *, scenario_label: Optional[str], overlays: Optional[dict[str, bool]]
 ) -> HarnessExecutionOptions:
     return HarnessExecutionOptions(
         frames=args.frames,
         dt=args.dt,
         dry_run=args.dry_run,
         scenario_label=scenario_label,
+        dataset_id=args.dataset,
+        rendering_preset=args.rendering_preset,
+        shading_mode=args.shading_mode,
+        overlays=overlays,
     )
 
 
@@ -187,6 +224,8 @@ def _run(args: argparse.Namespace) -> int:
     if args.list_benchmarks:
         _print_benchmark_scenarios(description)
 
+    overlay_overrides = _collect_overlay_overrides(args.overlays)
+
     if args.dry_run:
         total_runs = args.repeat
         base_options = HarnessExecutionOptions(
@@ -194,6 +233,10 @@ def _run(args: argparse.Namespace) -> int:
             frames=1,
             dt=args.dt,
             scenario_label=args.case_study,
+            dataset_id=args.dataset,
+            rendering_preset=args.rendering_preset,
+            shading_mode=args.shading_mode,
+            overlays=overlay_overrides,
         )
         run_count = total_runs if total_runs > 1 else None
         for index in range(1, total_runs + 1):
@@ -209,7 +252,7 @@ def _run(args: argparse.Namespace) -> int:
                 )
         return 0
 
-    base_options = _make_options(args, scenario_label=args.case_study)
+    base_options = _make_options(args, scenario_label=args.case_study, overlays=overlay_overrides)
     total_runs = args.repeat
     run_count = total_runs if total_runs > 1 else None
     for index in range(1, total_runs + 1):
@@ -267,6 +310,28 @@ def main(argv: Iterable[str] | None = None) -> int:
         type=int,
         default=1,
         help="Number of sequential runs to execute (default: 1).",
+    )
+    parser.add_argument(
+        "--dataset",
+        help="Override the dataset identifier before executing the harness.",
+    )
+    parser.add_argument(
+        "--rendering-preset",
+        help="Override the rendering preset recorded in telemetry and summaries.",
+    )
+    parser.add_argument(
+        "--shading-mode",
+        type=_parse_shading_mode,
+        help="Override the research rendering shading mode (forward or deferred).",
+    )
+    parser.add_argument(
+        "--overlay",
+        dest="overlays",
+        action="append",
+        type=_parse_overlay_argument,
+        default=[],
+        metavar="KEY=BOOL",
+        help="Override rendering overlay state (repeatable, e.g., --overlay normals=1).",
     )
     parser.add_argument(
         "--require-schema",

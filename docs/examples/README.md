@@ -47,6 +47,18 @@ python -m scripts.prototyping.run_prototype_harness \
 Combine `--describe-json` or `--case-studies-json` to surface summaries for the
 TL-210 sandbox UI before launching the native runtime.
 
+Override the dataset or rendering selection without editing the manifest using
+the harness CLI options introduced for TL-210/CC-310 integration:
+
+```bash
+python -m scripts.prototyping.run_prototype_harness \
+    --config docs/examples/ai004_sample.json \
+    --dry-run --dataset remesh-variant \
+    --rendering-preset diagnostics --shading-mode forward \
+    --overlay normals=1 --overlay uv=0 \
+    --summary-json telemetry/diagnostics.json
+```
+
 The native sample `engine/runtime/runtime_prototype_harness` accepts the same
 configuration; see `engine/runtime/samples/README.md` for build instructions and
 integration smoke tests.

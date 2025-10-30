@@ -179,6 +179,20 @@ sandbox.set_callbacks({
 });
 ```
 
+The runner forwards sandbox preferences to the harness CLI via `--dataset`,
+`--rendering-preset`, `--shading-mode`, and repeated `--overlay <key>=<bool>`
+arguments so headless executions mirror UI selections. These options are also
+available when invoking the CLI directly:
+
+```bash
+python -m scripts.prototyping.run_prototype_harness \
+    --config docs/examples/ai004_sample.json \
+    --dry-run --dataset remesh-variant \
+    --rendering-preset diagnostics --shading-mode forward \
+    --overlay normals=1 --overlay uv=0 \
+    --summary-json telemetry/diagnostics.json
+```
+
 The sandbox automatically displays the returned `SandboxBenchmarkResult`,
 highlighting success in green and errors in red, while preserving the summary
 file for audit trails.
