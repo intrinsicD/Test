@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
@@ -238,6 +239,31 @@ namespace engine::runtime::config
                     throw_validation(context, "must be non-negative");
                 }
                 return static_cast<std::uint64_t>(value);
+            }
+            catch (const YAML::BadConversion&)
+            {
+                throw_validation(context, "must be a non-negative integer");
+            }
+        }
+
+        [[nodiscard]] int require_non_negative_int(const YAML::Node& node, std::string_view context)
+        {
+            if (!node || !node.IsScalar())
+            {
+                throw_validation(context, "must be a non-negative integer");
+            }
+            try
+            {
+                const auto value = node.as<long long>();
+                if (value < 0)
+                {
+                    throw_validation(context, "must be non-negative");
+                }
+                if (value > static_cast<long long>(std::numeric_limits<int>::max()))
+                {
+                    throw_validation(context, "exceeds supported integer range");
+                }
+                return static_cast<int>(value);
             }
             catch (const YAML::BadConversion&)
             {
@@ -515,10 +541,32 @@ namespace engine::runtime::config
             return summary;
         }
 
+        [[nodiscard]] TriangleQualityStatistics parse_triangle_quality_statistics(const YAML::Node& node,
+                                                                                 std::string_view context)
+        {
+            TriangleQualityStatistics stats;
+            stats.minimum = require_float(node["min"], join_context(context, "min"));
+            stats.mean = require_float(node["mean"], join_context(context, "mean"));
+            stats.maximum = require_float(node["max"], join_context(context, "max"));
+            return stats;
+        }
+
         [[nodiscard]] DatasetStatistics parse_dataset_statistics(const YAML::Node& node, std::string_view context)
         {
             DatasetStatistics stats;
             stats.iteration_count = require_int(node["iterations"], join_context(context, "iterations"));
+            if (const auto value = node["splits"]; value)
+            {
+                stats.split_count = require_non_negative_int(value, join_context(context, "splits"));
+            }
+            if (const auto value = node["collapses"]; value)
+            {
+                stats.collapse_count = require_non_negative_int(value, join_context(context, "collapses"));
+            }
+            if (const auto value = node["duration_ms"]; value)
+            {
+                stats.duration_ms = require_non_negative_float(value, join_context(context, "duration_ms"));
+            }
             stats.max_error = require_float(node["max_error"], join_context(context, "max_error"));
             stats.min_edge_length = require_float(node["min_edge_length"], join_context(context, "min_edge_length"));
             stats.max_edge_length = require_float(node["max_edge_length"], join_context(context, "max_edge_length"));
@@ -528,6 +576,16 @@ namespace engine::runtime::config
                 require_float(node["mean_surface_deviation"], join_context(context, "mean_surface_deviation"));
             stats.rms_surface_deviation =
                 require_float(node["rms_surface_deviation"], join_context(context, "rms_surface_deviation"));
+            if (const auto value = node["triangles"]; value)
+            {
+                stats.triangle_count = require_non_negative_int(value, join_context(context, "triangles"));
+            }
+            if (const auto value = node["triangle_quality"]; value)
+            {
+                stats.triangle_quality = parse_triangle_quality_statistics(
+                    require_mapping(value, join_context(context, "triangle_quality")),
+                    join_context(context, "triangle_quality"));
+            }
             return stats;
         }
 

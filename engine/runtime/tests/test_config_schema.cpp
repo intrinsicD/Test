@@ -190,6 +190,11 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestWithoutSchemaInjectsDefaults)
     EXPECT_EQ(dataset.schema_version, 1);
     EXPECT_FALSE(dataset.source_mesh_sha256.has_value());
     EXPECT_FALSE(dataset.output_mesh_sha256.has_value());
+    EXPECT_FALSE(dataset.statistics.split_count.has_value());
+    EXPECT_FALSE(dataset.statistics.collapse_count.has_value());
+    EXPECT_FALSE(dataset.statistics.duration_ms.has_value());
+    EXPECT_FALSE(dataset.statistics.triangle_count.has_value());
+    EXPECT_FALSE(dataset.statistics.triangle_quality.has_value());
 }
 
 TEST(RuntimeConfigSchema, LoadDatasetManifestHonoursSchemaFlag)
@@ -294,12 +299,20 @@ TEST(RuntimeConfigSchema, LoadConfigurationParsesSections)
           mean: 0.5
     statistics:
       iterations: 4
+      splits: 2
+      collapses: 1
+      duration_ms: 1.5
       max_error: 0.01
       min_edge_length: 0.2
       max_edge_length: 0.9
       max_surface_deviation: 0.008
       mean_surface_deviation: 0.006
       rms_surface_deviation: 0.007
+      triangles: 42
+      triangle_quality:
+        min: 0.75
+        mean: 0.85
+        max: 0.95
 rendering:
   schema:
     id: ai-004.rendering
@@ -361,6 +374,19 @@ telemetry:
     ASSERT_TRUE(result);
     const Ai004Configuration& configuration = result.value();
     ASSERT_EQ(configuration.datasets.datasets.size(), 1U);
+    const auto& dataset = configuration.datasets.datasets.front();
+    ASSERT_TRUE(dataset.statistics.split_count.has_value());
+    EXPECT_EQ(*dataset.statistics.split_count, 2);
+    ASSERT_TRUE(dataset.statistics.collapse_count.has_value());
+    EXPECT_EQ(*dataset.statistics.collapse_count, 1);
+    ASSERT_TRUE(dataset.statistics.duration_ms.has_value());
+    EXPECT_DOUBLE_EQ(*dataset.statistics.duration_ms, 1.5);
+    ASSERT_TRUE(dataset.statistics.triangle_count.has_value());
+    EXPECT_EQ(*dataset.statistics.triangle_count, 42);
+    ASSERT_TRUE(dataset.statistics.triangle_quality.has_value());
+    EXPECT_DOUBLE_EQ(dataset.statistics.triangle_quality->minimum, 0.75);
+    EXPECT_DOUBLE_EQ(dataset.statistics.triangle_quality->mean, 0.85);
+    EXPECT_DOUBLE_EQ(dataset.statistics.triangle_quality->maximum, 0.95);
     ASSERT_TRUE(configuration.rendering.has_value());
     EXPECT_EQ(configuration.rendering->shading_mode, "deferred");
     ASSERT_TRUE(configuration.runtime.has_value());

@@ -60,7 +60,18 @@ The operational workflow for applying the schema across runtime, tools, and benc
 | `metrics.input.*` | numeric | ✅ | Input mesh statistics (vertex/face counts, edge length distribution). |
 | `metrics.output.*` | numeric | ✅ | Output mesh statistics mirroring input structure. |
 | `parameterization.*` | mixed | ❌ | Present when UV generation or reuse is requested; includes mode, density, chart stats. |
-| `statistics.*` | numeric | ✅ | Iteration counts and error envelopes reported by remesher telemetry. |
+| `statistics.iterations` | `integer` | ✅ | Total solver iterations executed by the remesher. |
+| `statistics.splits` | `integer` | ❌ | Optional count of split operations applied during remeshing. |
+| `statistics.collapses` | `integer` | ❌ | Optional count of collapse operations applied during remeshing. |
+| `statistics.duration_ms` | `float` | ❌ | Optional wall-clock execution time in milliseconds. |
+| `statistics.max_error` | `float` | ✅ | Maximum edge-length error recorded during the solve. |
+| `statistics.min_edge_length` | `float` | ✅ | Minimum edge length observed in the output mesh. |
+| `statistics.max_edge_length` | `float` | ✅ | Maximum edge length observed in the output mesh. |
+| `statistics.max_surface_deviation` | `float` | ✅ | Maximum sampled surface deviation between input and output meshes. |
+| `statistics.mean_surface_deviation` | `float` | ✅ | Mean sampled surface deviation. |
+| `statistics.rms_surface_deviation` | `float` | ✅ | Root-mean-square surface deviation. |
+| `statistics.triangles` | `integer` | ❌ | Optional output triangle count captured by telemetry. |
+| `statistics.triangle_quality.min/mean/max` | `float` | ❌ | Optional triangle quality distribution (0–1 range). |
 
 All numeric values are emitted with fixed precision to simplify regression testing
 and diffing. Paths are rendered using POSIX separators so manifests remain
@@ -106,16 +117,26 @@ datasets:
         faces: 34560
     statistics:
       iterations: 12
+      splits: 3
+      collapses: 2
+      duration_ms: 4.5
       max_error: 0.0015
       max_surface_deviation: 0.0150
       mean_surface_deviation: 0.0100
       rms_surface_deviation: 0.0120
+      triangles: 34560
+      triangle_quality:
+        min: 0.7200
+        mean: 0.8600
+        max: 0.9400
 ```
 
 The `statistics` block records both the edge-length deviation budget (`max_error`) and
 approximate Hausdorff metrics gathered from bidirectional sampling between the
 input mesh and remeshed output (`max_surface_deviation`, `mean_surface_deviation`,
-`rms_surface_deviation`).
+`rms_surface_deviation`). Optional counters (`splits`, `collapses`, `triangles`),
+runtime duration (`duration_ms`), and quality ranges (`triangle_quality`) expose
+operational telemetry that the prototyping harness surfaces for downstream tools.
 
 Packaging workflows should consume these manifests via
 `python -m scripts.datasets.ingest_dataset` so dataset caches include

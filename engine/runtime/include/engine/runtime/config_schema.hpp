@@ -68,15 +68,27 @@ namespace engine::runtime::config
         std::vector<ParameterizationChart> charts;
     };
 
+    struct TriangleQualityStatistics
+    {
+        double minimum = 0.0;
+        double mean = 0.0;
+        double maximum = 0.0;
+    };
+
     struct DatasetStatistics
     {
         int iteration_count = 0;
+        std::optional<int> split_count{};
+        std::optional<int> collapse_count{};
+        std::optional<double> duration_ms{};
         double max_error = 0.0;
         double min_edge_length = 0.0;
         double max_edge_length = 0.0;
         double max_surface_deviation = 0.0;
         double mean_surface_deviation = 0.0;
         double rms_surface_deviation = 0.0;
+        std::optional<int> triangle_count{};
+        std::optional<TriangleQualityStatistics> triangle_quality{};
     };
 
     struct DatasetEntry
