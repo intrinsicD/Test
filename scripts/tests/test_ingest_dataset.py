@@ -28,6 +28,7 @@ def test_ingest_dataset_writes_summary_and_copies_files(tmp_path: Path) -> None:
 
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     assert summary["id"] == "remesh-unit-square"
+    assert summary["source_generator"] == "sample_assets"
     assert summary["files"]["source"]["copied_to"].endswith("source_mesh.obj")
     assert summary["files"]["output"]["copied_to"].endswith("output_mesh.obj")
 

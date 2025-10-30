@@ -50,3 +50,4 @@ def test_ingest_manifest_writes_summary_with_extended_statistics(tmp_path: Path)
     assert statistics["duration_ms"] == 3.2
     assert statistics["triangles"] == 4
     assert statistics["triangle_quality"] == {"min": 0.64, "mean": 0.82, "max": 0.99}
+    assert summary["source_generator"] == "sample_assets"
