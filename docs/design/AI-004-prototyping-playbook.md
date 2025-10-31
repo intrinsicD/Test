@@ -220,7 +220,7 @@ Communicate schedule changes in `docs/ROADMAP.md` and module READMEs.
 ## 10. Handoff Checklist
 
 - [ ] Schema headers declared and validated.
-- [ ] Dataset manifests packaged with provenance.
+- [x] Dataset manifests packaged with provenance.
 - [ ] Harness dry run executed with `--require-schema`.
 - [ ] Sandbox preferences saved after schema change.
 - [ ] Benchmark outputs archived with configuration revision noted.

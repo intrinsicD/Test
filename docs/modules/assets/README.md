@@ -308,6 +308,9 @@ ctest --preset linux-gcc-debug -R assets
   3. Ingest curated manifests with
      `python -m scripts.datasets.ingest_dataset <manifest> --copy-assets --output <cache>`
      to produce reproducible dataset caches populated with checksum metadata.
+  4. Populate the mandatory `provenance` block (schema v2+) with licensing,
+     attribution, and packaging links so the runtime harness and sandbox can
+     surface source/permission details alongside telemetry.
 
 ## TODO / Next Steps
 

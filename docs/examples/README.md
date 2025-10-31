@@ -13,7 +13,7 @@ prototyping harness and sandbox UI.
   by the AI-004 loaders (`ai-004.configuration`, `ai-004.dataset`,
   `ai-004.runtime`, `ai-004.rendering`).
 - **`datasets`** – Imports `remesh_sample`, including asset integrity metadata
-  (byte sizes, SHA-256 hashes, and provenance tags).
+  (byte sizes, SHA-256 hashes, provenance summaries, and licensing details).
 - **`runtime`** – Selects the dataset slug, scene manifest, timestep defaults,
   and telemetry template overrides used by the harness.
 - **`rendering`** – Configures the research baseline preset, shading mode, and

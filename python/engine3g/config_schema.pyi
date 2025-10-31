@@ -88,6 +88,28 @@ class DatasetStatistics:
 
 
 @dataclass
+class DatasetLicenseInfo:
+    name: str
+    url: Optional[str]
+    notes: Optional[str]
+
+
+@dataclass
+class DatasetProvenanceLink:
+    label: Optional[str]
+    url: str
+
+
+@dataclass
+class DatasetProvenance:
+    summary: str
+    license: DatasetLicenseInfo
+    source: Optional[str]
+    attribution: Optional[str]
+    links: Tuple[DatasetProvenanceLink, ...]
+
+
+@dataclass
 class DatasetEntry:
     identifier: str
     schema_id: str
@@ -108,6 +130,7 @@ class DatasetEntry:
     output_metrics: MeshMetrics
     parameterization: Optional[ParameterizationSummary]
     statistics: DatasetStatistics
+    provenance: Optional[DatasetProvenance]
     job_label: Optional[str]
 
 

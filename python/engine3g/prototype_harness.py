@@ -209,6 +209,7 @@ class DatasetSummary:
     statistics: Dict[str, object]
     metrics: Dict[str, object]
     assets: Tuple[DatasetAssetStatus, ...]
+    provenance: Optional[Dict[str, object]]
 
     def to_dict(self) -> Dict[str, object]:
         payload: Dict[str, object] = {
@@ -239,6 +240,8 @@ class DatasetSummary:
             payload["remeshing_targets"] = dict(self.remeshing_targets)
         if self.parameterization:
             payload["parameterization"] = dict(self.parameterization)
+        if self.provenance is not None:
+            payload["provenance"] = copy.deepcopy(self.provenance)
         return payload
 
 
@@ -1221,6 +1224,10 @@ class PrototypeHarness:
             "minimum_feature_angle_degrees": entry.feature_preservation.minimum_feature_angle_degrees,
         }
 
+        provenance: Optional[Dict[str, object]] = None
+        if entry.provenance is not None:
+            provenance = entry.provenance.to_mapping()
+
         return DatasetSummary(
             identifier=entry.identifier,
             label=label,
@@ -1242,6 +1249,7 @@ class PrototypeHarness:
             statistics=statistics,
             metrics=metrics,
             assets=assets,
+            provenance=provenance,
         )
 
     @staticmethod

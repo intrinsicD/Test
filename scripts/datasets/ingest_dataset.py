@@ -215,6 +215,9 @@ def _build_summary(entry: DatasetEntry, files: Iterable[DatasetFileMetadata]) ->
     if parameterization is not None:
         summary["parameterization"] = parameterization
 
+    if entry.provenance is not None:
+        summary["provenance"] = entry.provenance.to_mapping()
+
     if entry.job_label is not None:
         summary["job_label"] = entry.job_label
 

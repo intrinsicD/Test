@@ -59,6 +59,14 @@ The operational workflow for applying the schema across runtime, tools, and benc
 | `feature_preservation.*` | boolean/float | ✅ | Flags controlling boundary/feature locking and threshold angles. |
 | `metrics.input.*` | numeric | ✅ | Input mesh statistics (vertex/face counts, edge length distribution). |
 | `metrics.output.*` | numeric | ✅ | Output mesh statistics mirroring input structure. |
+| `provenance.summary` | `string` | ✅ *(v2+)* | Concise description of dataset origin and intent. |
+| `provenance.source` | `string` | ❌ | Generator, capture pipeline, or upstream repository that produced the dataset. |
+| `provenance.attribution` | `string` | ❌ | Attribution or contact to surface in tooling summaries. |
+| `provenance.license.name` | `string` | ✅ *(v2+)* | License identifier or label (prefer SPDX identifiers). |
+| `provenance.license.url` | `string` | ❌ | Link to the full license text. |
+| `provenance.license.notes` | `string` | ❌ | Additional licensing clarifications. |
+| `provenance.links[*].label` | `string` | ❌ | Optional label for a provenance documentation link. |
+| `provenance.links[*].url` | `string` | ❌ | Link to packaging notes, upstream repositories, or audits. |
 | `parameterization.*` | mixed | ❌ | Present when UV generation or reuse is requested; includes mode, density, chart stats. |
 | `statistics.iterations` | `integer` | ✅ | Total solver iterations executed by the remesher. |
 | `statistics.splits` | `integer` | ❌ | Optional count of split operations applied during remeshing. |
@@ -80,6 +88,10 @@ portable across platforms.
 Dataset identifiers must be unique within a manifest. Validators reject
 duplicate slugs so downstream tooling can assume one-to-one mappings when
 resolving dataset references from runtime or benchmark configuration sections.
+
+Starting with schema version 2, manifests must also publish a `provenance`
+block capturing licensing and attribution so runtime summaries and tooling can
+surface source/permission context alongside telemetry output.
 
 ### Example
 
@@ -115,6 +127,16 @@ datasets:
       output:
         vertices: 17290
         faces: 34560
+    provenance:
+      summary: Procedurally generated remeshing dataset for regression coverage.
+      source: geometry_remesh CLI using sample assets
+      attribution: AI-004 Dataset Team
+      license:
+        name: CC0 1.0 Universal
+        url: https://creativecommons.org/publicdomain/zero/1.0/
+      links:
+        - label: Packaging notes
+          url: docs/examples/README.md#ai004_samplejson
     statistics:
       iterations: 12
       splits: 3
@@ -145,9 +167,11 @@ harness (`RT-320`) stages assets.
 
 > **Schema Evolution:** Dataset schema version 2 introduces explicit
 > `mesh_sha256` and `mesh_size_bytes` entries for both the source input and
-> remeshed outputs. The ingestion tooling rejects manifests whose recorded
-> values do not match on-disk assets, guaranteeing reproducible packaging and
-> protecting AI-004 benchmark baselines from silent corruption.
+> remeshed outputs alongside mandatory provenance/licensing blocks. The
+> ingestion tooling rejects manifests whose recorded values do not match
+> on-disk assets and surfaces provenance directly in summaries, guaranteeing
+> reproducible packaging while keeping licensing obligations visible to
+> downstream consumers.
 
 Downstream consumers (runtime harness, sandbox UI, benchmark orchestrator) must
 reject entries whose `schema.id`/`schema.version` do not match the supported

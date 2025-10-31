@@ -164,6 +164,15 @@ def _write_configuration(tmp_path: Path) -> Path:
                         "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
                     },
                 },
+                "provenance": {
+                    "summary": "Synthetic dataset for harness tests.",
+                    "source": "Generated via geometry_remesh",
+                    "attribution": "Test Harness",
+                    "license": {
+                        "name": "CC0 1.0 Universal",
+                        "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+                    },
+                },
                 "statistics": {
                     "iterations": 4,
                     "splits": 1,
@@ -216,6 +225,15 @@ def _write_configuration(tmp_path: Path) -> Path:
                 "faces": 2,
                 "surface_area": 1.0,
                 "edge_length": {"min": 1.0, "max": 1.0, "mean": 1.0},
+            },
+        },
+        "provenance": {
+            "summary": "Variant dataset for harness tests.",
+            "source": "Generated via geometry_remesh",
+            "attribution": "Test Harness",
+            "license": {
+                "name": "CC0 1.0 Universal",
+                "url": "https://creativecommons.org/publicdomain/zero/1.0/",
             },
         },
         "statistics": {
@@ -701,6 +719,9 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert metrics_summary["input"]["edge_length"]["max"] == pytest.approx(1.0)
     assert metrics_summary["output"]["surface_area"] == pytest.approx(1.0)
     assert metrics_summary["output"]["edge_length"]["mean"] == pytest.approx(1.0)
+    provenance_summary = description.datasets[0].provenance
+    assert provenance_summary is not None
+    assert provenance_summary["license"]["name"] == "CC0 1.0 Universal"
     assert description.runtime.dataset == "remesh-sample"
     assert description.rendering is not None
     assert description.rendering.preset == "research-baseline"
@@ -732,6 +753,9 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert description_payload["datasets"][0]["id"] == "remesh-sample"
     assert description_payload["datasets"][0]["kind"] == "geometry.remesh"
     assert description_payload["datasets"][0]["schema_version"] == 2
+    provenance_payload = description_payload["datasets"][0]["provenance"]
+    assert provenance_payload["summary"].startswith("Synthetic dataset")
+    assert provenance_payload["license"]["url"].endswith("/1.0/")
     assert description_payload["rendering_presets"][0]["id"] == "research-baseline"
     assert description_payload["selected_rendering_preset"] == "research-baseline"
     assert description_payload["algorithm_variants"][0]["id"] == "baseline"
@@ -780,6 +804,7 @@ def test_describe_selected_dataset_returns_summary(tmp_path: Path) -> None:
     assert summary.identifier == "remesh-sample"
     assert summary.assets
     assert all(status.verified for status in summary.assets)
+    assert summary.provenance is not None
 
 
 def test_prototype_harness_missing_dataset_raises(tmp_path: Path) -> None:
@@ -824,6 +849,7 @@ def test_prototype_harness_verifies_assets_without_explicit_paths(tmp_path: Path
     assert dataset_summary is not None
     assert dataset_summary.assets
     assert all(status.verified for status in dataset_summary.assets)
+    assert dataset_summary.provenance is not None
 
 
 def test_prototype_harness_asset_hash_comparison_is_case_insensitive(tmp_path: Path) -> None:
@@ -1091,6 +1117,7 @@ def test_cli_list_datasets(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -
     dataset_entries = payload["datasets"]
     assert isinstance(dataset_entries, list)
     assert dataset_entries and dataset_entries[0]["id"] == "remesh-sample"
+    assert dataset_entries[0]["provenance"]["license"]["name"] == "CC0 1.0 Universal"
 
 
 def test_cli_applies_overrides(tmp_path: Path) -> None:

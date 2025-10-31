@@ -34,6 +34,7 @@ def test_ingest_dataset_writes_summary_and_copies_files(tmp_path: Path) -> None:
     assert summary["statistics"]["triangle_quality"]["max"] == pytest.approx(0.99, rel=1e-6)
     assert summary["parameterization"]["mode"] == "reuse_existing"
     assert summary["parameterization"]["charts"][0]["boundary_length"] == pytest.approx(4.0)
+    assert summary["provenance"]["license"]["name"] == "CC0 1.0 Universal"
     assert summary["files"]["source"]["copied_to"].endswith("source_mesh.obj")
     assert summary["files"]["output"]["copied_to"].endswith("output_mesh.obj")
 
