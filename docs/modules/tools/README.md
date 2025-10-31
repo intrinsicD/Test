@@ -200,7 +200,7 @@ highlighting success in green and errors in red, while preserving the summary
 file for audit trails.
 
 `ComparativeBenchmarkRunner` extends this workflow to the
-[`scripts/benchmarks/run_comparative_benchmarks.py`](../../scripts/benchmarks/run_comparative_benchmarks.py)
+[`scripts/benchmarks/run_comparative_benchmarks.py`](../../../scripts/benchmarks/run_comparative_benchmarks.py)
 orchestrator. Instantiate it with the Python interpreter + script prefix and a
 working directory for temporary configurations:
 
