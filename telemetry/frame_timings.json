@@ -1,0 +1,4125 @@
+{
+  "frames": [
+    {
+      "category_totals_ms": {
+        "animation": 0.007615,
+        "geometry": 9.878117000000001,
+        "physics": 0.003959
+      },
+      "dispatches": [
+        {
+          "category": "animation",
+          "duration_ms": 0.007615,
+          "name": "animation.evaluate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.00184,
+          "name": "physics.accumulate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.002119,
+          "name": "physics.integrate"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 8.823759,
+          "name": "geometry.deform"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 1.0543580000000001,
+          "name": "geometry.finalize"
+        }
+      ],
+      "dt": 0.016,
+      "frame_total_ms": 9.889691000000001,
+      "index": 0,
+      "simulation_time": 0.016
+    },
+    {
+      "category_totals_ms": {
+        "animation": 0.007396,
+        "geometry": 9.886755,
+        "physics": 0.003465
+      },
+      "dispatches": [
+        {
+          "category": "animation",
+          "duration_ms": 0.007396,
+          "name": "animation.evaluate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.001874,
+          "name": "physics.accumulate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.0015910000000000002,
+          "name": "physics.integrate"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 8.854165,
+          "name": "geometry.deform"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 1.03259,
+          "name": "geometry.finalize"
+        }
+      ],
+      "dt": 0.016,
+      "frame_total_ms": 9.897616,
+      "index": 1,
+      "simulation_time": 0.032
+    },
+    {
+      "category_totals_ms": {
+        "animation": 0.00474,
+        "geometry": 9.829073000000001,
+        "physics": 0.002943
+      },
+      "dispatches": [
+        {
+          "category": "animation",
+          "duration_ms": 0.00474,
+          "name": "animation.evaluate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.001643,
+          "name": "physics.accumulate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.0013,
+          "name": "physics.integrate"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 8.771083,
+          "name": "geometry.deform"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 1.05799,
+          "name": "geometry.finalize"
+        }
+      ],
+      "dt": 0.016,
+      "frame_total_ms": 9.836756000000001,
+      "index": 2,
+      "simulation_time": 0.048
+    },
+    {
+      "category_totals_ms": {
+        "animation": 0.005141000000000001,
+        "geometry": 9.845789,
+        "physics": 0.002955
+      },
+      "dispatches": [
+        {
+          "category": "animation",
+          "duration_ms": 0.005141000000000001,
+          "name": "animation.evaluate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.00166,
+          "name": "physics.accumulate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.0012950000000000001,
+          "name": "physics.integrate"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 8.829574,
+          "name": "geometry.deform"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 1.016215,
+          "name": "geometry.finalize"
+        }
+      ],
+      "dt": 0.016,
+      "frame_total_ms": 9.853885,
+      "index": 3,
+      "simulation_time": 0.064
+    },
+    {
+      "category_totals_ms": {
+        "animation": 0.005628,
+        "geometry": 9.747366999999999,
+        "physics": 0.0031979999999999995
+      },
+      "dispatches": [
+        {
+          "category": "animation",
+          "duration_ms": 0.005628,
+          "name": "animation.evaluate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.001959,
+          "name": "physics.accumulate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.0012389999999999999,
+          "name": "physics.integrate"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 8.717647,
+          "name": "geometry.deform"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 1.02972,
+          "name": "geometry.finalize"
+        }
+      ],
+      "dt": 0.016,
+      "frame_total_ms": 9.756192999999998,
+      "index": 4,
+      "simulation_time": 0.08
+    },
+    {
+      "category_totals_ms": {
+        "animation": 0.004779,
+        "geometry": 9.863737,
+        "physics": 0.0028510000000000002
+      },
+      "dispatches": [
+        {
+          "category": "animation",
+          "duration_ms": 0.004779,
+          "name": "animation.evaluate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.001675,
+          "name": "physics.accumulate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.001176,
+          "name": "physics.integrate"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 8.827413,
+          "name": "geometry.deform"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 1.036324,
+          "name": "geometry.finalize"
+        }
+      ],
+      "dt": 0.016,
+      "frame_total_ms": 9.871367000000001,
+      "index": 5,
+      "simulation_time": 0.096
+    },
+    {
+      "category_totals_ms": {
+        "animation": 0.004641,
+        "geometry": 10.817967,
+        "physics": 0.003006
+      },
+      "dispatches": [
+        {
+          "category": "animation",
+          "duration_ms": 0.004641,
+          "name": "animation.evaluate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.001707,
+          "name": "physics.accumulate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.001299,
+          "name": "physics.integrate"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 9.480867,
+          "name": "geometry.deform"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 1.3371,
+          "name": "geometry.finalize"
+        }
+      ],
+      "dt": 0.016,
+      "frame_total_ms": 10.825614,
+      "index": 6,
+      "simulation_time": 0.112
+    },
+    {
+      "category_totals_ms": {
+        "animation": 0.014042,
+        "geometry": 11.418433,
+        "physics": 0.011871000000000001
+      },
+      "dispatches": [
+        {
+          "category": "animation",
+          "duration_ms": 0.014042,
+          "name": "animation.evaluate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.00386,
+          "name": "physics.accumulate"
+        },
+        {
+          "category": "physics",
+          "duration_ms": 0.008011,
+          "name": "physics.integrate"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 10.151916,
+          "name": "geometry.deform"
+        },
+        {
+          "category": "geometry",
+          "duration_ms": 1.266517,
+          "name": "geometry.finalize"
+        }
+      ],
+      "dt": 0.016,
+      "frame_total_ms": 11.444346,
+      "index": 7,
+      "simulation_time": 0.128
+    }
+  ],
+  "runtime_diagnostics": {
+    "average_tick_ms": 10.238996625,
+    "has_initialize_failure": false,
+    "hot_reload": {
+      "attempt_count": 0,
+      "cancelled_count": 0,
+      "error_hint": "",
+      "failure_count": 0,
+      "last_error": "",
+      "loading_count": 0,
+      "pending_count": 0,
+      "recent_failures": [],
+      "rejected_count": 0,
+      "total_requests": 0
+    },
+    "initialize_count": 1,
+    "initialize_failure_count": 0,
+    "last_initialize_failure": null,
+    "last_initialize_ms": 7.688036,
+    "last_shutdown_ms": 0.0,
+    "last_tick_ms": 11.551557,
+    "max_tick_ms": 11.551557,
+    "metrics": {
+      "descriptors": [
+        {
+          "description": "Total RuntimeHost::initialize invocations",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.lifecycle.initialize.count",
+          "unit": "count"
+        },
+        {
+          "description": "Total RuntimeHost::initialize failures",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.lifecycle.initialize.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Total RuntimeHost::shutdown invocations",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.lifecycle.shutdown.count",
+          "unit": "count"
+        },
+        {
+          "description": "Total RuntimeHost::tick invocations",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.lifecycle.tick.count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent initialize() call",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.lifecycle.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Longest initialize() duration recorded",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.lifecycle.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent shutdown() call",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.lifecycle.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Longest shutdown() duration recorded",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.lifecycle.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent tick() call",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.lifecycle.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Longest tick() duration recorded",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.lifecycle.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Average tick() duration",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.lifecycle.average_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Configured asynchronous streaming worker threads",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.streaming.worker_count",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum number of pending streaming tasks",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.streaming.queue_capacity",
+          "unit": "count"
+        },
+        {
+          "description": "Current number of enqueued streaming tasks",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.streaming.pending_tasks",
+          "unit": "count"
+        },
+        {
+          "description": "Number of workers executing streaming tasks",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.streaming.active_workers",
+          "unit": "count"
+        },
+        {
+          "description": "Total streaming requests enqueued",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.streaming.total_enqueued",
+          "unit": "count"
+        },
+        {
+          "description": "Total streaming requests executed",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.streaming.total_executed",
+          "unit": "count"
+        },
+        {
+          "description": "Assets awaiting completion in streaming caches",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.streaming.pending_handles",
+          "unit": "count"
+        },
+        {
+          "description": "Assets currently decoding in streaming caches",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.streaming.loading_handles",
+          "unit": "count"
+        },
+        {
+          "description": "Total asset streaming requests observed",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.streaming.total_requests",
+          "unit": "count"
+        },
+        {
+          "description": "Completed asset streaming requests",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.streaming.total_completed",
+          "unit": "count"
+        },
+        {
+          "description": "Failed asset streaming requests",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.streaming.total_failed",
+          "unit": "count"
+        },
+        {
+          "description": "Cancelled asset streaming requests",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.streaming.total_cancelled",
+          "unit": "count"
+        },
+        {
+          "description": "Rejected asset streaming requests due to capacity",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.streaming.total_rejected",
+          "unit": "count"
+        },
+        {
+          "description": "Failed asset streaming requests grouped by geometry error code",
+          "kind": "counter",
+          "labels": {
+            "error": "file_not_found"
+          },
+          "name": "runtime.streaming.geometry_failures",
+          "unit": "count"
+        },
+        {
+          "description": "Failed asset streaming requests grouped by geometry error code",
+          "kind": "counter",
+          "labels": {
+            "error": "io_failure"
+          },
+          "name": "runtime.streaming.geometry_failures",
+          "unit": "count"
+        },
+        {
+          "description": "Failed asset streaming requests grouped by geometry error code",
+          "kind": "counter",
+          "labels": {
+            "error": "invalid_argument"
+          },
+          "name": "runtime.streaming.geometry_failures",
+          "unit": "count"
+        },
+        {
+          "description": "Failed asset streaming requests grouped by geometry error code",
+          "kind": "counter",
+          "labels": {
+            "error": "unsupported_format"
+          },
+          "name": "runtime.streaming.geometry_failures",
+          "unit": "count"
+        },
+        {
+          "description": "Failed asset streaming requests grouped by geometry error code",
+          "kind": "counter",
+          "labels": {
+            "error": "plugin_missing"
+          },
+          "name": "runtime.streaming.geometry_failures",
+          "unit": "count"
+        },
+        {
+          "description": "Hot reload attempts observed across all caches",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.hot_reload.attempt_count",
+          "unit": "count"
+        },
+        {
+          "description": "Hot reload attempts that resulted in failure",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.hot_reload.failure_count",
+          "unit": "count"
+        },
+        {
+          "description": "Hot reload attempts cancelled before completion",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.hot_reload.cancelled_count",
+          "unit": "count"
+        },
+        {
+          "description": "Hot reload attempts rejected due to capacity limits",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.hot_reload.rejected_count",
+          "unit": "count"
+        },
+        {
+          "description": "Hot reload requests waiting for completion",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.hot_reload.pending_count",
+          "unit": "count"
+        },
+        {
+          "description": "Hot reload requests currently decoding",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.hot_reload.loading_count",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query invocations grouped by operation",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_build"
+          },
+          "name": "runtime.geometry.spatial.invocations",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query results accumulated across all invocations",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_build"
+          },
+          "name": "runtime.geometry.spatial.result_total",
+          "unit": "count"
+        },
+        {
+          "description": "Result count returned by the most recent spatial query invocation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_build"
+          },
+          "name": "runtime.geometry.spatial.last_results",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum result count observed for the spatial query operation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_build"
+          },
+          "name": "runtime.geometry.spatial.max_results",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query invocations grouped by operation",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_aabb"
+          },
+          "name": "runtime.geometry.spatial.invocations",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query results accumulated across all invocations",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_aabb"
+          },
+          "name": "runtime.geometry.spatial.result_total",
+          "unit": "count"
+        },
+        {
+          "description": "Result count returned by the most recent spatial query invocation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_aabb"
+          },
+          "name": "runtime.geometry.spatial.last_results",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum result count observed for the spatial query operation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_aabb"
+          },
+          "name": "runtime.geometry.spatial.max_results",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query invocations grouped by operation",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_sphere"
+          },
+          "name": "runtime.geometry.spatial.invocations",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query results accumulated across all invocations",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_sphere"
+          },
+          "name": "runtime.geometry.spatial.result_total",
+          "unit": "count"
+        },
+        {
+          "description": "Result count returned by the most recent spatial query invocation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_sphere"
+          },
+          "name": "runtime.geometry.spatial.last_results",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum result count observed for the spatial query operation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_sphere"
+          },
+          "name": "runtime.geometry.spatial.max_results",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query invocations grouped by operation",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_ray"
+          },
+          "name": "runtime.geometry.spatial.invocations",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query results accumulated across all invocations",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_ray"
+          },
+          "name": "runtime.geometry.spatial.result_total",
+          "unit": "count"
+        },
+        {
+          "description": "Result count returned by the most recent spatial query invocation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_ray"
+          },
+          "name": "runtime.geometry.spatial.last_results",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum result count observed for the spatial query operation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_ray"
+          },
+          "name": "runtime.geometry.spatial.max_results",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query invocations grouped by operation",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_segment"
+          },
+          "name": "runtime.geometry.spatial.invocations",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query results accumulated across all invocations",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_segment"
+          },
+          "name": "runtime.geometry.spatial.result_total",
+          "unit": "count"
+        },
+        {
+          "description": "Result count returned by the most recent spatial query invocation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_segment"
+          },
+          "name": "runtime.geometry.spatial.last_results",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum result count observed for the spatial query operation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_segment"
+          },
+          "name": "runtime.geometry.spatial.max_results",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query invocations grouped by operation",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_knn"
+          },
+          "name": "runtime.geometry.spatial.invocations",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query results accumulated across all invocations",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_knn"
+          },
+          "name": "runtime.geometry.spatial.result_total",
+          "unit": "count"
+        },
+        {
+          "description": "Result count returned by the most recent spatial query invocation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_knn"
+          },
+          "name": "runtime.geometry.spatial.last_results",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum result count observed for the spatial query operation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_knn"
+          },
+          "name": "runtime.geometry.spatial.max_results",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query invocations grouped by operation",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_nearest"
+          },
+          "name": "runtime.geometry.spatial.invocations",
+          "unit": "count"
+        },
+        {
+          "description": "Spatial query results accumulated across all invocations",
+          "kind": "counter",
+          "labels": {
+            "operation": "octree_query_nearest"
+          },
+          "name": "runtime.geometry.spatial.result_total",
+          "unit": "count"
+        },
+        {
+          "description": "Result count returned by the most recent spatial query invocation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_nearest"
+          },
+          "name": "runtime.geometry.spatial.last_results",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum result count observed for the spatial query operation",
+          "kind": "gauge",
+          "labels": {
+            "operation": "octree_query_nearest"
+          },
+          "name": "runtime.geometry.spatial.max_results",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation attempts",
+          "kind": "counter",
+          "labels": {
+            "operation": "detect_geometry_file"
+          },
+          "name": "io.geometry.requests",
+          "unit": "count"
+        },
+        {
+          "description": "Successful Geometry IO operations",
+          "kind": "counter",
+          "labels": {
+            "operation": "detect_geometry_file"
+          },
+          "name": "io.geometry.successes",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "file_not_found",
+            "operation": "detect_geometry_file"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "io_failure",
+            "operation": "detect_geometry_file"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "invalid_argument",
+            "operation": "detect_geometry_file"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "unsupported_format",
+            "operation": "detect_geometry_file"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "plugin_missing",
+            "operation": "detect_geometry_file"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation attempts",
+          "kind": "counter",
+          "labels": {
+            "operation": "read_mesh"
+          },
+          "name": "io.geometry.requests",
+          "unit": "count"
+        },
+        {
+          "description": "Successful Geometry IO operations",
+          "kind": "counter",
+          "labels": {
+            "operation": "read_mesh"
+          },
+          "name": "io.geometry.successes",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "file_not_found",
+            "operation": "read_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "io_failure",
+            "operation": "read_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "invalid_argument",
+            "operation": "read_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "unsupported_format",
+            "operation": "read_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "plugin_missing",
+            "operation": "read_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation attempts",
+          "kind": "counter",
+          "labels": {
+            "operation": "write_mesh"
+          },
+          "name": "io.geometry.requests",
+          "unit": "count"
+        },
+        {
+          "description": "Successful Geometry IO operations",
+          "kind": "counter",
+          "labels": {
+            "operation": "write_mesh"
+          },
+          "name": "io.geometry.successes",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "file_not_found",
+            "operation": "write_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "io_failure",
+            "operation": "write_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "invalid_argument",
+            "operation": "write_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "unsupported_format",
+            "operation": "write_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "plugin_missing",
+            "operation": "write_mesh"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation attempts",
+          "kind": "counter",
+          "labels": {
+            "operation": "read_point_cloud"
+          },
+          "name": "io.geometry.requests",
+          "unit": "count"
+        },
+        {
+          "description": "Successful Geometry IO operations",
+          "kind": "counter",
+          "labels": {
+            "operation": "read_point_cloud"
+          },
+          "name": "io.geometry.successes",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "file_not_found",
+            "operation": "read_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "io_failure",
+            "operation": "read_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "invalid_argument",
+            "operation": "read_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "unsupported_format",
+            "operation": "read_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "plugin_missing",
+            "operation": "read_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation attempts",
+          "kind": "counter",
+          "labels": {
+            "operation": "write_point_cloud"
+          },
+          "name": "io.geometry.requests",
+          "unit": "count"
+        },
+        {
+          "description": "Successful Geometry IO operations",
+          "kind": "counter",
+          "labels": {
+            "operation": "write_point_cloud"
+          },
+          "name": "io.geometry.successes",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "file_not_found",
+            "operation": "write_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "io_failure",
+            "operation": "write_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "invalid_argument",
+            "operation": "write_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "unsupported_format",
+            "operation": "write_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "plugin_missing",
+            "operation": "write_point_cloud"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation attempts",
+          "kind": "counter",
+          "labels": {
+            "operation": "read_graph"
+          },
+          "name": "io.geometry.requests",
+          "unit": "count"
+        },
+        {
+          "description": "Successful Geometry IO operations",
+          "kind": "counter",
+          "labels": {
+            "operation": "read_graph"
+          },
+          "name": "io.geometry.successes",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "file_not_found",
+            "operation": "read_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "io_failure",
+            "operation": "read_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "invalid_argument",
+            "operation": "read_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "unsupported_format",
+            "operation": "read_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "plugin_missing",
+            "operation": "read_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation attempts",
+          "kind": "counter",
+          "labels": {
+            "operation": "write_graph"
+          },
+          "name": "io.geometry.requests",
+          "unit": "count"
+        },
+        {
+          "description": "Successful Geometry IO operations",
+          "kind": "counter",
+          "labels": {
+            "operation": "write_graph"
+          },
+          "name": "io.geometry.successes",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "file_not_found",
+            "operation": "write_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "io_failure",
+            "operation": "write_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "invalid_argument",
+            "operation": "write_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "unsupported_format",
+            "operation": "write_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Geometry IO operation failures by error",
+          "kind": "counter",
+          "labels": {
+            "error": "plugin_missing",
+            "operation": "write_graph"
+          },
+          "name": "io.geometry.failures",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent stage execution",
+          "kind": "gauge",
+          "labels": {
+            "stage": "animation.evaluate"
+          },
+          "name": "runtime.stage.last_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Average execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "animation.evaluate"
+          },
+          "name": "runtime.stage.average_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "animation.evaluate"
+          },
+          "name": "runtime.stage.max_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Samples recorded for the stage",
+          "kind": "counter",
+          "labels": {
+            "stage": "animation.evaluate"
+          },
+          "name": "runtime.stage.sample_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent stage execution",
+          "kind": "gauge",
+          "labels": {
+            "stage": "physics.accumulate"
+          },
+          "name": "runtime.stage.last_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Average execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "physics.accumulate"
+          },
+          "name": "runtime.stage.average_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "physics.accumulate"
+          },
+          "name": "runtime.stage.max_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Samples recorded for the stage",
+          "kind": "counter",
+          "labels": {
+            "stage": "physics.accumulate"
+          },
+          "name": "runtime.stage.sample_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent stage execution",
+          "kind": "gauge",
+          "labels": {
+            "stage": "physics.integrate"
+          },
+          "name": "runtime.stage.last_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Average execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "physics.integrate"
+          },
+          "name": "runtime.stage.average_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "physics.integrate"
+          },
+          "name": "runtime.stage.max_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Samples recorded for the stage",
+          "kind": "counter",
+          "labels": {
+            "stage": "physics.integrate"
+          },
+          "name": "runtime.stage.sample_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent stage execution",
+          "kind": "gauge",
+          "labels": {
+            "stage": "geometry.deform"
+          },
+          "name": "runtime.stage.last_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Average execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "geometry.deform"
+          },
+          "name": "runtime.stage.average_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "geometry.deform"
+          },
+          "name": "runtime.stage.max_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Samples recorded for the stage",
+          "kind": "counter",
+          "labels": {
+            "stage": "geometry.deform"
+          },
+          "name": "runtime.stage.sample_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent stage execution",
+          "kind": "gauge",
+          "labels": {
+            "stage": "geometry.finalize"
+          },
+          "name": "runtime.stage.last_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Average execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "geometry.finalize"
+          },
+          "name": "runtime.stage.average_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum execution time for the stage",
+          "kind": "gauge",
+          "labels": {
+            "stage": "geometry.finalize"
+          },
+          "name": "runtime.stage.max_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Samples recorded for the stage",
+          "kind": "counter",
+          "labels": {
+            "stage": "geometry.finalize"
+          },
+          "name": "runtime.stage.sample_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "animation"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "assets"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "compute"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "core"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "geometry"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "io"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "physics"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "platform"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "rendering"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Duration of the most recent subsystem initialize()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.last_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem tick()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.last_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Duration of the most recent subsystem shutdown()",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.last_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem initialize() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.max_initialize_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem tick() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.max_tick_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Maximum subsystem shutdown() duration",
+          "kind": "gauge",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.max_shutdown_ms",
+          "unit": "milliseconds"
+        },
+        {
+          "description": "Subsystem initialize() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.initialize_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem tick() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.tick_count",
+          "unit": "count"
+        },
+        {
+          "description": "Subsystem shutdown() invocations",
+          "kind": "counter",
+          "labels": {
+            "subsystem": "scene"
+          },
+          "name": "runtime.subsystem.shutdown_count",
+          "unit": "count"
+        },
+        {
+          "description": "Active contact manifolds detected during the most recent physics step",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.physics.manifold_count",
+          "unit": "count"
+        },
+        {
+          "description": "Active contact points detected during the most recent physics step",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.physics.contact_count",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum penetration depth observed during the most recent physics step",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.physics.max_penetration",
+          "unit": "none"
+        },
+        {
+          "description": "Constraint solver iterations executed during the most recent physics step",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.physics.solver_iterations",
+          "unit": "count"
+        },
+        {
+          "description": "Total hierarchy validation issues detected in the most recent frame",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.scene_validation.issue_count",
+          "unit": "count"
+        },
+        {
+          "description": "Hierarchy validation issues by type",
+          "kind": "gauge",
+          "labels": {
+            "type": "cycle"
+          },
+          "name": "runtime.scene_validation.issues",
+          "unit": "count"
+        },
+        {
+          "description": "Hierarchy validation issues by type",
+          "kind": "gauge",
+          "labels": {
+            "type": "dangling_parent"
+          },
+          "name": "runtime.scene_validation.issues",
+          "unit": "count"
+        },
+        {
+          "description": "Hierarchy validation issues by type",
+          "kind": "gauge",
+          "labels": {
+            "type": "missing_parent_hierarchy"
+          },
+          "name": "runtime.scene_validation.issues",
+          "unit": "count"
+        },
+        {
+          "description": "Hierarchy validation issues by type",
+          "kind": "gauge",
+          "labels": {
+            "type": "non_finite_transform"
+          },
+          "name": "runtime.scene_validation.issues",
+          "unit": "count"
+        },
+        {
+          "description": "Hierarchy validation issues by type",
+          "kind": "gauge",
+          "labels": {
+            "type": "transform_mismatch"
+          },
+          "name": "runtime.scene_validation.issues",
+          "unit": "count"
+        },
+        {
+          "description": "Consecutive frames that reported hierarchy validation failures",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.scene_validation.consecutive_failure_frames",
+          "unit": "count"
+        },
+        {
+          "description": "Maximum consecutive frames with hierarchy validation failures since initialization",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.scene_validation.max_consecutive_failure_frames",
+          "unit": "count"
+        },
+        {
+          "description": "Total frames that reported hierarchy validation failures since initialization",
+          "kind": "counter",
+          "labels": {},
+          "name": "runtime.scene_validation.failure_frame_count",
+          "unit": "count"
+        },
+        {
+          "description": "Simulation time recorded for the most recent hierarchy validation failure",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.scene_validation.last_failure_simulation_time",
+          "unit": "seconds"
+        },
+        {
+          "description": "Seconds since runtime initialization when the most recent hierarchy validation failure occurred",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.scene_validation.last_failure_wall_seconds",
+          "unit": "seconds"
+        },
+        {
+          "description": "Consecutive failure frames required to enter the warning alert state",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.scene_validation.alert_threshold.warning_frames",
+          "unit": "count"
+        },
+        {
+          "description": "Consecutive failure frames required to enter the critical alert state",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.scene_validation.alert_threshold.critical_frames",
+          "unit": "count"
+        },
+        {
+          "description": "Hierarchy validation alert level (0 = none, 1 = warning, 2 = critical)",
+          "kind": "gauge",
+          "labels": {},
+          "name": "runtime.scene_validation.alert_level",
+          "unit": "none"
+        }
+      ],
+      "samples": [
+        {
+          "descriptor_index": 0,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 1,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 2,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 3,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 4,
+          "int_value": 7,
+          "is_integral": false,
+          "value": 7.688036
+        },
+        {
+          "descriptor_index": 5,
+          "int_value": 7,
+          "is_integral": false,
+          "value": 7.688036
+        },
+        {
+          "descriptor_index": 6,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 7,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 8,
+          "int_value": 11,
+          "is_integral": false,
+          "value": 11.551557
+        },
+        {
+          "descriptor_index": 9,
+          "int_value": 11,
+          "is_integral": false,
+          "value": 11.551557
+        },
+        {
+          "descriptor_index": 10,
+          "int_value": 10,
+          "is_integral": false,
+          "value": 10.238996625
+        },
+        {
+          "descriptor_index": 11,
+          "int_value": 2,
+          "is_integral": false,
+          "value": 2.0
+        },
+        {
+          "descriptor_index": 12,
+          "int_value": 64,
+          "is_integral": false,
+          "value": 64.0
+        },
+        {
+          "descriptor_index": 13,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 14,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 15,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 16,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 17,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 18,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 19,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 20,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 21,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 22,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 23,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 24,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 25,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 26,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 27,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 28,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 29,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 30,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 31,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 32,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 33,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 34,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 35,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 36,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 37,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 38,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 39,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 40,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 41,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 42,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 43,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 44,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 45,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 46,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 47,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 48,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 49,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 50,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 51,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 52,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 53,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 54,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 55,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 56,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 57,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 58,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 59,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 60,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 61,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 62,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 63,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 64,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 65,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 66,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 67,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 68,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 69,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 70,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 71,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 72,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 73,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 74,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 75,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 76,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 77,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 78,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 79,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 80,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 81,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 82,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 83,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 84,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 85,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 86,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 87,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 88,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 89,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 90,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 91,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 92,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 93,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 94,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 95,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 96,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 97,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 98,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 99,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 100,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 101,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 102,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 103,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 104,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 105,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 106,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 107,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 108,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 109,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 110,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 111,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 112,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.014042
+        },
+        {
+          "descriptor_index": 113,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.00674775
+        },
+        {
+          "descriptor_index": 114,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.014042
+        },
+        {
+          "descriptor_index": 115,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 116,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.00386
+        },
+        {
+          "descriptor_index": 117,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.00202725
+        },
+        {
+          "descriptor_index": 118,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.00386
+        },
+        {
+          "descriptor_index": 119,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 120,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.008011
+        },
+        {
+          "descriptor_index": 121,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.00225375
+        },
+        {
+          "descriptor_index": 122,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.008011
+        },
+        {
+          "descriptor_index": 123,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 124,
+          "int_value": 10,
+          "is_integral": false,
+          "value": 10.151916
+        },
+        {
+          "descriptor_index": 125,
+          "int_value": 9,
+          "is_integral": false,
+          "value": 9.057053
+        },
+        {
+          "descriptor_index": 126,
+          "int_value": 10,
+          "is_integral": false,
+          "value": 10.151916
+        },
+        {
+          "descriptor_index": 127,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 128,
+          "int_value": 1,
+          "is_integral": false,
+          "value": 1.266517
+        },
+        {
+          "descriptor_index": 129,
+          "int_value": 1,
+          "is_integral": false,
+          "value": 1.10385175
+        },
+        {
+          "descriptor_index": 130,
+          "int_value": 1,
+          "is_integral": false,
+          "value": 1.3371
+        },
+        {
+          "descriptor_index": 131,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 132,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.000246
+        },
+        {
+          "descriptor_index": 133,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3e-05
+        },
+        {
+          "descriptor_index": 134,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 135,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.000246
+        },
+        {
+          "descriptor_index": 136,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.2e-05
+        },
+        {
+          "descriptor_index": 137,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 138,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 139,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 140,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 141,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 5.2e-05
+        },
+        {
+          "descriptor_index": 142,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.9e-05
+        },
+        {
+          "descriptor_index": 143,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 144,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 5.2e-05
+        },
+        {
+          "descriptor_index": 145,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.9e-05
+        },
+        {
+          "descriptor_index": 146,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 147,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 148,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 149,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 150,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 4.8e-05
+        },
+        {
+          "descriptor_index": 151,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.9e-05
+        },
+        {
+          "descriptor_index": 152,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 153,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 4.8e-05
+        },
+        {
+          "descriptor_index": 154,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.9e-05
+        },
+        {
+          "descriptor_index": 155,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 156,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 157,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 158,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 159,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.6e-05
+        },
+        {
+          "descriptor_index": 160,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.7e-05
+        },
+        {
+          "descriptor_index": 161,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 162,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.6e-05
+        },
+        {
+          "descriptor_index": 163,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.8e-05
+        },
+        {
+          "descriptor_index": 164,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 165,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 166,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 167,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 168,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.5e-05
+        },
+        {
+          "descriptor_index": 169,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.5e-05
+        },
+        {
+          "descriptor_index": 170,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 171,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.5e-05
+        },
+        {
+          "descriptor_index": 172,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.8e-05
+        },
+        {
+          "descriptor_index": 173,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 174,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 175,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 176,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 177,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.5e-05
+        },
+        {
+          "descriptor_index": 178,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.7e-05
+        },
+        {
+          "descriptor_index": 179,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 180,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.5e-05
+        },
+        {
+          "descriptor_index": 181,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.8e-05
+        },
+        {
+          "descriptor_index": 182,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 183,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 184,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 185,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 186,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.6e-05
+        },
+        {
+          "descriptor_index": 187,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.6e-05
+        },
+        {
+          "descriptor_index": 188,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 189,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.6e-05
+        },
+        {
+          "descriptor_index": 190,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.6e-05
+        },
+        {
+          "descriptor_index": 191,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 192,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 193,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 194,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 195,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.4e-05
+        },
+        {
+          "descriptor_index": 196,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.6e-05
+        },
+        {
+          "descriptor_index": 197,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 198,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.4e-05
+        },
+        {
+          "descriptor_index": 199,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.7e-05
+        },
+        {
+          "descriptor_index": 200,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 201,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 202,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 203,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 204,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.7e-05
+        },
+        {
+          "descriptor_index": 205,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.5e-05
+        },
+        {
+          "descriptor_index": 206,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 207,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 3.7e-05
+        },
+        {
+          "descriptor_index": 208,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.5e-05
+        },
+        {
+          "descriptor_index": 209,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 210,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 211,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 212,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 213,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 4.3e-05
+        },
+        {
+          "descriptor_index": 214,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.7e-05
+        },
+        {
+          "descriptor_index": 215,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 216,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 4.3e-05
+        },
+        {
+          "descriptor_index": 217,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 1.7e-05
+        },
+        {
+          "descriptor_index": 218,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 219,
+          "int_value": 1,
+          "is_integral": true,
+          "value": 1.0
+        },
+        {
+          "descriptor_index": 220,
+          "int_value": 8,
+          "is_integral": true,
+          "value": 8.0
+        },
+        {
+          "descriptor_index": 221,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 222,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 223,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 224,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 225,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 226,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 227,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 228,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 229,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 230,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 231,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 232,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 233,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 234,
+          "int_value": 0,
+          "is_integral": true,
+          "value": 0.0
+        },
+        {
+          "descriptor_index": 235,
+          "int_value": -1,
+          "is_integral": false,
+          "value": -1.0
+        },
+        {
+          "descriptor_index": 236,
+          "int_value": -1,
+          "is_integral": false,
+          "value": -1.0
+        },
+        {
+          "descriptor_index": 237,
+          "int_value": 3,
+          "is_integral": false,
+          "value": 3.0
+        },
+        {
+          "descriptor_index": 238,
+          "int_value": 10,
+          "is_integral": false,
+          "value": 10.0
+        },
+        {
+          "descriptor_index": 239,
+          "int_value": 0,
+          "is_integral": false,
+          "value": 0.0
+        }
+      ]
+    },
+    "scene_validation": {
+      "cycle_count": 0,
+      "dangling_parent_count": 0,
+      "issue_count": 0,
+      "issues": [],
+      "missing_parent_hierarchy_count": 0,
+      "non_finite_transform_count": 0,
+      "transform_mismatch_count": 0
+    },
+    "shutdown_count": 0,
+    "stages": [
+      {
+        "average_ms": 0.00674775,
+        "last_ms": 0.014042,
+        "max_ms": 0.014042,
+        "name": "animation.evaluate",
+        "sample_count": 8
+      },
+      {
+        "average_ms": 0.00202725,
+        "last_ms": 0.00386,
+        "max_ms": 0.00386,
+        "name": "physics.accumulate",
+        "sample_count": 8
+      },
+      {
+        "average_ms": 0.00225375,
+        "last_ms": 0.008011,
+        "max_ms": 0.008011,
+        "name": "physics.integrate",
+        "sample_count": 8
+      },
+      {
+        "average_ms": 9.057053,
+        "last_ms": 10.151916,
+        "max_ms": 10.151916,
+        "name": "geometry.deform",
+        "sample_count": 8
+      },
+      {
+        "average_ms": 1.10385175,
+        "last_ms": 1.266517,
+        "max_ms": 1.3371,
+        "name": "geometry.finalize",
+        "sample_count": 8
+      }
+    ],
+    "streaming": {
+      "active_workers": 0,
+      "geometry_failures_by_error": {
+        "file_not_found": 0,
+        "invalid_argument": 0,
+        "io_failure": 0,
+        "plugin_missing": 0,
+        "unsupported_format": 0
+      },
+      "pending_tasks": 0,
+      "queue_capacity": 64,
+      "streaming_loading": 0,
+      "streaming_pending": 0,
+      "streaming_total_cancelled": 0,
+      "streaming_total_completed": 0,
+      "streaming_total_failed": 0,
+      "streaming_total_rejected": 0,
+      "streaming_total_requests": 0,
+      "total_enqueued": 0,
+      "total_executed": 0,
+      "worker_count": 2
+    },
+    "subsystems": [
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 0.000246,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 3e-05,
+        "max_initialize_ms": 0.000246,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 3.2e-05,
+        "name": "animation",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 5.2e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.9e-05,
+        "max_initialize_ms": 5.2e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.9e-05,
+        "name": "assets",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 4.8e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.9e-05,
+        "max_initialize_ms": 4.8e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.9e-05,
+        "name": "compute",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 3.6e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.7e-05,
+        "max_initialize_ms": 3.6e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.8e-05,
+        "name": "core",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 3.5e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.5e-05,
+        "max_initialize_ms": 3.5e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.8e-05,
+        "name": "geometry",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 3.5e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.7e-05,
+        "max_initialize_ms": 3.5e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.8e-05,
+        "name": "io",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 3.6e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.6e-05,
+        "max_initialize_ms": 3.6e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.6e-05,
+        "name": "physics",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 3.4e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.6e-05,
+        "max_initialize_ms": 3.4e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.7e-05,
+        "name": "platform",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 3.7e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.5e-05,
+        "max_initialize_ms": 3.7e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.5e-05,
+        "name": "rendering",
+        "shutdown_count": 0,
+        "tick_count": 8
+      },
+      {
+        "initialize_count": 1,
+        "initialize_failure_count": 0,
+        "last_initialize_failure_category": "",
+        "last_initialize_failure_message": "",
+        "last_initialize_failure_ms": 0.0,
+        "last_initialize_ms": 4.3e-05,
+        "last_shutdown_ms": 0.0,
+        "last_tick_ms": 1.7e-05,
+        "max_initialize_ms": 4.3e-05,
+        "max_shutdown_ms": 0.0,
+        "max_tick_ms": 1.7e-05,
+        "name": "scene",
+        "shutdown_count": 0,
+        "tick_count": 8
+      }
+    ],
+    "tick_count": 8
+  },
+  "summary": {
+    "category:animation": 0.053982,
+    "category:geometry": 81.287238,
+    "category:physics": 0.034248,
+    "handoff_ms": 81.32148600000001,
+    "total_ms": 81.37546799999998
+  }
+}

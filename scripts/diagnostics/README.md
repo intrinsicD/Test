@@ -16,7 +16,7 @@ acceptance criteria (`AI-003`, `RT-003`, `RT-004`).
 2. **Run the script** from the repository root:
    ```bash
    python scripts/diagnostics/runtime_frame_telemetry.py \
-       --library-dir out/build/linux-gcc-debug \
+       --library-dir out/build/linux-gcc-debug/engine/runtime \
        --frames 8 --dt 0.016 --output telemetry/frame_timings.json
    ```
 3. **Inspect the output**. The script prints aggregate timings by subsystem and
@@ -56,7 +56,7 @@ metrics gathered from the runtime thread pool and `AssetStreamingTelemetry`.
    (for example `cmake --preset linux-gcc-debug`).
 2. Run the script from the repository root:
    ```bash
-   python scripts/diagnostics/streaming_report.py --library-dir out/build/linux-gcc-debug
+   python scripts/diagnostics/streaming_report.py --library-dir out/build/linux-gcc-debug/engine/runtime
    ```
 3. Inspect the JSON payload printed to stdout or persisted via `--output`. The
    report includes worker counts, queue saturation, pending request totals,
