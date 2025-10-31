@@ -266,6 +266,19 @@ def test_diagnostics_to_dict_roundtrip() -> None:
                 )
             ],
         ),
+        animation=telemetry.RuntimeAnimationTelemetry(
+            clip_track_count=1,
+            pose_joint_count=1,
+            clip_duration=1.0,
+            playback_time=0.25,
+            playback_speed=1.0,
+            category_totals=[
+                telemetry.RuntimeAnimationDispatchTotal(label="animation", duration_ms=0.5)
+            ],
+            queue_totals=[
+                telemetry.RuntimeAnimationDispatchTotal(label="cpu", duration_ms=0.5)
+            ],
+        ),
     )
     payload = telemetry._diagnostics_to_dict(snapshot)
     assert payload["initialize_count"] == 1
@@ -286,6 +299,8 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["subsystems"][0]["initialize_failure_count"] == 1
     assert payload["subsystems"][0]["last_initialize_failure_category"] == "physics.startup"
     assert payload["subsystems"][0]["last_initialize_failure_message"] == "configuration missing"
+    assert payload["animation"]["clip_track_count"] == 1
+    assert payload["animation"]["category_totals"][0]["label"] == "animation"
 
 
 def test_select_metrics_filters_by_prefix() -> None:

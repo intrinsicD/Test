@@ -3,6 +3,7 @@
 #include "engine/runtime/errors.hpp"
 #include "engine/io/telemetry.hpp"
 #include "engine/math/telemetry/conversion_telemetry.hpp"
+#include "engine/animation/benchmarking/telemetry.hpp"
 
 #include <algorithm>
 #include <array>
@@ -584,6 +585,91 @@ namespace engine::runtime
             return diagnostics.subsystem_timings[index];
         }
 
+        static std::string animation_dispatch_category(std::string_view name)
+        {
+            if (name.empty())
+            {
+                return std::string{"unknown"};
+            }
+            const auto separator = name.find('.');
+            if (separator == std::string_view::npos)
+            {
+                return std::string{name};
+            }
+            if (separator == 0)
+            {
+                return std::string{"unknown"};
+            }
+            return std::string{name.substr(0, separator)};
+        }
+
+        static std::string animation_queue_label(compute::TimingDomain domain)
+        {
+            switch (domain)
+            {
+            case compute::TimingDomain::Cpu:
+                return std::string{"cpu"};
+            case compute::TimingDomain::Gpu:
+                return std::string{"gpu"};
+            case compute::TimingDomain::Unknown:
+            default:
+                return std::string{"unknown"};
+            }
+        }
+
+        void update_animation_telemetry(const compute::ExecutionReport& report)
+        {
+            RuntimeAnimationTelemetry telemetry{};
+            telemetry.clip_track_count = static_cast<std::uint64_t>(controller.clip.tracks.size());
+            telemetry.pose_joint_count = static_cast<std::uint64_t>(pose.joints.size());
+            telemetry.clip_duration = controller.clip.duration;
+            telemetry.playback_time = controller.playback_time;
+            telemetry.playback_speed = controller.playback_speed;
+
+            std::vector<animation::benchmarking::DispatchTelemetry> dispatches{};
+            dispatches.reserve(report.execution_order.size());
+            const std::string queue_label = animation_queue_label(report.clock_domain);
+
+            for (std::size_t index = 0; index < report.execution_order.size(); ++index)
+            {
+                animation::benchmarking::DispatchTelemetry entry{};
+                entry.name = report.execution_order[index];
+                entry.category = animation_dispatch_category(entry.name);
+                entry.queue = queue_label;
+                const double duration = index < report.kernel_durations.size()
+                                            ? report.kernel_durations[index]
+                                            : 0.0;
+                entry.duration_ms = duration;
+                dispatches.push_back(std::move(entry));
+            }
+
+            const auto category_totals =
+                animation::benchmarking::aggregate_category_totals(dispatches);
+            telemetry.category_totals.clear();
+            telemetry.category_totals.reserve(category_totals.size());
+            for (const auto& entry : category_totals)
+            {
+                RuntimeAnimationDispatchTotal total{};
+                total.label = std::string(entry.label);
+                total.duration_ms = entry.duration_ms;
+                telemetry.category_totals.push_back(std::move(total));
+            }
+
+            const auto queue_totals =
+                animation::benchmarking::aggregate_queue_totals(dispatches);
+            telemetry.queue_totals.clear();
+            telemetry.queue_totals.reserve(queue_totals.size());
+            for (const auto& entry : queue_totals)
+            {
+                RuntimeAnimationDispatchTotal total{};
+                total.label = std::string(entry.label);
+                total.duration_ms = entry.duration_ms;
+                telemetry.queue_totals.push_back(std::move(total));
+            }
+
+            diagnostics.animation = std::move(telemetry);
+        }
+
         static std::string_view classify_exception(const std::exception& exception) noexcept
         {
             const std::type_info& info = typeid(exception);
@@ -891,6 +977,45 @@ namespace engine::runtime
                       "Hot reload requests currently decoding",
                       static_cast<double>(hot_reload.loading_count),
                       core::telemetry::MetricUnit::Count);
+
+            add_gauge("runtime.animation.clip_duration",
+                      "Duration of the active animation clip in seconds",
+                      diagnostics.animation.clip_duration,
+                      core::telemetry::MetricUnit::Seconds);
+            add_gauge("runtime.animation.playback_time",
+                      "Playback time of the active animation controller in seconds",
+                      diagnostics.animation.playback_time,
+                      core::telemetry::MetricUnit::Seconds);
+            add_gauge("runtime.animation.playback_speed",
+                      "Playback speed multiplier applied to the animation controller",
+                      diagnostics.animation.playback_speed,
+                      core::telemetry::MetricUnit::None);
+            add_gauge("runtime.animation.pose_joint_count",
+                      "Number of joints present in the evaluated animation pose",
+                      static_cast<double>(diagnostics.animation.pose_joint_count),
+                      core::telemetry::MetricUnit::Count);
+            add_gauge("runtime.animation.clip_track_count",
+                      "Number of joint tracks in the active animation clip",
+                      static_cast<double>(diagnostics.animation.clip_track_count),
+                      core::telemetry::MetricUnit::Count);
+
+            for (const auto& entry : diagnostics.animation.category_totals)
+            {
+                add_gauge("runtime.animation.category.last_ms",
+                          "Dispatcher cost attributed to animation categories",
+                          entry.duration_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("category", entry.label));
+            }
+
+            for (const auto& entry : diagnostics.animation.queue_totals)
+            {
+                add_gauge("runtime.animation.queue.last_ms",
+                          "Dispatcher queue cost attributed to animation workloads",
+                          entry.duration_ms,
+                          core::telemetry::MetricUnit::Milliseconds,
+                          make_single_label("queue", entry.label));
+            }
 
             const auto geometry_snapshot = geometry::GeometrySpatialTelemetry::instance().snapshot();
             constexpr std::array<std::string_view, geometry::geometry_spatial_query_operation_count()>
@@ -2091,6 +2216,7 @@ namespace engine::runtime
 
             last_report = dispatcher_ref.dispatch();
             record_stage_timings(last_report);
+            update_animation_telemetry(last_report);
             engine::physics::update_contact_manifolds(world);
             refresh_physics_metrics();
             simulation_time += dt;
@@ -3112,6 +3238,85 @@ extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_stage_samp
         return 0;
     }
     return stages[index].sample_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_animation_clip_track_count() noexcept
+{
+    return engine::runtime::diagnostics().animation.clip_track_count;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_animation_pose_joint_count() noexcept
+{
+    return engine::runtime::diagnostics().animation.pose_joint_count;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_clip_duration() noexcept
+{
+    return engine::runtime::diagnostics().animation.clip_duration;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_playback_time() noexcept
+{
+    return engine::runtime::diagnostics().animation.playback_time;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_playback_speed() noexcept
+{
+    return engine::runtime::diagnostics().animation.playback_speed;
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_animation_category_count() noexcept
+{
+    return engine::runtime::diagnostics().animation.category_totals.size();
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_animation_category_label(std::size_t index) noexcept
+{
+    const auto& categories = engine::runtime::diagnostics().animation.category_totals;
+    if (index >= categories.size())
+    {
+        return nullptr;
+    }
+    return categories[index].label.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API double
+engine_runtime_diagnostic_animation_category_duration_ms(std::size_t index) noexcept
+{
+    const auto& categories = engine::runtime::diagnostics().animation.category_totals;
+    if (index >= categories.size())
+    {
+        return 0.0;
+    }
+    return categories[index].duration_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_animation_queue_count() noexcept
+{
+    return engine::runtime::diagnostics().animation.queue_totals.size();
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_animation_queue_label(std::size_t index) noexcept
+{
+    const auto& queues = engine::runtime::diagnostics().animation.queue_totals;
+    if (index >= queues.size())
+    {
+        return nullptr;
+    }
+    return queues[index].label.c_str();
+}
+
+extern "C" ENGINE_RUNTIME_API double
+engine_runtime_diagnostic_animation_queue_duration_ms(std::size_t index) noexcept
+{
+    const auto& queues = engine::runtime::diagnostics().animation.queue_totals;
+    if (index >= queues.size())
+    {
+        return 0.0;
+    }
+    return queues[index].duration_ms;
 }
 
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_subsystem_count() noexcept

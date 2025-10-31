@@ -235,4 +235,4 @@ ctest --preset linux-gcc-debug -R animation
 ## TODO / Next Steps
 
 - Kick off state-machine authoring (`AN-240`) now that GPU sampling benchmarks are published; see ../../ROADMAP.md
-- Coordinate with runtime for sampling telemetry follow-ups and potential compute offload interfaces.
+- Monitor runtime telemetry dashboards and extend animation metrics as new case studies land in the AI-004 harness.
