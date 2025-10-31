@@ -395,7 +395,10 @@ namespace engine::math
                     piv = r;
                 }
             }
-            if (maxA == detail::zero<T>()) { return std::nullopt; } // singular
+            if (maxA == detail::zero<T>())
+            {
+                return std::nullopt;
+            } // singular
 
             // swap rows
             if (piv != col)

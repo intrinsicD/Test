@@ -29,9 +29,9 @@ namespace engine::tools::sandbox
             std::tm time_info{};
 #if defined(_WIN32)
             localtime_s(&time_info, &timestamp);
-    #else
+#else
             localtime_r(&timestamp, &time_info);
-    #endif
+#endif
             std::ostringstream stream;
             stream << std::put_time(&time_info, "%Y%m%d_%H%M%S");
             return stream.str();
@@ -96,6 +96,16 @@ namespace engine::tools::sandbox
             command.emplace_back("--shading-mode");
             command.emplace_back(preferences.shading_mode);
         }
+        if (preferences.resolution_width > 0)
+        {
+            command.emplace_back("--resolution-width");
+            command.emplace_back(std::to_string(preferences.resolution_width));
+        }
+        if (preferences.resolution_height > 0)
+        {
+            command.emplace_back("--resolution-height");
+            command.emplace_back(std::to_string(preferences.resolution_height));
+        }
         for (const auto& [key, value] : preferences.overlays)
         {
             command.emplace_back("--overlay");
@@ -145,7 +155,8 @@ namespace engine::tools::sandbox
     {
         const auto now = std::chrono::system_clock::now();
         const auto timestamp = std::chrono::system_clock::to_time_t(now);
-        const auto unique_suffix = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+        const auto unique_suffix = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).
+            count();
 
         std::ostringstream filename;
         filename << "benchmark_summary_" << format_timestamp_component(timestamp) << '_' << unique_suffix << ".json";
@@ -197,9 +208,9 @@ namespace engine::tools::sandbox
         {
             return -1;
         }
-    #ifdef _WIN32
+#ifdef _WIN32
         return result;
-    #else
+#else
         if (WIFEXITED(result))
         {
             return WEXITSTATUS(result);
@@ -209,7 +220,7 @@ namespace engine::tools::sandbox
             return 128 + WTERMSIG(result);
         }
         return result;
-    #endif
+#endif
     }
 
     namespace
@@ -288,7 +299,8 @@ namespace engine::tools::sandbox
             while (value_end < content.size())
             {
                 const char ch = content[value_end];
-                if (std::isdigit(static_cast<unsigned char>(ch)) != 0 || ch == '.' || ch == '-' || ch == '+' || ch == 'e'
+                if (std::isdigit(static_cast<unsigned char>(ch)) != 0 || ch == '.' || ch == '-' || ch == '+' || ch ==
+                    'e'
                     || ch == 'E')
                 {
                     ++value_end;
@@ -302,7 +314,8 @@ namespace engine::tools::sandbox
                 return std::nullopt;
             }
 
-            const std::string_view token(content.data() + value_begin, static_cast<std::size_t>(value_end - value_begin));
+            const std::string_view token(content.data() + value_begin,
+                                         static_cast<std::size_t>(value_end - value_begin));
             T parsed{};
             const auto result = std::from_chars(token.data(), token.data() + token.size(), parsed);
             if (result.ec != std::errc{})
@@ -338,6 +351,8 @@ namespace engine::tools::sandbox
         const auto average_tick_ms = extract_numeric_field<double>(content, "average_tick_ms");
         const auto run_index = extract_numeric_field<int>(content, "run_index");
         const auto run_count = extract_numeric_field<int>(content, "run_count");
+        const auto resolution_width = extract_numeric_field<int>(content, "resolution_width");
+        const auto resolution_height = extract_numeric_field<int>(content, "resolution_height");
 
         SandboxBenchmarkResult result{};
         result.success = true;
@@ -376,6 +391,10 @@ namespace engine::tools::sandbox
         {
             details << " run_index=" << *run_index;
         }
+        if (resolution_width && resolution_height)
+        {
+            details << " resolution=" << *resolution_width << 'x' << *resolution_height;
+        }
         details << "\nSummary saved to " << path.string();
         result.details = details.str();
         return result;
@@ -395,8 +414,8 @@ namespace engine::tools::sandbox
         if (command_prefix_.empty())
         {
             return build_failure_result("Comparative benchmark command not configured",
-                                         "Provide a command prefix that launches scripts/benchmarks/"
-                                         "run_comparative_benchmarks.py before running comparative benchmarks.");
+                                        "Provide a command prefix that launches scripts/benchmarks/"
+                                        "run_comparative_benchmarks.py before running comparative benchmarks.");
         }
 
         std::error_code directory_error{};
@@ -411,7 +430,7 @@ namespace engine::tools::sandbox
         if (directory_error)
         {
             return build_failure_result("Failed to create comparative benchmark run directory",
-                                         directory_error.message());
+                                        directory_error.message());
         }
 
         const auto output_directory = run_directory / "outputs";
@@ -419,14 +438,14 @@ namespace engine::tools::sandbox
         if (directory_error)
         {
             return build_failure_result("Failed to prepare comparative benchmark output directory",
-                                         directory_error.message());
+                                        directory_error.message());
         }
 
         const auto config_path = run_directory / "benchmark_config.json";
         if (!write_configuration(scenario, config_path, output_directory))
         {
             return build_failure_result("Failed to write comparative benchmark configuration",
-                                         "Unable to emit configuration for run_comparative_benchmarks.");
+                                        "Unable to emit configuration for run_comparative_benchmarks.");
         }
 
         const auto summary_path = output_directory / "comparative_summary.json";
@@ -532,7 +551,8 @@ namespace engine::tools::sandbox
     {
         const auto now = std::chrono::system_clock::now();
         const auto timestamp = std::chrono::system_clock::to_time_t(now);
-        const auto unique_suffix = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+        const auto unique_suffix = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).
+            count();
 
         std::ostringstream directory;
         directory << "comparative_run_" << sanitise_filename_component(timestamp) << '_' << unique_suffix;
@@ -579,7 +599,8 @@ namespace engine::tools::sandbox
     std::string ComparativeBenchmarkRunner::to_lower(std::string_view text)
     {
         std::string lowered{text};
-        std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char ch) {
+        std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char ch)
+        {
             return static_cast<char>(std::tolower(ch));
         });
         return lowered;
@@ -607,11 +628,12 @@ namespace engine::tools::sandbox
             stream << "      \"dataset\": " << escape_json(scenario.dataset) << ",\n";
         }
 
-        auto write_command = [&](std::string_view label, const BenchmarkCommandDescriptor& command) {
+        auto write_command = [&](std::string_view label, const BenchmarkCommandDescriptor& command)
+        {
             stream << "      \"" << label << "\": {\n";
             const std::string output_path = command.output.empty()
-                                               ? std::string{"{output_dir}/"} + std::string{label} + "_metrics.json"
-                                               : command.output;
+                                                ? std::string{"{output_dir}/"} + std::string{label} + "_metrics.json"
+                                                : command.output;
             stream << "        \"output\": " << escape_json(output_path);
             if (!command.command.empty())
             {
@@ -796,7 +818,8 @@ namespace engine::tools::sandbox
             column_lookup.emplace(trim(headers[i]), i);
         }
 
-        auto require_column = [&](std::string_view name) -> std::optional<std::size_t> {
+        auto require_column = [&](std::string_view name) -> std::optional<std::size_t>
+        {
             const auto it = column_lookup.find(std::string{name});
             if (it == column_lookup.end())
             {
@@ -943,8 +966,8 @@ namespace engine::tools::sandbox
                     details << " rel=" << std::setprecision(4) << *metric.relative_delta;
                 }
                 details << " (" << (metric.passed ? "PASS" : "FAIL") << ", threshold=" << metric.threshold_mode
-                        << "≤" << std::setprecision(4) << metric.threshold_limit << ", regression="
-                        << std::setprecision(4) << metric.regression_amount << ")\n";
+                    << "≤" << std::setprecision(4) << metric.threshold_limit << ", regression="
+                    << std::setprecision(4) << metric.regression_amount << ")\n";
             }
         }
 
@@ -954,17 +977,17 @@ namespace engine::tools::sandbox
         if (!scenario.dataset.empty() && scenario.dataset != preferences.selected_dataset)
         {
             details << "\nWarning: sandbox dataset '" << preferences.selected_dataset
-                    << "' differs from scenario dataset '" << scenario.dataset << "'.";
+                << "' differs from scenario dataset '" << scenario.dataset << "'.";
         }
         if (!scenario.runtime_profile.empty() && scenario.runtime_profile != preferences.selected_algorithm_variant)
         {
             details << "\nWarning: sandbox runtime profile '" << preferences.selected_algorithm_variant
-                    << "' differs from scenario runtime profile '" << scenario.runtime_profile << "'.";
+                << "' differs from scenario runtime profile '" << scenario.runtime_profile << "'.";
         }
         if (!scenario.rendering_preset.empty() && scenario.rendering_preset != preferences.selected_preset)
         {
             details << "\nWarning: sandbox preset '" << preferences.selected_preset
-                    << "' differs from scenario preset '" << scenario.rendering_preset << "'.";
+                << "' differs from scenario preset '" << scenario.rendering_preset << "'.";
         }
 
         SandboxBenchmarkResult result{};
@@ -974,4 +997,3 @@ namespace engine::tools::sandbox
         return result;
     }
 }
-

@@ -1658,7 +1658,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=0.0,
         help=(
             "Symmetric fraction to trim from both ends of the sample set before computing variance "
-            "(e.g., 0.1 trims 10% from the minimum and maximum tails)."
+            "(e.g., 0.1 trims 10%% from the minimum and maximum tails)."
         ),
     )
     parser.add_argument(

@@ -8,9 +8,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scripts.ci.package_runtime_artifacts import package_runtime_artefacts
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.ci.package_runtime_artifacts import package_runtime_artefacts
 
 PIPELINES = {
     "linux": (

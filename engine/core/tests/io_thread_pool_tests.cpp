@@ -79,10 +79,17 @@ TEST_F(IoThreadPoolTest, RejectsWhenQueueIsFull)
     std::promise<void> gate;
     std::shared_future<void> ready = gate.get_future().share();
 
-    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::Normal, [ready]() mutable
+    std::promise<void> task_started;
+    auto task_started_future = task_started.get_future();
+
+    ASSERT_TRUE(pool.enqueue(engine::core::threading::IoTaskPriority::Normal, [ready, &task_started]() mutable
     {
+        task_started.set_value();
         ready.wait();
     }));
+
+    // Wait for the first task to actually start executing
+    task_started_future.wait();
 
     const bool accepted = pool.enqueue(engine::core::threading::IoTaskPriority::Normal, []()
     {

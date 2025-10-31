@@ -116,6 +116,8 @@ class HarnessExecutionOptions:
     rendering_preset: Optional[str] = None
     shading_mode: Optional[str] = None
     overlays: Optional[Mapping[str, bool]] = None
+    resolution_width: Optional[int] = None
+    resolution_height: Optional[int] = None
 
     runtime_profile: Optional[str] = None
 
@@ -149,6 +151,10 @@ class HarnessExecutionOptions:
             raise PrototypeHarnessError("scenario_label must be a non-empty string when provided")
         if self.dataset_id is not None and not self.dataset_id:
             raise PrototypeHarnessError("dataset_id must be a non-empty string when provided")
+        if self.resolution_width is not None and self.resolution_width <= 0:
+            raise PrototypeHarnessError("resolution_width must be greater than zero when provided")
+        if self.resolution_height is not None and self.resolution_height <= 0:
+            raise PrototypeHarnessError("resolution_height must be greater than zero when provided")
         if self.rendering_preset is not None and not self.rendering_preset:
             raise PrototypeHarnessError("rendering_preset must be a non-empty string when provided")
         if self.shading_mode is not None and self.shading_mode not in {"forward", "deferred"}:
@@ -180,6 +186,8 @@ class HarnessRunSummary:
     telemetry_outputs: Tuple[TelemetryOutputSummary, ...] = ()
     run_index: Optional[int] = None
     run_count: Optional[int] = None
+    resolution_width: Optional[int] = None
+    resolution_height: Optional[int] = None
 
 
 RuntimeFactory = Callable[[], EngineRuntimeHandle]
@@ -1079,6 +1087,8 @@ class PrototypeHarness:
                 run_index=execution_with_profile.run_index,
                 run_count=execution_with_profile.run_count,
                 scenario_label=execution_with_profile.scenario_label,
+                resolution_width=execution_with_profile.resolution_width,
+                resolution_height=execution_with_profile.resolution_height,
             )
 
         try:
@@ -1125,6 +1135,8 @@ class PrototypeHarness:
             run_index=execution_with_profile.run_index,
             run_count=execution_with_profile.run_count,
             scenario_label=execution_with_profile.scenario_label,
+            resolution_width=execution_with_profile.resolution_width,
+            resolution_height=execution_with_profile.resolution_height,
         )
 
     def _describe_dataset(self, entry: DatasetEntry) -> DatasetSummary:
@@ -1749,6 +1761,10 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
         payload["run_index"] = summary.run_index
     if summary.run_count is not None:
         payload["run_count"] = summary.run_count
+    if summary.resolution_width is not None:
+        payload["resolution_width"] = summary.resolution_width
+    if summary.resolution_height is not None:
+        payload["resolution_height"] = summary.resolution_height
     return payload
 
 

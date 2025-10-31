@@ -6,11 +6,17 @@ import argparse
 import hashlib
 import json
 import shutil
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Mapping, MutableMapping, Optional, Sequence
 
-from python.engine3g.config_schema import (
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PYTHON_ROOT = PROJECT_ROOT / "python"
+if str(PYTHON_ROOT) not in sys.path:
+    sys.path.insert(0, str(PYTHON_ROOT))
+
+from engine3g.config_schema import (
     ConfigurationSchemaError,
     DatasetEntry,
     DatasetStatistics,

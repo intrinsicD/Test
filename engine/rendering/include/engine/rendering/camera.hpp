@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/rendering/api.hpp"
+#include "engine/core/diagnostics/result.hpp"
 
 #include "engine/math/matrix.hpp"
 #include "engine/math/transform.hpp"
@@ -8,6 +9,12 @@
 
 namespace engine::rendering
 {
+    namespace errors
+    {
+        inline const ErrorCode MatrixInversionFailed{
+            "engine.rendering", 0x03, "MatrixInversionFailed", "Failed to invert the provided matrix."};
+    }
+
     /// Camera description exposing model, view, and projection matrices.
     struct ENGINE_RENDERING_API Camera
     {
@@ -20,30 +27,30 @@ namespace engine::rendering
             return projection * view;
         }
 
-        void set_view(const math::mat4& value) noexcept
+        [[nodiscard]] Result<void> set_view(const math::mat4& value) noexcept
         {
             view = value;
             if (auto inverse = math::try_inverse(view))
             {
                 model = *inverse;
+                return {};
             }
-            else
-            {
-                model = math::identity_matrix<float, 4>();
-            }
+
+            model = math::identity_matrix<float, 4>();
+            return errors::MatrixInversionFailed;
         }
 
-        void set_model(const math::mat4& value) noexcept
+        [[nodiscard]] Result<void> set_model(const math::mat4& value) noexcept
         {
             model = value;
             if (auto inverse = math::try_inverse(model))
             {
                 view = *inverse;
+                return {};
             }
-            else
-            {
-                view = math::identity_matrix<float, 4>();
-            }
+
+            view = math::identity_matrix<float, 4>();
+            return errors::MatrixInversionFailed;
         }
 
         void set_projection(const math::mat4& value) noexcept
@@ -51,9 +58,9 @@ namespace engine::rendering
             projection = value;
         }
 
-        void set_transform(const math::Transform<float>& transform) noexcept
+        [[nodiscard]] Result<void> set_transform(const math::Transform<float>& transform) noexcept
         {
-            set_model(math::to_matrix(transform));
+            return set_model(math::to_matrix(transform));
         }
 
         [[nodiscard]] math::Transform<float> transform() const noexcept
@@ -61,9 +68,9 @@ namespace engine::rendering
             return math::from_matrix(model);
         }
 
-        void look_at(const math::vec3& eye, const math::vec3& target, const math::vec3& up) noexcept
+        [[nodiscard]] Result<void> look_at(const math::vec3& eye, const math::vec3& target, const math::vec3& up) noexcept
         {
-            set_view(math::utils::look_at(eye, target, up));
+            return set_view(math::utils::look_at(eye, target, up));
         }
 
         void set_perspective(float fov_y_radians, float aspect_ratio, float near_plane, float far_plane) noexcept

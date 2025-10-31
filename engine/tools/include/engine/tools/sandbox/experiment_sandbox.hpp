@@ -199,6 +199,8 @@ namespace engine::tools::sandbox
         std::unordered_map<std::string, bool> overlays;
         int benchmark_frames{600};
         float benchmark_timestep{1.0F / 60.0F};
+        int resolution_width{1920};
+        int resolution_height{1080};
     };
 
     struct ExperimentConfigurationSummary
