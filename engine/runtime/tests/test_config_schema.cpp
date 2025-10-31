@@ -264,6 +264,61 @@ TEST(RuntimeConfigSchema, LoadDatasetManifestHonoursSchemaFlag)
     EXPECT_TRUE(enforced.error().message().find("schema") != std::string::npos);
 }
 
+TEST(RuntimeConfigSchema, LoadDatasetManifestRejectsNegativeSurfaceArea)
+{
+    TempDirectory temp;
+    const auto manifest_path = write_file(
+        temp.path / "manifest.yaml",
+        R"(datasets:
+  - id: invalid-surface-area
+    kind: geometry.remesh
+    tags: [geometry]
+    source:
+      generator: geometry_remesh
+      mesh: input.obj
+    outputs:
+      mesh: output.obj
+    remeshing:
+      mode: uniform
+    feature_preservation:
+      lock_boundary_edges: true
+      lock_feature_edges: false
+      minimum_feature_angle_degrees: 35.0
+    metrics:
+      input:
+        vertices: 8
+        faces: 12
+        surface_area: -1.0
+        edge_length:
+          min: 0.4
+          max: 1.2
+          mean: 0.8
+      output:
+        vertices: 16
+        faces: 24
+        surface_area: 1.5
+        edge_length:
+          min: 0.2
+          max: 0.9
+          mean: 0.4
+    statistics:
+      iterations: 3
+      max_error: 0.02
+      min_edge_length: 0.2
+      max_edge_length: 0.9
+      max_surface_deviation: 0.01
+      mean_surface_deviation: 0.008
+      rms_surface_deviation: 0.009
+)"sv);
+
+    auto result = load_dataset_manifest(manifest_path);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error().code(), RuntimeError::configuration_validation_error);
+    const std::string_view message = result.error().message();
+    EXPECT_NE(message.find("datasets[0].metrics.input.surface_area"), std::string::npos);
+    EXPECT_NE(message.find("must be non-negative"), std::string::npos);
+}
+
 TEST(RuntimeConfigSchema, LoadConfigurationParsesSections)
 {
     TempDirectory temp;
