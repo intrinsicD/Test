@@ -200,8 +200,6 @@ class HarnessRunSummary:
     telemetry_outputs: Tuple[TelemetryOutputSummary, ...] = ()
     run_index: Optional[int] = None
     run_count: Optional[int] = None
-    resolution_width: Optional[int] = None
-    resolution_height: Optional[int] = None
 
 
 RuntimeFactory = Callable[[], EngineRuntimeHandle]
@@ -1254,8 +1252,18 @@ class PrototypeHarness:
             execution=execution_with_profile,
         )
 
-        resolution_width: Optional[int] = rendering.width if rendering else None
-        resolution_height: Optional[int] = rendering.height if rendering else None
+        configured_resolution_width: Optional[int] = rendering.width if rendering else None
+        configured_resolution_height: Optional[int] = rendering.height if rendering else None
+        summary_resolution_width: Optional[int] = (
+            execution_with_profile.resolution_width
+            if execution_with_profile.resolution_width is not None
+            else configured_resolution_width
+        )
+        summary_resolution_height: Optional[int] = (
+            execution_with_profile.resolution_height
+            if execution_with_profile.resolution_height is not None
+            else configured_resolution_height
+        )
 
         if execution_with_profile.dry_run:
             return HarnessRunSummary(
@@ -1263,8 +1271,8 @@ class PrototypeHarness:
                 runtime_profile=active_runtime_profile,
                 rendering_preset=rendering.preset if rendering else None,
                 shading_mode=rendering.shading_mode if rendering else None,
-                resolution_width=resolution_width,
-                resolution_height=resolution_height,
+                resolution_width=summary_resolution_width,
+                resolution_height=summary_resolution_height,
                 frames_executed=0,
                 timestep_seconds=execution_with_profile.dt,
                 average_tick_ms=None,
@@ -1274,8 +1282,6 @@ class PrototypeHarness:
                 run_index=execution_with_profile.run_index,
                 run_count=execution_with_profile.run_count,
                 scenario_label=execution_with_profile.scenario_label,
-                resolution_width=execution_with_profile.resolution_width,
-                resolution_height=execution_with_profile.resolution_height,
             )
 
         try:
@@ -1313,8 +1319,8 @@ class PrototypeHarness:
             runtime_profile=active_runtime_profile,
             rendering_preset=rendering.preset if rendering else None,
             shading_mode=rendering.shading_mode if rendering else None,
-            resolution_width=resolution_width,
-            resolution_height=resolution_height,
+            resolution_width=summary_resolution_width,
+            resolution_height=summary_resolution_height,
             frames_executed=frames_executed,
             timestep_seconds=execution_with_profile.dt,
             average_tick_ms=average_tick_ms,
@@ -1324,8 +1330,6 @@ class PrototypeHarness:
             run_index=execution_with_profile.run_index,
             run_count=execution_with_profile.run_count,
             scenario_label=execution_with_profile.scenario_label,
-            resolution_width=execution_with_profile.resolution_width,
-            resolution_height=execution_with_profile.resolution_height,
         )
 
     def _describe_dataset(self, entry: DatasetEntry) -> DatasetSummary:
