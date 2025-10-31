@@ -65,6 +65,7 @@ EngineRuntimeHandle (ctypes wrapper)
 - **Harness Options**: `HarnessExecutionOptions` (new) capturing frame count, timestep, and dry-run semantics.
 - **Configuration Summary**: `HarnessConfigurationSummary` materialises dataset provenance (tags, statistics, feature-preservation flags, parameterisation metrics, checksums), runtime defaults, and telemetry descriptors for consumption by tools automation. Statistics now include remeshing operation counts, execution duration, and triangle-quality ranges so downstream tooling mirrors dataset manifests without reparsing them.
 - **Execution Result**: `HarnessRunSummary` capturing dataset slug, rendered preset, frames executed, telemetry output targets, and dispatch telemetry ready for integration with diagnostics exports.
+- **Case Studies**: `_collect_case_studies()` resolves packaged presets from `assets/datasets/case_studies/`, records default dataset/rendering/runtime selections, and exposes benchmark scenario identifiers. Tooling renders the summaries directly (see [`docs/design/RT-321-case-studies.md`](RT-321-case-studies.md)) to keep UI selectors and automation in sync.
 
 ### Error Handling
 

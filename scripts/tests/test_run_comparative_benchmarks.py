@@ -113,6 +113,11 @@ def test_execute_benchmarks_success(tmp_path: Path, capsys: pytest.CaptureFixtur
     metric_summary = scenario_summary["metrics"][0]
     assert metric_summary["name"] == "fps"
     assert metric_summary["passed"] is True
+    assert "plot" in metric_summary
+    plot_path = Path(metric_summary["plot"])
+    if not plot_path.is_absolute():
+        plot_path = summary_path.parent / plot_path
+    assert plot_path.exists()
 
     table_path = (tmp_path / "outputs" / "comparative_summary.csv").resolve()
     with table_path.open(encoding="utf-8") as handle:
@@ -177,6 +182,7 @@ def test_execute_benchmarks_regression_failure(tmp_path: Path, capsys: pytest.Ca
     assert summary["passed"] is False
     assert summary["scenarios"][0]["passed"] is False
     assert summary["scenarios"][0]["metrics"][0]["passed"] is False
+    assert "plot" in summary["scenarios"][0]["metrics"][0]
 
 
 def test_dry_run_uses_existing_outputs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -225,6 +231,8 @@ def test_dry_run_uses_existing_outputs(tmp_path: Path, capsys: pytest.CaptureFix
 
     default_table = (output_dir / "comparative_summary.csv").resolve()
     assert default_table.exists()
+    plot_dir = output_dir / "plots"
+    assert any(plot_dir.glob("*.svg"))
 
 
 def test_custom_table_path(tmp_path: Path) -> None:
@@ -265,4 +273,44 @@ def test_custom_table_path(tmp_path: Path) -> None:
     with table_path.open(encoding="utf-8") as handle:
         rows = list(csv.reader(handle))
     assert rows[1][0] == "custom"
+
+
+def test_no_plots_flag(tmp_path: Path) -> None:
+    emitter = _create_metric_emitter(tmp_path / "emit_metrics.py")
+    config_path = tmp_path / "config.json"
+    config = {
+        "output_directory": "outputs",
+        "scenarios": [
+            {
+                "name": "noplots",
+                "engine": {
+                    "command": [sys.executable, str(emitter), "{output_path}", "110.0"],
+                    "output": "{output_dir}/{scenario}_engine.json",
+                },
+                "reference": {
+                    "command": [sys.executable, str(emitter), "{output_path}", "100.0"],
+                    "output": "{output_dir}/{scenario}_reference.json",
+                },
+                "metrics": [
+                    {
+                        "name": "fps",
+                        "higher_is_better": True,
+                        "threshold": {"type": "relative", "max_regression": 0.2},
+                    }
+                ],
+            }
+        ],
+    }
+    _write_config(config_path, config)
+
+    exit_code = run_comparative_benchmarks.main(
+        ["--config", str(config_path), "--no-plots"]
+    )
+
+    assert exit_code == 0
+    summary_path = (tmp_path / "outputs" / "comparative_summary.json").resolve()
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    metric_summary = summary["scenarios"][0]["metrics"][0]
+    assert "plot" not in metric_summary
+    assert not (summary_path.parent / "plots").exists()
 

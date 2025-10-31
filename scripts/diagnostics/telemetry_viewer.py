@@ -9,16 +9,25 @@ Usage (after exporting telemetry)::
     python scripts/diagnostics/telemetry_viewer.py \
         --input telemetry/frame_timings.json \
         --metric-prefix runtime.streaming.
+
+Comparative report generation from CC-310 summaries::
+
+    python scripts/diagnostics/telemetry_viewer.py compare \
+        --summary assets/benchmarks/ai004/reports/comparative_summary.json \
+        --output assets/benchmarks/ai004/reports/comparative_report.html \
+        --embed-plots
 """
 
 from __future__ import annotations
 
 import argparse
+import html
 import json
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Mapping, MutableMapping, Optional, Sequence
+from typing import Any, Iterable, List, Mapping, MutableMapping, Optional, Sequence
 
 _METRIC_UNIT_SUFFIX = {
     "none": "",
@@ -486,7 +495,262 @@ def _select_prefixes(raw_prefixes: Sequence[str]) -> Optional[Sequence[str]]:
     return tuple(cleaned) if cleaned else None
 
 
+def parse_compare_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Render an HTML report from comparative benchmark summaries.",
+    )
+    parser.add_argument(
+        "--summary",
+        type=Path,
+        required=True,
+        help="Path to comparative_summary.json produced by run_comparative_benchmarks.py.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Destination HTML file. Defaults to <summary_dir>/<summary_stem>_report.html.",
+    )
+    parser.add_argument(
+        "--title",
+        default="Comparative Benchmark Report",
+        help="Page title for the generated report.",
+    )
+    parser.add_argument(
+        "--embed-plots",
+        action="store_true",
+        help="Inline SVG plots directly in the HTML to produce a self-contained artefact.",
+    )
+    parser.add_argument(
+        "--plots-root",
+        type=Path,
+        help="Override the directory used to resolve plot paths (defaults to the summary directory).",
+    )
+    return parser.parse_args(argv)
+
+
+def _load_comparative_summary(path: Path) -> Mapping[str, Any]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise SystemExit(f"error: comparative summary not found: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"error: failed to parse comparative summary JSON: {exc}") from exc
+    if not isinstance(data, Mapping):
+        raise SystemExit("error: comparative summary must be a JSON object")
+    scenarios = data.get("scenarios")
+    if not isinstance(scenarios, Sequence) or not scenarios:
+        raise SystemExit("error: comparative summary missing 'scenarios' list")
+    for entry in scenarios:
+        if not isinstance(entry, Mapping):
+            raise SystemExit("error: scenarios must contain JSON objects")
+        metrics = entry.get("metrics")
+        if not isinstance(metrics, Sequence) or not metrics:
+            raise SystemExit("error: each scenario must include one or more metrics")
+    return data
+
+
+def _resolve_plot_path(
+    plot_value: object,
+    *,
+    plots_root: Path,
+    output_dir: Path,
+) -> tuple[Optional[Path], Optional[str]]:
+    if not isinstance(plot_value, str) or not plot_value.strip():
+        return None, None
+    candidate = Path(plot_value.strip())
+    if not candidate.is_absolute():
+        candidate = (plots_root / candidate).resolve()
+    try:
+        relative_href = os.path.relpath(candidate, output_dir)
+    except ValueError:
+        relative_href = str(candidate)
+    return candidate, relative_href
+
+
+def _render_comparative_report(
+    summary: Mapping[str, Any],
+    *,
+    summary_path: Path,
+    output_path: Path,
+    title: str,
+    embed_plots: bool,
+    plots_root: Path,
+) -> None:
+    scenarios = summary.get("scenarios")
+    assert isinstance(scenarios, Sequence)
+    passed = bool(summary.get("passed", False))
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    style_block = """
+body { font-family: 'Segoe UI', sans-serif; margin: 2rem; color: #1b1b1b; }
+h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+.overall-pass { color: #2e8540; }
+.overall-fail { color: #c62828; }
+section { margin-bottom: 2.5rem; }
+table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+th, td { border: 1px solid #d0d0d0; padding: 0.5rem 0.75rem; text-align: left; }
+th { background-color: #f5f5f5; }
+tr.fail { background-color: #fdecea; }
+tr.pass { background-color: #edf7ee; }
+figure { margin: 1rem 0; }
+figure svg { max-width: 100%; height: auto; }
+.dataset { color: #555; font-size: 0.9rem; }
+.warning { color: #c62828; font-style: italic; }
+""".strip()
+
+    lines: List[str] = [
+        "<!DOCTYPE html>",
+        "<html lang='en'>",
+        "<head>",
+        "  <meta charset='utf-8'>",
+        f"  <title>{html.escape(title)}</title>",
+        "  <style>" + style_block + "</style>",
+        "</head>",
+        "<body>",
+        f"<h1>{html.escape(title)}</h1>",
+        "<p>Source summary: "
+        f"{html.escape(str(summary_path))}</p>",
+        (
+            f"<p class='overall-{'pass' if passed else 'fail'}'>Overall status: "
+            f"{'PASS' if passed else 'FAIL'}</p>"
+        ),
+    ]
+
+    for scenario in scenarios:
+        scenario_name = html.escape(str(scenario.get("name", ""))) or "<unnamed>"
+        scenario_pass = bool(scenario.get("passed", False))
+        dataset = scenario.get("dataset")
+        metrics = scenario.get("metrics", [])
+        lines.append(
+            f"<section class='scenario {'pass' if scenario_pass else 'fail'}'>"
+            f"<h2>{scenario_name} — {'PASS' if scenario_pass else 'FAIL'}</h2>"
+        )
+        if isinstance(dataset, str) and dataset:
+            lines.append(f"<p class='dataset'>Dataset: {html.escape(dataset)}</p>")
+        lines.append(
+            "<table>"
+            "<thead><tr><th>Metric</th><th>Engine</th><th>Reference</th>"
+            "<th>Δ</th><th>Δ%</th><th>Threshold</th><th>Status</th></tr></thead>"
+            "<tbody>"
+        )
+        for metric in metrics:
+            if not isinstance(metric, Mapping):
+                continue
+            metric_name = html.escape(str(metric.get("name", "")) or "metric")
+            engine_value = metric.get("engine_value")
+            reference_value = metric.get("reference_value")
+            delta_value = metric.get("delta")
+            relative_delta = metric.get("relative_delta")
+            passed_flag = bool(metric.get("passed", False))
+            threshold = metric.get("threshold", {})
+            if isinstance(threshold, Mapping):
+                mode = threshold.get("mode", "")
+                limit = threshold.get("limit")
+            else:
+                mode = ""
+                limit = None
+            if isinstance(limit, (int, float)):
+                if str(mode) == "relative":
+                    threshold_text = f"relative ≤ {float(limit):.2%}"
+                else:
+                    threshold_text = f"absolute ≤ {float(limit):.4f}"
+            else:
+                threshold_text = "—"
+            if isinstance(relative_delta, (int, float)):
+                rel_text = f"{relative_delta * 100.0:+.2f}%"
+            else:
+                rel_text = "n/a"
+            row_class = "pass" if passed_flag else "fail"
+            lines.append(
+                "<tr class='{row_class}'><td>{metric}</td><td>{engine:.4f}</td>"
+                "<td>{reference:.4f}</td><td>{delta:+.4f}</td><td>{rel}</td>"
+                "<td>{threshold}</td><td>{status}</td></tr>".format(
+                    row_class=row_class,
+                    metric=metric_name,
+                    engine=float(engine_value) if isinstance(engine_value, (int, float)) else 0.0,
+                    reference=float(reference_value)
+                    if isinstance(reference_value, (int, float))
+                    else 0.0,
+                    delta=float(delta_value) if isinstance(delta_value, (int, float)) else 0.0,
+                    rel=rel_text,
+                    threshold=html.escape(threshold_text),
+                    status="PASS" if passed_flag else "FAIL",
+                )
+            )
+
+            plot_file, plot_href = _resolve_plot_path(
+                metric.get("plot"),
+                plots_root=plots_root,
+                output_dir=output_path.parent,
+            )
+            if plot_file is not None:
+                if embed_plots and plot_file.is_file():
+                    svg_content = plot_file.read_text(encoding="utf-8")
+                    lines.append(
+                        "<tr class='{row_class}'><td colspan='7'>"
+                        "<figure>{svg}</figure></td></tr>".format(
+                            row_class=row_class,
+                            svg=svg_content,
+                        )
+                    )
+                elif plot_href is not None:
+                    figure_body = "<figure><img src='{src}' alt='Plot for {metric}' loading='lazy'></figure>".format(
+                        src=html.escape(plot_href),
+                        metric=metric_name,
+                    )
+                    lines.append(
+                        "<tr class='{row_class}'><td colspan='7'>{body}</td></tr>".format(
+                            row_class=row_class,
+                            body=figure_body,
+                        )
+                    )
+                else:
+                    lines.append(
+                        "<tr class='{row_class}'><td colspan='7' class='warning'>Plot "
+                        "reference missing for {metric}</td></tr>".format(
+                            row_class=row_class,
+                            metric=metric_name,
+                        )
+                    )
+        lines.append("</tbody></table>")
+        lines.append("</section>")
+
+    lines.append("</body></html>")
+    output_path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _main_compare(argv: Optional[Sequence[str]] = None) -> int:
+    args = parse_compare_args(argv)
+    summary_path = args.summary.resolve()
+    summary = _load_comparative_summary(summary_path)
+    output_path = (
+        args.output
+        if args.output is not None
+        else summary_path.parent / f"{summary_path.stem}_report.html"
+    ).resolve()
+    plots_root = (
+        args.plots_root.resolve()
+        if args.plots_root is not None
+        else summary_path.parent
+    )
+    _render_comparative_report(
+        summary,
+        summary_path=summary_path,
+        output_path=output_path,
+        title=str(args.title),
+        embed_plots=bool(args.embed_plots),
+        plots_root=plots_root,
+    )
+    print(f"Comparative report written to {output_path}")
+    return 0
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
+    if argv is None:
+        argv = sys.argv[1:]
+    if argv and argv[0] == "compare":
+        return _main_compare(argv[1:])
+
     args = parse_args(argv)
     payload = _load_payload(args.input)
     diagnostics = payload.get("runtime_diagnostics")

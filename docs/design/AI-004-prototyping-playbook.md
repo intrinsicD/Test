@@ -128,7 +128,29 @@ python -m scripts.prototyping.run_prototype_harness \
   `assets/datasets/case_studies/` once they are published.
 - Harness construction validates dataset assets before execution, checking file existence, byte sizes, and sha256 hashes. The exported configuration summaries include per-asset integrity metadata so TL-210 selectors and AS-330 packaging automation can report missing or stale datasets immediately.
 
-### 4.3 Troubleshooting
+### 4.3 Case study presets (`RT-321`)
+
+Packaged scenarios streamline harness execution for reviewers and CI.
+
+```bash
+python -m scripts.prototyping.run_prototype_harness --list-case-studies
+python -m scripts.prototyping.run_prototype_harness --case-study geometry-baseline --dry-run --summary-json telemetry/geometry.json
+python -m scripts.prototyping.run_prototype_harness --case-study rendering-debug --dry-run --summary-json telemetry/rendering.json
+```
+
+- `--list-case-studies` exports metadata for the sandbox selectors when paired
+  with `--case-studies-json <path>`.
+- Running with `--case-study <id>` resolves manifests from
+  `assets/datasets/case_studies/`, applies the default dataset/rendering/telemetry
+  configuration, and emits JSON summaries in `artifacts/ai004/` during CI.
+- Continuous integration executes both presets via
+  `ctest -R runtime_prototype_harness_geometry_case_study` and
+  `ctest -R runtime_prototype_harness_rendering_case_study`; these targets guard
+  against manifest drift.
+- Baseline dataset metrics, rendering defaults, and telemetry targets for both
+  scenarios are recorded in [`docs/design/RT-321-case-studies.md`](RT-321-case-studies.md).
+
+### 4.4 Troubleshooting
 
 - `ConfigurationSchemaError`: re-run the validator to inspect the failing field.
 - Missing datasets: ensure manifests declare unique slugs and the configuration

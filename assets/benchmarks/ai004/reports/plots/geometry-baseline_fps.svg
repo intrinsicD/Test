@@ -1,0 +1,13 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='520' height='340' viewBox='0 0 520 340'>
+  <rect x='0' y='0' width='520' height='340' fill='white'/>
+  <text x='70' y='24' font-family='sans-serif' font-size='18' font-weight='bold'>geometry-baseline — fps (dataset: geometry-remesh-baseline)</text>
+  <line x1='70' y1='24' x2='70' y2='280' stroke='#444' stroke-width='1.5'/>
+  <line x1='70' y1='280.0' x2='500' y2='280.0' stroke='#444' stroke-width='1.5'/>
+  <rect x='177.5' y='27.413333333333327' width='107.5' height='252.58666666666667' fill='#2e8540' opacity='0.8'/>
+  <text x='231.25' y='304' font-family='sans-serif' font-size='14' text-anchor='middle'>Engine</text>
+  <text x='231.25' y='19.413333333333327' font-family='monospace' font-size='13' text-anchor='middle'>118.4000</text>
+  <rect x='392.5' y='24.0' width='107.5' height='256.0' fill='#1565c0' opacity='0.8'/>
+  <text x='446.25' y='304' font-family='sans-serif' font-size='14' text-anchor='middle'>Reference</text>
+  <text x='446.25' y='16.0' font-family='monospace' font-size='13' text-anchor='middle'>120.0000</text>
+  <text x='70' y='324' font-family='sans-serif' font-size='13'>Δ = -1.6000 (pass) — threshold relative ≤ 2.00%</text>
+</svg>

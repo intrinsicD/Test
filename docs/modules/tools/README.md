@@ -91,6 +91,12 @@ Key capabilities:
   metadata, metric snapshots, feature-preservation flags, parameterisation
   metrics, and asset verification summaries (existence, size/hash checks,
   and harness-supplied diagnostics for each source/output artefact).
+- **Case study presets** – the preferences panel lists packaged AI-004 case
+  studies (see [`docs/design/RT-321-case-studies.md`](../../design/RT-321-case-studies.md))
+  with default dataset/preset/runtime selections and benchmark scenarios. The
+  "Load" action synchronises harness callbacks (`on_case_study_requested`,
+  `on_case_study_selected`) while updating dataset, rendering, and benchmark
+  panels to mirror the case study defaults.
 - **Rendering controls** – preset and shading-mode selection with overlay
   toggles that mirror the research baseline options.
 - **Benchmark triggers** – frame-count and timestep inputs with a one-click

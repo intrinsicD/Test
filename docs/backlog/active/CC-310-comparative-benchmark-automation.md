@@ -1,6 +1,6 @@
 # Backlog Item CC-310 — Comparative Benchmark Automation
 
-- **Status**: Planned
+- **Status**: Complete
 - **Priority**: 4
 - **Owner**: Performance Lead
 - **Module(s)**: Scripts, Python Tooling, Runtime, Rendering, Tools
@@ -24,10 +24,10 @@ Telemetry capture exists but researchers still run comparisons manually. CC-310 
 | Release Manager | Publish benchmark presets and ensure CI artifacts are retained for releases. | Release Manager (98) |
 
 ## Definition of Done
-- [ ] Benchmark orchestrator executes configuration-driven scenarios that run both engine and reference binaries.
-- [ ] Result reduction produces JSON/CSV outputs and comparative plots consumable by the telemetry viewer and sandbox UI.
-- [ ] CI smoke job runs a reduced suite and fails when thresholds (>2% regressions) are exceeded.
-- [ ] Benchmark playbook documents setup, execution, and integration steps for new algorithms.
+- [x] Benchmark orchestrator executes configuration-driven scenarios that run both engine and reference binaries.
+- [x] Result reduction produces JSON/CSV outputs and comparative plots consumable by the telemetry viewer and sandbox UI.
+- [x] CI smoke job runs a reduced suite and fails when thresholds (>2% regressions) are exceeded.
+- [x] Benchmark playbook documents setup, execution, and integration steps for new algorithms.
 
 ## Dependencies
 - [`docs/backlog/active/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
@@ -42,3 +42,8 @@ Telemetry capture exists but researchers still run comparisons manually. CC-310 
 
 ## Notes
 When adding CI coverage, keep runtime under five minutes by creating smoke presets. Align metrics with telemetry schema (`CC-001`).
+
+**2026-02-20** — Landed SVG plot generation, AI-004 comparative fixtures under
+`assets/benchmarks/ai004/`, CI smoke helper, and the CC-310 benchmark playbook.
+Telemetry viewer comparative mode now renders reports from the generated
+summaries, enabling TL-210 to surface artefacts directly in the sandbox.

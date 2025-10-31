@@ -274,7 +274,11 @@ def _run(args: argparse.Namespace) -> int:
         return 2
 
     try:
-        harness = load_harness(str(config_path), require_schema=True if args.require_schema else None)
+        harness = load_harness(
+            str(config_path),
+            require_schema=True if args.require_schema else None,
+            case_study_id=args.case_study,
+        )
     except PrototypeHarnessError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
@@ -487,6 +491,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             harness = load_harness(
                 str(config_path),
                 require_schema=True if args.require_schema else None,
+                case_study_id=args.case_study,
             )
         except PrototypeHarnessError as error:
             print(f"error: {error}", file=sys.stderr)

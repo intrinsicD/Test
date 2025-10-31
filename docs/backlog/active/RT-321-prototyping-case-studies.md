@@ -1,6 +1,6 @@
 # Backlog Item RT-321 — Prototyping Case Study Validation
 
-- **Status**: Planned
+- **Status**: In Progress
 - **Priority**: 3
 - **Owner**: Runtime Lead (with Assets & Tools support)
 - **Module(s)**: Runtime, Assets, Rendering, Tools, Python
@@ -24,10 +24,10 @@ After RT-320 delivers the harness we must prove it supports real workflows. RT-3
 | Release Manager | Publish packaged case study presets and ensure availability for kickoff review. | Release Manager (98) |
 
 ## Definition of Done
-- [ ] Case study manifests live under `assets/datasets/` and are referenced by harness CLI/SDK helpers.
-- [ ] Harness CLI exposes `--case-study` presets that configure datasets, algorithms, and telemetry sinks.
-- [ ] Sandbox UI enumerates case studies with default parameter sets and benchmark capture toggles.
-- [ ] Integration + CI coverage executes both scenarios and records baseline metrics in documentation.
+- [x] Case study manifests live under `assets/datasets/` and are referenced by harness CLI/SDK helpers.
+- [x] Harness CLI exposes `--case-study` presets that configure datasets, algorithms, and telemetry sinks.
+- [x] Sandbox UI enumerates case studies with default parameter sets and benchmark capture toggles.
+- [x] Integration + CI coverage executes both scenarios and records baseline metrics in documentation (`docs/design/RT-321-case-studies.md`).
 
 ## Dependencies
 - [`docs/backlog/active/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
@@ -40,3 +40,11 @@ After RT-320 delivers the harness we must prove it supports real workflows. RT-3
 
 ## Notes
 Case study telemetry feeds CC-310/CC-311. Coordinate dataset licensing early to avoid blocking integration tests.
+
+**2026-02-16** — Added rendering case study dry-run coverage to CTest
+(`runtime_prototype_harness_rendering_case_study`) and published
+[`docs/design/RT-321-case-studies.md`](../../design/RT-321-case-studies.md)
+capturing baseline dataset metrics, rendering defaults, and telemetry targets
+for both packaged scenarios. Runtime and tools READMEs now cross-link the
+document so UI selectors, harness CLI, and automation share the same source of
+truth.

@@ -273,17 +273,22 @@ ctest --preset linux-gcc-debug -R runtime
   directly without locating manifests manually:
   ```bash
   python -m scripts.prototyping.run_prototype_harness --case-study geometry-baseline --dry-run
+  python -m scripts.prototyping.run_prototype_harness --case-study rendering-debug --dry-run
   ```
   The CLI prints the resolved manifest path, writes summaries when
   `--summary-json`/`--describe-json` are provided, and keeps the registry in
-  sync with the AI-004 kickoff plan tracked by `RT-321`.
-- Continuous integration exercises the geometry baseline case study via CTest:
+  sync with the AI-004 kickoff plan tracked by `RT-321`. Baseline expectations
+  for both scenarios (datasets, rendering presets, telemetry outputs, and
+  manifest metrics) are recorded in
+  [`docs/design/RT-321-case-studies.md`](../../design/RT-321-case-studies.md).
+- Continuous integration exercises both case studies via CTest:
   ```bash
   ctest --preset <preset> -R runtime_prototype_harness_geometry_case_study
+  ctest --preset <preset> -R runtime_prototype_harness_rendering_case_study
   ```
-  The test launches the harness CLI in dry-run mode with schema enforcement
-  enabled, writes run summaries into the build artefact directory, and applies
-  the mock window backend so it remains deterministic on headless runners.
+  The tests launch the harness CLI in dry-run mode with schema enforcement
+  enabled, write run summaries into the build artefact directory, and apply the
+  mock window backend so they remain deterministic on headless runners.
 - A native C++ sample (`runtime_prototype_harness`) mirrors the Python CLI for
   dry-run validation:
   ```bash

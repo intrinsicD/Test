@@ -383,6 +383,10 @@ namespace engine::tools::sandbox
             details << std::setprecision(3) << *average_tick_ms;
             details << std::setprecision(previous_precision);
         }
+        if (resolution_width && resolution_height && *resolution_width > 0 && *resolution_height > 0)
+        {
+            details << " resolution=" << *resolution_width << 'x' << *resolution_height;
+        }
         if (run_index && run_count && *run_count > 0)
         {
             details << " run=" << *run_index << '/' << *run_count;

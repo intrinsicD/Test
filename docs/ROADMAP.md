@@ -55,8 +55,8 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 ### Phase 3 — Benchmark Confidence *(Priorities 4–5)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 4 | [`CC-310`](backlog/active/CC-310-comparative-benchmark-automation.md) | Automate comparative benchmarks and CI smoke suite. | Performance Lead | Planned |
-| 4 | [`CC-311`](backlog/active/CC-311-benchmark-visualisation.md) | Render comparative reports and expose them in tooling + CI. | Performance Lead | Planned |
+| 4 | [`CC-310`](backlog/active/CC-310-comparative-benchmark-automation.md) | Automate comparative benchmarks and CI smoke suite. | Performance Lead | Complete |
+| 4 | [`CC-311`](backlog/active/CC-311-benchmark-visualisation.md) | Render comparative reports and expose them in tooling + CI. | Performance Lead | Complete |
 | 5 | Follow-up polish items (to be spawned once CC-311 closes). | — | — |
 
 **Exit Criteria:** Automated benchmarks and visual reports block regressions; kickoff demo is reproducible on CI hardware.
@@ -71,8 +71,8 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Planned | Licensing review pending. |
 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | 3 | In Progress | UI scaffolding merged; harness wiring outstanding. |
 | [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | 3 | Planned | Depends on datasets + harness. |
-| [`CC-310`](backlog/active/CC-310-comparative-benchmark-automation.md) | 4 | Planned | Draft orchestrator script landed; CI wiring TBD. |
-| [`CC-311`](backlog/active/CC-311-benchmark-visualisation.md) | 4 | Planned | Requires CC-310 outputs + case study baselines. |
+| [`CC-310`](backlog/active/CC-310-comparative-benchmark-automation.md) | 4 | Complete | Orchestrator, SVG plots, and smoke helper published for AI-004 fixtures. |
+| [`CC-311`](backlog/active/CC-311-benchmark-visualisation.md) | 4 | Complete | Telemetry viewer comparative mode + AI-004 reports published. |
 
 ## Risks & Mitigations
 

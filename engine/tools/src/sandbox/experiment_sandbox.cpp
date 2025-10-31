@@ -244,6 +244,7 @@ namespace engine::tools::sandbox
         dataset_lookup_.clear();
         preset_lookup_.clear();
         algorithm_lookup_.clear();
+        case_study_lookup_.clear();
         last_benchmark_result_.reset();
 
         for (std::size_t index = 0; index < summary_.datasets.size(); ++index)
@@ -261,6 +262,11 @@ namespace engine::tools::sandbox
             algorithm_lookup_.emplace(summary_.algorithm_variants[index].identifier, index);
         }
 
+        for (std::size_t index = 0; index < summary_.case_studies.size(); ++index)
+        {
+            case_study_lookup_.emplace(summary_.case_studies[index].identifier, index);
+        }
+
         if (summary_.selected_dataset)
         {
             preferences_.selected_dataset = *summary_.selected_dataset;
@@ -274,6 +280,11 @@ namespace engine::tools::sandbox
         if (summary_.selected_algorithm_variant)
         {
             preferences_.selected_algorithm_variant = *summary_.selected_algorithm_variant;
+        }
+
+        if (summary_.selected_case_study)
+        {
+            preferences_.selected_case_study = *summary_.selected_case_study;
         }
 
         ensure_selection_defaults();
@@ -316,6 +327,13 @@ namespace engine::tools::sandbox
         if (callbacks_.on_algorithm_selected && has_algorithm_selection)
         {
             callbacks_.on_algorithm_selected(preferences_.selected_algorithm_variant);
+        }
+
+        const bool has_case_selection = selected_case_study_index_ >= 0
+            && selected_case_study_index_ < static_cast<int>(summary_.case_studies.size());
+        if (callbacks_.on_case_study_selected && has_case_selection)
+        {
+            callbacks_.on_case_study_selected(preferences_.selected_case_study);
         }
     }
 
@@ -551,6 +569,37 @@ namespace engine::tools::sandbox
         return true;
     }
 
+    bool ExperimentSandbox::request_case_study(std::string_view case_study_identifier)
+    {
+        const std::string identifier{case_study_identifier};
+        const auto lookup = case_study_lookup_.find(identifier);
+        if (lookup == case_study_lookup_.end())
+        {
+            return false;
+        }
+
+        const int index = static_cast<int>(lookup->second);
+        const auto& descriptor = summary_.case_studies[static_cast<std::size_t>(index)];
+
+        const bool already_selected = selected_case_study_index_ == index
+            && preferences_.selected_case_study == identifier;
+
+        if (!already_selected)
+        {
+            const SandboxPreferences previous = preferences_;
+            selected_case_study_index_ = index;
+            preferences_.selected_case_study = identifier;
+            notify_preference_changes(previous);
+        }
+
+        if (callbacks_.on_case_study_requested)
+        {
+            callbacks_.on_case_study_requested(descriptor);
+        }
+
+        return true;
+    }
+
     bool ExperimentSandbox::load_preferences(const std::filesystem::path& path)
     {
         std::ifstream stream(path);
@@ -592,6 +641,10 @@ namespace engine::tools::sandbox
             {
                 loaded.selected_algorithm_variant = value;
             }
+            else if (key == "selected_case_study")
+            {
+                loaded.selected_case_study = value;
+            }
             else if (key == "shading_mode")
             {
                 loaded.shading_mode = value;
@@ -610,6 +663,22 @@ namespace engine::tools::sandbox
                 if (parse_numeric(value, timestep) && timestep > 0.0F)
                 {
                     loaded.benchmark_timestep = timestep;
+                }
+            }
+            else if (key == "resolution_width")
+            {
+                int width = loaded.resolution_width;
+                if (parse_numeric(value, width))
+                {
+                    loaded.resolution_width = std::max(width, 0);
+                }
+            }
+            else if (key == "resolution_height")
+            {
+                int height = loaded.resolution_height;
+                if (parse_numeric(value, height))
+                {
+                    loaded.resolution_height = std::max(height, 0);
                 }
             }
             else if (key.rfind("overlay.", 0) == 0U)
@@ -645,7 +714,10 @@ namespace engine::tools::sandbox
         stream << "selected_dataset=" << preferences_.selected_dataset << '\n';
         stream << "selected_preset=" << preferences_.selected_preset << '\n';
         stream << "selected_algorithm_variant=" << preferences_.selected_algorithm_variant << '\n';
+        stream << "selected_case_study=" << preferences_.selected_case_study << '\n';
         stream << "shading_mode=" << preferences_.shading_mode << '\n';
+        stream << "resolution_width=" << preferences_.resolution_width << '\n';
+        stream << "resolution_height=" << preferences_.resolution_height << '\n';
         stream << "benchmark_frames=" << preferences_.benchmark_frames << '\n';
         stream << "benchmark_timestep=" << preferences_.benchmark_timestep << '\n';
 
@@ -755,6 +827,25 @@ namespace engine::tools::sandbox
         else
         {
             preferences_.selected_algorithm_variant.clear();
+        }
+
+        selected_case_study_index_ = -1;
+        if (!summary_.case_studies.empty())
+        {
+            auto it = case_study_lookup_.find(preferences_.selected_case_study);
+            if (it != case_study_lookup_.end())
+            {
+                selected_case_study_index_ = static_cast<int>(it->second);
+            }
+            else
+            {
+                selected_case_study_index_ = 0;
+                preferences_.selected_case_study = summary_.case_studies.front().identifier;
+            }
+        }
+        else
+        {
+            preferences_.selected_case_study.clear();
         }
 
         static_cast<void>(sync_overlay_preferences());
@@ -918,6 +1009,92 @@ namespace engine::tools::sandbox
             {
                 apply_benchmark_result(*result);
             }
+        }
+
+        if (!summary_.case_studies.empty())
+        {
+            ImGui::Spacing();
+            ImGui::TextUnformatted("Case Studies");
+            ImGui::Separator();
+            ImGui::Indent();
+            for (std::size_t index = 0; index < summary_.case_studies.size(); ++index)
+            {
+                const auto& descriptor = summary_.case_studies[index];
+                const bool active = static_cast<int>(index) == selected_case_study_index_;
+                const ImVec4 colour = active ? ImVec4(0.2F, 0.8F, 0.2F, 1.0F)
+                                             : ImGui::GetStyleColorVec4(ImGuiCol_Text);
+                ImGui::TextColored(colour, "%s", descriptor.label.empty() ? descriptor.identifier.c_str()
+                                                                            : descriptor.label.c_str());
+                ImGui::Indent();
+                if (!descriptor.description.empty())
+                {
+                    ImGui::PushTextWrapPos(0.0F);
+                    ImGui::TextUnformatted(descriptor.description.c_str());
+                    ImGui::PopTextWrapPos();
+                }
+                if (!descriptor.tags.empty())
+                {
+                    ImGui::Text("Tags: %s", descriptor.tags.front().c_str());
+                    for (std::size_t tag_index = 1; tag_index < descriptor.tags.size(); ++tag_index)
+                    {
+                        ImGui::SameLine();
+                        ImGui::Text("%s", descriptor.tags[tag_index].c_str());
+                    }
+                }
+                if (descriptor.default_dataset)
+                {
+                    ImGui::Text("Dataset: %s", descriptor.default_dataset->c_str());
+                }
+                if (descriptor.default_rendering_preset)
+                {
+                    ImGui::Text("Rendering preset: %s", descriptor.default_rendering_preset->c_str());
+                }
+                if (descriptor.default_runtime_profile)
+                {
+                    ImGui::Text("Runtime profile: %s", descriptor.default_runtime_profile->c_str());
+                }
+                if (descriptor.default_shading_mode)
+                {
+                    ImGui::Text("Shading: %s", descriptor.default_shading_mode->c_str());
+                }
+                if (descriptor.default_resolution_width && descriptor.default_resolution_height)
+                {
+                    ImGui::Text("Resolution: %dx%d", *descriptor.default_resolution_width,
+                                *descriptor.default_resolution_height);
+                }
+                if (!descriptor.default_overlays.empty())
+                {
+                    ImGui::TextUnformatted("Overlays:");
+                    ImGui::Indent();
+                    for (const auto& [key, value] : descriptor.default_overlays)
+                    {
+                        ImGui::BulletText("%s: %s", key.c_str(), value ? "enabled" : "disabled");
+                    }
+                    ImGui::Unindent();
+                }
+                if (!descriptor.benchmark_scenarios.empty())
+                {
+                    ImGui::TextUnformatted("Scenarios:");
+                    ImGui::Indent();
+                    for (const auto& scenario_identifier : descriptor.benchmark_scenarios)
+                    {
+                        ImGui::BulletText("%s", scenario_identifier.c_str());
+                    }
+                    ImGui::Unindent();
+                }
+                if (!descriptor.config_absolute.empty())
+                {
+                    ImGui::TextDisabled("Config: %s", descriptor.config_absolute.c_str());
+                }
+                const std::string button_id = std::string{"Load##case_study_"} + descriptor.identifier;
+                if (ImGui::Button(button_id.c_str()))
+                {
+                    static_cast<void>(request_case_study(descriptor.identifier));
+                }
+                ImGui::Spacing();
+                ImGui::Unindent();
+            }
+            ImGui::Unindent();
         }
 
         if (summary_.benchmarks && !summary_.benchmarks->scenarios.empty())
@@ -1311,12 +1488,20 @@ namespace engine::tools::sandbox
             callbacks_.on_algorithm_selected(preferences_.selected_algorithm_variant);
         }
 
+        if (callbacks_.on_case_study_selected
+            && preferences_.selected_case_study != previous.selected_case_study)
+        {
+            callbacks_.on_case_study_selected(preferences_.selected_case_study);
+        }
+
         if (callbacks_.on_rendering_changed)
         {
             const bool preset_changed = preferences_.selected_preset != previous.selected_preset;
             const bool shading_changed = preferences_.shading_mode != previous.shading_mode;
             const bool overlays_changed = preferences_.overlays != previous.overlays;
-            if (preset_changed || shading_changed || overlays_changed)
+            const bool resolution_changed = preferences_.resolution_width != previous.resolution_width
+                || preferences_.resolution_height != previous.resolution_height;
+            if (preset_changed || shading_changed || overlays_changed || resolution_changed)
             {
                 callbacks_.on_rendering_changed(preferences_);
             }
