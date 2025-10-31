@@ -1134,6 +1134,38 @@ def test_cli_list_datasets(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -
     assert dataset_entries[0]["provenance"]["license"]["name"] == "CC0 1.0 Universal"
 
 
+def test_cli_list_telemetry(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    config_path = _write_configuration(tmp_path)
+    telemetry_path = tmp_path / "exports" / "telemetry.json"
+
+    from scripts.prototyping import run_prototype_harness
+
+    exit_code = run_prototype_harness.main(
+        [
+            "--config",
+            str(config_path),
+            "--list-telemetry",
+            "--telemetry-json",
+            str(telemetry_path),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert telemetry_path.exists()
+    lines = captured.out.splitlines()
+    assert lines and lines[0].startswith("Telemetry configuration")
+    assert any("Schema version" in line for line in lines)
+    assert any(line.startswith("Metrics:") for line in lines)
+
+    payload = json.loads(telemetry_path.read_text(encoding="utf-8"))
+    telemetry = payload["telemetry"]
+    assert telemetry["schema_version"] == 2
+    outputs = telemetry["outputs"]
+    assert outputs and outputs[0]["kind"] == "file"
+    assert telemetry["sampling"]["frame_interval"] == 8
+
+
 def test_cli_applies_overrides(tmp_path: Path) -> None:
     config_path = _write_configuration(tmp_path)
     summary_path = tmp_path / "override_summary.json"

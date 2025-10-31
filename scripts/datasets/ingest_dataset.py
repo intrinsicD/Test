@@ -387,9 +387,32 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         aggregated: list[dict[str, object]] = []
-        for manifest_path in args.manifests:
+        seen_datasets: dict[str, Path] = {}
+        for manifest_arg in args.manifests:
+            manifest_path = Path(manifest_arg)
+            try:
+                manifest = load_dataset_manifest(
+                    manifest_path, require_schema=args.require_schema
+                )
+            except ConfigurationSchemaError as error:
+                raise DatasetIngestionError(str(error)) from error
+
+            resolved_manifest = manifest_path.resolve()
+            for entry in manifest.datasets:
+                previous = seen_datasets.get(entry.identifier)
+                if previous is not None:
+                    raise DatasetIngestionError(
+                        "dataset identifier '{identifier}' already processed from '{previous}' "
+                        "while ingesting '{manifest}'".format(
+                            identifier=entry.identifier,
+                            previous=previous,
+                            manifest=resolved_manifest,
+                        )
+                    )
+                seen_datasets[entry.identifier] = resolved_manifest
+
             results = ingest_manifest(
-                Path(manifest_path),
+                manifest_path,
                 destination,
                 copy_assets=args.copy_assets,
                 dry_run=args.dry_run,
@@ -399,7 +422,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 datasets = [_build_summary(result.entry, result.files) for result in results]
                 aggregated.append(
                     {
-                        "manifest": str(Path(manifest_path).resolve()),
+                        "manifest": str(resolved_manifest),
                         "datasets": datasets,
                     }
                 )

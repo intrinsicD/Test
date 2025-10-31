@@ -81,6 +81,18 @@ python -m scripts.prototyping.run_prototype_harness \
 The JSON export mirrors the sandbox configuration summary so dataset packaging
 (`AS-330`) and tooling integrations can consume the same verification payload.
 
+Inspect telemetry outputs, metrics, and sampling cadence without launching the
+runtime by invoking:
+
+```bash
+python -m scripts.prototyping.run_prototype_harness \
+    --config docs/examples/ai004_sample.json \
+    --list-telemetry --telemetry-json telemetry/telemetry_inventory.json
+```
+
+This mirrors the telemetry block consumed by the sandbox UI and comparative
+automation so TL-210 can align without executing the runtime loop.
+
 <a id="rendering_debug"></a>
 
 ## Rendering debug dataset
