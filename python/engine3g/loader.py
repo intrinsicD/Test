@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import ctypes
+import json
 import os
 import sys
 from pathlib import Path
 from types import MappingProxyType
 from typing import (
+    Any,
     Dict,
     Iterable,
     Iterator,
@@ -77,6 +79,9 @@ class EngineModuleHandle:
     name: str
     identifier: str
     library: ctypes.CDLL
+    _compatibility_metadata: Optional[Mapping[str, object]] = field(
+        default=None, init=False, repr=False
+    )
 
     def resolved_name(self) -> str:
         """Return the authoritative module name as exported by the library."""
@@ -85,6 +90,66 @@ class EngineModuleHandle:
         func.restype = ctypes.c_char_p
         result = func()
         return result.decode("utf-8") if result else ""
+
+    def compatibility_metadata(self) -> Mapping[str, object]:
+        """Return ABI/compatibility metadata exposed by the module."""
+
+        if self._compatibility_metadata is None:
+            metadata = _load_module_compatibility_metadata(
+                self.library, self.identifier
+            )
+            self._compatibility_metadata = MappingProxyType(metadata)
+        return self._compatibility_metadata
+
+
+def _module_metadata_symbol_candidates(identifier: str) -> List[str]:
+    return [
+        f"{identifier}_module_metadata_json",
+        f"{identifier}_module_metadata",
+    ]
+
+
+def _load_module_compatibility_metadata(
+    library: ctypes.CDLL, identifier: str
+) -> Dict[str, object]:
+    metadata: Dict[str, object] = {}
+    for symbol_name in _module_metadata_symbol_candidates(identifier):
+        func = getattr(library, symbol_name, None)
+        if func is None:
+            continue
+        try:
+            func.restype = ctypes.c_char_p
+        except AttributeError:
+            continue
+        raw_value = func()
+        if not raw_value:
+            return {}
+        try:
+            decoded = raw_value.decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ValueError(
+                f"Module '{identifier}' returned non-UTF-8 compatibility metadata"
+            ) from error
+        try:
+            parsed: Any = json.loads(decoded)
+        except json.JSONDecodeError as error:
+            raise ValueError(
+                f"Module '{identifier}' returned invalid JSON compatibility metadata"
+            ) from error
+        if not isinstance(parsed, Mapping):
+            raise ValueError(
+                f"Module '{identifier}' metadata must decode to a mapping"
+            )
+        normalized: Dict[str, object] = {}
+        for key, value in parsed.items():
+            if not isinstance(key, str):
+                raise ValueError(
+                    f"Module '{identifier}' metadata keys must be strings"
+                )
+            normalized[key] = value
+        metadata = normalized
+        break
+    return metadata
 
 
 class EngineRuntimeHandle:

@@ -19,6 +19,8 @@
 - `EngineRuntimeHandle.load_modules()` validates that each module name reported by the runtime is unique and aborts with a
   descriptive error if duplicates appear, preventing partially constructed module maps when subsystem registration is
   misconfigured.
+- `EngineModuleHandle.compatibility_metadata()` parses JSON metadata exported by modules before the runtime initialises, allowing
+  diagnostics to flag ABI or build skew without touching subsystem state.
 - `EngineRuntimeHandle` implements the context manager protocol. Use `with loader.load_runtime() as runtime:` to automatically
   initialise the runtime on entry and shut it down on exit. When the runtime was already initialised, the context manager
   preserves the existing lifetime so shared handles remain valid.
@@ -36,4 +38,5 @@
 
 ## TODO / Next Steps
 
-- Surface ABI/compatibility metadata when loading modules so diagnostics can highlight version skew before runtime initialises.
+- Expand metadata reporting to include structured provenance across dependent modules so
+  diagnostics can highlight incompatibility chains automatically.
