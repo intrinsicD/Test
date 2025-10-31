@@ -20,6 +20,9 @@ __all__ = [
     "ConfigurationSchemaError",
     "DatasetManifest",
     "DatasetEntry",
+    "DatasetProvenance",
+    "DatasetLicenseInfo",
+    "DatasetProvenanceLink",
     "RemeshingTargets",
     "FeaturePreservation",
     "EdgeLengthMetrics",
@@ -481,6 +484,112 @@ class DatasetStatistics:
 
 
 @dataclass(frozen=True)
+class DatasetLicenseInfo:
+    name: str
+    url: Optional[str]
+    notes: Optional[str]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "DatasetLicenseInfo":
+        name = _require_string(data.get("name"), _child(context, "name"))
+        url = None
+        if "url" in data:
+            url = _require_string(data.get("url"), _child(context, "url"))
+        notes = None
+        if "notes" in data:
+            notes = _require_string(data.get("notes"), _child(context, "notes"))
+        return cls(name=name, url=url, notes=notes)
+
+    def to_mapping(self) -> Dict[str, object]:
+        payload: Dict[str, object] = {"name": self.name}
+        if self.url is not None:
+            payload["url"] = self.url
+        if self.notes is not None:
+            payload["notes"] = self.notes
+        return payload
+
+
+@dataclass(frozen=True)
+class DatasetProvenanceLink:
+    label: Optional[str]
+    url: str
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "DatasetProvenanceLink":
+        url = _require_string(data.get("url"), _child(context, "url"))
+        label = None
+        if "label" in data:
+            label = _require_string(data.get("label"), _child(context, "label"))
+        return cls(label=label, url=url)
+
+    def to_mapping(self) -> Dict[str, object]:
+        payload: Dict[str, object] = {"url": self.url}
+        if self.label is not None:
+            payload["label"] = self.label
+        return payload
+
+
+@dataclass(frozen=True)
+class DatasetProvenance:
+    summary: str
+    license: DatasetLicenseInfo
+    source: Optional[str]
+    attribution: Optional[str]
+    links: Tuple[DatasetProvenanceLink, ...]
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, object], context: str) -> "DatasetProvenance":
+        summary = _require_string(data.get("summary"), _child(context, "summary"))
+        license_info = DatasetLicenseInfo.from_mapping(
+            _require_mapping(data.get("license"), _child(context, "license")),
+            _child(context, "license"),
+        )
+
+        source = None
+        if "source" in data:
+            source = _require_string(data.get("source"), _child(context, "source"))
+
+        attribution = None
+        if "attribution" in data:
+            attribution = _require_string(data.get("attribution"), _child(context, "attribution"))
+
+        links_value: Optional[Sequence[object]] = None
+        if "links" in data:
+            links_value = _require_sequence(data.get("links"), _child(context, "links"))
+
+        links: MutableSequence[DatasetProvenanceLink] = []
+        if links_value is not None:
+            for index, link in enumerate(links_value):
+                links.append(
+                    DatasetProvenanceLink.from_mapping(
+                        _require_mapping(link, _child(context, f"links[{index}]")),
+                        _child(context, f"links[{index}]"),
+                    )
+                )
+
+        return cls(
+            summary=summary,
+            license=license_info,
+            source=source,
+            attribution=attribution,
+            links=tuple(links),
+        )
+
+    def to_mapping(self) -> Dict[str, object]:
+        payload: Dict[str, object] = {
+            "summary": self.summary,
+            "license": self.license.to_mapping(),
+        }
+        if self.source is not None:
+            payload["source"] = self.source
+        if self.attribution is not None:
+            payload["attribution"] = self.attribution
+        if self.links:
+            payload["links"] = [link.to_mapping() for link in self.links]
+        return payload
+
+
+@dataclass(frozen=True)
 class DatasetEntry:
     identifier: str
     schema_id: str
@@ -501,6 +610,7 @@ class DatasetEntry:
     output_metrics: MeshMetrics
     parameterization: Optional[ParameterizationSummary]
     statistics: DatasetStatistics
+    provenance: Optional[DatasetProvenance]
     job_label: Optional[str] = None
 
     @classmethod
@@ -566,6 +676,13 @@ class DatasetEntry:
         source = _require_mapping(data.get("source"), _child(context, "source"))
         outputs = _require_mapping(data.get("outputs"), _child(context, "outputs"))
 
+        provenance: Optional[DatasetProvenance] = None
+        if "provenance" in data:
+            provenance = DatasetProvenance.from_mapping(
+                _require_mapping(data.get("provenance"), _child(context, "provenance")),
+                _child(context, "provenance"),
+            )
+
         source_mesh_sha256 = None
         if "mesh_sha256" in source:
             source_mesh_sha256 = _require_sha256(source.get("mesh_sha256"), _child(context, "source.mesh_sha256"))
@@ -593,6 +710,10 @@ class DatasetEntry:
                 raise ConfigurationSchemaError(
                     f"{_child(context, 'outputs')} must include mesh_sha256 and mesh_size_bytes when schema.version >= 2"
                 )
+            if provenance is None:
+                raise ConfigurationSchemaError(
+                    f"{_child(context, 'provenance')} must be present when schema.version >= 2"
+                )
 
         return cls(
             identifier=identifier,
@@ -614,6 +735,7 @@ class DatasetEntry:
             output_metrics=output_metrics,
             parameterization=parameterization,
             statistics=statistics,
+            provenance=provenance,
             job_label=_require_string(data.get("job_label"), _child(context, "job_label"))
             if "job_label" in data
             else None,
