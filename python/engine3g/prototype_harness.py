@@ -11,7 +11,7 @@ import re
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
-from typing import Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
+from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from .config_schema import (
     Ai004Configuration,
@@ -27,6 +27,7 @@ from .config_schema import (
     TelemetryConfig,
     TelemetryOutputConfig,
 )
+from .case_studies import CaseStudyError, describe_case_studies
 from .loader import EngineRuntimeHandle, EngineLibraryNotFound, load_runtime
 
 __all__ = [
@@ -39,6 +40,7 @@ __all__ = [
     "DatasetAssetStatus",
     "DatasetSummary",
     "HarnessConfigurationSummary",
+    "CaseStudySummary",
     "InteractiveHarnessSession",
     "HarnessBenchmarkSummary",
     "HarnessTelemetrySummary",
@@ -116,6 +118,8 @@ class HarnessExecutionOptions:
     rendering_preset: Optional[str] = None
     shading_mode: Optional[str] = None
     overlays: Optional[Mapping[str, bool]] = None
+    resolution_width: Optional[int] = None
+    resolution_height: Optional[int] = None
 
     runtime_profile: Optional[str] = None
 
@@ -161,6 +165,16 @@ class HarnessExecutionOptions:
             for key in self.overlays:
                 if not key:
                     raise PrototypeHarnessError("overlay keys must be non-empty strings")
+        if self.resolution_width is not None:
+            if self.resolution_width <= 0:
+                raise PrototypeHarnessError(
+                    "resolution_width must be greater than zero when provided"
+                )
+        if self.resolution_height is not None:
+            if self.resolution_height <= 0:
+                raise PrototypeHarnessError(
+                    "resolution_height must be greater than zero when provided"
+                )
 
 
 @dataclass(frozen=True)
@@ -174,6 +188,8 @@ class HarnessRunSummary:
     shading_mode: Optional[str]
     frames_executed: int
     timestep_seconds: float
+    resolution_width: Optional[int] = None
+    resolution_height: Optional[int] = None
     average_tick_ms: Optional[float] = None
     dispatch_order: Tuple[str, ...] = ()
     dispatch_durations_ms: Tuple[float, ...] = ()
@@ -499,6 +515,44 @@ class HarnessTelemetrySummary:
 
 
 @dataclass(frozen=True)
+class CaseStudySummary:
+    """Metadata describing a packaged case study configuration."""
+
+    identifier: str
+    label: str
+    description: str
+    tags: Tuple[str, ...]
+    config: Optional[str]
+    config_absolute: str
+    default_dataset: Optional[str]
+    default_rendering_preset: Optional[str]
+    default_runtime_profile: Optional[str]
+    default_shading_mode: Optional[str]
+    default_resolution_width: Optional[int]
+    default_resolution_height: Optional[int]
+    default_overlays: Mapping[str, bool]
+    benchmark_scenarios: Tuple[str, ...]
+
+    def to_dict(self) -> Dict[str, object]:
+        return {
+            "id": self.identifier,
+            "label": self.label,
+            "description": self.description,
+            "tags": list(self.tags),
+            "config": self.config,
+            "config_absolute": self.config_absolute,
+            "default_dataset": self.default_dataset,
+            "default_rendering_preset": self.default_rendering_preset,
+            "default_runtime_profile": self.default_runtime_profile,
+            "default_shading_mode": self.default_shading_mode,
+            "default_resolution_width": self.default_resolution_width,
+            "default_resolution_height": self.default_resolution_height,
+            "default_overlays": dict(self.default_overlays),
+            "benchmark_scenarios": list(self.benchmark_scenarios),
+        }
+
+
+@dataclass(frozen=True)
 class HarnessConfigurationSummary:
     """Human-readable description of the harness configuration."""
 
@@ -512,6 +566,8 @@ class HarnessConfigurationSummary:
     runtime: RuntimeSummary
     telemetry: Optional[HarnessTelemetrySummary]
     benchmarks: Optional[HarnessBenchmarkSummary]
+    case_studies: Tuple[CaseStudySummary, ...]
+    selected_case_study: Optional[str]
 
     def to_dict(self) -> Dict[str, object]:
         return {
@@ -525,7 +581,107 @@ class HarnessConfigurationSummary:
             "runtime": self.runtime.to_dict(),
             "telemetry": self.telemetry.to_dict() if self.telemetry else None,
             "benchmarks": self.benchmarks.to_dict() if self.benchmarks else None,
+            "case_studies": [case.to_dict() for case in self.case_studies],
+            "selected_case_study": self.selected_case_study,
         }
+
+
+def _collect_case_studies(
+    *, project_root: Optional[Path], config_directory: Optional[Path]
+) -> Tuple[CaseStudySummary, ...]:
+    """Load case study metadata and defaults for UI integrations."""
+
+    base_directory = project_root or config_directory or Path.cwd()
+    try:
+        metadata = describe_case_studies(relative_to=base_directory)
+    except CaseStudyError as error:
+        raise PrototypeHarnessError(f"failed to enumerate case studies: {error}") from error
+
+    if not metadata:
+        return tuple()
+
+    from .config_schema import load_configuration  # Local import to avoid cycles
+
+    summaries: List[CaseStudySummary] = []
+    for entry in metadata:
+        identifier = str(entry.get("id", "")).strip()
+        if not identifier:
+            continue
+
+        label = str(entry.get("label", identifier))
+        description = str(entry.get("description", ""))
+        tags_raw = entry.get("tags", [])
+        tags: Tuple[str, ...]
+        if isinstance(tags_raw, (list, tuple)):
+            tags = tuple(str(tag) for tag in tags_raw)
+        else:
+            tags = tuple()
+
+        config_value = entry.get("config")
+        config_absolute_str = str(entry.get("config_absolute", "")).strip()
+        config_path = Path(config_absolute_str)
+        if not config_path.exists():
+            raise PrototypeHarnessError(
+                f"case study '{identifier}' references missing configuration '{config_absolute_str}'"
+            )
+
+        try:
+            configuration = load_configuration(config_path, require_schema=True)
+        except ConfigurationSchemaError as error:
+            raise PrototypeHarnessError(
+                f"case study '{identifier}' failed to load configuration: {error}"
+            ) from error
+
+        dataset_identifier = configuration.runtime.dataset if configuration.runtime else None
+
+        rendering = configuration.rendering
+        if rendering is not None:
+            resolution_width: Optional[int] = rendering.width
+            resolution_height: Optional[int] = rendering.height
+            shading_mode = rendering.shading_mode
+            rendering_preset = rendering.preset
+            overlays = {
+                "normals": rendering.overlay_normals,
+                "uv": rendering.overlay_uv,
+                "material": rendering.overlay_material,
+                "light_volume": rendering.overlay_light_volume,
+            }
+        else:
+            resolution_width = None
+            resolution_height = None
+            shading_mode = None
+            rendering_preset = None
+            overlays = {}
+
+        runtime_profile: Optional[str] = None
+        benchmark_scenarios: List[str] = []
+        if configuration.benchmarks is not None:
+            for scenario in configuration.benchmarks.scenarios:
+                benchmark_scenarios.append(scenario.identifier)
+                if runtime_profile is None and scenario.runtime_profile:
+                    runtime_profile = scenario.runtime_profile
+
+        summaries.append(
+            CaseStudySummary(
+                identifier=identifier,
+                label=label,
+                description=description,
+                tags=tags,
+                config=str(config_value) if config_value is not None else None,
+                config_absolute=str(config_path),
+                default_dataset=dataset_identifier,
+                default_rendering_preset=rendering_preset,
+                default_runtime_profile=runtime_profile,
+                default_shading_mode=shading_mode,
+                default_resolution_width=resolution_width,
+                default_resolution_height=resolution_height,
+                default_overlays=MappingProxyType({key: bool(value) for key, value in overlays.items()}),
+                benchmark_scenarios=tuple(benchmark_scenarios),
+            )
+        )
+
+    summaries.sort(key=lambda item: item.identifier)
+    return tuple(summaries)
 
 
 class InteractiveHarnessSession:
@@ -661,14 +817,21 @@ class InteractiveHarnessSession:
         )
         rendering_preset = None
         shading_mode = self.shading_mode
-        if self._active_rendering_config is not None:
-            rendering_preset = self._active_rendering_config.preset
+        resolution_width: Optional[int] = None
+        resolution_height: Optional[int] = None
+        active_config = self._active_rendering_config or self._base_rendering_config
+        if active_config is not None:
+            rendering_preset = active_config.preset
+            resolution_width = active_config.width
+            resolution_height = active_config.height
         return HarnessRunSummary(
             dataset_id=dataset_id,
             scenario_label=self._scenario_label,
             runtime_profile=self._runtime_profile,
             rendering_preset=rendering_preset,
             shading_mode=shading_mode,
+            resolution_width=resolution_width,
+            resolution_height=resolution_height,
             frames_executed=self._frames_executed,
             timestep_seconds=self._timestep,
             average_tick_ms=self._runtime.average_tick_ms(),
@@ -726,6 +889,7 @@ class PrototypeHarness:
         asset_search_paths: Sequence[Path | str] | None = None,
         project_root: Path | None = None,
         config_directory: Path | None = None,
+        case_study_id: Optional[str] = None,
     ) -> None:
         self._configuration = configuration
         self._runtime_factory = runtime_factory or load_runtime
@@ -749,6 +913,20 @@ class PrototypeHarness:
             and configuration.runtime.scene_manifest is not None
         ):
             self._runtime_scene_manifest = self._verify_scene_manifest(configuration.runtime.scene_manifest)
+
+        self._case_studies = _collect_case_studies(
+            project_root=self._project_root,
+            config_directory=self._config_directory,
+        )
+        normalized_case_study: Optional[str] = None
+        if case_study_id is not None:
+            candidate = case_study_id.strip()
+            if candidate:
+                for case in self._case_studies:
+                    if case.identifier == candidate:
+                        normalized_case_study = candidate
+                        break
+        self._selected_case_study = normalized_case_study
 
     @property
     def configuration(self) -> Ai004Configuration:
@@ -835,6 +1013,10 @@ class PrototypeHarness:
                 overlay_material=overrides.get("material", updated.overlay_material),
                 overlay_light_volume=overrides.get("light_volume", updated.overlay_light_volume),
             )
+        if options.resolution_width is not None or options.resolution_height is not None:
+            width = options.resolution_width if options.resolution_width is not None else updated.width
+            height = options.resolution_height if options.resolution_height is not None else updated.height
+            updated = replace(updated, width=width, height=height)
         return updated
 
     def describe_configuration(self) -> HarnessConfigurationSummary:
@@ -867,6 +1049,8 @@ class PrototypeHarness:
             runtime=runtime_summary,
             telemetry=telemetry_summary,
             benchmarks=benchmark_summary,
+            case_studies=self._case_studies,
+            selected_case_study=self._selected_case_study,
         )
 
     def describe_selected_dataset(self) -> Optional[DatasetSummary]:
@@ -1064,12 +1248,17 @@ class PrototypeHarness:
             execution=execution_with_profile,
         )
 
+        resolution_width: Optional[int] = rendering.width if rendering else None
+        resolution_height: Optional[int] = rendering.height if rendering else None
+
         if execution_with_profile.dry_run:
             return HarnessRunSummary(
                 dataset_id=selected_dataset.identifier if selected_dataset else None,
                 runtime_profile=active_runtime_profile,
                 rendering_preset=rendering.preset if rendering else None,
                 shading_mode=rendering.shading_mode if rendering else None,
+                resolution_width=resolution_width,
+                resolution_height=resolution_height,
                 frames_executed=0,
                 timestep_seconds=execution_with_profile.dt,
                 average_tick_ms=None,
@@ -1116,6 +1305,8 @@ class PrototypeHarness:
             runtime_profile=active_runtime_profile,
             rendering_preset=rendering.preset if rendering else None,
             shading_mode=rendering.shading_mode if rendering else None,
+            resolution_width=resolution_width,
+            resolution_height=resolution_height,
             frames_executed=frames_executed,
             timestep_seconds=execution_with_profile.dt,
             average_tick_ms=average_tick_ms,
@@ -1671,6 +1862,7 @@ def load_harness(
     *,
     runtime_factory: RuntimeFactory | None = None,
     require_schema: bool | None = None,
+    case_study_id: Optional[str] = None,
 ) -> PrototypeHarness:
     """Load an AI-004 configuration from *path* and construct a harness."""
 
@@ -1697,6 +1889,7 @@ def load_harness(
         asset_search_paths=asset_paths,
         project_root=project_root,
         config_directory=config_path.parent.resolve(),
+        case_study_id=case_study_id,
     )
 
 
@@ -1714,12 +1907,17 @@ def summarize(summary: HarnessRunSummary) -> str:
     dispatch = (
         f" dispatches={len(summary.dispatch_order)}" if summary.dispatch_order else ""
     )
+    resolution = ""
+    if summary.resolution_width is not None and summary.resolution_height is not None:
+        resolution = (
+            f" resolution={summary.resolution_width}x{summary.resolution_height}"
+        )
     run = ""
     if summary.run_index is not None and summary.run_count is not None:
         run = f" run={summary.run_index}/{summary.run_count}"
     return (
         f"{scenario}runtime={runtime_profile} dataset={dataset} preset={preset} shading={shading} "
-        f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}{run}{dispatch}"
+        f"frames={summary.frames_executed} dt={summary.timestep_seconds:.6f}{average}{resolution}{run}{dispatch}"
     )
 
 
@@ -1738,6 +1936,8 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
         "runtime_profile": summary.runtime_profile,
         "rendering_preset": summary.rendering_preset,
         "shading_mode": summary.shading_mode,
+        "resolution_width": summary.resolution_width,
+        "resolution_height": summary.resolution_height,
         "frames": summary.frames_executed,
         "timestep_seconds": summary.timestep_seconds,
         "average_tick_ms": summary.average_tick_ms,
