@@ -1,4 +1,5 @@
 #include "engine/tools/sandbox/experiment_sandbox.hpp"
+#include "engine/tools/sandbox/benchmark_runner.hpp"
 
 #include <imgui.h>
 
@@ -316,6 +317,35 @@ namespace engine::tools::sandbox
         {
             callbacks_.on_algorithm_selected(preferences_.selected_algorithm_variant);
         }
+    }
+
+    void ExperimentSandbox::set_comparative_benchmark_runner(std::shared_ptr<ComparativeBenchmarkRunner> runner)
+    {
+        comparative_runner_ = std::move(runner);
+    }
+
+    std::optional<SandboxBenchmarkResult> ExperimentSandbox::run_active_benchmark()
+    {
+        if (callbacks_.on_run_benchmark)
+        {
+            return callbacks_.on_run_benchmark(preferences_);
+        }
+
+        if (comparative_runner_ && summary_.benchmarks)
+        {
+            if (const auto* scenario = find_active_benchmark_scenario())
+            {
+                return comparative_runner_->run(*scenario, preferences_);
+            }
+
+            SandboxBenchmarkResult result{};
+            result.success = false;
+            result.headline = "No matching benchmark scenario";
+            result.details = "The current selection does not match any comparative benchmark scenario.";
+            return result;
+        }
+
+        return std::nullopt;
     }
 
     void ExperimentSandbox::render()
@@ -884,9 +914,9 @@ namespace engine::tools::sandbox
 
         if (ImGui::Button("Run Benchmark"))
         {
-            if (callbacks_.on_run_benchmark)
+            if (auto result = run_active_benchmark())
             {
-                apply_benchmark_result(callbacks_.on_run_benchmark(preferences_));
+                apply_benchmark_result(*result);
             }
         }
 
@@ -1291,6 +1321,47 @@ namespace engine::tools::sandbox
                 callbacks_.on_rendering_changed(preferences_);
             }
         }
+    }
+
+    const BenchmarkScenarioDescriptor* ExperimentSandbox::find_active_benchmark_scenario() const
+    {
+        if (!summary_.benchmarks)
+        {
+            return nullptr;
+        }
+
+        const auto& scenarios = summary_.benchmarks->scenarios;
+        if (scenarios.empty())
+        {
+            return nullptr;
+        }
+
+        const auto matches = [&](const BenchmarkScenarioDescriptor& descriptor) {
+            if (!descriptor.dataset.empty() && descriptor.dataset != preferences_.selected_dataset)
+            {
+                return false;
+            }
+            if (!descriptor.runtime_profile.empty()
+                && descriptor.runtime_profile != preferences_.selected_algorithm_variant)
+            {
+                return false;
+            }
+            if (!descriptor.rendering_preset.empty() && descriptor.rendering_preset != preferences_.selected_preset)
+            {
+                return false;
+            }
+            return true;
+        };
+
+        for (const auto& scenario : scenarios)
+        {
+            if (matches(scenario))
+            {
+                return &scenario;
+            }
+        }
+
+        return &scenarios.front();
     }
 
     void ExperimentSandbox::apply_benchmark_result(SandboxBenchmarkResult result)

@@ -1,7 +1,9 @@
 #include "engine/tools/sandbox/experiment_sandbox.hpp"
+#include "engine/tools/sandbox/benchmark_runner.hpp"
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <filesystem>
 #include <system_error>
 
@@ -72,8 +74,52 @@ namespace
         runtime.hot_reload.watch_interval_seconds = 0.5;
 
         summary.runtime = runtime;
+
+        BenchmarkMetricDescriptor benchmark_metric{};
+        benchmark_metric.name = "fps";
+        benchmark_metric.higher_is_better = true;
+        benchmark_metric.threshold.mode = "relative";
+        benchmark_metric.threshold.limit = 0.1;
+
+        BenchmarkScenarioDescriptor benchmark{};
+        benchmark.identifier = "dataset_a_baseline";
+        benchmark.name = "Dataset A Baseline";
+        benchmark.dataset = dataset_a.identifier;
+        benchmark.rendering_preset = preset.identifier;
+        benchmark.runtime_profile = variant.identifier;
+        benchmark.engine.output = "{output_dir}/{scenario}_engine.json";
+        benchmark.reference.output = "{output_dir}/{scenario}_reference.json";
+        benchmark.metrics = {benchmark_metric};
+
+        BenchmarkConfigurationDescriptor benchmarks{};
+        benchmarks.schema_version = 1;
+        benchmarks.scenarios = {benchmark};
+        summary.benchmarks = benchmarks;
         return summary;
     }
+
+    class RecordingComparativeRunner final : public ComparativeBenchmarkRunner
+    {
+    public:
+        RecordingComparativeRunner()
+            : ComparativeBenchmarkRunner({}, std::filesystem::temp_directory_path())
+        {
+        }
+
+        mutable int call_count{0};
+        mutable std::string last_scenario;
+        mutable std::string last_dataset;
+        SandboxBenchmarkResult next_result{};
+
+        SandboxBenchmarkResult run(const BenchmarkScenarioDescriptor& scenario,
+                                   const SandboxPreferences& preferences) const override
+        {
+            ++call_count;
+            last_scenario = scenario.identifier;
+            last_dataset = preferences.selected_dataset;
+            return next_result;
+        }
+    };
 }
 
 TEST(ExperimentSandbox, DefaultsToSummarySelection)
@@ -309,6 +355,52 @@ TEST(ExperimentSandbox, RecordsBenchmarkResult)
     EXPECT_TRUE(stored->success);
     EXPECT_EQ(stored->headline, result.headline);
     EXPECT_EQ(stored->details, result.details);
+}
+
+TEST(ExperimentSandbox, RunsComparativeBenchmarkWhenConfigured)
+{
+    ExperimentSandbox sandbox;
+    auto summary = make_summary();
+    sandbox.set_configuration(summary);
+
+    auto runner = std::make_shared<RecordingComparativeRunner>();
+    SandboxBenchmarkResult stub{};
+    stub.success = true;
+    stub.headline = "Comparative benchmark succeeded";
+    stub.details = "PASS scenario";
+    runner->next_result = stub;
+    sandbox.set_comparative_benchmark_runner(runner);
+
+    const auto result = sandbox.run_active_benchmark();
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->headline, stub.headline);
+    EXPECT_EQ(runner->call_count, 1);
+    ASSERT_TRUE(summary.benchmarks.has_value());
+    EXPECT_EQ(runner->last_scenario, summary.benchmarks->scenarios.front().identifier);
+    EXPECT_EQ(runner->last_dataset, sandbox.preferences().selected_dataset);
+}
+
+TEST(ExperimentSandbox, FallbacksToFirstScenarioWhenNoMatch)
+{
+    ExperimentSandbox sandbox;
+    auto summary = make_summary();
+    sandbox.set_configuration(summary);
+
+    auto runner = std::make_shared<RecordingComparativeRunner>();
+    runner->next_result.success = false;
+    runner->next_result.headline = "Comparative benchmark failed";
+    sandbox.set_comparative_benchmark_runner(runner);
+
+    SandboxPreferences preferences = sandbox.preferences();
+    preferences.selected_dataset = "missing";
+    sandbox.set_preferences(preferences);
+
+    const auto result = sandbox.run_active_benchmark();
+    ASSERT_TRUE(result.has_value());
+    EXPECT_FALSE(result->success);
+    EXPECT_EQ(runner->call_count, 1);
+    ASSERT_TRUE(summary.benchmarks.has_value());
+    EXPECT_EQ(runner->last_scenario, summary.benchmarks->scenarios.front().identifier);
 }
 
 TEST(ExperimentSandbox, DatasetSelectionInvokesCallback)

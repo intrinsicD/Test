@@ -141,10 +141,24 @@ errors resolved via validator logs.
 2. Use dataset and preset selectors to drive the harness; the UI mirrors the
    schema-defined fields.
 3. Persist layout and preferences on shutdown (stored in `$XDG_CONFIG_HOME`).
-4. Export benchmark captures from the sandbox to feed comparative automation.
+4. Bind comparative automation:
+   ```cpp
+   auto runner = std::make_shared<ComparativeBenchmarkRunner>(
+       std::vector<std::string>{
+           "python",
+           (project_root / "scripts/benchmarks/run_comparative_benchmarks.py").string(),
+       },
+       outputs_dir);
+   sandbox.set_comparative_benchmark_runner(runner);
+   ```
+5. Trigger `ExperimentSandbox::run_active_benchmark()` (or press the "Run
+   Benchmark" button) to execute the CC-310 orchestrator for the currently
+   selected scenario. Mismatched selections fall back to the first scenario and
+   the UI annotates the result with warnings so operators can align their state.
+6. Export benchmark captures from the sandbox to feed comparative automation.
 
 **Checklist:** UI booted with schema-compliant config, preferences saved,
-benchmark actions produce harness summaries.
+benchmark actions produce harness and comparative summaries.
 
 ---
 

@@ -199,6 +199,35 @@ The sandbox automatically displays the returned `SandboxBenchmarkResult`,
 highlighting success in green and errors in red, while preserving the summary
 file for audit trails.
 
+`ComparativeBenchmarkRunner` extends this workflow to the
+[`scripts/benchmarks/run_comparative_benchmarks.py`](../../../scripts/benchmarks/run_comparative_benchmarks.py)
+orchestrator. Instantiate it with the Python interpreter + script prefix and a
+working directory for temporary configurations:
+
+```cpp
+auto comparative_runner = std::make_shared<ComparativeBenchmarkRunner>(
+    std::vector<std::string>{
+        "python",
+        (project_root / "scripts/benchmarks/run_comparative_benchmarks.py").string(),
+    },
+    summaries_dir);
+
+sandbox.set_comparative_benchmark_runner(comparative_runner);
+```
+
+When configured, the sandbox "Run Benchmark" button automatically selects the
+scenario whose dataset/runtime profile/rendering preset match the active
+preferences, writes the comparative config to disk, executes the orchestrator,
+and parses the resulting JSON/CSV summaries into a `SandboxBenchmarkResult`.
+Scenario and metric failures are surfaced inline, while summary/table paths are
+preserved for audit trails. If the current selection does not match any scenario
+the sandbox falls back to the first declared scenario and annotates the result
+with mismatch warnings so the operator can reconcile their selections.
+
+Programmatic integrations can call `ExperimentSandbox::run_active_benchmark()`
+to mirror the button without synthesising ImGui input, making automation
+scripts deterministic.
+
 ## Runtime Packaging
 
 Automate runtime artifact packaging for distribution:

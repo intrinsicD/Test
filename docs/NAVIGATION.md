@@ -62,6 +62,7 @@
 - **Telemetry:** [`design/TELEMETRY_SCHEMA.md`](design/TELEMETRY_SCHEMA.md), [`design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](design/TELEMETRY_INSTRUMENTATION_GUIDE.md)
 - **Error Handling:** [`design/ERROR_HANDLING_MIGRATION.md`](design/ERROR_HANDLING_MIGRATION.md)
 - **Resource Management:** [`design/RESOURCE_MANAGEMENT.md`](design/RESOURCE_MANAGEMENT.md)
+- **Accessibility:** [`design/TL-210-accessibility-checklist.md`](design/TL-210-accessibility-checklist.md)
 - **Backlog Template:** [`backlog/README.md`](backlog/README.md)
 - **Architecture Reviews:** [`reviews/2025-10-26-architecture-audit.md`](reviews/2025-10-26-architecture-audit.md), [`reviews/2025-12-05-roadmap-direction-review.md`](reviews/2025-12-05-roadmap-direction-review.md), [`reviews/2026-01-08-application-readiness-assessment.md`](reviews/2026-01-08-application-readiness-assessment.md), [`reviews/2026-02-10-comprehensive-architecture-evaluation.md`](reviews/2026-02-10-comprehensive-architecture-evaluation.md)
 
