@@ -322,6 +322,8 @@ ctest --preset linux-gcc-debug -R assets
     python -m scripts.datasets.ingest_dataset assets/datasets/<name>/manifest.json \
         --output artifacts/datasets --require-schema
     ```
+  - Ingestion now rejects duplicate dataset identifiers across the provided
+    manifests so packaging runs cannot overwrite caches silently.
   - The ingestion CLI writes integrity summaries (`ingestion.json`) capturing
     byte sizes, SHA-256 hashes, provenance, and remeshing statistics so runtime
     consumers can audit caches.
