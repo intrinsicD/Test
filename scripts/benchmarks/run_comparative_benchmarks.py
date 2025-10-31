@@ -57,9 +57,10 @@ import argparse
 import csv
 import json
 import math
+import os
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Dict, List, Mapping, Optional, Sequence
 
@@ -150,8 +151,9 @@ class MetricResult:
     relative_delta: Optional[float]
     passed: bool
     regression_amount: float
+    plot_path: Optional[Path] = None
 
-    def as_dict(self) -> Mapping[str, object]:
+    def as_dict(self, *, base_dir: Optional[Path] = None) -> Mapping[str, object]:
         payload: Dict[str, object] = {
             "name": self.spec.name,
             "engine_value": self.engine_value,
@@ -167,6 +169,14 @@ class MetricResult:
         }
         if self.relative_delta is not None:
             payload["relative_delta"] = self.relative_delta
+        if self.plot_path is not None:
+            plot_path = self.plot_path
+            if base_dir is not None:
+                try:
+                    plot_path = plot_path.relative_to(base_dir)
+                except ValueError:
+                    plot_path = Path(os.path.relpath(plot_path, base_dir))
+            payload["plot"] = str(plot_path)
         return payload
 
 
@@ -181,12 +191,12 @@ class ScenarioResult:
     def passed(self) -> bool:
         return all(metric.passed for metric in self.metrics)
 
-    def as_dict(self) -> Mapping[str, object]:
+    def as_dict(self, *, base_dir: Optional[Path] = None) -> Mapping[str, object]:
         return {
             "name": self.scenario.name,
             "dataset": self.scenario.dataset,
             "passed": self.passed,
-            "metrics": [metric.as_dict() for metric in self.metrics],
+            "metrics": [metric.as_dict(base_dir=base_dir) for metric in self.metrics],
         }
 
 
@@ -200,10 +210,10 @@ class BenchmarkSummary:
     def passed(self) -> bool:
         return all(result.passed for result in self.results)
 
-    def as_dict(self) -> Mapping[str, object]:
+    def as_dict(self, *, base_dir: Optional[Path] = None) -> Mapping[str, object]:
         return {
             "passed": self.passed,
-            "scenarios": [result.as_dict() for result in self.results],
+            "scenarios": [result.as_dict(base_dir=base_dir) for result in self.results],
         }
 
 
@@ -233,6 +243,16 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--table",
         type=Path,
         help="Optional path for the summary CSV output. Defaults to <output_dir>/comparative_summary.csv.",
+    )
+    parser.add_argument(
+        "--plot-dir",
+        type=Path,
+        help="Optional directory for generated SVG plots. Defaults to <output_dir>/plots.",
+    )
+    parser.add_argument(
+        "--no-plots",
+        action="store_true",
+        help="Disable plot generation even when summaries are written.",
     )
     parser.add_argument(
         "--dry-run",
@@ -287,7 +307,7 @@ def execute_benchmarks(config: BenchmarkConfig, *, dry_run: bool = False) -> Ben
 
 def write_summary(summary: BenchmarkSummary, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = summary.as_dict()
+    payload = summary.as_dict(base_dir=path.parent)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
 
@@ -374,6 +394,184 @@ def format_summary_text(summary: BenchmarkSummary) -> str:
     if not lines:
         return "No scenarios executed."
     return "\n".join(lines)
+
+
+def attach_plots(summary: BenchmarkSummary, output_dir: Path) -> BenchmarkSummary:
+    """Render comparative plots for *summary* into *output_dir* and attach paths."""
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    updated_results: List[ScenarioResult] = []
+    for scenario_result in summary.results:
+        updated_metrics: List[MetricResult] = []
+        for metric in scenario_result.metrics:
+            filename = _sanitise_filename(
+                f"{scenario_result.scenario.name}_{metric.spec.name}.svg"
+            )
+            plot_path = output_dir / filename
+            _render_metric_plot(
+                plot_path,
+                metric,
+                scenario_name=scenario_result.scenario.name,
+                dataset=scenario_result.scenario.dataset,
+            )
+            updated_metrics.append(replace(metric, plot_path=plot_path))
+        updated_results.append(
+            ScenarioResult(
+                scenario=scenario_result.scenario,
+                metrics=tuple(updated_metrics),
+            )
+        )
+    return BenchmarkSummary(results=tuple(updated_results))
+
+
+def _sanitise_filename(label: str) -> str:
+    path = Path(label)
+    stem = path.stem
+    suffix = path.suffix
+    safe_stem = "".join(ch if ch.isalnum() or ch in {"_", "-"} else "-" for ch in stem)
+    while "--" in safe_stem:
+        safe_stem = safe_stem.replace("--", "-")
+    safe_stem = safe_stem.strip("-") or "plot"
+    safe_suffix = suffix if suffix else ""
+    if safe_suffix and not safe_suffix.startswith("."):
+        safe_suffix = f".{safe_suffix}"
+    return f"{safe_stem}{safe_suffix}"
+
+
+def _render_metric_plot(
+    path: Path,
+    metric: MetricResult,
+    *,
+    scenario_name: str,
+    dataset: Optional[str],
+) -> None:
+    width = 520
+    height = 340
+    margin_left = 70
+    margin_right = 20
+    margin_top = 24
+    margin_bottom = 60
+    title = f"{scenario_name} — {metric.spec.name}"
+    if dataset:
+        title += f" (dataset: {dataset})"
+
+    values = {
+        "Engine": metric.engine_value,
+        "Reference": metric.reference_value,
+    }
+    min_value = min(*values.values(), 0.0)
+    max_value = max(*values.values(), 0.0)
+    if math.isclose(max_value, min_value):
+        max_value = min_value + 1.0
+
+    usable_height = height - margin_top - margin_bottom
+    usable_width = width - margin_left - margin_right
+
+    def _value_to_y(value: float) -> float:
+        scale = usable_height / (max_value - min_value)
+        return height - margin_bottom - (value - min_value) * scale
+
+    baseline_y = _value_to_y(0.0)
+
+    bar_width = usable_width / 4.0
+    spacing = bar_width
+    bar_positions = {
+        "Engine": margin_left + spacing,
+        "Reference": margin_left + spacing + bar_width + spacing,
+    }
+
+    passed_colour = "#2e8540" if metric.passed else "#c62828"
+    reference_colour = "#1565c0"
+
+    svg_lines = [
+        f"<svg xmlns='http://www.w3.org/2000/svg' width='{width}' height='{height}' viewBox='0 0 {width} {height}'>",
+        "  <rect x='0' y='0' width='{0}' height='{1}' fill='white'/>".format(width, height),
+        "  <text x='{x}' y='{y}' font-family='sans-serif' font-size='18' font-weight='bold'>{text}</text>".format(
+            x=margin_left,
+            y=margin_top,
+            text=_escape_svg_text(title),
+        ),
+    ]
+
+    # Axes
+    svg_lines.append(
+        "  <line x1='{x}' y1='{y1}' x2='{x}' y2='{y2}' stroke='#444' stroke-width='1.5'/>".format(
+            x=margin_left,
+            y1=margin_top,
+            y2=height - margin_bottom,
+        )
+    )
+    svg_lines.append(
+        "  <line x1='{x1}' y1='{y}' x2='{x2}' y2='{y}' stroke='#444' stroke-width='1.5'/>".format(
+            x1=margin_left,
+            x2=width - margin_right,
+            y=baseline_y,
+        )
+    )
+
+    for label, value in values.items():
+        x = bar_positions[label]
+        if value >= 0:
+            top = _value_to_y(value)
+            rect_y = top
+            rect_height = baseline_y - top
+        else:
+            top = _value_to_y(value)
+            rect_y = baseline_y
+            rect_height = top - baseline_y
+        rect_height = max(rect_height, 1.0)
+        colour = passed_colour if label == "Engine" else reference_colour
+        svg_lines.append(
+            "  <rect x='{x}' y='{y}' width='{w}' height='{h}' fill='{fill}' opacity='0.8'/>".format(
+                x=x,
+                y=rect_y,
+                w=bar_width,
+                h=rect_height,
+                fill=colour,
+            )
+        )
+        svg_lines.append(
+            "  <text x='{x}' y='{y}' font-family='sans-serif' font-size='14' text-anchor='middle'>{label}</text>".format(
+                x=x + bar_width / 2.0,
+                y=height - margin_bottom + 24,
+                label=_escape_svg_text(label),
+            )
+        )
+        svg_lines.append(
+            "  <text x='{x}' y='{y}' font-family='monospace' font-size='13' text-anchor='middle'>{value:.4f}</text>".format(
+                x=x + bar_width / 2.0,
+                y=rect_y - 8 if value >= 0 else rect_y + rect_height + 16,
+                value=value,
+            )
+        )
+
+    threshold = metric.spec.threshold.limit
+    if metric.spec.threshold.mode == "relative":
+        threshold_text = f"relative ≤ {threshold:.2%}"
+    else:
+        threshold_text = f"absolute ≤ {threshold:.4f}"
+
+    svg_lines.append(
+        "  <text x='{x}' y='{y}' font-family='sans-serif' font-size='13'>{text}</text>".format(
+            x=margin_left,
+            y=height - margin_bottom + 44,
+            text=_escape_svg_text(
+                f"Δ = {metric.delta:+.4f} ({'pass' if metric.passed else 'fail'}) — "
+                f"threshold {threshold_text}"
+            ),
+        )
+    )
+
+    svg_lines.append("</svg>")
+    path.write_text("\n".join(svg_lines), encoding="utf-8")
+
+
+def _escape_svg_text(text: str) -> str:
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
 
 
 def _load_raw_config(path: Path) -> Mapping[str, object]:
@@ -658,6 +856,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args = parse_args(argv)
         config = load_config(args.config)
         summary = execute_benchmarks(config, dry_run=args.dry_run)
+        if not args.no_plots:
+            plot_dir = args.plot_dir or config.output_dir / "plots"
+            summary = attach_plots(summary, plot_dir)
         summary_path = args.output or config.output_dir / "comparative_summary.json"
         write_summary(summary, summary_path)
         table_path = args.table or config.output_dir / "comparative_summary.csv"

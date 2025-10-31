@@ -1,6 +1,6 @@
 # Backlog Item CC-311 — Benchmark Visualisation Integration
 
-- **Status**: Planned
+- **Status**: Complete
 - **Priority**: 4
 - **Owner**: Performance Lead (with Tools support)
 - **Module(s)**: Scripts, Tools, Python, Docs
@@ -24,10 +24,10 @@ Once CC-310 produces comparative artefacts they must be consumable by humans and
 | Release Manager | Publish generated reports and ensure they are packaged with release artefacts. | Release Manager (98) |
 
 ## Definition of Done
-- [ ] Telemetry viewer offers a `compare` (or equivalent) subcommand that renders plots from CC-310 outputs.
-- [ ] Generated reports for both RT-321 case studies stored under `assets/benchmarks/` and linked from AI-004 docs.
-- [ ] CI job executes a reduced comparative suite and enforces ≤2% regression thresholds.
-- [ ] Benchmark playbook and telemetry documentation describe usage, troubleshooting, and CI integration.
+- [x] Telemetry viewer offers a `compare` (or equivalent) subcommand that renders plots from CC-310 outputs.
+- [x] Generated reports for both RT-321 case studies stored under `assets/benchmarks/` and linked from AI-004 docs.
+- [x] CI job executes a reduced comparative suite and enforces ≤2% regression thresholds.
+- [x] Benchmark playbook and telemetry documentation describe usage, troubleshooting, and CI integration.
 
 ## Dependencies
 - [`docs/backlog/active/CC-310-comparative-benchmark-automation.md`](CC-310-comparative-benchmark-automation.md)
@@ -41,3 +41,8 @@ Once CC-310 produces comparative artefacts they must be consumable by humans and
 
 ## Notes
 Coordinate with tools to expose comparative artefacts inside the sandbox telemetry panel. Track CI runtime budgets to keep added latency under five minutes.
+
+**2026-02-20** — `telemetry_viewer.py compare` now renders HTML reports from the
+CC-310 summary (with optional inline SVG). AI-004 case-study reports live under
+`assets/benchmarks/ai004/reports/`, and the benchmark playbook documents the
+workflow alongside the CI smoke helper.
