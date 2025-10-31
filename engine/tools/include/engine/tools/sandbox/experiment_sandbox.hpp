@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -230,12 +231,15 @@ namespace engine::tools::sandbox
         void update_telemetry(const TelemetrySnapshot& telemetry);
 
         void set_callbacks(SandboxCallbacks callbacks);
+        void set_comparative_benchmark_runner(std::shared_ptr<class ComparativeBenchmarkRunner> runner);
 
         void render();
 
         [[nodiscard]] const SandboxPreferences& preferences() const noexcept;
         [[nodiscard]] const TelemetrySnapshot& telemetry_snapshot() const noexcept;
         void set_preferences(const SandboxPreferences& preferences);
+
+        [[nodiscard]] std::optional<SandboxBenchmarkResult> run_active_benchmark();
 
         /**
          * @brief Select an algorithm variant programmatically and emit the callback.
@@ -294,12 +298,14 @@ namespace engine::tools::sandbox
         [[nodiscard]] bool matches_dataset_filter(std::string_view text) const;
         bool sync_overlay_preferences();
         void notify_preference_changes(const SandboxPreferences& previous);
+        [[nodiscard]] const BenchmarkScenarioDescriptor* find_active_benchmark_scenario() const;
 
         ExperimentConfigurationSummary summary_{};
         TelemetrySnapshot telemetry_{};
         SandboxCallbacks callbacks_{};
         SandboxPreferences preferences_{};
         std::optional<SandboxBenchmarkResult> last_benchmark_result_{};
+        std::shared_ptr<ComparativeBenchmarkRunner> comparative_runner_{};
 
         std::unordered_map<std::string, std::size_t> dataset_lookup_{};
         std::unordered_map<std::string, std::size_t> preset_lookup_{};

@@ -48,6 +48,23 @@ namespace
         ASSERT_TRUE(stream.is_open());
         stream << content;
     }
+
+    std::filesystem::path project_root()
+    {
+        auto source = std::filesystem::absolute(std::filesystem::path(__FILE__));
+        return source.parent_path().parent_path().parent_path();
+    }
+
+    std::filesystem::path create_metric_emitter(const std::filesystem::path& path)
+    {
+        write_file(path,
+                   "import json, pathlib, sys\n"
+                   "target = pathlib.Path(sys.argv[1])\n"
+                   "value = float(sys.argv[2])\n"
+                   "target.parent.mkdir(parents=True, exist_ok=True)\n"
+                   "target.write_text(json.dumps({'metrics': {'fps': value}}, indent=2), encoding='utf-8')\n");
+        return path;
+    }
 }
 
 TEST(PrototypeHarnessBenchmarkRunner, ExecutesSuccessfulBenchmark)
@@ -158,4 +175,90 @@ TEST(PrototypeHarnessBenchmarkRunner, ReportsFailure)
     const auto result = runner.run(preferences);
     EXPECT_FALSE(result.success);
     EXPECT_NE(result.headline.find("Benchmark failed"), std::string::npos);
+}
+
+TEST(ComparativeBenchmarkRunner, ExecutesComparativeScenario)
+{
+    const auto interpreter = find_python_interpreter();
+    if (!interpreter)
+    {
+        GTEST_SKIP() << "Python interpreter not available";
+    }
+
+    const auto orchestrator = project_root() / "scripts/benchmarks/run_comparative_benchmarks.py";
+    ASSERT_TRUE(std::filesystem::exists(orchestrator)) << "Missing comparative benchmark script";
+
+    const auto temp_dir = make_temp_directory("comparative_runner_success");
+    const auto emitter_path = create_metric_emitter(temp_dir / "emit_metrics.py");
+
+    ComparativeBenchmarkRunner runner({*interpreter, orchestrator.string()}, temp_dir);
+
+    BenchmarkScenarioDescriptor scenario{};
+    scenario.identifier = "remesh-baseline";
+    scenario.name = "remesh-baseline";
+    scenario.dataset = "demo";
+    scenario.rendering_preset = "research";
+    scenario.runtime_profile = "baseline";
+    scenario.engine.command = {*interpreter, emitter_path.string(), "{output_path}", "120.0"};
+    scenario.engine.output = "{output_dir}/{scenario}_engine.json";
+    scenario.reference.command = {*interpreter, emitter_path.string(), "{output_path}", "110.0"};
+    scenario.reference.output = "{output_dir}/{scenario}_reference.json";
+    BenchmarkMetricDescriptor metric{};
+    metric.name = "fps";
+    metric.higher_is_better = true;
+    metric.threshold.mode = "relative";
+    metric.threshold.limit = 0.25;
+    scenario.metrics.push_back(metric);
+
+    SandboxPreferences preferences{};
+    preferences.selected_dataset = "demo";
+    preferences.selected_preset = "research";
+    preferences.selected_algorithm_variant = "baseline";
+
+    const auto result = runner.run(scenario, preferences);
+    SCOPED_TRACE(result.details);
+    EXPECT_TRUE(result.success);
+    EXPECT_NE(result.headline.find("succeeded"), std::string::npos);
+    EXPECT_NE(result.details.find("PASS"), std::string::npos);
+}
+
+TEST(ComparativeBenchmarkRunner, ReportsRegression)
+{
+    const auto interpreter = find_python_interpreter();
+    if (!interpreter)
+    {
+        GTEST_SKIP() << "Python interpreter not available";
+    }
+
+    const auto orchestrator = project_root() / "scripts/benchmarks/run_comparative_benchmarks.py";
+    ASSERT_TRUE(std::filesystem::exists(orchestrator)) << "Missing comparative benchmark script";
+
+    const auto temp_dir = make_temp_directory("comparative_runner_failure");
+    const auto emitter_path = create_metric_emitter(temp_dir / "emit_metrics.py");
+
+    ComparativeBenchmarkRunner runner({*interpreter, orchestrator.string()}, temp_dir);
+
+    BenchmarkScenarioDescriptor scenario{};
+    scenario.identifier = "regression";
+    scenario.name = "regression";
+    scenario.dataset = "demo";
+    scenario.engine.command = {*interpreter, emitter_path.string(), "{output_path}", "90.0"};
+    scenario.engine.output = "{output_dir}/{scenario}_engine.json";
+    scenario.reference.command = {*interpreter, emitter_path.string(), "{output_path}", "110.0"};
+    scenario.reference.output = "{output_dir}/{scenario}_reference.json";
+    BenchmarkMetricDescriptor metric{};
+    metric.name = "fps";
+    metric.higher_is_better = true;
+    metric.threshold.mode = "relative";
+    metric.threshold.limit = 0.05;
+    scenario.metrics.push_back(metric);
+
+    SandboxPreferences preferences{};
+    preferences.selected_dataset = "demo";
+
+    const auto result = runner.run(scenario, preferences);
+    SCOPED_TRACE(result.details);
+    EXPECT_FALSE(result.success);
+    EXPECT_NE(result.headline.find("failed"), std::string::npos);
+    EXPECT_NE(result.details.find("FAIL"), std::string::npos);
 }

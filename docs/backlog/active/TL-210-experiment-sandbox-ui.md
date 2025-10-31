@@ -25,9 +25,9 @@ Initial sandbox scaffolding landed, but wiring to the runtime harness and benchm
 
 ## Definition of Done
 - [x] Sandbox enumerates datasets, presets, and algorithm variants from the shared schema and updates runtime state immediately.
-- [ ] Benchmark capture from the UI triggers headless runs using CC-310 orchestration and surfaces results inline.
+- [x] Benchmark capture from the UI triggers headless runs using CC-310 orchestration and surfaces results inline.
 - [x] Telemetry charts stream live metrics while respecting the 1 ms/frame UI budget and persist layout preferences per user.
-- [ ] Tools README, prototyping playbook, and accessibility checklist document the workflow with updated screenshots.
+- [x] Tools README, prototyping playbook, and accessibility checklist document the workflow with updated screenshots.
 
 ## Dependencies
 - [`docs/backlog/active/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
@@ -48,3 +48,9 @@ Golden screenshot coverage is desirable but optional; prioritise deterministic s
 - Telemetry updates clamp series to 256 samples while recomputing min/max bounds
   to keep the ImGui rendering cost within the 1 ms/frame target
   (`engine/tools/src/sandbox/experiment_sandbox.cpp`).
+- `ComparativeBenchmarkRunner` integration allows the UI button (and
+  `run_active_benchmark()`) to execute CC-310 orchestration directly, parse the
+  generated JSON/CSV, and surface per-metric results with mismatch warnings when
+  selections diverge from scenario defaults. Documentation for the workflow now
+  lives in the tools module README, the prototyping playbook, and the dedicated
+  accessibility checklist under `docs/design/`.
