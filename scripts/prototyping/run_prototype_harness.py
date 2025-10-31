@@ -92,6 +92,8 @@ def _make_options(
         shading_mode=args.shading_mode,
         runtime_profile=args.runtime_profile,
         overlays=overlays,
+        resolution_width=args.resolution_width,
+        resolution_height=args.resolution_height,
     )
 
 
@@ -293,17 +295,12 @@ def _run(args: argparse.Namespace) -> int:
 
     if args.dry_run:
         total_runs = args.repeat
-        base_options = HarnessExecutionOptions(
-            dry_run=True,
-            frames=1,
-            dt=args.dt,
+        base_options = _make_options(
+            args,
             scenario_label=args.case_study,
-            dataset_id=args.dataset,
-            rendering_preset=args.rendering_preset,
-            shading_mode=args.shading_mode,
-            runtime_profile=args.runtime_profile,
             overlays=overlay_overrides,
         )
+        base_options = replace(base_options, frames=1)
         run_count = total_runs if total_runs > 1 else None
         for index in range(1, total_runs + 1):
             options = base_options
@@ -389,6 +386,16 @@ def main(argv: Iterable[str] | None = None) -> int:
         "--shading-mode",
         type=_parse_shading_mode,
         help="Override the research rendering shading mode (forward or deferred).",
+    )
+    parser.add_argument(
+        "--resolution-width",
+        type=int,
+        help="Override the rendering resolution width in pixels.",
+    )
+    parser.add_argument(
+        "--resolution-height",
+        type=int,
+        help="Override the rendering resolution height in pixels.",
     )
     parser.add_argument(
         "--runtime-profile",

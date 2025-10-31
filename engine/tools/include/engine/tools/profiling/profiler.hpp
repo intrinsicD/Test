@@ -71,6 +71,6 @@ namespace engine::tools::profiling
 } // namespace engine::tools::profiling
 
 // Convenience macro for scoped profiling
-#define PROFILE_SCOPE(name) \
-engine::tools::profiling::ScopedProfile profile_scope_##__LINE__( \
-engine::tools::profiling::global_profiler(), name)
+#define PROFILE_SCOPE(name)                                                                    \
+    engine::tools::profiling::ScopedProfile profile_scope_##__LINE__(                          \
+        engine::tools::profiling::global_profiler(), name)
