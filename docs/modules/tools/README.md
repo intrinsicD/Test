@@ -100,7 +100,9 @@ Key capabilities:
   thresholds), and displays the harness summary directly in the panel.
 - **Telemetry panel** – live FPS/CPU/GPU timing counters and plotted series
   aligned with the shared telemetry schema, validating streams against the
-  telemetry summary provided by the harness.
+  telemetry summary provided by the harness. Incoming series are decimated to
+  256 samples before plotting so the ImGui path stays within the 1 ms/frame UI
+  budget even when callers submit long histories.
 - **Programmatic control** – helpers (`select_dataset`, `select_rendering_preset`,
   `set_shading_mode`, `set_overlay_enabled`) let automation mirror UI selections
   while the registered callbacks update the harness in lockstep.

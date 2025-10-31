@@ -234,6 +234,7 @@ namespace engine::tools::sandbox
         void render();
 
         [[nodiscard]] const SandboxPreferences& preferences() const noexcept;
+        [[nodiscard]] const TelemetrySnapshot& telemetry_snapshot() const noexcept;
         void set_preferences(const SandboxPreferences& preferences);
 
         /**

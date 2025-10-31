@@ -98,6 +98,11 @@ latest snapshot pushed by the runtime or diagnostics bridge. Harness summaries
 now expose telemetry schema version, outputs, metrics, and sampling cadence so
 the panel can validate incoming streams before rendering them.
 
+Incoming telemetry series are decimated to a maximum of 256 samples per metric
+before rendering. The downsampling preserves the first and last samples and
+recomputes min/max bounds so the ImGui plotting path stays within the 1 ms/frame
+budget even when the runtime provides large buffers of historical data.
+
 ## Persistence Strategy
 
 Two persistence layers keep the workspace reproducible:
