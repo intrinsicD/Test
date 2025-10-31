@@ -4,6 +4,10 @@
 
 The rendering module provides frame-graph compilation and execution, command encoder hooks, GPU resource lifetime tracking, and multi-backend support (Vulkan, DirectX, OpenGL). It implements deterministic scheduling with comprehensive validation and telemetry integration.
 
+## Camera System
+
+`engine/rendering/camera.hpp` exposes a lightweight `rendering::Camera` struct that tracks model, view, and projection matrices in lockstep. Helper methods build view matrices via `look_at`, configure common perspective/orthographic projections, and convert to/from `math::Transform` instances so scene systems can synchronise world transforms with GPU uploads. Controllers under `engine/rendering/camera_controllers.hpp` wrap the camera by reference, providing reusable update policies for first-person and orbit navigation styles. Both controllers accept `CameraControlState` input—translation, rotation, and zoom deltas—allowing UI or input layers to share a consistent integration surface while keeping ownership with the rendering module.
+
 ## Frame Graphs
 
 ### Frame Graph Definition
