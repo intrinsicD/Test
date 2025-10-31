@@ -114,10 +114,13 @@ summary without loading the native runtime library. Use it for CI smoke tests.
 python -m scripts.prototyping.run_prototype_harness \
     --config docs/examples/ai004_sample.json \
     --frames 600 --dt 0.0166667 \
+    --resolution-width 1920 --resolution-height 1080 \
     --summary-json telemetry/ai004_run.json
 ```
 
 - `--frames`/`--dt` control simulation cadence.
+- `--resolution-width`/`--resolution-height` override rendering resolution for the run while
+  preserving sandbox defaults.
 - `--summary-json` writes telemetry and benchmark metadata (including `average_tick_ms` and dispatch execution order/durations) to disk. Telemetry output templates honour `{dataset}`, `{scenario}`, `{rendering_preset}`, and execution metadata placeholders such as `{run_index}`, `{run_count}`, `{frames}`, and `{dt}` so repeated runs emit distinct artefacts without manual renaming. Dataset/scenario tokens are slugified before substitution to block directory traversal or invalid filenames when operators supply ad-hoc scenario labels.
 - Telemetry outputs in configuration/summary JSON now include absolute paths resolved from templates (for example `{scenario}`) alongside the original template so automation can locate artefacts deterministically.
 - `--list-benchmarks` enumerates the declared scenarios (identifier, dataset, preset) before execution so tooling can confirm coverage.
@@ -217,7 +220,7 @@ Communicate schedule changes in `docs/ROADMAP.md` and module READMEs.
 | --- | --- |
 | Validate manifests | `python -m scripts.validate_ai004_config --dataset <path> --config <path>` |
 | Dry-run harness | `python -m scripts.prototyping.run_prototype_harness --dry-run --require-schema --config <path>` |
-| Execute harness | `python -m scripts.prototyping.run_prototype_harness --frames N --dt 0.0166667 --summary-json <path> --config <path>` |
+| Execute harness | `python -m scripts.prototyping.run_prototype_harness --frames N --dt 0.0166667 --resolution-width W --resolution-height H --summary-json <path> --config <path>` |
 | List benchmark scenarios | `python -m scripts.prototyping.run_prototype_harness --dry-run --list-benchmarks --config <path>` |
 | Launch sandbox | `./out/build/<preset>/tools/experiment_sandbox --config <path>` |
 | Run benchmark helper | `python scripts/diagnostics/compute_dispatch_benchmark.py --sample <binary> --runs 3 --frames 1024 --baseline` |
