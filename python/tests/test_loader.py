@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ctypes
+import json
 import os
 import sys
 import types
@@ -206,6 +207,79 @@ class HandleBehaviourTests(unittest.TestCase):
         handle = loader.EngineModuleHandle(name="test", identifier="engine_test", library=fake_library)
         self.assertEqual(handle.resolved_name(), "")
         self.assertIs(module_symbol.restype, ctypes.c_char_p)
+
+    def test_engine_module_handle_metadata_defaults_to_empty(self) -> None:
+        fake_library = types.SimpleNamespace(engine_test_module_name=_DummyFunction(lambda: b"test"))
+        handle = loader.EngineModuleHandle(name="test", identifier="engine_test", library=fake_library)
+        metadata = handle.compatibility_metadata()
+        self.assertEqual(dict(metadata), {})
+        # cached mapping is reused
+        self.assertIs(metadata, handle.compatibility_metadata())
+
+    def test_engine_module_handle_metadata_reads_json_symbol(self) -> None:
+        calls: list[None] = []
+
+        def metadata_func() -> bytes:
+            calls.append(None)
+            payload = {"abi": {"version": "1.2.3"}, "build": "debug"}
+            return json.dumps(payload).encode("utf-8")
+
+        fake_library = types.SimpleNamespace(
+            engine_test_module_metadata_json=_DummyFunction(metadata_func),
+            engine_test_module_name=_DummyFunction(lambda: b"test"),
+        )
+        handle = loader.EngineModuleHandle(name="test", identifier="engine_test", library=fake_library)
+
+        metadata = handle.compatibility_metadata()
+        self.assertEqual(metadata["build"], "debug")
+        self.assertEqual(metadata["abi"], {"version": "1.2.3"})
+        self.assertIs(fake_library.engine_test_module_metadata_json.restype, ctypes.c_char_p)
+        self.assertEqual(len(calls), 1)
+        self.assertIs(metadata, handle.compatibility_metadata())
+        self.assertEqual(len(calls), 1, "metadata should be cached")
+
+    def test_engine_module_handle_metadata_fallback_symbol(self) -> None:
+        fake_library = types.SimpleNamespace(
+            engine_test_module_metadata=_DummyFunction(
+                lambda: json.dumps({"abi": {"version": 7}}).encode("utf-8")
+            ),
+            engine_test_module_name=_DummyFunction(lambda: b"test"),
+        )
+        handle = loader.EngineModuleHandle(name="test", identifier="engine_test", library=fake_library)
+
+        metadata = handle.compatibility_metadata()
+        self.assertEqual(metadata["abi"], {"version": 7})
+        self.assertIs(fake_library.engine_test_module_metadata.restype, ctypes.c_char_p)
+
+    def test_engine_module_handle_metadata_rejects_non_mapping(self) -> None:
+        fake_library = types.SimpleNamespace(
+            engine_test_module_metadata_json=_DummyFunction(lambda: b"[1, 2, 3]"),
+            engine_test_module_name=_DummyFunction(lambda: b"test"),
+        )
+        handle = loader.EngineModuleHandle(name="test", identifier="engine_test", library=fake_library)
+
+        with self.assertRaisesRegex(ValueError, "must decode to a mapping"):
+            handle.compatibility_metadata()
+
+    def test_engine_module_handle_metadata_invalid_json(self) -> None:
+        fake_library = types.SimpleNamespace(
+            engine_test_module_metadata_json=_DummyFunction(lambda: b"{invalid"),
+            engine_test_module_name=_DummyFunction(lambda: b"test"),
+        )
+        handle = loader.EngineModuleHandle(name="test", identifier="engine_test", library=fake_library)
+
+        with self.assertRaisesRegex(ValueError, "invalid JSON"):
+            handle.compatibility_metadata()
+
+    def test_engine_module_handle_metadata_invalid_utf8(self) -> None:
+        fake_library = types.SimpleNamespace(
+            engine_test_module_metadata_json=_DummyFunction(lambda: b"\xff"),
+            engine_test_module_name=_DummyFunction(lambda: b"test"),
+        )
+        handle = loader.EngineModuleHandle(name="test", identifier="engine_test", library=fake_library)
+
+        with self.assertRaisesRegex(ValueError, "non-UTF-8"):
+            handle.compatibility_metadata()
 
     def test_engine_runtime_handle_exposes_metadata(self) -> None:
         runtime_name = _DummyFunction(lambda: b"runtime")
