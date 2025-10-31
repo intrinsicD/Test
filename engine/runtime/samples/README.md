@@ -55,7 +55,17 @@ ctest --preset linux-gcc-debug -R runtime_prototype_harness_sample_dry_run
 ```
 
 The test launches the harness in dry-run mode with schema enforcement enabled
-and verifies that the exported telemetry summary matches expectations. See the
-Python-backed case study test (`runtime_prototype_harness_geometry_case_study`)
-for additional coverage. Consult `docs/examples/README.md` for manifest details
-and additional harness workflows.
+and verifies that the exported telemetry summary matches expectations. The
+Python-backed case study suite complements this coverage:
+
+```bash
+ctest --preset linux-gcc-debug -R runtime_prototype_harness_geometry_case_study
+ctest --preset linux-gcc-debug -R runtime_prototype_harness_rendering_case_study
+```
+
+Both case studies resolve packaged manifests, write JSON summaries under
+`artifacts/ai004/`, and confirm that CLI dry runs continue to succeed when new
+datasets or rendering presets are introduced. Consult
+`docs/examples/README.md` for manifest details and
+[`docs/design/RT-321-case-studies.md`](../../../docs/design/RT-321-case-studies.md)
+for baseline expectations.
