@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "output_directory": "{config_dir}/reports",
+  "scenarios": [
+    {
+      "name": "geometry-baseline",
+      "dataset": "geometry-remesh-baseline",
+      "engine": {
+        "command": null,
+        "output": "{output_dir}/{scenario}_engine.json"
+      },
+      "reference": {
+        "command": null,
+        "output": "{output_dir}/{scenario}_reference.json"
+      },
+      "metrics": [
+        {
+          "name": "fps",
+          "higher_is_better": true,
+          "threshold": {"type": "relative", "max_regression": 0.02}
+        },
+        {
+          "name": "average_tick_ms",
+          "higher_is_better": false,
+          "threshold": {"type": "relative", "max_regression": 0.02}
+        },
+        {
+          "name": "gpu_time_ms",
+          "higher_is_better": false,
+          "threshold": {"type": "absolute", "max_delta": 0.5}
+        }
+      ]
+    },
+    {
+      "name": "rendering-debug",
+      "dataset": "rendering-light-volume",
+      "engine": {
+        "command": null,
+        "output": "{output_dir}/{scenario}_engine.json"
+      },
+      "reference": {
+        "command": null,
+        "output": "{output_dir}/{scenario}_reference.json"
+      },
+      "metrics": [
+        {
+          "name": "fps",
+          "higher_is_better": true,
+          "threshold": {"type": "relative", "max_regression": 0.02}
+        },
+        {
+          "name": "average_tick_ms",
+          "higher_is_better": false,
+          "threshold": {"type": "relative", "max_regression": 0.02}
+        },
+        {
+          "name": "overlay_fill_rate",
+          "higher_is_better": true,
+          "threshold": {"type": "absolute", "max_delta": 1.5}
+        }
+      ]
+    }
+  ]
+}

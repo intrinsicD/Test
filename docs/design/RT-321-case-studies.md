@@ -87,6 +87,9 @@ performance metrics.
 - [x] Dataset manifests and baseline metrics recorded in this document.
 - [ ] Performance baselines captured without `--dry-run` once native runtime
       builds are available (update `average_tick_ms` figures when collected).
+- [x] Comparative benchmark report published under
+      [`assets/benchmarks/ai004/reports/comparative_report.html`](../../assets/benchmarks/ai004/reports/comparative_report.html)
+      with supporting JSON/CSV/SVG artefacts for both case studies.
 
 ---
 

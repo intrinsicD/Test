@@ -1,0 +1,109 @@
+{
+  "passed": true,
+  "scenarios": [
+    {
+      "dataset": "geometry-remesh-baseline",
+      "metrics": [
+        {
+          "delta": -1.5999999999999943,
+          "engine_value": 118.4,
+          "name": "fps",
+          "passed": true,
+          "plot": "plots/geometry-baseline_fps.svg",
+          "reference_value": 120.0,
+          "regression_amount": 1.5999999999999943,
+          "relative_delta": -0.013333333333333286,
+          "threshold": {
+            "higher_is_better": true,
+            "limit": 0.02,
+            "mode": "relative"
+          }
+        },
+        {
+          "delta": -0.13000000000000078,
+          "engine_value": 7.92,
+          "name": "average_tick_ms",
+          "passed": true,
+          "plot": "plots/geometry-baseline_average_tick_ms.svg",
+          "reference_value": 8.05,
+          "regression_amount": 0.0,
+          "relative_delta": -0.016149068322981464,
+          "threshold": {
+            "higher_is_better": false,
+            "limit": 0.02,
+            "mode": "relative"
+          }
+        },
+        {
+          "delta": -0.22000000000000064,
+          "engine_value": 5.1,
+          "name": "gpu_time_ms",
+          "passed": true,
+          "plot": "plots/geometry-baseline_gpu_time_ms.svg",
+          "reference_value": 5.32,
+          "regression_amount": 0.0,
+          "relative_delta": -0.04135338345864673,
+          "threshold": {
+            "higher_is_better": false,
+            "limit": 0.5,
+            "mode": "absolute"
+          }
+        }
+      ],
+      "name": "geometry-baseline",
+      "passed": true
+    },
+    {
+      "dataset": "rendering-light-volume",
+      "metrics": [
+        {
+          "delta": 2.299999999999997,
+          "engine_value": 92.3,
+          "name": "fps",
+          "passed": true,
+          "plot": "plots/rendering-debug_fps.svg",
+          "reference_value": 90.0,
+          "regression_amount": 0.0,
+          "relative_delta": 0.025555555555555522,
+          "threshold": {
+            "higher_is_better": true,
+            "limit": 0.02,
+            "mode": "relative"
+          }
+        },
+        {
+          "delta": -0.29999999999999893,
+          "engine_value": 11.4,
+          "name": "average_tick_ms",
+          "passed": true,
+          "plot": "plots/rendering-debug_average_tick_ms.svg",
+          "reference_value": 11.7,
+          "regression_amount": 0.0,
+          "relative_delta": -0.02564102564102555,
+          "threshold": {
+            "higher_is_better": false,
+            "limit": 0.02,
+            "mode": "relative"
+          }
+        },
+        {
+          "delta": 1.4000000000000057,
+          "engine_value": 97.2,
+          "name": "overlay_fill_rate",
+          "passed": true,
+          "plot": "plots/rendering-debug_overlay_fill_rate.svg",
+          "reference_value": 95.8,
+          "regression_amount": 0.0,
+          "relative_delta": 0.014613778705636803,
+          "threshold": {
+            "higher_is_better": true,
+            "limit": 1.5,
+            "mode": "absolute"
+          }
+        }
+      ],
+      "name": "rendering-debug",
+      "passed": true
+    }
+  ]
+}

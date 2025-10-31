@@ -250,3 +250,54 @@ def test_viewer_suppresses_hot_reload_guidance_without_failures(
     captured = capsys.readouterr().out
     assert "Hot Reload Guidance" not in captured
     assert "Initialization Failures" not in captured
+
+
+def test_compare_subcommand_generates_report(tmp_path: Path) -> None:
+    summary_path = tmp_path / "comparative_summary.json"
+    plot_dir = tmp_path / "plots"
+    plot_dir.mkdir()
+    plot_file = plot_dir / "demo_fps.svg"
+    plot_file.write_text("<svg xmlns='http://www.w3.org/2000/svg'></svg>", encoding="utf-8")
+    summary_payload = {
+        "passed": True,
+        "scenarios": [
+            {
+                "name": "demo",
+                "dataset": "demo-dataset",
+                "passed": True,
+                "metrics": [
+                    {
+                        "name": "fps",
+                        "engine_value": 120.0,
+                        "reference_value": 110.0,
+                        "delta": 10.0,
+                        "relative_delta": 0.0909,
+                        "passed": True,
+                        "threshold": {"mode": "relative", "limit": 0.2},
+                        "plot": "plots/demo_fps.svg",
+                    }
+                ],
+            }
+        ],
+    }
+    summary_path.write_text(json.dumps(summary_payload), encoding="utf-8")
+
+    output_path = tmp_path / "report.html"
+    exit_code = viewer.main(
+        [
+            "compare",
+            "--summary",
+            str(summary_path),
+            "--output",
+            str(output_path),
+            "--plots-root",
+            str(tmp_path),
+            "--embed-plots",
+        ]
+    )
+    assert exit_code == 0
+    html_output = output_path.read_text(encoding="utf-8")
+    assert "demo" in html_output
+    assert "demo-dataset" in html_output
+    assert "PASS" in html_output
+    assert "<svg" in html_output

@@ -1,0 +1,7 @@
+scenario,dataset,metric,higher_is_better,engine_value,reference_value,delta,relative_delta,passed,threshold_mode,threshold_limit,regression_amount
+geometry-baseline,geometry-remesh-baseline,fps,True,118.4000000000,120.0000000000,-1.6000000000,-0.0133333333,True,relative,0.0200000000,1.6000000000
+geometry-baseline,geometry-remesh-baseline,average_tick_ms,False,7.9200000000,8.0500000000,-0.1300000000,-0.0161490683,True,relative,0.0200000000,0.0000000000
+geometry-baseline,geometry-remesh-baseline,gpu_time_ms,False,5.1000000000,5.3200000000,-0.2200000000,-0.0413533835,True,absolute,0.5000000000,0.0000000000
+rendering-debug,rendering-light-volume,fps,True,92.3000000000,90.0000000000,2.3000000000,0.0255555556,True,relative,0.0200000000,0.0000000000
+rendering-debug,rendering-light-volume,average_tick_ms,False,11.4000000000,11.7000000000,-0.3000000000,-0.0256410256,True,relative,0.0200000000,0.0000000000
+rendering-debug,rendering-light-volume,overlay_fill_rate,True,97.2000000000,95.8000000000,1.4000000000,0.0146137787,True,absolute,1.5000000000,0.0000000000
