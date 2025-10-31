@@ -1,6 +1,6 @@
 # Backlog Item TL-210 — Experiment Sandbox UI
 
-- **Status**: In Progress
+- **Status**: Complete
 - **Priority**: 3
 - **Owner**: Tools Lead
 - **Module(s)**: Tools, Runtime, Rendering, Assets
@@ -54,3 +54,4 @@ Golden screenshot coverage is desirable but optional; prioritise deterministic s
   selections diverge from scenario defaults. Documentation for the workflow now
   lives in the tools module README, the prototyping playbook, and the dedicated
   accessibility checklist under `docs/design/`.
+**2026-02-18** — Sandbox documentation refreshed with watcher guidance, golden screenshot coverage added to TODOs, and Roadmap/README entries updated to reflect TL-210 completion.

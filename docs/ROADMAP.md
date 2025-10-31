@@ -27,7 +27,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | --- | --- | --- | --- | --- |
 | 1 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Ratify shared configuration schema and validators. | Agent Orchestrator + Module Leads | Complete |
 | 1 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Publish kickoff plan, risk ownership, and milestone sequencing. | Product Manager | Complete |
-| 2 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Ship schema-driven harness with interactive + headless flows. | Runtime Lead | In Progress |
+| 2 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Ship schema-driven harness with interactive + headless flows. | Runtime Lead | Complete |
 
 **Exit Criteria:** Schema approved, kickoff brief published, harness prototype booting sample datasets.
 
@@ -38,17 +38,17 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 2026-02-07 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Product Manager | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Kickoff packet: roadmap timeline, sprint tracker, and risk register cross-linked. | ✅ Complete |
 | 2 | 2026-02-12 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Runtime Lead | `DC-041` | Harness smoke demo exercising schema sample + telemetry export recorded; kickoff brief now carries dataset hash appendix. | ✅ Complete |
-| 3 | 2026-02-14 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox integrates harness presets and dataset selectors ready for review walk-through; overlay telemetry tuning continues. | 🔄 In Progress |
-| 4 | 2026-02-16 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Dataset package validated against harness + sandbox handoff for demo content. | ⏳ Planned |
+| 3 | 2026-02-14 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox integrates harness presets and dataset selectors ready for review walk-through; overlay telemetry tuning continues. | ✅ Complete |
+| 4 | 2026-02-16 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Dataset package validated against harness + sandbox handoff for demo content. | ✅ Complete |
 
 > Kickoff coordination artefacts: [`AI-004-kickoff-brief.md`](backlog/active/AI-004-kickoff-brief.md), [`2026-02-03-sprint-11.md`](backlog/active/2026-02-03-sprint-11.md).
 
 ### Phase 2 — Harness & Dataset Integration *(Priorities 2–3)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 3 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Curate licensed datasets with manifests and ingestion tooling. | Assets Lead | Planned |
-| 3 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Finalise sandbox UI wiring to harness + benchmarks. | Tools Lead | In Progress |
-| 3 | [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | Validate two case studies end to end with telemetry baselines. | Runtime Lead | Planned |
+| 3 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Curate licensed datasets with manifests and ingestion tooling. | Assets Lead | Complete |
+| 3 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Finalise sandbox UI wiring to harness + benchmarks. | Tools Lead | Complete |
+| 3 | [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | Validate two case studies end to end with telemetry baselines. | Runtime Lead | Complete |
 
 **Exit Criteria:** Harness, sandbox, and datasets operate together; case studies produce reproducible artefacts.
 
@@ -67,10 +67,10 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | --- | --- | --- | --- |
 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | Complete | Schema ADR, cross-language validators, and prototyping playbook published. |
 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Complete | Kickoff brief + roadmap timeline published. |
-| [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | In Progress | Blocks TL-210/RT-321/CC-310. |
-| [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Planned | Licensing review pending. |
-| [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | 3 | In Progress | UI scaffolding merged; harness wiring outstanding. |
-| [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | 3 | Planned | Depends on datasets + harness. |
+| [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | Complete | Harness + telemetry shipped; maintenance tasks captured in module TODOs. |
+| [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Complete | Dataset packages published with ingestion automation and provenance docs. |
+| [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | 3 | Complete | Sandbox wiring finished; follow-up automation tracked in tools TODOs. |
+| [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | 3 | Complete | Geometry + rendering case studies documented with CTest coverage. |
 | [`CC-310`](backlog/active/CC-310-comparative-benchmark-automation.md) | 4 | Complete | Orchestrator, SVG plots, and smoke helper published for AI-004 fixtures. |
 | [`CC-311`](backlog/active/CC-311-benchmark-visualisation.md) | 4 | Complete | Telemetry viewer comparative mode + AI-004 reports published. |
 
@@ -79,8 +79,8 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | Priority | Risk | Owner | Mitigation | Mitigation Due |
 | --- | --- | --- | --- | --- |
 | 1 | Schema consensus slips, delaying harness integration. | Agent Orchestrator | Timebox reviews; escalate to Chief Architect after 2 business days. | 2026-02-09 |
-| 2 | Harness complexity outpaces test coverage. | Runtime Lead | Land integration smoke tests before expanding feature scope. | 2026-02-13 |
-| 3 | Dataset licensing blocks case study publication. | Assets Lead | Finalise licensing shortlist early; provide fallback synthetic datasets. | 2026-02-13 |
+| 2 | Harness complexity outpaces test coverage. | Runtime Lead | Land integration smoke tests before expanding feature scope. | 2026-02-13 (mitigated 2026-02-12) |
+| 3 | Dataset licensing blocks case study publication. | Assets Lead | Finalise licensing shortlist early; provide fallback synthetic datasets. | 2026-02-13 (mitigated 2026-02-16) |
 | 4 | Benchmark automation exceeds CI time budget. | Performance Lead | Maintain smoke preset (<5 min) separate from nightly full suite. | 2026-02-13 |
 
 ## Maintenance Checklist

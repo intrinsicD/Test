@@ -8,6 +8,7 @@ _Last Updated: 2025-03-04_
 | --- | --- | --- |
 | `PL-222` | Deliver filesystem watcher abstraction for hot reload (`CC-002`). | ✅ Complete |
 | `PL-230` | Refresh backend selection guidance in docs and presets. | ✅ Complete |
+| `PL-240` | Document filesystem watcher caveats and asset hot-reload integration. | ✅ Complete |
 
 ## Schedule
 

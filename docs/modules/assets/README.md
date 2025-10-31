@@ -312,6 +312,26 @@ ctest --preset linux-gcc-debug -R assets
      attribution, and packaging links so the runtime harness and sandbox can
      surface source/permission details alongside telemetry.
 
+### Hot reload watcher integration
+
+- Asset caches bind `platform::filesystem::FilesystemWatcher` handles inside
+  `register_watch_locked()` so each loaded asset tracks its source path. When the
+  watcher emits a modification the cache reloads the resource and triggers any
+  callbacks registered via `register_hot_reload_callback()`.
+- Call `MeshCache::poll()` (and the equivalents on other caches) once per frame
+  to forward watcher events. The poll function also verifies the underlying file
+  timestamp in case the watch handle was dropped (for example, if the asset was
+  migrated to a new source path) and re-establishes the watch automatically.
+- Rename-based saves emit `created` + `erased` events. Asset caches treat both
+  as reload triggers; diagnostics shell output records the timestamp from the
+  erase event so missing assets remain visible until the file is restored.
+- Network shares and FAT-formatted removable drives expose coarse timestamp
+  precision. Introduce a short delay between writes or force a
+  `std::filesystem::last_write_time` bump so the watcher observes successive
+  edits.
+- See [`../platform/README.md`](../platform/README.md#filesystem-watcher) for
+  OS-specific caveats and polling cadence guidance shared across caches.
+
 - **Dataset packaging quickstart (`AS-330`)**
   - Geometry, rendering, and animation sample manifests live in
     `assets/datasets/remesh_sample`, `assets/datasets/rendering_sample`, and
@@ -333,6 +353,6 @@ ctest --preset linux-gcc-debug -R assets
 
 ## TODO / Next Steps
 
-- Deliver `AS-330` (AI-004): curate reference dataset packages with manifests, ingestion scripts, provenance/licensing notes, and CI validation feeding the prototyping harness and sandbox UI.
+- Plan the next dataset refresh (expanded case studies, higher-resolution assets) and capture prioritisation in [`../../ROADMAP.md`](../../ROADMAP.md) once licensing reviews begin.
 - Maintain hot-reload telemetry alignment and ensure dataset ingestion hooks integrate with existing streaming diagnostics (`CC-002`).
-- Track milestone scope and dependencies in [`../../ROADMAP.md`](../../ROADMAP.md) so dataset deliverables remain synchronized with the broader `AI-004` initiative timeline.
+- Audit ingestion automation and checksum reporting whenever new manifests land to keep prototyping harness and sandbox integrations deterministic.
