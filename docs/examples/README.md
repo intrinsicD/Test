@@ -3,17 +3,20 @@
 ## `ai004_sample.json`
 
 `ai004_sample.json` demonstrates the AI-004 configuration schema end to end. It
-references the `assets/datasets/remesh_sample` manifest, configures the research
-rendering baseline, and enables telemetry capture compatible with the
-prototyping harness and sandbox UI.
+references the curated dataset manifests under `assets/datasets/`, configures
+the research rendering baseline, and enables telemetry capture compatible with
+the prototyping harness and sandbox UI.
 
 ### Structure
 
 - **`metadata`** – Declares the schema identifiers and version headers required
   by the AI-004 loaders (`ai-004.configuration`, `ai-004.dataset`,
   `ai-004.runtime`, `ai-004.rendering`).
-- **`datasets`** – Imports `remesh_sample`, including asset integrity metadata
-  (byte sizes, SHA-256 hashes, provenance summaries, and licensing details).
+- **`datasets`** – Aggregates the remeshing, rendering, and animation sample
+  manifests (`remesh-unit-square`, `rendering-quad-shading`, and
+  `animation-walk-retarget`), preserving asset integrity metadata (byte sizes,
+  SHA-256 hashes, provenance summaries, and licensing details) so the harness
+  and sandbox list all packaged datasets from a single configuration.
 - **`runtime`** – Selects the dataset slug, scene manifest, timestep defaults,
   and telemetry template overrides used by the harness.
 - **`rendering`** – Configures the research baseline preset, shading mode, and
@@ -48,7 +51,10 @@ Combine `--describe-json` or `--case-studies-json` to surface summaries for the
 TL-210 sandbox UI before launching the native runtime.
 
 Override the dataset or rendering selection without editing the manifest using
-the harness CLI options introduced for TL-210/CC-310 integration:
+the harness CLI options introduced for TL-210/CC-310 integration. All packaged
+datasets (`remesh-unit-square`, `rendering-quad-shading`, and
+`animation-walk-retarget`) are available through the shared schema, so the
+sandbox drop-downs and CLI overrides remain in sync:
 
 ```bash
 python -m scripts.prototyping.run_prototype_harness \
@@ -88,8 +94,10 @@ The JSON export mirrors the sandbox configuration summary so dataset packaging
       assets/datasets/rendering_sample/manifest.json \
       --output artifacts/datasets --require-schema
   ```
-- **Harness selectors** – Choose the `rendering-quad-shading` dataset when
-  exercising CC-310 comparative runs that focus on overlay instrumentation.
+- **Harness selectors** – The dataset is now bundled into
+  `docs/examples/ai004_sample.json`, so select `rendering-quad-shading` from the
+  sandbox UI or via `--dataset rendering-quad-shading` when exercising CC-310
+  comparative runs that focus on overlay instrumentation.
 
 <a id="animation_walk"></a>
 
@@ -104,5 +112,6 @@ The JSON export mirrors the sandbox configuration summary so dataset packaging
       assets/datasets/animation_sample/manifest.json \
       --output artifacts/datasets --require-schema
   ```
-- **Harness selectors** – Use the `animation-walk-retarget` slug for animation
-  smoke tests and telemetry recording scenarios.
+- **Harness selectors** – The AI-004 sample configuration now exposes the
+  `animation-walk-retarget` slug alongside the remeshing and rendering datasets
+  for animation smoke tests and telemetry recording scenarios.
