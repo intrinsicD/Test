@@ -74,3 +74,35 @@ python -m scripts.prototyping.run_prototype_harness \
 
 The JSON export mirrors the sandbox configuration summary so dataset packaging
 (`AS-330`) and tooling integrations can consume the same verification payload.
+
+<a id="rendering_debug"></a>
+
+## Rendering debug dataset
+
+- **Manifest** – `assets/datasets/rendering_sample/manifest.json`
+- **Use case** – Validate shading overlays and telemetry wiring in the research
+  rendering baseline after ingesting tessellated quads.
+- **Ingestion** –
+  ```bash
+  python -m scripts.datasets.ingest_dataset \
+      assets/datasets/rendering_sample/manifest.json \
+      --output artifacts/datasets --require-schema
+  ```
+- **Harness selectors** – Choose the `rendering-quad-shading` dataset when
+  exercising CC-310 comparative runs that focus on overlay instrumentation.
+
+<a id="animation_walk"></a>
+
+## Animation walk dataset
+
+- **Manifest** – `assets/datasets/animation_sample/manifest.json`
+- **Use case** – Provide retargeted walk-cycle clips so runtime and sandbox
+  flows can test animation harness integration without external assets.
+- **Ingestion** –
+  ```bash
+  python -m scripts.datasets.ingest_dataset \
+      assets/datasets/animation_sample/manifest.json \
+      --output artifacts/datasets --require-schema
+  ```
+- **Harness selectors** – Use the `animation-walk-retarget` slug for animation
+  smoke tests and telemetry recording scenarios.

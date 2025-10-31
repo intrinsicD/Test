@@ -74,15 +74,22 @@ and is enforced by loaders in both Python and C++.
 
 ## 3. Dataset Packaging (`AS-330`)
 
-1. Generate remeshing outputs or curated datasets.
-2. Record metadata (source mesh SHA-256, byte sizes, telemetry statistics).
-3. Update `assets/datasets/<name>/manifest.yaml` using the schema fields.
-4. Capture provenance in the dataset README and link licensing artefacts.
-5. Run:
+1. Generate remeshing outputs or curated datasets covering geometry,
+   rendering, and animation scenarios.
+2. Record metadata (source asset SHA-256, byte sizes, telemetry statistics).
+3. Update `assets/datasets/<name>/manifest.json` using the schema fields and
+   include provenance/licensing blocks (see the `remesh_sample`,
+   `rendering_sample`, and `animation_sample` directories).
+4. Validate manifests:
    ```bash
-   python -m scripts.validate_ai004_config --dataset assets/datasets/<name>/manifest.yaml
+   python -m scripts.validate_ai004_config --dataset assets/datasets/<name>/manifest.json
+   python -m scripts.datasets.ingest_dataset assets/datasets/<name>/manifest.json \
+       --output artifacts/datasets --dry-run --require-schema
    ```
-6. Store manifests and assets in Git LFS as appropriate.
+5. Capture provenance in documentation (examples README, dataset catalog) and
+   link licensing artefacts.
+6. Store manifests and assets in Git LFS as appropriate when datasets exceed
+   repository size limits.
 
 **Checklist:** Metadata populated, validator clean, provenance captured, licensing reviewed.
 

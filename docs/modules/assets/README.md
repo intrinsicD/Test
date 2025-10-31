@@ -312,6 +312,23 @@ ctest --preset linux-gcc-debug -R assets
      attribution, and packaging links so the runtime harness and sandbox can
      surface source/permission details alongside telemetry.
 
+- **Dataset packaging quickstart (`AS-330`)**
+  - Geometry, rendering, and animation sample manifests live in
+    `assets/datasets/remesh_sample`, `assets/datasets/rendering_sample`, and
+    `assets/datasets/animation_sample`.
+  - Validate and ingest each manifest during packaging:
+    ```bash
+    python -m scripts.validate_ai004_config --dataset assets/datasets/<name>/manifest.json
+    python -m scripts.datasets.ingest_dataset assets/datasets/<name>/manifest.json \
+        --output artifacts/datasets --require-schema
+    ```
+  - The ingestion CLI writes integrity summaries (`ingestion.json`) capturing
+    byte sizes, SHA-256 hashes, provenance, and remeshing statistics so runtime
+    consumers can audit caches.
+  - Record ingestion output hashes in change descriptions and update the
+    prototyping playbook/examples README when manifests move or new datasets are
+    published.
+
 ## TODO / Next Steps
 
 - Deliver `AS-330` (AI-004): curate reference dataset packages with manifests, ingestion scripts, provenance/licensing notes, and CI validation feeding the prototyping harness and sandbox UI.
