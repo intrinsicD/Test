@@ -16,7 +16,7 @@ _Last Updated: 2025-11-19_
 | --- | --- | --- | --- | --- |
 | `AN-201` | Extend regression coverage for `validate_clip` failure cases and controller validation. | Animation team | 2025-03-07 | ✅ Done |
 | `AN-220` | Finalise deformation binding docs linked to `RT-001` outcomes. | Animation team | 2025-03-14 | ✅ Done |
-| `AN-225` | Mirror animation diagnostics into runtime telemetry dashboards. | Animation + Runtime | 2025-03-21 | 🟢 Todo |
+| `AN-225` | Mirror animation diagnostics into runtime telemetry dashboards. | Animation + Runtime | 2025-03-21 | ✅ Done |
 
 ## Active Work (Phase 3)
 
@@ -50,3 +50,6 @@ _Last Updated: 2025-11-19_
 - 2025-02-21: Added regression coverage for clip validation failure codes and
   controller playback invariants (`engine/animation/tests/test_clip_serialization.cpp`,
   `engine/animation/tests/test_module.cpp`).
+- 2026-02-??: Runtime diagnostics now mirror animation dispatcher telemetry and
+  controller metadata, aligning dashboards with benchmarking reports and
+  completing `AN-225`.

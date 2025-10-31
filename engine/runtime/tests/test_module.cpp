@@ -1675,6 +1675,40 @@ TEST(RuntimeHost, DiagnosticsExposeGeometrySpatialTelemetry)
     host.shutdown();
 }
 
+TEST(RuntimeHost, DiagnosticsExposeAnimationTelemetry)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+    host.tick(0.016);
+
+    const auto& diagnostics = host.diagnostics();
+    const auto& animation = diagnostics.animation;
+
+    EXPECT_EQ(animation.clip_track_count, 1U);
+    EXPECT_GE(animation.pose_joint_count, 1U);
+    EXPECT_DOUBLE_EQ(animation.clip_duration, 1.0);
+    EXPECT_NEAR(animation.playback_speed, 1.0, 1e-6);
+    EXPECT_GT(animation.playback_time, 0.0);
+
+    const auto find_total = [](const auto& totals, std::string_view label)
+    {
+        return std::find_if(totals.begin(), totals.end(), [label](const auto& entry)
+        {
+            return entry.label == label;
+        });
+    };
+
+    const auto animation_category = find_total(animation.category_totals, "animation");
+    ASSERT_NE(animation_category, animation.category_totals.end());
+    EXPECT_GE(animation_category->duration_ms, 0.0);
+
+    const auto cpu_queue = find_total(animation.queue_totals, "cpu");
+    ASSERT_NE(cpu_queue, animation.queue_totals.end());
+    EXPECT_GE(cpu_queue->duration_ms, 0.0);
+
+    host.shutdown();
+}
+
 #if ENGINE_ENABLE_RENDERING
 TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
 {
@@ -1780,6 +1814,50 @@ TEST(RuntimeDiagnosticsCAPI, MetricEnumerationsExposeSchema)
 
     EXPECT_TRUE(found_tick);
     EXPECT_TRUE(found_stage_label);
+
+    engine_runtime_shutdown();
+}
+
+TEST(RuntimeDiagnosticsCAPI, AnimationTelemetryExposed)
+{
+    engine_runtime_shutdown();
+    engine_runtime_initialize();
+    engine_runtime_tick(0.016);
+
+    EXPECT_EQ(engine_runtime_diagnostic_animation_clip_track_count(), 1U);
+    EXPECT_GE(engine_runtime_diagnostic_animation_pose_joint_count(), 1U);
+    EXPECT_DOUBLE_EQ(engine_runtime_diagnostic_animation_clip_duration(), 1.0);
+    EXPECT_NEAR(engine_runtime_diagnostic_animation_playback_speed(), 1.0, 1e-6);
+
+    const std::size_t category_count = engine_runtime_diagnostic_animation_category_count();
+    ASSERT_GT(category_count, 0U);
+    bool found_animation_category = false;
+    for (std::size_t index = 0; index < category_count; ++index)
+    {
+        const char* label = engine_runtime_diagnostic_animation_category_label(index);
+        ASSERT_NE(label, nullptr);
+        if (std::string_view{label} == "animation")
+        {
+            found_animation_category = true;
+            EXPECT_GE(engine_runtime_diagnostic_animation_category_duration_ms(index), 0.0);
+        }
+    }
+    EXPECT_TRUE(found_animation_category);
+
+    const std::size_t queue_count = engine_runtime_diagnostic_animation_queue_count();
+    ASSERT_GT(queue_count, 0U);
+    bool found_cpu_queue = false;
+    for (std::size_t index = 0; index < queue_count; ++index)
+    {
+        const char* label = engine_runtime_diagnostic_animation_queue_label(index);
+        ASSERT_NE(label, nullptr);
+        if (std::string_view{label} == "cpu")
+        {
+            found_cpu_queue = true;
+            EXPECT_GE(engine_runtime_diagnostic_animation_queue_duration_ms(index), 0.0);
+        }
+    }
+    EXPECT_TRUE(found_cpu_queue);
 
     engine_runtime_shutdown();
 }

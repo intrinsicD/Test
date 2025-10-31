@@ -22,7 +22,8 @@ acceptance criteria (`AI-003`, `RT-003`, `RT-004`).
 3. **Inspect the output**. The script prints aggregate timings by subsystem and
    runtime lifecycle statistics (initialise/tick/shutdown durations plus
    per-stage samples), reports asynchronous streaming queue metrics harvested
-   from `RuntimeDiagnostics`, enumerates structured metrics from the shared
+   from `RuntimeDiagnostics`, serialises animation telemetry (clip metadata plus
+   dispatcher category/queue totals), enumerates structured metrics from the shared
    telemetry schema (lifecycle counters, streaming gauges, stage/subsystem
    samples, etc.), surfaces
    hierarchy validation issues forwarded by the diagnostics bridge (entity

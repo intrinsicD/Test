@@ -129,6 +129,26 @@ These values feed the async streaming diagnostics described in
 schema reference, and the associated task record
 [`T-0115`](../../archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md).
 
+### Animation Telemetry
+`RuntimeDiagnostics::animation` exposes metadata about the currently evaluated
+clip and aggregates from the animation dispatcher. The struct records:
+
+- `clip_track_count` / `pose_joint_count` — structural data for the active clip
+  and pose to confirm controller/rig parity.
+- `clip_duration`, `playback_time`, `playback_speed` — playback state sampled
+  from the controller to detect sync issues.
+- `category_totals` — per-category dispatch totals produced by the benchmarking
+  helpers (for example, sampling vs skinning), reported in milliseconds.
+- `queue_totals` — cumulative dispatcher cost grouped by queue label (`cpu`,
+  `gpu`, `unknown`).
+
+Metrics are exported into the shared schema as `runtime.animation.*` gauges so
+dashboards can chart playback and dispatcher trends alongside other runtime
+signals. The C ABI mirrors the data via
+`engine_runtime_diagnostic_animation_*` accessors. Python tooling
+(`runtime_frame_telemetry.py`) consumes these helpers to persist clip metadata
+and queue/category aggregates inside the JSON snapshot and console summary.
+
 ### Handle Validation
 `handle_validation` captures a snapshot from the asset handle validator
 registry. Each entry reports the handle type, total successes/failures, and the

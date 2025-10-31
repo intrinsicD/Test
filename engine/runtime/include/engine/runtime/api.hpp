@@ -127,6 +127,23 @@ namespace engine::runtime
         std::uint64_t sample_count{0};
     };
 
+    struct ENGINE_RUNTIME_API RuntimeAnimationDispatchTotal
+    {
+        std::string label{};
+        double duration_ms{0.0};
+    };
+
+    struct ENGINE_RUNTIME_API RuntimeAnimationTelemetry
+    {
+        std::uint64_t clip_track_count{0};
+        std::uint64_t pose_joint_count{0};
+        double clip_duration{0.0};
+        double playback_time{0.0};
+        double playback_speed{0.0};
+        std::vector<RuntimeAnimationDispatchTotal> category_totals{};
+        std::vector<RuntimeAnimationDispatchTotal> queue_totals{};
+    };
+
     struct ENGINE_RUNTIME_API HotReloadFailureSummary
     {
         std::string identifier{};
@@ -200,6 +217,7 @@ namespace engine::runtime
         std::vector<RuntimeStageTiming> stage_timings{};
         std::vector<RuntimeSubsystemTiming> subsystem_timings{};
         scene::validation::HierarchyValidationReport scene_validation{};
+        RuntimeAnimationTelemetry animation{};
         std::uint64_t scene_validation_failure_frame_count{0};
         std::uint64_t scene_validation_consecutive_failure_frames{0};
         std::uint64_t scene_validation_max_consecutive_failure_frames{0};
@@ -433,6 +451,17 @@ extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_last_ms(std
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_average_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_max_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_stage_samples(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_animation_clip_track_count() noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_animation_pose_joint_count() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_clip_duration() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_playback_time() noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_playback_speed() noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_animation_category_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_animation_category_label(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_category_duration_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_animation_queue_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_animation_queue_label(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_queue_duration_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_subsystem_count() noexcept;
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_subsystem_name(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_subsystem_last_initialize_ms(std::size_t index) noexcept;

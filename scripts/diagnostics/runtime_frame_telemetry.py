@@ -173,6 +173,27 @@ class HotReloadMetrics:
 
 
 @dataclass
+class RuntimeAnimationDispatchTotal:
+    """Aggregated dispatcher timing grouped by label."""
+
+    label: str
+    duration_ms: float
+
+
+@dataclass
+class RuntimeAnimationTelemetry:
+    """Animation telemetry snapshot mirrored from runtime diagnostics."""
+
+    clip_track_count: int
+    pose_joint_count: int
+    clip_duration: float
+    playback_time: float
+    playback_speed: float
+    category_totals: List[RuntimeAnimationDispatchTotal]
+    queue_totals: List[RuntimeAnimationDispatchTotal]
+
+
+@dataclass
 class SceneHierarchyIssue:
     """Single hierarchy validation issue emitted by the runtime."""
 
@@ -270,6 +291,7 @@ class RuntimeDiagnosticsSnapshot:
     hot_reload: Optional[HotReloadMetrics] = None
     scene_validation: Optional[SceneValidationSnapshot] = None
     metrics: Optional[RuntimeMetricsSnapshot] = None
+    animation: Optional[RuntimeAnimationTelemetry] = None
 
 
 _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK = 5
@@ -333,6 +355,7 @@ class RuntimeBindings:
         self._has_hot_reload_failure_details = False
         self._has_scene_validation = False
         self._has_metrics = False
+        self._has_animation_metrics = False
         self._streaming_metrics_capacity = _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK
         self._streaming_metrics_type: Type[ctypes.Structure]
         self._streaming_metrics_type = _create_streaming_metrics_type(
@@ -344,6 +367,12 @@ class RuntimeBindings:
         self._hot_reload_failure_identifier_func = None
         self._hot_reload_failure_error_func = None
         self._hot_reload_failure_hint_func = None
+        self._animation_category_count_func = None
+        self._animation_category_label_func = None
+        self._animation_category_duration_func = None
+        self._animation_queue_count_func = None
+        self._animation_queue_label_func = None
+        self._animation_queue_duration_func = None
         self._configure_signatures()
 
     @staticmethod
@@ -602,6 +631,58 @@ class RuntimeBindings:
                     lib.engine_runtime_diagnostic_hot_reload_recent_failure_hint
                 )
 
+        try:
+            lib.engine_runtime_diagnostic_animation_clip_track_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_animation_clip_track_count.argtypes = []
+            lib.engine_runtime_diagnostic_animation_pose_joint_count.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_animation_pose_joint_count.argtypes = []
+            lib.engine_runtime_diagnostic_animation_clip_duration.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_animation_clip_duration.argtypes = []
+            lib.engine_runtime_diagnostic_animation_playback_time.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_animation_playback_time.argtypes = []
+            lib.engine_runtime_diagnostic_animation_playback_speed.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_animation_playback_speed.argtypes = []
+            lib.engine_runtime_diagnostic_animation_category_count.restype = ctypes.c_size_t
+            lib.engine_runtime_diagnostic_animation_category_count.argtypes = []
+            lib.engine_runtime_diagnostic_animation_category_label.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_animation_category_label.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_animation_category_duration_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_animation_category_duration_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_animation_queue_count.restype = ctypes.c_size_t
+            lib.engine_runtime_diagnostic_animation_queue_count.argtypes = []
+            lib.engine_runtime_diagnostic_animation_queue_label.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_animation_queue_label.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_animation_queue_duration_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_animation_queue_duration_ms.argtypes = [ctypes.c_size_t]
+        except AttributeError:
+            self._has_animation_metrics = False
+            self._animation_category_count_func = None
+            self._animation_category_label_func = None
+            self._animation_category_duration_func = None
+            self._animation_queue_count_func = None
+            self._animation_queue_label_func = None
+            self._animation_queue_duration_func = None
+        else:
+            self._has_animation_metrics = True
+            self._animation_category_count_func = (
+                lib.engine_runtime_diagnostic_animation_category_count
+            )
+            self._animation_category_label_func = (
+                lib.engine_runtime_diagnostic_animation_category_label
+            )
+            self._animation_category_duration_func = (
+                lib.engine_runtime_diagnostic_animation_category_duration_ms
+            )
+            self._animation_queue_count_func = (
+                lib.engine_runtime_diagnostic_animation_queue_count
+            )
+            self._animation_queue_label_func = (
+                lib.engine_runtime_diagnostic_animation_queue_label
+            )
+            self._animation_queue_duration_func = (
+                lib.engine_runtime_diagnostic_animation_queue_duration_ms
+            )
+
         if self._has_diagnostics:
             try:
                 lib.engine_runtime_diagnostic_scene_issue_count.restype = ctypes.c_uint64
@@ -754,6 +835,75 @@ class RuntimeBindings:
             recent_failures=failures,
         )
 
+    def _collect_animation_metrics(self) -> Optional[RuntimeAnimationTelemetry]:
+        if not self._has_animation_metrics:
+            return None
+
+        try:
+            clip_track_count = int(self._lib.engine_runtime_diagnostic_animation_clip_track_count())
+            pose_joint_count = int(self._lib.engine_runtime_diagnostic_animation_pose_joint_count())
+            clip_duration = float(self._lib.engine_runtime_diagnostic_animation_clip_duration())
+            playback_time = float(self._lib.engine_runtime_diagnostic_animation_playback_time())
+            playback_speed = float(self._lib.engine_runtime_diagnostic_animation_playback_speed())
+        except AttributeError:
+            return None
+
+        categories: List[RuntimeAnimationDispatchTotal] = []
+        if self._animation_category_count_func is not None:
+            try:
+                count = int(self._animation_category_count_func())
+            except Exception:
+                count = 0
+            for index in range(count):
+                label_ptr = (
+                    self._animation_category_label_func(index)
+                    if self._animation_category_label_func is not None
+                    else None
+                )
+                label = label_ptr.decode("utf-8") if label_ptr else ""
+                duration = 0.0
+                if self._animation_category_duration_func is not None:
+                    try:
+                        duration = float(self._animation_category_duration_func(index))
+                    except Exception:
+                        duration = 0.0
+                categories.append(
+                    RuntimeAnimationDispatchTotal(label=label, duration_ms=duration)
+                )
+
+        queues: List[RuntimeAnimationDispatchTotal] = []
+        if self._animation_queue_count_func is not None:
+            try:
+                count = int(self._animation_queue_count_func())
+            except Exception:
+                count = 0
+            for index in range(count):
+                label_ptr = (
+                    self._animation_queue_label_func(index)
+                    if self._animation_queue_label_func is not None
+                    else None
+                )
+                label = label_ptr.decode("utf-8") if label_ptr else ""
+                duration = 0.0
+                if self._animation_queue_duration_func is not None:
+                    try:
+                        duration = float(self._animation_queue_duration_func(index))
+                    except Exception:
+                        duration = 0.0
+                queues.append(
+                    RuntimeAnimationDispatchTotal(label=label, duration_ms=duration)
+                )
+
+        return RuntimeAnimationTelemetry(
+            clip_track_count=clip_track_count,
+            pose_joint_count=pose_joint_count,
+            clip_duration=clip_duration,
+            playback_time=playback_time,
+            playback_speed=playback_speed,
+            category_totals=categories,
+            queue_totals=queues,
+        )
+
     def diagnostics_snapshot(self) -> Optional[RuntimeDiagnosticsSnapshot]:
         if not self._has_diagnostics:
             return None
@@ -778,6 +928,7 @@ class RuntimeBindings:
             hot_reload=self._collect_hot_reload_metrics(),
             scene_validation=self._collect_scene_validation(),
             metrics=self._collect_metrics(),
+            animation=self._collect_animation_metrics(),
         )
 
     def _collect_last_initialize_failure(
@@ -1176,6 +1327,7 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
         ],
         "scene_validation": _scene_validation_to_dict(snapshot.scene_validation),
         "metrics": _metrics_to_dict(snapshot.metrics),
+        "animation": _animation_to_dict(snapshot.animation),
     }
 
 
@@ -1222,6 +1374,28 @@ def _hot_reload_to_dict(metrics: Optional[HotReloadMetrics]) -> Optional[Dict[st
                 "hint": failure.hint,
             }
             for failure in metrics.recent_failures
+        ],
+    }
+
+
+def _animation_to_dict(
+    telemetry: Optional[RuntimeAnimationTelemetry],
+) -> Optional[Dict[str, object]]:
+    if telemetry is None:
+        return None
+    return {
+        "clip_track_count": telemetry.clip_track_count,
+        "pose_joint_count": telemetry.pose_joint_count,
+        "clip_duration": telemetry.clip_duration,
+        "playback_time": telemetry.playback_time,
+        "playback_speed": telemetry.playback_speed,
+        "category_totals": [
+            {"label": total.label, "duration_ms": total.duration_ms}
+            for total in telemetry.category_totals
+        ],
+        "queue_totals": [
+            {"label": total.label, "duration_ms": total.duration_ms}
+            for total in telemetry.queue_totals
         ],
     }
 
