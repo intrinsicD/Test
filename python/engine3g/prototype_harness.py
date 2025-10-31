@@ -1476,12 +1476,45 @@ class PrototypeHarness:
     ) -> DatasetAssetStatus:
         candidates = self._candidate_asset_paths(declared_path)
         resolved_path = candidates[0] if candidates else Path(declared_path).resolve()
-        actual_path: Optional[Path] = None
+        normalized_expected_sha256 = (
+            expected_sha256.lower() if expected_sha256 is not None else None
+        )
+
+        candidate_infos: list[dict[str, object]] = []
         for candidate in candidates:
-            if candidate.exists():
-                actual_path = candidate
-                break
-        if actual_path is None:
+            if not candidate.exists():
+                continue
+            info = {
+                "path": candidate,
+                "exists": True,
+                "size": None,
+                "sha": None,
+                "error": None,
+            }
+            if not candidate.is_file():
+                info["exists"] = False
+                info["error"] = "resolved path is not a file"
+                candidate_infos.append(info)
+                continue
+            try:
+                size = int(candidate.stat().st_size)
+            except OSError as error:
+                info["exists"] = False
+                info["error"] = f"unable to stat asset: {error}"
+                candidate_infos.append(info)
+                continue
+            info["size"] = size
+            if normalized_expected_sha256 is not None:
+                try:
+                    info["sha"] = self._compute_sha256(candidate).lower()
+                except OSError as error:
+                    info["exists"] = True
+                    info["error"] = f"unable to read asset: {error}"
+                    candidate_infos.append(info)
+                    continue
+            candidate_infos.append(info)
+
+        if not candidate_infos:
             message = "asset not found"
             if candidates:
                 message = f"asset not found (searched: {', '.join(str(candidate) for candidate in candidates)})"
@@ -1498,52 +1531,70 @@ class PrototypeHarness:
                 message=message,
             )
 
-        if not actual_path.is_file():
+        def _matches(info: dict[str, object]) -> bool:
+            if info.get("error") is not None:
+                return False
+            size = info.get("size")
+            if expected_size is not None and size != expected_size:
+                return False
+            if normalized_expected_sha256 is not None:
+                return info.get("sha") == normalized_expected_sha256
+            return True
+
+        selected_info: Optional[dict[str, object]] = None
+        for info in candidate_infos:
+            if _matches(info):
+                selected_info = info
+                break
+
+        if selected_info is None:
+            for info in candidate_infos:
+                if info.get("error") is not None:
+                    continue
+                size = info.get("size")
+                if expected_size is None or size == expected_size:
+                    selected_info = info
+                    break
+
+        if selected_info is None:
+            selected_info = candidate_infos[0]
+
+        selected_path = selected_info["path"]  # type: ignore[index]
+        error_message = selected_info.get("error")  # type: ignore[assignment]
+        exists = bool(selected_info.get("exists", True))
+
+        if error_message is not None:
             return DatasetAssetStatus(
                 role=role,
                 path=declared_path,
-                resolved_path=str(actual_path),
-                exists=False,
+                resolved_path=str(selected_path),
+                exists=exists,
                 expected_size_bytes=expected_size,
                 actual_size_bytes=None,
-                expected_sha256=expected_sha256,
+                expected_sha256=normalized_expected_sha256,
                 actual_sha256=None,
                 verified=False,
-                message="resolved path is not a file",
+                message=str(error_message),
             )
 
-        try:
-            actual_size = int(actual_path.stat().st_size)
-        except OSError as error:
-            return DatasetAssetStatus(
-                role=role,
-                path=declared_path,
-                resolved_path=str(actual_path),
-                exists=False,
-                expected_size_bytes=expected_size,
-                actual_size_bytes=None,
-                expected_sha256=expected_sha256,
-                actual_sha256=None,
-                verified=False,
-                message=f"unable to stat asset: {error}",
-            )
-
-        actual_sha256: Optional[str] = None
-        try:
-            actual_sha256 = self._compute_sha256(actual_path)
-        except OSError as error:
-            return DatasetAssetStatus(
-                role=role,
-                path=declared_path,
-                resolved_path=str(actual_path),
-                exists=True,
-                expected_size_bytes=expected_size,
-                actual_size_bytes=actual_size,
-                expected_sha256=expected_sha256,
-                actual_sha256=None,
-                verified=False,
-                message=f"unable to read asset: {error}",
-            )
+        actual_size = int(selected_info["size"])  # type: ignore[index]
+        actual_sha256 = selected_info.get("sha")  # type: ignore[assignment]
+        if actual_sha256 is None:
+            try:
+                actual_sha256 = self._compute_sha256(selected_path).lower()
+            except OSError as error:
+                return DatasetAssetStatus(
+                    role=role,
+                    path=declared_path,
+                    resolved_path=str(selected_path),
+                    exists=exists,
+                    expected_size_bytes=expected_size,
+                    actual_size_bytes=actual_size,
+                    expected_sha256=normalized_expected_sha256,
+                    actual_sha256=None,
+                    verified=False,
+                    message=f"unable to read asset: {error}",
+                )
 
         verified = True
         message_parts: list[str] = []
@@ -1552,9 +1603,6 @@ class PrototypeHarness:
             message_parts.append(
                 f"size mismatch (expected {expected_size}, found {actual_size})"
             )
-        normalized_expected_sha256 = (
-            expected_sha256.lower() if expected_sha256 is not None else None
-        )
         normalized_actual_sha256 = actual_sha256.lower() if actual_sha256 is not None else None
         if (
             normalized_expected_sha256 is not None
@@ -1567,8 +1615,8 @@ class PrototypeHarness:
         return DatasetAssetStatus(
             role=role,
             path=declared_path,
-            resolved_path=str(actual_path),
-            exists=True,
+            resolved_path=str(selected_path),
+            exists=exists,
             expected_size_bytes=expected_size,
             actual_size_bytes=actual_size,
             expected_sha256=normalized_expected_sha256,

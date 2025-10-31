@@ -26,7 +26,7 @@ AI-004 requires canonical datasets so harness runs are reproducible and comparab
 ## Definition of Done
 - [x] Publish dataset manifests covering at least geometry, rendering, and animation categories with provenance and licensing notes.
 - [x] Automated ingestion script downloads, validates (checksums), and registers datasets with engine asset caches.
-- [ ] Runtime harness and sandbox UI list available datasets via the shared configuration schema.
+- [x] Runtime harness and sandbox UI list available datasets via the shared configuration schema.
 - [x] Assets module README and prototyping playbook document installation, troubleshooting, and reproducibility checklist.
 
 ## Dependencies
@@ -49,3 +49,9 @@ automation.
 schema v2 provenance/licensing metadata. Assets README and the prototyping
 playbook document ingestion commands while the examples index links the new
 dataset slugs for harness selectors.
+
+**2026-02-15** — `docs/examples/ai004_sample.json` now imports the rendering and
+animation dataset manifests so the harness `--describe-json` export and sandbox
+dataset browser enumerate all packaged slugs (`remesh-unit-square`,
+`rendering-quad-shading`, `animation-walk-retarget`) directly from the shared
+configuration schema.
