@@ -1,6 +1,6 @@
 # Backlog Item RT-321 — Prototyping Case Study Validation
 
-- **Status**: In Progress
+- **Status**: Complete
 - **Priority**: 3
 - **Owner**: Runtime Lead (with Assets & Tools support)
 - **Module(s)**: Runtime, Assets, Rendering, Tools, Python
@@ -48,3 +48,4 @@ capturing baseline dataset metrics, rendering defaults, and telemetry targets
 for both packaged scenarios. Runtime and tools READMEs now cross-link the
 document so UI selectors, harness CLI, and automation share the same source of
 truth.
+**2026-02-18** — Roadmap tables and README next steps now reflect case study completion and outline maintenance work for future scenario additions.

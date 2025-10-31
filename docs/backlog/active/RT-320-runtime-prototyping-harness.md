@@ -1,6 +1,6 @@
 # Backlog Item RT-320 — Runtime Prototyping Harness
 
-- **Status**: In Progress
+- **Status**: Complete
 - **Priority**: 2
 - **Owner**: Runtime Lead
 - **Module(s)**: Runtime, Scene, Rendering, Assets, Python Tooling
@@ -60,3 +60,4 @@ asset integrity metadata in configuration summaries for TL-210 and AS-330 consum
 **2026-02-11** — Harness configures research rendering presets through the runtime API, propagating shading mode, resolution, and overlay toggles into Research Baseline telemetry for sandbox and benchmarking consumers. `PrototypeHarness.interactive_session()` now exposes a context-managed runtime bridge so TL-210 can toggle overlays, advance ticks, and capture telemetry summaries without reloading configurations.
 
 **2026-02-12** — Documented native sample usage in `engine/runtime/samples/README.md`, published schema walkthrough for `docs/examples/ai004_sample.json`, and linked CTest smoke coverage (`runtime_prototype_harness_sample_dry_run`, `runtime_prototype_harness_geometry_case_study`) for sprint acceptance tracking.
+**2026-02-18** — Roadmap, README, and module TODO sections updated to reflect harness completion and ongoing maintenance tasks tied to upcoming dataset refreshes.

@@ -334,8 +334,8 @@ ctest --preset linux-gcc-debug -R runtime
 
 ## TODO / Next Steps
 
-- Deliver `RT-320` (AI-004): build the prototyping harness with configuration schema, scripting hooks, and headless benchmarking that integrates the `RE-610` rendering baseline and `AS-330` dataset manifests.
-- Coordinate with tools module on `TL-210` sandbox UI bindings and telemetry capture to guarantee interactive workflows remain deterministic.
+- Maintain the prototyping harness and case study presets as new datasets land; record additional scenarios in [`../../ROADMAP.md`](../../ROADMAP.md) when they enter planning.
+- Coordinate with tools module on sandbox telemetry budgets and layout persistence to keep interactive workflows deterministic.
 - Keep hierarchy alert metrics and samples aligned with scene module follow-ups (`SC-225`, `SC-230`); see ../../ROADMAP.md
 
 ## Related Documentation

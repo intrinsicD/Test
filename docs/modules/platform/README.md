@@ -176,6 +176,69 @@ watcher.watch("assets/meshes/", [&mesh_cache](const auto& event) {
 });
 ```
 
+#### Polling cadence and lifecycle
+
+- `FilesystemWatcher::watch_file()` normalises paths to their absolute,
+  lexically normal form before storage, so callbacks always receive a stable
+  identifier regardless of the caller's working directory.
+- Call `poll()` from a steady cadence. Runtime integrations poll once per frame
+  to keep reload latency under 16 ms without producing excessive filesystem
+  traffic. Tooling with background worker threads can poll more frequently when
+  lower latency is required.
+- Only explicitly registered files are monitored. When an asset descriptor moves
+  to a new path, unregister the previous watch handle (asset caches perform this
+  automatically) so callbacks do not target removed files.
+
+#### Operating-system caveats
+
+- **Windows (NTFS)** – Editors that save via write-to-temp + rename emit a
+  `created` event for the replacement followed by an `erased` event for the old
+  target. Treat both as reload triggers. Buffered writes that never close the
+  handle do not advance the timestamp and therefore do not surface a change;
+  ensure tools flush to disk.
+- **macOS (APFS)** – Metadata updates are batched. Polling once per frame avoids
+  false negatives while keeping CPU usage low. When automated build steps write
+  in rapid succession, stagger writes by a few milliseconds so the resulting
+  timestamp differs from the previous value.
+- **Linux (ext4/XFS)** – Network shares or FAT-formatted removable drives expose
+  one-second timestamp precision. Writes that occur within the same second may
+  be coalesced; force a timestamp bump with
+  `std::filesystem::last_write_time` or insert a short delay between writes.
+- **Cross-platform** – Rename sequences surface as `created` + `erased` events.
+  Deleted files keep their cached descriptor and most recent timestamp so
+  diagnostics tools can surface actionable errors until the source reappears.
+
+#### Asset hot-reload integration
+
+Asset caches bridge watcher events back into cache management. The mesh cache,
+for example, binds watcher callbacks that reload the asset and notify listeners:
+
+```cpp
+engine::assets::MeshCache meshes;
+
+engine::assets::MeshHandle handle{"meshes/unit_cube"};
+engine::assets::MeshAssetDescriptor descriptor{
+    .handle = handle,
+    .source = "assets/meshes/unit_cube.obj"
+};
+
+const auto& mesh = meshes.load(descriptor);
+
+meshes.register_hot_reload_callback(handle, [&](const engine::assets::MeshAsset& reloaded) {
+    runtime_scene.rebind_mesh(handle, reloaded.mesh);
+});
+
+while (running) {
+    meshes.poll();  // Internally invokes FilesystemWatcher::poll()
+    runtime_scene.tick();
+}
+```
+
+`MeshCache::register_watch_locked` wires `FilesystemWatcher::watch_file()` so
+modifications trigger `reload_asset()` and invoke registered callbacks, while
+erase events simply update the tracked timestamp
+([`engine/assets/src/mesh_asset.cpp`](../../../engine/assets/src/mesh_asset.cpp)).
+
 ## Time & Clock
 
 High-resolution timing for frame pacing:
@@ -335,4 +398,4 @@ ctest --preset linux-gcc-debug -R platform
 
 ## TODO / Next Steps
 
-- `PL-240`: Extend filesystem watcher docs with OS-specific caveats and integration examples in assets hot-reload; see [`../../ROADMAP.md`](../../ROADMAP.md)
+- Track upcoming platform backlog (`PL-215` SDL parity, watcher parity on new OS targets) and update [`../../ROADMAP.md`](../../ROADMAP.md) as new tasks are prioritised.

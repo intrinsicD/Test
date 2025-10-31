@@ -1,6 +1,6 @@
 # Backlog Item AS-330 — Reference Dataset Packages
 
-- **Status**: Planned
+- **Status**: Complete
 - **Priority**: 3
 - **Owner**: Assets Lead
 - **Module(s)**: Assets, Geometry, Rendering, Python Tooling
@@ -55,3 +55,4 @@ animation dataset manifests so the harness `--describe-json` export and sandbox
 dataset browser enumerate all packaged slugs (`remesh-unit-square`,
 `rendering-quad-shading`, `animation-walk-retarget`) directly from the shared
 configuration schema.
+**2026-02-18** — README, roadmap, and module TODO updates mark AS-330 complete and highlight the upcoming licensing refresh planning cycle.
