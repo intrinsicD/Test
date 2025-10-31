@@ -458,6 +458,8 @@ def test_run_headless_supports_custom_scenario_label(tmp_path: Path) -> None:
     payload = run_summary_to_dict(summary)
     assert payload["scenario"] == "custom-scenario"
     assert payload["runtime_profile"] == "baseline"
+    assert payload["resolution_width"] == 1920
+    assert payload["resolution_height"] == 1080
 
 
 def test_run_headless_supports_run_metadata_placeholders(tmp_path: Path) -> None:
@@ -745,6 +747,10 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
     assert scenario.identifier == "remesh-baseline"
     assert scenario.engine.command == ("python", "run_engine.py", "--output", "{output_path}")
     assert scenario.metrics[0].threshold.limit == pytest.approx(0.05)
+    assert description.case_studies
+    assert description.selected_case_study is None
+    assert description.case_studies[0].identifier
+    assert description.case_studies[0].config_absolute
     assert description_payload["datasets"][0]["label"] == "remesh-sample"
     assert description_payload["runtime"]["hot_reload"] == {
         "enabled": False,
@@ -783,6 +789,8 @@ def test_describe_configuration_returns_metadata(tmp_path: Path) -> None:
         description_payload["benchmarks"]["scenarios"][0]["engine"]["command"][0]
         == "python"
     )
+    assert description_payload["case_studies"]
+    assert description_payload["selected_case_study"] is None
     assert description.datasets[0].assets
     assert all(status.verified for status in description.datasets[0].assets)
     asset_payloads = description_payload["datasets"][0]["assets"]
@@ -988,6 +996,8 @@ def test_summarize_formats_output() -> None:
         runtime_profile="baseline",
         rendering_preset="research-baseline",
         shading_mode="deferred",
+        resolution_width=1920,
+        resolution_height=1080,
         frames_executed=10,
         timestep_seconds=0.016,
         average_tick_ms=0.75,
@@ -999,7 +1009,7 @@ def test_summarize_formats_output() -> None:
         == (
             "scenario=remesh-baseline runtime=baseline dataset=remesh-sample "
             "preset=research-baseline shading=deferred "
-            "frames=10 dt=0.016000 avg_ms=0.750000 dispatches=1"
+            "frames=10 dt=0.016000 avg_ms=0.750000 resolution=1920x1080 dispatches=1"
         )
     )
 
@@ -1007,6 +1017,8 @@ def test_summarize_formats_output() -> None:
     assert summary_payload["dataset"] == "remesh-sample"
     assert summary_payload["scenario"] == "remesh-baseline"
     assert summary_payload["runtime_profile"] == "baseline"
+    assert summary_payload["resolution_width"] == 1920
+    assert summary_payload["resolution_height"] == 1080
     assert summary_payload["frames"] == 10
     assert summary_payload["dispatch_order"] == ["geometry::remesh"]
     assert summary_payload["dispatch_durations_ms"] == [1.5]
@@ -1031,6 +1043,8 @@ def test_summarize_includes_run_metadata() -> None:
     summary_payload = run_summary_to_dict(summary)
     assert summary_payload["scenario"] is None
     assert summary_payload["runtime_profile"] is None
+    assert summary_payload["resolution_width"] is None
+    assert summary_payload["resolution_height"] is None
     assert summary_payload["run_index"] == 2
     assert summary_payload["run_count"] == 3
     assert summary_payload["telemetry_outputs"] == []
@@ -1221,6 +1235,7 @@ def test_cli_dry_run(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: py
         *,
         runtime_factory: Callable[[], object] | None = None,
         require_schema: bool | None = None,
+        case_study_id: str | None = None,
     ) -> PrototypeHarness:
         config_path = Path(path)
         configuration = load_configuration(config_path, require_schema=require_schema)

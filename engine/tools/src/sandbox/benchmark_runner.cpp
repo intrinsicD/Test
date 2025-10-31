@@ -96,6 +96,16 @@ namespace engine::tools::sandbox
             command.emplace_back("--shading-mode");
             command.emplace_back(preferences.shading_mode);
         }
+        if (preferences.resolution_width > 0)
+        {
+            command.emplace_back("--resolution-width");
+            command.emplace_back(std::to_string(preferences.resolution_width));
+        }
+        if (preferences.resolution_height > 0)
+        {
+            command.emplace_back("--resolution-height");
+            command.emplace_back(std::to_string(preferences.resolution_height));
+        }
         for (const auto& [key, value] : preferences.overlays)
         {
             command.emplace_back("--overlay");
@@ -338,6 +348,8 @@ namespace engine::tools::sandbox
         const auto average_tick_ms = extract_numeric_field<double>(content, "average_tick_ms");
         const auto run_index = extract_numeric_field<int>(content, "run_index");
         const auto run_count = extract_numeric_field<int>(content, "run_count");
+        const auto resolution_width = extract_numeric_field<int>(content, "resolution_width");
+        const auto resolution_height = extract_numeric_field<int>(content, "resolution_height");
 
         SandboxBenchmarkResult result{};
         result.success = true;
@@ -367,6 +379,10 @@ namespace engine::tools::sandbox
             details << " avg_ms=";
             details << std::setprecision(3) << *average_tick_ms;
             details << std::setprecision(previous_precision);
+        }
+        if (resolution_width && resolution_height && *resolution_width > 0 && *resolution_height > 0)
+        {
+            details << " resolution=" << *resolution_width << 'x' << *resolution_height;
         }
         if (run_index && run_count && *run_count > 0)
         {

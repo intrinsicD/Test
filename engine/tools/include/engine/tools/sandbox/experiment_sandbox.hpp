@@ -68,6 +68,24 @@ namespace engine::tools::sandbox
         std::vector<DatasetAssetDescriptor> assets;
     };
 
+    struct CaseStudyDescriptor
+    {
+        std::string identifier;
+        std::string label;
+        std::string description;
+        std::vector<std::string> tags;
+        std::string config_path;
+        std::string config_absolute;
+        std::optional<std::string> default_dataset;
+        std::optional<std::string> default_rendering_preset;
+        std::optional<std::string> default_runtime_profile;
+        std::optional<std::string> default_shading_mode;
+        std::optional<int> default_resolution_width;
+        std::optional<int> default_resolution_height;
+        std::map<std::string, bool> default_overlays;
+        std::vector<std::string> benchmark_scenarios;
+    };
+
     struct OverlayDescriptor
     {
         std::string key;
@@ -197,8 +215,11 @@ namespace engine::tools::sandbox
         std::string selected_algorithm_variant;
         std::string shading_mode;
         std::unordered_map<std::string, bool> overlays;
+        int resolution_width{0};
+        int resolution_height{0};
         int benchmark_frames{600};
         float benchmark_timestep{1.0F / 60.0F};
+        std::string selected_case_study;
     };
 
     struct ExperimentConfigurationSummary
@@ -212,6 +233,8 @@ namespace engine::tools::sandbox
         RuntimeSummary runtime;
         std::optional<TelemetryConfigurationDescriptor> telemetry;
         std::optional<BenchmarkConfigurationDescriptor> benchmarks;
+        std::vector<CaseStudyDescriptor> case_studies;
+        std::optional<std::string> selected_case_study;
     };
 
     struct SandboxCallbacks
@@ -220,6 +243,8 @@ namespace engine::tools::sandbox
         std::function<void(const std::string& variant_id)> on_algorithm_selected;
         std::function<void(const SandboxPreferences& preferences)> on_rendering_changed;
         std::function<SandboxBenchmarkResult(const SandboxPreferences& preferences)> on_run_benchmark;
+        std::function<void(const std::string& case_study_id)> on_case_study_selected;
+        std::function<void(const CaseStudyDescriptor& descriptor)> on_case_study_requested;
     };
 
     class ENGINE_TOOLS_API ExperimentSandbox
@@ -277,6 +302,11 @@ namespace engine::tools::sandbox
          */
         bool set_overlay_enabled(std::string_view overlay_key, bool enabled);
 
+        /**
+         * @brief Request loading the specified case study via the configured callback.
+         */
+        bool request_case_study(std::string_view case_study_identifier);
+
         bool load_preferences(const std::filesystem::path& path);
         bool save_preferences(const std::filesystem::path& path) const;
 
@@ -310,10 +340,12 @@ namespace engine::tools::sandbox
         std::unordered_map<std::string, std::size_t> dataset_lookup_{};
         std::unordered_map<std::string, std::size_t> preset_lookup_{};
         std::unordered_map<std::string, std::size_t> algorithm_lookup_{};
+        std::unordered_map<std::string, std::size_t> case_study_lookup_{};
 
         int selected_dataset_index_{-1};
         int selected_preset_index_{-1};
         int selected_algorithm_index_{-1};
+        int selected_case_study_index_{-1};
 
         std::array<char, 128> dataset_filter_buffer_{};
         std::string dataset_filter_{};
