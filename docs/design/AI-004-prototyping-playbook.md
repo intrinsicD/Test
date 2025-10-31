@@ -86,6 +86,8 @@ and is enforced by loaders in both Python and C++.
    python -m scripts.datasets.ingest_dataset assets/datasets/<name>/manifest.json \
        --output artifacts/datasets --dry-run --require-schema
    ```
+   Duplicate dataset identifiers are rejected when multiple manifests are
+   processed together so caches are not accidentally overwritten.
 5. Capture provenance in documentation (examples README, dataset catalog) and
    link licensing artefacts.
 6. Store manifests and assets in Git LFS as appropriate when datasets exceed
@@ -124,6 +126,10 @@ python -m scripts.prototyping.run_prototype_harness \
 - `--summary-json` writes telemetry and benchmark metadata (including `average_tick_ms` and dispatch execution order/durations) to disk. Telemetry output templates honour `{dataset}`, `{scenario}`, `{rendering_preset}`, and execution metadata placeholders such as `{run_index}`, `{run_count}`, `{frames}`, and `{dt}` so repeated runs emit distinct artefacts without manual renaming. Dataset/scenario tokens are slugified before substitution to block directory traversal or invalid filenames when operators supply ad-hoc scenario labels.
 - Telemetry outputs in configuration/summary JSON now include absolute paths resolved from templates (for example `{scenario}`) alongside the original template so automation can locate artefacts deterministically.
 - `--list-benchmarks` enumerates the declared scenarios (identifier, dataset, preset) before execution so tooling can confirm coverage.
+- `--list-datasets` with `--datasets-json` exports dataset verification status,
+  while `--list-telemetry` paired with `--telemetry-json` surfaces telemetry
+  outputs, metrics, and sampling cadence without launching the runtime. The
+  payloads mirror the sandbox summary consumed by TL-210.
 - Provide `--case-study <id>` to resolve configurations from
   `assets/datasets/case_studies/` once they are published.
 - Harness construction validates dataset assets before execution, checking file existence, byte sizes, and sha256 hashes. The exported configuration summaries include per-asset integrity metadata so TL-210 selectors and AS-330 packaging automation can report missing or stale datasets immediately.

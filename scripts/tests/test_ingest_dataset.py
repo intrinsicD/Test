@@ -60,3 +60,25 @@ def test_ingest_dataset_missing_file_raises(tmp_path: Path) -> None:
 
     with pytest.raises(DatasetIngestionError):
         ingest_manifest(manifest_path, tmp_path / "out")
+
+
+def test_cli_rejects_duplicate_dataset_identifiers(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    manifest = _sample_manifest_path()
+
+    from scripts.datasets import ingest_dataset as ingest_module
+
+    with pytest.raises(SystemExit) as exc:
+        ingest_module.main(
+            [
+                str(manifest),
+                str(manifest),
+                "--output",
+                str(tmp_path / "datasets"),
+            ]
+        )
+
+    assert exc.value.code == 2
+    captured = capsys.readouterr()
+    assert "dataset identifier 'remesh-unit-square'" in captured.err

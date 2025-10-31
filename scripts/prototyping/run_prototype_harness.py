@@ -25,6 +25,7 @@ from engine3g.case_studies import (  # type: ignore
 from engine3g.prototype_harness import (  # type: ignore
     DatasetSummary,
     HarnessConfigurationSummary,
+    HarnessTelemetrySummary,
     configuration_summary_to_dict,
     HarnessExecutionOptions,
     PrototypeHarness,
@@ -156,6 +157,78 @@ def _print_benchmark_scenarios(summary) -> None:
 def _write_json(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _telemetry_header(
+    *, config_label: str | None, config_path: Path | None
+) -> str:
+    header_parts: list[str] = []
+    if config_label:
+        header_parts.append(config_label)
+    if config_path is not None:
+        header_parts.append(str(config_path))
+    if header_parts:
+        return ", ".join(header_parts)
+    return "configuration"
+
+
+def _render_sampling_summary(telemetry: HarnessTelemetrySummary) -> None:
+    if telemetry.sampling is None:
+        print("Sampling: <default>")
+        return
+    sampling = telemetry.sampling
+    include_debug = "yes" if sampling.include_debug_overlays else "no"
+    print(
+        "Sampling: every {interval} frame(s); include_debug_overlays={flag}".format(
+            interval=sampling.frame_interval,
+            flag=include_debug,
+        )
+    )
+
+
+def _list_telemetry(
+    summary: HarnessConfigurationSummary,
+    *,
+    config_label: str | None,
+    config_path: Path | None,
+    json_path: Path | None,
+) -> int:
+    telemetry = summary.telemetry
+    header = _telemetry_header(config_label=config_label, config_path=config_path)
+    print(f"Telemetry configuration for {header}:")
+
+    if telemetry is None:
+        print("  <none declared>")
+    else:
+        print(f"Schema version: {telemetry.schema_version}")
+        if telemetry.outputs:
+            print("Outputs:")
+            for output in telemetry.outputs:
+                path = output.path or "<unspecified>"
+                print(f"  - {output.kind} path={path}")
+                if output.template is not None:
+                    print(f"    template={output.template}")
+        else:
+            print("Outputs: <none>")
+
+        if telemetry.metrics:
+            print("Metrics:")
+            for metric in telemetry.metrics:
+                print(f"  - {metric.name} statistic={metric.statistic}")
+        else:
+            print("Metrics: <none>")
+
+        _render_sampling_summary(telemetry)
+
+    if json_path is not None:
+        payload = configuration_summary_to_dict(summary)
+        export: dict[str, object] = {"telemetry": payload.get("telemetry")}
+        if config_label is not None:
+            export["source_label"] = config_label
+        if config_path is not None:
+            export["config_path"] = str(config_path)
+        _write_json(json_path, export)
+    return 0
 
 
 def _list_datasets(
@@ -451,6 +524,16 @@ def main(argv: Iterable[str] | None = None) -> int:
         help="List benchmark scenarios defined in the configuration before execution.",
     )
     parser.add_argument(
+        "--list-telemetry",
+        action="store_true",
+        help="List telemetry outputs and metrics without executing the harness.",
+    )
+    parser.add_argument(
+        "--telemetry-json",
+        type=Path,
+        help="Write telemetry metadata extracted from the configuration to the specified JSON file.",
+    )
+    parser.add_argument(
         "--list-case-studies",
         action="store_true",
         help="List bundled case studies without executing the harness.",
@@ -474,6 +557,9 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     if args.datasets_json is not None and not args.list_datasets:
         parser.error("--datasets-json requires --list-datasets")
+
+    if args.telemetry_json is not None and not args.list_telemetry:
+        parser.error("--telemetry-json requires --list-telemetry")
 
     if args.list_datasets:
         if args.summary_json is not None or args.describe_json is not None or args.list_benchmarks:
@@ -502,6 +588,40 @@ def main(argv: Iterable[str] | None = None) -> int:
             config_label=case_label,
             config_path=config_path,
             json_path=args.datasets_json,
+        )
+
+    if args.list_telemetry:
+        if (
+            args.summary_json is not None
+            or args.describe_json is not None
+            or args.list_benchmarks
+            or args.list_datasets
+        ):
+            parser.error("--list-telemetry cannot be combined with execution options")
+        if args.config is None and args.case_study is None:
+            parser.error("--list-telemetry requires --config or --case-study")
+        if args.telemetry_json is not None and args.telemetry_json.is_dir():
+            parser.error("--telemetry-json must reference a file path")
+        try:
+            config_path, case_label = _resolve_config_argument(args)
+        except CaseStudyError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 2
+        try:
+            harness = load_harness(
+                str(config_path),
+                require_schema=True if args.require_schema else None,
+                case_study_id=args.case_study,
+            )
+        except PrototypeHarnessError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 2
+        summary = harness.describe_configuration()
+        return _list_telemetry(
+            summary,
+            config_label=case_label,
+            config_path=config_path,
+            json_path=args.telemetry_json,
         )
 
     if args.frames <= 0 and not args.dry_run:
