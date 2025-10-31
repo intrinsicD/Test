@@ -24,10 +24,10 @@ AI-004 requires canonical datasets so harness runs are reproducible and comparab
 | Release Manager | Publish dataset bundles and update release notes with installation guidance. | Release Manager (98) |
 
 ## Definition of Done
-- [ ] Publish dataset manifests covering at least geometry, rendering, and animation categories with provenance and licensing notes.
-- [ ] Automated ingestion script downloads, validates (checksums), and registers datasets with engine asset caches.
+- [x] Publish dataset manifests covering at least geometry, rendering, and animation categories with provenance and licensing notes.
+- [x] Automated ingestion script downloads, validates (checksums), and registers datasets with engine asset caches.
 - [ ] Runtime harness and sandbox UI list available datasets via the shared configuration schema.
-- [ ] Assets module README and prototyping playbook document installation, troubleshooting, and reproducibility checklist.
+- [x] Assets module README and prototyping playbook document installation, troubleshooting, and reproducibility checklist.
 
 ## Dependencies
 - [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
@@ -44,3 +44,8 @@ Ensure licensing review completes before publishing manifests. Provide smaller s
 triangle totals, and triangle quality metrics. The ingestion summary exports these
 fields to simplify telemetry comparisons in harness describe outputs and benchmark
 automation.
+**2026-02-14** — Rendering and animation reference manifests added under
+`assets/datasets/rendering_sample` and `assets/datasets/animation_sample` with
+schema v2 provenance/licensing metadata. Assets README and the prototyping
+playbook document ingestion commands while the examples index links the new
+dataset slugs for harness selectors.

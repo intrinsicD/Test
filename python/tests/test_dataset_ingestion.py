@@ -83,6 +83,32 @@ def test_ingest_manifest_writes_summary_with_extended_statistics(tmp_path: Path)
     assert summary["source_generator"] == "sample_assets"
 
 
+def test_ingest_manifest_supports_multiple_categories(tmp_path: Path) -> None:
+    manifests = [
+        _REPO_ROOT / "assets" / "datasets" / "remesh_sample" / "manifest.json",
+        _REPO_ROOT / "assets" / "datasets" / "rendering_sample" / "manifest.json",
+        _REPO_ROOT / "assets" / "datasets" / "animation_sample" / "manifest.json",
+    ]
+
+    processed = []
+    for manifest_path in manifests:
+        results = ingest_manifest(manifest_path, tmp_path, dry_run=True, require_schema=True)
+        processed.extend(results)
+
+    identifiers = {result.entry.identifier for result in processed}
+    kinds = {result.entry.kind for result in processed}
+    tags = {tag for result in processed for tag in result.entry.tags}
+
+    assert identifiers == {
+        "remesh-unit-square",
+        "rendering-quad-shading",
+        "animation-walk-retarget",
+    }
+    assert kinds == {"geometry.remesh", "rendering.debug", "animation.retarget"}
+    assert {"geometry", "rendering", "animation"}.issubset(tags)
+    assert all(all(file.verified for file in result.files) for result in processed)
+
+
 def test_cli_summary_generates_aggregated_payload(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     manifest_path = _REPO_ROOT / "assets" / "datasets" / "remesh_sample" / "manifest.json"
     summary_path = tmp_path / "artifacts" / "summary.json"
