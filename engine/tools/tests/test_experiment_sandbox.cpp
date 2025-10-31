@@ -215,6 +215,43 @@ TEST(ExperimentSandbox, CallbacksReplayCurrentStateWhenRegistered)
     EXPECT_EQ(rendering_callbacks, 1);
 }
 
+TEST(ExperimentSandbox, CallbacksReplayAlgorithmSelectionWhenRegistered)
+{
+    ExperimentSandbox sandbox;
+    auto summary = make_summary();
+
+    AlgorithmVariantDescriptor secondary{};
+    secondary.identifier = "diagnostics";
+    secondary.label = "Diagnostics";
+    summary.algorithm_variants.push_back(secondary);
+    summary.selected_algorithm_variant = secondary.identifier;
+
+    sandbox.set_configuration(summary);
+
+    int dataset_callbacks = 0;
+    int rendering_callbacks = 0;
+    int algorithm_callbacks = 0;
+    SandboxCallbacks callbacks{};
+    callbacks.on_dataset_selected = [&](const std::string& identifier) {
+        ++dataset_callbacks;
+        EXPECT_EQ(identifier, summary.datasets.front().identifier);
+    };
+    callbacks.on_rendering_changed = [&](const SandboxPreferences& prefs) {
+        ++rendering_callbacks;
+        EXPECT_EQ(prefs.selected_preset, summary.rendering_presets.front().identifier);
+    };
+    callbacks.on_algorithm_selected = [&](const std::string& identifier) {
+        ++algorithm_callbacks;
+        EXPECT_EQ(identifier, secondary.identifier);
+    };
+
+    sandbox.set_callbacks(callbacks);
+
+    EXPECT_EQ(dataset_callbacks, 1);
+    EXPECT_EQ(rendering_callbacks, 1);
+    EXPECT_EQ(algorithm_callbacks, 1);
+}
+
 TEST(ExperimentSandbox, SetPreferencesDispatchesCallbacks)
 {
     ExperimentSandbox sandbox;
@@ -406,5 +443,54 @@ TEST(ExperimentSandbox, AlgorithmSelectionInvokesCallback)
 
     EXPECT_FALSE(sandbox.select_algorithm_variant("unknown"));
     EXPECT_EQ(algorithm_callback_count, 2) << "Callback should not trigger for invalid variant";
+}
+
+TEST(ExperimentSandbox, TelemetryUpdateClampsSampleCount)
+{
+    ExperimentSandbox sandbox;
+
+    TelemetrySnapshot snapshot{};
+    TelemetrySeries series{};
+    series.name = "frame_time";
+    series.samples.reserve(1024);
+    for (int index = 0; index < 1024; ++index)
+    {
+        series.samples.push_back(static_cast<float>(index));
+    }
+    snapshot.series.push_back(series);
+
+    sandbox.update_telemetry(snapshot);
+
+    const auto& stored = sandbox.telemetry_snapshot();
+    ASSERT_EQ(stored.series.size(), 1);
+    const auto& stored_series = stored.series.front();
+    EXPECT_LE(stored_series.samples.size(), 256U);
+    EXPECT_FLOAT_EQ(stored_series.samples.front(), 0.0F);
+    EXPECT_FLOAT_EQ(stored_series.samples.back(), 1023.0F);
+    EXPECT_FLOAT_EQ(stored_series.minimum, 0.0F);
+    EXPECT_FLOAT_EQ(stored_series.maximum, 1023.0F);
+}
+
+TEST(ExperimentSandbox, TelemetryUpdatePreservesSmallSeries)
+{
+    ExperimentSandbox sandbox;
+
+    TelemetrySnapshot snapshot{};
+    TelemetrySeries series{};
+    series.name = "fps";
+    series.samples = {60.0F, 59.5F, 60.5F};
+    snapshot.series.push_back(series);
+
+    sandbox.update_telemetry(snapshot);
+
+    const auto& stored = sandbox.telemetry_snapshot();
+    ASSERT_EQ(stored.series.size(), 1);
+    const auto& stored_series = stored.series.front();
+    ASSERT_EQ(stored_series.samples.size(), 3U);
+    EXPECT_FLOAT_EQ(stored_series.samples[0], 60.0F);
+    EXPECT_FLOAT_EQ(stored_series.samples[1], 59.5F);
+    EXPECT_FLOAT_EQ(stored_series.samples[2], 60.5F);
+    EXPECT_FLOAT_EQ(stored_series.minimum, 59.5F);
+    EXPECT_FLOAT_EQ(stored_series.maximum, 60.5F);
 }
 

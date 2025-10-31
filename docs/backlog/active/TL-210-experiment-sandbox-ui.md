@@ -24,9 +24,9 @@ Initial sandbox scaffolding landed, but wiring to the runtime harness and benchm
 | Release Manager | Package sandbox builds/screenshots for kickoff review distribution. | Release Manager (98) |
 
 ## Definition of Done
-- [ ] Sandbox enumerates datasets, presets, and algorithm variants from the shared schema and updates runtime state immediately.
+- [x] Sandbox enumerates datasets, presets, and algorithm variants from the shared schema and updates runtime state immediately.
 - [ ] Benchmark capture from the UI triggers headless runs using CC-310 orchestration and surfaces results inline.
-- [ ] Telemetry charts stream live metrics while respecting the 1 ms/frame UI budget and persist layout preferences per user.
+- [x] Telemetry charts stream live metrics while respecting the 1 ms/frame UI budget and persist layout preferences per user.
 - [ ] Tools README, prototyping playbook, and accessibility checklist document the workflow with updated screenshots.
 
 ## Dependencies
@@ -43,3 +43,8 @@ Golden screenshot coverage is desirable but optional; prioritise deterministic s
 - Sandbox now replays dataset/rendering callbacks whenever configuration or
   preference changes are applied, keeping runtime integrations synchronised
   without requiring manual reselection.
+- Algorithm selection callbacks are replayed on registration so runtime profiles
+  remain in sync with harness integrations (`engine/tools/tests/test_experiment_sandbox.cpp`).
+- Telemetry updates clamp series to 256 samples while recomputing min/max bounds
+  to keep the ImGui rendering cost within the 1 ms/frame target
+  (`engine/tools/src/sandbox/experiment_sandbox.cpp`).

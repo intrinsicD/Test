@@ -17,6 +17,8 @@ namespace engine::tools::sandbox
 {
     namespace
     {
+        constexpr std::size_t kMaxTelemetrySamples = 256;
+
         std::string to_lower(std::string_view input)
         {
             std::string output{input};
@@ -24,6 +26,61 @@ namespace engine::tools::sandbox
                 return static_cast<char>(std::tolower(ch));
             });
             return output;
+        }
+
+        TelemetrySeries normalise_telemetry_series(const TelemetrySeries& input)
+        {
+            TelemetrySeries series = input;
+            if (series.samples.empty())
+            {
+                return series;
+            }
+
+            if (series.samples.size() > kMaxTelemetrySamples)
+            {
+                const std::size_t total = series.samples.size();
+                const std::size_t target = std::min(kMaxTelemetrySamples, total);
+                std::vector<float> downsampled;
+                downsampled.reserve(target);
+
+                if (target <= 1)
+                {
+                    downsampled.push_back(series.samples.front());
+                }
+                else
+                {
+                    const double step = static_cast<double>(total - 1)
+                        / static_cast<double>(target - 1);
+                    for (std::size_t i = 0; i < target; ++i)
+                    {
+                        const double position = step * static_cast<double>(i);
+                        std::size_t index = static_cast<std::size_t>(std::llround(position));
+                        if (index >= total)
+                        {
+                            index = total - 1;
+                        }
+
+                        downsampled.push_back(series.samples[index]);
+                        if (index == total - 1)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (downsampled.back() != series.samples.back())
+                    {
+                        downsampled.push_back(series.samples.back());
+                    }
+                }
+
+                series.samples = std::move(downsampled);
+            }
+
+            const auto [min_it, max_it] =
+                std::minmax_element(series.samples.begin(), series.samples.end());
+            series.minimum = *min_it;
+            series.maximum = *max_it;
+            return series;
         }
 
         std::string trim(std::string_view input)
@@ -224,7 +281,15 @@ namespace engine::tools::sandbox
 
     void ExperimentSandbox::update_telemetry(const TelemetrySnapshot& telemetry)
     {
-        telemetry_ = telemetry;
+        TelemetrySnapshot filtered = telemetry;
+        filtered.series.clear();
+        filtered.series.reserve(telemetry.series.size());
+        for (const auto& series : telemetry.series)
+        {
+            filtered.series.emplace_back(normalise_telemetry_series(series));
+        }
+
+        telemetry_ = std::move(filtered);
     }
 
     void ExperimentSandbox::set_callbacks(SandboxCallbacks callbacks)
@@ -273,6 +338,11 @@ namespace engine::tools::sandbox
     const SandboxPreferences& ExperimentSandbox::preferences() const noexcept
     {
         return preferences_;
+    }
+
+    const TelemetrySnapshot& ExperimentSandbox::telemetry_snapshot() const noexcept
+    {
+        return telemetry_;
     }
 
     void ExperimentSandbox::set_preferences(const SandboxPreferences& preferences)
