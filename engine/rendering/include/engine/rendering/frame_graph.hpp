@@ -21,32 +21,6 @@ namespace engine::rendering
     /// Handle identifying resources declared inside the frame-graph.
 
 
-    /// Lifetime category of a frame-graph resource.
-    enum class ResourceLifetime
-    {
-        External,
-        Transient,
-    };
-
-    /// Immutable descriptor exposed to passes when querying resource metadata.
-    struct FrameGraphResourceInfo
-    {
-        std::string_view name;
-        ResourceLifetime lifetime{ResourceLifetime::Transient};
-        ResourceFormat format{ResourceFormat::Unknown};
-        ResourceDimension dimension{ResourceDimension::Unknown};
-        ResourceUsage usage{ResourceUsage::None};
-        ResourceState initial_state{ResourceState::Undefined};
-        ResourceState final_state{ResourceState::Undefined};
-        std::uint32_t width{1};
-        std::uint32_t height{1};
-        std::uint32_t depth{1};
-        std::uint32_t array_layers{1};
-        std::uint32_t mip_levels{1};
-        ResourceSampleCount sample_count{ResourceSampleCount::Count1};
-        std::uint64_t size_bytes{0};
-    };
-
     struct FrameGraphResourceDescriptor
     {
         std::string name;

@@ -176,3 +176,29 @@ TEST(OpenGLResourceProvider, TracksDepthAttachmentDescriptors)
     ASSERT_NE(record, nullptr);
     EXPECT_FALSE(record->in_use);
 }
+
+TEST(OpenGLResourceProvider, RecordsResourceEvents)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 42;
+
+    const auto info = make_color_resource("Telemetry.Color", 128, 64);
+
+    provider.on_transient_acquire(handle, info);
+    provider.on_transient_release(handle, info);
+
+    const auto& acquired = provider.acquired();
+    ASSERT_EQ(acquired.size(), 1U);
+    EXPECT_EQ(acquired.front().handle, handle);
+    EXPECT_EQ(acquired.front().info.name, info.name);
+    EXPECT_EQ(acquired.front().info.width, info.width);
+    EXPECT_EQ(acquired.front().info.height, info.height);
+    EXPECT_EQ(acquired.front().info.final_state, info.final_state);
+
+    const auto& released = provider.released();
+    ASSERT_EQ(released.size(), 1U);
+    EXPECT_EQ(released.front().handle, handle);
+    EXPECT_EQ(released.front().info.name, info.name);
+    EXPECT_EQ(released.front().info.usage, info.usage);
+}
