@@ -354,9 +354,9 @@ ctest --preset linux-gcc-debug -R runtime
 
 ## TODO / Next Steps
 
-- Maintain the prototyping harness and case study presets as new datasets land; record additional scenarios in [`../../ROADMAP.md`](../../ROADMAP.md) when they enter planning.
-- Coordinate with tools module on sandbox telemetry budgets and layout persistence to keep interactive workflows deterministic.
-- Keep hierarchy alert metrics and samples aligned with scene module follow-ups (`SC-225`, `SC-230`); see ../../ROADMAP.md
+- Execute [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md): ship the stage planner, presentation adapters, and synchronisation hooks mandated by [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md).
+- Pair with rendering on [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md) and [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) milestones so submission timing and telemetry contracts stay aligned.
+- Maintain the prototyping harness/case studies as new datasets land and record follow-on scenarios in [`../../ROADMAP.md`](../../ROADMAP.md) when they enter planning.
 
 ## Related Documentation
 
