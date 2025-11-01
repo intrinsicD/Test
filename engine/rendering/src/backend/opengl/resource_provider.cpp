@@ -395,7 +395,7 @@ namespace engine::rendering::backend::opengl
             return;
         }
 
-        acquired_.push_back(handle);
+        acquired_.push_back(ResourceEventRecord{handle, info});
 
         if (is_buffer_resource(info))
         {
@@ -455,7 +455,7 @@ namespace engine::rendering::backend::opengl
             return;
         }
 
-        released_.push_back(handle);
+        released_.push_back(ResourceEventRecord{handle, info});
 
         if (is_buffer_resource(info))
         {
@@ -499,6 +499,18 @@ namespace engine::rendering::backend::opengl
             return nullptr;
         }
         return it->second.buffer.get();
+    }
+
+    const std::vector<OpenGLGpuResourceProvider::ResourceEventRecord>&
+    OpenGLGpuResourceProvider::acquired() const noexcept
+    {
+        return acquired_;
+    }
+
+    const std::vector<OpenGLGpuResourceProvider::ResourceEventRecord>&
+    OpenGLGpuResourceProvider::released() const noexcept
+    {
+        return released_;
     }
 
     const OpenGLGpuResourceProvider::BufferRecord*

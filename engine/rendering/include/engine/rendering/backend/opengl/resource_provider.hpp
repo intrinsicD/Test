@@ -46,6 +46,15 @@ namespace engine::rendering::backend::opengl
         [[nodiscard]] OpenGLCommandBuffer* command_buffer(CommandBufferHandle handle) noexcept;
         [[nodiscard]] const OpenGLCommandBuffer* command_buffer(CommandBufferHandle handle) const noexcept;
 
+        struct ResourceEventRecord
+        {
+            FrameGraphResourceHandle handle{};
+            FrameGraphResourceInfo info{};
+        };
+
+        [[nodiscard]] const std::vector<ResourceEventRecord>& acquired() const noexcept;
+        [[nodiscard]] const std::vector<ResourceEventRecord>& released() const noexcept;
+
         struct BufferRecord
         {
             std::string name;
@@ -104,8 +113,8 @@ namespace engine::rendering::backend::opengl
         std::unordered_map<std::size_t, CommandBufferRecord> command_buffers_{};
         std::unordered_map<std::string, FenceRecord> fences_{};
         std::unordered_map<std::string, TimelineRecord> timelines_{};
-        std::vector<FrameGraphResourceHandle> acquired_{};
-        std::vector<FrameGraphResourceHandle> released_{};
+        std::vector<ResourceEventRecord> acquired_{};
+        std::vector<ResourceEventRecord> released_{};
         std::unordered_map<std::size_t, BufferRecord> buffers_{};
         std::unordered_map<std::size_t, TextureRecord> textures_{};
         mutable std::uint64_t next_queue_id_{1};
