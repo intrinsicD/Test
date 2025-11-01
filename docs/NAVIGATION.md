@@ -24,8 +24,10 @@
 |-----------|---------|-------------|
 | `backlog/` | Active + archived backlog items with priority 1–5 scale | Planning, status tracking |
 | `design/` | Deep dives, guides, strategies | Understanding complex subsystems |
+| `architecture/` | Generated diagrams (module dependency graph, wiring snapshots) | Visualising system structure |
 | `modules/` | Per-module README + roadmap | Working in specific subsystem |
 | `prompts/` | Reusable agent instruction templates | Standardising AI workflows |
+| `templates/` | Documentation templates (research papers, READMEs) | Standardising new documentation |
 | `specs/` | ADRs, RFPs – binding architectural decisions | Before designing new features |
 | `examples/` | Usage samples and tutorials ([README](examples/README.md)) | Learning API usage |
 | `archive/` | Historical artefacts (completed tasks, reviews) | Research and provenance |
@@ -65,6 +67,8 @@
 - **Accessibility:** [`design/TL-210-accessibility-checklist.md`](design/TL-210-accessibility-checklist.md)
 - **Case Study Baselines:** [`design/RT-321-case-studies.md`](design/RT-321-case-studies.md)
 - **Benchmark Automation:** [`design/CC-310-benchmark-playbook.md`](design/CC-310-benchmark-playbook.md)
+- **Dependency Graph:** [`architecture/README.md`](architecture/README.md)
+- **Research Template:** [`templates/RESEARCH_PAPER_TEMPLATE.md`](templates/RESEARCH_PAPER_TEMPLATE.md)
 - **Backlog Template:** [`backlog/README.md`](backlog/README.md)
 - **Architecture Reviews:** [`reviews/2025-10-26-architecture-audit.md`](reviews/2025-10-26-architecture-audit.md), [`reviews/2025-12-05-roadmap-direction-review.md`](reviews/2025-12-05-roadmap-direction-review.md), [`reviews/2026-01-08-application-readiness-assessment.md`](reviews/2026-01-08-application-readiness-assessment.md), [`reviews/2026-02-10-comprehensive-architecture-evaluation.md`](reviews/2026-02-10-comprehensive-architecture-evaluation.md)
 

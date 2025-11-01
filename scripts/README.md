@@ -17,6 +17,7 @@
   [`datasets/ingest_dataset.py`](datasets/ingest_dataset.py); it stages manifests
   into reproducible caches with checksum metadata and regression coverage to
   advance `AS-330` deliverables.
+- Module dependency visualisation lives in [`generate_dependency_graph.py`](generate_dependency_graph.py); it emits Graphviz DOT/SVG to keep architecture docs synchronised.
 
 ## Usage
 
