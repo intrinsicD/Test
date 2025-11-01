@@ -4,7 +4,13 @@
 
 The tools module provides editor utilities, profiling tools, pipeline automation, and diagnostics viewers. It includes the telemetry viewer CLI for runtime snapshots, integration with Dear ImGui for debug UI, and runtime packaging scripts for CI/CD workflows.
 
-**Status:** ✅ **Modularization Complete** - The tools module has been fully modularized and is now enabled in the build system.
+**Status:** 🚧 **Disabled** – The module remains excluded from the default build and ADR-0008 panel registry integration has not landed. See [`TL-310`](../../backlog/active/TL-310-editor-foundations.md) for the work required to re-enable the editor and tooling stack.
+
+## Outstanding Work
+
+- Restore build integration and CI coverage as tracked in [`TL-310`](../../backlog/active/TL-310-editor-foundations.md).
+- Implement the panel registry, runtime harness bridge, and ImGui reuse strategy from [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md).
+- Validate editor flows against GPU-enabled runtime once [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md) and [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) deliver synchronisation hooks.
 
 ## Telemetry Viewer CLI
 

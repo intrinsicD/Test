@@ -2,7 +2,15 @@
 
 ## Overview
 
+> **Status:** ⚠️ **At Risk** — The ADR-0008 stage planner, presentation backends, and synchronisation hooks have not been implemented. `RuntimeHost::tick` still drives a monolithic loop without declarative scheduling, and rendering submission cannot synchronise with real GPU backends until [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) lands.
+
 The runtime module orchestrates the engine's main execution loop through `RuntimeHost`, which coordinates animation evaluation, physics simulation, geometry deformation, scene graph updates, and rendering submission. It acts as the integration point for all subsystems and provides comprehensive diagnostics and telemetry.
+
+## Outstanding Work
+
+- Implement the stage planner and presentation adapters described in [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) (`RT-410`).
+- Provide synchronisation hooks for scripting, diagnostics, and tooling integrations in tandem with rendering backends.
+- Validate the new loop against OpenGL/Vulkan once [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) and [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md) ship.
 
 ## Core Concepts
 
