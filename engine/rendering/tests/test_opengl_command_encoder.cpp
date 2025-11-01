@@ -22,7 +22,15 @@ namespace
         {
             ++begin_count;
             last_pass = submission.pass_name;
-            last_draw_count = submission.draw_commands.size();
+            last_command_count = submission.commands.size();
+            last_compute_dispatches = 0U;
+            for (const auto& command : submission.commands)
+            {
+                if (command.type == engine::rendering::EncodedCommand::Type::DispatchCompute)
+                {
+                    ++last_compute_dispatches;
+                }
+            }
         }
 
         void wait_timeline(const engine::rendering::backend::opengl::OpenGLTimelineSubmit&) override
@@ -55,7 +63,8 @@ namespace
         std::size_t execute_count{0};
         std::size_t end_count{0};
         std::string last_pass;
-        std::size_t last_draw_count{0};
+        std::size_t last_command_count{0};
+        std::size_t last_compute_dispatches{0};
     };
 }
 
@@ -93,15 +102,66 @@ TEST(OpenGLCommandEncoder, RecordsDrawCommands)
 
     ASSERT_EQ(scheduler.submissions().size(), 1U); // NOLINT
     const auto& submission = scheduler.submissions().front();
-    EXPECT_EQ(submission.draw_commands.size(), 1U);
-    EXPECT_EQ(submission.draw_commands.front().material.id(), std::string{"material.handle"});
-    EXPECT_EQ(submission.draw_commands.front().geometry.index(), draw.geometry.index());
+    ASSERT_EQ(submission.commands.size(), 1U); // NOLINT
+    const auto& recorded = submission.commands.front();
+    ASSERT_EQ(recorded.type, engine::rendering::EncodedCommand::Type::DrawGeometry);
+    EXPECT_EQ(recorded.draw.material.id(), std::string{"material.handle"});
+    EXPECT_EQ(recorded.draw.geometry.index(), draw.geometry.index());
 
     EXPECT_EQ(stream.begin_count, 1U);
     EXPECT_EQ(stream.execute_count, 1U);
     EXPECT_EQ(stream.end_count, 1U);
     EXPECT_EQ(stream.last_pass, "EncodePass");
-    EXPECT_EQ(stream.last_draw_count, 1U);
+    EXPECT_EQ(stream.last_command_count, 1U);
+    EXPECT_EQ(stream.last_compute_dispatches, 0U);
+}
+
+TEST(OpenGLCommandEncoder, RecordsComputeDispatches)
+{
+    using namespace engine::rendering;
+    using namespace engine::rendering::backend::opengl;
+
+    OpenGLGpuResourceProvider provider;
+    RecordingStream stream;
+    OpenGLGpuScheduler scheduler(provider, &stream);
+    OpenGLCommandEncoderProvider encoders(provider);
+
+    auto command_buffer = scheduler.request_command_buffer(QueueType::Compute, "DispatchPass");
+
+    CommandEncoderDescriptor descriptor{"DispatchPass", QueueType::Compute, command_buffer};
+    auto encoder = encoders.begin_encoder(descriptor);
+
+    ComputeDispatchCommand dispatch{};
+    dispatch.group_count_x = 4U;
+    dispatch.group_count_y = 2U;
+    dispatch.group_count_z = 1U;
+    encoder->dispatch_compute(dispatch);
+
+    encoders.end_encoder(descriptor, std::move(encoder));
+
+    GpuSubmitInfo submit{};
+    submit.pass_name = "DispatchPass";
+    submit.queue = QueueType::Compute;
+    submit.command_buffer = command_buffer;
+
+    scheduler.submit(submit);
+    scheduler.recycle(command_buffer);
+
+    ASSERT_EQ(scheduler.submissions().size(), 1U); // NOLINT
+    const auto& submission = scheduler.submissions().front();
+    ASSERT_EQ(submission.commands.size(), 1U); // NOLINT
+    const auto& recorded = submission.commands.front();
+    ASSERT_EQ(recorded.type, engine::rendering::EncodedCommand::Type::DispatchCompute);
+    EXPECT_EQ(recorded.dispatch.group_count_x, 4U);
+    EXPECT_EQ(recorded.dispatch.group_count_y, 2U);
+    EXPECT_EQ(recorded.dispatch.group_count_z, 1U);
+
+    EXPECT_EQ(stream.begin_count, 1U);
+    EXPECT_EQ(stream.execute_count, 1U);
+    EXPECT_EQ(stream.end_count, 1U);
+    EXPECT_EQ(stream.last_pass, "DispatchPass");
+    EXPECT_EQ(stream.last_command_count, 1U);
+    EXPECT_EQ(stream.last_compute_dispatches, 1U);
 }
 
 TEST(OpenGLImmediateCommandStream, ExecutesMeshDraws)
@@ -151,4 +211,43 @@ TEST(OpenGLImmediateCommandStream, ExecutesMeshDraws)
     scheduler.recycle(command_buffer);
 
     EXPECT_EQ(stream.draw_call_count(), 1U);
+    EXPECT_EQ(stream.compute_dispatch_count(), 0U);
+}
+
+TEST(OpenGLImmediateCommandStream, ExecutesComputeDispatches)
+{
+    using namespace engine::rendering;
+    using namespace engine::rendering::backend::opengl;
+
+    OpenGLRenderResourceProvider render_resources([](const engine::assets::MeshHandle&) -> std::optional<engine::geometry::SurfaceMesh>
+                                                 {
+                                                     return std::nullopt;
+                                                 });
+
+    OpenGLImmediateCommandStream stream(render_resources);
+    OpenGLGpuResourceProvider provider;
+    OpenGLGpuScheduler scheduler(provider, &stream);
+    OpenGLCommandEncoderProvider encoders(provider);
+
+    auto command_buffer = scheduler.request_command_buffer(QueueType::Compute, "ComputePass");
+    CommandEncoderDescriptor descriptor{"ComputePass", QueueType::Compute, command_buffer};
+    auto encoder = encoders.begin_encoder(descriptor);
+
+    ComputeDispatchCommand dispatch{};
+    dispatch.group_count_x = 8U;
+    dispatch.group_count_y = 1U;
+    dispatch.group_count_z = 2U;
+    encoder->dispatch_compute(dispatch);
+
+    encoders.end_encoder(descriptor, std::move(encoder));
+
+    GpuSubmitInfo submit{};
+    submit.pass_name = "ComputePass";
+    submit.queue = QueueType::Compute;
+    submit.command_buffer = command_buffer;
+
+    scheduler.submit(submit);
+    scheduler.recycle(command_buffer);
+
+    EXPECT_EQ(stream.compute_dispatch_count(), 1U);
 }

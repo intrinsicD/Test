@@ -358,7 +358,7 @@ namespace engine::rendering::backend::opengl
         }
         if (it->second.buffer != nullptr)
         {
-            it->second.buffer->draws.clear();
+            it->second.buffer->clear_commands();
         }
     }
 

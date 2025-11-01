@@ -11,7 +11,7 @@ namespace engine::rendering::backend::opengl
         label_.assign(pass_name.data(), pass_name.size());
         handle_ = handle;
         queue_ = queue;
-        draws.clear();
+        clear_commands();
     }
 
     OpenGLCommandEncoder::OpenGLCommandEncoder(OpenGLCommandBuffer& buffer) noexcept : buffer_(&buffer)
@@ -24,7 +24,16 @@ namespace engine::rendering::backend::opengl
         {
             throw std::runtime_error{"OpenGLCommandEncoder invoked without active command buffer"};
         }
-        buffer_->draws.push_back(command);
+        buffer_->push_command(OpenGLCommandBuffer::EncodedCommand::make_draw(command));
+    }
+
+    void OpenGLCommandEncoder::dispatch_compute(const ComputeDispatchCommand& command)
+    {
+        if (buffer_ == nullptr)
+        {
+            throw std::runtime_error{"OpenGLCommandEncoder invoked without active command buffer"};
+        }
+        buffer_->push_command(OpenGLCommandBuffer::EncodedCommand::make_dispatch(command));
     }
 
     OpenGLCommandEncoderProvider::OpenGLCommandEncoderProvider(OpenGLGpuResourceProvider& provider) noexcept

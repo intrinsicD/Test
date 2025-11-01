@@ -9,6 +9,8 @@ namespace engine::rendering::backend::opengl
 {
     class OpenGLRenderResourceProvider;
 
+    using engine::rendering::EncodedCommand;
+
     /**
      * \brief Command stream that immediately executes recorded draw commands against OpenGL.
      *
@@ -31,13 +33,16 @@ namespace engine::rendering::backend::opengl
         void end_submission(const OpenGLSubmission& submission) override;
 
         [[nodiscard]] std::size_t draw_call_count() const noexcept { return draw_calls_; }
+        [[nodiscard]] std::size_t compute_dispatch_count() const noexcept { return compute_dispatches_; }
 
     private:
         OpenGLRenderResourceProvider* render_resources_;
-        const std::vector<GeometryDrawCommand>* current_draws_{nullptr};
+        const std::vector<EncodedCommand>* current_commands_{nullptr};
         std::size_t draw_calls_{0};
+        std::size_t compute_dispatches_{0};
 
         void execute_draw_command(const GeometryDrawCommand& command);
         void execute_mesh_draw(const GeometryDrawCommand& command);
+        void execute_compute_dispatch(const ComputeDispatchCommand& command);
     };
 }

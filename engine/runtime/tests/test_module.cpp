@@ -314,10 +314,29 @@ namespace
     public:
         void draw_geometry(const engine::rendering::GeometryDrawCommand& command) override
         {
-            draws.push_back(command);
+            commands.push_back(engine::rendering::EncodedCommand::make_draw(command));
         }
 
-        std::vector<engine::rendering::GeometryDrawCommand> draws;
+        void dispatch_compute(const engine::rendering::ComputeDispatchCommand& command) override
+        {
+            commands.push_back(engine::rendering::EncodedCommand::make_dispatch(command));
+        }
+
+        [[nodiscard]] std::vector<engine::rendering::GeometryDrawCommand> geometry_draws() const
+        {
+            std::vector<engine::rendering::GeometryDrawCommand> draws;
+            draws.reserve(commands.size());
+            for (const auto& command : commands)
+            {
+                if (command.type == engine::rendering::EncodedCommand::Type::DrawGeometry)
+                {
+                    draws.push_back(command.draw);
+                }
+            }
+            return draws;
+        }
+
+        std::vector<engine::rendering::EncodedCommand> commands;
     };
 
     class RecordingCommandEncoderProvider final : public engine::rendering::CommandEncoderProvider
@@ -980,8 +999,9 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler)
 
     ASSERT_EQ(command_encoders.completed_encoders.size(), 1U); // NOLINT
     const auto& encoder = *command_encoders.completed_encoders.front();
-    ASSERT_EQ(encoder.draws.size(), 1U); // NOLINT
-    const auto& draw = encoder.draws.front();
+    const auto recorded_draws = encoder.geometry_draws();
+    ASSERT_EQ(recorded_draws.size(), 1U); // NOLINT
+    const auto& draw = recorded_draws.front();
     ASSERT_TRUE(std::holds_alternative<engine::assets::MeshHandle>(draw.geometry)); // NOLINT
     EXPECT_EQ(std::get<engine::assets::MeshHandle>(draw.geometry).id(), std::string{"runtime.mesh"});
     EXPECT_EQ(draw.material.id(), std::string{"runtime.material"});

@@ -8,16 +8,51 @@
 
 namespace engine::rendering::tests
 {
+    using engine::rendering::EncodedCommand;
+
     /// Command encoder that records geometry draws for assertions.
     class RecordingCommandEncoder final : public CommandEncoder
     {
     public:
         void draw_geometry(const GeometryDrawCommand& command) override
         {
-            draws.push_back(command);
+            commands.push_back(EncodedCommand::make_draw(command));
         }
 
-        std::vector<GeometryDrawCommand> draws;
+        void dispatch_compute(const ComputeDispatchCommand& command) override
+        {
+            commands.push_back(EncodedCommand::make_dispatch(command));
+        }
+
+        [[nodiscard]] std::vector<GeometryDrawCommand> geometry_draws() const
+        {
+            std::vector<GeometryDrawCommand> draws;
+            draws.reserve(commands.size());
+            for (const auto& command : commands)
+            {
+                if (command.type == EncodedCommand::Type::DrawGeometry)
+                {
+                    draws.push_back(command.draw);
+                }
+            }
+            return draws;
+        }
+
+        [[nodiscard]] std::vector<ComputeDispatchCommand> compute_dispatches() const
+        {
+            std::vector<ComputeDispatchCommand> dispatches;
+            dispatches.reserve(commands.size());
+            for (const auto& command : commands)
+            {
+                if (command.type == EncodedCommand::Type::DispatchCompute)
+                {
+                    dispatches.push_back(command.dispatch);
+                }
+            }
+            return dispatches;
+        }
+
+        std::vector<EncodedCommand> commands;
     };
 
     /// Provider that captures begin/end calls and keeps completed encoders alive.
@@ -64,6 +99,10 @@ namespace engine::rendering::tests
     {
     public:
         void draw_geometry(const GeometryDrawCommand&) override
+        {
+        }
+
+        void dispatch_compute(const ComputeDispatchCommand&) override
         {
         }
     };

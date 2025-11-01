@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string_view>
 
@@ -16,6 +17,44 @@ namespace engine::rendering
         components::RenderGeometry::Geometry geometry;
         engine::assets::MaterialHandle material;
         engine::math::Transform<float> transform;
+    };
+
+    /// High-level compute dispatch request emitted by render or compute passes.
+    struct ComputeDispatchCommand
+    {
+        std::uint32_t group_count_x{1};
+        std::uint32_t group_count_y{1};
+        std::uint32_t group_count_z{1};
+    };
+
+    /// Union of commands that can be recorded by command encoders.
+    struct EncodedCommand
+    {
+        enum class Type
+        {
+            DrawGeometry,
+            DispatchCompute,
+        };
+
+        Type type{Type::DrawGeometry};
+        GeometryDrawCommand draw{};
+        ComputeDispatchCommand dispatch{};
+
+        [[nodiscard]] static EncodedCommand make_draw(const GeometryDrawCommand& command)
+        {
+            EncodedCommand encoded{};
+            encoded.type = Type::DrawGeometry;
+            encoded.draw = command;
+            return encoded;
+        }
+
+        [[nodiscard]] static EncodedCommand make_dispatch(const ComputeDispatchCommand& command)
+        {
+            EncodedCommand encoded{};
+            encoded.type = Type::DispatchCompute;
+            encoded.dispatch = command;
+            return encoded;
+        }
     };
 
     /// Descriptor used when acquiring a command encoder for a render pass.
@@ -36,6 +75,9 @@ namespace engine::rendering
 
         /// Submit a geometry draw call to the underlying command buffer.
         virtual void draw_geometry(const GeometryDrawCommand& command) = 0;
+
+        /// Submit a compute dispatch to the underlying command buffer.
+        virtual void dispatch_compute(const ComputeDispatchCommand& command) = 0;
     };
 
     /**
