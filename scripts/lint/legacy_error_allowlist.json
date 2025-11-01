@@ -32,38 +32,29 @@
     "throw std::runtime_error(stream.str());": 1,
     "throw std::runtime_error{\"Animation clip contains no tracks\"};": 1
   },
+  "engine/assets/include/engine/assets/detail/cache_common.hpp": {
+    "throw std::invalid_argument(labels_.asset_display_name + \" handle identifier cannot be empty\");": 2,
+    "throw std::logic_error(labels_.asset_display_name + \" cache does not support hot reload callbacks\");": 1,
+    "throw std::out_of_range(not_found_message);": 1
+  },
   "engine/assets/include/engine/assets/detail/filesystem_utils.hpp": {
     "throw std::runtime_error(": 1
   },
   "engine/assets/src/graph_asset.cpp": {
-    "throw std::invalid_argument(\"Graph handle identifier cannot be empty\");": 2,
-    "throw std::out_of_range(\"Graph asset handle not found\");": 1,
     "throw std::runtime_error(message.empty()": 1
-  },
-  "engine/assets/src/material_asset.cpp": {
-    "throw std::invalid_argument(\"Material handle identifier cannot be empty\");": 1,
-    "throw std::out_of_range(\"Material asset handle not found\");": 1
   },
   "engine/assets/src/mesh_asset.cpp": {
     "throw AssetLoadException(reload.error());": 1,
-    "throw std::invalid_argument(\"Asset load request identifier cannot be empty\");": 1,
-    "throw std::invalid_argument(\"Mesh handle identifier cannot be empty\");": 2,
-    "throw std::out_of_range(\"Mesh asset handle not found\");": 1
+    "throw std::invalid_argument(\"Asset load request identifier cannot be empty\");": 1
   },
   "engine/assets/src/point_cloud_asset.cpp": {
     "throw AssetLoadException(reload.error());": 1,
-    "throw std::invalid_argument(\"Asset load request identifier cannot be empty\");": 1,
-    "throw std::invalid_argument(\"Point cloud handle identifier cannot be empty\");": 2,
-    "throw std::out_of_range(\"Point cloud asset handle not found\");": 1
+    "throw std::invalid_argument(\"Asset load request identifier cannot be empty\");": 1
   },
   "engine/assets/src/shader_asset.cpp": {
-    "throw std::invalid_argument(\"Shader handle identifier cannot be empty\");": 2,
-    "throw std::out_of_range(\"Shader asset handle not found\");": 1,
     "throw std::runtime_error(message.empty()": 1
   },
   "engine/assets/src/texture_asset.cpp": {
-    "throw std::invalid_argument(\"Texture handle identifier cannot be empty\");": 2,
-    "throw std::out_of_range(\"Texture asset handle not found\");": 1,
     "throw std::runtime_error(\"Failed to open texture file: \" + path.generic_string());": 1,
     "throw std::runtime_error(\"Failed to read texture file: \" + path.generic_string());": 1,
     "throw std::runtime_error(\"Mipmap generation only supports 2D textures\");": 1,
@@ -268,7 +259,7 @@
     "throw std::runtime_error{\"NativeSchedulerBase received unknown command buffer\"};": 1
   },
   "engine/rendering/src/backend/opengl/command_encoder.cpp": {
-    "throw std::runtime_error{\"OpenGLCommandEncoder invoked without active command buffer\"};": 1,
+    "throw std::runtime_error{\"OpenGLCommandEncoder invoked without active command buffer\"};": 2,
     "throw std::runtime_error{\"OpenGLCommandEncoderProvider could not resolve command buffer\"};": 1,
     "throw std::runtime_error{\"OpenGLCommandEncoderProvider has no resource provider\"};": 1
   },
