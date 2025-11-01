@@ -152,6 +152,26 @@ Hot reload attempts validate that OBJ sources still contain usable geometry. If 
 omits vertices or faces, the cache now raises a validation failure, preserves the previous asset, and records the error in
 `AssetHotReloadTelemetry` so diagnostics surface the regression immediately.
 
+### Cache Lifecycle Infrastructure
+
+All caches now derive from `AssetCacheLifecycle` (`engine/assets/include/engine/assets/detail/cache_common.hpp`), a mixin that
+centralises the lifecycle machinery previously duplicated across mesh, point cloud, graph, texture, shader, and material
+caches. The helper owns the shared thread-safe state (watch registrations, callback queues, descriptor bindings, and the
+handle pool) and exposes reusable primitives for:
+
+- acquiring and binding asset slots with consistent locking semantics,
+- migrating pending callbacks across the polling loop,
+- enforcing hot-reload enablement via a template flag, and
+- releasing handles while respecting outstanding watchers.
+
+Debug builds route `get_asset_checked` failures through the helper, emitting the original diagnostic message with
+`std::abort()` so existing death tests continue to observe the explicit failure text. Release builds throw the corresponding
+exception as before.
+
+`MaterialCache` now participates in the shared locking logic through the mixin while keeping hot reload disabled at compile
+time. New caches should inherit from `AssetCacheLifecycle` to pick up the validated lifecycle behaviour and reuse the watcher
+integration without bespoke plumbing.
+
 ## Handle Validation
 
 Debug builds automatically validate handle usage:

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/assets/async.hpp"
+#include "engine/assets/detail/cache_common.hpp"
 #include "engine/assets/handles.hpp"
 
 #include "engine/core/memory/resource_pool.hpp"
@@ -81,9 +82,25 @@ namespace engine::assets
     [[nodiscard]] std::uint32_t texture_bytes_per_pixel(TextureFormat format) noexcept;
     [[nodiscard]] std::uint32_t compute_max_mip_levels(TextureDimensions extent) noexcept;
 
-    class TextureCache
+    class TextureCache : public detail::AssetCacheLifecycle<
+                             TextureCache,
+                             TextureAsset,
+                             TextureAssetDescriptor,
+                             TextureHandle,
+                             TextureHandleTag,
+                             std::function<void(const TextureAsset&)>,
+                             true>
     {
     public:
+        using Base = detail::AssetCacheLifecycle<
+            TextureCache,
+            TextureAsset,
+            TextureAssetDescriptor,
+            TextureHandle,
+            TextureHandleTag,
+            std::function<void(const TextureAsset&)>,
+            true>;
+
         TextureCache();
 
         using HotReloadCallback = std::function<void(const TextureAsset&)>;
@@ -96,22 +113,13 @@ namespace engine::assets
         void register_hot_reload_callback(const TextureHandle& handle, HotReloadCallback callback);
         void poll();
 
-    private:
-        using Pool = core::memory::ResourcePool<TextureAsset, TextureHandleTag>;
-        using RawHandle = typename Pool::handle_type;
-        using HandleHasher = typename Pool::handle_hasher;
+        using typename Base::RawHandle;
 
+    protected:
+        friend Base;
         engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, TextureAsset& asset, bool notify);
-        void register_watch_locked(const RawHandle& handle, TextureAsset& asset);
-        void unregister_watch_locked(const RawHandle& handle);
 
-        Pool assets_{};
-        std::unordered_map<std::string, RawHandle> bindings_{};
-        std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
-        std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
-        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_{};
-        platform::filesystem::FilesystemWatcher watcher_{};
-        mutable std::mutex mutex_{};
+    private:
         std::shared_ptr<void> handle_validator_registration_{};
     };
 } // namespace engine::assets

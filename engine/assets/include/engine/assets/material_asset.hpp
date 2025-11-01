@@ -1,11 +1,13 @@
 #pragma once
 
+#include "engine/assets/detail/cache_common.hpp"
 #include "engine/assets/handles.hpp"
 #include "engine/assets/shader_asset.hpp"
 #include "engine/assets/texture_asset.hpp"
 
 #include "engine/core/memory/resource_pool.hpp"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -42,9 +44,25 @@ namespace engine::assets
         MaterialAssetDescriptor descriptor{};
     };
 
-    class MaterialCache
+    class MaterialCache : public detail::AssetCacheLifecycle<
+                              MaterialCache,
+                              MaterialAsset,
+                              MaterialAssetDescriptor,
+                              MaterialHandle,
+                              MaterialHandleTag,
+                              std::function<void(const MaterialAsset&)>,
+                              false>
     {
     public:
+        using Base = detail::AssetCacheLifecycle<
+            MaterialCache,
+            MaterialAsset,
+            MaterialAssetDescriptor,
+            MaterialHandle,
+            MaterialHandleTag,
+            std::function<void(const MaterialAsset&)>,
+            false>;
+
         MaterialCache();
 
         [[nodiscard]] const MaterialAsset& load(const MaterialAssetDescriptor& descriptor);
@@ -54,11 +72,8 @@ namespace engine::assets
         void unload(const MaterialHandle& handle);
 
     private:
-        using Pool = core::memory::ResourcePool<MaterialAsset, MaterialHandleTag>;
-        using RawHandle = typename Pool::handle_type;
+        using typename Base::RawHandle;
 
-        Pool assets_{};
-        std::unordered_map<std::string, RawHandle> bindings_{};
         std::shared_ptr<void> handle_validator_registration_{};
     };
 } // namespace engine::assets

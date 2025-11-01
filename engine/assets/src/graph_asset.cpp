@@ -13,62 +13,32 @@
 namespace engine::assets
 {
     GraphCache::GraphCache()
-        : handle_validator_registration_(HandleValidatorRegistry::instance().register_graph_validator(
+        : Base(detail::AssetCacheLabels{
+              "Graph",
+              "graph",
+              "GraphHandle",
+              "GraphCache"})
+        , handle_validator_registration_(HandleValidatorRegistry::instance().register_graph_validator(
             [this](const GraphHandle& handle)
             {
-                std::scoped_lock lock{mutex_};
-                return handle.is_valid(assets_);
+                std::scoped_lock lock{this->mutex_};
+                return handle.is_valid(this->assets_);
             }))
     {
     }
 
     const GraphAsset& GraphCache::load(const GraphAssetDescriptor& descriptor)
     {
-        std::scoped_lock lock{mutex_};
+        std::scoped_lock lock{this->mutex_};
 
-        const auto identifier = descriptor.handle.id();
-        if (identifier.empty())
+        auto acquisition = this->acquire_asset_slot(descriptor);
+        this->bind_descriptor(descriptor, acquisition.handle, *acquisition.asset);
+        this->merge_pending_callbacks(acquisition.identifier, acquisition.handle);
+
+        const auto decision = this->evaluate_reload(descriptor, *acquisition.asset, acquisition.inserted);
+        if (decision.should_reload)
         {
-            throw std::invalid_argument("Graph handle identifier cannot be empty");
-        }
-
-        GraphAsset* asset = nullptr;
-        RawHandle handle{};
-        bool inserted = false;
-
-        const auto lookup = bindings_.find(identifier);
-        if (lookup == bindings_.end())
-        {
-            auto [acquired_handle, slot] = assets_.acquire();
-            handle = acquired_handle;
-            asset = &slot;
-            bindings_.emplace(identifier, handle);
-            inserted = true;
-        }
-        else
-        {
-            handle = lookup->second;
-            asset = &assets_.get(handle);
-        }
-
-        asset->descriptor = descriptor;
-        descriptor.handle.bind(handle);
-
-        if (auto pending = pending_callbacks_.find(identifier); pending != pending_callbacks_.end())
-        {
-            auto& target = callbacks_[handle];
-            auto& pending_list = pending->second;
-            target.insert(target.end(),
-                          std::make_move_iterator(pending_list.begin()),
-                          std::make_move_iterator(pending_list.end()));
-            pending_callbacks_.erase(pending);
-        }
-
-        const auto current_write = detail::checked_last_write_time(descriptor.source, "graph");
-        const bool needs_reload = inserted || asset->last_write != current_write;
-        if (needs_reload)
-        {
-            if (auto reload = reload_asset(handle, *asset, !inserted); !reload.has_value())
+            if (auto reload = reload_asset(acquisition.handle, *acquisition.asset, !acquisition.inserted); !reload.has_value())
             {
                 const auto message = reload.error().message();
                 throw std::runtime_error(message.empty()
@@ -77,116 +47,38 @@ namespace engine::assets
             }
         }
 
-        register_watch_locked(handle, *asset);
+        this->register_watch_locked(acquisition.handle, *acquisition.asset);
 
-        return *asset;
+        return *acquisition.asset;
     }
 
     bool GraphCache::contains(const GraphHandle& handle) const
     {
-        std::scoped_lock lock{mutex_};
-        return handle.is_valid(assets_);
+        std::scoped_lock lock{this->mutex_};
+        return this->contains_handle(handle);
     }
 
     const GraphAsset& GraphCache::get(const GraphHandle& handle) const
     {
-        std::scoped_lock lock{mutex_};
-        if (!handle.is_valid(assets_))
-        {
-            HandleValidationTelemetry::instance().record_failure(
-                HandleValidationFailure{
-                    std::string{"GraphHandle"}, handle.id(), "GraphCache::get", "Cache lookup rejected handle"
-                });
-#ifndef NDEBUG
-            assert(false && "Graph asset handle not found");
-#endif
-            throw std::out_of_range("Graph asset handle not found");
-        }
-        HandleValidationTelemetry::instance().record_success("GraphHandle", handle.id());
-        return assets_.get(handle.raw_handle());
+        std::scoped_lock lock{this->mutex_};
+        return this->get_asset_checked(handle);
     }
 
     void GraphCache::unload(const GraphHandle& handle)
     {
-        std::scoped_lock lock{mutex_};
-        if (!handle.is_bound())
-        {
-            return;
-        }
-
-        const auto raw = handle.raw_handle();
-        if (!assets_.is_valid(raw))
-        {
-            handle.reset_binding();
-            return;
-        }
-
-        const auto identifier = assets_.get(raw).descriptor.handle.id();
-
-        unregister_watch_locked(raw);
-
-        if (auto cb_it = callbacks_.find(raw); cb_it != callbacks_.end())
-        {
-            if (!identifier.empty())
-            {
-                auto& pending = pending_callbacks_[identifier];
-                pending.insert(pending.end(),
-                               std::make_move_iterator(cb_it->second.begin()),
-                               std::make_move_iterator(cb_it->second.end()));
-            }
-            callbacks_.erase(cb_it);
-        }
-
-        assets_.release(raw);
-        bindings_.erase(identifier);
-        handle.reset_binding();
+        std::scoped_lock lock{this->mutex_};
+        this->release_handle(handle);
     }
 
     void GraphCache::register_hot_reload_callback(const GraphHandle& handle, HotReloadCallback callback)
     {
-        std::scoped_lock lock{mutex_};
-        if (handle.is_bound() && handle.is_valid(assets_))
-        {
-            callbacks_[handle.raw_handle()].push_back(std::move(callback));
-            return;
-        }
-
-        if (handle.id().empty())
-        {
-            throw std::invalid_argument("Graph handle identifier cannot be empty");
-        }
-
-        pending_callbacks_[handle.id()].push_back(std::move(callback));
+        std::scoped_lock lock{this->mutex_};
+        this->register_hot_reload_callback_internal(handle, std::move(callback));
     }
 
     void GraphCache::poll()
     {
-        watcher_.poll();
-
-        std::scoped_lock lock{mutex_};
-        assets_.for_each([&](const RawHandle& handle, GraphAsset& asset)
-        {
-            if (asset.descriptor.source.empty())
-            {
-                return;
-            }
-
-            if (watch_handles_.find(handle) != watch_handles_.end())
-            {
-                return;
-            }
-
-            const auto current_write =
-                detail::checked_last_write_time(asset.descriptor.source, "graph");
-            if (current_write != asset.last_write)
-            {
-                if (auto reload = reload_asset(handle, asset, true); !reload.has_value())
-                {
-                    return;
-                }
-                register_watch_locked(handle, asset);
-            }
-        });
+        this->poll_assets();
     }
 
     engine::Result<void, AssetLoadError> GraphCache::reload_asset(const RawHandle& handle,
@@ -263,8 +155,8 @@ namespace engine::assets
 
         if (notify)
         {
-            const auto cb_it = callbacks_.find(handle);
-            if (cb_it != callbacks_.end())
+            const auto cb_it = this->callbacks_.find(handle);
+            if (cb_it != this->callbacks_.end())
             {
                 for (const auto& callback : cb_it->second)
                 {
@@ -274,59 +166,5 @@ namespace engine::assets
         }
 
         return {};
-    }
-
-    void GraphCache::register_watch_locked(const RawHandle& handle, GraphAsset& asset)
-    {
-        if (asset.descriptor.source.empty())
-        {
-            unregister_watch_locked(handle);
-            return;
-        }
-
-        if (auto existing = watch_handles_.find(handle); existing != watch_handles_.end())
-        {
-            watcher_.unwatch(existing->second);
-            watch_handles_.erase(existing);
-        }
-
-        auto callback = [this, handle](const platform::filesystem::WatchEvent& event)
-        {
-            if (event.type == platform::filesystem::WatchEventType::erased)
-            {
-                std::scoped_lock lock{mutex_};
-                if (!assets_.is_valid(handle))
-                {
-                    return;
-                }
-
-                assets_.get(handle).last_write = event.timestamp;
-                return;
-            }
-
-            std::scoped_lock lock{mutex_};
-            if (!assets_.is_valid(handle))
-            {
-                return;
-            }
-
-            auto& tracked = assets_.get(handle);
-            if (auto reload = reload_asset(handle, tracked, true); !reload.has_value())
-            {
-                return;
-            }
-        };
-
-        const auto watch_handle = watcher_.watch_file(asset.descriptor.source, std::move(callback));
-        watch_handles_.emplace(handle, watch_handle);
-    }
-
-    void GraphCache::unregister_watch_locked(const RawHandle& handle)
-    {
-        if (auto it = watch_handles_.find(handle); it != watch_handles_.end())
-        {
-            watcher_.unwatch(it->second);
-            watch_handles_.erase(it);
-        }
     }
 } // namespace engine::assets
