@@ -1616,7 +1616,11 @@ namespace engine::runtime
 #endif
         }
 
-        void record_stage_sample(std::string_view name, RuntimeLoopPhase phase, double duration_seconds)
+        void record_stage_sample(
+            std::string_view name,
+            RuntimeLoopPhase phase,
+            double duration_seconds,
+            bool accumulate_phase = true)
         {
             RuntimeStageTiming& timing = ensure_stage_timing(name, phase);
             const double duration_ms = duration_seconds * 1000.0;
@@ -1628,7 +1632,10 @@ namespace engine::runtime
                 timing.average_ms += (duration_ms - timing.average_ms) / samples;
             }
             timing.max_ms = std::max(timing.max_ms, duration_ms);
-            phase_frame_duration_seconds[runtime_loop_phase_index(phase)] += duration_seconds;
+            if (accumulate_phase)
+            {
+                phase_frame_duration_seconds[runtime_loop_phase_index(phase)] += duration_seconds;
+            }
         }
 
         void record_stage_timings(const compute::ExecutionReport& report)
@@ -1638,7 +1645,11 @@ namespace engine::runtime
             for (std::size_t index = 0; index < count; ++index)
             {
                 const auto phase = stage_phase(report.execution_order[index]);
-                record_stage_sample(report.execution_order[index], phase, report.kernel_durations[index]);
+                record_stage_sample(
+                    report.execution_order[index],
+                    phase,
+                    report.kernel_durations[index],
+                    /*accumulate_phase=*/false);
             }
         }
 
