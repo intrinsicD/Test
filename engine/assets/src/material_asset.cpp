@@ -15,6 +15,7 @@ namespace engine::assets
         , handle_validator_registration_(HandleValidatorRegistry::instance().register_material_validator(
               [this](const MaterialHandle& handle)
               {
+                  std::scoped_lock lock{this->mutex_};
                   return handle.is_valid(this->assets_);
               }))
     {
