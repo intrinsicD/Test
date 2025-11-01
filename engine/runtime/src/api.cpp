@@ -458,8 +458,16 @@ namespace engine::runtime
         using Clock = std::chrono::steady_clock;
         Clock::time_point runtime_start_time{Clock::now()};
         RuntimeDiagnostics diagnostics{};
-        std::unordered_map<std::string, std::size_t> stage_lookup{};
+        struct StageTimingEntry
+        {
+            std::size_t timing_index{0};
+            RuntimeLoopPhase phase{RuntimeLoopPhase::Simulation};
+        };
+        std::unordered_map<std::string, StageTimingEntry, std::hash<std::string_view>, std::equal_to<>> stage_lookup{};
         std::unordered_map<std::string, std::size_t> subsystem_lookup{};
+        std::array<double, runtime_loop_phase_count()> phase_frame_duration_seconds{};
+        std::array<bool, runtime_loop_phase_count()> phase_active{};
+        RuntimeHost::PresentationCallback presentation_callback{};
 #if ENGINE_ENABLE_RENDERING
         rendering::components::RenderGeometry render_geometry{};
         std::string renderable_name{"runtime.renderable"};
@@ -562,18 +570,21 @@ namespace engine::runtime
             return std::chrono::duration<double, std::milli>(duration).count();
         }
 
-        RuntimeStageTiming& ensure_stage_timing(const std::string& name)
+        RuntimeStageTiming& ensure_stage_timing(std::string_view name, RuntimeLoopPhase phase)
         {
-            auto it = stage_lookup.find(name);
-            if (it != stage_lookup.end())
+            if (auto it = stage_lookup.find(name); it != stage_lookup.end())
             {
-                return diagnostics.stage_timings[it->second];
+                auto& timing = diagnostics.stage_timings[it->second.timing_index];
+                timing.phase = phase;
+                it->second.phase = phase;
+                return timing;
             }
             RuntimeStageTiming timing{};
-            timing.name = name;
+            timing.name.assign(name.begin(), name.end());
+            timing.phase = phase;
             diagnostics.stage_timings.push_back(std::move(timing));
             const std::size_t index = diagnostics.stage_timings.size() - 1U;
-            stage_lookup.emplace(name, index);
+            stage_lookup.emplace(diagnostics.stage_timings[index].name, StageTimingEntry{index, phase});
             return diagnostics.stage_timings[index];
         }
 
@@ -590,6 +601,70 @@ namespace engine::runtime
             const std::size_t index = diagnostics.subsystem_timings.size() - 1U;
             subsystem_lookup[name] = index;
             return diagnostics.subsystem_timings[index];
+        }
+
+        void initialize_phase_diagnostics()
+        {
+            for (std::size_t index = 0; index < diagnostics.phase_timings.size(); ++index)
+            {
+                auto& timing = diagnostics.phase_timings[index];
+                timing.phase = static_cast<RuntimeLoopPhase>(index);
+                timing.last_ms = 0.0;
+                timing.average_ms = 0.0;
+                timing.max_ms = 0.0;
+                timing.sample_count = 0U;
+            }
+        }
+
+        void refresh_phase_metadata()
+        {
+            phase_active.fill(false);
+            const auto& stages = loop_plan.stages();
+            for (const auto& stage : stages)
+            {
+                phase_active[runtime_loop_phase_index(stage.phase)] = true;
+            }
+        }
+
+        RuntimeLoopPhase stage_phase(std::string_view name) const
+        {
+            if (auto it = stage_lookup.find(name); it != stage_lookup.end())
+            {
+                return it->second.phase;
+            }
+            const auto& stages = loop_plan.stages();
+            const auto match = std::find_if(
+                stages.begin(),
+                stages.end(),
+                [&](const RuntimeLoopStage& stage) { return stage.name == name; });
+            if (match != stages.end())
+            {
+                return match->phase;
+            }
+            return RuntimeLoopPhase::Simulation;
+        }
+
+        void finalize_phase_samples()
+        {
+            for (std::size_t index = 0; index < phase_frame_duration_seconds.size(); ++index)
+            {
+                const double duration_seconds = phase_frame_duration_seconds[index];
+                phase_frame_duration_seconds[index] = 0.0;
+                if (!phase_active[index])
+                {
+                    continue;
+                }
+                auto& timing = diagnostics.phase_timings[index];
+                const double duration_ms = duration_seconds * 1000.0;
+                timing.last_ms = duration_ms;
+                timing.sample_count += 1U;
+                const double samples = static_cast<double>(timing.sample_count);
+                if (samples > 0.0)
+                {
+                    timing.average_ms += (duration_ms - timing.average_ms) / samples;
+                }
+                timing.max_ms = std::max(timing.max_ms, duration_ms);
+            }
         }
 
         static std::string animation_dispatch_category(std::string_view name)
@@ -1541,9 +1616,9 @@ namespace engine::runtime
 #endif
         }
 
-        void record_stage_sample(std::string_view name, double duration_seconds)
+        void record_stage_sample(std::string_view name, RuntimeLoopPhase phase, double duration_seconds)
         {
-            RuntimeStageTiming& timing = ensure_stage_timing(std::string{name});
+            RuntimeStageTiming& timing = ensure_stage_timing(name, phase);
             const double duration_ms = duration_seconds * 1000.0;
             timing.last_ms = duration_ms;
             timing.sample_count += 1U;
@@ -1553,6 +1628,7 @@ namespace engine::runtime
                 timing.average_ms += (duration_ms - timing.average_ms) / samples;
             }
             timing.max_ms = std::max(timing.max_ms, duration_ms);
+            phase_frame_duration_seconds[runtime_loop_phase_index(phase)] += duration_seconds;
         }
 
         void record_stage_timings(const compute::ExecutionReport& report)
@@ -1561,7 +1637,8 @@ namespace engine::runtime
                 std::min(report.execution_order.size(), report.kernel_durations.size());
             for (std::size_t index = 0; index < count; ++index)
             {
-                record_stage_sample(report.execution_order[index], report.kernel_durations[index]);
+                const auto phase = stage_phase(report.execution_order[index]);
+                record_stage_sample(report.execution_order[index], phase, report.kernel_durations[index]);
             }
         }
 
@@ -1769,8 +1846,12 @@ namespace engine::runtime
             scene_nodes.clear();
             joint_entities.clear();
             diagnostics = {};
+            initialize_phase_diagnostics();
             stage_lookup.clear();
             subsystem_lookup.clear();
+            phase_frame_duration_seconds.fill(0.0);
+            phase_active.fill(false);
+            presentation_callback = dependencies.presentation_callback;
             scene = scene::Scene{scene_name()};
 #if ENGINE_ENABLE_RENDERING
             render_entity = scene::Entity{};
@@ -1799,6 +1880,7 @@ namespace engine::runtime
             {
                 loop_plan = std::move(plan_result).value();
                 diagnostics.loop_plan_serialization = serialize_loop_plan(loop_plan);
+                refresh_phase_metadata();
             }
         }
 
@@ -1946,6 +2028,28 @@ namespace engine::runtime
             }
 
             stage_result = builder.add_stage(
+                "presentation.dispatch",
+                RuntimeLoopPhase::Presentation,
+                [this](double dt)
+                {
+#if ENGINE_ENABLE_RENDERING
+                    if (presentation_callback)
+                    {
+                        ensure_render_entity();
+                    }
+#endif
+                    if (presentation_callback)
+                    {
+                        presentation_callback(dt);
+                    }
+                },
+                {"runtime.plugins"});
+            if (!stage_result)
+            {
+                return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
+            }
+
+            stage_result = builder.add_stage(
                 "diagnostics.refresh",
                 RuntimeLoopPhase::Diagnostics,
                 [this](double)
@@ -1974,6 +2078,12 @@ namespace engine::runtime
             throw_if_invalid_dependencies(deps);
             dependencies = std::move(deps);
             reset_state();
+        }
+
+        void set_presentation_callback(RuntimeHost::PresentationCallback callback)
+        {
+            dependencies.presentation_callback = callback;
+            presentation_callback = std::move(callback);
         }
 
         [[nodiscard]] std::string_view runtime_name_view() const noexcept
@@ -2306,6 +2416,7 @@ namespace engine::runtime
             last_report.clock_name = "runtime.loop";
 
             const auto& stages = loop_plan.stages();
+            phase_frame_duration_seconds.fill(0.0);
             std::unordered_map<std::string, std::size_t> stage_index_map{};
             stage_index_map.reserve(stages.size());
             for (std::size_t index = 0; index < stages.size(); ++index)
@@ -2326,7 +2437,7 @@ namespace engine::runtime
                 }
                 const auto stage_duration = Clock::now() - stage_start;
                 const double seconds = std::chrono::duration<double>(stage_duration).count();
-                record_stage_sample(stage.name, seconds);
+                record_stage_sample(stage.name, stage.phase, seconds);
                 if (stage.record_in_execution_report)
                 {
                     const std::size_t report_index = last_report.execution_order.size();
@@ -2365,6 +2476,8 @@ namespace engine::runtime
                 graph.nodes.push_back(std::move(node));
             }
             last_report.dependency_graph = std::move(graph);
+
+            finalize_phase_samples();
 
             record_tick_duration(Clock::now() - tick_start);
 
@@ -2406,6 +2519,11 @@ namespace engine::runtime
     void RuntimeHost::configure(RuntimeHostDependencies dependencies)
     {
         impl_->configure(std::move(dependencies));
+    }
+
+    void RuntimeHost::set_presentation_callback(PresentationCallback callback)
+    {
+        impl_->set_presentation_callback(std::move(callback));
     }
 
     void RuntimeHost::initialize()
@@ -2580,6 +2698,11 @@ namespace engine::runtime
         dependencies.enabled_subsystems.assign(enabled_subsystems.begin(), enabled_subsystems.end());
         dependencies.subsystem_plugins.clear();
         global_host().configure(std::move(dependencies));
+    }
+
+    void set_presentation_callback(RuntimeHost::PresentationCallback callback)
+    {
+        global_host().set_presentation_callback(std::move(callback));
     }
 
     std::vector<std::string> default_subsystem_names()
@@ -3372,6 +3495,70 @@ extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_stage_samp
         return 0;
     }
     return stages[index].sample_count;
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_stage_phase(std::size_t index) noexcept
+{
+    const auto& stages = engine::runtime::diagnostics().stage_timings;
+    if (index >= stages.size())
+    {
+        return nullptr;
+    }
+    return to_string(stages[index].phase).data();
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_phase_count() noexcept
+{
+    return runtime_loop_phase_count();
+}
+
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_phase_name(std::size_t index) noexcept
+{
+    if (index >= runtime_loop_phase_count())
+    {
+        return nullptr;
+    }
+    return to_string(static_cast<RuntimeLoopPhase>(index)).data();
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_phase_last_ms(std::size_t index) noexcept
+{
+    const auto& phases = engine::runtime::diagnostics().phase_timings;
+    if (index >= phases.size())
+    {
+        return 0.0;
+    }
+    return phases[index].last_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_phase_average_ms(std::size_t index) noexcept
+{
+    const auto& phases = engine::runtime::diagnostics().phase_timings;
+    if (index >= phases.size())
+    {
+        return 0.0;
+    }
+    return phases[index].average_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_phase_max_ms(std::size_t index) noexcept
+{
+    const auto& phases = engine::runtime::diagnostics().phase_timings;
+    if (index >= phases.size())
+    {
+        return 0.0;
+    }
+    return phases[index].max_ms;
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_phase_samples(std::size_t index) noexcept
+{
+    const auto& phases = engine::runtime::diagnostics().phase_timings;
+    if (index >= phases.size())
+    {
+        return 0U;
+    }
+    return phases[index].sample_count;
 }
 
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_animation_clip_track_count() noexcept

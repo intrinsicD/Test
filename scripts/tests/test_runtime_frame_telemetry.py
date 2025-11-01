@@ -189,9 +189,19 @@ def test_diagnostics_to_dict_roundtrip() -> None:
         ),
         average_tick_ms=0.25,
         max_tick_ms=0.4,
+        phases=[
+            telemetry.RuntimePhaseMetric(
+                phase="simulation",
+                last_ms=2.5,
+                average_ms=2.0,
+                max_ms=3.0,
+                sample_count=5,
+            )
+        ],
         stages=[
             telemetry.RuntimeStageMetric(
                 name="animation.evaluate",
+                phase="simulation",
                 last_ms=1.1,
                 average_ms=1.0,
                 max_ms=1.2,
@@ -284,6 +294,7 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["initialize_count"] == 1
     assert payload["tick_count"] == 3
     assert payload["stages"][0]["name"] == "animation.evaluate"
+    assert payload["stages"][0]["phase"] == "simulation"
     assert payload["subsystems"][0]["last_tick_ms"] == pytest.approx(0.6)
     assert payload["scene_validation"]["issue_count"] == 2
     assert payload["scene_validation"]["issues"][0]["type"] == "cycle"
@@ -292,6 +303,8 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["hot_reload"]["total_requests"] == 3
     assert payload["hot_reload"]["recent_failures"][0]["identifier"] == "materials/paint.material.json"
     assert payload["streaming"]["geometry_failures_by_error"]["invalid_argument"] == 1
+    assert payload["phases"][0]["phase"] == "simulation"
+    assert payload["phases"][0]["last_ms"] == pytest.approx(2.5)
     assert payload["initialize_failure_count"] == 2
     assert payload["has_initialize_failure"] is True
     assert payload["last_initialize_failure"]["runtime"] == "test_runtime"

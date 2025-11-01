@@ -20,6 +20,7 @@
 #include "engine/math/math.hpp"
 #include "engine/physics/api.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
+#include "engine/runtime/loop.hpp"
 #include "engine/scene/validation.hpp"
 
 #if ENGINE_ENABLE_ASSETS
@@ -84,6 +85,7 @@ namespace engine::runtime
         std::vector<std::string> enabled_subsystems{};
         core::threading::IoThreadPoolConfig streaming_config{.worker_count = 2, .queue_capacity = 64, .enable = true};
         std::function<std::unique_ptr<compute::Dispatcher>()> dispatcher_factory{};
+        std::function<void(double)> presentation_callback{};
 #if ENGINE_ENABLE_RENDERING
         rendering::components::RenderGeometry render_geometry{};
         std::string renderable_name{"runtime.renderable"};
@@ -121,6 +123,16 @@ namespace engine::runtime
     struct ENGINE_RUNTIME_API RuntimeStageTiming
     {
         std::string name{};
+        RuntimeLoopPhase phase{RuntimeLoopPhase::Simulation};
+        double last_ms{0.0};
+        double average_ms{0.0};
+        double max_ms{0.0};
+        std::uint64_t sample_count{0};
+    };
+
+    struct ENGINE_RUNTIME_API RuntimePhaseTiming
+    {
+        RuntimeLoopPhase phase{RuntimeLoopPhase::Simulation};
         double last_ms{0.0};
         double average_ms{0.0};
         double max_ms{0.0};
@@ -214,6 +226,7 @@ namespace engine::runtime
         double average_tick_ms{0.0};
         StreamingMetrics streaming{};
         HotReloadDiagnostics hot_reload{};
+        std::array<RuntimePhaseTiming, runtime_loop_phase_count()> phase_timings{};
         std::vector<RuntimeStageTiming> stage_timings{};
         std::vector<RuntimeSubsystemTiming> subsystem_timings{};
         scene::validation::HierarchyValidationReport scene_validation{};
@@ -251,6 +264,8 @@ namespace engine::runtime
     class ENGINE_RUNTIME_API RuntimeHost
     {
     public:
+        using PresentationCallback = std::function<void(double)>;
+
         RuntimeHost();
         explicit RuntimeHost(RuntimeHostDependencies dependencies);
         RuntimeHost(RuntimeHost&&) noexcept;
@@ -274,6 +289,7 @@ namespace engine::runtime
         [[nodiscard]] const RuntimeDiagnostics& diagnostics() const noexcept;
 
         void configure(RuntimeHostDependencies dependencies);
+        void set_presentation_callback(PresentationCallback callback);
 
 #if ENGINE_ENABLE_RENDERING
         using RenderSubmissionContext = rendering::RuntimeSubmissionContext;
@@ -301,6 +317,7 @@ namespace engine::runtime
     ENGINE_RUNTIME_API void configure(RuntimeHostDependencies dependencies);
     ENGINE_RUNTIME_API void configure_with_default_subsystems();
     ENGINE_RUNTIME_API void configure_with_default_subsystems(std::span<const std::string_view> enabled_subsystems);
+    ENGINE_RUNTIME_API void set_presentation_callback(RuntimeHost::PresentationCallback callback);
     ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
     [[nodiscard]] ENGINE_RUNTIME_API const geometry::SurfaceMesh& current_mesh();
     [[nodiscard]] ENGINE_RUNTIME_API bool is_initialized() noexcept;
@@ -452,6 +469,13 @@ extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_last_ms(std
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_average_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_stage_max_ms(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_stage_samples(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_stage_phase(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_phase_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_phase_name(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_phase_last_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_phase_average_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_phase_max_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_phase_samples(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_animation_clip_track_count() noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_animation_pose_joint_count() noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_animation_clip_duration() noexcept;

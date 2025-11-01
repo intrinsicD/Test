@@ -40,4 +40,4 @@ RuntimeHost::tick now executes through a declarative `RuntimeLoopPlan`, but back
 - `engine/platform/` window/presentation adapters.
 
 ## Notes
-Coordinate with tooling to ensure ImGui overlays reuse the presentation adapters rather than creating duplicate contexts. The stage planner scaffolding landed alongside builder unit tests; presentation adapters and configuration surfaces remain open.
+Coordinate with tooling to ensure ImGui overlays reuse the presentation adapters rather than creating duplicate contexts. The stage planner scaffolding landed alongside builder unit tests; presentation adapters and configuration surfaces remain open. The runtime now exposes a compiled `RuntimeLoopPlan` with per-phase telemetry and a `presentation.dispatch` hook—subsequent work must wire real presentation backends and synchronisation APIs to fulfil ADR-0008.
