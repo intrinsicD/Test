@@ -231,6 +231,7 @@ namespace engine::runtime
         std::string frame_graph_serialization{};
         std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
 #endif
+        std::string loop_plan_serialization{};
 #if ENGINE_ENABLE_ASSETS
         std::vector<assets::HandleValidationSnapshotEntry> handle_validation{};
 #endif

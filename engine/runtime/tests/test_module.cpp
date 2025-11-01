@@ -42,6 +42,7 @@
 #include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/errors.hpp"
 #include "engine/runtime/loop.hpp"
+#include "engine/runtime/loop_inspector.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
 #include "engine/scene/validation.hpp"
 #include "engine/rendering/components.hpp"
@@ -629,6 +630,40 @@ TEST(RuntimeLoopBuilder, RejectsDuplicateStageName)
         engine::runtime::RuntimeError::loop_stage_duplicate_name);
 }
 
+TEST(RuntimeLoopInspector, ProducesDeterministicReport)
+{
+    engine::runtime::RuntimeLoopBuilder builder{};
+    ASSERT_TRUE(builder.add_stage(
+        "alpha",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {}));
+    ASSERT_TRUE(builder.add_stage(
+        "beta",
+        engine::runtime::RuntimeLoopPhase::Diagnostics,
+        [](double) {},
+        {"alpha"},
+        false));
+
+    const auto plan_result = builder.build();
+    ASSERT_TRUE(plan_result);
+    const auto& plan = plan_result.value();
+    const auto report = engine::runtime::inspect_loop_plan(plan);
+    ASSERT_EQ(report.stages.size(), 2U);
+    EXPECT_EQ(report.stages[0].name, "alpha");
+    EXPECT_EQ(report.stages[0].phase, engine::runtime::RuntimeLoopPhase::Simulation);
+    EXPECT_TRUE(report.stages[0].dependencies.empty());
+    EXPECT_TRUE(report.stages[0].record_in_execution_report);
+    EXPECT_EQ(report.stages[1].name, "beta");
+    ASSERT_EQ(report.stages[1].dependencies.size(), 1U);
+    EXPECT_EQ(report.stages[1].dependencies.front(), "alpha");
+    EXPECT_FALSE(report.stages[1].record_in_execution_report);
+
+    const auto serialised = engine::runtime::serialize_loop_plan(plan);
+    EXPECT_NE(serialised.find("\"name\": \"alpha\""), std::string::npos);
+    EXPECT_NE(serialised.find("\"dependencies\": [\"alpha\"]"), std::string::npos);
+    EXPECT_NE(serialised.find("\"phase\": \"diagnostics\""), std::string::npos);
+}
+
 TEST(RuntimeModule, RuntimeHostRespectsDispatcherFactory)
 {
     engine::runtime::RuntimeHostDependencies dependencies{};
@@ -954,6 +989,8 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler)
     const auto& diagnostics = host.diagnostics();
     EXPECT_FALSE(diagnostics.frame_graph_serialization.empty());
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"ForwardGeometry\""), std::string::npos);
+    EXPECT_FALSE(diagnostics.loop_plan_serialization.empty());
+    EXPECT_NE(diagnostics.loop_plan_serialization.find("\"name\": \"animation.evaluate\""), std::string::npos);
     ASSERT_EQ(diagnostics.frame_graph_events.size(), 4U);
     EXPECT_EQ(diagnostics.frame_graph_events[0].type,
               engine::rendering::ResourceEvent::Type::Acquire);
@@ -1171,6 +1208,7 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler)
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"TransferNormalize\""), std::string::npos);
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"queue\": \"Compute\""), std::string::npos);
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"queue\": \"Transfer\""), std::string::npos);
+    EXPECT_FALSE(diagnostics.loop_plan_serialization.empty());
 
     ASSERT_EQ(diagnostics.frame_graph_events.size(), 6U); // NOLINT
     for (const auto& event : diagnostics.frame_graph_events)
