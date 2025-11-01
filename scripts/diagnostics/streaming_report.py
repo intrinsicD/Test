@@ -38,7 +38,10 @@ def _create_streaming_metrics_type(capacity: int) -> Type[ctypes.Structure]:
                 ("streaming_total_rejected", ctypes.c_uint64),
                 ("geometry_failure_count", ctypes.c_uint32),
                 ("geometry_failures", ctypes.c_uint64 * capacity),
-                ("geometry_failure_labels", ctypes.c_char_p * capacity),
+                (
+                    "geometry_failure_labels",
+                    ctypes.POINTER(ctypes.c_char) * capacity,
+                ),
             ]
         },
     )
@@ -126,6 +129,8 @@ class RuntimeStreamingBindings:
         if capacity != self._streaming_metrics_capacity:
             self._streaming_metrics_capacity = capacity
             self._streaming_metrics_type = _create_streaming_metrics_type(capacity)
+            global StreamingMetrics
+            StreamingMetrics = self._streaming_metrics_type
 
         metrics_pointer = ctypes.POINTER(self._streaming_metrics_type)
         lib.engine_runtime_streaming_metrics.restype = None
@@ -412,8 +417,11 @@ def main() -> None:
     limit = min(int(metrics.geometry_failure_count), bindings.streaming_metrics_capacity)
     failure_counts = {}
     for index in range(limit):
-        label_bytes = metrics.geometry_failure_labels[index]
-        label = label_bytes.decode("utf-8") if label_bytes else f"error_{index}"
+        label_pointer = metrics.geometry_failure_labels[index]
+        if bool(label_pointer):
+            label = ctypes.string_at(label_pointer).decode("utf-8", errors="replace")
+        else:
+            label = f"error_{index}"
         failure_counts[label] = metrics.geometry_failures[index]
     payload = {
         "worker_count": metrics.worker_count,
