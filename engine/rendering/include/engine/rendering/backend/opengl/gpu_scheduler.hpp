@@ -95,7 +95,7 @@ namespace engine::rendering::backend::opengl
         std::vector<OpenGLTimelineSubmit> signals;
         resources::FenceNativeHandle fence{};
         std::uint64_t fence_value{0};
-        std::vector<GeometryDrawCommand> draw_commands;
+        std::vector<EncodedCommand> commands;
 
         [[nodiscard]] std::uint32_t begin_memory_barrier_mask() const noexcept
         {
@@ -281,7 +281,7 @@ namespace engine::rendering::backend::opengl
                 if (const auto* recorded_buffer = opengl_provider->command_buffer(encoder.handle); recorded_buffer !=
                     nullptr)
                 {
-                    submission.draw_commands = recorded_buffer->draws;
+                    submission.commands = recorded_buffer->commands();
                 }
             }
 

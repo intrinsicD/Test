@@ -16,6 +16,8 @@
 
 namespace engine::rendering::backend::opengl
 {
+    using engine::rendering::EncodedCommand;
+
     OpenGLImmediateCommandStream::OpenGLImmediateCommandStream(OpenGLRenderResourceProvider& render_resources) noexcept
         : render_resources_(&render_resources)
     {
@@ -23,7 +25,7 @@ namespace engine::rendering::backend::opengl
 
     void OpenGLImmediateCommandStream::begin_submission(const OpenGLSubmission& submission)
     {
-        current_draws_ = &submission.draw_commands;
+        current_commands_ = &submission.commands;
     }
 
     void OpenGLImmediateCommandStream::wait_timeline(const OpenGLTimelineSubmit& submit)
@@ -46,14 +48,21 @@ namespace engine::rendering::backend::opengl
     void OpenGLImmediateCommandStream::execute_command_buffer(const OpenGLCommandEncoderSubmit& submit)
     {
         static_cast<void>(submit);
-        if (render_resources_ == nullptr || current_draws_ == nullptr)
+        if (render_resources_ == nullptr || current_commands_ == nullptr)
         {
             return;
         }
 
-        for (const auto& command : *current_draws_)
+        for (const auto& command : *current_commands_)
         {
-            execute_draw_command(command);
+            if (command.is_draw())
+            {
+                execute_draw_command(command.geometry_draw());
+            }
+            else if (command.is_dispatch())
+            {
+                execute_compute_dispatch(command.compute_dispatch());
+            }
         }
     }
 
@@ -71,7 +80,7 @@ namespace engine::rendering::backend::opengl
     void OpenGLImmediateCommandStream::end_submission(const OpenGLSubmission& submission)
     {
         static_cast<void>(submission);
-        current_draws_ = nullptr;
+        current_commands_ = nullptr;
     }
 
     void OpenGLImmediateCommandStream::execute_draw_command(const GeometryDrawCommand& command)
@@ -135,6 +144,22 @@ namespace engine::rendering::backend::opengl
         if (glad_glBindVertexArray != nullptr)
         {
             glad_glBindVertexArray(0);
+        }
+#else
+        static_cast<void>(command);
+#endif
+    }
+
+    void OpenGLImmediateCommandStream::execute_compute_dispatch(const ComputeDispatchCommand& command)
+    {
+        ++compute_dispatches_;
+
+#if ENGINE_RENDERING_HAS_GLAD
+        if (glad_glDispatchCompute != nullptr)
+        {
+            glad_glDispatchCompute(static_cast<GLsizei>(command.group_count_x),
+                                   static_cast<GLsizei>(command.group_count_y),
+                                   static_cast<GLsizei>(command.group_count_z));
         }
 #else
         static_cast<void>(command);

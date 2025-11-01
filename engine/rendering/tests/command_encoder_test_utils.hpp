@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
@@ -8,16 +9,59 @@
 
 namespace engine::rendering::tests
 {
+    using engine::rendering::EncodedCommand;
+
     /// Command encoder that records geometry draws for assertions.
     class RecordingCommandEncoder final : public CommandEncoder
     {
     public:
         void draw_geometry(const GeometryDrawCommand& command) override
         {
-            draws.push_back(command);
+            commands.push_back(EncodedCommand::make_draw(command));
         }
 
-        std::vector<GeometryDrawCommand> draws;
+        void dispatch_compute(const ComputeDispatchCommand& command) override
+        {
+            commands.push_back(EncodedCommand::make_dispatch(command));
+        }
+
+        [[nodiscard]] std::vector<GeometryDrawCommand> geometry_draws() const
+        {
+            const auto draw_count = std::count_if(commands.begin(), commands.end(), [](const EncodedCommand& command) {
+                return command.is_draw();
+            });
+
+            std::vector<GeometryDrawCommand> draws;
+            draws.reserve(draw_count);
+            for (const auto& command : commands)
+            {
+                if (command.is_draw())
+                {
+                    draws.push_back(command.geometry_draw());
+                }
+            }
+            return draws;
+        }
+
+        [[nodiscard]] std::vector<ComputeDispatchCommand> compute_dispatches() const
+        {
+            const auto dispatch_count = std::count_if(commands.begin(), commands.end(), [](const EncodedCommand& command) {
+                return command.is_dispatch();
+            });
+
+            std::vector<ComputeDispatchCommand> dispatches;
+            dispatches.reserve(dispatch_count);
+            for (const auto& command : commands)
+            {
+                if (command.is_dispatch())
+                {
+                    dispatches.push_back(command.compute_dispatch());
+                }
+            }
+            return dispatches;
+        }
+
+        std::vector<EncodedCommand> commands;
     };
 
     /// Provider that captures begin/end calls and keeps completed encoders alive.
@@ -64,6 +108,10 @@ namespace engine::rendering::tests
     {
     public:
         void draw_geometry(const GeometryDrawCommand&) override
+        {
+        }
+
+        void dispatch_compute(const ComputeDispatchCommand&) override
         {
         }
     };

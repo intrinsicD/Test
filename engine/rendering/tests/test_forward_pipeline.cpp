@@ -192,11 +192,12 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
     EXPECT_EQ(command_encoders.begin_records.front().queue, engine::rendering::QueueType::Graphics);
     ASSERT_EQ(command_encoders.completed_encoders.size(), 1); // NOLINT
     const auto& recorded_encoder = *command_encoders.completed_encoders.front();
-    ASSERT_EQ(recorded_encoder.draws.size(), 3); // NOLINT
+    const auto recorded_draws = recorded_encoder.geometry_draws();
+    ASSERT_EQ(recorded_draws.size(), 3); // NOLINT
     bool saw_mesh = false;
     bool saw_graph = false;
     bool saw_point_cloud = false;
-    for (const auto& draw : recorded_encoder.draws)
+    for (const auto& draw : recorded_draws)
     {
         if (std::holds_alternative<engine::assets::MeshHandle>(draw.geometry))
         {

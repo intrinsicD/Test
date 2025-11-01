@@ -217,6 +217,6 @@ namespace engine::rendering::tests
 
         const auto& encoders = command_encoders.completed_encoders;
         ASSERT_FALSE(encoders.empty());
-        EXPECT_EQ(encoders.front()->draws.size(), 1U);
+        EXPECT_EQ(encoders.front()->geometry_draws().size(), 1U);
     }
 }

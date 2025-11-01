@@ -25,12 +25,28 @@ namespace engine::rendering::backend::opengl
         [[nodiscard]] CommandBufferHandle handle() const noexcept { return handle_; }
         [[nodiscard]] QueueType queue() const noexcept { return queue_; }
 
-        std::vector<GeometryDrawCommand> draws;
+        using EncodedCommand = engine::rendering::EncodedCommand;
+
+        [[nodiscard]] const std::vector<EncodedCommand>& commands() const noexcept
+        {
+            return commands_;
+        }
+
+        void push_command(const EncodedCommand& command)
+        {
+            commands_.push_back(command);
+        }
+
+        void clear_commands() noexcept
+        {
+            commands_.clear();
+        }
 
     private:
         std::string label_{};
         CommandBufferHandle handle_{};
         QueueType queue_{QueueType::Graphics};
+        std::vector<EncodedCommand> commands_{};
     };
 
     /**
@@ -42,6 +58,7 @@ namespace engine::rendering::backend::opengl
         explicit OpenGLCommandEncoder(OpenGLCommandBuffer& buffer) noexcept;
 
         void draw_geometry(const GeometryDrawCommand& command) override;
+        void dispatch_compute(const ComputeDispatchCommand& command) override;
 
     private:
         OpenGLCommandBuffer* buffer_;
