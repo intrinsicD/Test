@@ -2,7 +2,15 @@
 
 ## Overview
 
-The rendering module provides frame-graph compilation and execution, command encoder hooks, GPU resource lifetime tracking, and multi-backend support (Vulkan, DirectX, OpenGL). It implements deterministic scheduling with comprehensive validation and telemetry integration.
+> **Status:** ⚠️ **Blocked** — GPU resource provider and command encoder work (see [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) and [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md)) remain unfinished. OpenGL and Vulkan backends still rely on the recording provider and cannot allocate GPU buffers, textures, or shaders, so no real draw commands execute yet.
+
+The rendering module currently provides frame-graph compilation, scheduler prototypes, and resource lifetime tracking, but the missing GPU execution path prevents end-to-end rendering. This README tracks the outstanding work needed to reach functional backends in addition to describing the existing infrastructure.
+
+## Outstanding Work
+
+- Implement the GPU resource provider (`T-0120`) to create buffers, textures, and shader programs for real backends.
+- Land the command encoder integration (`T-0119`) so frame-graph passes emit backend command buffers.
+- Coordinate with the runtime stage planner (`RT-410`) to ensure presentation backends and synchronisation policies align with rendering.
 
 ## Camera System
 

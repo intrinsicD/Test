@@ -61,13 +61,27 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 **Exit Criteria:** Automated benchmarks and visual reports block regressions; kickoff demo is reproducible on CI hardware.
 
+### Phase 4 — GPU Execution & Tooling Readiness *(Priorities 1–2)*
+| Priority | Backlog | Intent | Owner | Status |
+| --- | --- | --- | --- | --- |
+| 1 | [`T-0120`](backlog/active/T-0120-gpu-resource-provider.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | Planned |
+| 1 | [`T-0119`](backlog/active/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | Planned |
+| 1 | [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | Planned |
+| 2 | [`TL-310`](backlog/active/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Planned |
+
+**Exit Criteria:** OpenGL/Vulkan execute real workloads with shader pipelines, runtime presentation loop synchronises with tooling, and the editor/tooling stack is buildable with baseline smoke coverage.
+
 ## Active Backlog Snapshot
 
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
+| [`T-0120`](backlog/active/T-0120-gpu-resource-provider.md) | 1 | Planned | GPU allocations, textures, and shader pipelines remain unimplemented; reinstated to unblock rendering backends. |
+| [`T-0119`](backlog/active/T-0119-command-encoder-integration.md) | 1 | Planned | Command encoder missing; frame-graph execution still stubbed. |
+| [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | 1 | Planned | Runtime main loop lacks stage planner and presentation backends. |
 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | Complete | Schema ADR, cross-language validators, and prototyping playbook published. |
 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Complete | Kickoff brief + roadmap timeline published. |
 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | Complete | Harness + telemetry shipped; maintenance tasks captured in module TODOs. |
+| [`TL-310`](backlog/active/TL-310-editor-foundations.md) | 2 | Planned | Editor builds disabled; registry and harness integration outstanding. |
 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Complete | Dataset packages published with ingestion automation and provenance docs. |
 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | 3 | Complete | Sandbox wiring finished; follow-up automation tracked in tools TODOs. |
 | [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | 3 | Complete | Geometry + rendering case studies documented with CTest coverage. |
@@ -78,10 +92,10 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 | Priority | Risk | Owner | Mitigation | Mitigation Due |
 | --- | --- | --- | --- | --- |
-| 1 | Schema consensus slips, delaying harness integration. | Agent Orchestrator | Timebox reviews; escalate to Chief Architect after 2 business days. | 2026-02-09 |
-| 2 | Harness complexity outpaces test coverage. | Runtime Lead | Land integration smoke tests before expanding feature scope. | 2026-02-13 (mitigated 2026-02-12) |
-| 3 | Dataset licensing blocks case study publication. | Assets Lead | Finalise licensing shortlist early; provide fallback synthetic datasets. | 2026-02-13 (mitigated 2026-02-16) |
-| 4 | Benchmark automation exceeds CI time budget. | Performance Lead | Maintain smoke preset (<5 min) separate from nightly full suite. | 2026-02-13 |
+| 1 | GPU resource provider/command encoder slip keeps backends non-functional. | Rendering Lead | Pair T-0120/T-0119 with shared milestones; demo backend smoke tests weekly. | 2026-03-01 |
+| 1 | Stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Prototype planner API in parallel; stage joint integration review before backend merge. | 2026-03-05 |
+| 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Align TL-310 milestones with RT-410 deliverables; introduce feature flags for incremental validation. | 2026-03-08 |
+| 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Audit module READMEs when each backlog item starts; run docs validator. | 2026-02-25 |
 
 ## Maintenance Checklist
 
@@ -90,4 +104,4 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 - Keep module READMEs and the root [`README.md`](../README.md) aligned with the priority bands listed here.
 - Run `python scripts/validate_docs.py` after editing roadmap or backlog files to catch broken links.
 
-**Last updated:** 2026-01-?? (Set automatically when committing).
+**Last updated:** 2026-02-17.
