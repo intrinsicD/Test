@@ -59,6 +59,17 @@ The subsystem registry validates dependencies and detects cycles during initiali
 
 `SubsystemRegistry` also computes a deterministic topological ordering whenever subsystems are loaded so that each subsystem's dependencies are initialized before the subsystem itself, even if the registration order was inverted in configuration code.
 
+### Runtime Loop Planning
+
+`RuntimeLoopBuilder` assembles the stage graph that powers `RuntimeHost::tick`. Stage registration now returns `RuntimeValidationResult` and surfaces structured error codes rather than throwing. Expect the following failures:
+
+- `RuntimeError::loop_stage_invalid_name` when a stage identifier is empty.
+- `RuntimeError::loop_stage_duplicate_name` when registering the same identifier twice.
+- `RuntimeError::loop_stage_unknown_dependency` when declaring a dependency on an unknown stage.
+- `RuntimeError::loop_stage_dependency_cycle` when dependency resolution detects a cycle.
+
+`RuntimeLoopBuilder::build()` returns `RuntimeResult<RuntimeLoopPlan>`; callers must propagate or handle these errors before executing the plan. The default runtime loop logs a validation error and falls back to an empty plan if compilation ever fails.
+
 ## Diagnostics & Telemetry
 
 Access runtime metrics through `RuntimeHost::diagnostics()`:

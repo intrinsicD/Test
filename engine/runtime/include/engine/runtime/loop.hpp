@@ -5,6 +5,8 @@
 #include <string_view>
 #include <vector>
 
+#include "engine/runtime/errors.hpp"
+
 namespace engine::runtime
 {
     /// Phase classification for runtime loop stages.
@@ -45,13 +47,13 @@ namespace engine::runtime
     class RuntimeLoopBuilder
     {
     public:
-        void add_stage(std::string name,
-                       RuntimeLoopPhase phase,
-                       RuntimeLoopStageFunction function,
-                       std::vector<std::string> dependencies = {},
-                       bool record_in_execution_report = true);
+        [[nodiscard]] RuntimeValidationResult add_stage(std::string name,
+                                                        RuntimeLoopPhase phase,
+                                                        RuntimeLoopStageFunction function,
+                                                        std::vector<std::string> dependencies = {},
+                                                        bool record_in_execution_report = true);
 
-        [[nodiscard]] RuntimeLoopPlan build() const;
+        [[nodiscard]] RuntimeResult<RuntimeLoopPlan> build() const;
 
     private:
         std::vector<RuntimeLoopStage> stages_{};

@@ -1785,13 +1785,24 @@ namespace engine::runtime
 #endif
             refresh_physics_metrics();
             rebuild_subsystem_cache();
-            loop_plan = build_default_loop_plan();
+            auto plan_result = build_default_loop_plan();
+            if (!plan_result)
+            {
+                spdlog::error(
+                    "Failed to build runtime loop plan: {}",
+                    plan_result.error().message());
+                loop_plan = {};
+            }
+            else
+            {
+                loop_plan = std::move(plan_result).value();
+            }
         }
 
-        RuntimeLoopPlan build_default_loop_plan()
+        RuntimeResult<RuntimeLoopPlan> build_default_loop_plan()
         {
             RuntimeLoopBuilder builder{};
-            builder.add_stage(
+            auto stage_result = builder.add_stage(
                 "animation.evaluate",
                 RuntimeLoopPhase::Simulation,
                 [this](double dt)
@@ -1799,8 +1810,12 @@ namespace engine::runtime
                     engine::animation::advance_controller(controller, dt);
                     pose = engine::animation::evaluate_controller(controller);
                 });
+            if (!stage_result)
+            {
+                return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
+            }
 
-            builder.add_stage(
+            stage_result = builder.add_stage(
                 "physics.accumulate",
                 RuntimeLoopPhase::Simulation,
                 [this](double)
@@ -1816,8 +1831,12 @@ namespace engine::runtime
                     }
                 },
                 {"animation.evaluate"});
+            if (!stage_result)
+            {
+                return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
+            }
 
-            builder.add_stage(
+            stage_result = builder.add_stage(
                 "physics.integrate",
                 RuntimeLoopPhase::Simulation,
                 [this](double dt)
@@ -1826,8 +1845,12 @@ namespace engine::runtime
                     refresh_body_positions();
                 },
                 {"physics.accumulate"});
+            if (!stage_result)
+            {
+                return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
+            }
 
-            builder.add_stage(
+            stage_result = builder.add_stage(
                 "geometry.deform",
                 RuntimeLoopPhase::Simulation,
                 [this](double)
@@ -1867,8 +1890,12 @@ namespace engine::runtime
                         binding, skinning_transforms, mesh);
                 },
                 {"physics.integrate"});
+            if (!stage_result)
+            {
+                return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
+            }
 
-            builder.add_stage(
+            stage_result = builder.add_stage(
                 "geometry.finalize",
                 RuntimeLoopPhase::Simulation,
                 [this](double dt)
@@ -1884,8 +1911,12 @@ namespace engine::runtime
                     simulation_time += dt;
                 },
                 {"geometry.deform"});
+            if (!stage_result)
+            {
+                return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
+            }
 
-            builder.add_stage(
+            stage_result = builder.add_stage(
                 "runtime.plugins",
                 RuntimeLoopPhase::Simulation,
                 [this](double dt)
@@ -1906,8 +1937,12 @@ namespace engine::runtime
                 },
                 {"geometry.finalize"},
                 false);
+            if (!stage_result)
+            {
+                return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
+            }
 
-            builder.add_stage(
+            stage_result = builder.add_stage(
                 "diagnostics.refresh",
                 RuntimeLoopPhase::Diagnostics,
                 [this](double)
@@ -1918,6 +1953,10 @@ namespace engine::runtime
                 },
                 {"runtime.plugins"},
                 false);
+            if (!stage_result)
+            {
+                return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
+            }
 
             return builder.build();
         }

@@ -17,7 +17,11 @@ namespace engine::runtime
         dependency_cycle,
         configuration_io_error,
         configuration_parse_error,
-        configuration_validation_error
+        configuration_validation_error,
+        loop_stage_invalid_name,
+        loop_stage_duplicate_name,
+        loop_stage_unknown_dependency,
+        loop_stage_dependency_cycle
     };
 
     [[nodiscard]] constexpr std::string_view to_string(RuntimeError error) noexcept
@@ -38,6 +42,14 @@ namespace engine::runtime
             return "configuration_parse_error";
         case RuntimeError::configuration_validation_error:
             return "configuration_validation_error";
+        case RuntimeError::loop_stage_invalid_name:
+            return "loop_stage_invalid_name";
+        case RuntimeError::loop_stage_duplicate_name:
+            return "loop_stage_duplicate_name";
+        case RuntimeError::loop_stage_unknown_dependency:
+            return "loop_stage_unknown_dependency";
+        case RuntimeError::loop_stage_dependency_cycle:
+            return "loop_stage_dependency_cycle";
         }
         return "unknown";
     }

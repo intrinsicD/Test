@@ -40,6 +40,7 @@
 #include "engine/io/telemetry.hpp"
 #include "engine/runtime/api.hpp"
 #include "engine/runtime/diagnostics_bridge.hpp"
+#include "engine/runtime/errors.hpp"
 #include "engine/runtime/loop.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
 #include "engine/scene/validation.hpp"
@@ -513,20 +514,22 @@ TEST(RuntimeModule, ModuleNameMatchesNamespace)
 TEST(RuntimeLoopBuilder, OrdersStagesByDependencies)
 {
     engine::runtime::RuntimeLoopBuilder builder{};
-    builder.add_stage("alpha", engine::runtime::RuntimeLoopPhase::Simulation, [](double) {});
-    builder.add_stage(
+    ASSERT_TRUE(builder.add_stage("alpha", engine::runtime::RuntimeLoopPhase::Simulation, [](double) {}));
+    ASSERT_TRUE(builder.add_stage(
         "beta",
         engine::runtime::RuntimeLoopPhase::Simulation,
         [](double) {},
-        {"alpha"});
-    builder.add_stage(
+        {"alpha"}));
+    ASSERT_TRUE(builder.add_stage(
         "gamma",
         engine::runtime::RuntimeLoopPhase::Diagnostics,
         [](double) {},
         {"beta"},
-        false);
+        false));
 
-    const auto plan = builder.build();
+    auto plan_result = builder.build();
+    ASSERT_TRUE(plan_result);
+    const auto& plan = plan_result.value();
     std::vector<std::string> names{};
     for (const auto& stage : plan.stages())
     {
@@ -542,30 +545,65 @@ TEST(RuntimeLoopBuilder, OrdersStagesByDependencies)
 TEST(RuntimeLoopBuilder, DetectsUnknownDependencies)
 {
     engine::runtime::RuntimeLoopBuilder builder{};
-    builder.add_stage(
+    ASSERT_TRUE(builder.add_stage(
         "alpha",
         engine::runtime::RuntimeLoopPhase::Simulation,
         [](double) {},
-        {"missing"});
+        {"missing"}));
 
-    EXPECT_THROW(builder.build(), std::invalid_argument);
+    const auto plan_result = builder.build();
+    ASSERT_FALSE(plan_result);
+    EXPECT_EQ(
+        plan_result.error().code(),
+        engine::runtime::RuntimeError::loop_stage_unknown_dependency);
 }
 
 TEST(RuntimeLoopBuilder, DetectsDependencyCycles)
 {
     engine::runtime::RuntimeLoopBuilder builder{};
-    builder.add_stage(
+    ASSERT_TRUE(builder.add_stage(
         "alpha",
         engine::runtime::RuntimeLoopPhase::Simulation,
         [](double) {},
-        {"beta"});
-    builder.add_stage(
+        {"beta"}));
+    ASSERT_TRUE(builder.add_stage(
         "beta",
         engine::runtime::RuntimeLoopPhase::Simulation,
         [](double) {},
-        {"alpha"});
+        {"alpha"}));
 
-    EXPECT_THROW(builder.build(), std::runtime_error);
+    const auto plan_result = builder.build();
+    ASSERT_FALSE(plan_result);
+    EXPECT_EQ(
+        plan_result.error().code(),
+        engine::runtime::RuntimeError::loop_stage_dependency_cycle);
+}
+
+TEST(RuntimeLoopBuilder, RejectsEmptyStageName)
+{
+    engine::runtime::RuntimeLoopBuilder builder{};
+    const auto result = builder.add_stage(
+        "",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {});
+    ASSERT_FALSE(result);
+    EXPECT_EQ(
+        result.error().code(),
+        engine::runtime::RuntimeError::loop_stage_invalid_name);
+}
+
+TEST(RuntimeLoopBuilder, RejectsDuplicateStageName)
+{
+    engine::runtime::RuntimeLoopBuilder builder{};
+    ASSERT_TRUE(builder.add_stage("alpha", engine::runtime::RuntimeLoopPhase::Simulation, [](double) {}));
+    const auto duplicate = builder.add_stage(
+        "alpha",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {});
+    ASSERT_FALSE(duplicate);
+    EXPECT_EQ(
+        duplicate.error().code(),
+        engine::runtime::RuntimeError::loop_stage_duplicate_name);
 }
 
 TEST(RuntimeModule, RuntimeHostRespectsDispatcherFactory)
