@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <sstream>
 #include <string>
 #include <variant>
 
 #include "engine/core/telemetry/schema.hpp"
 #include "engine/rendering/backend/validation.hpp"
+#include "engine/rendering/gpu_scheduler.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 
 namespace
@@ -70,6 +72,36 @@ namespace
         ADD_FAILURE() << "Metric not found: " << name;
         return 0.0;
     }
+}
+
+using engine::rendering::resources::GraphicsApi;
+
+TEST(GraphicsApiStreamOperator, EmitsStableTokens)
+{
+    const auto stringify = [](engine::rendering::resources::GraphicsApi api) {
+        std::ostringstream stream;
+        stream << api;
+        return stream.str();
+    };
+
+    EXPECT_EQ(stringify(engine::rendering::resources::GraphicsApi::Unknown), "Unknown");
+    EXPECT_EQ(stringify(engine::rendering::resources::GraphicsApi::Vulkan), "Vulkan");
+    EXPECT_EQ(stringify(engine::rendering::resources::GraphicsApi::DirectX12), "DirectX12");
+    EXPECT_EQ(stringify(engine::rendering::resources::GraphicsApi::Metal), "Metal");
+    EXPECT_EQ(stringify(engine::rendering::resources::GraphicsApi::OpenGL), "OpenGL");
+}
+
+TEST(QueueTypeStreamOperator, EmitsStableTokens)
+{
+    const auto stringify = [](engine::rendering::QueueType type) {
+        std::ostringstream stream;
+        stream << type;
+        return stream.str();
+    };
+
+    EXPECT_EQ(stringify(engine::rendering::QueueType::Graphics), "Graphics");
+    EXPECT_EQ(stringify(engine::rendering::QueueType::Compute), "Compute");
+    EXPECT_EQ(stringify(engine::rendering::QueueType::Transfer), "Transfer");
 }
 
 class BackendValidationTest : public ::testing::TestWithParam<GraphicsApi>
