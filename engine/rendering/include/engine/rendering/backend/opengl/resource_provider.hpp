@@ -64,6 +64,7 @@ namespace engine::rendering::backend::opengl
             std::uint32_t target{0};
             bool native_allocation{false};
             bool in_use{false};
+            std::uint64_t last_used_frame{0};
         };
 
         [[nodiscard]] const BufferRecord* buffer(FrameGraphResourceHandle handle) const noexcept;
@@ -84,6 +85,7 @@ namespace engine::rendering::backend::opengl
             bool native_allocation{false};
             bool depth_attachment{false};
             bool in_use{false};
+            std::uint64_t last_used_frame{0};
         };
 
         [[nodiscard]] const TextureRecord* texture(FrameGraphResourceHandle handle) const noexcept;
@@ -123,6 +125,8 @@ namespace engine::rendering::backend::opengl
         std::uint64_t next_timeline_id_{1};
         std::uint32_t next_buffer_id_{1};
         std::uint32_t next_texture_id_{1};
+        std::uint64_t current_frame_{0};
+        std::uint64_t retention_frames_{0};
 
         void destroy_buffer(BufferRecord& record) noexcept;
         void destroy_texture(TextureRecord& record) noexcept;

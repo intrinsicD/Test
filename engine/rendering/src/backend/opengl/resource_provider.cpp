@@ -1,5 +1,6 @@
 #include "engine/rendering/backend/opengl/resource_provider.hpp"
 
+#include <algorithm>
 #include <optional>
 #include <stdexcept>
 #include <utility>
@@ -313,12 +314,64 @@ namespace engine::rendering::backend::opengl
 
     void OpenGLGpuResourceProvider::begin_frame()
     {
+        ++current_frame_;
         acquired_.clear();
         released_.clear();
     }
 
     void OpenGLGpuResourceProvider::end_frame()
     {
+        const auto should_collect_buffer = [this](const auto& entry) {
+            const auto& record = entry.second;
+            if (record.in_use)
+            {
+                return false;
+            }
+            if (record.last_used_frame == 0)
+            {
+                return false;
+            }
+            if (current_frame_ <= record.last_used_frame)
+            {
+                return false;
+            }
+            return (current_frame_ - record.last_used_frame) > retention_frames_;
+        };
+
+        std::erase_if(buffers_, [&](auto& entry) {
+            if (should_collect_buffer(entry))
+            {
+                destroy_buffer(entry.second);
+                return true;
+            }
+            return false;
+        });
+
+        const auto should_collect_texture = [this](const auto& entry) {
+            const auto& record = entry.second;
+            if (record.in_use)
+            {
+                return false;
+            }
+            if (record.last_used_frame == 0)
+            {
+                return false;
+            }
+            if (current_frame_ <= record.last_used_frame)
+            {
+                return false;
+            }
+            return (current_frame_ - record.last_used_frame) > retention_frames_;
+        };
+
+        std::erase_if(textures_, [&](auto& entry) {
+            if (should_collect_texture(entry))
+            {
+                destroy_texture(entry.second);
+                return true;
+            }
+            return false;
+        });
     }
 
     resources::QueueNativeHandle OpenGLGpuResourceProvider::queue_handle(QueueType queue) const
@@ -415,6 +468,7 @@ namespace engine::rendering::backend::opengl
             if (it != buffers_.end())
             {
                 it->second.in_use = true;
+                it->second.last_used_frame = current_frame_;
             }
 
             if (!is_texture_resource(info))
@@ -444,6 +498,7 @@ namespace engine::rendering::backend::opengl
         if (it != textures_.end())
         {
             it->second.in_use = true;
+            it->second.last_used_frame = current_frame_;
         }
     }
 
@@ -463,6 +518,7 @@ namespace engine::rendering::backend::opengl
             if (buffer_it != buffers_.end())
             {
                 buffer_it->second.in_use = false;
+                buffer_it->second.last_used_frame = current_frame_;
             }
 
             if (!is_texture_resource(info))
@@ -479,6 +535,7 @@ namespace engine::rendering::backend::opengl
 
         static_cast<void>(info);
         it->second.in_use = false;
+        it->second.last_used_frame = current_frame_;
     }
 
     OpenGLCommandBuffer* OpenGLGpuResourceProvider::command_buffer(CommandBufferHandle handle) noexcept
@@ -581,6 +638,7 @@ namespace engine::rendering::backend::opengl
         record.usage = info.usage;
         record.size_bytes = info.size_bytes;
         record.in_use = true;
+        record.last_used_frame = current_frame_;
 
 #if ENGINE_RENDERING_HAS_GLAD
         const auto target = buffer_target(info.usage);
@@ -617,6 +675,7 @@ namespace engine::rendering::backend::opengl
         record.array_layers = info.array_layers;
         record.mip_levels = info.mip_levels;
         record.in_use = true;
+        record.last_used_frame = current_frame_;
 
 #if ENGINE_RENDERING_HAS_GLAD
         if (const auto translated = translate_texture_format(info))
