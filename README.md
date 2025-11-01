@@ -34,6 +34,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
   AI-004 prototyping playbook lives at
   [`docs/design/AI-004-prototyping-playbook.md`](docs/design/AI-004-prototyping-playbook.md) and captures the schema → dataset →
   harness workflow.
+  Architecture diagrams are stored under `docs/architecture/`, while documentation templates (including the research paper template) live in `docs/templates/`.
 - **`engine/`** – Native subsystems with headers, sources, and associated tests.
 - **`python/`** – Runtime loaders and utilities that mirror C++ APIs; now ships
   a manually curated `.pyi` stub for `engine3g.loader` as part of the Python bindings refresh.

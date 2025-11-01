@@ -34,6 +34,7 @@ This document captures the stable truths about the engine. Treat it as the autho
 
 - [`../README.md`](../README.md) – module snapshot, architecture improvement plan summary, and build/test workflow.
 - [`ROADMAP.md`](ROADMAP.md) – authoritative backlog with `DC-`, `AI-`, and `RT-` identifiers referenced throughout this file.
+- [`architecture/README.md`](architecture/README.md) – Module dependency diagrams and regeneration instructions.
 - [`docs/specs/ADR-0003-runtime-frame-graph.md`](specs/ADR-0003-runtime-frame-graph.md) – scheduler contracts and metadata expectations.
 - [`docs/specs/ADR-0005-geometry-io-roundtrip.md`](specs/ADR-0005-geometry-io-roundtrip.md) – geometry and IO ownership, file formats, and validation.
 - [`docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md`](archive/backlog/legacy/tasks/2025-02-17-sprint-06.md) – current sprint focus tying runtime and rendering milestones together.
