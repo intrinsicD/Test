@@ -1,6 +1,7 @@
 #include "engine/runtime/api.hpp"
 #include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/errors.hpp"
+#include "engine/runtime/loop.hpp"
 #include "engine/io/telemetry.hpp"
 #include "engine/math/telemetry/conversion_telemetry.hpp"
 #include "engine/animation/benchmarking/telemetry.hpp"
@@ -443,7 +444,7 @@ namespace engine::runtime
         geometry::SurfaceMesh mesh{};
         animation::RigBinding binding{};
         physics::PhysicsWorld world{};
-        std::unique_ptr<compute::Dispatcher> dispatcher{};
+        RuntimeLoopPlan loop_plan{};
         compute::ExecutionReport last_report{};
         std::vector<math::vec3> body_positions{};
         std::vector<std::string> joint_names{};
@@ -479,16 +480,21 @@ namespace engine::runtime
             }
         }
 
-        [[nodiscard]] std::unique_ptr<compute::Dispatcher> make_dispatcher() const
+        void validate_dispatcher_factory() const
         {
+            std::unique_ptr<compute::Dispatcher> dispatcher_instance{};
             if (dependencies.dispatcher_factory)
             {
-                if (auto instance = dependencies.dispatcher_factory(); instance)
-                {
-                    return instance;
-                }
+                dispatcher_instance = dependencies.dispatcher_factory();
             }
-            return compute::make_cpu_dispatcher();
+            else
+            {
+                dispatcher_instance = compute::make_cpu_dispatcher();
+            }
+            if (dispatcher_instance == nullptr)
+            {
+                throw std::runtime_error("RuntimeHost dispatcher_factory produced a null dispatcher");
+            }
         }
 
         explicit Impl(RuntimeHostDependencies deps)
@@ -1534,23 +1540,27 @@ namespace engine::runtime
 #endif
         }
 
+        void record_stage_sample(std::string_view name, double duration_seconds)
+        {
+            RuntimeStageTiming& timing = ensure_stage_timing(std::string{name});
+            const double duration_ms = duration_seconds * 1000.0;
+            timing.last_ms = duration_ms;
+            timing.sample_count += 1U;
+            const double samples = static_cast<double>(timing.sample_count);
+            if (samples > 0.0)
+            {
+                timing.average_ms += (duration_ms - timing.average_ms) / samples;
+            }
+            timing.max_ms = std::max(timing.max_ms, duration_ms);
+        }
+
         void record_stage_timings(const compute::ExecutionReport& report)
         {
             const std::size_t count =
                 std::min(report.execution_order.size(), report.kernel_durations.size());
             for (std::size_t index = 0; index < count; ++index)
             {
-                const std::string& name = report.execution_order[index];
-                RuntimeStageTiming& timing = ensure_stage_timing(name);
-                const double duration_ms = report.kernel_durations[index] * 1000.0;
-                timing.last_ms = duration_ms;
-                timing.sample_count += 1U;
-                const double samples = static_cast<double>(timing.sample_count);
-                if (samples > 0.0)
-                {
-                    timing.average_ms += (duration_ms - timing.average_ms) / samples;
-                }
-                timing.max_ms = std::max(timing.max_ms, duration_ms);
+                record_stage_sample(report.execution_order[index], report.kernel_durations[index]);
             }
         }
 
@@ -1751,12 +1761,7 @@ namespace engine::runtime
             geometry::recompute_vertex_normals(mesh);
             geometry::update_bounds(mesh);
             world = dependencies.world;
-            dispatcher = make_dispatcher();
-            if (dispatcher == nullptr)
-            {
-                throw std::runtime_error("RuntimeHost dispatcher_factory produced a null dispatcher");
-            }
-            dispatcher->clear();
+            validate_dispatcher_factory();
             last_report = {};
             body_positions.clear();
             joint_names.clear();
@@ -1780,6 +1785,141 @@ namespace engine::runtime
 #endif
             refresh_physics_metrics();
             rebuild_subsystem_cache();
+            loop_plan = build_default_loop_plan();
+        }
+
+        RuntimeLoopPlan build_default_loop_plan()
+        {
+            RuntimeLoopBuilder builder{};
+            builder.add_stage(
+                "animation.evaluate",
+                RuntimeLoopPhase::Simulation,
+                [this](double dt)
+                {
+                    engine::animation::advance_controller(controller, dt);
+                    pose = engine::animation::evaluate_controller(controller);
+                });
+
+            builder.add_stage(
+                "physics.accumulate",
+                RuntimeLoopPhase::Simulation,
+                [this](double)
+                {
+                    engine::physics::clear_forces(world);
+                    if (!pose.joints.empty() && engine::physics::body_count(world) > 0)
+                    {
+                        if (const auto* root = pose.find("root"))
+                        {
+                            const math::vec3 drive = root->translation * 4.0F;
+                            engine::physics::apply_force(world, 0, drive);
+                        }
+                    }
+                },
+                {"animation.evaluate"});
+
+            builder.add_stage(
+                "physics.integrate",
+                RuntimeLoopPhase::Simulation,
+                [this](double dt)
+                {
+                    engine::physics::integrate(world, dt);
+                    refresh_body_positions();
+                },
+                {"physics.accumulate"});
+
+            builder.add_stage(
+                "geometry.deform",
+                RuntimeLoopPhase::Simulation,
+                [this](double)
+                {
+                    math::vec3 root_translation{0.0F, 0.0F, 0.0F};
+                    if (!body_positions.empty())
+                    {
+                        root_translation = body_positions.front();
+                    }
+
+                    if (!animation::skinning::validate_binding(binding) || binding.joints.empty())
+                    {
+                        math::vec3 translation = root_translation;
+                        if (const auto* root_pose = pose.find("root"))
+                        {
+                            translation += root_pose->translation;
+                        }
+                        engine::geometry::apply_uniform_translation(mesh, translation);
+                        engine::geometry::recompute_vertex_normals(mesh);
+                        return;
+                    }
+
+                    if (joint_global_transforms.size() != binding.joints.size())
+                    {
+                        joint_global_transforms.resize(binding.joints.size());
+                    }
+                    if (skinning_transforms.size() != binding.joints.size())
+                    {
+                        skinning_transforms.resize(binding.joints.size());
+                    }
+
+                    animation::skinning::build_global_joint_transforms(
+                        binding, pose, joint_global_transforms, root_translation);
+                    animation::skinning::build_skinning_transforms(
+                        binding, joint_global_transforms, skinning_transforms);
+                    engine::geometry::deform::apply_linear_blend_skinning(
+                        binding, skinning_transforms, mesh);
+                },
+                {"physics.integrate"});
+
+            builder.add_stage(
+                "geometry.finalize",
+                RuntimeLoopPhase::Simulation,
+                [this](double dt)
+                {
+                    engine::geometry::update_bounds(mesh);
+                    refresh_joint_names();
+                    math::vec3 translation{0.0F, 0.0F, 0.0F};
+                    if (!body_positions.empty())
+                    {
+                        translation = body_positions.front();
+                    }
+                    synchronize_scene_graph(translation, dt);
+                    simulation_time += dt;
+                },
+                {"geometry.deform"});
+
+            builder.add_stage(
+                "runtime.plugins",
+                RuntimeLoopPhase::Simulation,
+                [this](double dt)
+                {
+                    const engine::core::plugin::SubsystemUpdateContext update_context{dt};
+                    for (const auto& plugin : dependencies.subsystem_plugins)
+                    {
+                        if (plugin == nullptr)
+                        {
+                            continue;
+                        }
+                        const std::string name{plugin->name()};
+                        const auto start = Clock::now();
+                        plugin->tick(update_context);
+                        const auto duration = Clock::now() - start;
+                        record_subsystem_event(name, duration, SubsystemPhase::Tick);
+                    }
+                },
+                {"geometry.finalize"},
+                false);
+
+            builder.add_stage(
+                "diagnostics.refresh",
+                RuntimeLoopPhase::Diagnostics,
+                [this](double)
+                {
+                    engine::physics::update_contact_manifolds(world);
+                    refresh_physics_metrics();
+                    update_animation_telemetry(last_report);
+                },
+                {"runtime.plugins"},
+                false);
+
+            return builder.build();
         }
 
         void configure(RuntimeHostDependencies deps)
@@ -2095,10 +2235,6 @@ namespace engine::runtime
                     record_subsystem_event(name, duration, SubsystemPhase::Shutdown);
                 }
             }
-            if (dispatcher != nullptr)
-            {
-                dispatcher->clear();
-            }
             core::threading::IoThreadPool::instance().shutdown();
             last_report.execution_order.clear();
             last_report.kernel_durations.clear();
@@ -2121,117 +2257,73 @@ namespace engine::runtime
             }
 
             const auto tick_start = Clock::now();
-            if (dispatcher == nullptr)
+            last_report.execution_order.clear();
+            last_report.kernel_durations.clear();
+            last_report.dependency_graph.nodes.clear();
+            last_report.clock_domain = compute::TimingDomain::Cpu;
+            last_report.clock_name = "runtime.loop";
+
+            const auto& stages = loop_plan.stages();
+            std::unordered_map<std::string, std::size_t> stage_index_map{};
+            stage_index_map.reserve(stages.size());
+            for (std::size_t index = 0; index < stages.size(); ++index)
             {
-                dispatcher = make_dispatcher();
+                stage_index_map.emplace(stages[index].name, index);
             }
-            dispatcher->clear();
 
-            auto& dispatcher_ref = *dispatcher;
+            std::vector<std::size_t> report_indices(
+                stages.size(), std::numeric_limits<std::size_t>::max());
 
-            const auto animation_kernel = dispatcher_ref.add_kernel(
-                "animation.evaluate",
-                [&]()
-                {
-                    engine::animation::advance_controller(controller, dt);
-                    pose = engine::animation::evaluate_controller(controller);
-                });
-
-            const auto physics_forces = dispatcher_ref.add_kernel(
-                "physics.accumulate",
-                [&]()
-                {
-                    engine::physics::clear_forces(world);
-                    if (!pose.joints.empty() && engine::physics::body_count(world) > 0)
-                    {
-                        if (const auto* root = pose.find("root"))
-                        {
-                            const math::vec3 drive = root->translation * 4.0F;
-                            engine::physics::apply_force(world, 0, drive);
-                        }
-                    }
-                },
-                {animation_kernel});
-
-            const auto physics_integrate = dispatcher_ref.add_kernel(
-                "physics.integrate",
-                [&]()
-                {
-                    engine::physics::integrate(world, dt);
-                    refresh_body_positions();
-                },
-                {physics_forces});
-
-            const auto deform = dispatcher_ref.add_kernel(
-                "geometry.deform",
-                [&]()
-                {
-                    math::vec3 root_translation{0.0F, 0.0F, 0.0F};
-                    if (!body_positions.empty())
-                    {
-                        root_translation = body_positions.front();
-                    }
-
-                    if (!animation::skinning::validate_binding(binding) || binding.joints.empty())
-                    {
-                        math::vec3 translation = root_translation;
-                        if (const auto* root_pose = pose.find("root"))
-                        {
-                            translation += root_pose->translation;
-                        }
-                        engine::geometry::apply_uniform_translation(mesh, translation);
-                        engine::geometry::recompute_vertex_normals(mesh);
-                        return;
-                    }
-
-                    if (joint_global_transforms.size() != binding.joints.size())
-                    {
-                        joint_global_transforms.resize(binding.joints.size());
-                    }
-                    if (skinning_transforms.size() != binding.joints.size())
-                    {
-                        skinning_transforms.resize(binding.joints.size());
-                    }
-
-                    animation::skinning::build_global_joint_transforms(binding, pose, joint_global_transforms,
-                                                                       root_translation);
-                    animation::skinning::build_skinning_transforms(binding, joint_global_transforms,
-                                                                   skinning_transforms);
-                    engine::geometry::deform::apply_linear_blend_skinning(binding, skinning_transforms, mesh);
-                },
-                {physics_integrate});
-
-            MAYBE_UNUSED_CONST_AUTO finalize_kernel = dispatcher_ref.add_kernel(
-                "geometry.finalize",
-                [&]()
-                {
-                    engine::geometry::update_bounds(mesh);
-                    refresh_joint_names();
-                    const math::vec3 translation = body_positions.empty()
-                                                       ? math::vec3{0.0F, 0.0F, 0.0F}
-                                                       : body_positions.front();
-                    synchronize_scene_graph(translation, dt);
-                },
-                {deform});
-
-            last_report = dispatcher_ref.dispatch();
-            record_stage_timings(last_report);
-            update_animation_telemetry(last_report);
-            engine::physics::update_contact_manifolds(world);
-            refresh_physics_metrics();
-            simulation_time += dt;
-            const engine::core::plugin::SubsystemUpdateContext update_context{dt};
-            for (const auto& plugin : dependencies.subsystem_plugins)
+            for (std::size_t index = 0; index < stages.size(); ++index)
             {
-                if (plugin != nullptr)
+                const auto& stage = stages[index];
+                const auto stage_start = Clock::now();
+                if (stage.function)
                 {
-                    const std::string name{plugin->name()};
-                    const auto start = Clock::now();
-                    plugin->tick(update_context);
-                    const auto duration = Clock::now() - start;
-                    record_subsystem_event(name, duration, SubsystemPhase::Tick);
+                    stage.function(dt);
+                }
+                const auto stage_duration = Clock::now() - stage_start;
+                const double seconds = std::chrono::duration<double>(stage_duration).count();
+                record_stage_sample(stage.name, seconds);
+                if (stage.record_in_execution_report)
+                {
+                    const std::size_t report_index = last_report.execution_order.size();
+                    report_indices[index] = report_index;
+                    last_report.execution_order.push_back(stage.name);
+                    last_report.kernel_durations.push_back(seconds);
                 }
             }
+
+            compute::DependencyGraph graph{};
+            graph.nodes.reserve(last_report.execution_order.size());
+            for (std::size_t index = 0; index < stages.size(); ++index)
+            {
+                const auto& stage = stages[index];
+                if (!stage.record_in_execution_report)
+                {
+                    continue;
+                }
+
+                compute::DependencyGraph::Node node{};
+                node.name = stage.name;
+                for (const auto& dependency : stage.dependencies)
+                {
+                    const auto it = stage_index_map.find(dependency);
+                    if (it == stage_index_map.end())
+                    {
+                        continue;
+                    }
+                    const std::size_t dependency_index = it->second;
+                    const std::size_t report_index = report_indices[dependency_index];
+                    if (report_index != std::numeric_limits<std::size_t>::max())
+                    {
+                        node.dependencies.push_back(report_index);
+                    }
+                }
+                graph.nodes.push_back(std::move(node));
+            }
+            last_report.dependency_graph = std::move(graph);
+
             record_tick_duration(Clock::now() - tick_start);
 
             runtime_frame_state frame{};

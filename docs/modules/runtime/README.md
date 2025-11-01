@@ -8,7 +8,7 @@ The runtime module orchestrates the engine's main execution loop through `Runtim
 
 ## Outstanding Work
 
-- Implement the stage planner and presentation adapters described in [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) (`RT-410`).
+- Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) (`RT-410`).
 - Provide synchronisation hooks for scripting, diagnostics, and tooling integrations in tandem with rendering backends.
 - Validate the new loop against OpenGL/Vulkan once [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) and [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md) ship.
 

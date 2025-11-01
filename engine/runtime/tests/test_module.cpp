@@ -40,6 +40,7 @@
 #include "engine/io/telemetry.hpp"
 #include "engine/runtime/api.hpp"
 #include "engine/runtime/diagnostics_bridge.hpp"
+#include "engine/runtime/loop.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
 #include "engine/scene/validation.hpp"
 #include "engine/rendering/components.hpp"
@@ -507,6 +508,64 @@ TEST(RuntimeModule, ModuleNameMatchesNamespace)
 {
     EXPECT_EQ(engine::runtime::module_name(), "runtime");
     EXPECT_STREQ(engine_runtime_module_name(), "runtime");
+}
+
+TEST(RuntimeLoopBuilder, OrdersStagesByDependencies)
+{
+    engine::runtime::RuntimeLoopBuilder builder{};
+    builder.add_stage("alpha", engine::runtime::RuntimeLoopPhase::Simulation, [](double) {});
+    builder.add_stage(
+        "beta",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {},
+        {"alpha"});
+    builder.add_stage(
+        "gamma",
+        engine::runtime::RuntimeLoopPhase::Diagnostics,
+        [](double) {},
+        {"beta"},
+        false);
+
+    const auto plan = builder.build();
+    std::vector<std::string> names{};
+    for (const auto& stage : plan.stages())
+    {
+        names.push_back(stage.name);
+    }
+
+    ASSERT_EQ(names.size(), 3U);
+    EXPECT_EQ(names[0], "alpha");
+    EXPECT_EQ(names[1], "beta");
+    EXPECT_EQ(names[2], "gamma");
+}
+
+TEST(RuntimeLoopBuilder, DetectsUnknownDependencies)
+{
+    engine::runtime::RuntimeLoopBuilder builder{};
+    builder.add_stage(
+        "alpha",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {},
+        {"missing"});
+
+    EXPECT_THROW(builder.build(), std::invalid_argument);
+}
+
+TEST(RuntimeLoopBuilder, DetectsDependencyCycles)
+{
+    engine::runtime::RuntimeLoopBuilder builder{};
+    builder.add_stage(
+        "alpha",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {},
+        {"beta"});
+    builder.add_stage(
+        "beta",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {},
+        {"alpha"});
+
+    EXPECT_THROW(builder.build(), std::runtime_error);
 }
 
 TEST(RuntimeModule, RuntimeHostRespectsDispatcherFactory)
