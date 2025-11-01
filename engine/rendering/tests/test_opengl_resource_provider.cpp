@@ -49,6 +49,8 @@ TEST(OpenGLResourceProvider, AllocatesTextureOnAcquire)
     engine::rendering::FrameGraphResourceHandle handle{};
     handle.index = 0;
 
+    provider.begin_frame();
+
     const auto info = make_color_resource("Color", 640, 480);
 
     provider.on_transient_acquire(handle, info);
@@ -73,6 +75,8 @@ TEST(OpenGLResourceProvider, AllocatesBufferOnAcquire)
     engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
     engine::rendering::FrameGraphResourceHandle handle{};
     handle.index = 10;
+
+    provider.begin_frame();
 
     const auto info = make_buffer_resource("Compute", 4096,
                                            engine::rendering::ResourceUsage::ShaderRead
@@ -99,6 +103,8 @@ TEST(OpenGLResourceProvider, ReallocatesBufferWhenDescriptorChanges)
     engine::rendering::FrameGraphResourceHandle handle{};
     handle.index = 11;
 
+    provider.begin_frame();
+
     auto info = make_buffer_resource("ComputeResize", 2048,
                                      engine::rendering::ResourceUsage::ShaderRead);
     provider.on_transient_acquire(handle, info);
@@ -123,6 +129,8 @@ TEST(OpenGLResourceProvider, ReallocatesTextureWhenDescriptorChanges)
     engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
     engine::rendering::FrameGraphResourceHandle handle{};
     handle.index = 1;
+
+    provider.begin_frame();
 
     auto info = make_color_resource("Color.Resize", 320, 200);
     provider.on_transient_acquire(handle, info);
@@ -149,6 +157,8 @@ TEST(OpenGLResourceProvider, TracksDepthAttachmentDescriptors)
     engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
     engine::rendering::FrameGraphResourceHandle handle{};
     handle.index = 2;
+
+    provider.begin_frame();
 
     engine::rendering::FrameGraphResourceInfo info{};
     info.name = "Depth";
@@ -183,6 +193,8 @@ TEST(OpenGLResourceProvider, RecordsResourceEvents)
     engine::rendering::FrameGraphResourceHandle handle{};
     handle.index = 42;
 
+    provider.begin_frame();
+
     const auto info = make_color_resource("Telemetry.Color", 128, 64);
 
     provider.on_transient_acquire(handle, info);
@@ -201,4 +213,65 @@ TEST(OpenGLResourceProvider, RecordsResourceEvents)
     EXPECT_EQ(released.front().handle, handle);
     EXPECT_EQ(released.front().info.name, info.name);
     EXPECT_EQ(released.front().info.usage, info.usage);
+}
+
+TEST(OpenGLResourceProvider, ReusesResourcesAcrossFramesWithinRetention)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 7;
+
+    auto info = make_color_resource("Color.Persistent", 512, 512);
+
+    provider.begin_frame();
+    provider.on_transient_acquire(handle, info);
+    const auto* initial = provider.texture(handle);
+    ASSERT_NE(initial, nullptr);
+    const auto first_handle = initial->handle;
+    provider.on_transient_release(handle, info);
+    provider.end_frame();
+
+    provider.begin_frame();
+    provider.on_transient_acquire(handle, info);
+    const auto* reused = provider.texture(handle);
+    ASSERT_NE(reused, nullptr);
+    EXPECT_EQ(reused->handle, first_handle);
+}
+
+TEST(OpenGLResourceProvider, CollectsTexturesUnusedForMultipleFrames)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 8;
+
+    auto info = make_color_resource("Color.Evict", 128, 128);
+
+    provider.begin_frame();
+    provider.on_transient_acquire(handle, info);
+    provider.on_transient_release(handle, info);
+    provider.end_frame();
+
+    provider.begin_frame();
+    provider.end_frame();
+
+    EXPECT_EQ(provider.texture(handle), nullptr);
+}
+
+TEST(OpenGLResourceProvider, CollectsBuffersUnusedForMultipleFrames)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 9;
+
+    auto info = make_buffer_resource("Buffer.Evict", 1024, engine::rendering::ResourceUsage::ShaderRead);
+
+    provider.begin_frame();
+    provider.on_transient_acquire(handle, info);
+    provider.on_transient_release(handle, info);
+    provider.end_frame();
+
+    provider.begin_frame();
+    provider.end_frame();
+
+    EXPECT_EQ(provider.buffer(handle), nullptr);
 }
