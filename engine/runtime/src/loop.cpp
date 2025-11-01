@@ -2,8 +2,9 @@
 
 #include <algorithm>
 #include <queue>
-#include <stdexcept>
+#include <sstream>
 #include <unordered_map>
+#include <utility>
 
 namespace engine::runtime
 {
@@ -17,15 +18,17 @@ namespace engine::runtime
         return stages_;
     }
 
-    void RuntimeLoopBuilder::add_stage(std::string name,
-                                       RuntimeLoopPhase phase,
-                                       RuntimeLoopStageFunction function,
-                                       std::vector<std::string> dependencies,
-                                       bool record_in_execution_report)
+    RuntimeValidationResult RuntimeLoopBuilder::add_stage(std::string name,
+                                                          RuntimeLoopPhase phase,
+                                                          RuntimeLoopStageFunction function,
+                                                          std::vector<std::string> dependencies,
+                                                          bool record_in_execution_report)
     {
         if (name.empty())
         {
-            throw std::invalid_argument{"RuntimeLoopBuilder stage name must not be empty"};
+            return make_runtime_error(
+                RuntimeError::loop_stage_invalid_name,
+                "RuntimeLoopBuilder stage name must not be empty");
         }
 
         const auto duplicate = std::any_of(
@@ -34,7 +37,9 @@ namespace engine::runtime
             [&](const RuntimeLoopStage& stage) { return stage.name == name; });
         if (duplicate)
         {
-            throw std::invalid_argument{"RuntimeLoopBuilder cannot register duplicate stage name"};
+            return make_runtime_error(
+                RuntimeError::loop_stage_duplicate_name,
+                "RuntimeLoopBuilder cannot register duplicate stage name: " + name);
         }
 
         RuntimeLoopStage stage{};
@@ -44,9 +49,10 @@ namespace engine::runtime
         stage.dependencies = std::move(dependencies);
         stage.record_in_execution_report = record_in_execution_report;
         stages_.push_back(std::move(stage));
+        return RuntimeValidationResult{};
     }
 
-    RuntimeLoopPlan RuntimeLoopBuilder::build() const
+    RuntimeResult<RuntimeLoopPlan> RuntimeLoopBuilder::build() const
     {
         if (stages_.empty())
         {
@@ -69,8 +75,11 @@ namespace engine::runtime
                 const auto it = name_to_index.find(dependency);
                 if (it == name_to_index.end())
                 {
-                    throw std::invalid_argument("RuntimeLoopBuilder stage '" + stages_[index].name
-                                                 + "' depends on unknown stage '" + dependency + "'");
+                    std::ostringstream builder{};
+                    builder << "RuntimeLoopBuilder stage '" << stages_[index].name
+                            << "' depends on unknown stage '" << dependency << "'";
+                    return make_runtime_error(
+                        RuntimeError::loop_stage_unknown_dependency, builder.str());
                 }
                 adjacency[it->second].push_back(index);
                 ++indegree[index];
@@ -104,7 +113,9 @@ namespace engine::runtime
 
         if (order.size() != stages_.size())
         {
-            throw std::runtime_error{"RuntimeLoopBuilder detected a cycle in stage dependencies"};
+            return make_runtime_error(
+                RuntimeError::loop_stage_dependency_cycle,
+                "RuntimeLoopBuilder detected a cycle in stage dependencies");
         }
 
         std::vector<RuntimeLoopStage> sorted{};
