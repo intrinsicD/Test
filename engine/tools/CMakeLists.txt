@@ -4,6 +4,7 @@ add_library(${target_name}
         src/api.cpp
         src/profiling/profiler.cpp
         src/imgui_helpers.cpp
+        src/imgui/panel_registry.cpp
         src/sandbox/benchmark_runner.cpp
         src/sandbox/configuration_loader.cpp
         src/sandbox/experiment_sandbox.cpp

@@ -387,6 +387,9 @@ Once modularization is complete, the module will be re-enabled and integrated in
 - Editor/profiling/pipeline automation staging area with the telemetry viewer CLI surfacing runtime snapshots—including recent
   asset reload failures with per-asset hints—Dear ImGui integration for diagnostics UI, and profiler utilities; runtime packaging
   script available for CI.
+- Shared `PanelRegistry` (`engine/tools/imgui/panel_registry.hpp`) centralises Dear ImGui panels with deterministic ordering so
+  the runtime, sandbox UI, and future editor reuse diagnostics/presentation surfaces without duplicating layout code. C++ tests
+  exercise registration, ordering, and invocation semantics until the editor build is re-enabled (`TL-310`).
 
 ## Usage
 
@@ -413,6 +416,17 @@ Once modularization is complete, the module will be re-enabled and integrated in
      `--summary-json <path>` to persist headless execution summaries that feed benchmark capture.
   5. Update sandbox layout persistence to record schema IDs once the UI begins
      emitting AI-004 configuration fragments.
+- Register reusable diagnostics panels through the C++ panel registry so the sandbox and future editor surfaces share widgets:
+  ```cpp
+  engine::tools::imgui::PanelRegistry registry;
+  registry.register_panel("telemetry.streaming", [](const engine::tools::imgui::PanelRenderContext& ctx)
+  {
+      render_streaming_panel(ctx);
+  });
+  registry.render_all(engine::tools::imgui::PanelRenderContext{delta_time});
+  ```
+  Panels execute in registration order and can be invoked individually via `registry.render("panel.id", ctx)` when UI flows
+  require targeted composition.
 
 ## TODO / Next Steps
 

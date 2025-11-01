@@ -220,6 +220,7 @@ ctest --preset linux-gcc-debug -R runtime
 ## Current State
 
 - `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, and submission into the rendering pipeline. Diagnostics expose stage timings, streaming metrics, scene validation, and frame-graph metadata.
+- Compiled loop plans surface through the `RuntimeLoopInspector`, emitting a deterministic JSON description (`diagnostics.loop_plan_serialization`) so tooling can introspect phases, dependencies, and execution reporting flags alongside frame-graph captures.
 
 ## Usage
 

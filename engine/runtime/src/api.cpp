@@ -2,6 +2,7 @@
 #include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/errors.hpp"
 #include "engine/runtime/loop.hpp"
+#include "engine/runtime/loop_inspector.hpp"
 #include "engine/io/telemetry.hpp"
 #include "engine/math/telemetry/conversion_telemetry.hpp"
 #include "engine/animation/benchmarking/telemetry.hpp"
@@ -1792,10 +1793,12 @@ namespace engine::runtime
                     "Failed to build runtime loop plan: {}",
                     plan_result.error().message());
                 loop_plan = {};
+                diagnostics.loop_plan_serialization.clear();
             }
             else
             {
                 loop_plan = std::move(plan_result).value();
+                diagnostics.loop_plan_serialization = serialize_loop_plan(loop_plan);
             }
         }
 
