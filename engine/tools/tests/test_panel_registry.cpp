@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "engine/tools/imgui/panel_registry.hpp"
@@ -18,7 +19,9 @@ TEST(PanelRegistry, RegistersAndInvokesPanels)
     ASSERT_TRUE(registry.register_panel("metrics", [&](const PanelRenderContext& ctx) {
         render_count += static_cast<int>(ctx.delta_time);
     }));
-    ASSERT_TRUE(registry.contains("metrics"));
+    const std::string identifier = "metrics";
+    std::string_view identifier_view = identifier;
+    ASSERT_TRUE(registry.contains(identifier_view));
 
     registry.render("metrics", PanelRenderContext{1.0});
     EXPECT_EQ(render_count, 1);
@@ -41,6 +44,18 @@ TEST(PanelRegistry, UnregistersPanels)
     registry.unregister_panel("scene");
     EXPECT_FALSE(registry.contains("scene"));
     registry.render("scene", PanelRenderContext{0.0});
+}
+
+TEST(PanelRegistry, RenderAllSkipsUnregisteredPanels)
+{
+    PanelRegistry registry{};
+    int render_count = 0;
+    ASSERT_TRUE(registry.register_panel("visible", [&](const PanelRenderContext&) { render_count += 1; }));
+    ASSERT_TRUE(registry.register_panel("transient", [&](const PanelRenderContext&) { render_count += 100; }));
+
+    registry.unregister_panel("transient");
+    registry.render_all(PanelRenderContext{0.0});
+    EXPECT_EQ(render_count, 1);
 }
 
 TEST(PanelRegistry, PreservesRegistrationOrder)

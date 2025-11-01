@@ -664,6 +664,39 @@ TEST(RuntimeLoopInspector, ProducesDeterministicReport)
     EXPECT_NE(serialised.find("\"phase\": \"diagnostics\""), std::string::npos);
 }
 
+TEST(RuntimeLoopInspector, EscapesStringsForJsonSerialisation)
+{
+    engine::runtime::RuntimeLoopBuilder builder{};
+    ASSERT_TRUE(builder.add_stage(
+        "dependency\\path",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {}));
+    ASSERT_TRUE(builder.add_stage(
+        "delta\nanalysis",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {}));
+    ASSERT_TRUE(builder.add_stage(
+        std::string{"omega\x01stage"},
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [](double) {}));
+
+    const std::string stage_name = "metrics\"inspector\\stage";
+    ASSERT_TRUE(builder.add_stage(
+        stage_name,
+        engine::runtime::RuntimeLoopPhase::Diagnostics,
+        [](double) {},
+        {"dependency\\path", "delta\nanalysis", std::string{"omega\x01stage"}},
+        true));
+
+    const auto plan_result = builder.build();
+    ASSERT_TRUE(plan_result);
+    const auto serialised = engine::runtime::serialize_loop_plan(plan_result.value());
+    EXPECT_NE(serialised.find("metrics\\\"inspector\\\\stage"), std::string::npos);
+    EXPECT_NE(serialised.find("dependency\\\\path"), std::string::npos);
+    EXPECT_NE(serialised.find("delta\\nanalysis"), std::string::npos);
+    EXPECT_NE(serialised.find("omega\\u0001stage"), std::string::npos);
+}
+
 TEST(RuntimeModule, RuntimeHostRespectsDispatcherFactory)
 {
     engine::runtime::RuntimeHostDependencies dependencies{};

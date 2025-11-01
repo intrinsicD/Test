@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <list>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -39,7 +40,33 @@ namespace engine::tools::imgui
         [[nodiscard]] std::vector<std::string> identifiers() const;
 
     private:
-        std::unordered_map<std::string, PanelRenderCallback> panels_{};
-        std::vector<std::string> insertion_order_{};
+        struct PanelEntry
+        {
+            PanelRenderCallback callback{};
+            std::list<std::string>::iterator order_iterator{};
+        };
+
+        struct TransparentStringHash
+        {
+            using is_transparent = void;
+
+            [[nodiscard]] std::size_t operator()(std::string_view value) const noexcept
+            {
+                return std::hash<std::string_view>{}(value);
+            }
+        };
+
+        struct TransparentStringEqual
+        {
+            using is_transparent = void;
+
+            [[nodiscard]] bool operator()(std::string_view lhs, std::string_view rhs) const noexcept
+            {
+                return lhs == rhs;
+            }
+        };
+
+        std::unordered_map<std::string, PanelEntry, TransparentStringHash, TransparentStringEqual> panels_{};
+        std::list<std::string> insertion_order_{};
     };
 }

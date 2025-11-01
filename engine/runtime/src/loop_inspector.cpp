@@ -1,6 +1,59 @@
 #include "engine/runtime/loop_inspector.hpp"
 
+#include <array>
 #include <sstream>
+#include <string_view>
+
+namespace
+{
+    std::string escape_json_string(std::string_view value)
+    {
+        std::string escaped{};
+        escaped.reserve(value.size());
+        constexpr std::array<char, 16> hex_digits{
+            {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}};
+        for (const unsigned char character : value)
+        {
+            switch (character)
+            {
+            case '"':
+                escaped += "\\\"";
+                break;
+            case '\\':
+                escaped += "\\\\";
+                break;
+            case '\b':
+                escaped += "\\b";
+                break;
+            case '\f':
+                escaped += "\\f";
+                break;
+            case '\n':
+                escaped += "\\n";
+                break;
+            case '\r':
+                escaped += "\\r";
+                break;
+            case '\t':
+                escaped += "\\t";
+                break;
+            default:
+                if (character <= 0x1F)
+                {
+                    escaped += "\\u00";
+                    escaped.push_back(hex_digits[(character >> 4U) & 0x0FU]);
+                    escaped.push_back(hex_digits[character & 0x0FU]);
+                }
+                else
+                {
+                    escaped.push_back(static_cast<char>(character));
+                }
+                break;
+            }
+        }
+        return escaped;
+    }
+}
 
 namespace engine::runtime
 {
@@ -30,7 +83,7 @@ namespace engine::runtime
         {
             const auto& stage = report.stages[index];
             stream << "    {\n";
-            stream << "      \"name\": \"" << stage.name << "\",\n";
+            stream << "      \"name\": \"" << escape_json_string(stage.name) << "\",\n";
             stream << "      \"phase\": \"" << to_string(stage.phase) << "\",\n";
             stream << "      \"record_in_execution_report\": "
                    << (stage.record_in_execution_report ? "true" : "false") << ",\n";
@@ -38,7 +91,7 @@ namespace engine::runtime
             for (std::size_t dependency_index = 0; dependency_index < stage.dependencies.size();
                  ++dependency_index)
             {
-                stream << '\"' << stage.dependencies[dependency_index] << '\"';
+                stream << '\"' << escape_json_string(stage.dependencies[dependency_index]) << '\"';
                 if (dependency_index + 1 < stage.dependencies.size())
                 {
                     stream << ", ";
