@@ -7,7 +7,7 @@
 - **Goal**: Implement the stage planner, presentation backends, and synchronisation hooks described in ADR-0008 so the runtime main loop can drive GPU presentation reliably.
 
 ## Summary
-RuntimeHost::tick currently advances subsystems sequentially without declarative stage planning, backend-aware presentation, or synchronisation hooks for tooling. ADR-0008 outlines the target architecture, but the work never landed and the backlog stopped tracking it. RT-410 reinstates the task so the runtime can orchestrate rendering submission, presentation fences, scripting callbacks, and diagnostics without ad-hoc patches.
+RuntimeHost::tick now executes through a declarative `RuntimeLoopPlan`, but backend-aware presentation and synchronisation hooks from ADR-0008 are still outstanding. RT-410 tracks the remaining work required to connect the stage planner to rendering/presentation backends, expose scripting hooks, and keep diagnostics/tooling aligned without ad-hoc patches.
 
 ## Role Roster
 | Role | Responsibilities | Owner |
@@ -40,4 +40,4 @@ RuntimeHost::tick currently advances subsystems sequentially without declarative
 - `engine/platform/` window/presentation adapters.
 
 ## Notes
-Coordinate with tooling to ensure ImGui overlays reuse the presentation adapters rather than creating duplicate contexts.
+Coordinate with tooling to ensure ImGui overlays reuse the presentation adapters rather than creating duplicate contexts. The stage planner scaffolding landed alongside builder unit tests; presentation adapters and configuration surfaces remain open.
