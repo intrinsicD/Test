@@ -555,6 +555,6 @@ ctest --preset linux-gcc-debug -R rendering
 
 ## TODO / Next Steps
 
-- Execute `RE-610` (AI-004): finalise research rendering baseline presets with debug overlays, shader hot reload, and telemetry exports documented above.
-- Partner with runtime/tools leads on `RT-320`/`TL-210` integration demos so the prototyping harness and sandbox UI can toggle presets and capture telemetry without manual wiring.
-- Continue monitoring backend parity telemetry and extend the backend checklist/metadata schema alignment as Vulkan/DX12 coverage expands; see ../../ROADMAP.md for cross-module scheduling dependencies.
+- Deliver [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md): finish GPU buffer/texture/sampler creation, shader compilation, and hot-reload hooks so OpenGL/Vulkan providers allocate real resources. Track progress in [`../../ROADMAP.md`](../../ROADMAP.md).
+- Complete [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md): land command encoder APIs, backend submissions, and smoke coverage that translate frame-graph passes into GPU work.
+- Coordinate weekly with runtime/tools leads while `T-0120`/`T-0119` progress to align telemetry expectations and unblock downstream [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) integration.
