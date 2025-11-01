@@ -137,7 +137,7 @@ def available_case_studies() -> Tuple[CaseStudy, ...]:
     existing = [
         case_study
         for case_study in _case_study_map().values()
-        if case_study.config_path.exists()
+        if case_study.config_path.is_file()
     ]
     return tuple(sorted(existing, key=lambda item: item.identifier))
 
@@ -150,9 +150,14 @@ def get_case_study(identifier: str) -> CaseStudy:
         case_study = mapping[identifier]
     except KeyError as error:  # pragma: no cover - defensive guard
         raise CaseStudyNotFoundError(f"unknown case study '{identifier}'") from error
-    if not case_study.config_path.exists():
+    config_path = case_study.config_path
+    if not config_path.exists():
         raise CaseStudyError(
-            f"case study '{identifier}' references missing configuration '{case_study.config_path}'"
+            f"case study '{identifier}' references missing configuration '{config_path}'"
+        )
+    if not config_path.is_file():
+        raise CaseStudyError(
+            f"case study '{identifier}' configuration '{config_path}' is not a file"
         )
     return case_study
 
