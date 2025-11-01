@@ -6,6 +6,10 @@
 
 #include "engine/runtime/loop.hpp"
 
+#ifndef ENGINE_RUNTIME_API
+#    include "engine/runtime/api.hpp"
+#endif
+
 namespace engine::runtime
 {
     /// Lightweight snapshot of a runtime loop stage for tooling consumption.
@@ -24,10 +28,10 @@ namespace engine::runtime
     };
 
     /// Build an inspection report for the provided \p plan.
-    [[nodiscard]] RuntimeLoopInspectionReport inspect_loop_plan(const RuntimeLoopPlan& plan);
+    [[nodiscard]] ENGINE_RUNTIME_API RuntimeLoopInspectionReport inspect_loop_plan(const RuntimeLoopPlan& plan);
 
     /// Serialise \p plan into a JSON document for diagnostics tooling.
-    [[nodiscard]] std::string serialize_loop_plan(const RuntimeLoopPlan& plan);
+    [[nodiscard]] ENGINE_RUNTIME_API std::string serialize_loop_plan(const RuntimeLoopPlan& plan);
 
     /// Utility converting loop phases to human-readable strings.
     [[nodiscard]] constexpr std::string_view to_string(RuntimeLoopPhase phase) noexcept
