@@ -91,10 +91,10 @@ class StubRuntimeLibrary:
             ctypes.create_string_buffer(b"geometry.validation"),
         ]
         metrics.geometry_failure_labels[0] = ctypes.cast(
-            self._failure_labels[0], ctypes.c_char_p
+            self._failure_labels[0], ctypes.POINTER(ctypes.c_char)
         )
         metrics.geometry_failure_labels[1] = ctypes.cast(
-            self._failure_labels[1], ctypes.c_char_p
+            self._failure_labels[1], ctypes.POINTER(ctypes.c_char)
         )
 
     def _fill_hot_reload_metrics(self, out_ptr) -> None:
