@@ -35,7 +35,7 @@ def test_case_study_registry_lists_available_configs() -> None:
     cases = available_case_studies()
     assert len(cases) >= 2
     for case in cases:
-        assert case.config_path.exists(), case.config_path
+        assert case.config_path.is_file(), case.config_path
         assert case.identifier
 
 
@@ -91,3 +91,28 @@ def test_case_study_index_validates_schema(
 
     with pytest.raises(CaseStudyError):
         available_case_studies()
+
+
+def test_case_study_index_rejects_directory_configs(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    payload = {
+        "schema": {"id": "ai-004.case-studies", "version": 1},
+        "case_studies": [
+            {
+                "id": "bad-case",
+                "config": "config-dir",
+                "label": "Invalid",
+            }
+        ],
+    }
+    config_dir = tmp_path / "config-dir"
+    config_dir.mkdir()
+    index_path = tmp_path / "index.json"
+    index_path.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(case_studies_module, "_index_path", lambda: index_path)
+
+    assert available_case_studies() == ()
+    with pytest.raises(CaseStudyError) as excinfo:
+        get_case_study("bad-case")
+    assert "not a file" in str(excinfo.value)

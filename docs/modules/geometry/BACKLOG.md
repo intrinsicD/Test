@@ -21,10 +21,15 @@ _Last Updated: 2025-05-06_
 | Task ID | Description | Dependency | Priority |
 | --- | --- | --- | --- |
 | `GE-221+` | Scope execution milestones derived from the remeshing/parameterisation RFP. | `GE-212` | TBD |
-| `GE-230` | Frustum utilities for visibility culling (T-0128). | None | High |
-| `GE-231` | Complete shape intersection test coverage (T-0129). | None | Medium |
->
-> **New (2025-10-23):** Tasks `GE-230` (frustum utilities) and `GE-231` (intersection coverage) added to support rendering visibility system. `GE-230` is high priority as it blocks the rendering visibility culling system (T-0122).
+
+## Recently Completed
+
+| Task ID | Description | Completed | Notes |
+| --- | --- | --- | --- |
+| `GE-230` | Frustum utilities for visibility culling (T-0128). | 2025-11-21 | Frustum culling benchmark and symmetric intersection coverage landed to unblock rendering visibility (see Maintenance Log, 2025-11-21 through 2025-12-20).
+| `GE-231` | Complete shape intersection test coverage (T-0129). | 2025-12-23 | Capsule/ellipsoid sampling and triangle clipping coverage finalised, satisfying visibility regression guarantees (see Maintenance Log, 2025-12-20 through 2025-12-23).
+
+> **Status (2025-12-23):** `GE-230` and `GE-231` are complete. The priority focus shifts back to sequencing `GE-221+` execution milestones.
 
 > **Staffing Guidance:** `GE-212` focused on planning and RFP authorship, while `GE-220` delivered telemetry instrumentation. With viewer documentation published, direct capacity toward sequencing the remeshing execution milestones captured under `GE-221+`.
 
