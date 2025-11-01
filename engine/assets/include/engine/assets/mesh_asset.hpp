@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/assets/async.hpp"
+#include "engine/assets/detail/cache_common.hpp"
 #include "engine/assets/handles.hpp"
 
 #include "engine/io/geometry_io.hpp"
@@ -40,9 +41,25 @@ namespace engine::assets
         std::filesystem::file_time_type last_write{};
     };
 
-    class MeshCache
+    class MeshCache : public detail::AssetCacheLifecycle<
+                          MeshCache,
+                          MeshAsset,
+                          MeshAssetDescriptor,
+                          MeshHandle,
+                          MeshHandleTag,
+                          std::function<void(const MeshAsset&)>,
+                          true>
     {
     public:
+        using Base = detail::AssetCacheLifecycle<
+            MeshCache,
+            MeshAsset,
+            MeshAssetDescriptor,
+            MeshHandle,
+            MeshHandleTag,
+            std::function<void(const MeshAsset&)>,
+            true>;
+
         MeshCache();
 
         using HotReloadCallback = std::function<void(const MeshAsset&)>;
@@ -60,23 +77,13 @@ namespace engine::assets
         void register_hot_reload_callback(const MeshHandle& handle, HotReloadCallback callback);
         void poll();
 
-    private:
-        using Pool = core::memory::ResourcePool<MeshAsset, MeshHandleTag>;
-        using RawHandle = typename Pool::handle_type;
-        using HandleHasher = typename Pool::handle_hasher;
+        using typename Base::RawHandle;
 
+    protected:
+        friend Base;
         engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, MeshAsset& asset, bool notify);
-        void register_watch_locked(const RawHandle& handle, MeshAsset& asset);
-        void unregister_watch_locked(const RawHandle& handle);
 
-        Pool assets_{};
-        std::unordered_map<std::string, RawHandle> bindings_{};
-        std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
-        std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
-        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_
-            {};
-        platform::filesystem::FilesystemWatcher watcher_{};
-        mutable std::mutex mutex_{};
+    private:
         AssetAsyncQueue<MeshHandle> async_queue_{};
         std::shared_ptr<void> handle_validator_registration_{};
     };

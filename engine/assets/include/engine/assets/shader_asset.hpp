@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/assets/async.hpp"
+#include "engine/assets/detail/cache_common.hpp"
 #include "engine/assets/handles.hpp"
 
 #include "engine/core/memory/resource_pool.hpp"
@@ -66,9 +67,25 @@ namespace engine::assets
                                                                 const ShaderCompilationOptions& options);
     };
 
-    class ShaderCache
+    class ShaderCache : public detail::AssetCacheLifecycle<
+                            ShaderCache,
+                            ShaderAsset,
+                            ShaderAssetDescriptor,
+                            ShaderHandle,
+                            ShaderHandleTag,
+                            std::function<void(const ShaderAsset&)>,
+                            true>
     {
     public:
+        using Base = detail::AssetCacheLifecycle<
+            ShaderCache,
+            ShaderAsset,
+            ShaderAssetDescriptor,
+            ShaderHandle,
+            ShaderHandleTag,
+            std::function<void(const ShaderAsset&)>,
+            true>;
+
         ShaderCache();
 
         using HotReloadCallback = std::function<void(const ShaderAsset&)>;
@@ -82,22 +99,13 @@ namespace engine::assets
         void poll();
 
     private:
-        using Pool = core::memory::ResourcePool<ShaderAsset, ShaderHandleTag>;
-        using RawHandle = typename Pool::handle_type;
-        using HandleHasher = typename Pool::handle_hasher;
+        using typename Base::RawHandle;
 
+    protected:
+        friend Base;
         engine::Result<void, AssetLoadError> reload_asset(const RawHandle& handle, ShaderAsset& asset, bool notify);
-        void register_watch_locked(const RawHandle& handle, ShaderAsset& asset);
-        void unregister_watch_locked(const RawHandle& handle);
 
-        Pool assets_{};
-        std::unordered_map<std::string, RawHandle> bindings_{};
-        std::unordered_map<std::string, std::vector<HotReloadCallback>> pending_callbacks_{};
-        std::unordered_map<RawHandle, std::vector<HotReloadCallback>, HandleHasher> callbacks_{};
-        std::unordered_map<RawHandle, platform::filesystem::FilesystemWatcher::WatchHandle, HandleHasher> watch_handles_
-            {};
-        platform::filesystem::FilesystemWatcher watcher_{};
-        mutable std::mutex mutex_{};
+    private:
         std::shared_ptr<void> handle_validator_registration_{};
     };
 } // namespace engine::assets
