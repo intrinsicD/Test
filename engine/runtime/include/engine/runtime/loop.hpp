@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <string_view>
@@ -16,6 +17,18 @@ namespace engine::runtime
         Presentation,
         Diagnostics,
     };
+
+    /// Number of execution phases supported by the runtime loop.
+    [[nodiscard]] constexpr std::size_t runtime_loop_phase_count() noexcept
+    {
+        return 3U;
+    }
+
+    /// Map a runtime loop phase to its zero-based index.
+    [[nodiscard]] constexpr std::size_t runtime_loop_phase_index(RuntimeLoopPhase phase) noexcept
+    {
+        return static_cast<std::size_t>(phase);
+    }
 
     /// Callback signature executed for each stage.
     using RuntimeLoopStageFunction = std::function<void(double)>;

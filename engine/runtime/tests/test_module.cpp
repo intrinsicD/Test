@@ -2229,6 +2229,17 @@ TEST(RuntimeHost, ExposesLifecycleDiagnostics)
         after_tick.stage_timings.end(),
         [](const engine::runtime::RuntimeStageTiming& stage) { return stage.name == "animation.evaluate"; });
     EXPECT_TRUE(has_animation_stage);
+    const auto presentation_stage = std::find_if(
+        after_tick.stage_timings.begin(),
+        after_tick.stage_timings.end(),
+        [](const engine::runtime::RuntimeStageTiming& stage) { return stage.name == "presentation.dispatch"; });
+    ASSERT_NE(presentation_stage, after_tick.stage_timings.end());
+    EXPECT_EQ(presentation_stage->phase, engine::runtime::RuntimeLoopPhase::Presentation);
+    const auto presentation_index = engine::runtime::runtime_loop_phase_index(
+        engine::runtime::RuntimeLoopPhase::Presentation);
+    ASSERT_LT(presentation_index, after_tick.phase_timings.size());
+    EXPECT_EQ(after_tick.phase_timings[presentation_index].phase,
+              engine::runtime::RuntimeLoopPhase::Presentation);
     const bool subsystem_ticked = std::any_of(
         after_tick.subsystem_timings.begin(),
         after_tick.subsystem_timings.end(),
@@ -2239,6 +2250,26 @@ TEST(RuntimeHost, ExposesLifecycleDiagnostics)
     const auto& after_shutdown = host.diagnostics();
     EXPECT_EQ(after_shutdown.shutdown_count, 1U);
     EXPECT_GE(after_shutdown.last_shutdown_ms, 0.0);
+}
+
+TEST(RuntimeHost, PresentationCallbackInvoked)
+{
+    engine::runtime::RuntimeHost host{};
+    bool invoked = false;
+    double observed_dt = 0.0;
+    host.set_presentation_callback([
+        &invoked,
+        &observed_dt
+    ](double dt)
+    {
+        invoked = true;
+        observed_dt = dt;
+    });
+    host.initialize();
+    host.tick(0.016);
+    EXPECT_TRUE(invoked);
+    EXPECT_NEAR(observed_dt, 0.016, 1e-6);
+    host.shutdown();
 }
 
 TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection)

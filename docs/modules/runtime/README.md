@@ -2,7 +2,7 @@
 
 ## Overview
 
-> **Status:** ⚠️ **At Risk** — The ADR-0008 stage planner, presentation backends, and synchronisation hooks have not been implemented. `RuntimeHost::tick` still drives a monolithic loop without declarative scheduling, and rendering submission cannot synchronise with real GPU backends until [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) lands.
+> **Status:** ⚠️ **At Risk** — `RuntimeHost` now compiles a declarative `RuntimeLoopPlan` with per-phase telemetry and a presentation dispatch hook, but the presentation backends and synchronisation APIs mandated by [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) remain outstanding until [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) lands.
 
 The runtime module orchestrates the engine's main execution loop through `RuntimeHost`, which coordinates animation evaluation, physics simulation, geometry deformation, scene graph updates, and rendering submission. It acts as the integration point for all subsystems and provides comprehensive diagnostics and telemetry.
 
@@ -40,6 +40,15 @@ while (running) {
 host.shutdown();
 ```
 
+Register a presentation callback to execute rendering or capture logic during
+the `presentation.dispatch` stage:
+
+```cpp
+host.set_presentation_callback([](double dt) {
+    // Submit swap chain work, composite overlays, or capture screenshots.
+});
+```
+
 ### Lifecycle
 
 1. **Construction**: Accept `RuntimeHostDependencies` with animation controllers, physics world, geometry, and subsystem plugins
@@ -70,6 +79,19 @@ The subsystem registry validates dependencies and detects cycles during initiali
 
 `RuntimeLoopBuilder::build()` returns `RuntimeResult<RuntimeLoopPlan>`; callers must propagate or handle these errors before executing the plan. The default runtime loop logs a validation error and falls back to an empty plan if compilation ever fails.
 
+The compiled default plan executes the following stages:
+
+1. `animation.evaluate`
+2. `physics.accumulate`
+3. `physics.integrate`
+4. `geometry.deform`
+5. `geometry.finalize`
+6. `runtime.plugins`
+7. `presentation.dispatch`
+8. `diagnostics.refresh`
+
+`presentation.dispatch` bridges the simulation stack to presentation tooling. Register a callback with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper) to perform backend presentation, screenshot capture, or tooling overlays after simulation finishes but before diagnostics run. The callback executes every tick and receives the frame `dt` so presentation logic can track timing alongside simulation state.
+
 ## Diagnostics & Telemetry
 
 Access runtime metrics through `RuntimeHost::diagnostics()`:
@@ -97,7 +119,7 @@ if (diag.scene_validation.has_cycles) {
 ### Available Metrics
 
 - **Lifecycle counters**: `initialize_count`, `tick_count`, `shutdown_count`, `initialize_failure_count`
-- **Timing data**: `last_*_ms`, `max_*_ms`, `average_tick_ms` for each stage
+- **Timing data**: `last_*_ms`, `max_*_ms`, `average_tick_ms` plus per-stage timing (`RuntimeStageTiming`, including each stage's `phase`) and aggregated per-phase totals exposed through `RuntimeDiagnostics::phase_timings`
 - **Streaming telemetry**: Worker health, queue depth, completion/failure rates (see [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md))
 - **Animation telemetry**: Clip/pose metadata plus dispatcher aggregates grouped by animation category and queue, exposed via `RuntimeDiagnostics::animation` and mirrored through the C API for tooling.
 - **Scene validation**: Cycle detection, depth analysis, alert levels (see [`DIAGNOSTICS.md`](DIAGNOSTICS.md))

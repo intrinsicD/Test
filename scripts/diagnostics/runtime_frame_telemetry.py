@@ -90,6 +90,18 @@ class RuntimeStageMetric:
     """Lifecycle telemetry for a dispatcher stage captured via the runtime C API."""
 
     name: str
+    phase: str
+    last_ms: float
+    average_ms: float
+    max_ms: float
+    sample_count: int
+
+
+@dataclass
+class RuntimePhaseMetric:
+    """Aggregated execution timings for each runtime loop phase."""
+
+    phase: str
     last_ms: float
     average_ms: float
     max_ms: float
@@ -285,6 +297,7 @@ class RuntimeDiagnosticsSnapshot:
     last_initialize_failure: Optional[RuntimeInitializationFailure]
     average_tick_ms: float
     max_tick_ms: float
+    phases: List[RuntimePhaseMetric]
     stages: List[RuntimeStageMetric]
     subsystems: List[RuntimeSubsystemMetric]
     streaming: Optional[RuntimeStreamingMetrics] = None
@@ -500,6 +513,20 @@ class RuntimeBindings:
             lib.engine_runtime_diagnostic_stage_max_ms.argtypes = [ctypes.c_size_t]
             lib.engine_runtime_diagnostic_stage_samples.restype = ctypes.c_uint64
             lib.engine_runtime_diagnostic_stage_samples.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_stage_phase.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_stage_phase.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_phase_count.restype = ctypes.c_size_t
+            lib.engine_runtime_diagnostic_phase_count.argtypes = []
+            lib.engine_runtime_diagnostic_phase_name.restype = ctypes.c_char_p
+            lib.engine_runtime_diagnostic_phase_name.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_phase_last_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_phase_last_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_phase_average_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_phase_average_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_phase_max_ms.restype = ctypes.c_double
+            lib.engine_runtime_diagnostic_phase_max_ms.argtypes = [ctypes.c_size_t]
+            lib.engine_runtime_diagnostic_phase_samples.restype = ctypes.c_uint64
+            lib.engine_runtime_diagnostic_phase_samples.argtypes = [ctypes.c_size_t]
             lib.engine_runtime_diagnostic_subsystem_count.restype = ctypes.c_size_t
             lib.engine_runtime_diagnostic_subsystem_count.argtypes = []
             lib.engine_runtime_diagnostic_subsystem_name.restype = ctypes.c_char_p
@@ -922,6 +949,7 @@ class RuntimeBindings:
             last_initialize_failure=self._collect_last_initialize_failure(has_initialize_failure),
             average_tick_ms=float(self._lib.engine_runtime_diagnostic_average_tick_ms()),
             max_tick_ms=float(self._lib.engine_runtime_diagnostic_max_tick_ms()),
+            phases=self._collect_phase_metrics(),
             stages=self._collect_stage_metrics(),
             subsystems=self._collect_subsystem_metrics(),
             streaming=self.streaming_metrics(),
@@ -959,13 +987,33 @@ class RuntimeBindings:
         for index in range(count):
             raw_name = self._lib.engine_runtime_diagnostic_stage_name(index)
             name = raw_name.decode("utf-8") if raw_name else ""
+            raw_phase = self._lib.engine_runtime_diagnostic_stage_phase(index)
+            phase = raw_phase.decode("utf-8") if raw_phase else ""
             metrics.append(
                 RuntimeStageMetric(
                     name=name,
+                    phase=phase,
                     last_ms=float(self._lib.engine_runtime_diagnostic_stage_last_ms(index)),
                     average_ms=float(self._lib.engine_runtime_diagnostic_stage_average_ms(index)),
                     max_ms=float(self._lib.engine_runtime_diagnostic_stage_max_ms(index)),
                     sample_count=int(self._lib.engine_runtime_diagnostic_stage_samples(index)),
+                )
+            )
+        return metrics
+
+    def _collect_phase_metrics(self) -> List[RuntimePhaseMetric]:
+        metrics: List[RuntimePhaseMetric] = []
+        count = int(self._lib.engine_runtime_diagnostic_phase_count())
+        for index in range(count):
+            raw_phase = self._lib.engine_runtime_diagnostic_phase_name(index)
+            phase = raw_phase.decode("utf-8") if raw_phase else ""
+            metrics.append(
+                RuntimePhaseMetric(
+                    phase=phase,
+                    last_ms=float(self._lib.engine_runtime_diagnostic_phase_last_ms(index)),
+                    average_ms=float(self._lib.engine_runtime_diagnostic_phase_average_ms(index)),
+                    max_ms=float(self._lib.engine_runtime_diagnostic_phase_max_ms(index)),
+                    sample_count=int(self._lib.engine_runtime_diagnostic_phase_samples(index)),
                 )
             )
         return metrics
@@ -1296,9 +1344,20 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
         "max_tick_ms": snapshot.max_tick_ms,
         "streaming": _streaming_to_dict(snapshot.streaming),
         "hot_reload": _hot_reload_to_dict(snapshot.hot_reload),
+        "phases": [
+            {
+                "phase": phase.phase,
+                "last_ms": phase.last_ms,
+                "average_ms": phase.average_ms,
+                "max_ms": phase.max_ms,
+                "sample_count": phase.sample_count,
+            }
+            for phase in snapshot.phases
+        ],
         "stages": [
             {
                 "name": stage.name,
+                "phase": stage.phase,
                 "last_ms": stage.last_ms,
                 "average_ms": stage.average_ms,
                 "max_ms": stage.max_ms,

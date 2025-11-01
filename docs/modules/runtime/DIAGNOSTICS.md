@@ -95,11 +95,15 @@ When telemetry is available, filter metrics with
 `scripts/diagnostics/runtime_frame_telemetry.py` to correlate the failure with
 recent subsystem startup durations.
 
-### Stage Timings
-Each entry in `stage_timings` represents a named phase inside the runtime
-(controllers, deformation, physics, submission). The runtime reuses entries
-across frames and updates `last_ms`, `average_ms`, `max_ms`, and
-`sample_count` deterministically.
+### Stage & Phase Timings
+Each entry in `stage_timings` represents a named runtime stage (controllers,
+deformation, physics, submission, presentation) and records its `phase`
+classification, `last_ms`, `average_ms`, `max_ms`, and `sample_count`
+deterministically across frames. The runtime also aggregates per-phase totals in
+`phase_timings`, which expose the same timing fields collapsed across every
+stage assigned to a `RuntimeLoopPhase`. Use these aggregates to quantify how
+much frame time is consumed by simulation versus presentation without scanning
+individual stage entries.
 
 ### Subsystem Timings
 `subsystem_timings` aggregates initialise/tick/shutdown durations for every
