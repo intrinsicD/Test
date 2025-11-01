@@ -138,6 +138,10 @@ class HarnessExecutionOptions:
             normalized: Dict[str, bool] = {}
             for key, value in self.overlays.items():
                 text = str(key).strip()
+                if not text:
+                    raise PrototypeHarnessError(
+                        "overlay keys must be non-empty strings"
+                    )
                 normalized[text.lower()] = bool(value)
             object.__setattr__(self, "overlays", MappingProxyType(normalized))
 

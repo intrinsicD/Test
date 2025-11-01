@@ -681,9 +681,11 @@ def test_execution_options_validate_overrides() -> None:
     with pytest.raises(PrototypeHarnessError):
         options.validate()
 
-    options = HarnessExecutionOptions(frames=1, dt=0.5, overlays={"": True})
     with pytest.raises(PrototypeHarnessError):
-        options.validate()
+        HarnessExecutionOptions(frames=1, dt=0.5, overlays={"": True})
+
+    with pytest.raises(PrototypeHarnessError):
+        HarnessExecutionOptions(frames=1, dt=0.5, overlays={"   ": True})
 
 
 def test_execution_options_trims_inputs() -> None:
