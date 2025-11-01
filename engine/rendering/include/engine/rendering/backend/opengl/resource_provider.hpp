@@ -126,6 +126,7 @@ namespace engine::rendering::backend::opengl
         std::uint32_t next_buffer_id_{1};
         std::uint32_t next_texture_id_{1};
         std::uint64_t current_frame_{0};
+        /// Number of frames a transient resource may stay idle before the provider destroys it.
         std::uint64_t retention_frames_{0};
 
         void destroy_buffer(BufferRecord& record) noexcept;

@@ -321,8 +321,7 @@ namespace engine::rendering::backend::opengl
 
     void OpenGLGpuResourceProvider::end_frame()
     {
-        const auto should_collect_buffer = [this](const auto& entry) {
-            const auto& record = entry.second;
+        const auto should_collect_record = [this](const auto& record) {
             if (record.in_use)
             {
                 return false;
@@ -339,7 +338,7 @@ namespace engine::rendering::backend::opengl
         };
 
         std::erase_if(buffers_, [&](auto& entry) {
-            if (should_collect_buffer(entry))
+            if (should_collect_record(entry.second))
             {
                 destroy_buffer(entry.second);
                 return true;
@@ -347,25 +346,8 @@ namespace engine::rendering::backend::opengl
             return false;
         });
 
-        const auto should_collect_texture = [this](const auto& entry) {
-            const auto& record = entry.second;
-            if (record.in_use)
-            {
-                return false;
-            }
-            if (record.last_used_frame == 0)
-            {
-                return false;
-            }
-            if (current_frame_ <= record.last_used_frame)
-            {
-                return false;
-            }
-            return (current_frame_ - record.last_used_frame) > retention_frames_;
-        };
-
         std::erase_if(textures_, [&](auto& entry) {
-            if (should_collect_texture(entry))
+            if (should_collect_record(entry.second))
             {
                 destroy_texture(entry.second);
                 return true;
