@@ -81,7 +81,7 @@ TEST(OpenGLRuntimeSubmission, ExecutesForwardPipelineDraw)
     const auto& recorded_submission = submission.scheduler.submissions().front();
     EXPECT_EQ(recorded_submission.pass_name, "ForwardGeometry");
     ASSERT_EQ(recorded_submission.commands.size(), 1U); // NOLINT
-    EXPECT_EQ(recorded_submission.commands.front().type,
+    EXPECT_EQ(recorded_submission.commands.front().type(),
               engine::rendering::EncodedCommand::Type::DrawGeometry);
     EXPECT_EQ(submission.command_stream.draw_call_count(), 1U);
     EXPECT_EQ(submission.command_stream.compute_dispatch_count(), 0U);

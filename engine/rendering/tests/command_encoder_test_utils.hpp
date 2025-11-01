@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
@@ -26,13 +27,17 @@ namespace engine::rendering::tests
 
         [[nodiscard]] std::vector<GeometryDrawCommand> geometry_draws() const
         {
+            const auto draw_count = std::count_if(commands.begin(), commands.end(), [](const EncodedCommand& command) {
+                return command.is_draw();
+            });
+
             std::vector<GeometryDrawCommand> draws;
-            draws.reserve(commands.size());
+            draws.reserve(draw_count);
             for (const auto& command : commands)
             {
-                if (command.type == EncodedCommand::Type::DrawGeometry)
+                if (command.is_draw())
                 {
-                    draws.push_back(command.draw);
+                    draws.push_back(command.geometry_draw());
                 }
             }
             return draws;
@@ -40,13 +45,17 @@ namespace engine::rendering::tests
 
         [[nodiscard]] std::vector<ComputeDispatchCommand> compute_dispatches() const
         {
+            const auto dispatch_count = std::count_if(commands.begin(), commands.end(), [](const EncodedCommand& command) {
+                return command.is_dispatch();
+            });
+
             std::vector<ComputeDispatchCommand> dispatches;
-            dispatches.reserve(commands.size());
+            dispatches.reserve(dispatch_count);
             for (const auto& command : commands)
             {
-                if (command.type == EncodedCommand::Type::DispatchCompute)
+                if (command.is_dispatch())
                 {
-                    dispatches.push_back(command.dispatch);
+                    dispatches.push_back(command.compute_dispatch());
                 }
             }
             return dispatches;

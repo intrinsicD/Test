@@ -26,7 +26,7 @@ namespace
             last_compute_dispatches = 0U;
             for (const auto& command : submission.commands)
             {
-                if (command.type == engine::rendering::EncodedCommand::Type::DispatchCompute)
+                if (command.is_dispatch())
                 {
                     ++last_compute_dispatches;
                 }
@@ -104,9 +104,9 @@ TEST(OpenGLCommandEncoder, RecordsDrawCommands)
     const auto& submission = scheduler.submissions().front();
     ASSERT_EQ(submission.commands.size(), 1U); // NOLINT
     const auto& recorded = submission.commands.front();
-    ASSERT_EQ(recorded.type, engine::rendering::EncodedCommand::Type::DrawGeometry);
-    EXPECT_EQ(recorded.draw.material.id(), std::string{"material.handle"});
-    EXPECT_EQ(recorded.draw.geometry.index(), draw.geometry.index());
+    ASSERT_EQ(recorded.type(), engine::rendering::EncodedCommand::Type::DrawGeometry);
+    EXPECT_EQ(recorded.geometry_draw().material.id(), std::string{"material.handle"});
+    EXPECT_EQ(recorded.geometry_draw().geometry.index(), draw.geometry.index());
 
     EXPECT_EQ(stream.begin_count, 1U);
     EXPECT_EQ(stream.execute_count, 1U);
@@ -151,10 +151,10 @@ TEST(OpenGLCommandEncoder, RecordsComputeDispatches)
     const auto& submission = scheduler.submissions().front();
     ASSERT_EQ(submission.commands.size(), 1U); // NOLINT
     const auto& recorded = submission.commands.front();
-    ASSERT_EQ(recorded.type, engine::rendering::EncodedCommand::Type::DispatchCompute);
-    EXPECT_EQ(recorded.dispatch.group_count_x, 4U);
-    EXPECT_EQ(recorded.dispatch.group_count_y, 2U);
-    EXPECT_EQ(recorded.dispatch.group_count_z, 1U);
+    ASSERT_EQ(recorded.type(), engine::rendering::EncodedCommand::Type::DispatchCompute);
+    EXPECT_EQ(recorded.compute_dispatch().group_count_x, 4U);
+    EXPECT_EQ(recorded.compute_dispatch().group_count_y, 2U);
+    EXPECT_EQ(recorded.compute_dispatch().group_count_z, 1U);
 
     EXPECT_EQ(stream.begin_count, 1U);
     EXPECT_EQ(stream.execute_count, 1U);

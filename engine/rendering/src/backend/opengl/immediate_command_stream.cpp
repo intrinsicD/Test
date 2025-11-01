@@ -55,14 +55,13 @@ namespace engine::rendering::backend::opengl
 
         for (const auto& command : *current_commands_)
         {
-            switch (command.type)
+            if (command.is_draw())
             {
-            case EncodedCommand::Type::DrawGeometry:
-                execute_draw_command(command.draw);
-                break;
-            case EncodedCommand::Type::DispatchCompute:
-                execute_compute_dispatch(command.dispatch);
-                break;
+                execute_draw_command(command.geometry_draw());
+            }
+            else if (command.is_dispatch())
+            {
+                execute_compute_dispatch(command.compute_dispatch());
             }
         }
     }

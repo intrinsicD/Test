@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <memory>
 #include <string_view>
+#include <variant>
 
 #include "engine/assets/handles.hpp"
 #include "engine/math/transform.hpp"
@@ -28,33 +29,62 @@ namespace engine::rendering
     };
 
     /// Union of commands that can be recorded by command encoders.
-    struct EncodedCommand
+    class EncodedCommand
     {
+    public:
         enum class Type
         {
             DrawGeometry,
             DispatchCompute,
         };
 
-        Type type{Type::DrawGeometry};
-        GeometryDrawCommand draw{};
-        ComputeDispatchCommand dispatch{};
-
         [[nodiscard]] static EncodedCommand make_draw(const GeometryDrawCommand& command)
         {
-            EncodedCommand encoded{};
-            encoded.type = Type::DrawGeometry;
-            encoded.draw = command;
-            return encoded;
+            return EncodedCommand{Type::DrawGeometry, command};
         }
 
         [[nodiscard]] static EncodedCommand make_dispatch(const ComputeDispatchCommand& command)
         {
-            EncodedCommand encoded{};
-            encoded.type = Type::DispatchCompute;
-            encoded.dispatch = command;
-            return encoded;
+            return EncodedCommand{Type::DispatchCompute, command};
         }
+
+        [[nodiscard]] Type type() const noexcept { return type_; }
+
+        [[nodiscard]] bool is_draw() const noexcept
+        {
+            return type_ == Type::DrawGeometry;
+        }
+
+        [[nodiscard]] bool is_dispatch() const noexcept
+        {
+            return type_ == Type::DispatchCompute;
+        }
+
+        [[nodiscard]] const GeometryDrawCommand& geometry_draw() const
+        {
+            return std::get<GeometryDrawCommand>(payload_);
+        }
+
+        [[nodiscard]] const ComputeDispatchCommand& compute_dispatch() const
+        {
+            return std::get<ComputeDispatchCommand>(payload_);
+        }
+
+    private:
+        using Payload = std::variant<GeometryDrawCommand, ComputeDispatchCommand>;
+
+        EncodedCommand(Type type, const GeometryDrawCommand& command)
+            : type_(type), payload_(command)
+        {
+        }
+
+        EncodedCommand(Type type, const ComputeDispatchCommand& command)
+            : type_(type), payload_(command)
+        {
+        }
+
+        Type type_;
+        Payload payload_;
     };
 
     /// Descriptor used when acquiring a command encoder for a render pass.

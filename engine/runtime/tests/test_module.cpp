@@ -324,13 +324,17 @@ namespace
 
         [[nodiscard]] std::vector<engine::rendering::GeometryDrawCommand> geometry_draws() const
         {
+            const auto draw_count = std::count_if(commands.begin(), commands.end(), [](const auto& command) {
+                return command.is_draw();
+            });
+
             std::vector<engine::rendering::GeometryDrawCommand> draws;
-            draws.reserve(commands.size());
+            draws.reserve(draw_count);
             for (const auto& command : commands)
             {
-                if (command.type == engine::rendering::EncodedCommand::Type::DrawGeometry)
+                if (command.is_draw())
                 {
-                    draws.push_back(command.draw);
+                    draws.push_back(command.geometry_draw());
                 }
             }
             return draws;
