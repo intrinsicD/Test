@@ -657,6 +657,10 @@ def test_execution_options_validate_run_metadata() -> None:
 
 
 def test_execution_options_validate_overrides() -> None:
+    options = HarnessExecutionOptions(frames=1, dt=0.5, scenario_label="   ")
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
     options = HarnessExecutionOptions(frames=1, dt=0.5, dataset_id="")
     with pytest.raises(PrototypeHarnessError):
         options.validate()
@@ -682,9 +686,19 @@ def test_execution_options_validate_overrides() -> None:
         options.validate()
 
 
+def test_execution_options_trims_inputs() -> None:
+    options = HarnessExecutionOptions(frames=1, dt=0.5, scenario_label="  Scenario  ")
+    assert options.scenario_label == "Scenario"
+
+
 def test_execution_options_normalizes_overlays() -> None:
-    options = HarnessExecutionOptions(frames=1, dt=0.5, overlays={"normals": 1, "uv": 0})
+    options = HarnessExecutionOptions(
+        frames=1,
+        dt=0.5,
+        overlays={" Normals ": 1, "UV": 0},
+    )
     assert options.overlays is not None
+    assert set(options.overlays.keys()) == {"normals", "uv"}
     assert options.overlays["normals"] is True
     assert options.overlays["uv"] is False
 

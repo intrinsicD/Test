@@ -124,6 +124,8 @@ class HarnessExecutionOptions:
     runtime_profile: Optional[str] = None
 
     def __post_init__(self) -> None:
+        if self.scenario_label is not None:
+            object.__setattr__(self, "scenario_label", self.scenario_label.strip())
         if self.dataset_id is not None:
             object.__setattr__(self, "dataset_id", self.dataset_id.strip())
         if self.rendering_preset is not None:
@@ -133,7 +135,10 @@ class HarnessExecutionOptions:
         if self.runtime_profile is not None:
             object.__setattr__(self, "runtime_profile", self.runtime_profile.strip())
         if self.overlays is not None:
-            normalized = {str(key): bool(value) for key, value in self.overlays.items()}
+            normalized: Dict[str, bool] = {}
+            for key, value in self.overlays.items():
+                text = str(key).strip()
+                normalized[text.lower()] = bool(value)
             object.__setattr__(self, "overlays", MappingProxyType(normalized))
 
     def validate(self) -> None:
