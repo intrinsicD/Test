@@ -4,7 +4,7 @@
 
 **First-time or general questions?**
 1. Read [`../README.md`](../README.md) – workspace overview, build steps, module health.
-2. Load [`../AGENTS.md`](../AGENTS.md) – single entry point for the agent workflow.
+2. Load [`../AGENTS.md`](../AGENTS.md) – follow the Workflow Blueprint (Sections 0.1–0.7) to populate the context ladder and deliverable matrix for your task.
 3. Review [`../agents/ROLES.md`](../agents/ROLES.md) and the templates in [`../agents/TEMPLATES/`](../agents/TEMPLATES) for task-specific execution.
 4. Return here for specialised documentation and directory references.
 
@@ -36,8 +36,8 @@
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
-| [`../AGENTS.md`](../AGENTS.md) | Single entry portal covering phases, coordination, quality gates | Beginning any contribution |
-| [`../AGENTS.md#agent-directory-workflow`](../AGENTS.md#agent-directory-workflow) | Directory overview and maintenance guardrails | Managing artefacts inside `agents/` |
+| [`../AGENTS.md`](../AGENTS.md) | Workflow Blueprint (Sections 0.1–0.7), phase checklists, quality instrumentation | Beginning any contribution |
+| [`../AGENTS.md#agent-directory-workflow`](../AGENTS.md#agent-directory-workflow) | Directory overview, maintenance guardrails, workflow-change process | Managing artefacts inside `agents/` |
 | [`../agents/ROLES.md`](../agents/ROLES.md) | Specialised role responsibilities and approvals | Assigning or fulfilling roles |
 | [`../agents/TEMPLATES/`](../agents/TEMPLATES) | Task brief, context package, and quality report templates | Documenting and auditing work |
 
@@ -103,6 +103,7 @@ Run `python scripts/validate_docs.py` after editing to catch broken links.
 - Update this file when adding new directories or major documents.
 - Keep module tables in sync with actual module state.
 - Archive completed work to `archive/` after 30 days of inactivity.
+- Reference [`../AGENTS.md#workflow-change-proposals`](../AGENTS.md#workflow-change-proposals) when adjusting the agent workflow so documentation updates ship atomically.
 
 **Precedence for Conflicts:**
 > **Note:** `../AGENTS.md` (the workflow portal at the root) now also contains the Agent Directory Workflow guidance referenced above. It remains the top-level authority in the precedence chain below.

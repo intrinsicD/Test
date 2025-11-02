@@ -22,9 +22,9 @@ Guardrails:
 - Always run quality gates and ensure green before declaring done.
 
 Workflow alignment checklist:
-- Load [`../../AGENTS.md`](../../AGENTS.md) and map Sections 1–7 below to its phases (Intake & Scoping → §1, Context Assembly → §2, Execution & Collaboration → §3, Quality Gates → §4, Release & Documentation Sync → §§5–7).
-- Inspect the backlog entry’s **Role Roster** (`docs/backlog/active/<ID>.md`) and confirm each accountable role has a plan before exiting Section 2.
-- Update the task brief/context package templates in [`../../agents/TEMPLATES/`](../../agents/TEMPLATES) whenever scope, roster, or status shifts.
+- Load [`../../AGENTS.md`](../../AGENTS.md) and walk the Workflow Blueprint (Sections 0.1–0.7). Confirm the context ladder, deliverable matrix, and phase checklists are reflected in your plan across Sections 1–7 below (Intake & Scoping → §1, Context Assembly → §2, Execution & Collaboration → §3, Quality Gates → §4, Release & Documentation Sync → §§5–7).
+- Inspect the backlog entry’s **Role Roster** (`docs/backlog/active/<ID>.md`) and confirm each accountable role has a plan before exiting Section 2, including owners for outstanding context ladder questions.
+- Update the task brief/context package/quality report templates in [`../../agents/TEMPLATES/`](../../agents/TEMPLATES) whenever scope, roster, or status shifts, and log changes in the decision ledger.
 
 ---
 

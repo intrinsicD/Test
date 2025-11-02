@@ -7,26 +7,40 @@
 - **Commit / Branch:**
 - **Date:**
 - **Participants:**
+- **Workflow Phase:** (Should be Phase 4 – Quality Gates at submission)
+- **Related Artefacts:** (Context package, backlog item, PR link)
 
-## 2. Validation Summary
-| Gate | Owner | Evidence | Result | Follow-ups |
-| --- | --- | --- | --- | --- |
-| Testing |  |  | Pass/Fail |  |
-| Performance |  |  | Pass/Fail |  |
-| Security & Safety |  |  | Pass/Fail |  |
-| Documentation |  |  | Pass/Fail |  |
-| Review |  |  | Pass/Fail |  |
-| Release |  |  | Pass/Fail |  |
+## 2. Quality Gate Scorecard *(See [`AGENTS.md`](../../AGENTS.md#04-phase-checklists))*
+| Gate | Owner | Exit Criteria | Evidence | Result | Follow-ups |
+| --- | --- | --- | --- | --- | --- |
+| Testing |  |  |  | Pass/Fail |  |
+| Performance |  |  |  | Pass/Fail |  |
+| Security & Safety |  |  |  | Pass/Fail |  |
+| Documentation |  |  |  | Pass/Fail |  |
+| Review |  |  |  | Pass/Fail |  |
+| Release |  |  |  | Pass/Fail |  |
 
-## 3. Command Log
-List exact commands executed (copy from [`AGENTS.md`](../../AGENTS.md) plus any additions) and attach output snippets or CI job links.
+## 3. Command & Evidence Log *(See [`AGENTS.md`](../../AGENTS.md#05-quality-instrumentation))*
+| Command | Result (Pass/Fail) | Log / Artifact | Notes |
+| --- | --- | --- | --- |
+| `cmake --preset linux-gcc-debug` |  |  |  |
+| `cmake --build --preset linux-gcc-debug` |  |  |  |
+| `ctest --preset linux-gcc-debug` |  |  |  |
+| `pytest python/tests scripts/tests` |  |  |  |
+| `python scripts/validate_docs.py` |  |  |  |
+| Additional command |  |  |  |
 
-## 4. Risk & Regression Notes
+## 4. Metrics & Regression Analysis
+- Benchmark deltas:
+- Telemetry observations:
+- Dataset/version alignment:
+
+## 5. Risk & Regression Notes
 - Outstanding risks:
 - Mitigations:
 - Regression suite updates required:
 
-## 5. Sign-off
+## 6. Sign-off
 | Role | Name | Signature / Timestamp |
 | --- | --- | --- |
 | QA/Test Specialist |  |  |
