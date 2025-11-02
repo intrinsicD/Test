@@ -1,13 +1,18 @@
 # Backlog Item RT-410 — Runtime Stage Planner & Presentation Loop
 
-- **Status**: Planned
+- **Status**: In Progress
 - **Priority**: 1
 - **Owner**: Runtime Lead
 - **Module(s)**: Runtime, Rendering, Platform
 - **Goal**: Implement the stage planner, presentation backends, and synchronisation hooks described in ADR-0008 so the runtime main loop can drive GPU presentation reliably.
 
 ## Summary
-RuntimeHost::tick now executes through a declarative `RuntimeLoopPlan`, but backend-aware presentation and synchronisation hooks from ADR-0008 are still outstanding. RT-410 tracks the remaining work required to connect the stage planner to rendering/presentation backends, expose scripting hooks, and keep diagnostics/tooling aligned without ad-hoc patches.
+RuntimeHost::tick now executes through a declarative `RuntimeLoopPlan`, but backend-aware presentation and synchronisation hooks from ADR-0008 are still outstanding. RT-410 tracks the remaining work required to connect the stage planner to rendering/presentation backends, expose scripting hooks, and keep diagnostics/tooling aligned without ad-hoc patches. The task runs in parallel with the GPU enablement milestone so presentation adapters are ready when [`T-0120`](T-0120-gpu-resource-provider.md) and [`T-0119`](T-0119-command-encoder-integration.md) deliver backend execution.
+
+## Current Plan
+- Implement stage planner adapters in lockstep with GPU milestones and surface blockers during PM-510 demos.
+- Deliver presentation mock + GLFW backends incrementally, enabling tools to hook into the shared presentation path before TL-310 begins.
+- Extend harness coverage early so runtime/tool teams can rehearse integration demos without manual wiring.
 
 ## Role Roster
 | Role | Responsibilities | Owner |
@@ -29,6 +34,7 @@ RuntimeHost::tick now executes through a declarative `RuntimeLoopPlan`, but back
 - [ ] Expose synchronisation hooks for scripting, diagnostics, and tooling integration with documentation and examples.
 - [ ] Add automated tests exercising the new loop under mock and GLFW backends plus documentation updates.
 - [ ] Update roadmap, runtime README, and root README to reflect the new runtime state.
+- [ ] Present progress and telemetry snapshots during PM-510 demos until GPU + runtime milestones exit review.
 
 ## Dependencies
 - [`T-0119`](T-0119-command-encoder-integration.md) — supplies GPU command submission required for presentation.
