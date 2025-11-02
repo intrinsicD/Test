@@ -468,3 +468,69 @@ TEST(OpenGLResourceProvider, ResolveSemaphoreCachesNativeHandle)
     const auto other_handle = provider.resolve_semaphore(other);
     EXPECT_NE(first.value, other_handle.value);
 }
+
+TEST(OpenGLResourceProvider, TracksBufferMemoryUsage)
+{
+    using engine::rendering::ResourceUsage;
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 120;
+
+    auto info = make_buffer_resource("Memory.Buffer", 4096, ResourceUsage::ShaderRead);
+
+    provider.begin_frame();
+    EXPECT_EQ(provider.active_buffer_bytes(), 0U);
+    EXPECT_EQ(provider.active_memory_bytes(), 0U);
+
+    provider.on_transient_acquire(handle, info);
+    EXPECT_EQ(provider.active_buffer_bytes(), 4096U);
+    EXPECT_EQ(provider.active_memory_bytes(), 4096U);
+
+    provider.on_transient_release(handle, info);
+    info.size_bytes = 1024;
+    provider.on_transient_acquire(handle, info);
+    EXPECT_EQ(provider.active_buffer_bytes(), 1024U);
+    EXPECT_EQ(provider.active_memory_bytes(), 1024U);
+
+    provider.on_transient_release(handle, info);
+    provider.end_frame();
+
+    provider.begin_frame();
+    EXPECT_EQ(provider.active_buffer_bytes(), 1024U);
+    provider.end_frame();
+    EXPECT_EQ(provider.active_buffer_bytes(), 0U);
+    EXPECT_EQ(provider.active_memory_bytes(), 0U);
+}
+
+TEST(OpenGLResourceProvider, TracksTextureMemoryUsage)
+{
+    using namespace engine::rendering;
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+
+    FrameGraphResourceHandle handle{};
+    handle.index = 121;
+
+    auto info = make_color_resource("Memory.Color", 128, 64);
+
+    const std::uint64_t base_size = static_cast<std::uint64_t>(128U) * 64U * 4U;
+
+    provider.begin_frame();
+    provider.on_transient_acquire(handle, info);
+    EXPECT_EQ(provider.active_texture_bytes(), base_size);
+    EXPECT_EQ(provider.active_memory_bytes(), base_size);
+
+    provider.on_transient_release(handle, info);
+    info.sample_count = ResourceSampleCount::Count4;
+    provider.on_transient_acquire(handle, info);
+    EXPECT_EQ(provider.active_texture_bytes(), base_size * 4U);
+    EXPECT_EQ(provider.active_memory_bytes(), base_size * 4U);
+
+    provider.on_transient_release(handle, info);
+    provider.end_frame();
+
+    provider.begin_frame();
+    provider.end_frame();
+    EXPECT_EQ(provider.active_texture_bytes(), 0U);
+    EXPECT_EQ(provider.active_memory_bytes(), 0U);
+}
