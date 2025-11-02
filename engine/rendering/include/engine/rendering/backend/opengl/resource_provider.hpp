@@ -78,6 +78,10 @@ namespace engine::rendering::backend::opengl
         };
 
         [[nodiscard]] const BufferRecord* buffer(FrameGraphResourceHandle handle) const noexcept;
+        [[nodiscard]] std::uint64_t active_buffer_bytes() const noexcept
+        {
+            return buffer_bytes_;
+        }
 
         struct TextureRecord
         {
@@ -98,9 +102,19 @@ namespace engine::rendering::backend::opengl
             bool multisampled{false};
             bool in_use{false};
             std::uint64_t last_used_frame{0};
+            std::uint64_t byte_size{0};
         };
 
         [[nodiscard]] const TextureRecord* texture(FrameGraphResourceHandle handle) const noexcept;
+        [[nodiscard]] std::uint64_t active_texture_bytes() const noexcept
+        {
+            return texture_bytes_;
+        }
+
+        [[nodiscard]] std::uint64_t active_memory_bytes() const noexcept
+        {
+            return buffer_bytes_ + texture_bytes_;
+        }
 
     private:
         struct QueueRecord
@@ -140,6 +154,8 @@ namespace engine::rendering::backend::opengl
         std::uint64_t current_frame_{0};
         /// Number of frames a transient resource may stay idle before the provider destroys it.
         std::uint64_t retention_frames_{0};
+        std::uint64_t buffer_bytes_{0};
+        std::uint64_t texture_bytes_{0};
 
         void destroy_buffer(BufferRecord& record) noexcept;
         void destroy_texture(TextureRecord& record) noexcept;

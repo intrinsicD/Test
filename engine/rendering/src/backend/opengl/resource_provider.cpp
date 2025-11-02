@@ -101,6 +101,85 @@ namespace engine::rendering::backend::opengl
             return info.dimension == ResourceDimension::Buffer;
         }
 
+        [[nodiscard]] std::uint32_t bytes_per_pixel(ResourceFormat format) noexcept
+        {
+            switch (format)
+            {
+            case ResourceFormat::Rgba8Unorm:
+                return 4U;
+            case ResourceFormat::Rgba16f:
+                return 8U;
+            case ResourceFormat::Rgba32f:
+                return 16U;
+            case ResourceFormat::Depth24Stencil8:
+                return 4U;
+            case ResourceFormat::Depth32f:
+                return 4U;
+            case ResourceFormat::Unknown:
+            default:
+                return 0U;
+            }
+        }
+
+        [[nodiscard]] std::uint32_t layers_for_dimension(const FrameGraphResourceInfo& info) noexcept
+        {
+            if (info.dimension == ResourceDimension::CubeMap)
+            {
+                return info.array_layers != 0U ? info.array_layers : 6U;
+            }
+            return info.array_layers != 0U ? info.array_layers : 1U;
+        }
+
+        [[nodiscard]] std::uint64_t estimate_texture_byte_size(const FrameGraphResourceInfo& info) noexcept
+        {
+            const auto bpp = bytes_per_pixel(info.format);
+            if (bpp == 0U)
+            {
+                return 0;
+            }
+
+            const auto width = info.width;
+            const auto height = info.dimension == ResourceDimension::Texture1D ? 1U : info.height;
+            const auto depth = info.dimension == ResourceDimension::Texture3D ? info.depth : 1U;
+
+            if (width == 0U || height == 0U || depth == 0U)
+            {
+                return 0;
+            }
+
+            const auto layers = static_cast<std::uint64_t>(layers_for_dimension(info));
+            const auto samples = static_cast<std::uint64_t>(sample_count_value(info.sample_count));
+            const auto levels = info.mip_levels == 0U ? 1U : info.mip_levels;
+
+            std::uint64_t total = 0;
+            std::uint32_t level_width = width;
+            std::uint32_t level_height = height;
+            std::uint32_t level_depth = depth;
+
+            for (std::uint32_t level = 0; level < levels; ++level)
+            {
+                const auto w = static_cast<std::uint64_t>(std::max(1U, level_width));
+                const auto h = static_cast<std::uint64_t>(std::max(1U, level_height));
+                const auto d = static_cast<std::uint64_t>(std::max(1U, level_depth));
+                total += w * h * d * static_cast<std::uint64_t>(layers) * static_cast<std::uint64_t>(bpp) * samples;
+
+                if (level_width > 1U)
+                {
+                    level_width >>= 1U;
+                }
+                if (info.dimension != ResourceDimension::Texture1D && level_height > 1U)
+                {
+                    level_height >>= 1U;
+                }
+                if (info.dimension == ResourceDimension::Texture3D && level_depth > 1U)
+                {
+                    level_depth >>= 1U;
+                }
+            }
+
+            return total;
+        }
+
 #if ENGINE_RENDERING_HAS_GLAD
         [[nodiscard]] GLenum buffer_target(ResourceUsage usage) noexcept
         {
@@ -691,6 +770,14 @@ namespace engine::rendering::backend::opengl
             destroy_gl_buffer(static_cast<GLuint>(record.handle));
         }
 #endif
+        if (buffer_bytes_ >= record.size_bytes)
+        {
+            buffer_bytes_ -= record.size_bytes;
+        }
+        else
+        {
+            buffer_bytes_ = 0;
+        }
         record.handle = 0;
         record.target = 0;
         record.native_allocation = false;
@@ -706,12 +793,21 @@ namespace engine::rendering::backend::opengl
             destroy_gl_texture(static_cast<GLuint>(record.handle));
         }
 #endif
+        if (texture_bytes_ >= record.byte_size)
+        {
+            texture_bytes_ -= record.byte_size;
+        }
+        else
+        {
+            texture_bytes_ = 0;
+        }
         record.handle = 0;
         record.in_use = false;
         record.depth_attachment = false;
         record.target = 0;
         record.multisampled = false;
         record.native_allocation = false;
+        record.byte_size = 0;
     }
 
     void OpenGLGpuResourceProvider::allocate_buffer(std::size_t index, const FrameGraphResourceInfo& info)
@@ -722,6 +818,11 @@ namespace engine::rendering::backend::opengl
         record.size_bytes = info.size_bytes;
         record.in_use = true;
         record.last_used_frame = current_frame_;
+
+        if (record.size_bytes != 0)
+        {
+            buffer_bytes_ += record.size_bytes;
+        }
 
 #if ENGINE_RENDERING_HAS_GLAD
         const auto target = buffer_target(info.usage);
@@ -760,6 +861,12 @@ namespace engine::rendering::backend::opengl
         record.multisampled = uses_multisampling(info);
         record.in_use = true;
         record.last_used_frame = current_frame_;
+        record.byte_size = estimate_texture_byte_size(info);
+
+        if (record.byte_size != 0)
+        {
+            texture_bytes_ += record.byte_size;
+        }
 
 #if ENGINE_RENDERING_HAS_GLAD
         if (const auto translated = translate_texture_format(info))
