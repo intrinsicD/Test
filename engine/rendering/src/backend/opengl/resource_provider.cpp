@@ -1,6 +1,7 @@
 #include "engine/rendering/backend/opengl/resource_provider.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <optional>
 #include <stdexcept>
 #include <utility>
@@ -51,6 +52,31 @@ namespace engine::rendering::backend::opengl
 
     namespace
     {
+        [[nodiscard]] bool uses_multisampling(const FrameGraphResourceInfo& info) noexcept
+        {
+            return info.sample_count != ResourceSampleCount::Count1;
+        }
+
+        [[nodiscard]] std::uint32_t sample_count_value(ResourceSampleCount count) noexcept
+        {
+            switch (count)
+            {
+            case ResourceSampleCount::Count1:
+                return 1U;
+            case ResourceSampleCount::Count2:
+                return 2U;
+            case ResourceSampleCount::Count4:
+                return 4U;
+            case ResourceSampleCount::Count8:
+                return 8U;
+            case ResourceSampleCount::Count16:
+                return 16U;
+            default:
+                assert(false && "Unsupported ResourceSampleCount value");
+                return 1U;
+            }
+        }
+
         struct TextureFormatInfo
         {
 #if ENGINE_RENDERING_HAS_GLAD
@@ -110,6 +136,18 @@ namespace engine::rendering::backend::opengl
 
         [[nodiscard]] GLenum texture_target(const FrameGraphResourceInfo& info) noexcept
         {
+            if (uses_multisampling(info))
+            {
+                if (info.dimension == ResourceDimension::Texture2D && info.array_layers > 1U)
+                {
+                    return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+                }
+                if (info.dimension == ResourceDimension::Texture2D)
+                {
+                    return GL_TEXTURE_2D_MULTISAMPLE;
+                }
+            }
+
             switch (info.dimension)
             {
             case ResourceDimension::Texture1D:
@@ -220,7 +258,7 @@ namespace engine::rendering::backend::opengl
                 return 0;
             }
 
-            const auto guard = [&]()
+            const auto bind_texture = [&]()
             {
                 if (glad_glBindTexture != nullptr)
                 {
@@ -228,7 +266,63 @@ namespace engine::rendering::backend::opengl
                 }
             };
 
-            guard();
+            const auto unbind_texture = [&]()
+            {
+                if (glad_glBindTexture != nullptr)
+                {
+                    glad_glBindTexture(format.target, 0);
+                }
+            };
+
+            const auto multisampled = uses_multisampling(info);
+            if (multisampled)
+            {
+                const auto samples = static_cast<GLsizei>(sample_count_value(info.sample_count));
+                if (format.target == GL_TEXTURE_2D_MULTISAMPLE)
+                {
+                    if (glad_glTexImage2DMultisample != nullptr)
+                    {
+                        bind_texture();
+                        glad_glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples,
+                                                     static_cast<GLint>(format.internal_format),
+                                                     static_cast<GLsizei>(info.width),
+                                                     static_cast<GLsizei>(info.height), GL_TRUE);
+                        unbind_texture();
+                    }
+                    else
+                    {
+                        destroy_gl_texture(name);
+                        return 0;
+                    }
+                }
+                else if (format.target == GL_TEXTURE_2D_MULTISAMPLE_ARRAY)
+                {
+                    if (glad_glTexImage3DMultisample != nullptr)
+                    {
+                        bind_texture();
+                        glad_glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, samples,
+                                                     static_cast<GLint>(format.internal_format),
+                                                     static_cast<GLsizei>(info.width),
+                                                     static_cast<GLsizei>(info.height),
+                                                     static_cast<GLsizei>(info.array_layers), GL_TRUE);
+                        unbind_texture();
+                    }
+                    else
+                    {
+                        destroy_gl_texture(name);
+                        return 0;
+                    }
+                }
+                else
+                {
+                    destroy_gl_texture(name);
+                    return 0;
+                }
+
+                return name;
+            }
+
+            bind_texture();
 
             if (format.target == GL_TEXTURE_1D)
             {
@@ -265,10 +359,7 @@ namespace engine::rendering::backend::opengl
                 glad_glTexParameteri(format.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             }
 
-            if (glad_glBindTexture != nullptr)
-            {
-                glad_glBindTexture(format.target, 0);
-            }
+            unbind_texture();
 
             return name;
         }
@@ -618,6 +709,8 @@ namespace engine::rendering::backend::opengl
         record.handle = 0;
         record.in_use = false;
         record.depth_attachment = false;
+        record.target = 0;
+        record.multisampled = false;
         record.native_allocation = false;
     }
 
@@ -664,6 +757,7 @@ namespace engine::rendering::backend::opengl
         record.depth = info.depth;
         record.array_layers = info.array_layers;
         record.mip_levels = info.mip_levels;
+        record.multisampled = uses_multisampling(info);
         record.in_use = true;
         record.last_used_frame = current_frame_;
 
@@ -674,6 +768,7 @@ namespace engine::rendering::backend::opengl
             if (gl_name != 0)
             {
                 record.handle = gl_name;
+                record.target = translated->target;
                 record.native_allocation = true;
                 record.depth_attachment = translated->depth_attachment;
             }
@@ -684,6 +779,7 @@ namespace engine::rendering::backend::opengl
         {
             record.handle = next_texture_id_++;
             record.native_allocation = false;
+            record.target = 0;
             record.depth_attachment = info.format == ResourceFormat::Depth24Stencil8
                 || info.format == ResourceFormat::Depth32f;
         }

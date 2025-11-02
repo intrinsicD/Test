@@ -152,6 +152,31 @@ TEST(OpenGLResourceProvider, ReallocatesTextureWhenDescriptorChanges)
     EXPECT_NE(resized->handle, first_handle);
 }
 
+TEST(OpenGLResourceProvider, ReallocatesTextureWhenSampleCountChanges)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 4;
+
+    provider.begin_frame();
+
+    auto info = make_color_resource("Color.MSAAResize", 640, 480);
+    provider.on_transient_acquire(handle, info);
+    const auto* initial = provider.texture(handle);
+    ASSERT_NE(initial, nullptr);
+    const auto first_handle = initial->handle;
+
+    provider.on_transient_release(handle, info);
+
+    info.sample_count = engine::rendering::ResourceSampleCount::Count4;
+    provider.on_transient_acquire(handle, info);
+
+    const auto* multisampled = provider.texture(handle);
+    ASSERT_NE(multisampled, nullptr);
+    EXPECT_NE(multisampled->handle, first_handle);
+    EXPECT_TRUE(multisampled->multisampled);
+}
+
 TEST(OpenGLResourceProvider, TracksDepthAttachmentDescriptors)
 {
     engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
@@ -185,6 +210,30 @@ TEST(OpenGLResourceProvider, TracksDepthAttachmentDescriptors)
     record = provider.texture(handle);
     ASSERT_NE(record, nullptr);
     EXPECT_FALSE(record->in_use);
+}
+
+TEST(OpenGLResourceProvider, TracksMultisampleDescriptors)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 3;
+
+    provider.begin_frame();
+
+    auto info = make_color_resource("Color.MSAA", 1920, 1080);
+    info.sample_count = engine::rendering::ResourceSampleCount::Count4;
+
+    provider.on_transient_acquire(handle, info);
+
+    const auto* record = provider.texture(handle);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->sample_count, engine::rendering::ResourceSampleCount::Count4);
+    EXPECT_TRUE(record->multisampled);
+
+    provider.on_transient_release(handle, info);
+    record = provider.texture(handle);
+    ASSERT_NE(record, nullptr);
+    EXPECT_TRUE(record->multisampled);
 }
 
 TEST(OpenGLResourceProvider, RecordsResourceEvents)
