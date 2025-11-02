@@ -21,7 +21,6 @@ namespace engine::runtime
     std::vector<const RuntimeLoopStage*> RuntimeLoopPlan::stages_for_phase(RuntimeLoopPhase phase) const
     {
         std::vector<const RuntimeLoopStage*> filtered{};
-        filtered.reserve(stages_.size());
         for (const auto& stage : stages_)
         {
             if (stage.phase == phase)
@@ -29,7 +28,6 @@ namespace engine::runtime
                 filtered.push_back(&stage);
             }
         }
-        filtered.shrink_to_fit();
         return filtered;
     }
 
