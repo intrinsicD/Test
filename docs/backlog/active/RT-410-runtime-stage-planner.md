@@ -47,3 +47,6 @@ RuntimeHost::tick now executes through a declarative `RuntimeLoopPlan`, but back
 
 ## Notes
 Coordinate with tooling to ensure ImGui overlays reuse the presentation adapters rather than creating duplicate contexts. The stage planner scaffolding landed alongside builder unit tests; presentation adapters and configuration surfaces remain open. The runtime now exposes a compiled `RuntimeLoopPlan` with per-phase telemetry and a `presentation.dispatch` hook—subsequent work must wire real presentation backends and synchronisation APIs to fulfil ADR-0008.
+
+**2026-02-25** — RuntimeHost now surfaces `set_loop_plan()`/`loop_plan()` so tooling and scripting can
+swap declarative plans at frame boundaries while keeping diagnostics serialisation in sync.

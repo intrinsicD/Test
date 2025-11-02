@@ -291,6 +291,9 @@ namespace engine::runtime
 
         void configure(RuntimeHostDependencies dependencies);
         void set_presentation_callback(PresentationCallback callback);
+        void set_loop_plan(RuntimeLoopPlan plan);
+
+        [[nodiscard]] const RuntimeLoopPlan& loop_plan() const noexcept;
 
 #if ENGINE_ENABLE_RENDERING
         using RenderSubmissionContext = rendering::RuntimeSubmissionContext;
@@ -319,7 +322,9 @@ namespace engine::runtime
     ENGINE_RUNTIME_API void configure_with_default_subsystems();
     ENGINE_RUNTIME_API void configure_with_default_subsystems(std::span<const std::string_view> enabled_subsystems);
     ENGINE_RUNTIME_API void set_presentation_callback(RuntimeHost::PresentationCallback callback);
+    ENGINE_RUNTIME_API void set_loop_plan(RuntimeLoopPlan plan);
     ENGINE_RUNTIME_API runtime_frame_state tick(double dt);
+    [[nodiscard]] ENGINE_RUNTIME_API const RuntimeLoopPlan& loop_plan() noexcept;
     [[nodiscard]] ENGINE_RUNTIME_API const geometry::SurfaceMesh& current_mesh();
     [[nodiscard]] ENGINE_RUNTIME_API bool is_initialized() noexcept;
     [[nodiscard]] ENGINE_RUNTIME_API const animation::AnimationRigPose& current_pose();

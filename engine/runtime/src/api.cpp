@@ -446,6 +446,7 @@ namespace engine::runtime
         animation::RigBinding binding{};
         physics::PhysicsWorld world{};
         RuntimeLoopPlan loop_plan{};
+        std::optional<RuntimeLoopPlan> pending_loop_plan{};
         compute::ExecutionReport last_report{};
         std::vector<math::vec3> body_positions{};
         std::vector<std::string> joint_names{};
@@ -633,6 +634,46 @@ namespace engine::runtime
             {
                 phase_active[runtime_loop_phase_index(stage.phase)] = true;
             }
+        }
+
+        void apply_loop_plan(RuntimeLoopPlan plan)
+        {
+            loop_plan = std::move(plan);
+            stage_lookup.clear();
+            diagnostics.stage_timings.clear();
+            phase_frame_duration_seconds.fill(0.0);
+            phase_active.fill(false);
+
+            if (loop_plan.stages().empty())
+            {
+                diagnostics.loop_plan_serialization.clear();
+            }
+            else
+            {
+                diagnostics.loop_plan_serialization = serialize_loop_plan(loop_plan);
+                refresh_phase_metadata();
+            }
+        }
+
+        void apply_pending_loop_plan()
+        {
+            if (!pending_loop_plan)
+            {
+                return;
+            }
+            auto plan = std::move(*pending_loop_plan);
+            pending_loop_plan.reset();
+            apply_loop_plan(std::move(plan));
+        }
+
+        void set_loop_plan(RuntimeLoopPlan plan)
+        {
+            pending_loop_plan = std::move(plan);
+        }
+
+        [[nodiscard]] const RuntimeLoopPlan& loop_plan_ref() const noexcept
+        {
+            return loop_plan;
         }
 
         RuntimeLoopPhase stage_phase(std::string_view name) const
@@ -1908,21 +1949,22 @@ namespace engine::runtime
 #endif
             refresh_physics_metrics();
             rebuild_subsystem_cache();
-            auto plan_result = build_default_loop_plan();
-            if (!plan_result)
+            if (!pending_loop_plan)
             {
-                spdlog::error(
-                    "Failed to build runtime loop plan: {}",
-                    plan_result.error().message());
-                loop_plan = {};
-                diagnostics.loop_plan_serialization.clear();
+                auto plan_result = build_default_loop_plan();
+                if (!plan_result)
+                {
+                    spdlog::error(
+                        "Failed to build runtime loop plan: {}",
+                        plan_result.error().message());
+                    apply_loop_plan(RuntimeLoopPlan{});
+                }
+                else
+                {
+                    apply_loop_plan(std::move(plan_result).value());
+                }
             }
-            else
-            {
-                loop_plan = std::move(plan_result).value();
-                diagnostics.loop_plan_serialization = serialize_loop_plan(loop_plan);
-                refresh_phase_metadata();
-            }
+            apply_pending_loop_plan();
         }
 
         RuntimeResult<RuntimeLoopPlan> build_default_loop_plan()
@@ -2457,6 +2499,8 @@ namespace engine::runtime
             last_report.clock_domain = compute::TimingDomain::Cpu;
             last_report.clock_name = "steady_clock";
 
+            apply_pending_loop_plan();
+
             const auto& stages = loop_plan.stages();
             phase_frame_duration_seconds.fill(0.0);
             std::unordered_map<std::string, std::size_t> stage_index_map{};
@@ -2568,6 +2612,11 @@ namespace engine::runtime
         impl_->set_presentation_callback(std::move(callback));
     }
 
+    void RuntimeHost::set_loop_plan(RuntimeLoopPlan plan)
+    {
+        impl_->set_loop_plan(std::move(plan));
+    }
+
     void RuntimeHost::initialize()
     {
         impl_->initialize();
@@ -2591,6 +2640,11 @@ namespace engine::runtime
     const geometry::SurfaceMesh& RuntimeHost::current_mesh() const
     {
         return impl_->current_mesh();
+    }
+
+    const RuntimeLoopPlan& RuntimeHost::loop_plan() const noexcept
+    {
+        return impl_->loop_plan_ref();
     }
 
     const animation::AnimationRigPose& RuntimeHost::current_pose() const
@@ -2747,6 +2801,11 @@ namespace engine::runtime
         global_host().set_presentation_callback(std::move(callback));
     }
 
+    void set_loop_plan(RuntimeLoopPlan plan)
+    {
+        global_host().set_loop_plan(std::move(plan));
+    }
+
     std::vector<std::string> default_subsystem_names()
     {
         const auto registry = make_default_subsystem_registry();
@@ -2793,6 +2852,11 @@ namespace engine::runtime
     const RuntimeDiagnostics& diagnostics() noexcept
     {
         return global_host().diagnostics();
+    }
+
+    const RuntimeLoopPlan& loop_plan() noexcept
+    {
+        return global_host().loop_plan();
     }
 
 #if ENGINE_ENABLE_ASSETS
