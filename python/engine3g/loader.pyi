@@ -4,15 +4,28 @@ import ctypes
 import os
 from pathlib import Path
 from types import TracebackType
-from typing import Dict, Iterable, Iterator, List, Mapping, Optional, Tuple, Type, Union
+from typing import (
+    ContextManager,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 __all__ = [
     "EngineLibraryNotFound",
     "EngineModuleHandle",
     "EngineRuntimeHandle",
+    "RuntimeSession",
     "load_all_modules",
     "load_module",
     "load_runtime",
+    "runtime_session",
 ]
 
 SearchPath = Union[os.PathLike[str], str]
@@ -71,11 +84,27 @@ class EngineRuntimeHandle:
     def load_modules(self, search_paths: SearchPaths = ...) -> Mapping[str, EngineModuleHandle]: ...
 
 
+class RuntimeSession:
+    runtime: EngineRuntimeHandle
+    modules: Mapping[str, EngineModuleHandle]
+
+    def tick(self, dt: float) -> None: ...
+
+    def module(self, name: str) -> EngineModuleHandle: ...
+
+
 def load_runtime(search_paths: SearchPaths = ...) -> EngineRuntimeHandle: ...
 
 def load_module(module_name: str, search_paths: SearchPaths = ...) -> EngineModuleHandle: ...
 
 def load_all_modules(search_paths: SearchPaths = ...) -> Mapping[str, EngineModuleHandle]: ...
+
+
+def runtime_session(
+    search_paths: SearchPaths = ...,
+    *,
+    load_modules: bool = ...,
+) -> ContextManager[RuntimeSession]: ...
 
 
 def _canonical_identifier(module_name: str) -> str: ...
