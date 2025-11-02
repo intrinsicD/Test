@@ -140,7 +140,7 @@ def available_case_studies(
     if include_tags is None:
         required_tags = ()
     else:
-        required_tags = tuple(_normalise_tag(tag) for tag in include_tags if tag)
+        required_tags = tuple(_normalise_tag(tag) for tag in include_tags if tag.strip())
 
     existing: list[CaseStudy] = []
     for case_study in _case_study_map().values():
