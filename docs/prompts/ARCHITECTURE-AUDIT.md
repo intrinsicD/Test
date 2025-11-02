@@ -119,8 +119,11 @@ PROJECT STANDARDS (Test Engine)
 
 ### Static Analysis
 ```
-# Check for circular dependencies
-cmake --graphviz=deps.dot .
+# Configure (example preset)
+cmake --preset linux-gcc-debug
+
+# Export target graph (adjust build directory if you use another preset)
+cmake --graphviz=deps.dot out/build/linux-gcc-debug
 dot -Tpng deps.dot -o deps.png
 
 # Count lines of code
@@ -132,12 +135,14 @@ lizard engine/ | sort -nr -k 6 | head
 
 ### Test & Coverage
 ```
-# Generate coverage report (if configured)
-cmake --preset linux-gcc-debug-coverage
-cmake --build --preset linux-gcc-debug-coverage
-ctest --preset linux-gcc-debug-coverage
-lcov --capture --directory . --output-file coverage.info
-genhtml coverage.info --output-directory coverage_html
+# Build and test using configured presets
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug
+ctest --preset linux-gcc-debug
+
+# Optional: collect coverage after tests (example using gcovr)
+gcovr -r . --xml coverage.xml
+gcovr -r . --html-details coverage.html
 ```
 
 ### Documentation Validation
@@ -147,7 +152,11 @@ python scripts/validate_docs.py
 
 ### Dependency Graph Inspection
 ```
-cmake --graphviz=full.dot -B build
+# Configure (example preset)
+cmake --preset linux-gcc-debug
+
+# Export extended graph (adjust build directory if you use another preset)
+cmake --graphviz=full.dot out/build/linux-gcc-debug
 rg "engine_" full.dot > engine_deps.dot
 dot -Tpng engine_deps.dot -o engine_deps.png
 ```
@@ -155,7 +164,7 @@ dot -Tpng engine_deps.dot -o engine_deps.png
 ## Example Audit Findings
 
 ### Finding: Resource Lifetime Inconsistency
-- **Severity:** 🟡 Medium
+- **Severity:** ⚠️ Medium
 - **Modules:** Animation, Physics
 - **Issue:** Animation clips and physics bodies rely on raw IDs instead of generational handles, risking stale references.
 - **Evidence:**
@@ -174,7 +183,7 @@ dot -Tpng engine_deps.dot -o engine_deps.png
 - **Recommendation:** land DC-002, add `ENGINE_ENABLE_CUDA`, introduce dispatcher abstraction, and add CPU-only preset.
 
 ### Finding: Missing Integration Tests
-- **Severity:** 🟡 Medium
+- **Severity:** ⚠️ Medium
 - **Modules:** Runtime, Rendering
 - **Issue:** No end-to-end runtime → frame-graph → backend submission coverage.
 - **Evidence:** `engine/tests/integration/` lacks executable targets.
