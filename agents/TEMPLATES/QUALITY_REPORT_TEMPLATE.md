@@ -7,10 +7,10 @@
 - **Commit / Branch:**
 - **Date:**
 - **Participants:**
-- **Workflow Phase:** (Should be Phase 4 – Quality Gates at submission)
+- **Workflow Phase:** (Should be Phase 4 - Quality Gates at submission)
 - **Related Artefacts:** (Context package, backlog item, PR link)
 
-## 2. Quality Gate Scorecard *(See [`AGENTS.md`](../../AGENTS.md#04-phase-checklists))*
+## 2. Quality Gate Scorecard *(See [`AGENTS.md` §0.4](../../AGENTS.md#04-phase-checklists))*
 | Gate | Owner | Exit Criteria | Evidence | Result | Follow-ups |
 | --- | --- | --- | --- | --- | --- |
 | Testing |  |  |  | Pass/Fail |  |
@@ -20,7 +20,7 @@
 | Review |  |  |  | Pass/Fail |  |
 | Release |  |  |  | Pass/Fail |  |
 
-## 3. Command & Evidence Log *(See [`AGENTS.md`](../../AGENTS.md#05-quality-instrumentation))*
+## 3. Command & Evidence Log *(See [`AGENTS.md` §0.5](../../AGENTS.md#05-quality-instrumentation))*
 | Command | Result (Pass/Fail) | Log / Artifact | Notes |
 | --- | --- | --- | --- |
 | `cmake --preset linux-gcc-debug` |  |  |  |

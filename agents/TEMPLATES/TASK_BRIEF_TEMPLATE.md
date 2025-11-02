@@ -20,7 +20,7 @@
 - Validation:
 - Quality gates & benchmarks:
 
-## 4. Context Ladder Snapshot *(See [`AGENTS.md`](../../AGENTS.md#02-context-ladder))*
+## 4. Context Ladder Snapshot *(See [`AGENTS.md` §0.2](../../AGENTS.md#02-context-ladder))*
 | Step | Document / Location | Notes / Outstanding Questions | Owner |
 | --- | --- | --- | --- |
 | 1 |  |  |  |
@@ -44,7 +44,7 @@
 | Reviewer |  | 4 | Code review | |
 | Release Manager |  | 5 | Release prep | |
 
-## 6. Phase Gate Plan *(See [`AGENTS.md`](../../AGENTS.md#04-phase-checklists))*
+## 6. Phase Gate Plan *(See [`AGENTS.md` §0.4](../../AGENTS.md#04-phase-checklists))*
 | Phase | Entry Criteria | Exit Criteria | Evidence / Linked Artefacts |
 | --- | --- | --- | --- |
 | 1 – Intake & Scoping |  |  |  |

@@ -23,7 +23,7 @@
 | Telemetry / Benchmarks |  |  |  |
 | Prior PRs / Discussions |  |  |  |
 
-## 4. Context Ladder Trace *(See [`AGENTS.md`](../../AGENTS.md#02-context-ladder))*
+## 4. Context Ladder Trace *(See [`AGENTS.md` §0.2](../../AGENTS.md#02-context-ladder))*
 | Step | Document / Location | Insight / Decision | Owner | Follow-up |
 | --- | --- | --- | --- | --- |
 | 1 |  |  |  |  |
@@ -34,7 +34,7 @@
 | 6 |  |  |  |  |
 | 7 |  |  |  |  |
 
-## 5. Build, Validation & Telemetry Plan *(See [`AGENTS.md`](../../AGENTS.md#05-quality-instrumentation))*
+## 5. Build, Validation & Telemetry Plan *(See [`AGENTS.md` §0.5](../../AGENTS.md#05-quality-instrumentation))*
 - Canonical command block copied:
 - Additional presets / datasets:
 - Benchmark targets & expected deltas:
