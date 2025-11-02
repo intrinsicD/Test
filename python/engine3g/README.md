@@ -39,7 +39,18 @@
   `case_studies.describe_case_studies`) accept an `include_tags` filter so tooling
   can surface module-specific scenarios without reimplementing registry parsing.
 
+### Module Provenance
+
+- Use `loader.collect_module_provenance(modules.values())` to expand module
+  metadata into a dependency-aware provenance graph. Each record captures the
+  resolved module name, the raw compatibility metadata exported by the shared
+  library, and a recursively nested set of dependency entries annotated with
+  resolution status, cycle detection, and requested constraints. Downstream
+  tooling can project these structures directly into diagnostics dashboards to
+  surface ABI incompatibilities or missing modules without re-querying native
+  libraries.
+
 ## TODO / Next Steps
 
-- Expand metadata reporting to include structured provenance across dependent modules so
-  diagnostics can highlight incompatibility chains automatically.
+- Integrate the aggregated module provenance data into diagnostics viewers so
+  dependency cycles and missing modules surface alongside existing telemetry.

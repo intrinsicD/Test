@@ -20,6 +20,7 @@ from typing import (
     MutableMapping,
     Optional,
     Sequence,
+    Set,
     Tuple,
 )
 
@@ -27,6 +28,7 @@ __all__ = [
     "EngineLibraryNotFound",
     "EngineModuleHandle",
     "EngineRuntimeHandle",
+    "collect_module_provenance",
     "RuntimeSession",
     "load_all_modules",
     "load_module",
@@ -100,6 +102,151 @@ class EngineModuleHandle:
             )
             self._compatibility_metadata = MappingProxyType(metadata)
         return self._compatibility_metadata
+
+
+_NORMALIZED_DEPENDENCY_KEYS = ("identifier", "id", "name")
+
+
+def _normalise_dependency_entry(entry: object) -> Optional[Tuple[str, Dict[str, object]]]:
+    """Return the canonical dependency identifier and metadata, if available."""
+
+    if isinstance(entry, str):
+        identifier = entry.strip()
+        return (identifier, {}) if identifier else None
+
+    if isinstance(entry, Mapping):
+        identifier: Optional[str] = None
+        requested: Dict[str, object] = {}
+        for key, value in entry.items():
+            if identifier is None and key in _NORMALIZED_DEPENDENCY_KEYS and isinstance(value, str):
+                candidate = value.strip()
+                if candidate:
+                    identifier = candidate
+                continue
+            requested[key] = value
+        if identifier:
+            return identifier, requested
+    return None
+
+
+def _resolve_dependency_handle(
+    identifier: str,
+    registry: Mapping[str, "EngineModuleHandle"],
+    resolved_names: Mapping[str, "EngineModuleHandle"],
+) -> Optional["EngineModuleHandle"]:
+    handle = registry.get(identifier)
+    if handle is not None:
+        return handle
+
+    canonical = _canonical_identifier(identifier)
+    handle = registry.get(canonical)
+    if handle is not None:
+        return handle
+
+    return resolved_names.get(identifier)
+
+
+def _build_provenance_record(
+    module: "EngineModuleHandle",
+    *,
+    registry: Mapping[str, "EngineModuleHandle"],
+    resolved_names: Mapping[str, "EngineModuleHandle"],
+    cache: MutableMapping[str, Dict[str, object]],
+    stack: Set[str],
+) -> Dict[str, object]:
+    cached = cache.get(module.identifier)
+    if cached is not None:
+        return cached
+
+    stack.add(module.identifier)
+    try:
+        metadata = dict(module.compatibility_metadata())
+        dependencies_payload: object = metadata.get("dependencies", [])
+
+        dependencies: List[Dict[str, object]] = []
+        if isinstance(dependencies_payload, Sequence) and not isinstance(dependencies_payload, (str, bytes)):
+            for entry in dependencies_payload:
+                normalized = _normalise_dependency_entry(entry)
+                if normalized is None:
+                    continue
+
+                dependency_identifier, requested_payload = normalized
+                record: Dict[str, object] = {
+                    "identifier": dependency_identifier,
+                    "status": "missing",
+                    "dependencies": [],
+                }
+                if requested_payload:
+                    record["requested"] = requested_payload
+
+                handle = _resolve_dependency_handle(
+                    dependency_identifier, registry=registry, resolved_names=resolved_names
+                )
+                if handle is None:
+                    record["unresolved_reason"] = "dependency not loaded"
+                elif handle.identifier in stack:
+                    record["status"] = "cycle"
+                    record["unresolved_reason"] = f"cycle detected via {handle.identifier}"
+                else:
+                    record["status"] = "resolved"
+                    record["name"] = handle.resolved_name()
+                    record["metadata"] = dict(handle.compatibility_metadata())
+                    nested = _build_provenance_record(
+                        handle,
+                        registry=registry,
+                        resolved_names=resolved_names,
+                        cache=cache,
+                        stack=stack,
+                    )
+                    record["dependencies"] = list(nested["dependencies"])
+                dependencies.append(record)
+    finally:
+        stack.remove(module.identifier)
+
+    result = {
+        "identifier": module.identifier,
+        "name": module.resolved_name(),
+        "metadata": metadata,
+        "dependencies": dependencies,
+    }
+    cache[module.identifier] = result
+    return result
+
+
+def collect_module_provenance(
+    modules: Iterable[EngineModuleHandle],
+) -> Dict[str, Dict[str, object]]:
+    """Produce structured provenance describing loaded module dependencies.
+
+    The returned dictionary is keyed by canonical module identifier. Each value
+    captures the module's resolved name, metadata payload exported by the shared
+    library, and a recursively expanded list of dependency records. Dependency
+    records report whether the dependency was resolved to another loaded module,
+    remains missing, or participates in a cycle. Any metadata exported by the
+    dependency is inlined so tooling can surface incompatibility chains without
+    re-querying shared libraries.
+    """
+
+    handles = list(modules)
+    registry: Dict[str, EngineModuleHandle] = {}
+    resolved_names: Dict[str, EngineModuleHandle] = {}
+    for handle in handles:
+        registry[handle.identifier] = handle
+        resolved_name = handle.resolved_name()
+        if resolved_name:
+            resolved_names.setdefault(resolved_name, handle)
+
+    provenance: Dict[str, Dict[str, object]] = {}
+    cache: Dict[str, Dict[str, object]] = {}
+    for handle in handles:
+        provenance[handle.identifier] = _build_provenance_record(
+            handle,
+            registry=registry,
+            resolved_names=resolved_names,
+            cache=cache,
+            stack=set(),
+        )
+    return provenance
 
 
 def _module_metadata_symbol_candidates(identifier: str) -> List[str]:
