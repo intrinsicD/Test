@@ -1,13 +1,18 @@
 # Backlog Item T-0120 — GPU Resource Provider Completion
 
-- **Status**: Planned
+- **Status**: In Progress
 - **Priority**: 1
 - **Owner**: Rendering Lead
 - **Module(s)**: Rendering, Assets
 - **Goal**: Ship a production-ready GPU resource provider capable of creating buffers, textures, and shader programs for real backend execution.
 
 ## Summary
-The prototype renderer still routes all resource activity through the recording provider, preventing the OpenGL and Vulkan backends from allocating GPU buffers, uploading textures, or compiling shader programs. T-0120 reinstates the dedicated GPU resource provider so schedulers can transition from stubbed handles to real GPU objects and unlock end-to-end rendering.
+The prototype renderer still routes all resource activity through the recording provider, preventing the OpenGL and Vulkan backends from allocating GPU buffers, uploading textures, or compiling shader programs. T-0120 reinstates the dedicated GPU resource provider so schedulers can transition from stubbed handles to real GPU objects and unlock end-to-end rendering. This task now operates as part of the combined GPU enablement milestone alongside [`T-0119`](T-0119-command-encoder-integration.md), with shared design reviews and weekly integration demos captured under [`PM-510`](PM-510-weekly-integration-demos.md).
+
+## Current Plan
+- Hold joint API/design reviews with T-0119 owners before each implementation increment to ratify resource lifetimes and submission interfaces.
+- Time buffer/texture/pipeline bring-up so stage planner teams can exercise GPU-backed presentation paths as soon as RT-410 adapters land.
+- Publish backend smoke demo artefacts every week via PM-510, including telemetry snapshots and doc updates for rendering/runtime READMEs.
 
 ## Role Roster
 | Role | Responsibilities | Owner |
@@ -29,6 +34,7 @@ The prototype renderer still routes all resource activity through the recording 
 - [ ] Replace recording-provider fallbacks in schedulers and frame-graph execution with the real provider.
 - [ ] Add automated tests that exercise resource creation on supported backends and document setup requirements.
 - [ ] Update rendering module README, root README module status, and roadmap to reflect the new capability.
+- [ ] Produce weekly integration demo notes and telemetry captures linked from PM-510 until the milestone exits.
 
 ## Dependencies
 - [`T-0119`](T-0119-command-encoder-integration.md) — shares command stream APIs and validation hooks.

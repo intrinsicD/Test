@@ -64,24 +64,35 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 ### Phase 4 — GPU Execution & Tooling Readiness *(Priorities 1–2)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 1 | [`T-0120`](backlog/active/T-0120-gpu-resource-provider.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | Planned |
-| 1 | [`T-0119`](backlog/active/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | Planned |
-| 1 | [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | Planned |
-| 2 | [`TL-310`](backlog/active/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Planned |
+| 1 | [`T-0120`](backlog/active/T-0120-gpu-resource-provider.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | In Progress |
+| 1 | [`T-0119`](backlog/active/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | In Progress |
+| 1 | [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | In Progress |
+| 2 | [`TL-310`](backlog/active/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Sequenced (awaits RT-410 hooks) |
+| 2 | [`PM-510`](backlog/active/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
 
 **Exit Criteria:** OpenGL/Vulkan execute real workloads with shader pipelines, runtime presentation loop synchronises with tooling, and the editor/tooling stack is buildable with baseline smoke coverage.
+
+#### Phase 4 Milestone Timeline (GPU Enablement Review 2026-03-22)
+
+| Sequence | Target Date | Backlog | Owner | Dependencies | Notes | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 2026-02-28 | [`T-0120`](backlog/active/T-0120-gpu-resource-provider.md) + [`T-0119`](backlog/active/T-0119-command-encoder-integration.md) | Rendering Lead + Runtime Lead | [`ADR-0003`](specs/ADR-0003-runtime-frame-graph.md) | Joint design review to ratify resource ownership, encoder submission flow, and telemetry checkpoints. | 🚧 In Progress |
+| 2 | 2026-03-05 | [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | Runtime Lead | Sequence 1 | Stage planner adapters wired into runtime host; presentation mocks exercised in harness regression suite. | 🟡 Scheduled |
+| 3 | 2026-03-08 | [`PM-510`](backlog/active/PM-510-weekly-integration-demos.md) | Agent Orchestrator | Sequence 1 | First weekly integration demo covering GPU submission → runtime presentation with telemetry capture. | 🟢 Active |
+| 4 | 2026-03-12 | [`TL-310`](backlog/active/TL-310-editor-foundations.md) | Tools Lead | Sequence 2 | Editor module re-enabled behind feature flag; panel registry consumes shared presentation adapters for demo readiness. | 🟡 Scheduled |
 
 ## Active Backlog Snapshot
 
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
-| [`T-0120`](backlog/active/T-0120-gpu-resource-provider.md) | 1 | Planned | GPU allocations, textures, and shader pipelines remain unimplemented; reinstated to unblock rendering backends. |
-| [`T-0119`](backlog/active/T-0119-command-encoder-integration.md) | 1 | Planned | Command encoder missing; frame-graph execution still stubbed. |
-| [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | 1 | Planned | Runtime main loop lacks stage planner and presentation backends. |
+| [`T-0120`](backlog/active/T-0120-gpu-resource-provider.md) | 1 | In Progress | GPU allocations, textures, and shader pipelines being implemented with shared reviews alongside T-0119. |
+| [`T-0119`](backlog/active/T-0119-command-encoder-integration.md) | 1 | In Progress | Command encoder integration underway; smoke demos paired with T-0120 milestone. |
+| [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | Complete | Schema ADR, cross-language validators, and prototyping playbook published. |
 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Complete | Kickoff brief + roadmap timeline published. |
 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | Complete | Harness + telemetry shipped; maintenance tasks captured in module TODOs. |
-| [`TL-310`](backlog/active/TL-310-editor-foundations.md) | 2 | Planned | Editor builds disabled; registry and harness integration outstanding. |
+| [`TL-310`](backlog/active/TL-310-editor-foundations.md) | 2 | Sequenced | Editor builds remain disabled; work scheduled to start once RT-410 adapters merge. |
+| [`PM-510`](backlog/active/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned. |
 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Complete | Dataset packages published with ingestion automation and provenance docs. |
 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | 3 | Complete | Sandbox wiring finished; follow-up automation tracked in tools TODOs. |
 | [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | 3 | Complete | Geometry + rendering case studies documented with CTest coverage. |
@@ -92,10 +103,10 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 | Priority | Risk | Owner | Mitigation | Mitigation Due |
 | --- | --- | --- | --- | --- |
-| 1 | GPU resource provider/command encoder slip keeps backends non-functional. | Rendering Lead | Pair T-0120/T-0119 with shared milestones; demo backend smoke tests weekly. | 2026-03-01 |
-| 1 | Stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Prototype planner API in parallel; stage joint integration review before backend merge. | 2026-03-05 |
-| 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Align TL-310 milestones with RT-410 deliverables; introduce feature flags for incremental validation. | 2026-03-08 |
-| 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Audit module READMEs when each backlog item starts; run docs validator. | 2026-02-25 |
+| 1 | GPU resource provider/command encoder slip keeps backends non-functional. | Rendering Lead | Run the joint T-0120/T-0119 milestone with shared design reviews and publish outputs through [`PM-510`](backlog/active/PM-510-weekly-integration-demos.md). | 2026-03-01 |
+| 1 | Stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Start RT-410 alongside the GPU milestone; present weekly planner/presentation progress in PM-510 demos. | 2026-03-05 |
+| 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Sequence TL-310 immediately after RT-410 adapter merge and preview editor state during PM-510 demos. | 2026-03-08 |
+| 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Capture updates from weekly demos and rerun docs validator after each milestone increment. | 2026-02-25 |
 
 ## Maintenance Checklist
 
@@ -104,4 +115,4 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 - Keep module READMEs and the root [`README.md`](../README.md) aligned with the priority bands listed here.
 - Run `python scripts/validate_docs.py` after editing roadmap or backlog files to catch broken links.
 
-**Last updated:** 2026-02-17.
+**Last updated:** 2026-02-24.

@@ -1,13 +1,18 @@
 # Backlog Item T-0119 — Command Encoder Integration
 
-- **Status**: Planned
+- **Status**: In Progress
 - **Priority**: 1
 - **Owner**: Rendering Lead
 - **Module(s)**: Rendering, Runtime
 - **Goal**: Deliver a command encoder that records GPU work for OpenGL and Vulkan backends, bridging frame-graph compilation with backend submission.
 
 ## Summary
-Without a functional command encoder, frame-graph execution stops at validation layers and never emits backend draw calls. T-0119 revives the command encoder work so passes can translate graph operations into backend command buffers, submit them through scheduler queues, and synchronise with runtime presentation.
+Without a functional command encoder, frame-graph execution stops at validation layers and never emits backend draw calls. T-0119 revives the command encoder work so passes can translate graph operations into backend command buffers, submit them through scheduler queues, and synchronise with runtime presentation. Work is now coordinated with [`T-0120`](T-0120-gpu-resource-provider.md) under the GPU enablement milestone, sharing design reviews, smoke demos, and weekly status captures in [`PM-510`](PM-510-weekly-integration-demos.md).
+
+## Current Plan
+- Finalise encoder/resource handshake contracts during the joint milestone reviews before implementation checkpoints.
+- Land backend submission paths in step with T-0120 so runtime teams can validate presentation hooks without blocked bindings.
+- Surface telemetry snapshots and regression scripts through PM-510 to keep runtime/tools teams aligned on encoder progress.
 
 ## Role Roster
 | Role | Responsibilities | Owner |
@@ -29,6 +34,7 @@ Without a functional command encoder, frame-graph execution stops at validation 
 - [ ] Provide integration tests that render simple geometry via both backends under CI-friendly toggles.
 - [ ] Document encoder usage in rendering and runtime READMEs, including error handling patterns.
 - [ ] Update roadmap, backlog summaries, and module TODOs to reflect completion.
+- [ ] Supply weekly updates/demo artefacts through PM-510 until GPU milestone exit review closes.
 
 ## Dependencies
 - [`T-0120`](T-0120-gpu-resource-provider.md) — requires GPU objects to bind.
