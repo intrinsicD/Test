@@ -161,7 +161,7 @@ namespace engine::rendering::backend::opengl
                 const auto w = static_cast<std::uint64_t>(std::max(1U, level_width));
                 const auto h = static_cast<std::uint64_t>(std::max(1U, level_height));
                 const auto d = static_cast<std::uint64_t>(std::max(1U, level_depth));
-                total += w * h * d * layers * static_cast<std::uint64_t>(bpp) * samples;
+                total += w * h * d * static_cast<std::uint64_t>(layers) * static_cast<std::uint64_t>(bpp) * samples;
 
                 if (level_width > 1U)
                 {
