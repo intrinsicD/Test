@@ -21,6 +21,7 @@ __all__ = [
     "EngineLibraryNotFound",
     "EngineModuleHandle",
     "EngineRuntimeHandle",
+    "collect_module_provenance",
     "RuntimeSession",
     "load_all_modules",
     "load_module",
@@ -105,6 +106,11 @@ def runtime_session(
     *,
     load_modules: bool = ...,
 ) -> ContextManager[RuntimeSession]: ...
+
+
+def collect_module_provenance(
+    modules: Iterable[EngineModuleHandle],
+) -> Dict[str, Dict[str, object]]: ...
 
 
 def _canonical_identifier(module_name: str) -> str: ...

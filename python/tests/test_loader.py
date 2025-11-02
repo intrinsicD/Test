@@ -64,6 +64,27 @@ def _make_runtime_namespace(**overrides):
     return types.SimpleNamespace(**defaults)
 
 
+def _make_module_handle(
+    identifier: str,
+    resolved_name: str,
+    metadata: dict[str, object] | None = None,
+) -> loader.EngineModuleHandle:
+    metadata_payload = json.dumps(metadata or {}).encode("utf-8")
+    module_name_symbol = _DummyFunction(lambda: resolved_name.encode("utf-8"))
+    metadata_symbol = _DummyFunction(lambda: metadata_payload)
+    fake_library = types.SimpleNamespace(
+        **{
+            f"{identifier}_module_name": module_name_symbol,
+            f"{identifier}_module_metadata_json": metadata_symbol,
+        }
+    )
+    return loader.EngineModuleHandle(
+        name=resolved_name,
+        identifier=identifier,
+        library=fake_library,
+    )
+
+
 class CanonicalIdentifierTests(unittest.TestCase):
     def test_canonical_identifier_replaces_dots(self) -> None:
         self.assertEqual(loader._canonical_identifier("physics.module"), "engine_physics_module")
@@ -280,6 +301,76 @@ class HandleBehaviourTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "non-UTF-8"):
             handle.compatibility_metadata()
+
+    def test_collect_module_provenance_resolves_dependencies(self) -> None:
+        math_handle = _make_module_handle(
+            identifier="engine_math",
+            resolved_name="math",
+            metadata={"abi": {"version": "1.0"}},
+        )
+        geometry_handle = _make_module_handle(
+            identifier="engine_geometry",
+            resolved_name="geometry",
+            metadata={"dependencies": ["engine_math"]},
+        )
+
+        provenance = loader.collect_module_provenance([geometry_handle, math_handle])
+
+        geometry_record = provenance["engine_geometry"]
+        self.assertEqual(geometry_record["name"], "geometry")
+        self.assertEqual(geometry_record["metadata"]["dependencies"], ["engine_math"])
+        self.assertEqual(len(geometry_record["dependencies"]), 1)
+        dependency = geometry_record["dependencies"][0]
+        self.assertEqual(dependency["identifier"], "engine_math")
+        self.assertEqual(dependency["status"], "resolved")
+        self.assertEqual(dependency["name"], "math")
+        self.assertEqual(dependency["metadata"], {"abi": {"version": "1.0"}})
+        self.assertEqual(dependency["dependencies"], [])
+
+    def test_collect_module_provenance_marks_missing_dependencies(self) -> None:
+        tools_handle = _make_module_handle(
+            identifier="engine_tools",
+            resolved_name="tools",
+            metadata={"dependencies": ["engine_rendering"]},
+        )
+
+        provenance = loader.collect_module_provenance([tools_handle])
+
+        tools_record = provenance["engine_tools"]
+        self.assertEqual(len(tools_record["dependencies"]), 1)
+        dependency = tools_record["dependencies"][0]
+        self.assertEqual(dependency["identifier"], "engine_rendering")
+        self.assertEqual(dependency["status"], "missing")
+        self.assertEqual(dependency["unresolved_reason"], "dependency not loaded")
+        self.assertNotIn("metadata", dependency)
+
+    def test_collect_module_provenance_detects_cycles(self) -> None:
+        module_a = _make_module_handle(
+            identifier="engine_a",
+            resolved_name="module.a",
+            metadata={
+                "dependencies": [
+                    {"identifier": "engine_b", "version": ">=1.2"},
+                ]
+            },
+        )
+        module_b = _make_module_handle(
+            identifier="engine_b",
+            resolved_name="module.b",
+            metadata={"dependencies": ["engine_a"]},
+        )
+
+        provenance = loader.collect_module_provenance([module_a, module_b])
+
+        dep_record = provenance["engine_a"]["dependencies"][0]
+        self.assertEqual(dep_record["status"], "resolved")
+        self.assertEqual(dep_record["requested"], {"version": ">=1.2"})
+        self.assertEqual(dep_record["name"], "module.b")
+        nested = dep_record["dependencies"][0]
+        self.assertEqual(nested["identifier"], "engine_a")
+        self.assertEqual(nested["status"], "cycle")
+        self.assertIn("cycle detected", nested["unresolved_reason"])
+        self.assertEqual(nested["dependencies"], [])
 
     def test_engine_runtime_handle_exposes_metadata(self) -> None:
         runtime_name = _DummyFunction(lambda: b"runtime")

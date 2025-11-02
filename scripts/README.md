@@ -40,9 +40,19 @@
   and optionally `--datasets-json <path>` to export the verification summary for
   tooling consumers (`AS-330`).
 
+## Shared Automation Entry Points
+
+| Audience | Command | Purpose |
+| --- | --- | --- |
+| Developers | `cmake --preset linux-gcc-debug`<br>`cmake --build --preset linux-gcc-debug` | Configure and build the default debug toolchain. Mirrors CI smoke coverage and primes local caches. |
+| Developers | `pytest python/tests scripts/tests` | Execute the Python test suites that validate loaders, datasets, and maintenance scripts before publishing changes. |
+| CI | `./scripts/ci/run_presets.py --platform all` | Drive the canonical configure/build/test matrix across Linux and Windows agents with consistent logging. |
+| CI | `python scripts/validate_docs.py` | Enforce documentation link integrity and TODO coverage as part of release gating. |
+
 ## TODO / Next Steps
 
-- Capture shared automation entry points for developers and CI environments.
 - Document additional scripts as new workflows come online (packaging, deployment, etc.).
 - Integrate the runtime diagnostics JSON output into CI dashboards so
   regressions are tracked continuously.
+- Refresh the entry point table when new presets or automation flows land so
+  developers and CI operators share the same reference.
