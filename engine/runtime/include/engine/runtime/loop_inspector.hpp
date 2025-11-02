@@ -18,6 +18,7 @@ namespace engine::runtime
         std::string name;
         RuntimeLoopPhase phase{RuntimeLoopPhase::Simulation};
         std::vector<std::string> dependencies{};
+        RuntimeLoopThreadAffinity thread_affinity{RuntimeLoopThreadAffinity::MainThread};
         bool record_in_execution_report{true};
     };
 
@@ -46,5 +47,20 @@ namespace engine::runtime
             return "diagnostics";
         }
         return "simulation";
+    }
+
+    /// Utility converting thread affinity hints to human-readable strings.
+    [[nodiscard]] constexpr std::string_view to_string(RuntimeLoopThreadAffinity affinity) noexcept
+    {
+        switch (affinity)
+        {
+        case RuntimeLoopThreadAffinity::MainThread:
+            return "main_thread";
+        case RuntimeLoopThreadAffinity::WorkerThread:
+            return "worker_thread";
+        case RuntimeLoopThreadAffinity::Any:
+            return "any";
+        }
+        return "main_thread";
     }
 }

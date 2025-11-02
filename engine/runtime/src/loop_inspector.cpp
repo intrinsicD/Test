@@ -67,6 +67,7 @@ namespace engine::runtime
             inspected.name = stage.name;
             inspected.phase = stage.phase;
             inspected.dependencies = stage.dependencies;
+            inspected.thread_affinity = stage.thread_affinity;
             inspected.record_in_execution_report = stage.record_in_execution_report;
             report.stages.push_back(std::move(inspected));
         }
@@ -85,6 +86,7 @@ namespace engine::runtime
             stream << "    {\n";
             stream << "      \"name\": \"" << escape_json_string(stage.name) << "\",\n";
             stream << "      \"phase\": \"" << to_string(stage.phase) << "\",\n";
+            stream << "      \"thread_affinity\": \"" << to_string(stage.thread_affinity) << "\",\n";
             stream << "      \"record_in_execution_report\": "
                    << (stage.record_in_execution_report ? "true" : "false") << ",\n";
             stream << "      \"dependencies\": [";

@@ -31,8 +31,9 @@ clone glue code, jeopardise determinism, and complicate backend validation.
 ## Decision
 
 1. **Introduce a declarative runtime loop description.**
-   - Define `RuntimeLoopStage` as a lightweight descriptor: name, update function, execution
-     phase (Simulation, Presentation, Diagnostics), thread affinity hint, and dependencies.
+  - Define `RuntimeLoopStage` as a lightweight descriptor: name, update function, execution
+    phase (Simulation, Presentation, Diagnostics), thread affinity hint (enumerated as
+    `RuntimeLoopThreadAffinity::{MainThread, WorkerThread, Any}`), and dependencies.
    - Provide `RuntimeLoopBuilder` to assemble a directed acyclic graph of stages. It defaults to
      the canonical ordering (`Input → Animation → Physics → Geometry → Scene → Rendering → UI →
      Diagnostics → Present`) while permitting overrides (insertion, replacement, removal) that

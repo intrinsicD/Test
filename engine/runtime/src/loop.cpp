@@ -22,7 +22,8 @@ namespace engine::runtime
                                                           RuntimeLoopPhase phase,
                                                           RuntimeLoopStageFunction function,
                                                           std::vector<std::string> dependencies,
-                                                          bool record_in_execution_report)
+                                                          bool record_in_execution_report,
+                                                          RuntimeLoopThreadAffinity thread_affinity)
     {
         if (name.empty())
         {
@@ -48,6 +49,7 @@ namespace engine::runtime
         stage.function = std::move(function);
         stage.dependencies = std::move(dependencies);
         stage.record_in_execution_report = record_in_execution_report;
+        stage.thread_affinity = thread_affinity;
         stages_.push_back(std::move(stage));
         return RuntimeValidationResult{};
     }
@@ -129,6 +131,7 @@ namespace engine::runtime
             compiled.function = stage.function;
             compiled.dependencies = stage.dependencies;
             compiled.record_in_execution_report = stage.record_in_execution_report;
+            compiled.thread_affinity = stage.thread_affinity;
             sorted.push_back(std::move(compiled));
         }
 
