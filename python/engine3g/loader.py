@@ -57,6 +57,14 @@ class EngineLibraryNotFound(RuntimeError):
             "Set ENGINE3G_LIBRARY_PATH or provide explicit search paths. "
             f"Looked in: {search_hint}."
         )
+        if last_error is not None:
+            error_text = str(last_error).strip()
+            if error_text:
+                sanitized = " ".join(error_text.splitlines())
+                if sanitized[-1] in ".!?":
+                    message += f" Last error: {sanitized}"
+                else:
+                    message += f" Last error: {sanitized}."
         super().__init__(message)
 
 
@@ -713,8 +721,9 @@ def _default_search_paths() -> List[Path]:
     env = os.environ.get("ENGINE3G_LIBRARY_PATH")
     if env:
         for entry in env.split(os.pathsep):
-            if entry:
-                paths.append(Path(entry).expanduser().resolve())
+            candidate = entry.strip()
+            if candidate:
+                paths.append(Path(candidate).expanduser().resolve())
     package_root = Path(__file__).resolve().parent
     paths.append(package_root)
     paths.append(Path.cwd())
