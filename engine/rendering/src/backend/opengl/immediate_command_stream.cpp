@@ -26,6 +26,8 @@ namespace engine::rendering::backend::opengl
     void OpenGLImmediateCommandStream::begin_submission(const OpenGLSubmission& submission)
     {
         current_commands_ = &submission.commands;
+        draw_calls_ = 0;
+        compute_dispatches_ = 0;
     }
 
     void OpenGLImmediateCommandStream::wait_timeline(const OpenGLTimelineSubmit& submit)
@@ -116,7 +118,10 @@ namespace engine::rendering::backend::opengl
             return;
         }
 
-        const auto* record = render_resources_->mesh(std::get<assets::MeshHandle>(command.geometry));
+        const auto mesh_handle = std::get<assets::MeshHandle>(command.geometry);
+        render_resources_->require_mesh(mesh_handle);
+
+        const auto* record = render_resources_->mesh(mesh_handle);
         if (record == nullptr)
         {
             return;

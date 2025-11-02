@@ -184,7 +184,6 @@ TEST(OpenGLImmediateCommandStream, ExecutesMeshDraws)
 
     OpenGLRenderResourceProvider render_resources(resolver);
     const auto mesh_handle = engine::assets::MeshHandle{std::string{"mesh.example"}};
-    render_resources.require_mesh(mesh_handle);
 
     OpenGLImmediateCommandStream stream(render_resources);
     OpenGLGpuResourceProvider provider;
@@ -209,6 +208,23 @@ TEST(OpenGLImmediateCommandStream, ExecutesMeshDraws)
 
     scheduler.submit(submit);
     scheduler.recycle(command_buffer);
+
+    EXPECT_EQ(stream.draw_call_count(), 1U);
+    EXPECT_EQ(stream.compute_dispatch_count(), 0U);
+
+    auto second_command_buffer = scheduler.request_command_buffer(QueueType::Graphics, "ImmediatePassSecond");
+    CommandEncoderDescriptor second_descriptor{"ImmediatePassSecond", QueueType::Graphics, second_command_buffer};
+    auto second_encoder = encoders.begin_encoder(second_descriptor);
+    second_encoder->draw_geometry(draw);
+    encoders.end_encoder(second_descriptor, std::move(second_encoder));
+
+    GpuSubmitInfo second_submit{};
+    second_submit.pass_name = "ImmediatePassSecond";
+    second_submit.queue = QueueType::Graphics;
+    second_submit.command_buffer = second_command_buffer;
+
+    scheduler.submit(second_submit);
+    scheduler.recycle(second_command_buffer);
 
     EXPECT_EQ(stream.draw_call_count(), 1U);
     EXPECT_EQ(stream.compute_dispatch_count(), 0U);
