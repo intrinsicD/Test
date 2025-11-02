@@ -155,6 +155,20 @@ class CandidatePathsTests(unittest.TestCase):
         self.assertEqual(paths[2], Path(loader.__file__).resolve().parent)
         self.assertEqual(paths[3], Path("/workspace"))
 
+    def test_default_search_paths_trims_whitespace_entries(self) -> None:
+        with temporary_directory() as base_dir:
+            first = base_dir / "lib one"
+            second = base_dir / "lib two"
+            first.mkdir()
+            second.mkdir()
+            env_value = os.pathsep.join([f"  {first}  ", "", f"\t{second}\n"])
+            with temporary_env({"ENGINE3G_LIBRARY_PATH": env_value}):
+                with mock.patch("pathlib.Path.cwd", return_value=Path("/workspace")):
+                    paths = loader._default_search_paths()
+
+        self.assertEqual(paths[0], first.resolve())
+        self.assertEqual(paths[1], second.resolve())
+
 
 class LoadSharedLibraryTests(unittest.TestCase):
     def test_load_shared_library_tries_candidates_until_success(self) -> None:
@@ -191,6 +205,7 @@ class LoadSharedLibraryTests(unittest.TestCase):
 
         self.assertIn("libengine_core.so", str(ctx.exception))
         self.assertIn(str(candidates[0]), str(ctx.exception))
+        self.assertIn("Last error: missing.", str(ctx.exception))
         self.assertIsInstance(ctx.exception.__cause__, OSError)
         self.assertEqual(str(ctx.exception.__cause__), "missing")
         self.assertEqual(ctx.exception.identifier, "engine_core")
