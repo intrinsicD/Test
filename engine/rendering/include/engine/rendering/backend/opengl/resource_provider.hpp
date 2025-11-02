@@ -92,8 +92,10 @@ namespace engine::rendering::backend::opengl
             std::uint32_t array_layers{0};
             std::uint32_t mip_levels{0};
             std::uint32_t handle{0};
+            std::uint32_t target{0};
             bool native_allocation{false};
             bool depth_attachment{false};
+            bool multisampled{false};
             bool in_use{false};
             std::uint64_t last_used_frame{0};
         };
