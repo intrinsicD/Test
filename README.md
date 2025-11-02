@@ -4,11 +4,11 @@
 
 The workspace hosts a modular C++20 engine prototype. Each subsystem builds as an independent library under `engine/` and exports headers through `engine::headers`, while `docs/`, `python/`, and `scripts/` capture design notes, automation helpers, and build orchestration. Follow this breadcrumb trail at the start of every session:
 
-1. Load [AGENTS.md](AGENTS.md) for the consolidated workflow, role expectations, and quality gates.
-2. Review [docs/NAVIGATION.md](docs/NAVIGATION.md) for documentation navigation and task routing order.
+1. Load [AGENTS.md](AGENTS.md) and follow the Workflow Blueprint (Sections 0.1–0.7) to build the shared context ladder, phase checklists, and quality instrumentation for the session.
+2. Review [docs/NAVIGATION.md](docs/NAVIGATION.md) to confirm documentation precedence and locate module-level READMEs or design notes required by the context ladder.
 3. Confirm the initiative or module you are touching in [docs/ROADMAP.md](docs/ROADMAP.md) and the relevant `docs/modules/<name>/` README/ROADMAP pair.
-4. Open the matching record under [docs/backlog/](docs/backlog/) to understand acceptance criteria and status notes before editing code.
-5. Update documentation, task checklists, and roadmap status together to keep the agent + human workflow in sync.
+4. Open the matching record under [docs/backlog/](docs/backlog/) to understand acceptance criteria, role roster commitments, and required artefacts before editing code.
+5. Update documentation, task checklists, and roadmap status in the same change set so the agent + human workflow stays consistent with the deliverable matrix.
 
 ## Workspace Snapshot
 

@@ -9,54 +9,82 @@ When working as an AI agent, prioritize in this order:
 3. **Performance** – ensure changes respect the existing profiling budgets and telemetry.
 4. **Velocity** – prefer incremental, well-scoped tasks over sweeping refactors.
 
-## 0. Portal Overview
-This file is the **single entry point** for every AI or human contributor operating in the Test Engine workspace. Treat it as the authoritative workflow manual and keep it open for the entire session. All other guides, templates, and checklists extend the process described here.
+## 0. Workflow Blueprint
+This file is the **authoritative operating manual** for every AI or human contributor. Keep it open throughout the session and treat each section as an actionable checklist. The workflow is designed as an iterative software-development loop: gather context, commit to a plan, implement, validate, and broadcast results. The subsections below map that loop onto concrete artefacts and responsibilities.
 
-### Always Do
-
+### 0.1 Orientation Principles
 - Cite every file path or command you reference.
-- Follow the session checklist in [`docs/NAVIGATION.md`](docs/NAVIGATION.md) before modifying anything.
-- When collaborating across multiple roles, review the coordination guidance in the [Agent Directory Workflow](#agent-directory-workflow) section so hand-offs and context packs stay aligned.
-- Update or add tests for every behaviour change. Place C++ coverage under the owning module in `engine/<module>/tests/` and Python coverage under `python/tests/` or `scripts/tests/`.
-- Mirror behavioural or dependency changes into module READMEs, module roadmaps, the central roadmap, and relevant task files.
-- Escalate missing context by listing the exact files or specifications you require.
+- Follow the navigation ladder in [§0.2](#02-context-ladder) at the beginning of each session.
+- Sync every behavioural or dependency change across source, tests, module READMEs, roadmaps, and backlog artefacts.
+- Escalate missing context immediately by naming the unresolved documents or specifications.
+- Prefer small, reviewable diffs that keep the quality gates green.
 
-### Never Do
+### 0.2 Context Ladder
+Load references in this deterministic order before touching code or docs. Capture findings in the task brief.
+1. [`README.md`](README.md) – workspace snapshot and module health.
+2. [`docs/NAVIGATION.md`](docs/NAVIGATION.md) – documentation index and precedence rules.
+3. [`docs/ROADMAP.md`](docs/ROADMAP.md) – strategic initiatives and priority bands.
+4. [`docs/backlog/active/<id>.md`](docs/backlog/active/) – task-level acceptance criteria and role roster.
+5. Module README(s) under [`docs/modules/`](docs/modules/) – subsystem invariants.
+6. Binding decisions under [`docs/specs/ADR-*.md`](docs/specs/) plus relevant design notes.
+7. Historical context in [`docs/reviews/`](docs/reviews/) or [`docs/archive/`](docs/archive/) when risk or precedent is unclear.
 
-- Invent APIs or behaviours that contradict the decision records in [`docs/specs/`](docs/specs/) or the architecture plan.
-- Merge changes without aligning task status and documentation.
-- Introduce new dependencies without documenting installation and runtime implications.
+Record unresolved questions in the context package so the Knowledge Librarian can chase missing pieces.
 
-### Workflow Phases
-The coordination cycle is split into five phases. The **Agent Orchestrator** owns the transitions between them. Every task must record phase outcomes inside the task brief defined in [`agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md`](agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md).
+### 0.3 Deliverable Matrix
+| Phase | Primary Roles | Mandatory Artefacts |
+| --- | --- | --- |
+| Intake & Scoping | Product Manager, Agent Orchestrator | Task brief ([`agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md`](agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md)) with role roster, scope, and risk ledger |
+| Context Assembly | Knowledge Librarian, Docs/DevRel | Context package ([`agents/TEMPLATES/CONTEXT_PACKAGE_TEMPLATE.md`](agents/TEMPLATES/CONTEXT_PACKAGE_TEMPLATE.md)) plus curated context ladder notes |
+| Execution & Collaboration | Specialist Engineer(s), supporting roles | Implementation plan in task brief, inline commentary, incremental commits/tests |
+| Quality Gates | QA/Test, Performance, Safety, Docs/DevRel, Reviewer | Quality report ([`agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md`](agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md)) including command evidence |
+| Release & Documentation Sync | Release Manager, Docs/DevRel, Knowledge Librarian | Synced documentation, roadmap/backlog status updates, release notes |
 
-1. **Intake & Scoping** – Product Manager prepares the brief, registers the task in `docs/backlog/active/`, and validates required roles against [`agents/ROLES.md`](agents/ROLES.md).
-2. **Context Assembly** – Knowledge Librarian curates documentation excerpts and ADR links, delivering the context pack using [`agents/TEMPLATES/CONTEXT_PACKAGE_TEMPLATE.md`](agents/TEMPLATES/CONTEXT_PACKAGE_TEMPLATE.md).
-3. **Execution & Collaboration** – Specialists implement while logging communication in the brief and following [`CONTRIBUTION.md`](CONTRIBUTION.md).
-4. **Quality Gates** – Each gate (testing, performance, security & safety, documentation, review, release) signs off with evidence captured in [`agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md`](agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md).
-5. **Release & Documentation Sync** – Release Manager finalises artefacts and Docs/DevRel synchronises READMEs, the roadmap, and `docs/NAVIGATION.md` before close-out.
+### 0.4 Phase Checklists
+Each phase has explicit entry/exit criteria. Do not advance until the exit criteria are satisfied and logged in the task brief.
 
-### Coordination Model
-- **Communication Ledger:** Every hand-off must update the task brief with timestamped notes.
-- **Sync Rhythm:** Daily async updates via the task brief; urgent blockers escalate to the Orchestrator who convenes relevant roles.
-- **Conflict Resolution:** The Chief Architect resolves architectural disputes. The Docs/DevRel representative ensures documentation decisions are captured.
-- **Escalation Paths:**
-  1. Missing context → Knowledge Librarian.
-  2. Architectural ambiguity → Chief Architect, referencing `docs/specs/ADR-*.md`.
-  3. Tooling/build failures → Build Engineer.
-  4. Quality gate disagreements → Orchestrator for arbitration.
+#### Phase 1 – Intake & Scoping
+- **Entry:** New task identified or backlog item pulled.
+- **Actions:**
+  - Validate scope against roadmap priorities and module ownership.
+  - Fill in the task brief summary, success criteria, and preliminary role roster.
+  - Capture known risks, dependencies, and expected quality gates.
+- **Exit:** Task brief approved by the Agent Orchestrator; backlog item linked.
 
-### Documentation Integration Checklist
-For every task, confirm:
+#### Phase 2 – Context Assembly
+- **Entry:** Task brief approved; Knowledge Librarian assigned.
+- **Actions:**
+  - Traverse the context ladder and populate the context package with quotes, links, and open questions.
+  - Highlight architectural invariants, telemetry budgets, and testing precedents.
+  - Flag missing artefacts to Docs/DevRel and update the task brief communication log.
+- **Exit:** Context package reviewed by Specialist Engineer(s); outstanding questions assigned owners.
 
-1. **Roadmap Alignment:** Reference the owning item in `docs/ROADMAP.md` and the corresponding backlog file.
-2. **Module Documentation:** Update the affected module README using `docs/README_TEMPLATE.md`.
-3. **Architecture Records:** Reflect design-impacting changes in the relevant ADR or create a new one under `docs/specs/`.
-4. **Navigation Update:** If new docs are introduced, add entries to `docs/NAVIGATION.md`.
-5. **Contribution Standards:** Cite the sections in `CONTRIBUTION.md` that apply to the work (naming, testing, coding style).
+#### Phase 3 – Execution & Collaboration
+- **Entry:** Context package accepted; implementation path agreed.
+- **Actions:**
+  - Implement changes referencing `CONTRIBUTION.md` standards.
+  - Keep the task brief’s decision log current with timestamps.
+  - Notify dependent roles (QA, Docs, Performance) of upcoming validation windows.
+- **Exit:** Feature/bugfix implemented, tests updated, and code ready for validation.
 
-### Central Build Workflow
-Use these commands across all roles to guarantee reproducible validation. Copy/paste this block into status updates and task briefs.
+#### Phase 4 – Quality Gates
+- **Entry:** Implementation ready for validation.
+- **Actions:**
+  - Execute the central build workflow (see [§0.5](#05-quality-instrumentation)).
+  - Populate the quality report with command outputs, benchmark deltas, and risk notes.
+  - Collect sign-off from each gate owner; unresolved failures block progression.
+- **Exit:** All gates marked “Pass” or explicitly deferred with mitigation plans recorded in the task brief and backlog item.
+
+#### Phase 5 – Release & Documentation Sync
+- **Entry:** Quality report approved by all gate owners.
+- **Actions:**
+  - Merge documentation updates, roadmap status, and backlog checklists in the same change set.
+  - Release Manager drafts changelog notes and confirms packaging status.
+  - Archive context artefacts to `docs/archive/` if long-lived or reusable.
+- **Exit:** Release notes published, backlog status updated to “Done”, context artefacts linked for future audits.
+
+### 0.5 Quality Instrumentation
+Use this canonical command block across all tasks. Copy it into the task brief and quality report, appending task-specific presets as needed.
 
 ```bash
 cmake --preset linux-gcc-debug
@@ -66,7 +94,34 @@ pytest python/tests scripts/tests
 python scripts/validate_docs.py
 ```
 
-Add additional presets only when mandated by the task scope. Document any deviation inside the quality report template.
+- Document any deviations (additional presets, sanitizers, dataset generation) alongside the rationale.
+- Retain raw logs for QA/Test and Performance sign-off.
+- When new automation is required, extend `scripts/ci/` and capture instructions in the quality report.
+
+### 0.6 Coordination Model
+- **Communication Ledger:** Log every hand-off and decision in the task brief with timestamps and owners.
+- **Async Rhythm:** Daily async updates in the brief; urgent blockers escalate to the Agent Orchestrator for rapid arbitration.
+- **Conflict Resolution:** Architectural disputes go to the Chief Architect referencing `docs/specs/ADR-*.md`. Documentation conflicts are resolved by Docs/DevRel, with the Orchestrator mediating ties.
+- **Escalation Paths:**
+  1. Missing context → Knowledge Librarian.
+  2. Architectural ambiguity → Chief Architect.
+  3. Tooling/build failures → Build Engineer.
+  4. Quality gate disagreements → Agent Orchestrator.
+
+### 0.7 Documentation Integration Checklist
+For every task, confirm and log the following in both the task brief and quality report:
+1. **Roadmap Alignment:** Link to `docs/ROADMAP.md` and the owning backlog entry.
+2. **Module Documentation:** Update the relevant module README using `docs/README_TEMPLATE.md` and record TODO sync status.
+3. **Architecture Records:** Amend or add ADRs when behaviour or invariants shift.
+4. **Navigation Update:** Register new documents or renamed assets in `docs/NAVIGATION.md`.
+5. **Contribution Standards:** Cite applicable sections of `CONTRIBUTION.md` in commit messages or task brief notes.
+
+### 0.8 Guardrails
+- **Do not** introduce APIs or behaviours that contradict ADRs or architectural plans without filing and approving a replacement ADR.
+- **Do not** merge changes until backlog status, documentation, and templates are updated together.
+- **Do not** add dependencies without documenting installation/runtime implications and updating automation scripts where feasible.
+- **Do** keep tests in lockstep with behavioural changes (C++ under `engine/<module>/tests/`, Python under `python/tests/` or `scripts/tests/`).
+- **Do** cite sources (files, commands, telemetry) in every communication artefact.
 
 ### Artefact Overview
 - **Roles and responsibilities:** [`agents/ROLES.md`](agents/ROLES.md)
@@ -87,6 +142,12 @@ The [`agents/`](agents/) directory houses the focused artefacts that extend the 
 - Keep links to backlog entries, ADRs, and module documentation accurate.
 - Update `agents/ROLES.md` and the templates in the same change when responsibilities shift.
 - Legacy role files were removed in favour of the streamlined assets above. Refer to repository history if archival context is required.
+
+### Workflow Change Proposals
+- File workflow improvements as backlog items tagged `workflow` and assign the Agent Orchestrator as steward.
+- Include a red/green impact analysis and testing implications inside the proposal.
+- Update this portal, `agents/ROLES.md`, templates, and affected prompts in the **same change** to keep instructions atomic.
+- Run `python scripts/update_agents_tree.py` if directory structure changes accompany the workflow update.
 
 Keep this document authoritative; when the workflow evolves, update it alongside the linked artefacts in the same commit.
 
