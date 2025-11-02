@@ -14,14 +14,14 @@ if str(_PROJECT_ROOT) not in sys.path:
 if str(_PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(_PYTHON_ROOT))
 
-from engine3g import case_studies as case_studies_module  # type: ignore
-from engine3g.case_studies import (  # type: ignore
-    CaseStudyError,
-    CaseStudyNotFoundError,
-    available_case_studies,
-    describe_case_studies,
-    get_case_study,
-)
+import engine3g  # type: ignore
+import engine3g.case_studies as case_studies_module  # type: ignore
+
+CaseStudyError = case_studies_module.CaseStudyError
+CaseStudyNotFoundError = case_studies_module.CaseStudyNotFoundError
+available_case_studies = case_studies_module.available_case_studies
+describe_case_studies = case_studies_module.describe_case_studies
+get_case_study = case_studies_module.get_case_study
 
 
 @pytest.fixture(autouse=True)
@@ -29,6 +29,10 @@ def reset_case_study_cache() -> None:
     case_studies_module._case_study_map.cache_clear()
     yield
     case_studies_module._case_study_map.cache_clear()
+
+
+def test_package_reexports_describe_case_studies() -> None:
+    assert engine3g.describe_case_studies is describe_case_studies
 
 
 def test_case_study_registry_lists_available_configs() -> None:
