@@ -32,8 +32,8 @@ def reset_case_study_cache() -> None:
 
 
 def test_package_reexports_describe_case_studies() -> None:
-    import engine3g  # type: ignore
-
+    import sys
+    engine3g = sys.modules["engine3g"]
     assert engine3g.describe_case_studies is describe_case_studies
 
 
