@@ -10,6 +10,8 @@ namespace engine::platform::filesystem
         {
             bool exists{false};
             std::filesystem::file_time_type last_write{};
+            std::uintmax_t size{0};
+            bool size_known{false};
         };
 
         FilesystemWatcher::path_type normalise_path(FilesystemWatcher::path_type path)
@@ -49,6 +51,12 @@ namespace engine::platform::filesystem
             }
 
             state.last_write = last_write;
+            const auto file_size = std::filesystem::file_size(path, ec);
+            if (!ec)
+            {
+                state.size = file_size;
+                state.size_known = true;
+            }
             return state;
         }
     } // namespace
@@ -66,7 +74,12 @@ namespace engine::platform::filesystem
         std::scoped_lock lock{mutex_};
         const auto handle_value = next_handle_++;
         watchers_.emplace(handle_value,
-                          WatchedFile{std::move(normalised), std::move(callback), state.last_write, state.exists});
+                          WatchedFile{std::move(normalised),
+                                      std::move(callback),
+                                      state.last_write,
+                                      state.size,
+                                      state.size_known,
+                                      state.exists});
         return WatchHandle{handle_value};
     }
 
@@ -112,10 +125,15 @@ namespace engine::platform::filesystem
                     type = WatchEventType::created;
                     should_dispatch = true;
                 }
-                else if (watched.known_exists && state.exists && watched.last_write != state.last_write)
+                else if (watched.known_exists && state.exists)
                 {
-                    type = WatchEventType::modified;
-                    should_dispatch = true;
+                    const bool timestamp_changed = watched.last_write != state.last_write;
+                    const bool size_changed = watched.size_known && state.size_known && watched.last_size != state.size;
+                    if (timestamp_changed || size_changed)
+                    {
+                        type = WatchEventType::modified;
+                        should_dispatch = true;
+                    }
                 }
                 else if (watched.known_exists && !state.exists)
                 {
@@ -127,6 +145,12 @@ namespace engine::platform::filesystem
                 if (state.exists)
                 {
                     watched.last_write = state.last_write;
+                    watched.last_size = state.size;
+                    watched.size_known = state.size_known;
+                }
+                else
+                {
+                    watched.size_known = false;
                 }
 
                 if (should_dispatch)
