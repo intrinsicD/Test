@@ -9,6 +9,7 @@ add_library(${target_name}
         src/backend/opengl/resource_provider.cpp
         src/backend/opengl/render_resource_provider.cpp
         src/backend/opengl/runtime_adapter.cpp
+        src/backend/vulkan/resource_provider.cpp
         src/frame_graph.cpp
         src/forward_pipeline.cpp
         src/pipeline/research_baseline_telemetry.cpp

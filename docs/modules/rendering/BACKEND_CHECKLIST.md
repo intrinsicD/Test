@@ -15,8 +15,9 @@ runtime submission paths and backend schedulers.
   under `scripts/build/presets/` already enable these flags.
 - **Tests** – Build `engine_rendering` and `engine_rendering_tests` targets when
   exercising backend schedulers. Pair the backend under test with
-  `resources::RecordingGpuResourceProvider` to surface translated handles without
-  binding to real driver APIs.
+  `backend::vulkan::VulkanGpuResourceProvider` for deterministic Vulkan handle
+  lifecycles, or fall back to `resources::RecordingGpuResourceProvider` when
+  capturing translation traces without binding to real driver APIs.
 
 ## Vulkan Backend
 
@@ -64,6 +65,10 @@ runtime submission paths and backend schedulers.
   frame graph. The runtime test
   [`RuntimeHost.SubmitsRenderGraphThroughVulkanScheduler`](../../../engine/runtime/tests/test_module.cpp)
   demonstrates the expected wiring and validates resource acquisitions.
+- Use `backend::vulkan::VulkanGpuResourceProvider` when exercising the Vulkan
+  scheduler to mirror transient resource lifetimes and command buffer recycling
+  without requiring device-level allocations; telemetry still reflects resource
+  residency for diagnostics and retention tuning.
 - Ensure materials and meshes are registered with the render resource provider
   prior to submission, as shown in the same test case.
 
