@@ -111,21 +111,25 @@ def _normalise_dependency_entry(entry: object) -> Optional[Tuple[str, Dict[str, 
     """Return the canonical dependency identifier and metadata, if available."""
 
     if isinstance(entry, str):
-        identifier = entry.strip()
-        return (identifier, {}) if identifier else None
+        normalized_identifier = entry.strip()
+        return (normalized_identifier, {}) if normalized_identifier else None
 
     if isinstance(entry, Mapping):
-        identifier: Optional[str] = None
+        extracted_identifier: Optional[str] = None
         requested: Dict[str, object] = {}
         for key, value in entry.items():
-            if identifier is None and key in _NORMALIZED_DEPENDENCY_KEYS and isinstance(value, str):
+            if (
+                extracted_identifier is None
+                and key in _NORMALIZED_DEPENDENCY_KEYS
+                and isinstance(value, str)
+            ):
                 candidate = value.strip()
                 if candidate:
-                    identifier = candidate
+                    extracted_identifier = candidate
                 continue
             requested[key] = value
-        if identifier:
-            return identifier, requested
+        if extracted_identifier:
+            return extracted_identifier, requested
     return None
 
 
@@ -238,14 +242,16 @@ def collect_module_provenance(
 
     provenance: Dict[str, Dict[str, object]] = {}
     cache: Dict[str, Dict[str, object]] = {}
+    traversal_stack: Set[str] = set()
     for handle in handles:
         provenance[handle.identifier] = _build_provenance_record(
             handle,
             registry=registry,
             resolved_names=resolved_names,
             cache=cache,
-            stack=set(),
+            stack=traversal_stack,
         )
+        traversal_stack.clear()
     return provenance
 
 
