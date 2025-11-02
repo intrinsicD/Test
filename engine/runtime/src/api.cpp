@@ -2122,14 +2122,14 @@ namespace engine::runtime
             stage_result = builder.add_stage(
                 "presentation.dispatch",
                 RuntimeLoopPhase::Presentation,
-                [this](double dt)
+                [this, has_presentation_backend](double dt)
                 {
 #if ENGINE_ENABLE_RENDERING
-                    if (presentation_backend != nullptr || presentation_callback)
+                    if (has_presentation_backend || presentation_callback)
                     {
                         ensure_render_entity();
                     }
-                    if (presentation_backend != nullptr && host != nullptr)
+                    if (has_presentation_backend && host != nullptr)
                     {
                         rendering::RuntimePresentationContext context{*host, dt};
                         presentation_backend->present(context);
