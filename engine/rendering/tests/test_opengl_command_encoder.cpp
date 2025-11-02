@@ -226,6 +226,8 @@ TEST(OpenGLImmediateCommandStream, ExecutesMeshDraws)
     scheduler.submit(second_submit);
     scheduler.recycle(second_command_buffer);
 
+    // Counters reset in begin_submission, so draw_call_count reflects only the
+    // commands encoded in the most recent submission.
     EXPECT_EQ(stream.draw_call_count(), 1U);
     EXPECT_EQ(stream.compute_dispatch_count(), 0U);
 }
