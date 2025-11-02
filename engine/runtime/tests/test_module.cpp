@@ -33,6 +33,7 @@
 #include "engine/rendering/forward_pipeline.hpp"
 #if ENGINE_ENABLE_RENDERING
 #    include "engine/rendering/pipeline/research_baseline_telemetry.hpp"
+#    include "engine/rendering/presentation_backend.hpp"
 #endif
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/assets/point_cloud_asset.hpp"
@@ -100,6 +101,21 @@ namespace
 #endif
         return modules;
     }
+
+#if ENGINE_ENABLE_RENDERING
+    class RecordingPresentationBackend final : public engine::rendering::PresentationBackend
+    {
+    public:
+        void present(const engine::rendering::RuntimePresentationContext& context) override
+        {
+            calls.push_back(context.delta_seconds);
+            last_host = &context.host;
+        }
+
+        std::vector<double> calls{};
+        engine::runtime::RuntimeHost* last_host{nullptr};
+    };
+#endif
 
     std::optional<std::size_t> find_metric_index(const engine::core::telemetry::MetricSet& metrics,
                                                  std::string_view name,
@@ -2331,6 +2347,33 @@ TEST(RuntimeHost, PresentationCallbackInvoked)
     EXPECT_NEAR(observed_dt, 0.016, 1e-6);
     host.shutdown();
 }
+
+#if ENGINE_ENABLE_RENDERING
+TEST(RuntimeHost, PresentationBackendInvoked)
+{
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.presentation_callback = nullptr;
+    auto backend = std::make_shared<RecordingPresentationBackend>();
+    deps.presentation_backend = backend;
+
+    engine::runtime::RuntimeHost host{std::move(deps)};
+    host.initialize();
+    host.tick(0.02);
+
+    ASSERT_EQ(backend->calls.size(), 1U);
+    EXPECT_NEAR(backend->calls.front(), 0.02, 1e-6);
+    EXPECT_EQ(backend->last_host, &host);
+
+    const auto& diagnostics = host.diagnostics();
+    const bool has_presentation_stage = std::any_of(
+        diagnostics.stage_timings.begin(),
+        diagnostics.stage_timings.end(),
+        [](const engine::runtime::RuntimeStageTiming& stage) { return stage.name == "presentation.dispatch"; });
+    EXPECT_TRUE(has_presentation_stage);
+
+    host.shutdown();
+}
+#endif
 
 TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection)
 {

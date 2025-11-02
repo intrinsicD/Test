@@ -438,6 +438,7 @@ namespace engine::runtime
     struct RuntimeHost::Impl
     {
         RuntimeHostDependencies dependencies{};
+        RuntimeHost* host{nullptr};
         bool initialized{false};
         double simulation_time{0.0};
         animation::AnimationController controller{};
@@ -476,6 +477,7 @@ namespace engine::runtime
         scene::Entity render_entity{};
         rendering::ForwardPipeline forward_pipeline{};
         rendering::ResearchBaselineOptions research_options{};
+        std::shared_ptr<rendering::PresentationBackend> presentation_backend{};
 #endif
 #if ENGINE_ENABLE_ASSETS
         assets::MeshCache* mesh_cache{nullptr};
@@ -508,7 +510,8 @@ namespace engine::runtime
             }
         }
 
-        explicit Impl(RuntimeHostDependencies deps)
+        explicit Impl(RuntimeHost& owner, RuntimeHostDependencies deps)
+            : host(&owner)
         {
             throw_if_invalid_dependencies(deps);
             dependencies = std::move(deps);
@@ -1942,6 +1945,7 @@ namespace engine::runtime
             {
                 renderable_name = dependencies.renderable_name;
             }
+            presentation_backend = dependencies.presentation_backend;
 #endif
 #if ENGINE_ENABLE_ASSETS
             mesh_cache = dependencies.asset_streaming.mesh_cache;
@@ -2110,15 +2114,25 @@ namespace engine::runtime
                 return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
             }
 
+#if ENGINE_ENABLE_RENDERING
+            const bool has_presentation_backend = presentation_backend != nullptr;
+#else
+            const bool has_presentation_backend = false;
+#endif
             stage_result = builder.add_stage(
                 "presentation.dispatch",
                 RuntimeLoopPhase::Presentation,
                 [this](double dt)
                 {
 #if ENGINE_ENABLE_RENDERING
-                    if (presentation_callback)
+                    if (presentation_backend != nullptr || presentation_callback)
                     {
                         ensure_render_entity();
+                    }
+                    if (presentation_backend != nullptr && host != nullptr)
+                    {
+                        rendering::RuntimePresentationContext context{*host, dt};
+                        presentation_backend->present(context);
                     }
 #endif
                     if (presentation_callback)
@@ -2127,7 +2141,7 @@ namespace engine::runtime
                     }
                 },
                 {"runtime.plugins"},
-                presentation_callback != nullptr);
+                presentation_callback != nullptr || has_presentation_backend);
             if (!stage_result)
             {
                 return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
@@ -2592,13 +2606,31 @@ namespace engine::runtime
     }
 
     RuntimeHost::RuntimeHost(RuntimeHostDependencies dependencies)
-        : impl_(std::make_unique<Impl>(std::move(dependencies)))
+        : impl_(std::make_unique<Impl>(*this, std::move(dependencies)))
     {
     }
 
-    RuntimeHost::RuntimeHost(RuntimeHost&&) noexcept = default;
+    RuntimeHost::RuntimeHost(RuntimeHost&& other) noexcept
+        : impl_(std::move(other.impl_))
+    {
+        if (impl_ != nullptr)
+        {
+            impl_->host = this;
+        }
+    }
 
-    RuntimeHost& RuntimeHost::operator=(RuntimeHost&&) noexcept = default;
+    RuntimeHost& RuntimeHost::operator=(RuntimeHost&& other) noexcept
+    {
+        if (this != &other)
+        {
+            impl_ = std::move(other.impl_);
+            if (impl_ != nullptr)
+            {
+                impl_->host = this;
+            }
+        }
+        return *this;
+    }
 
     RuntimeHost::~RuntimeHost() = default;
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-> **Status:** ⚠️ **At Risk** — `RuntimeHost` now compiles a declarative `RuntimeLoopPlan` with per-phase telemetry and a presentation dispatch hook, but the presentation backends and synchronisation APIs mandated by [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) remain outstanding until [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) lands.
+> **Status:** ⚠️ **At Risk** — `RuntimeHost` now compiles a declarative `RuntimeLoopPlan` with per-phase telemetry and supports the `rendering::PresentationBackend` interface, yet GPU-backed presenters and synchronisation APIs mandated by [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) remain outstanding until [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) lands.
 
 The runtime module orchestrates the engine's main execution loop through `RuntimeHost`, which coordinates animation evaluation, physics simulation, geometry deformation, scene graph updates, and rendering submission. It acts as the integration point for all subsystems and provides comprehensive diagnostics and telemetry.
 
@@ -108,7 +108,7 @@ before the next frame begins. The host clears stage timing history and refreshes
 the updated graph. Inspect the active plan via `RuntimeHost::loop_plan()` (or the global
 `engine::runtime::loop_plan()` helper) when exporting diagnostics or wiring control surfaces.
 
-`presentation.dispatch` bridges the simulation stack to presentation tooling. Register a callback with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper) to perform backend presentation, screenshot capture, or tooling overlays after simulation finishes but before diagnostics run. The callback executes every tick and receives the frame `dt` so presentation logic can track timing alongside simulation state.
+`presentation.dispatch` bridges the simulation stack to presentation tooling. Provide a presenter by attaching a `rendering::PresentationBackend` to `RuntimeHostDependencies::presentation_backend`; the host invokes it every tick with a `rendering::RuntimePresentationContext` so the backend can submit frame-graph work, composite UI, or trigger readbacks before diagnostics run. Lightweight integrations may continue to register callbacks with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper). Both backends and callbacks receive the frame `dt` so presentation logic can track timing alongside simulation state.
 
 ## Diagnostics & Telemetry
 
