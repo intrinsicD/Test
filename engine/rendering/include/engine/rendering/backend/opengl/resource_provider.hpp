@@ -23,13 +23,23 @@ namespace engine::rendering::backend::opengl
     class OpenGLGpuResourceProvider final : public resources::IGpuResourceProvider
     {
     public:
-        OpenGLGpuResourceProvider();
+        explicit OpenGLGpuResourceProvider(std::uint64_t retention_frames = 0);
         ~OpenGLGpuResourceProvider() override;
 
         [[nodiscard]] resources::GraphicsApi api() const noexcept override;
 
         void begin_frame() override;
         void end_frame() override;
+
+        /// Configure how many idle frames a transient resource remains cached
+        /// before being destroyed. A value of 0 destroys the resource after it
+        /// stays unused for a full frame. Larger values retain the allocation
+        /// for additional frames to improve reuse.
+        void set_retention_frames(std::uint64_t frames) noexcept;
+        [[nodiscard]] std::uint64_t retention_frames() const noexcept
+        {
+            return retention_frames_;
+        }
 
         [[nodiscard]] resources::QueueNativeHandle queue_handle(QueueType queue) const override;
         [[nodiscard]] resources::CommandBufferNativeHandle allocate_command_buffer(

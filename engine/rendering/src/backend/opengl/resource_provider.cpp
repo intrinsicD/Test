@@ -291,7 +291,10 @@ namespace engine::rendering::backend::opengl
 #endif  // ENGINE_RENDERING_HAS_GLAD
     } // namespace
 
-    OpenGLGpuResourceProvider::OpenGLGpuResourceProvider() = default;
+    OpenGLGpuResourceProvider::OpenGLGpuResourceProvider(std::uint64_t retention_frames)
+        : retention_frames_{retention_frames}
+    {
+    }
 
     OpenGLGpuResourceProvider::~OpenGLGpuResourceProvider()
     {
@@ -354,6 +357,11 @@ namespace engine::rendering::backend::opengl
             }
             return false;
         });
+    }
+
+    void OpenGLGpuResourceProvider::set_retention_frames(std::uint64_t frames) noexcept
+    {
+        retention_frames_ = frames;
     }
 
     resources::QueueNativeHandle OpenGLGpuResourceProvider::queue_handle(QueueType queue) const
