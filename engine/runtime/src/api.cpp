@@ -576,7 +576,7 @@ namespace engine::runtime
             RuntimeLoopPhase phase,
             RuntimeLoopThreadAffinity thread_affinity)
         {
-            if (auto it = stage_lookup.find(name); it != stage_lookup.end())
+            if (auto it = stage_lookup.find(std::string{name}); it != stage_lookup.end())
             {
                 auto& timing = diagnostics.stage_timings[it->second.timing_index];
                 timing.phase = phase;
@@ -637,7 +637,7 @@ namespace engine::runtime
 
         RuntimeLoopPhase stage_phase(std::string_view name) const
         {
-            if (auto it = stage_lookup.find(name); it != stage_lookup.end())
+            if (auto it = stage_lookup.find(std::string{name}); it != stage_lookup.end())
             {
                 return it->second.phase;
             }
@@ -655,7 +655,7 @@ namespace engine::runtime
 
         RuntimeLoopThreadAffinity stage_affinity(std::string_view name) const
         {
-            if (auto it = stage_lookup.find(name); it != stage_lookup.end())
+            if (auto it = stage_lookup.find(std::string{name}); it != stage_lookup.end())
             {
                 return it->second.thread_affinity;
             }
@@ -2084,7 +2084,8 @@ namespace engine::runtime
                         presentation_callback(dt);
                     }
                 },
-                {"runtime.plugins"});
+                {"runtime.plugins"},
+                presentation_callback != nullptr);
             if (!stage_result)
             {
                 return RuntimeResult<RuntimeLoopPlan>{stage_result.error()};
@@ -2454,7 +2455,7 @@ namespace engine::runtime
             last_report.kernel_durations.clear();
             last_report.dependency_graph.nodes.clear();
             last_report.clock_domain = compute::TimingDomain::Cpu;
-            last_report.clock_name = "runtime.loop";
+            last_report.clock_name = "steady_clock";
 
             const auto& stages = loop_plan.stages();
             phase_frame_duration_seconds.fill(0.0);
@@ -3550,16 +3551,16 @@ extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_stage_phase(
 
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_phase_count() noexcept
 {
-    return runtime_loop_phase_count();
+    return engine::runtime::runtime_loop_phase_count();
 }
 
 extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_phase_name(std::size_t index) noexcept
 {
-    if (index >= runtime_loop_phase_count())
+    if (index >= engine::runtime::runtime_loop_phase_count())
     {
         return nullptr;
     }
-    return to_string(static_cast<RuntimeLoopPhase>(index)).data();
+    return engine::runtime::to_string(static_cast<engine::runtime::RuntimeLoopPhase>(index)).data();
 }
 
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_phase_last_ms(std::size_t index) noexcept

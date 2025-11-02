@@ -3,8 +3,11 @@
 
 #include <gtest/gtest.h>
 
+#include "engine/rendering/backend/opengl/command_encoder.hpp"
 #include "engine/rendering/backend/opengl/resource_provider.hpp"
+#include "engine/rendering/command_encoder.hpp"
 #include "engine/rendering/frame_graph.hpp"
+#include "engine/rendering/resources/synchronization.hpp"
 
 namespace
 {
@@ -379,4 +382,89 @@ TEST(OpenGLResourceProvider, UpdatesRetentionWindowAtRuntime)
     provider.end_frame();
 
     EXPECT_EQ(provider.texture(handle), nullptr);
+}
+
+TEST(OpenGLResourceProvider, ProvidesStableQueueHandles)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+
+    const auto graphics_handle = provider.queue_handle(engine::rendering::QueueType::Graphics);
+    const auto compute_handle = provider.queue_handle(engine::rendering::QueueType::Compute);
+
+    EXPECT_EQ(graphics_handle.api, engine::rendering::resources::GraphicsApi::OpenGL);
+    EXPECT_EQ(graphics_handle.queue, engine::rendering::QueueType::Graphics);
+    EXPECT_EQ(provider.queue_handle(engine::rendering::QueueType::Graphics).value, graphics_handle.value);
+
+    EXPECT_EQ(compute_handle.api, engine::rendering::resources::GraphicsApi::OpenGL);
+    EXPECT_EQ(compute_handle.queue, engine::rendering::QueueType::Compute);
+    EXPECT_NE(graphics_handle.value, compute_handle.value);
+}
+
+TEST(OpenGLResourceProvider, CachesCommandBuffersBetweenAllocations)
+{
+    using engine::rendering::backend::opengl::OpenGLCommandBuffer;
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+
+    engine::rendering::CommandBufferHandle handle{};
+    handle.index = 99;
+
+    const auto native = provider.allocate_command_buffer(engine::rendering::QueueType::Graphics,
+                                                         "TestPass", handle);
+
+    EXPECT_EQ(native.api, engine::rendering::resources::GraphicsApi::OpenGL);
+    EXPECT_EQ(native.queue, engine::rendering::QueueType::Graphics);
+    EXPECT_EQ(native.index, handle.index);
+    EXPECT_EQ(native.label, "TestPass");
+
+    auto* buffer = provider.command_buffer(handle);
+    ASSERT_NE(buffer, nullptr);
+    EXPECT_EQ(buffer->handle(), handle);
+    EXPECT_TRUE(buffer->commands().empty());
+
+    engine::rendering::ComputeDispatchCommand dispatch{};
+    dispatch.group_count_x = 2U;
+    buffer->push_command(OpenGLCommandBuffer::EncodedCommand::make_dispatch(dispatch));
+    ASSERT_FALSE(buffer->commands().empty());
+
+    provider.recycle_command_buffer(handle);
+
+    buffer = provider.command_buffer(handle);
+    ASSERT_NE(buffer, nullptr);
+    EXPECT_TRUE(buffer->commands().empty());
+
+    const auto relabeled = provider.allocate_command_buffer(engine::rendering::QueueType::Graphics,
+                                                            "AnotherPass", handle);
+    EXPECT_EQ(relabeled.index, handle.index);
+    EXPECT_EQ(relabeled.label, "AnotherPass");
+    EXPECT_EQ(buffer, provider.command_buffer(handle));
+}
+
+TEST(OpenGLResourceProvider, ResolveFenceCachesNativeHandle)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+
+    engine::rendering::resources::Fence fence{"Fence.Resolve"};
+    const auto first = provider.resolve_fence(fence);
+    const auto second = provider.resolve_fence(fence);
+
+    EXPECT_EQ(first.api, engine::rendering::resources::GraphicsApi::OpenGL);
+    EXPECT_EQ(first.value, second.value);
+    EXPECT_NE(first.value, 0U);
+}
+
+TEST(OpenGLResourceProvider, ResolveSemaphoreCachesNativeHandle)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider;
+
+    engine::rendering::resources::TimelineSemaphore semaphore{"Semaphore.Resolve"};
+    const auto first = provider.resolve_semaphore(semaphore);
+    const auto second = provider.resolve_semaphore(semaphore);
+
+    EXPECT_EQ(first.api, engine::rendering::resources::GraphicsApi::OpenGL);
+    EXPECT_EQ(first.value, second.value);
+    EXPECT_NE(first.value, 0U);
+
+    engine::rendering::resources::TimelineSemaphore other{"Semaphore.Other"};
+    const auto other_handle = provider.resolve_semaphore(other);
+    EXPECT_NE(first.value, other_handle.value);
 }
