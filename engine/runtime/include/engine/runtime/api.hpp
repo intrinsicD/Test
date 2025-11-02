@@ -33,6 +33,7 @@
 #    include "engine/rendering/components.hpp"
 #    include "engine/rendering/frame_graph.hpp"
 #    include "engine/rendering/gpu_scheduler.hpp"
+#    include "engine/rendering/presentation_backend.hpp"
 #    include "engine/rendering/runtime_submission.hpp"
 #    include "engine/rendering/resources/resource_provider.hpp"
 #    include "engine/rendering/pipeline/research_baseline.hpp"
@@ -89,6 +90,7 @@ namespace engine::runtime
 #if ENGINE_ENABLE_RENDERING
         rendering::components::RenderGeometry render_geometry{};
         std::string renderable_name{"runtime.renderable"};
+        std::shared_ptr<rendering::PresentationBackend> presentation_backend{};
 #endif
 #if ENGINE_ENABLE_ASSETS
         struct AssetStreamingProviders
