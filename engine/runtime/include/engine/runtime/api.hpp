@@ -124,6 +124,7 @@ namespace engine::runtime
     {
         std::string name{};
         RuntimeLoopPhase phase{RuntimeLoopPhase::Simulation};
+        RuntimeLoopThreadAffinity thread_affinity{RuntimeLoopThreadAffinity::MainThread};
         double last_ms{0.0};
         double average_ms{0.0};
         double max_ms{0.0};

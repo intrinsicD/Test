@@ -79,6 +79,18 @@ The subsystem registry validates dependencies and detects cycles during initiali
 
 `RuntimeLoopBuilder::build()` returns `RuntimeResult<RuntimeLoopPlan>`; callers must propagate or handle these errors before executing the plan. The default runtime loop logs a validation error and falls back to an empty plan if compilation ever fails.
 
+Each stage descriptor also captures a `thread_affinity` hint so upcoming stage planners can reason about where work should execute. The default (`main_thread`) keeps behaviour unchanged, while `worker_thread` and `any` reserve room for future parallel execution policies. Pass the hint when registering a stage:
+
+```cpp
+builder.add_stage(
+    "diagnostics.refresh",
+    RuntimeLoopPhase::Diagnostics,
+    [](double) { /* refresh metrics */ },
+    {"runtime.plugins"},
+    /*record_in_execution_report=*/false,
+    RuntimeLoopThreadAffinity::WorkerThread);
+```
+
 The compiled default plan executes the following stages:
 
 1. `animation.evaluate`
@@ -119,7 +131,7 @@ if (diag.scene_validation.has_cycles) {
 ### Available Metrics
 
 - **Lifecycle counters**: `initialize_count`, `tick_count`, `shutdown_count`, `initialize_failure_count`
-- **Timing data**: `last_*_ms`, `max_*_ms`, `average_tick_ms` plus per-stage timing (`RuntimeStageTiming`, including each stage's `phase`) and aggregated per-phase totals exposed through `RuntimeDiagnostics::phase_timings`
+- **Timing data**: `last_*_ms`, `max_*_ms`, `average_tick_ms` plus per-stage timing (`RuntimeStageTiming`, including each stage's `phase` and `thread_affinity`) and aggregated per-phase totals exposed through `RuntimeDiagnostics::phase_timings`
 - **Streaming telemetry**: Worker health, queue depth, completion/failure rates (see [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md))
 - **Animation telemetry**: Clip/pose metadata plus dispatcher aggregates grouped by animation category and queue, exposed via `RuntimeDiagnostics::animation` and mirrored through the C API for tooling.
 - **Scene validation**: Cycle detection, depth analysis, alert levels (see [`DIAGNOSTICS.md`](DIAGNOSTICS.md))
@@ -242,7 +254,7 @@ ctest --preset linux-gcc-debug -R runtime
 ## Current State
 
 - `RuntimeHost` orchestration advancing animation, compute-driven physics, CPU linear blend skinning, geometry deformation, and submission into the rendering pipeline. Diagnostics expose stage timings, streaming metrics, scene validation, and frame-graph metadata.
-- Compiled loop plans surface through the `RuntimeLoopInspector`, emitting a deterministic JSON description (`diagnostics.loop_plan_serialization`) so tooling can introspect phases, dependencies, and execution reporting flags alongside frame-graph captures.
+- Compiled loop plans surface through the `RuntimeLoopInspector`, emitting a deterministic JSON description (`diagnostics.loop_plan_serialization`) so tooling can introspect phases, dependencies, thread affinity hints, and execution reporting flags alongside frame-graph captures.
 
 ## Usage
 

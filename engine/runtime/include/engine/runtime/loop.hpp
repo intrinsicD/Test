@@ -10,6 +10,14 @@
 
 namespace engine::runtime
 {
+    /// Hint describing where a runtime loop stage prefers to execute.
+    enum class RuntimeLoopThreadAffinity
+    {
+        MainThread,
+        WorkerThread,
+        Any,
+    };
+
     /// Phase classification for runtime loop stages.
     enum class RuntimeLoopPhase
     {
@@ -40,6 +48,7 @@ namespace engine::runtime
         RuntimeLoopPhase phase{RuntimeLoopPhase::Simulation};
         RuntimeLoopStageFunction function{};
         std::vector<std::string> dependencies{};
+        RuntimeLoopThreadAffinity thread_affinity{RuntimeLoopThreadAffinity::MainThread};
         bool record_in_execution_report{true};
     };
 
@@ -64,7 +73,9 @@ namespace engine::runtime
                                                         RuntimeLoopPhase phase,
                                                         RuntimeLoopStageFunction function,
                                                         std::vector<std::string> dependencies = {},
-                                                        bool record_in_execution_report = true);
+                                                        bool record_in_execution_report = true,
+                                                        RuntimeLoopThreadAffinity thread_affinity =
+                                                            RuntimeLoopThreadAffinity::MainThread);
 
         [[nodiscard]] RuntimeResult<RuntimeLoopPlan> build() const;
 

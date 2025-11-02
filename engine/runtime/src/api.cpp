@@ -462,6 +462,7 @@ namespace engine::runtime
         {
             std::size_t timing_index{0};
             RuntimeLoopPhase phase{RuntimeLoopPhase::Simulation};
+            RuntimeLoopThreadAffinity thread_affinity{RuntimeLoopThreadAffinity::MainThread};
         };
         std::unordered_map<std::string, StageTimingEntry, std::hash<std::string_view>, std::equal_to<>> stage_lookup{};
         std::unordered_map<std::string, std::size_t> subsystem_lookup{};
@@ -570,21 +571,29 @@ namespace engine::runtime
             return std::chrono::duration<double, std::milli>(duration).count();
         }
 
-        RuntimeStageTiming& ensure_stage_timing(std::string_view name, RuntimeLoopPhase phase)
+        RuntimeStageTiming& ensure_stage_timing(
+            std::string_view name,
+            RuntimeLoopPhase phase,
+            RuntimeLoopThreadAffinity thread_affinity)
         {
             if (auto it = stage_lookup.find(name); it != stage_lookup.end())
             {
                 auto& timing = diagnostics.stage_timings[it->second.timing_index];
                 timing.phase = phase;
+                timing.thread_affinity = thread_affinity;
                 it->second.phase = phase;
+                it->second.thread_affinity = thread_affinity;
                 return timing;
             }
             RuntimeStageTiming timing{};
             timing.name.assign(name.begin(), name.end());
             timing.phase = phase;
+            timing.thread_affinity = thread_affinity;
             diagnostics.stage_timings.push_back(std::move(timing));
             const std::size_t index = diagnostics.stage_timings.size() - 1U;
-            stage_lookup.emplace(diagnostics.stage_timings[index].name, StageTimingEntry{index, phase});
+            stage_lookup.emplace(
+                diagnostics.stage_timings[index].name,
+                StageTimingEntry{index, phase, thread_affinity});
             return diagnostics.stage_timings[index];
         }
 
@@ -642,6 +651,24 @@ namespace engine::runtime
                 return match->phase;
             }
             return RuntimeLoopPhase::Simulation;
+        }
+
+        RuntimeLoopThreadAffinity stage_affinity(std::string_view name) const
+        {
+            if (auto it = stage_lookup.find(name); it != stage_lookup.end())
+            {
+                return it->second.thread_affinity;
+            }
+            const auto& stages = loop_plan.stages();
+            const auto match = std::find_if(
+                stages.begin(),
+                stages.end(),
+                [&](const RuntimeLoopStage& stage) { return stage.name == name; });
+            if (match != stages.end())
+            {
+                return match->thread_affinity;
+            }
+            return RuntimeLoopThreadAffinity::MainThread;
         }
 
         void finalize_phase_samples()
@@ -1619,10 +1646,11 @@ namespace engine::runtime
         void record_stage_sample(
             std::string_view name,
             RuntimeLoopPhase phase,
+            RuntimeLoopThreadAffinity thread_affinity,
             double duration_seconds,
             bool accumulate_phase = true)
         {
-            RuntimeStageTiming& timing = ensure_stage_timing(name, phase);
+            RuntimeStageTiming& timing = ensure_stage_timing(name, phase, thread_affinity);
             const double duration_ms = duration_seconds * 1000.0;
             timing.last_ms = duration_ms;
             timing.sample_count += 1U;
@@ -1645,9 +1673,11 @@ namespace engine::runtime
             for (std::size_t index = 0; index < count; ++index)
             {
                 const auto phase = stage_phase(report.execution_order[index]);
+                const auto affinity = stage_affinity(report.execution_order[index]);
                 record_stage_sample(
                     report.execution_order[index],
                     phase,
+                    affinity,
                     report.kernel_durations[index],
                     /*accumulate_phase=*/false);
             }
@@ -2448,7 +2478,7 @@ namespace engine::runtime
                 }
                 const auto stage_duration = Clock::now() - stage_start;
                 const double seconds = std::chrono::duration<double>(stage_duration).count();
-                record_stage_sample(stage.name, stage.phase, seconds);
+                record_stage_sample(stage.name, stage.phase, stage.thread_affinity, seconds);
                 if (stage.record_in_execution_report)
                 {
                     const std::size_t report_index = last_report.execution_order.size();
