@@ -23,6 +23,12 @@ from engine3g import loader
 from _helpers import temporary_directory, temporary_env
 
 
+def test_package_reexports_runtime_session() -> None:
+    import engine3g  # type: ignore
+
+    assert engine3g.runtime_session is loader.runtime_session
+
+
 class _DummyFunction:
     """Callable helper that also exposes a ``restype`` attribute."""
 
