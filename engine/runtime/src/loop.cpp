@@ -18,6 +18,21 @@ namespace engine::runtime
         return stages_;
     }
 
+    std::vector<const RuntimeLoopStage*> RuntimeLoopPlan::stages_for_phase(RuntimeLoopPhase phase) const
+    {
+        std::vector<const RuntimeLoopStage*> filtered{};
+        filtered.reserve(stages_.size());
+        for (const auto& stage : stages_)
+        {
+            if (stage.phase == phase)
+            {
+                filtered.push_back(&stage);
+            }
+        }
+        filtered.shrink_to_fit();
+        return filtered;
+    }
+
     RuntimeValidationResult RuntimeLoopBuilder::add_stage(std::string name,
                                                           RuntimeLoopPhase phase,
                                                           RuntimeLoopStageFunction function,

@@ -60,6 +60,8 @@ namespace engine::runtime
         explicit RuntimeLoopPlan(std::vector<RuntimeLoopStage> stages);
 
         [[nodiscard]] const std::vector<RuntimeLoopStage>& stages() const noexcept;
+        [[nodiscard]] std::vector<const RuntimeLoopStage*>
+        stages_for_phase(RuntimeLoopPhase phase) const;
 
     private:
         std::vector<RuntimeLoopStage> stages_{};
