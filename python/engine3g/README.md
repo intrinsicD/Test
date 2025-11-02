@@ -32,9 +32,9 @@
 - Add ergonomic wrappers or CLI entry points alongside new runtime capabilities.
 - `PrototypeHarness.interactive_session()` exposes a context-managed runtime controller for TL-210 and other interactive
   clients, enabling overlay toggles, deterministic tick control, and telemetry snapshots without reinitialising the harness.
-- `HarnessExecutionOptions` accepts `resolution_width`/`resolution_height` overrides that surface through both the Python CLI
-  (`--resolution-width/--resolution-height`) and the sandbox UI, allowing automated runs to enforce deterministic capture
-  resolutions independent of persisted preferences.
+- `HarnessExecutionOptions` accepts paired `resolution_width`/`resolution_height` overrides that surface through both the Python
+  CLI (`--resolution-width/--resolution-height`) and the sandbox UI, allowing automated runs to enforce deterministic capture
+  resolutions independent of persisted preferences. Provide both dimensions together to avoid aspect ratio ambiguity.
 - Case study helpers (`case_studies.available_case_studies` and
   `case_studies.describe_case_studies`) accept an `include_tags` filter so tooling
   can surface module-specific scenarios without reimplementing registry parsing.

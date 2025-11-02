@@ -5,7 +5,6 @@ from __future__ import annotations
 import copy
 import hashlib
 import math
-import math
 import os
 import re
 from dataclasses import dataclass, replace
@@ -162,10 +161,20 @@ class HarnessExecutionOptions:
             raise PrototypeHarnessError("scenario_label must be a non-empty string when provided")
         if self.dataset_id is not None and not self.dataset_id:
             raise PrototypeHarnessError("dataset_id must be a non-empty string when provided")
-        if self.resolution_width is not None and self.resolution_width <= 0:
-            raise PrototypeHarnessError("resolution_width must be greater than zero when provided")
-        if self.resolution_height is not None and self.resolution_height <= 0:
-            raise PrototypeHarnessError("resolution_height must be greater than zero when provided")
+        width = self.resolution_width
+        height = self.resolution_height
+        if (width is None) != (height is None):
+            raise PrototypeHarnessError(
+                "resolution overrides must specify both width and height"
+            )
+        if width is not None and width <= 0:
+            raise PrototypeHarnessError(
+                "resolution_width must be greater than zero when provided"
+            )
+        if height is not None and height <= 0:
+            raise PrototypeHarnessError(
+                "resolution_height must be greater than zero when provided"
+            )
         if self.rendering_preset is not None and not self.rendering_preset:
             raise PrototypeHarnessError("rendering_preset must be a non-empty string when provided")
         if self.shading_mode is not None and self.shading_mode not in {"forward", "deferred"}:
@@ -178,16 +187,6 @@ class HarnessExecutionOptions:
             for key in self.overlays:
                 if not key:
                     raise PrototypeHarnessError("overlay keys must be non-empty strings")
-        if self.resolution_width is not None:
-            if self.resolution_width <= 0:
-                raise PrototypeHarnessError(
-                    "resolution_width must be greater than zero when provided"
-                )
-        if self.resolution_height is not None:
-            if self.resolution_height <= 0:
-                raise PrototypeHarnessError(
-                    "resolution_height must be greater than zero when provided"
-                )
 
 
 @dataclass(frozen=True)

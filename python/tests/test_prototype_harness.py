@@ -681,6 +681,22 @@ def test_execution_options_validate_overrides() -> None:
     with pytest.raises(PrototypeHarnessError):
         options.validate()
 
+    options = HarnessExecutionOptions(frames=1, dt=0.5, resolution_width=1920)
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(frames=1, dt=0.5, resolution_height=1080)
+    with pytest.raises(PrototypeHarnessError):
+        options.validate()
+
+    options = HarnessExecutionOptions(
+        frames=1,
+        dt=0.5,
+        resolution_width=1920,
+        resolution_height=1080,
+    )
+    options.validate()
+
     with pytest.raises(PrototypeHarnessError):
         HarnessExecutionOptions(frames=1, dt=0.5, overlays={"": True})
 
