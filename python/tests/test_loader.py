@@ -697,7 +697,35 @@ class RuntimeSessionTests(unittest.TestCase):
                     self.assertEqual(session.module("geometry"), module_handle)
                     self.assertEqual(set(session.modules.keys()), {"geometry"})
 
-        mocked_load_modules.assert_called_once_with(search_paths=["/libs"])
+        mocked_load_modules.assert_called_once_with(search_paths=("/libs",))
+
+    def test_runtime_session_freezes_iterable_search_paths(self) -> None:
+        runtime_handle = loader.EngineRuntimeHandle(_make_runtime_namespace())
+        module_handle = loader.EngineModuleHandle(
+            name="geometry",
+            identifier="engine_geometry",
+            library=mock.sentinel.geometry_lib,
+        )
+
+        search_entries = ["/opt/engine", "/usr/local/engine"]
+        search_iter = (entry for entry in search_entries)
+
+        with mock.patch.object(loader, "load_runtime", return_value=runtime_handle) as mocked_load_runtime:
+            with mock.patch.object(
+                runtime_handle,
+                "load_modules",
+                return_value={"geometry": module_handle},
+            ) as mocked_load_modules:
+                with loader.runtime_session(search_paths=search_iter, load_modules=True) as session:
+                    self.assertEqual(session.module("geometry"), module_handle)
+                    self.assertEqual(set(session.modules.keys()), {"geometry"})
+
+        mocked_load_runtime.assert_called_once()
+        self.assertEqual(
+            mocked_load_runtime.call_args.kwargs["search_paths"],
+            tuple(search_entries),
+        )
+        mocked_load_modules.assert_called_once_with(search_paths=tuple(search_entries))
 
     def test_load_module_accepts_canonical_identifier(self) -> None:
         with mock.patch.object(
