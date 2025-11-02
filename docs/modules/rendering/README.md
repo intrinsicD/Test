@@ -543,7 +543,8 @@ ctest --preset linux-gcc-debug -R rendering
 - OpenGL GPU resource provider materialises transient frame-graph textures on acquire, reusing allocations when descriptors
   match, tagging depth attachments so framebuffer wiring can bind native handles once command encoding lands, and recording
   acquire/release metadata for telemetry consumers. Unused buffers and textures are now evicted automatically when they remain
-  idle across consecutive frames so transient caches cannot leak driver resources while retaining short-term reuse.
+  idle across consecutive frames so transient caches cannot leak driver resources while retaining short-term reuse, and the
+  retention window is configurable so harnesses and tests can balance reuse against memory pressure.
 - Runtime-facing OpenGL render resource provider resolves mesh handles into CPU vertex/index buffers and precomputes
   normals/UV data, uploading them to GPU buffers when OpenGL is available so command encoding can bind ready-to-use geometry
   assets.

@@ -42,3 +42,8 @@ The prototype renderer still routes all resource activity through the recording 
 
 ## Notes
 Ensure shader compilation integrates with the asset hot-reload telemetry so editor workflows observe consistent notifications across CPU and GPU resources.
+
+**2025-02-21** — OpenGL GPU resource provider now exposes a configurable
+retention window for transient resources with unit coverage so harnesses can
+experiment with reuse/memory trade-offs while command encoder integration
+progresses.

@@ -275,3 +275,59 @@ TEST(OpenGLResourceProvider, CollectsBuffersUnusedForMultipleFrames)
 
     EXPECT_EQ(provider.buffer(handle), nullptr);
 }
+
+TEST(OpenGLResourceProvider, HonorsCustomRetentionWindow)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider(2);
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 12;
+
+    const auto info = make_color_resource("Color.Retention", 64, 64);
+
+    provider.begin_frame();
+    provider.on_transient_acquire(handle, info);
+    provider.on_transient_release(handle, info);
+    provider.end_frame();
+
+    for (int frame = 0; frame < 2; ++frame)
+    {
+        provider.begin_frame();
+        const auto* record = provider.texture(handle);
+        ASSERT_NE(record, nullptr);
+        EXPECT_FALSE(record->in_use);
+        provider.end_frame();
+    }
+
+    provider.begin_frame();
+    provider.end_frame();
+
+    EXPECT_EQ(provider.texture(handle), nullptr);
+}
+
+TEST(OpenGLResourceProvider, UpdatesRetentionWindowAtRuntime)
+{
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider provider(0);
+    engine::rendering::FrameGraphResourceHandle handle{};
+    handle.index = 13;
+
+    const auto info = make_color_resource("Color.DynamicRetention", 32, 32);
+
+    provider.begin_frame();
+    provider.on_transient_acquire(handle, info);
+    provider.on_transient_release(handle, info);
+    provider.end_frame();
+
+    provider.set_retention_frames(1);
+
+    provider.begin_frame();
+    const auto* record = provider.texture(handle);
+    ASSERT_NE(record, nullptr);
+    provider.end_frame();
+
+    EXPECT_NE(provider.texture(handle), nullptr);
+
+    provider.begin_frame();
+    provider.end_frame();
+
+    EXPECT_EQ(provider.texture(handle), nullptr);
+}
