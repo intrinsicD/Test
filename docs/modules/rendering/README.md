@@ -194,6 +194,12 @@ rendering::GpuScheduler scheduler{
 
 See [`BACKEND_CHECKLIST.md`](BACKEND_CHECKLIST.md) for Vulkan implementation status.
 
+The module now ships `backend::vulkan::VulkanGpuResourceProvider`, which
+generates deterministic Vulkan queue, command buffer, and transient resource
+handles so scheduler and command-encoder work can progress without binding to a
+physical device. Pair it with the Vulkan scheduler in offline tests to exercise
+retention policies and telemetry hooks before wiring real driver allocations.
+
 ### DirectX 12 Backend (Planned)
 
 ```cpp
