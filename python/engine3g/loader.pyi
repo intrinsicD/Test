@@ -4,7 +4,18 @@ import ctypes
 import os
 from pathlib import Path
 from types import TracebackType
-from typing import Dict, Iterable, Iterator, List, Mapping, Optional, Tuple, Type, Union
+from typing import (
+    ContextManager,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 __all__ = [
     "EngineLibraryNotFound",
@@ -93,7 +104,7 @@ def runtime_session(
     search_paths: SearchPaths = ...,
     *,
     load_modules: bool = ...,
-) -> Iterator[RuntimeSession]: ...
+) -> ContextManager[RuntimeSession]: ...
 
 
 def _canonical_identifier(module_name: str) -> str: ...
