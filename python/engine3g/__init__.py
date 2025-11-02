@@ -30,6 +30,7 @@ from .case_studies import (
     CaseStudyError,
     CaseStudyNotFoundError,
     available_case_studies,
+    describe_case_studies,
     get_case_study,
 )
 from .loader import (
@@ -40,6 +41,7 @@ from .loader import (
     load_all_modules,
     load_module,
     load_runtime,
+    runtime_session,
 )
 from .prototype_harness import (
     HarnessExecutionOptions,
@@ -86,10 +88,12 @@ __all__ = [
     "load_configuration",
     "load_dataset_manifest",
     "available_case_studies",
+    "describe_case_studies",
     "get_case_study",
     "load_all_modules",
     "load_module",
     "load_runtime",
+    "runtime_session",
     "load_harness",
     "summarize",
 ]
