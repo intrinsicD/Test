@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 import json
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Iterable, Tuple
 
 __all__ = [
     "CaseStudy",
@@ -131,14 +131,24 @@ def _case_study_map() -> Dict[str, CaseStudy]:
     return _load_index()
 
 
-def available_case_studies() -> Tuple[CaseStudy, ...]:
-    """Return the registered case studies sorted by identifier."""
+def available_case_studies(
+    *, include_tags: Iterable[str] | None = None
+) -> Tuple[CaseStudy, ...]:
+    """Return registered case studies filtered by *include_tags* if provided."""
 
-    existing = [
-        case_study
-        for case_study in _case_study_map().values()
-        if case_study.config_path.is_file()
-    ]
+    required_tags: Tuple[str, ...]
+    if include_tags is None:
+        required_tags = ()
+    else:
+        required_tags = tuple(_normalise_tag(tag) for tag in include_tags if tag)
+
+    existing: list[CaseStudy] = []
+    for case_study in _case_study_map().values():
+        if not case_study.config_path.is_file():
+            continue
+        if required_tags and not _has_tags(case_study.tags, required_tags):
+            continue
+        existing.append(case_study)
     return tuple(sorted(existing, key=lambda item: item.identifier))
 
 
@@ -162,10 +172,24 @@ def get_case_study(identifier: str) -> CaseStudy:
     return case_study
 
 
-def describe_case_studies(*, relative_to: Path | None = None) -> Tuple[Dict[str, object], ...]:
+def describe_case_studies(
+    *, relative_to: Path | None = None, include_tags: Iterable[str] | None = None
+) -> Tuple[Dict[str, object], ...]:
     """Return case study metadata suitable for UI layers and CLIs."""
 
     base = relative_to or _project_root()
-    return tuple(case.to_dict(relative_to=base) for case in available_case_studies())
+    cases = available_case_studies(include_tags=include_tags)
+    return tuple(case.to_dict(relative_to=base) for case in cases)
+
+
+def _normalise_tag(value: str) -> str:
+    return value.strip().lower()
+
+
+def _has_tags(tags: Tuple[str, ...], required: Tuple[str, ...]) -> bool:
+    if not required:
+        return True
+    available = {_normalise_tag(tag) for tag in tags}
+    return all(tag in available for tag in required)
 
 

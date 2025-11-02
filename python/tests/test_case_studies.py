@@ -62,6 +62,28 @@ def test_describe_case_studies_exposes_metadata() -> None:
     assert isinstance(first["tags"], list)
 
 
+def test_available_case_studies_filters_by_tags() -> None:
+    geometry_cases = available_case_studies(include_tags=["GEOMETRY"])
+    assert geometry_cases, "expected geometry-tagged case studies"
+    for case in geometry_cases:
+        normalised = {tag.lower() for tag in case.tags}
+        assert "geometry" in normalised
+
+    baseline_rendering = available_case_studies(include_tags=["baseline", "rendering"])
+    assert len(baseline_rendering) == 1
+    assert baseline_rendering[0].identifier == "rendering-debug"
+
+
+def test_describe_case_studies_filters_by_tags() -> None:
+    summaries = describe_case_studies(
+        relative_to=_PROJECT_ROOT, include_tags=["rendering", "baseline"]
+    )
+    assert len(summaries) == 1
+    summary = summaries[0]
+    assert summary["id"] == "rendering-debug"
+    assert "rendering" in {tag.lower() for tag in summary["tags"]}
+
+
 def test_case_study_index_requires_schema(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     payload = {"case_studies": []}
     index_path = tmp_path / "index.json"

@@ -35,6 +35,9 @@
 - `HarnessExecutionOptions` accepts `resolution_width`/`resolution_height` overrides that surface through both the Python CLI
   (`--resolution-width/--resolution-height`) and the sandbox UI, allowing automated runs to enforce deterministic capture
   resolutions independent of persisted preferences.
+- Case study helpers (`case_studies.available_case_studies` and
+  `case_studies.describe_case_studies`) accept an `include_tags` filter so tooling
+  can surface module-specific scenarios without reimplementing registry parsing.
 
 ## TODO / Next Steps
 
