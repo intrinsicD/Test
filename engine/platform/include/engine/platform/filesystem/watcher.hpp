@@ -2,6 +2,7 @@
 
 #include "engine/platform/api.hpp"
 
+#include <cstdint>
 #include <filesystem>
 #include <functional>
 #include <mutex>
@@ -63,6 +64,8 @@ namespace engine::platform::filesystem
             path_type path{};
             Callback callback{};
             std::filesystem::file_time_type last_write{};
+            std::uintmax_t last_size{0};
+            bool size_known{false};
             bool known_exists{false};
         };
 

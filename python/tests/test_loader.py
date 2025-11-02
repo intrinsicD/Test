@@ -635,11 +635,34 @@ class RuntimeSessionTests(unittest.TestCase):
 
         fake_runtime = FakeRuntime()
 
-        with mock.patch.object(loader, "load_runtime", return_value=fake_runtime):
+        with mock.patch.object(loader, "load_runtime", return_value=fake_runtime) as mocked_load_runtime:
             modules = loader.load_all_modules(search_paths=["/libs"])
 
         self.assertEqual(modules, {"graphics": module_handle})
-        self.assertEqual(fake_runtime.load_modules_called_with, ["/libs"])
+        mocked_load_runtime.assert_called_once_with(search_paths=("/libs",))
+        self.assertEqual(fake_runtime.load_modules_called_with, ("/libs",))
+
+    def test_load_all_modules_preserves_generator_search_paths(self) -> None:
+        module_handle = loader.EngineModuleHandle("graphics", "engine_graphics", library=mock.sentinel.lib)
+
+        runtime_handle = loader.EngineRuntimeHandle(
+            _make_runtime_namespace(
+                engine_runtime_module_count=_DummyFunction(lambda: 1),
+                engine_runtime_module_at=_DummyFunction(lambda index: b"graphics"),
+            )
+        )
+
+        paths = ["/opt/one", "/opt/two"]
+        expected = tuple(paths)
+        search_paths = (path for path in paths)
+
+        with mock.patch.object(loader, "load_runtime", return_value=runtime_handle) as mocked_load_runtime:
+            with mock.patch.object(loader, "load_module", return_value=module_handle) as mocked_load_module:
+                modules = loader.load_all_modules(search_paths=search_paths)
+
+        self.assertEqual(modules, {"graphics": module_handle})
+        mocked_load_runtime.assert_called_once_with(search_paths=expected)
+        mocked_load_module.assert_called_once_with("graphics", search_paths=expected)
 
 
 class DefaultSearchPathsTests(unittest.TestCase):

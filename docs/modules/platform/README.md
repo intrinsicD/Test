@@ -201,9 +201,11 @@ watcher.watch("assets/meshes/", [&mesh_cache](const auto& event) {
   in rapid succession, stagger writes by a few milliseconds so the resulting
   timestamp differs from the previous value.
 - **Linux (ext4/XFS)** – Network shares or FAT-formatted removable drives expose
-  one-second timestamp precision. Writes that occur within the same second may
-  be coalesced; force a timestamp bump with
-  `std::filesystem::last_write_time` or insert a short delay between writes.
+  one-second timestamp precision. The watcher now compares both timestamps and
+  file sizes, so rewrites that land within the same second but change the payload
+  still surface as `modified` events. When the size remains constant you must
+  continue to force a timestamp bump with `std::filesystem::last_write_time` or
+  insert a short delay between writes.
 - **Cross-platform** – Rename sequences surface as `created` + `erased` events.
   Deleted files keep their cached descriptor and most recent timestamp so
   diagnostics tools can surface actionable errors until the source reappears.

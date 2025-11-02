@@ -478,8 +478,9 @@ def load_module(module_name: str, search_paths: Optional[Iterable[os.PathLike[st
 
 def load_all_modules(search_paths: Optional[Iterable[os.PathLike[str] | str]] = None) -> Mapping[str, EngineModuleHandle]:
     """Load the runtime and all registered modules in one step."""
-    runtime = load_runtime(search_paths=search_paths)
-    return runtime.load_modules(search_paths=search_paths)
+    reusable_paths = _freeze_search_paths(search_paths)
+    runtime = load_runtime(search_paths=reusable_paths)
+    return runtime.load_modules(search_paths=reusable_paths)
 
 
 def _canonical_identifier(module_name: str) -> str:

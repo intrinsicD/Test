@@ -76,6 +76,32 @@ namespace
         EXPECT_EQ(events.front().path, std::filesystem::absolute(file_path).lexically_normal());
     }
 
+    TEST(FilesystemWatcher, DetectsTimestampCoalescedUpdates)
+    {
+        TempDirectory directory;
+        const auto file_path = directory.path() / "asset.txt";
+        write_text_file(file_path, "baseline");
+
+        FilesystemWatcher watcher;
+        std::vector<WatchEvent> events;
+        [[maybe_unused]] const auto handle = watcher.watch_file(file_path, [&](const WatchEvent& event)
+        {
+            events.push_back(event);
+        });
+
+        watcher.poll();
+        EXPECT_TRUE(events.empty());
+
+        const auto baseline = std::filesystem::last_write_time(file_path);
+        write_text_file(file_path, "baseline updated payload");
+        std::filesystem::last_write_time(file_path, baseline);
+
+        watcher.poll();
+        ASSERT_EQ(events.size(), 1u);
+        EXPECT_EQ(events.back().type, WatchEventType::modified);
+        EXPECT_EQ(events.back().path, std::filesystem::absolute(file_path).lexically_normal());
+    }
+
     TEST(FilesystemWatcher, TracksCreationAndDeletion)
     {
         TempDirectory directory;
