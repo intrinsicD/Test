@@ -1910,6 +1910,57 @@ TEST(RuntimeHost, DiagnosticsExposeAnimationTelemetry)
     host.shutdown();
 }
 
+TEST(RuntimeHost, AppliesCustomLoopPlanOnNextTick)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+
+    int execution_count = 0;
+    double last_dt = 0.0;
+
+    engine::runtime::RuntimeLoopBuilder builder{};
+    auto stage_result = builder.add_stage(
+        "custom.stage",
+        engine::runtime::RuntimeLoopPhase::Simulation,
+        [&](double dt)
+        {
+            ++execution_count;
+            last_dt = dt;
+        });
+    ASSERT_TRUE(stage_result);
+
+    auto plan_result = builder.build();
+    ASSERT_TRUE(plan_result);
+
+    host.set_loop_plan(plan_result.value());
+
+    constexpr double kStep = 0.05;
+    host.tick(kStep);
+
+    EXPECT_EQ(execution_count, 1);
+    EXPECT_DOUBLE_EQ(last_dt, kStep);
+
+    const auto& diagnostics = host.diagnostics();
+    ASSERT_FALSE(diagnostics.stage_timings.empty());
+    const auto stage_timing = std::find_if(
+        diagnostics.stage_timings.begin(),
+        diagnostics.stage_timings.end(),
+        [](const engine::runtime::RuntimeStageTiming& timing)
+        {
+            return timing.name == "custom.stage";
+        });
+    ASSERT_NE(stage_timing, diagnostics.stage_timings.end());
+    EXPECT_EQ(stage_timing->phase, engine::runtime::RuntimeLoopPhase::Simulation);
+
+    EXPECT_NE(diagnostics.loop_plan_serialization.find("\"custom.stage\""), std::string::npos);
+
+    const auto& plan = host.loop_plan();
+    ASSERT_EQ(plan.stages().size(), 1U); // NOLINT
+    EXPECT_EQ(plan.stages().front().name, "custom.stage");
+
+    host.shutdown();
+}
+
 #if ENGINE_ENABLE_RENDERING
 TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
 {
