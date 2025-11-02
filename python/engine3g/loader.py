@@ -60,11 +60,12 @@ class EngineLibraryNotFound(RuntimeError):
         if last_error is not None:
             error_text = str(last_error).strip()
             if error_text:
-                sanitized = " ".join(error_text.splitlines())
-                if sanitized[-1] in ".!?":
-                    message += f" Last error: {sanitized}"
-                else:
-                    message += f" Last error: {sanitized}."
+                sanitized = " ".join(error_text.splitlines()).strip()
+                if sanitized:
+                    if sanitized[-1] in ".!?":
+                        message += f" Last error: {sanitized}"
+                    else:
+                        message += f" Last error: {sanitized}."
         super().__init__(message)
 
 
