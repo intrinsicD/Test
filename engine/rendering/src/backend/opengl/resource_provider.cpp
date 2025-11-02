@@ -1,6 +1,7 @@
 #include "engine/rendering/backend/opengl/resource_provider.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <optional>
 #include <stdexcept>
 #include <utility>
@@ -70,8 +71,10 @@ namespace engine::rendering::backend::opengl
                 return 8U;
             case ResourceSampleCount::Count16:
                 return 16U;
+            default:
+                assert(false && "Unsupported ResourceSampleCount value");
+                return 1U;
             }
-            return 1U;
         }
 
         struct TextureFormatInfo
