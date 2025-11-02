@@ -467,12 +467,18 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument(
         "--resolution-width",
         type=int,
-        help="Override the rendering resolution width in pixels.",
+        help=(
+            "Override the rendering resolution width in pixels. "
+            "Requires --resolution-height."
+        ),
     )
     parser.add_argument(
         "--resolution-height",
         type=int,
-        help="Override the rendering resolution height in pixels.",
+        help=(
+            "Override the rendering resolution height in pixels. "
+            "Requires --resolution-width."
+        ),
     )
     parser.add_argument(
         "--runtime-profile",
