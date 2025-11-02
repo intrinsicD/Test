@@ -96,7 +96,8 @@ namespace engine::rendering::backend::vulkan
         }
 
         QueueRecord record{};
-        record.native = make_queue_handle(queue, next_queue_id_++);
+        const auto id = next_queue_id_.fetch_add(1, std::memory_order_relaxed);
+        record.native = make_queue_handle(queue, id);
         auto [inserted, success] = queues_.emplace(queue, record);
         static_cast<void>(success);
         return inserted->second.native;

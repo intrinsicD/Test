@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -118,7 +119,7 @@ namespace engine::rendering::backend::vulkan
 
         std::uint64_t current_frame_{0};
         std::uint64_t retention_frames_{0};
-        mutable std::uint64_t next_queue_id_{1};
+        mutable std::atomic<std::uint64_t> next_queue_id_{1};
         std::uint64_t next_command_buffer_id_{1};
         std::uint64_t next_buffer_id_{1};
         std::uint64_t next_image_id_{1};
