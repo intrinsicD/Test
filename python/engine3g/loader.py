@@ -729,11 +729,12 @@ def runtime_session(
 ) -> Iterator[RuntimeSession]:
     """Load the runtime, manage its lifetime, and yield a :class:`RuntimeSession`."""
 
-    runtime = load_runtime(search_paths=search_paths)
+    reusable_paths = _freeze_search_paths(search_paths)
+    runtime = load_runtime(search_paths=reusable_paths)
     modules: Mapping[str, EngineModuleHandle]
     with runtime:
         if load_modules:
-            loaded = runtime.load_modules(search_paths=search_paths)
+            loaded = runtime.load_modules(search_paths=reusable_paths)
             modules = MappingProxyType(dict(loaded))
         else:
             modules = MappingProxyType({})

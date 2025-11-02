@@ -25,8 +25,9 @@
   initialise the runtime on entry and shut it down on exit. When the runtime was already initialised, the context manager
   preserves the existing lifetime so shared handles remain valid.
 - Prefer `loader.runtime_session()` when you need a typed helper that manages the runtime lifetime and optionally preloads
-  modules. The yielded `RuntimeSession` exposes `.runtime` for direct access, `.modules` for inspection, and `.module(name)` to
-  retrieve a specific `EngineModuleHandle` while reusing the harness tick helper.
+  modules. The helper freezes any iterable search path input so generators or other one-shot iterables can be reused for both
+  runtime and module loading. The yielded `RuntimeSession` exposes `.runtime` for direct access, `.modules` for inspection, and
+  `.module(name)` to retrieve a specific `EngineModuleHandle` while reusing the harness tick helper.
 - Load failures now raise `EngineLibraryNotFound` with structured context. Inspect `identifier`, `library_name`, and
   `attempted_paths` to surface actionable diagnostics in CLI wrappers or UI layers.
 - Add ergonomic wrappers or CLI entry points alongside new runtime capabilities.
