@@ -668,9 +668,7 @@ namespace engine::runtime
 
         void set_loop_plan(RuntimeLoopPlan plan)
         {
-            RuntimeLoopPlan staging = plan;
             pending_loop_plan = std::move(plan);
-            apply_loop_plan(std::move(staging));
         }
 
         [[nodiscard]] const RuntimeLoopPlan& loop_plan_ref() const noexcept

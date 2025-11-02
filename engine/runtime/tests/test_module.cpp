@@ -1955,7 +1955,7 @@ TEST(RuntimeHost, AppliesCustomLoopPlanOnNextTick)
     EXPECT_NE(diagnostics.loop_plan_serialization.find("\"custom.stage\""), std::string::npos);
 
     const auto& plan = host.loop_plan();
-    ASSERT_EQ(plan.stages().size(), 1U); // NOLINT
+    ASSERT_EQ(plan.stages().size(), 1U); // NOLINT(readability-magic-numbers)
     EXPECT_EQ(plan.stages().front().name, "custom.stage");
 
     host.shutdown();
