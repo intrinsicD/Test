@@ -187,8 +187,6 @@ def _normalise_tag(value: str) -> str:
 
 
 def _has_tags(tags: Tuple[str, ...], required: Tuple[str, ...]) -> bool:
-    if not required:
-        return True
     available = {_normalise_tag(tag) for tag in tags}
     return all(tag in available for tag in required)
 
