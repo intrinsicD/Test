@@ -50,3 +50,5 @@ Coordinate with tooling to ensure ImGui overlays reuse the presentation adapters
 
 **2026-02-25** — RuntimeHost now surfaces `set_loop_plan()`/`loop_plan()` so tooling and scripting can
 swap declarative plans at frame boundaries while keeping diagnostics serialisation in sync.
+**2026-03-01** — Exported `engine_runtime_presentation_stage_active()` with Python loader bindings so scripting
+surfaces detect presentation handlers without parsing diagnostics output.

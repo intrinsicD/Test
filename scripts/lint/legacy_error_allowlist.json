@@ -263,6 +263,11 @@
     "throw std::runtime_error{\"OpenGLCommandEncoderProvider could not resolve command buffer\"};": 1,
     "throw std::runtime_error{\"OpenGLCommandEncoderProvider has no resource provider\"};": 1
   },
+  "engine/rendering/src/backend/vulkan/command_encoder.cpp": {
+    "throw std::runtime_error{\"VulkanCommandEncoder invoked without active command buffer\"};": 2,
+    "throw std::runtime_error{\"VulkanCommandEncoderProvider could not resolve command buffer\"};": 1,
+    "throw std::runtime_error{\"VulkanCommandEncoderProvider has no resource provider\"};": 1
+  },
   "engine/rendering/src/backend/opengl/presentation_backend.cpp": {
     "throw std::runtime_error(\"RuntimePresentationContext.submit_render_graph must be set before presentation\");": 1
   },

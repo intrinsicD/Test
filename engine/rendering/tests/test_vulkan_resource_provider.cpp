@@ -153,9 +153,8 @@ TEST(VulkanResourceProvider, ProvidesCommandBufferHandles)
     EXPECT_EQ(native.index, handle.index);
     EXPECT_FALSE(native.label.empty());
 
-    const auto* record = provider.command_buffer(handle);
-    ASSERT_NE(record, nullptr);
-    EXPECT_EQ(record->queue, QueueType::Graphics);
-    EXPECT_EQ(record->native.queue, QueueType::Graphics);
+    const auto* command_buffer = provider.command_buffer(handle);
+    ASSERT_NE(command_buffer, nullptr);
+    EXPECT_EQ(command_buffer->queue(), QueueType::Graphics);
 }
 

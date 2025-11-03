@@ -366,6 +366,17 @@ class EngineRuntimeHandle:
             ctypes.POINTER(ctypes.c_float),
             ctypes.POINTER(ctypes.c_float),
         ]
+        try:
+            presentation_stage_active = (
+                self.library.engine_runtime_presentation_stage_active
+            )
+        except AttributeError as error:
+            raise RuntimeError(
+                "runtime library is missing 'engine_runtime_presentation_stage_active'"
+            ) from error
+        presentation_stage_active.restype = ctypes.c_bool
+        presentation_stage_active.argtypes = []
+        self._presentation_stage_active = presentation_stage_active
         self._supports_average_tick_ms = hasattr(
             self.library, "engine_runtime_diagnostic_average_tick_ms"
         )
@@ -408,6 +419,11 @@ class EngineRuntimeHandle:
     def tick(self, dt: float) -> None:
         """Advance the runtime simulation by ``dt`` seconds."""
         self.library.engine_runtime_tick(ctypes.c_double(dt))
+
+    def presentation_stage_active(self) -> bool:
+        """Return ``True`` when presentation callbacks/backends are engaged."""
+
+        return bool(self._presentation_stage_active())
 
     def __enter__(self) -> EngineRuntimeHandle:
         """Activate the runtime when used as a context manager."""

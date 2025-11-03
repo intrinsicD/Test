@@ -10,6 +10,8 @@ set(ENGINE_RENDERING_TEST_SOURCES
         test_research_baseline.cpp
         test_backend_adapters.cpp
         test_backend_validation.cpp
+        test_vulkan_command_encoder.cpp
+        test_vulkan_gpu_scheduler.cpp
         test_vulkan_resource_provider.cpp
 )
 

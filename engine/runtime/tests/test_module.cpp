@@ -2332,8 +2332,11 @@ TEST(RuntimeHost, ExposesLifecycleDiagnostics)
 TEST(RuntimeHost, PresentationStageNotRecordedWithoutHandlers)
 {
     engine::runtime::RuntimeHost host{};
+    EXPECT_FALSE(host.presentation_stage_active());
     host.initialize();
+    EXPECT_FALSE(host.presentation_stage_active());
     host.tick(0.016);
+    EXPECT_FALSE(host.presentation_stage_active());
 
     const auto& report = host.last_dispatch_report();
     const auto has_presentation = std::find(
@@ -2367,6 +2370,7 @@ TEST(RuntimeHost, PresentationCallbackInvoked)
         invoked = true;
         observed_dt = dt;
     });
+    EXPECT_TRUE(host.presentation_stage_active());
     host.initialize();
     host.tick(0.016);
     EXPECT_TRUE(invoked);
@@ -2393,6 +2397,63 @@ TEST(RuntimeHost, PresentationCallbackInvoked)
     ASSERT_NE(presentation_node, report.dependency_graph.nodes.end());
     EXPECT_TRUE(presentation_node->dependencies.empty());
 
+    host.set_presentation_callback(nullptr);
+    EXPECT_FALSE(host.presentation_stage_active());
+    host.shutdown();
+}
+
+TEST(RuntimeHost, PresentationCallbackHotSwapRebuildsLoopPlan)
+{
+    engine::runtime::RuntimeHost host{};
+    EXPECT_FALSE(host.presentation_stage_active());
+    host.initialize();
+    EXPECT_FALSE(host.presentation_stage_active());
+    host.tick(0.01);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_EQ(has_presentation, report.execution_order.end());
+    }
+
+    bool invoked = false;
+    host.set_presentation_callback([
+        &invoked
+    ](double)
+    {
+        invoked = true;
+    });
+    EXPECT_TRUE(host.presentation_stage_active());
+    host.tick(0.02);
+    EXPECT_TRUE(invoked);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_NE(has_presentation, report.execution_order.end());
+    }
+
+    invoked = false;
+    host.set_presentation_callback({});
+    EXPECT_FALSE(host.presentation_stage_active());
+    host.tick(0.03);
+    EXPECT_FALSE(invoked);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_EQ(has_presentation, report.execution_order.end());
+    }
+
     host.shutdown();
 }
 
@@ -2405,6 +2466,7 @@ TEST(RuntimeHost, PresentationBackendInvoked)
     deps.presentation_backend = backend;
 
     engine::runtime::RuntimeHost host{std::move(deps)};
+    EXPECT_TRUE(host.presentation_stage_active());
     host.initialize();
     host.tick(0.02);
 
@@ -2434,6 +2496,88 @@ TEST(RuntimeHost, PresentationBackendInvoked)
         });
     ASSERT_NE(presentation_node, report.dependency_graph.nodes.end());
     EXPECT_TRUE(presentation_node->dependencies.empty());
+
+    host.set_presentation_backend(nullptr);
+    EXPECT_FALSE(host.presentation_stage_active());
+    host.shutdown();
+}
+
+TEST(RuntimeHost, PresentationBackendHotSwapRebuildsLoopPlan)
+{
+    engine::runtime::RuntimeHost host{};
+    EXPECT_FALSE(host.presentation_stage_active());
+    host.initialize();
+    EXPECT_FALSE(host.presentation_stage_active());
+    host.tick(0.01);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_EQ(has_presentation, report.execution_order.end());
+    }
+
+    auto backend = std::make_shared<RecordingPresentationBackend>();
+    host.set_presentation_backend(backend);
+    EXPECT_TRUE(host.presentation_stage_active());
+    host.tick(0.02);
+    ASSERT_EQ(backend->calls.size(), 1U);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_NE(has_presentation, report.execution_order.end());
+    }
+
+    backend->calls.clear();
+    host.set_presentation_backend(nullptr);
+    EXPECT_FALSE(host.presentation_stage_active());
+    host.tick(0.03);
+    EXPECT_TRUE(backend->calls.empty());
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_EQ(has_presentation, report.execution_order.end());
+    }
+
+    bool callback_called = false;
+    host.set_presentation_callback([
+        &callback_called
+    ](double)
+    {
+        callback_called = true;
+    });
+    EXPECT_TRUE(host.presentation_stage_active());
+    host.tick(0.04);
+    EXPECT_TRUE(callback_called);
+
+    callback_called = false;
+    backend->calls.clear();
+    host.set_presentation_backend(backend);
+    EXPECT_TRUE(host.presentation_stage_active());
+    host.tick(0.05);
+    EXPECT_TRUE(callback_called);
+    ASSERT_EQ(backend->calls.size(), 1U);
+
+    callback_called = false;
+    backend->calls.clear();
+    host.set_presentation_backend(nullptr);
+    EXPECT_TRUE(host.presentation_stage_active());
+    host.tick(0.06);
+    EXPECT_TRUE(callback_called);
+    EXPECT_TRUE(backend->calls.empty());
+
+    host.set_presentation_callback(nullptr);
+    EXPECT_FALSE(host.presentation_stage_active());
 
     host.shutdown();
 }
@@ -2509,6 +2653,23 @@ TEST(RuntimeModule, ReportsDefaultSubsystemNames)
     {
         EXPECT_EQ(names[index], expected[index]);
     }
+}
+
+TEST(RuntimeModule, PresentationStageActiveHelper)
+{
+    engine::runtime::shutdown();
+    EXPECT_FALSE(engine::runtime::presentation_stage_active());
+
+    engine::runtime::configure_with_default_subsystems();
+    EXPECT_FALSE(engine::runtime::presentation_stage_active());
+
+    engine::runtime::set_presentation_callback([](double) {});
+    EXPECT_TRUE(engine::runtime::presentation_stage_active());
+
+    engine::runtime::set_presentation_callback(nullptr);
+    EXPECT_FALSE(engine::runtime::presentation_stage_active());
+
+    engine::runtime::shutdown();
 }
 
 TEST(RuntimeModule, ConfigureWithDefaultSubsystemHelper)

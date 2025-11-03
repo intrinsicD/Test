@@ -69,6 +69,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | 1 | [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | In Progress |
 | 2 | [`TL-310`](backlog/active/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Sequenced (awaits RT-410 hooks) |
 | 2 | [`PM-510`](backlog/active/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
+| 2 | [`PM-520`](backlog/active/PM-520-backlog-hygiene-remediation.md) | Archive completed backlog entries and sync roadmap/navigation per audit findings. | Docs/DevRel | Planned |
 
 **Exit Criteria:** OpenGL/Vulkan execute real workloads with shader pipelines, runtime presentation loop synchronises with tooling, and the editor/tooling stack is buildable with baseline smoke coverage.
 
@@ -98,6 +99,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | 3 | Complete | Geometry + rendering case studies documented with CTest coverage. |
 | [`CC-310`](backlog/active/CC-310-comparative-benchmark-automation.md) | 4 | Complete | Orchestrator, SVG plots, and smoke helper published for AI-004 fixtures. |
 | [`CC-311`](backlog/active/CC-311-benchmark-visualisation.md) | 4 | Complete | Telemetry viewer comparative mode + AI-004 reports published. |
+| [`PM-520`](backlog/active/PM-520-backlog-hygiene-remediation.md) | 2 | Planned | Executes backlog/roadmap archival cleanup identified by the March 2026 audit. |
 
 ## Risks & Mitigations
 
