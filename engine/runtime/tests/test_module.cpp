@@ -6,6 +6,7 @@
 #include <cmath>
 #include <filesystem>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <span>
@@ -2328,6 +2329,31 @@ TEST(RuntimeHost, ExposesLifecycleDiagnostics)
     EXPECT_GE(after_shutdown.last_shutdown_ms, 0.0);
 }
 
+TEST(RuntimeHost, PresentationStageNotRecordedWithoutHandlers)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+    host.tick(0.016);
+
+    const auto& report = host.last_dispatch_report();
+    const auto has_presentation = std::find(
+        report.execution_order.begin(),
+        report.execution_order.end(),
+        std::string{"presentation.dispatch"});
+    EXPECT_EQ(has_presentation, report.execution_order.end());
+
+    const auto presentation_node = std::find_if(
+        report.dependency_graph.nodes.begin(),
+        report.dependency_graph.nodes.end(),
+        [](const engine::compute::DependencyGraph::Node& node)
+        {
+            return node.name == "presentation.dispatch";
+        });
+    EXPECT_EQ(presentation_node, report.dependency_graph.nodes.end());
+
+    host.shutdown();
+}
+
 TEST(RuntimeHost, PresentationCallbackInvoked)
 {
     engine::runtime::RuntimeHost host{};
@@ -2345,6 +2371,29 @@ TEST(RuntimeHost, PresentationCallbackInvoked)
     host.tick(0.016);
     EXPECT_TRUE(invoked);
     EXPECT_NEAR(observed_dt, 0.016, 1e-6);
+
+    const auto& report = host.last_dispatch_report();
+    const auto has_presentation = std::find(
+        report.execution_order.begin(),
+        report.execution_order.end(),
+        std::string{"presentation.dispatch"});
+    EXPECT_NE(has_presentation, report.execution_order.end());
+    ASSERT_NE(has_presentation, report.execution_order.end());
+    const std::size_t presentation_index = static_cast<std::size_t>(
+        std::distance(report.execution_order.begin(), has_presentation));
+    ASSERT_LT(presentation_index, report.kernel_durations.size());
+    EXPECT_GE(report.kernel_durations[presentation_index], 0.0);
+
+    const auto presentation_node = std::find_if(
+        report.dependency_graph.nodes.begin(),
+        report.dependency_graph.nodes.end(),
+        [](const engine::compute::DependencyGraph::Node& node)
+        {
+            return node.name == "presentation.dispatch";
+        });
+    ASSERT_NE(presentation_node, report.dependency_graph.nodes.end());
+    EXPECT_TRUE(presentation_node->dependencies.empty());
+
     host.shutdown();
 }
 
@@ -2370,6 +2419,22 @@ TEST(RuntimeHost, PresentationBackendInvoked)
         diagnostics.stage_timings.end(),
         [](const engine::runtime::RuntimeStageTiming& stage) { return stage.name == "presentation.dispatch"; });
     EXPECT_TRUE(has_presentation_stage);
+
+    const auto& report = host.last_dispatch_report();
+    const auto has_presentation = std::find(
+        report.execution_order.begin(),
+        report.execution_order.end(),
+        std::string{"presentation.dispatch"});
+    EXPECT_NE(has_presentation, report.execution_order.end());
+    const auto presentation_node = std::find_if(
+        report.dependency_graph.nodes.begin(),
+        report.dependency_graph.nodes.end(),
+        [](const engine::compute::DependencyGraph::Node& node)
+        {
+            return node.name == "presentation.dispatch";
+        });
+    ASSERT_NE(presentation_node, report.dependency_graph.nodes.end());
+    EXPECT_TRUE(presentation_node->dependencies.empty());
 
     host.shutdown();
 }
