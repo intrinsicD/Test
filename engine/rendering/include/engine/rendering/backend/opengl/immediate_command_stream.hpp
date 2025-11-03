@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <utility>
 #include <vector>
 
 #include "engine/rendering/backend/opengl/gpu_scheduler.hpp"
@@ -35,11 +36,30 @@ namespace engine::rendering::backend::opengl
         [[nodiscard]] std::size_t draw_call_count() const noexcept { return draw_calls_; }
         [[nodiscard]] std::size_t compute_dispatch_count() const noexcept { return compute_dispatches_; }
 
+        [[nodiscard]] const std::vector<OpenGLTimelineSubmit>& waited_timelines() const noexcept
+        {
+            return waited_timelines_;
+        }
+
+        [[nodiscard]] const std::vector<OpenGLTimelineSubmit>& signalled_timelines() const noexcept
+        {
+            return signalled_timelines_;
+        }
+
+        [[nodiscard]] const std::vector<std::pair<resources::FenceNativeHandle, std::uint64_t>>&
+        signalled_fences() const noexcept
+        {
+            return signalled_fences_;
+        }
+
     private:
         OpenGLRenderResourceProvider* render_resources_;
         const std::vector<EncodedCommand>* current_commands_{nullptr};
         std::size_t draw_calls_{0};
         std::size_t compute_dispatches_{0};
+        std::vector<OpenGLTimelineSubmit> waited_timelines_{};
+        std::vector<OpenGLTimelineSubmit> signalled_timelines_{};
+        std::vector<std::pair<resources::FenceNativeHandle, std::uint64_t>> signalled_fences_{};
 
         void execute_draw_command(const GeometryDrawCommand& command);
         void execute_mesh_draw(const GeometryDrawCommand& command);
