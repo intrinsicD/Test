@@ -14,7 +14,10 @@ namespace engine::rendering::backend::vulkan
         clear_commands();
     }
 
-    VulkanCommandEncoder::VulkanCommandEncoder(VulkanCommandBuffer& buffer) noexcept : buffer_(&buffer) {}
+    VulkanCommandEncoder::VulkanCommandEncoder(VulkanCommandBuffer& buffer) noexcept
+        : buffer_(&buffer)
+    {
+    }
 
     void VulkanCommandEncoder::draw_geometry(const GeometryDrawCommand& command)
     {

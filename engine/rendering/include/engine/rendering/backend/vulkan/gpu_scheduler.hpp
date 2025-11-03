@@ -49,6 +49,13 @@ namespace engine::rendering::backend::vulkan
 
         explicit VulkanGpuScheduler(resources::IGpuResourceProvider& provider)
             : Base(provider)
+            , vulkan_provider_(dynamic_cast<VulkanGpuResourceProvider*>(&provider))
+        {
+        }
+
+        explicit VulkanGpuScheduler(VulkanGpuResourceProvider& provider)
+            : Base(provider)
+            , vulkan_provider_(&provider)
         {
         }
 
@@ -60,15 +67,23 @@ namespace engine::rendering::backend::vulkan
             }
 
             const auto name = pass.name();
-            std::string lowercase{name.begin(), name.end()};
-            std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(),
-                           [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+            const auto contains_case_insensitive = [](std::string_view haystack, std::string_view needle)
+            {
+                return std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(),
+                                   [](unsigned char lhs, unsigned char rhs)
+                                   {
+                                       return std::tolower(static_cast<unsigned char>(lhs))
+                                           == std::tolower(static_cast<unsigned char>(rhs));
+                                   })
+                    != haystack.end();
+            };
 
-            if (lowercase.find("transfer") != std::string::npos || lowercase.find("copy") != std::string::npos)
+            if (contains_case_insensitive(name, std::string_view{"transfer"})
+                || contains_case_insensitive(name, std::string_view{"copy"}))
             {
                 return QueueType::Transfer;
             }
-            if (lowercase.find("compute") != std::string::npos)
+            if (contains_case_insensitive(name, std::string_view{"compute"}))
             {
                 return QueueType::Compute;
             }
@@ -117,9 +132,9 @@ namespace engine::rendering::backend::vulkan
                 submission.signals.push_back(submit);
             }
 
-            if (auto* vulkan_provider = dynamic_cast<VulkanGpuResourceProvider*>(&provider_); vulkan_provider != nullptr)
+            if (vulkan_provider_ != nullptr)
             {
-                if (auto* recorded_buffer = vulkan_provider->command_buffer(encoder.handle); recorded_buffer != nullptr)
+                if (auto* recorded_buffer = vulkan_provider_->command_buffer(encoder.handle); recorded_buffer != nullptr)
                 {
                     submission.commands = recorded_buffer->commands();
                 }
@@ -127,5 +142,8 @@ namespace engine::rendering::backend::vulkan
 
             return submission;
         }
+
+    private:
+        VulkanGpuResourceProvider* vulkan_provider_{nullptr};
     };
 }

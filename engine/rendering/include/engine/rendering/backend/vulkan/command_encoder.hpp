@@ -55,7 +55,7 @@ namespace engine::rendering::backend::vulkan
     };
 
     /**
-     * \brief Provider handing out Vulkan command encoders tied to native command buffers.
+     * \brief Provider handling Vulkan command encoders tied to native command buffers.
      */
     class VulkanCommandEncoderProvider final : public CommandEncoderProvider
     {
