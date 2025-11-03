@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <utility>
 
 #include "engine/rendering/backend/opengl/command_encoder.hpp"
@@ -25,7 +26,11 @@ namespace engine::rendering::backend::opengl
     public:
         using MeshResolver = OpenGLRenderResourceProvider::MeshResolver;
 
-        explicit OpenGLRuntimeSubmission(MeshResolver mesh_resolver);
+        explicit OpenGLRuntimeSubmission(MeshResolver mesh_resolver,
+                                         std::uint64_t retention_frames = 0);
+
+        void set_retention_frames(std::uint64_t frames) noexcept;
+        [[nodiscard]] std::uint64_t retention_frames() const noexcept;
 
         [[nodiscard]] RuntimeSubmissionContext make_context(MaterialSystem& materials,
                                                             FrameGraph& frame_graph,

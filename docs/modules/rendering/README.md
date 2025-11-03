@@ -302,7 +302,11 @@ for (const auto& barrier : submission.begin_barriers)
   interface. Provide a mesh resolver callback and register materials with the
   embedded `MaterialSystem`, then call `present()` with the runtime's
   `RuntimePresentationContext` (which carries a `submit_render_graph` callback)
-  to execute the frame graph through the OpenGL stack each tick.
+  to execute the frame graph through the OpenGL stack each tick. Configure
+  transient resource reuse by supplying a retention-frame count to the
+  constructor (or by calling `set_resource_retention_frames()`), enabling
+  runtime hosts and PM-510 demos to balance GPU memory pressure against reuse
+  while T-0120 backends mature.
 
 ## Resource Management
 

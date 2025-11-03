@@ -245,7 +245,11 @@ for hosts that want a ready-made OpenGL execution path. Supply a mesh resolver
  backend to the runtime dependencies; runtime dispatch populates
  `RuntimePresentationContext::submit_render_graph` so `present()` can forward
  the bundled submission context to `RuntimeHost::submit_render_graph()` each
- tick.
+ tick. Presentation consumers can tune transient GPU caching by passing a
+ retention-frame count to the backend constructor or invoking
+ `set_resource_retention_frames()`, which forwards to the GPU resource
+ provider so demos can balance memory pressure against reuse during the T-0120
+ milestone.
 
 ## Diagnostics & Telemetry
 
