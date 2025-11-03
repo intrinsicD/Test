@@ -2,7 +2,7 @@
 
 **Owner:** Tech Lead (Runtime)
 
-**Scope:** Implement schema-aligned configuration loading and validation for the runtime harness as part of backlog item [DC-040](../../backlog/active/DC-040-ai-004-configuration-schema.md).
+**Scope:** Implement schema-aligned configuration loading and validation for the runtime harness as part of backlog item [DC-040](../../backlog/archive/DC-040-ai-004-configuration-schema.md).
 
 ## Purpose
 

@@ -34,9 +34,9 @@ The initiative lacks a single source of truth for the kickoff review. This item 
 - Latest status updates from `RE-610`, `RT-320`, `TL-210`, `AS-330`, and `CC-310`.
 
 ## Related Artefacts
-- [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
-- Kickoff brief: [`AI-004-kickoff-brief.md`](AI-004-kickoff-brief.md)
-- Sprint tracker: [`2026-02-03-sprint-11.md`](2026-02-03-sprint-11.md)
+- [`docs/backlog/archive/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
+- Kickoff brief: [`AI-004-kickoff-brief.md`](../active/AI-004-kickoff-brief.md)
+- Sprint tracker: [`2026-02-03-sprint-11.md`](../active/2026-02-03-sprint-11.md)
 - [`docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md`](../../archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md)
 
 ## Notes

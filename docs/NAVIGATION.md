@@ -22,7 +22,7 @@
 
 | Directory | Purpose | When to Use |
 |-----------|---------|-------------|
-| `backlog/` | Active + archived backlog items with priority 1–5 scale | Planning, status tracking |
+| `backlog/` | Active backlog in `backlog/active/`; completed entries move to [`backlog/archive/`](backlog/archive/README.md) with preserved metadata | Planning, status tracking |
 | `design/` | Deep dives, guides, strategies | Understanding complex subsystems |
 | `architecture/` | Generated diagrams (module dependency graph, wiring snapshots) | Visualising system structure |
 | `modules/` | Per-module README + roadmap | Working in specific subsystem |

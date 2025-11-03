@@ -38,7 +38,7 @@ RuntimeHost::tick now executes through a declarative `RuntimeLoopPlan`, but back
 
 ## Dependencies
 - [`T-0119`](T-0119-command-encoder-integration.md) — supplies GPU command submission required for presentation.
-- [`DC-041`](DC-041-ai-004-kickoff-readiness.md) — reuse capability selection guidelines.
+- [`DC-041`](../archive/DC-041-ai-004-kickoff-readiness.md) — reuse capability selection guidelines.
 
 ## Related Artefacts
 - [`docs/specs/ADR-0008-runtime-main-loop-and-tooling.md`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md)

@@ -26,8 +26,8 @@ The polling-based filesystem watcher underpins hot-reload flows across assets, t
 - [x] `scripts/validate_docs.py` passes after documentation changes.
 
 ## Dependencies
-- [`AS-330`](../../backlog/active/AS-330-reference-dataset-packages.md) ingestion automation relying on watcher callbacks.
-- [`TL-210`](../../backlog/active/TL-210-experiment-sandbox-ui.md) sandbox wiring that exposes reload telemetry.
+- [`AS-330`](AS-330-reference-dataset-packages.md) ingestion automation relying on watcher callbacks.
+- [`TL-210`](TL-210-experiment-sandbox-ui.md) sandbox wiring that exposes reload telemetry.
 
 ## Related Artefacts
 - [`engine/platform/include/engine/platform/filesystem/watcher.hpp`](../../../engine/platform/include/engine/platform/filesystem/watcher.hpp)

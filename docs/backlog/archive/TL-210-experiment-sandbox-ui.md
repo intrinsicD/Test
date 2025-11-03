@@ -30,9 +30,9 @@ Initial sandbox scaffolding landed, but wiring to the runtime harness and benchm
 - [x] Tools README, prototyping playbook, and accessibility checklist document the workflow with updated screenshots.
 
 ## Dependencies
-- [`docs/backlog/active/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
-- [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
-- [`docs/backlog/active/CC-310-comparative-benchmark-automation.md`](CC-310-comparative-benchmark-automation.md)
+- [`docs/backlog/archive/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
+- [`docs/backlog/archive/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
+- [`docs/backlog/archive/CC-310-comparative-benchmark-automation.md`](CC-310-comparative-benchmark-automation.md)
 
 ## Related Artefacts
 - [`docs/archive/backlog/legacy/tasks/TL-210-experiment-sandbox-ui.md`](../../archive/backlog/legacy/tasks/TL-210-experiment-sandbox-ui.md)

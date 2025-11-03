@@ -35,7 +35,7 @@ Researchers currently assemble ad-hoc executables to validate algorithms. RT-320
 - [x] Runtime documentation and samples include setup instructions plus example configuration files (see `engine/runtime/samples/README.md` and `docs/examples/README.md`).
 
 ## Dependencies
-- [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
+- [`docs/backlog/archive/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
 - Research rendering baseline (see archived `RE-610`).
 - Runtime integration sample (`CO-170`) for orchestration patterns.
 

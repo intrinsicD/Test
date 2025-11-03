@@ -25,9 +25,9 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 ### Phase 1 — Kickoff Ready *(Priorities 1–2)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 1 | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Ratify shared configuration schema and validators. | Agent Orchestrator + Module Leads | Complete |
-| 1 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Publish kickoff plan, risk ownership, and milestone sequencing. | Product Manager | Complete |
-| 2 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Ship schema-driven harness with interactive + headless flows. | Runtime Lead | Complete |
+| 1 | [`DC-040`](backlog/archive/DC-040-ai-004-configuration-schema.md) | Ratify shared configuration schema and validators. | Agent Orchestrator + Module Leads | Complete |
+| 1 | [`DC-041`](backlog/archive/DC-041-ai-004-kickoff-readiness.md) | Publish kickoff plan, risk ownership, and milestone sequencing. | Product Manager | Complete |
+| 2 | [`RT-320`](backlog/archive/RT-320-runtime-prototyping-harness.md) | Ship schema-driven harness with interactive + headless flows. | Runtime Lead | Complete |
 
 **Exit Criteria:** Schema approved, kickoff brief published, harness prototype booting sample datasets.
 
@@ -36,27 +36,27 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 | Sequence | Target Date | Backlog | Owner | Dependencies | Notes | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 2026-02-07 | [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | Product Manager | [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | Kickoff packet: roadmap timeline, sprint tracker, and risk register cross-linked. | ✅ Complete |
-| 2 | 2026-02-12 | [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | Runtime Lead | `DC-041` | Harness smoke demo exercising schema sample + telemetry export recorded; kickoff brief now carries dataset hash appendix. | ✅ Complete |
-| 3 | 2026-02-14 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox integrates harness presets and dataset selectors ready for review walk-through; overlay telemetry tuning continues. | ✅ Complete |
-| 4 | 2026-02-16 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Dataset package validated against harness + sandbox handoff for demo content. | ✅ Complete |
+| 1 | 2026-02-07 | [`DC-041`](backlog/archive/DC-041-ai-004-kickoff-readiness.md) | Product Manager | [`DC-040`](backlog/archive/DC-040-ai-004-configuration-schema.md) | Kickoff packet: roadmap timeline, sprint tracker, and risk register cross-linked. | ✅ Complete |
+| 2 | 2026-02-12 | [`RT-320`](backlog/archive/RT-320-runtime-prototyping-harness.md) | Runtime Lead | `DC-041` | Harness smoke demo exercising schema sample + telemetry export recorded; kickoff brief now carries dataset hash appendix. | ✅ Complete |
+| 3 | 2026-02-14 | [`TL-210`](backlog/archive/TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox integrates harness presets and dataset selectors ready for review walk-through; overlay telemetry tuning continues. | ✅ Complete |
+| 4 | 2026-02-16 | [`AS-330`](backlog/archive/AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Dataset package validated against harness + sandbox handoff for demo content. | ✅ Complete |
 
 > Kickoff coordination artefacts: [`AI-004-kickoff-brief.md`](backlog/active/AI-004-kickoff-brief.md), [`2026-02-03-sprint-11.md`](backlog/active/2026-02-03-sprint-11.md).
 
 ### Phase 2 — Harness & Dataset Integration *(Priorities 2–3)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 3 | [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | Curate licensed datasets with manifests and ingestion tooling. | Assets Lead | Complete |
-| 3 | [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | Finalise sandbox UI wiring to harness + benchmarks. | Tools Lead | Complete |
-| 3 | [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | Validate two case studies end to end with telemetry baselines. | Runtime Lead | Complete |
+| 3 | [`AS-330`](backlog/archive/AS-330-reference-dataset-packages.md) | Curate licensed datasets with manifests and ingestion tooling. | Assets Lead | Complete |
+| 3 | [`TL-210`](backlog/archive/TL-210-experiment-sandbox-ui.md) | Finalise sandbox UI wiring to harness + benchmarks. | Tools Lead | Complete |
+| 3 | [`RT-321`](backlog/archive/RT-321-prototyping-case-studies.md) | Validate two case studies end to end with telemetry baselines. | Runtime Lead | Complete |
 
 **Exit Criteria:** Harness, sandbox, and datasets operate together; case studies produce reproducible artefacts.
 
 ### Phase 3 — Benchmark Confidence *(Priorities 4–5)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 4 | [`CC-310`](backlog/active/CC-310-comparative-benchmark-automation.md) | Automate comparative benchmarks and CI smoke suite. | Performance Lead | Complete |
-| 4 | [`CC-311`](backlog/active/CC-311-benchmark-visualisation.md) | Render comparative reports and expose them in tooling + CI. | Performance Lead | Complete |
+| 4 | [`CC-310`](backlog/archive/CC-310-comparative-benchmark-automation.md) | Automate comparative benchmarks and CI smoke suite. | Performance Lead | Complete |
+| 4 | [`CC-311`](backlog/archive/CC-311-benchmark-visualisation.md) | Render comparative reports and expose them in tooling + CI. | Performance Lead | Complete |
 | 5 | Follow-up polish items (to be spawned once CC-311 closes). | — | — |
 
 **Exit Criteria:** Automated benchmarks and visual reports block regressions; kickoff demo is reproducible on CI hardware.
@@ -89,17 +89,11 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | [`T-0120`](backlog/active/T-0120-gpu-resource-provider.md) | 1 | In Progress | GPU allocations, textures, and shader pipelines being implemented with shared reviews alongside T-0119. |
 | [`T-0119`](backlog/active/T-0119-command-encoder-integration.md) | 1 | In Progress | Command encoder integration underway; smoke demos paired with T-0120 milestone. |
 | [`RT-410`](backlog/active/RT-410-runtime-stage-planner.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
-| [`DC-040`](backlog/active/DC-040-ai-004-configuration-schema.md) | 1 | Complete | Schema ADR, cross-language validators, and prototyping playbook published. |
-| [`DC-041`](backlog/active/DC-041-ai-004-kickoff-readiness.md) | 1 | Complete | Kickoff brief + roadmap timeline published. |
-| [`RT-320`](backlog/active/RT-320-runtime-prototyping-harness.md) | 2 | Complete | Harness + telemetry shipped; maintenance tasks captured in module TODOs. |
 | [`TL-310`](backlog/active/TL-310-editor-foundations.md) | 2 | Sequenced | Editor builds remain disabled; work scheduled to start once RT-410 adapters merge. |
 | [`PM-510`](backlog/active/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned. |
-| [`AS-330`](backlog/active/AS-330-reference-dataset-packages.md) | 3 | Complete | Dataset packages published with ingestion automation and provenance docs. |
-| [`TL-210`](backlog/active/TL-210-experiment-sandbox-ui.md) | 3 | Complete | Sandbox wiring finished; follow-up automation tracked in tools TODOs. |
-| [`RT-321`](backlog/active/RT-321-prototyping-case-studies.md) | 3 | Complete | Geometry + rendering case studies documented with CTest coverage. |
-| [`CC-310`](backlog/active/CC-310-comparative-benchmark-automation.md) | 4 | Complete | Orchestrator, SVG plots, and smoke helper published for AI-004 fixtures. |
-| [`CC-311`](backlog/active/CC-311-benchmark-visualisation.md) | 4 | Complete | Telemetry viewer comparative mode + AI-004 reports published. |
 | [`PM-520`](backlog/active/PM-520-backlog-hygiene-remediation.md) | 2 | Planned | Executes backlog/roadmap archival cleanup identified by the March 2026 audit. |
+
+> Archived backlog entries: [`DC-040`](backlog/archive/DC-040-ai-004-configuration-schema.md), [`DC-041`](backlog/archive/DC-041-ai-004-kickoff-readiness.md), [`RT-320`](backlog/archive/RT-320-runtime-prototyping-harness.md), [`TL-210`](backlog/archive/TL-210-experiment-sandbox-ui.md), [`RT-321`](backlog/archive/RT-321-prototyping-case-studies.md), [`AS-330`](backlog/archive/AS-330-reference-dataset-packages.md), [`CC-310`](backlog/archive/CC-310-comparative-benchmark-automation.md), [`CC-311`](backlog/archive/CC-311-benchmark-visualisation.md), and [`PL-240`](backlog/archive/PL-240-platform-filesystem-watcher-guidance.md) now reside under `docs/backlog/archive/` following PM-520 remediation.
 
 ## Risks & Mitigations
 

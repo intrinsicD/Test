@@ -30,8 +30,8 @@ AI-004 requires canonical datasets so harness runs are reproducible and comparab
 - [x] Assets module README and prototyping playbook document installation, troubleshooting, and reproducibility checklist.
 
 ## Dependencies
-- [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
-- [`docs/backlog/active/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
+- [`docs/backlog/archive/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
+- [`docs/backlog/archive/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
 
 ## Related Artefacts
 - [`docs/archive/backlog/legacy/tasks/AS-330-reference-dataset-packages.md`](../../archive/backlog/legacy/tasks/AS-330-reference-dataset-packages.md)

@@ -99,9 +99,9 @@ with the mock backend.
 
 The application-readiness plan is maintained in [docs/ROADMAP.md](docs/ROADMAP.md) with detailed backlog entries under [docs/backlog/](docs/backlog/). Current focus areas:
 
-- **Phase 1 – Kickoff Ready (Completed):** [DC-040](docs/backlog/active/DC-040-ai-004-configuration-schema.md), [DC-041](docs/backlog/active/DC-041-ai-004-kickoff-readiness.md), [RT-320](docs/backlog/active/RT-320-runtime-prototyping-harness.md).
-- **Phase 2 – Harness & Datasets (Completed):** [AS-330](docs/backlog/active/AS-330-reference-dataset-packages.md), [TL-210](docs/backlog/active/TL-210-experiment-sandbox-ui.md), [RT-321](docs/backlog/active/RT-321-prototyping-case-studies.md).
-- **Phase 3 – Benchmark Confidence (Priority 4):** [CC-310](docs/backlog/active/CC-310-comparative-benchmark-automation.md), [CC-311](docs/backlog/active/CC-311-benchmark-visualisation.md).
+- **Phase 1 – Kickoff Ready (Completed):** [DC-040](docs/backlog/archive/DC-040-ai-004-configuration-schema.md), [DC-041](docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md), [RT-320](docs/backlog/archive/RT-320-runtime-prototyping-harness.md).
+- **Phase 2 – Harness & Datasets (Completed):** [AS-330](docs/backlog/archive/AS-330-reference-dataset-packages.md), [TL-210](docs/backlog/archive/TL-210-experiment-sandbox-ui.md), [RT-321](docs/backlog/archive/RT-321-prototyping-case-studies.md).
+- **Phase 3 – Benchmark Confidence (Priority 4):** [CC-310](docs/backlog/archive/CC-310-comparative-benchmark-automation.md), [CC-311](docs/backlog/archive/CC-311-benchmark-visualisation.md).
 - **Phase 4 – GPU Execution & Tooling (Priorities 1–2):** Joint GPU enablement milestone covering [T-0120](docs/backlog/active/T-0120-gpu-resource-provider.md) + [T-0119](docs/backlog/active/T-0119-command-encoder-integration.md), parallel runtime presentation work in [RT-410](docs/backlog/active/RT-410-runtime-stage-planner.md), coordinated tooling reactivation in [TL-310](docs/backlog/active/TL-310-editor-foundations.md), and cross-module integration cadence in [PM-510](docs/backlog/active/PM-510-weekly-integration-demos.md).
 
 See the roadmap for risk owners, success metrics, and archival history.
