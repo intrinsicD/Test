@@ -56,6 +56,14 @@ when a callback or presenter is active. Rendering builds may attach presenters
 after initialization via `host.set_presentation_backend(...)` without
 reconfiguring dependencies, and new presenters activate immediately even if a
 callback was already registered.【F:engine/runtime/src/api.cpp†L2183-L2228】
+Check whether presentation handlers are active through
+`host.presentation_stage_active()` (or the global
+`engine::runtime::presentation_stage_active()` helper) to gate tooling and
+diagnostics behaviour without parsing execution reports.【F:engine/runtime/include/engine/runtime/api.hpp†L303-L346】【F:engine/runtime/src/api.cpp†L2783-L2831】
+Tooling that links against the C interface can query
+`engine_runtime_presentation_stage_active()` (exposed in Python via
+`EngineRuntimeHandle.presentation_stage_active()`) for the same boolean without
+touching diagnostics payloads.【F:engine/runtime/include/engine/runtime/api.hpp†L334-L357】【F:python/engine3g/loader.py†L317-L420】
 
 ### Lifecycle
 
