@@ -49,6 +49,14 @@ host.set_presentation_callback([](double dt) {
 });
 ```
 
+Callbacks or presentation backends can be hot-swapped at runtime. `RuntimeHost`
+rebuilds its default loop plan whenever handlers change or the presentation
+backend pointer is replaced so `presentation.dispatch` telemetry only appears
+when a callback or presenter is active. Rendering builds may attach presenters
+after initialization via `host.set_presentation_backend(...)` without
+reconfiguring dependencies, and new presenters activate immediately even if a
+callback was already registered.【F:engine/runtime/src/api.cpp†L2183-L2228】
+
 ### Lifecycle
 
 1. **Construction**: Accept `RuntimeHostDependencies` with animation controllers, physics world, geometry, and subsystem plugins
@@ -109,6 +117,11 @@ the updated graph. Inspect the active plan via `RuntimeHost::loop_plan()` (or th
 `engine::runtime::loop_plan()` helper) when exporting diagnostics or wiring control surfaces.
 
 `presentation.dispatch` bridges the simulation stack to presentation tooling. Provide a presenter by attaching a `rendering::PresentationBackend` to `RuntimeHostDependencies::presentation_backend`; the host invokes it every tick with a `rendering::RuntimePresentationContext` so the backend can submit frame-graph work, composite UI, or trigger readbacks before diagnostics run. Lightweight integrations may continue to register callbacks with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper). Both backends and callbacks receive the frame `dt` so presentation logic can track timing alongside simulation state.
+
+Backends can also be swapped in and out after initialization through
+`RuntimeHost::set_presentation_backend()`, ensuring the presentation stage is
+recorded or removed from execution reports automatically as presenters become
+available.【F:engine/runtime/src/api.cpp†L2183-L2226】
 
 The rendering module now ships `rendering::backend::opengl::OpenGLPresentationBackend`
 for hosts that want a ready-made OpenGL execution path. Supply a mesh resolver

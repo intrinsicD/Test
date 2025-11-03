@@ -1972,6 +1972,28 @@ namespace engine::runtime
             apply_pending_loop_plan();
         }
 
+        [[nodiscard]] bool presentation_stage_enabled() const noexcept
+        {
+#if ENGINE_ENABLE_RENDERING
+            return presentation_callback != nullptr || presentation_backend != nullptr;
+#else
+            return presentation_callback != nullptr;
+#endif
+        }
+
+        void queue_default_loop_plan_rebuild()
+        {
+            auto plan_result = build_default_loop_plan();
+            if (!plan_result)
+            {
+                spdlog::error(
+                    "Failed to rebuild runtime loop plan: {}",
+                    plan_result.error().message());
+                return;
+            }
+            pending_loop_plan = std::move(plan_result).value();
+        }
+
         RuntimeResult<RuntimeLoopPlan> build_default_loop_plan()
         {
             RuntimeLoopBuilder builder{};
@@ -2182,9 +2204,31 @@ namespace engine::runtime
 
         void set_presentation_callback(RuntimeHost::PresentationCallback callback)
         {
+            const bool was_enabled = presentation_stage_enabled();
             dependencies.presentation_callback = callback;
             presentation_callback = std::move(callback);
+            const bool is_enabled = presentation_stage_enabled();
+            if (was_enabled != is_enabled)
+            {
+                queue_default_loop_plan_rebuild();
+            }
         }
+
+#if ENGINE_ENABLE_RENDERING
+        void set_presentation_backend(std::shared_ptr<rendering::PresentationBackend> backend)
+        {
+            const bool was_enabled = presentation_stage_enabled();
+            auto previous_backend = presentation_backend;
+            dependencies.presentation_backend = std::move(backend);
+            presentation_backend = dependencies.presentation_backend;
+            const bool is_enabled = presentation_stage_enabled();
+            const bool backend_changed = previous_backend != presentation_backend;
+            if (was_enabled != is_enabled || backend_changed)
+            {
+                queue_default_loop_plan_rebuild();
+            }
+        }
+#endif
 
         [[nodiscard]] std::string_view runtime_name_view() const noexcept
         {
@@ -2801,6 +2845,16 @@ namespace engine::runtime
         }
         impl_->set_research_rendering_options(options);
     }
+
+    void RuntimeHost::set_presentation_backend(
+        std::shared_ptr<rendering::PresentationBackend> backend)
+    {
+        if (impl_ == nullptr)
+        {
+            return;
+        }
+        impl_->set_presentation_backend(std::move(backend));
+    }
 #endif
 
     namespace
@@ -2839,6 +2893,13 @@ namespace engine::runtime
     {
         global_host().set_presentation_callback(std::move(callback));
     }
+
+#if ENGINE_ENABLE_RENDERING
+    void set_presentation_backend(std::shared_ptr<rendering::PresentationBackend> backend)
+    {
+        global_host().set_presentation_backend(std::move(backend));
+    }
+#endif
 
     void set_loop_plan(RuntimeLoopPlan plan)
     {

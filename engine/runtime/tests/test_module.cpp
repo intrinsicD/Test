@@ -2396,6 +2396,57 @@ TEST(RuntimeHost, PresentationCallbackInvoked)
     host.shutdown();
 }
 
+TEST(RuntimeHost, PresentationCallbackHotSwapRebuildsLoopPlan)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+    host.tick(0.01);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_EQ(has_presentation, report.execution_order.end());
+    }
+
+    bool invoked = false;
+    host.set_presentation_callback([
+        &invoked
+    ](double)
+    {
+        invoked = true;
+    });
+    host.tick(0.02);
+    EXPECT_TRUE(invoked);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_NE(has_presentation, report.execution_order.end());
+    }
+
+    invoked = false;
+    host.set_presentation_callback({});
+    host.tick(0.03);
+    EXPECT_FALSE(invoked);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_EQ(has_presentation, report.execution_order.end());
+    }
+
+    host.shutdown();
+}
+
 #if ENGINE_ENABLE_RENDERING
 TEST(RuntimeHost, PresentationBackendInvoked)
 {
@@ -2434,6 +2485,78 @@ TEST(RuntimeHost, PresentationBackendInvoked)
         });
     ASSERT_NE(presentation_node, report.dependency_graph.nodes.end());
     EXPECT_TRUE(presentation_node->dependencies.empty());
+
+    host.shutdown();
+}
+
+TEST(RuntimeHost, PresentationBackendHotSwapRebuildsLoopPlan)
+{
+    engine::runtime::RuntimeHost host{};
+    host.initialize();
+    host.tick(0.01);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_EQ(has_presentation, report.execution_order.end());
+    }
+
+    auto backend = std::make_shared<RecordingPresentationBackend>();
+    host.set_presentation_backend(backend);
+    host.tick(0.02);
+    ASSERT_EQ(backend->calls.size(), 1U);
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_NE(has_presentation, report.execution_order.end());
+    }
+
+    backend->calls.clear();
+    host.set_presentation_backend(nullptr);
+    host.tick(0.03);
+    EXPECT_TRUE(backend->calls.empty());
+
+    {
+        const auto& report = host.last_dispatch_report();
+        const auto has_presentation = std::find(
+            report.execution_order.begin(),
+            report.execution_order.end(),
+            std::string{"presentation.dispatch"});
+        EXPECT_EQ(has_presentation, report.execution_order.end());
+    }
+
+    bool callback_called = false;
+    host.set_presentation_callback([
+        &callback_called
+    ](double)
+    {
+        callback_called = true;
+    });
+    host.tick(0.04);
+    EXPECT_TRUE(callback_called);
+
+    callback_called = false;
+    backend->calls.clear();
+    host.set_presentation_backend(backend);
+    host.tick(0.05);
+    EXPECT_TRUE(callback_called);
+    ASSERT_EQ(backend->calls.size(), 1U);
+
+    callback_called = false;
+    backend->calls.clear();
+    host.set_presentation_backend(nullptr);
+    host.tick(0.06);
+    EXPECT_TRUE(callback_called);
+    EXPECT_TRUE(backend->calls.empty());
+
+    host.set_presentation_callback(nullptr);
 
     host.shutdown();
 }
