@@ -290,6 +290,7 @@ namespace engine::runtime
         [[nodiscard]] double simulation_time() const noexcept;
         [[nodiscard]] std::span<const std::string_view> subsystem_names() const noexcept;
         [[nodiscard]] const RuntimeDiagnostics& diagnostics() const noexcept;
+        [[nodiscard]] bool presentation_stage_active() const noexcept;
 
         void configure(RuntimeHostDependencies dependencies);
         void set_presentation_callback(PresentationCallback callback);
@@ -339,6 +340,7 @@ namespace engine::runtime
     [[nodiscard]] ENGINE_RUNTIME_API std::vector<std::string> default_subsystem_names();
     [[nodiscard]] ENGINE_RUNTIME_API StreamingMetrics streaming_metrics() noexcept;
     [[nodiscard]] ENGINE_RUNTIME_API const RuntimeDiagnostics& diagnostics() noexcept;
+    [[nodiscard]] ENGINE_RUNTIME_API bool presentation_stage_active() noexcept;
 
 #if ENGINE_ENABLE_ASSETS
     [[nodiscard]] ENGINE_RUNTIME_API assets::AssetLoadFuture<assets::MeshHandle>
@@ -368,6 +370,7 @@ extern "C" ENGINE_RUNTIME_API void engine_runtime_configure_with_modules(
 extern "C" ENGINE_RUNTIME_API void engine_runtime_initialize() noexcept;
 extern "C" ENGINE_RUNTIME_API void engine_runtime_shutdown() noexcept;
 extern "C" ENGINE_RUNTIME_API void engine_runtime_tick(double dt) noexcept;
+extern "C" ENGINE_RUNTIME_API bool engine_runtime_presentation_stage_active() noexcept;
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_body_count() noexcept;
 extern "C" ENGINE_RUNTIME_API void engine_runtime_body_position(std::size_t index, float* out_position) noexcept;
 extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_joint_count() noexcept;

@@ -2785,6 +2785,11 @@ namespace engine::runtime
         return impl_->diagnostics_view();
     }
 
+    bool RuntimeHost::presentation_stage_active() const noexcept
+    {
+        return impl_->presentation_stage_enabled();
+    }
+
 #if ENGINE_ENABLE_ASSETS
     assets::AssetLoadFuture<assets::MeshHandle>
     RuntimeHost::request_mesh_asset(const assets::AssetLoadRequest& request)
@@ -2892,6 +2897,11 @@ namespace engine::runtime
     void set_presentation_callback(RuntimeHost::PresentationCallback callback)
     {
         global_host().set_presentation_callback(std::move(callback));
+    }
+
+    bool presentation_stage_active() noexcept
+    {
+        return global_host().presentation_stage_active();
     }
 
 #if ENGINE_ENABLE_RENDERING
@@ -3156,6 +3166,18 @@ namespace engine::runtime
         }
         catch (...)
         {
+        }
+    }
+
+    extern "C" ENGINE_RUNTIME_API bool engine_runtime_presentation_stage_active() noexcept
+    {
+        try
+        {
+            return engine::runtime::presentation_stage_active();
+        }
+        catch (...)
+        {
+            return false;
         }
     }
 

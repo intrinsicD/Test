@@ -232,8 +232,14 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         ROLES.md
         context_packages/
             2026-02-26-rt-410-presentation-telemetry.md
+            2026-02-27-rt-410-presentation-loop-refresh.md
+            2026-02-28-rt-410-presentation-stage-query.md
+            2026-03-01-rt-410-presentation-stage-capi.md
         task_briefs/
             2026-02-26-rt-410-presentation-telemetry.md
+            2026-02-27-rt-410-presentation-loop-refresh.md
+            2026-02-28-rt-410-presentation-stage-query.md
+            2026-03-01-rt-410-presentation-stage-capi.md
         TEMPLATES/
             ADR_TEMPLATE.md
             CONTEXT_PACKAGE_TEMPLATE.md
@@ -1176,6 +1182,12 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             loader.pyi
             prototype_harness.py
             README.md
+            __pycache__/
+                __init__.cpython-312.pyc
+                case_studies.cpython-312.pyc
+                config_schema.cpython-312.pyc
+                loader.cpython-312.pyc
+                prototype_harness.cpython-312.pyc
         tests/
             _helpers.py
             README.md
@@ -1184,6 +1196,13 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_dataset_ingestion.py
             test_loader.py
             test_prototype_harness.py
+            __pycache__/
+                _helpers.cpython-312.pyc
+                test_case_studies.cpython-312-pytest-8.4.1.pyc
+                test_config_schema.cpython-312-pytest-8.4.1.pyc
+                test_dataset_ingestion.cpython-312-pytest-8.4.1.pyc
+                test_loader.cpython-312-pytest-8.4.1.pyc
+                test_prototype_harness.cpython-312-pytest-8.4.1.pyc
     scripts/
         __init__.py
         bootstrap_python_env.py
@@ -1193,17 +1212,33 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         update_agents_tree.py
         validate_ai004_config.py
         validate_docs.py
+        __pycache__/
+            __init__.cpython-312.pyc
+            bootstrap_python_env.cpython-312.pyc
+            generate_dependency_graph.cpython-312.pyc
+            update_agents_tree.cpython-312.pyc
+            validate_ai004_config.cpython-312.pyc
+            validate_docs.cpython-312.pyc
         benchmarks/
             __init__.py
             run_comparative_benchmarks.py
+            __pycache__/
+                __init__.cpython-312.pyc
+                run_comparative_benchmarks.cpython-312.pyc
         ci/
             package_runtime_artifacts.py
             README.md
             run_comparative_smoke.py
             run_presets.py
+            __pycache__/
+                package_runtime_artifacts.cpython-312.pyc
+                run_comparative_smoke.cpython-312.pyc
         datasets/
             __init__.py
             ingest_dataset.py
+            __pycache__/
+                __init__.cpython-312.pyc
+                ingest_dataset.cpython-312.pyc
         diagnostics/
             animation_sampling_report.py
             collision_benchmark_report.py
@@ -1214,13 +1249,28 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             runtime_frame_telemetry.py
             streaming_report.py
             telemetry_viewer.py
+            __pycache__/
+                animation_sampling_report.cpython-312.pyc
+                collision_benchmark_report.cpython-312.pyc
+                compute_dispatch_benchmark.cpython-312.pyc
+                compute_dispatch_report.cpython-312.pyc
+                geometry_normals_benchmark_report.cpython-312.pyc
+                runtime_frame_telemetry.cpython-312.pyc
+                streaming_report.cpython-312.pyc
+                telemetry_viewer.cpython-312.pyc
         lint/
             __init__.py
             error_handling.py
             legacy_error_allowlist.json
+            __pycache__/
+                __init__.cpython-312.pyc
+                error_handling.cpython-312.pyc
         prototyping/
             __init__.py
             run_prototype_harness.py
+            __pycache__/
+                __init__.cpython-312.pyc
+                run_prototype_harness.cpython-312.pyc
         tests/
             test_animation_sampling_report.py
             test_bootstrap_python_env.py
@@ -1241,6 +1291,26 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_update_agents_tree.py
             test_validate_ai004_config.py
             test_validate_docs.py
+            __pycache__/
+                test_animation_sampling_report.cpython-312-pytest-8.4.1.pyc
+                test_bootstrap_python_env.cpython-312-pytest-8.4.1.pyc
+                test_check_error_handling.cpython-312-pytest-8.4.1.pyc
+                test_collision_benchmark_report.cpython-312-pytest-8.4.1.pyc
+                test_compute_dispatch_benchmark.cpython-312-pytest-8.4.1.pyc
+                test_compute_dispatch_report.cpython-312-pytest-8.4.1.pyc
+                test_generate_dependency_graph.cpython-312-pytest-8.4.1.pyc
+                test_geometry_normals_benchmark_report.cpython-312-pytest-8.4.1.pyc
+                test_ingest_dataset.cpython-312-pytest-8.4.1.pyc
+                test_package_runtime_artifacts.cpython-312-pytest-8.4.1.pyc
+                test_run_comparative_benchmarks.cpython-312-pytest-8.4.1.pyc
+                test_run_comparative_smoke.cpython-312-pytest-8.4.1.pyc
+                test_runtime_frame_telemetry.cpython-312-pytest-8.4.1.pyc
+                test_streaming_report.cpython-312-pytest-8.4.1.pyc
+                test_telemetry_viewer.cpython-312-pytest-8.4.1.pyc
+                test_telemetry_viewer_smoke.cpython-312-pytest-8.4.1.pyc
+                test_update_agents_tree.cpython-312-pytest-8.4.1.pyc
+                test_validate_ai004_config.cpython-312-pytest-8.4.1.pyc
+                test_validate_docs.cpython-312-pytest-8.4.1.pyc
     telemetry/
         frame_timings.json
 ```
