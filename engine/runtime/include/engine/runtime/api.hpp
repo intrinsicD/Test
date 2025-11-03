@@ -302,6 +302,7 @@ namespace engine::runtime
 
         void submit_render_graph(RenderSubmissionContext& context);
         void configure_research_rendering(const rendering::ResearchBaselineOptions& options) noexcept;
+        void set_presentation_backend(std::shared_ptr<rendering::PresentationBackend> backend);
 #endif
 
 #if ENGINE_ENABLE_ASSETS
@@ -352,6 +353,8 @@ namespace engine::runtime
 ENGINE_RUNTIME_API void submit_render_graph(RuntimeHost::RenderSubmissionContext & context);
 ENGINE_RUNTIME_API void configure_research_rendering(
     const rendering::ResearchBaselineOptions& options) noexcept;
+ENGINE_RUNTIME_API void set_presentation_backend(
+    std::shared_ptr<rendering::PresentationBackend> backend);
 #endif
 } // namespace engine::runtime
 
