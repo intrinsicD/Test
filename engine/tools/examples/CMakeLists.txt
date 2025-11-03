@@ -37,9 +37,9 @@ if(_geometry_viewer_requirements_met)
 else()
     list(JOIN _geometry_viewer_missing_targets ", " _geometry_viewer_missing_targets_joined)
     message(STATUS "Skipping geometry_viewer example (missing targets: ${_geometry_viewer_missing_targets_joined}).")
+    unset(_geometry_viewer_missing_targets_joined)
 endif()
 
 unset(_geometry_viewer_requirements_met)
 unset(_geometry_viewer_missing_targets)
-unset(_geometry_viewer_missing_targets_joined)
 
