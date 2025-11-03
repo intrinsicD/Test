@@ -2377,7 +2377,6 @@ TEST(RuntimeHost, PresentationCallbackInvoked)
         report.execution_order.begin(),
         report.execution_order.end(),
         std::string{"presentation.dispatch"});
-    EXPECT_NE(has_presentation, report.execution_order.end());
     ASSERT_NE(has_presentation, report.execution_order.end());
     const std::size_t presentation_index = static_cast<std::size_t>(
         std::distance(report.execution_order.begin(), has_presentation));
