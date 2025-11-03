@@ -340,12 +340,19 @@
     "throw std::invalid_argument{\"--dt must be positive\"};": 1,
     "throw std::invalid_argument{\"--dt requires a value\"};": 1,
     "throw std::invalid_argument{\"--frames requires a value\"};": 1,
+    "throw std::invalid_argument{\"--overlay requires a value\"};": 1,
+    "throw std::invalid_argument{\"--resolution-height requires a value\"};": 1,
+    "throw std::invalid_argument{\"--resolution-width requires a value\"};": 1,
+    "throw std::invalid_argument{\"--runtime-profile requires a value\"};": 1,
     "throw std::invalid_argument{\"--summary-json requires a path\"};": 1,
     "throw std::invalid_argument{\"expected floating-point value\"};": 1,
     "throw std::invalid_argument{\"expected positive integer\"};": 1,
     "throw std::invalid_argument{\"value must be greater than zero\"};": 1,
     "throw std::out_of_range{\"value exceeds size_t range\"};": 1,
     "throw;": 1
+  },
+  "engine/runtime/src/application.cpp": {
+    "throw std::runtime_error{\"Failed to create window\"};": 1
   },
   "engine/runtime/src/api.cpp": {
     "static void throw_if_invalid_dependencies(const RuntimeHostDependencies& deps)": 1,
