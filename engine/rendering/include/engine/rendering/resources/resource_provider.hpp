@@ -27,6 +27,18 @@ namespace engine::rendering::resources
         OpenGL,
     };
 
+    struct GpuResourceUsage
+    {
+        std::uint64_t buffer_bytes{0};
+        std::uint64_t texture_bytes{0};
+        std::uint64_t other_bytes{0};
+
+        [[nodiscard]] std::uint64_t total_bytes() const noexcept
+        {
+            return buffer_bytes + texture_bytes + other_bytes;
+        }
+    };
+
     inline std::ostream& operator<<(std::ostream& os, GraphicsApi api)
     {
         switch (api)
@@ -110,6 +122,9 @@ namespace engine::rendering::resources
         /// Resolve \p semaphore to its native API handle.
         [[nodiscard]] virtual TimelineSemaphoreNativeHandle resolve_semaphore(
             const TimelineSemaphore& semaphore) = 0;
+
+        /// Return a snapshot of the active GPU memory tracked by this provider.
+        [[nodiscard]] virtual GpuResourceUsage usage_snapshot() const noexcept = 0;
 
         /// Notify the provider that a transient resource identified by \p handle became live.
         virtual void on_transient_acquire(FrameGraphResourceHandle handle,

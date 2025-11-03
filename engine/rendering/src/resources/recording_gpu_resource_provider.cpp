@@ -86,6 +86,11 @@ namespace engine::rendering::resources
         return native;
     }
 
+    GpuResourceUsage RecordingGpuResourceProvider::usage_snapshot() const noexcept
+    {
+        return {};
+    }
+
     void RecordingGpuResourceProvider::on_transient_acquire(FrameGraphResourceHandle handle,
                                                             const FrameGraphResourceInfo& info)
     {

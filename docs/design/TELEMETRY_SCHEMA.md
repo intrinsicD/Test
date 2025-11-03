@@ -107,6 +107,10 @@ metrics aligned with task `RE-610`:
 - `rendering.research.pass.max_gpu_time_ms` (gauge, unit Milliseconds, labels:
   `pass`, `phase`) — maximum recorded GPU execution time per pass since the
   telemetry state was reset.
+- `rendering.resources.buffer_bytes`, `rendering.resources.texture_bytes`,
+  `rendering.resources.other_bytes`, `rendering.resources.total_bytes`
+  (gauges, unit Bytes) — GPU memory tracked by the active resource provider,
+  partitioned by buffer/texture/auxiliary classes with an aggregate total.
 
 The C API exposes descriptors and samples through the following functions
 (`engine/runtime/api.hpp`):

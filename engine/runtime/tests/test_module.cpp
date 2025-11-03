@@ -2030,6 +2030,10 @@ TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
     ASSERT_TRUE(uv_enabled_metric.has_value());
     EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*uv_enabled_metric].value), 0.0);
 
+    const auto gpu_total_metric = find_metric_index(metrics, "rendering.resources.total_bytes");
+    ASSERT_TRUE(gpu_total_metric.has_value());
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*gpu_total_metric].value), 0.0);
+
     host.shutdown();
 }
 #endif
@@ -2045,6 +2049,7 @@ TEST(RuntimeDiagnosticsCAPI, MetricEnumerationsExposeSchema)
 
     bool found_tick = false;
     bool found_stage_label = false;
+    bool found_gpu_total = false;
 
     for (std::size_t index = 0; index < count; ++index)
     {
@@ -2079,10 +2084,20 @@ TEST(RuntimeDiagnosticsCAPI, MetricEnumerationsExposeSchema)
                 }
             }
         }
+
+        if (name == "rendering.resources.total_bytes")
+        {
+            found_gpu_total = true;
+            EXPECT_EQ(kind, static_cast<int>(engine::core::telemetry::MetricKind::Gauge));
+            EXPECT_EQ(unit, static_cast<int>(engine::core::telemetry::MetricUnit::Bytes));
+            EXPECT_FALSE(engine_runtime_diagnostic_metric_is_integral(index));
+            EXPECT_GE(engine_runtime_diagnostic_metric_value(index), 0.0);
+        }
     }
 
     EXPECT_TRUE(found_tick);
     EXPECT_TRUE(found_stage_label);
+    EXPECT_TRUE(found_gpu_total);
 
     engine_runtime_shutdown();
 }
