@@ -109,6 +109,10 @@ namespace engine::rendering::backend::vulkan
         auto& record = command_buffers_[handle.index];
         record.queue = queue;
         record.label.assign(label.begin(), label.end());
+        if (record.buffer == nullptr)
+        {
+            record.buffer = std::make_unique<VulkanCommandBuffer>();
+        }
         const auto id = next_command_buffer_id_++;
         record.native = make_command_buffer_handle(queue, id, record.label, handle);
         return record.native;
@@ -123,6 +127,10 @@ namespace engine::rendering::backend::vulkan
         }
         it->second.native.value = 0;
         it->second.native.label.clear();
+        if (it->second.buffer != nullptr)
+        {
+            it->second.buffer->clear_commands();
+        }
     }
 
     resources::FenceNativeHandle VulkanGpuResourceProvider::resolve_fence(const resources::Fence& fence)
@@ -273,13 +281,23 @@ namespace engine::rendering::backend::vulkan
         return active_buffer_bytes_ + active_image_bytes_;
     }
 
-    const VulkanGpuResourceProvider::CommandBufferRecord*
+    VulkanCommandBuffer* VulkanGpuResourceProvider::command_buffer(CommandBufferHandle handle) noexcept
+    {
+        auto it = command_buffers_.find(handle.index);
+        if (it != command_buffers_.end())
+        {
+            return it->second.buffer.get();
+        }
+        return nullptr;
+    }
+
+    const VulkanCommandBuffer*
     VulkanGpuResourceProvider::command_buffer(CommandBufferHandle handle) const noexcept
     {
         const auto it = command_buffers_.find(handle.index);
         if (it != command_buffers_.end())
         {
-            return &it->second;
+            return it->second.buffer.get();
         }
         return nullptr;
     }

@@ -2,7 +2,7 @@
 
 ## Overview
 
-> **Status:** ⚠️ **Blocked** — GPU resource provider and command encoder work (see [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) and [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md)) remain unfinished. OpenGL and Vulkan backends still rely on the recording provider and cannot allocate GPU buffers, textures, or shaders, so no real draw commands execute yet.
+> **Status:** ⚠️ **Blocked** — GPU resource provider and command encoder work (see [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) and [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md)) remain unfinished. OpenGL and Vulkan command encoders now record frame-graph draw/dispatch commands for scheduler inspection, but the backends still rely on the recording provider and cannot allocate GPU buffers, textures, or shaders, so no real draw commands execute yet.
 
 The rendering module currently provides frame-graph compilation, scheduler prototypes, and resource lifetime tracking, but the missing GPU execution path prevents end-to-end rendering. This README tracks the outstanding work needed to reach functional backends in addition to describing the existing infrastructure.
 
