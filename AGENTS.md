@@ -230,18 +230,56 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
     README.md
     agents/
         ROLES.md
+        context_packages/
+            2026-02-26-rt-410-presentation-telemetry.md
+        task_briefs/
+            2026-02-26-rt-410-presentation-telemetry.md
         TEMPLATES/
             ADR_TEMPLATE.md
             CONTEXT_PACKAGE_TEMPLATE.md
             QUALITY_REPORT_TEMPLATE.md
             TASK_BRIEF_TEMPLATE.md
     assets/
+        benchmarks/
+            ai004/
+                comparative_config.json
+                README.md
+                data/
+                    geometry-baseline/
+                        engine_metrics.json
+                        reference_metrics.json
+                    rendering-debug/
+                        engine_metrics.json
+                        reference_metrics.json
+                reports/
+                    comparative_report.html
+                    comparative_summary.csv
+                    comparative_summary.json
+                    geometry-baseline_engine.json
+                    geometry-baseline_reference.json
+                    rendering-debug_engine.json
+                    rendering-debug_reference.json
+                    plots/
+                        geometry-baseline_average_tick_ms.svg
+                        geometry-baseline_fps.svg
+                        geometry-baseline_gpu_time_ms.svg
+                        rendering-debug_average_tick_ms.svg
+                        rendering-debug_fps.svg
+                        rendering-debug_overlay_fill_rate.svg
         datasets/
+            animation_sample/
+                manifest.json
+                output_clip.json
+                source_clip.json
             case_studies/
                 geometry-baseline.json
                 index.json
                 rendering-debug.json
             remesh_sample/
+                manifest.json
+                output_mesh.obj
+                source_mesh.obj
+            rendering_sample/
                 manifest.json
                 output_mesh.obj
                 source_mesh.obj
@@ -251,6 +289,9 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         NAVIGATION.md
         README_TEMPLATE.md
         ROADMAP.md
+        architecture/
+            module_dependency_graph.dot
+            README.md
         archive/
             README.md
             backlog/
@@ -338,9 +379,15 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 CC-311-benchmark-visualisation.md
                 DC-040-ai-004-configuration-schema.md
                 DC-041-ai-004-kickoff-readiness.md
+                PL-240-platform-filesystem-watcher-guidance.md
+                PM-510-weekly-integration-demos.md
                 RT-320-runtime-prototyping-harness.md
                 RT-321-prototyping-case-studies.md
+                RT-410-runtime-stage-planner.md
+                T-0119-command-encoder-integration.md
+                T-0120-gpu-resource-provider.md
                 TL-210-experiment-sandbox-ui.md
+                TL-310-editor-foundations.md
             archive/
                 RE-610-research-rendering-baseline.md
         design/
@@ -351,6 +398,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md
             ARCHITECTURE_IMPROVEMENT_PLAN.md
             ASYNC_STREAMING.md
+            CC-310-benchmark-playbook.md
             CO-170-runtime-integration-playbook.md
             ERROR_HANDLING_MIGRATION.md
             GE-212-REMESHING_PARAMETERIZATION_RFP.md
@@ -358,11 +406,14 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             PLUGIN_ARCHITECTURE.md
             RESOURCE_MANAGEMENT.md
             RT-320-prototyping-harness.md
+            RT-321-case-studies.md
             TELEMETRY_INSTRUMENTATION_GUIDE.md
             TELEMETRY_SCHEMA.md
+            TL-210-accessibility-checklist.md
             TL-210-experiment-sandbox.md
         examples/
             ai004_sample.json
+            README.md
         modules/
             README.md
             animation/
@@ -427,6 +478,9 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             2025-10-26-architecture-audit.md
             2025-12-05-roadmap-direction-review.md
             2026-01-08-application-readiness-assessment.md
+            2026-02-10-comprehensive-architecture-evaluation.md
+            ARCHITECTURE_EVALUATION_EXECUTIVE_SUMMARY.md
+            TASK_COMPLETION_SUMMARY.md
         specs/
             ADR-0003-runtime-frame-graph.md
             ADR-0005-geometry-io-roundtrip.md
@@ -435,6 +489,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             ADR-0008-runtime-main-loop-and-tooling.md
             AN-240-state-machine-authoring.md
             README.md
+        templates/
+            RESEARCH_PAPER_TEMPLATE.md
     engine/
         CMakeLists.txt
         animation/
@@ -488,8 +544,10 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         point_cloud_asset.hpp
                         shader_asset.hpp
                         texture_asset.hpp
+                        texture_decoder.hpp
                         validation.hpp
                         detail/
+                            cache_common.hpp
                             filesystem_utils.hpp
                             reload_utils.hpp
             samples/
@@ -507,7 +565,10 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 point_cloud_asset.cpp
                 shader_asset.cpp
                 texture_asset.cpp
+                texture_decoder.cpp
                 validation.cpp
+                decoders/
+                    stb_texture_decoder.cpp
             tests/
                 CMakeLists.txt
                 test_assets.cpp
@@ -647,6 +708,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                             triangle.hpp
                         surfaces/
                         topology/
+                            surface_curvature.hpp
                             surface_topology.hpp
                         utils/
                             bounded_heap.hpp
@@ -694,6 +756,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                     sphere.cpp
                     triangle.cpp
                 topology/
+                    surface_curvature.cpp
                     surface_topology.cpp
                 utils/
                     shape_interactions.cpp
@@ -719,6 +782,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 test_remesh_uniform.cpp
                 test_shape_interactions.cpp
                 test_shapes.cpp
+                test_surface_curvature.cpp
                 test_surface_deviation.cpp
                 test_surface_mesh_conversion.cpp
                 test_surface_mesh_io.cpp
@@ -738,18 +802,36 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         geometry_io.hpp
                         geometry_io_registry.hpp
                         telemetry.hpp
-                        cache/
+                        detail/
+                            geometry_io_common.hpp
                         exporters/
+                            graph.hpp
+                            mesh.hpp
+                            point_cloud.hpp
                         importers/
                             animation.hpp
+                            graph.hpp
+                            mesh.hpp
+                            point_cloud.hpp
             signatures/
                 geometry_signatures.json
             src/
                 animation_importer.cpp
                 api.cpp
                 geometry_io.cpp
+                geometry_io_plugins.cpp
                 geometry_io_registry.cpp
                 telemetry.cpp
+                detail/
+                    geometry_io_common.cpp
+                exporters/
+                    graph_exporters.cpp
+                    mesh_exporters.cpp
+                    point_cloud_exporters.cpp
+                importers/
+                    graph_importers.cpp
+                    mesh_importers.cpp
+                    point_cloud_importers.cpp
             tests/
                 CMakeLists.txt
                 geometry_io_corpus_tests.cpp
@@ -862,6 +944,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 engine/
                     rendering/
                         api.hpp
+                        camera.hpp
+                        camera_controllers.hpp
                         command_encoder.hpp
                         components.hpp
                         components.inl
@@ -870,6 +954,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         frame_graph_types.hpp
                         gpu_scheduler.hpp
                         material_system.hpp
+                        presentation_backend.hpp
                         render_pass.hpp
                         runtime_submission.hpp
                         backend/
@@ -884,11 +969,13 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                                 command_encoder.hpp
                                 gpu_scheduler.hpp
                                 immediate_command_stream.hpp
+                                presentation_backend.hpp
                                 render_resource_provider.hpp
                                 resource_provider.hpp
                                 runtime_adapter.hpp
                             vulkan/
                                 gpu_scheduler.hpp
+                                resource_provider.hpp
                                 resource_translation.hpp
                                 vulkan_stub.hpp
                         lighting/
@@ -920,10 +1007,12 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         command_encoder.cpp
                         command_stream.cpp
                         immediate_command_stream.cpp
+                        presentation_backend.cpp
                         render_resource_provider.cpp
                         resource_provider.cpp
                         runtime_adapter.cpp
                     vulkan/
+                        resource_provider.cpp
                         resource_translation.cpp
                 pipeline/
                     research_baseline.cpp
@@ -936,6 +1025,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 scheduler_test_utils.hpp
                 test_backend_adapters.cpp
                 test_backend_validation.cpp
+                test_camera.cpp
                 test_forward_pipeline.cpp
                 test_frame_graph.cpp
                 test_module.cpp
@@ -944,6 +1034,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 test_opengl_resource_provider.cpp
                 test_opengl_runtime_adapter.cpp
                 test_research_baseline.cpp
+                test_vulkan_resource_provider.cpp
                 test_vulkan_resource_translation.cpp
         runtime/
             CMakeLists.txt
@@ -954,19 +1045,27 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         config_schema.hpp
                         diagnostics_bridge.hpp
                         errors.hpp
+                        loop.hpp
+                        loop_inspector.hpp
+                        render_submission.hpp
                         subsystem_registry.hpp
             samples/
                 CMakeLists.txt
                 prototype_harness.cpp
+                README.md
             src/
                 api.cpp
                 config_schema.cpp
                 diagnostics_bridge.cpp
+                loop.cpp
+                loop_inspector.cpp
                 subsystem_registry.cpp
             tests/
                 CMakeLists.txt
                 test_config_schema.cpp
+                test_loop.cpp
                 test_module.cpp
+                test_opengl_presentation_backend.cpp
         scene/
             CMakeLists.txt
             include/
@@ -1036,6 +1135,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                     tools/
                         api.hpp
                         imgui_helpers.hpp
+                        imgui/
+                            panel_registry.hpp
                         profiling/
                             profiler.hpp
                         sandbox/
@@ -1047,6 +1148,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             src/
                 api.cpp
                 imgui_helpers.cpp
+                imgui/
+                    panel_registry.cpp
                 profiling/
                     profiler.cpp
                 sandbox/
@@ -1058,6 +1161,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 test_benchmark_runner.cpp
                 test_experiment_sandbox.cpp
                 test_module.cpp
+                test_panel_registry.cpp
                 test_profiler.cpp
                 test_sandbox_configuration_loader.cpp
     python/
@@ -1073,6 +1177,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             prototype_harness.py
             README.md
         tests/
+            _helpers.py
             README.md
             test_case_studies.py
             test_config_schema.py
@@ -1083,6 +1188,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         __init__.py
         bootstrap_python_env.py
         cleanup_redundant_docs.sh
+        generate_dependency_graph.py
         README.md
         update_agents_tree.py
         validate_ai004_config.py
@@ -1093,6 +1199,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         ci/
             package_runtime_artifacts.py
             README.md
+            run_comparative_smoke.py
             run_presets.py
         datasets/
             __init__.py
@@ -1121,10 +1228,12 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_collision_benchmark_report.py
             test_compute_dispatch_benchmark.py
             test_compute_dispatch_report.py
+            test_generate_dependency_graph.py
             test_geometry_normals_benchmark_report.py
             test_ingest_dataset.py
             test_package_runtime_artifacts.py
             test_run_comparative_benchmarks.py
+            test_run_comparative_smoke.py
             test_runtime_frame_telemetry.py
             test_streaming_report.py
             test_telemetry_viewer.py
@@ -1132,5 +1241,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_update_agents_tree.py
             test_validate_ai004_config.py
             test_validate_docs.py
+    telemetry/
+        frame_timings.json
 ```
 <!-- END GENERATED FILE TREE -->
