@@ -234,6 +234,11 @@ the updated graph. Inspect the active plan via `RuntimeHost::loop_plan()` (or th
 
 `presentation.dispatch` bridges the simulation stack to presentation tooling. Provide a presenter by attaching a `rendering::PresentationBackend` to `RuntimeHostDependencies::presentation_backend`; the host invokes it every tick with a `rendering::RuntimePresentationContext` so the backend can submit frame-graph work, composite UI, or trigger readbacks before diagnostics run. Lightweight integrations may continue to register callbacks with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper). Both backends and callbacks receive the frame `dt` so presentation logic can track timing alongside simulation state.
 
+Headless workflows that run without a GPU-backed swap chain can attach
+`rendering::backend::mock::MockPresentationBackend` to keep the presentation
+stage active and capture invocation cadence for diagnostics or tests without
+driving real rendering hardware.【F:engine/rendering/include/engine/rendering/backend/mock/presentation_backend.hpp†L16-L37】
+
 Backends can also be swapped in and out after initialization through
 `RuntimeHost::set_presentation_backend()`, ensuring the presentation stage is
 recorded or removed from execution reports automatically as presenters become

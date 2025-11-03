@@ -6,6 +6,7 @@ add_library(${target_name}
         src/backend/opengl/command_encoder.cpp
         src/backend/opengl/command_stream.cpp
         src/backend/opengl/immediate_command_stream.cpp
+        src/backend/mock/presentation_backend.cpp
         src/backend/opengl/presentation_backend.cpp
         src/backend/opengl/resource_provider.cpp
         src/backend/opengl/render_resource_provider.cpp
