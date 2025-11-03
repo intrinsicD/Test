@@ -13,6 +13,7 @@ target_link_libraries(geometry_viewer
         engine_assets
         engine_platform
         glfw
+        glad::gl_core
 )
 
 # Install examples to bin directory

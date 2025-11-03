@@ -98,6 +98,7 @@ namespace engine::platform::windowing
 
     void HeadlessWindow::pump_events()
     {
+        input_state_.begin_frame();
         flush_pending_events();
         close_requested_ = false;
     }
@@ -128,6 +129,16 @@ namespace engine::platform::windowing
             std::string{backend_name_},
             native_handle(),
             request.user_data);
+    }
+
+    input::InputState& HeadlessWindow::input_state() noexcept
+    {
+        return input_state_;
+    }
+
+    const input::InputState& HeadlessWindow::input_state() const noexcept
+    {
+        return input_state_;
     }
 
     void* HeadlessWindow::native_handle() noexcept

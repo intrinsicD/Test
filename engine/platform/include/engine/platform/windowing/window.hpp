@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/platform/api.hpp"
+#include "engine/platform/input/input_state.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -277,6 +278,15 @@ namespace engine::platform
         /// object and must destroy it before destroying the window.
         [[nodiscard]] virtual std::unique_ptr<SwapchainSurface> create_swapchain_surface(
             const SwapchainSurfaceRequest& request) = 0;
+
+        /// Access the input state for this window. The input state is automatically
+        /// updated during pump_events() and tracks keyboard, mouse button, cursor
+        /// position, and scroll events. Applications should query input state after
+        /// calling pump_events() to get the most recent frame data.
+        [[nodiscard]] virtual input::InputState& input_state() noexcept = 0;
+
+        /// Const overload of input_state().
+        [[nodiscard]] virtual const input::InputState& input_state() const noexcept = 0;
     };
 
     /// \brief Allocates an in-memory event queue. The caller assumes shared

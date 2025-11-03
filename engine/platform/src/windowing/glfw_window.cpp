@@ -290,6 +290,39 @@ namespace engine::platform::windowing
                         self->handle_focus_change(focused == GLFW_TRUE);
                     }
                 });
+
+                // Input callbacks
+                glfwSetKeyCallback(window_, [](GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
+                {
+                    if (auto* self = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(window)))
+                    {
+                        self->handle_key_event(key, action);
+                    }
+                });
+
+                glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int /*mods*/)
+                {
+                    if (auto* self = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(window)))
+                    {
+                        self->handle_mouse_button_event(button, action);
+                    }
+                });
+
+                glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double xpos, double ypos)
+                {
+                    if (auto* self = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(window)))
+                    {
+                        self->handle_cursor_position_event(xpos, ypos);
+                    }
+                });
+
+                glfwSetScrollCallback(window_, [](GLFWwindow* window, double xoffset, double yoffset)
+                {
+                    if (auto* self = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(window)))
+                    {
+                        self->handle_scroll_event(xoffset, yoffset);
+                    }
+                });
             }
 
             void handle_close_request()
@@ -311,6 +344,84 @@ namespace engine::platform::windowing
             void handle_focus_change(bool focused)
             {
                 HeadlessWindow::post_event(Event::focus_changed(focused));
+            }
+
+            void handle_key_event(int key, int action)
+            {
+                const input::Key mapped_key = map_glfw_key(key);
+                const bool pressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
+                input_state().apply_key_event(mapped_key, pressed);
+            }
+
+            void handle_mouse_button_event(int button, int action)
+            {
+                const input::MouseButton mapped_button = map_glfw_mouse_button(button);
+                const bool pressed = (action == GLFW_PRESS);
+                input_state().apply_mouse_button_event(mapped_button, pressed);
+            }
+
+            void handle_cursor_position_event(double xpos, double ypos)
+            {
+                input_state().apply_cursor_position(static_cast<float>(xpos), static_cast<float>(ypos));
+            }
+
+            void handle_scroll_event(double xoffset, double yoffset)
+            {
+                input_state().apply_scroll_delta(static_cast<float>(xoffset), static_cast<float>(yoffset));
+            }
+
+            static input::Key map_glfw_key(int glfw_key)
+            {
+                switch (glfw_key)
+                {
+                    case GLFW_KEY_ESCAPE: return input::Key::Escape;
+                    case GLFW_KEY_SPACE: return input::Key::Space;
+                    case GLFW_KEY_ENTER: return input::Key::Enter;
+                    case GLFW_KEY_TAB: return input::Key::Tab;
+                    case GLFW_KEY_BACKSPACE: return input::Key::Backspace;
+                    case GLFW_KEY_LEFT_SHIFT: return input::Key::LeftShift;
+                    case GLFW_KEY_RIGHT_SHIFT: return input::Key::RightShift;
+                    case GLFW_KEY_LEFT_CONTROL: return input::Key::LeftCtrl;
+                    case GLFW_KEY_RIGHT_CONTROL: return input::Key::RightCtrl;
+                    case GLFW_KEY_LEFT_ALT: return input::Key::LeftAlt;
+                    case GLFW_KEY_RIGHT_ALT: return input::Key::RightAlt;
+                    case GLFW_KEY_LEFT_SUPER: return input::Key::LeftSuper;
+                    case GLFW_KEY_RIGHT_SUPER: return input::Key::RightSuper;
+                    case GLFW_KEY_UP: return input::Key::Up;
+                    case GLFW_KEY_DOWN: return input::Key::Down;
+                    case GLFW_KEY_LEFT: return input::Key::Left;
+                    case GLFW_KEY_RIGHT: return input::Key::Right;
+                    case GLFW_KEY_W: return input::Key::W;
+                    case GLFW_KEY_A: return input::Key::A;
+                    case GLFW_KEY_S: return input::Key::S;
+                    case GLFW_KEY_D: return input::Key::D;
+                    case GLFW_KEY_Q: return input::Key::Q;
+                    case GLFW_KEY_E: return input::Key::E;
+                    case GLFW_KEY_0: return input::Key::Digit0;
+                    case GLFW_KEY_1: return input::Key::Digit1;
+                    case GLFW_KEY_2: return input::Key::Digit2;
+                    case GLFW_KEY_3: return input::Key::Digit3;
+                    case GLFW_KEY_4: return input::Key::Digit4;
+                    case GLFW_KEY_5: return input::Key::Digit5;
+                    case GLFW_KEY_6: return input::Key::Digit6;
+                    case GLFW_KEY_7: return input::Key::Digit7;
+                    case GLFW_KEY_8: return input::Key::Digit8;
+                    case GLFW_KEY_9: return input::Key::Digit9;
+                    default: return input::Key::Unknown;
+                }
+            }
+
+            static input::MouseButton map_glfw_mouse_button(int glfw_button)
+            {
+                switch (glfw_button)
+                {
+                    case GLFW_MOUSE_BUTTON_LEFT: return input::MouseButton::Left;
+                    case GLFW_MOUSE_BUTTON_RIGHT: return input::MouseButton::Right;
+                    case GLFW_MOUSE_BUTTON_MIDDLE: return input::MouseButton::Middle;
+                    case GLFW_MOUSE_BUTTON_4: return input::MouseButton::Extra1;
+                    case GLFW_MOUSE_BUTTON_5: return input::MouseButton::Extra2;
+                    default: return input::MouseButton::Left;
+                }
             }
 
             GLFWwindow* window_{nullptr};

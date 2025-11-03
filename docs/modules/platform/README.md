@@ -84,44 +84,141 @@ public:
 
 ## Input Handling
 
+The platform module now provides unified input state management through the `Window::input_state()` interface. Input state is automatically updated during `pump_events()` and provides frame-coherent input queries.
+
+### Getting Input State
+
+```cpp
+#include "engine/platform/windowing/window.hpp"
+#include "engine/platform/input/input_state.hpp"
+
+auto window = platform::create_window(config);
+
+// Main loop
+while (!window->close_requested()) {
+    // Pump events (updates input state automatically)
+    window->pump_events();
+    
+    // Query input state for this frame
+    auto& input = window->input_state();
+    
+    // ... use input state
+}
+```
+
 ### Keyboard Input
 
 ```cpp
-auto& input = window->input();
+auto& input = window->input_state();
 
-if (input.is_key_pressed(platform::Key::W)) {
+// Check if key is currently down
+if (input.is_key_down(platform::input::Key::W)) {
     // Move forward
 }
 
-if (input.is_key_just_pressed(platform::Key::Space)) {
-    // Jump (once per press)
+// Check if key was just pressed this frame
+if (input.was_key_pressed(platform::input::Key::Space)) {
+    // Jump (triggered once per press)
+}
+
+// Check if key was just released this frame
+if (input.was_key_released(platform::input::Key::Escape)) {
+    // Handle release
 }
 ```
 
 ### Mouse Input
 
 ```cpp
-auto mouse_pos = input.mouse_position();
-auto delta = input.mouse_delta();
+auto& input = window->input_state();
 
-if (input.is_mouse_button_pressed(platform::MouseButton::Left)) {
-    // Handle click
+// Get current cursor position
+auto cursor_pos = input.cursor_position();
+std::cout << "Cursor at: " << cursor_pos.x << ", " << cursor_pos.y << "\n";
+
+// Get cursor movement delta since last frame
+auto delta = input.cursor_delta();
+camera.rotate(delta.x * sensitivity, delta.y * sensitivity);
+
+// Check mouse button state
+if (input.is_mouse_button_down(platform::input::MouseButton::Left)) {
+    // Left button is held down
 }
 
-float scroll = input.scroll_delta();
+if (input.was_mouse_button_pressed(platform::input::MouseButton::Right)) {
+    // Right button was just pressed this frame
+}
+
+// Get scroll wheel delta
+auto scroll = input.scroll_delta();
+camera.zoom(scroll.y * zoom_speed);
 ```
 
-### Gamepad Support
+### Complete Example
 
 ```cpp
-if (input.is_gamepad_connected(0)) {
-    float left_x = input.gamepad_axis(0, platform::GamepadAxis::LeftX);
+#include "engine/platform/windowing/window.hpp"
+#include "engine/platform/input/input_state.hpp"
+
+int main() {
+    auto window = engine::platform::create_window({
+        .title = "Input Example",
+        .width = 1280,
+        .height = 720
+    });
     
-    if (input.is_gamepad_button_pressed(0, platform::GamepadButton::A)) {
-        // Handle button press
+    while (!window->close_requested()) {
+        window->pump_events();
+        
+        auto& input = window->input_state();
+        
+        // Keyboard movement
+        if (input.is_key_down(platform::input::Key::W)) {
+            player.move_forward(dt);
+        }
+        if (input.is_key_down(platform::input::Key::S)) {
+            player.move_backward(dt);
+        }
+        
+        // Mouse camera control
+        if (input.is_mouse_button_down(platform::input::MouseButton::Left)) {
+            auto delta = input.cursor_delta();
+            camera.rotate(delta.x, delta.y);
+        }
+        
+        // Scroll zoom
+        auto scroll = input.scroll_delta();
+        if (scroll.y != 0.0f) {
+            camera.zoom(scroll.y);
+        }
+        
+        // Exit on ESC
+        if (input.was_key_pressed(platform::input::Key::Escape)) {
+            window->request_close();
+        }
+        
+        render_frame();
     }
+    
+    return 0;
 }
 ```
+
+### Supported Keys
+
+The `platform::input::Key` enum includes:
+- `Escape`, `Space`, `Enter`, `Tab`, `Backspace`
+- `LeftShift`, `RightShift`, `LeftCtrl`, `RightCtrl`
+- `LeftAlt`, `RightAlt`, `LeftSuper`, `RightSuper`
+- `Up`, `Down`, `Left`, `Right`
+- `W`, `A`, `S`, `D`, `Q`, `E`
+- `Digit0` through `Digit9`
+
+### Supported Mouse Buttons
+
+The `platform::input::MouseButton` enum includes:
+- `Left`, `Right`, `Middle`
+- `Extra1`, `Extra2`
 
 ## Filesystem Abstraction
 

@@ -2,6 +2,7 @@ set(target_name engine_runtime)
 
 add_library(${target_name}
         src/api.cpp
+        src/application.cpp
         src/loop.cpp
         src/loop_inspector.cpp
         src/config_schema.cpp

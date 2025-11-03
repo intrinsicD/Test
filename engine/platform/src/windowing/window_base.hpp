@@ -50,6 +50,8 @@ namespace engine::platform::windowing
         [[nodiscard]] const EventQueue& event_queue() const noexcept override;
         [[nodiscard]] std::unique_ptr<SwapchainSurface> create_swapchain_surface(
             const SwapchainSurfaceRequest& request) override;
+        [[nodiscard]] input::InputState& input_state() noexcept override;
+        [[nodiscard]] const input::InputState& input_state() const noexcept override;
 
     protected:
         [[nodiscard]] void* native_handle() noexcept;
@@ -64,6 +66,7 @@ namespace engine::platform::windowing
         std::shared_ptr<EventQueue> queue_;
         std::deque<Event> pending_events_;
         std::mutex mutex_;
+        input::InputState input_state_;
     };
 
     std::shared_ptr<Window> create_headless_window(std::string backend_name,

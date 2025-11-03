@@ -6,6 +6,114 @@
 
 The runtime module orchestrates the engine's main execution loop through `RuntimeHost`, which coordinates animation evaluation, physics simulation, geometry deformation, scene graph updates, and rendering submission. It acts as the integration point for all subsystems and provides comprehensive diagnostics and telemetry.
 
+**NEW:** The runtime module now includes an `Application` base class that provides high-level application lifecycle management, automatic subsystem wiring, and a built-in main loop. Applications can inherit from `Application` and override lifecycle callbacks instead of manually managing windows, scenes, and the main loop.
+
+## Application Framework (NEW)
+
+### Quick Start
+
+The simplest way to create an engine application is to inherit from `runtime::Application`:
+
+```cpp
+#include "engine/runtime/application.hpp"
+
+class MyApp : public engine::runtime::Application
+{
+protected:
+    void on_initialize() override
+    {
+        // Setup scene, load resources
+        auto entity = scene().create_entity();
+        // ...
+    }
+    
+    void on_update(double dt) override
+    {
+        // Handle input and game logic
+        auto& inp = input();
+        if (inp.is_key_down(platform::input::Key::W)) {
+            // Move forward
+        }
+    }
+    
+    void on_render() override
+    {
+        // Rendering (when RT-410 completes)
+    }
+};
+
+int main()
+{
+    MyApp app;
+    return app.run();
+}
+```
+
+### Application Configuration
+
+Customize the application with `ApplicationConfig`:
+
+```cpp
+class MyApp : public engine::runtime::Application
+{
+public:
+    MyApp()
+        : Application({
+            .window = {
+                .title = "My Application",
+                .width = 1920,
+                .height = 1080,
+                .visible = true,
+                .resizable = true
+            },
+            .window_backend = platform::WindowBackend::GLFW,
+            .target_fps = 60.0  // 0 = unlimited
+        })
+    {
+    }
+};
+```
+
+### Lifecycle Callbacks
+
+Override virtual methods to implement application-specific behavior:
+
+- **`on_initialize()`** - Called once before main loop starts. Setup scene, load assets, etc.
+- **`on_update(double dt)`** - Called every frame. Handle input, update game logic.
+- **`on_render()`** - Called every frame after update. Rendering logic (future RT-410 integration).
+- **`on_shutdown()`** - Called once after main loop exits. Clean up resources.
+
+### Subsystem Accessors
+
+Access engine subsystems through protected methods:
+
+- **`window()`** - Access the platform window
+- **`input()`** - Convenience accessor for `window().input_state()`
+- **`scene()`** - Access the scene graph
+- **`elapsed_time()`** - Total time since application start
+- **`frame_count()`** - Current frame number
+
+### Shutdown
+
+Request graceful shutdown from anywhere in your application:
+
+```cpp
+void on_update(double dt) override
+{
+    if (input().was_key_pressed(platform::input::Key::Escape)) {
+        quit();  // Exit with code 0
+    }
+    
+    if (some_error_condition) {
+        quit(1);  // Exit with error code
+    }
+}
+```
+
+### Example: Geometry Viewer
+
+See [`engine/tools/examples/geometry_viewer.cpp`](../../../engine/tools/examples/geometry_viewer.cpp) for a complete example using the Application framework.
+
 ## Outstanding Work
 
 - Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) (`RT-410`).
