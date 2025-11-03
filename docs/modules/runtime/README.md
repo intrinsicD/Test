@@ -50,10 +50,12 @@ host.set_presentation_callback([](double dt) {
 ```
 
 Callbacks or presentation backends can be hot-swapped at runtime. `RuntimeHost`
-rebuilds its default loop plan whenever handlers change so
-`presentation.dispatch` telemetry only appears when a callback or presenter is
-active. Rendering builds may attach presenters after initialization via
-`host.set_presentation_backend(...)` without reconfiguring dependencies.【F:engine/runtime/src/api.cpp†L2183-L2226】
+rebuilds its default loop plan whenever handlers change or the presentation
+backend pointer is replaced so `presentation.dispatch` telemetry only appears
+when a callback or presenter is active. Rendering builds may attach presenters
+after initialization via `host.set_presentation_backend(...)` without
+reconfiguring dependencies, and new presenters activate immediately even if a
+callback was already registered.【F:engine/runtime/src/api.cpp†L2183-L2228】
 
 ### Lifecycle
 

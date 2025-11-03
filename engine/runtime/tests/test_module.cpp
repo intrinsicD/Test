@@ -2532,6 +2532,32 @@ TEST(RuntimeHost, PresentationBackendHotSwapRebuildsLoopPlan)
         EXPECT_EQ(has_presentation, report.execution_order.end());
     }
 
+    bool callback_called = false;
+    host.set_presentation_callback([
+        &callback_called
+    ](double)
+    {
+        callback_called = true;
+    });
+    host.tick(0.04);
+    EXPECT_TRUE(callback_called);
+
+    callback_called = false;
+    backend->calls.clear();
+    host.set_presentation_backend(backend);
+    host.tick(0.05);
+    EXPECT_TRUE(callback_called);
+    ASSERT_EQ(backend->calls.size(), 1U);
+
+    callback_called = false;
+    backend->calls.clear();
+    host.set_presentation_backend(nullptr);
+    host.tick(0.06);
+    EXPECT_TRUE(callback_called);
+    EXPECT_TRUE(backend->calls.empty());
+
+    host.set_presentation_callback(nullptr);
+
     host.shutdown();
 }
 #endif

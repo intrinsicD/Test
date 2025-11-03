@@ -2218,10 +2218,12 @@ namespace engine::runtime
         void set_presentation_backend(std::shared_ptr<rendering::PresentationBackend> backend)
         {
             const bool was_enabled = presentation_stage_enabled();
+            auto previous_backend = presentation_backend;
             dependencies.presentation_backend = std::move(backend);
             presentation_backend = dependencies.presentation_backend;
             const bool is_enabled = presentation_stage_enabled();
-            if (was_enabled != is_enabled)
+            const bool backend_changed = previous_backend != presentation_backend;
+            if (was_enabled != is_enabled || backend_changed)
             {
                 queue_default_loop_plan_rebuild();
             }
