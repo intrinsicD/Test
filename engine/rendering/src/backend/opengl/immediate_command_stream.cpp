@@ -28,11 +28,14 @@ namespace engine::rendering::backend::opengl
         current_commands_ = &submission.commands;
         draw_calls_ = 0;
         compute_dispatches_ = 0;
+        waited_timelines_.clear();
+        signalled_timelines_.clear();
+        signalled_fences_.clear();
     }
 
     void OpenGLImmediateCommandStream::wait_timeline(const OpenGLTimelineSubmit& submit)
     {
-        static_cast<void>(submit);
+        waited_timelines_.push_back(submit);
     }
 
     void OpenGLImmediateCommandStream::issue_memory_barrier(std::uint32_t mask)
@@ -70,13 +73,12 @@ namespace engine::rendering::backend::opengl
 
     void OpenGLImmediateCommandStream::signal_timeline(const OpenGLTimelineSubmit& submit)
     {
-        static_cast<void>(submit);
+        signalled_timelines_.push_back(submit);
     }
 
     void OpenGLImmediateCommandStream::signal_fence(resources::FenceNativeHandle fence, std::uint64_t value)
     {
-        static_cast<void>(fence);
-        static_cast<void>(value);
+        signalled_fences_.emplace_back(fence, value);
     }
 
     void OpenGLImmediateCommandStream::end_submission(const OpenGLSubmission& submission)

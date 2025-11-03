@@ -269,3 +269,81 @@ TEST(OpenGLImmediateCommandStream, ExecutesComputeDispatches)
 
     EXPECT_EQ(stream.compute_dispatch_count(), 1U);
 }
+
+TEST(OpenGLImmediateCommandStream, RecordsTimelineAndFenceOperations)
+{
+    using namespace engine::rendering;
+    using namespace engine::rendering::backend::opengl;
+
+    engine::geometry::SurfaceMesh mesh{};
+    mesh.positions = {
+        {0.0F, 0.0F, 0.0F},
+        {1.0F, 0.0F, 0.0F},
+        {0.0F, 1.0F, 0.0F},
+    };
+    mesh.indices = {0, 1, 2};
+
+    auto resolver = [captured_mesh = mesh](const engine::assets::MeshHandle&) -> std::optional<engine::geometry::SurfaceMesh>
+    {
+        return captured_mesh;
+    };
+
+    OpenGLRenderResourceProvider render_resources(resolver);
+    const auto mesh_handle = engine::assets::MeshHandle{std::string{"mesh.timeline"}};
+
+    OpenGLImmediateCommandStream stream(render_resources);
+    OpenGLGpuResourceProvider provider;
+    OpenGLGpuScheduler scheduler(provider, &stream);
+    OpenGLCommandEncoderProvider encoders(provider);
+
+    const auto command_buffer = scheduler.request_command_buffer(QueueType::Graphics, "TimelinePass");
+    CommandEncoderDescriptor descriptor{"TimelinePass", QueueType::Graphics, command_buffer};
+    auto encoder = encoders.begin_encoder(descriptor);
+
+    GeometryDrawCommand draw{};
+    draw.geometry = mesh_handle;
+    encoder->draw_geometry(draw);
+
+    encoders.end_encoder(descriptor, std::move(encoder));
+
+    resources::TimelineSemaphore wait_semaphore{"timeline.wait", 0};
+    resources::TimelineSemaphore signal_semaphore{"timeline.signal", 0};
+    resources::Fence fence{"timeline.fence", 0};
+
+    GpuSubmitInfo submit{};
+    submit.pass_name = "TimelinePass";
+    submit.queue = QueueType::Graphics;
+    submit.command_buffer = command_buffer;
+    submit.waits.push_back(resources::SemaphoreWait{&wait_semaphore, 3});
+    submit.signals.push_back(resources::SemaphoreSignal{&signal_semaphore, 7});
+    submit.fence = &fence;
+    submit.fence_value = 11;
+
+    scheduler.submit(submit);
+    scheduler.recycle(command_buffer);
+
+    ASSERT_EQ(stream.waited_timelines().size(), 1U); // NOLINT
+    const auto& recorded_wait = stream.waited_timelines().front();
+    EXPECT_EQ(recorded_wait.semaphore.api, resources::GraphicsApi::OpenGL);
+    EXPECT_NE(recorded_wait.semaphore.value, 0U);
+    EXPECT_EQ(recorded_wait.value, 3U);
+
+    ASSERT_EQ(stream.signalled_timelines().size(), 1U); // NOLINT
+    const auto& recorded_signal = stream.signalled_timelines().front();
+    EXPECT_EQ(recorded_signal.semaphore.api, resources::GraphicsApi::OpenGL);
+    EXPECT_NE(recorded_signal.semaphore.value, 0U);
+    EXPECT_EQ(recorded_signal.value, 7U);
+
+    ASSERT_EQ(stream.signalled_fences().size(), 1U); // NOLINT
+    const auto& recorded_fence = stream.signalled_fences().front();
+    EXPECT_EQ(recorded_fence.first.api, resources::GraphicsApi::OpenGL);
+    EXPECT_NE(recorded_fence.first.value, 0U);
+    EXPECT_EQ(recorded_fence.second, 11U);
+
+    EXPECT_EQ(wait_semaphore.last_wait_value(), 3U);
+    EXPECT_EQ(signal_semaphore.value(), 7U);
+    EXPECT_EQ(fence.value(), 11U);
+
+    EXPECT_EQ(stream.draw_call_count(), 1U);
+    EXPECT_EQ(stream.compute_dispatch_count(), 0U);
+}
