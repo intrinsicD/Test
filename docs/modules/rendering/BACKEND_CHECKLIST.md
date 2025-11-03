@@ -150,6 +150,10 @@ runtime submission paths and backend schedulers.
 - `BackendAdapters.OpenGLSchedulerDispatchesCommandStream` ensures translated
   submissions are forwarded to the overridable command stream in the expected
   order so driver integrations can record synchronisation behaviour deterministically.
+- `RuntimePresentationBackend.OpenGLBackendExecutesFrameGraph` drives the new
+  presentation backend through `RuntimeHost`, validating mesh resolution,
+  material registration, and frame-graph execution without requiring a live
+  OpenGL context.
 
 ### Diagnostics & Troubleshooting
 

@@ -28,6 +28,7 @@ target_link_libraries(engine_rendering_tests
         engine::project_options
         engine_geometry
         engine_rendering
+        engine_runtime
         GTest::gtest_main
 )
 

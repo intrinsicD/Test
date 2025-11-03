@@ -110,6 +110,13 @@ the updated graph. Inspect the active plan via `RuntimeHost::loop_plan()` (or th
 
 `presentation.dispatch` bridges the simulation stack to presentation tooling. Provide a presenter by attaching a `rendering::PresentationBackend` to `RuntimeHostDependencies::presentation_backend`; the host invokes it every tick with a `rendering::RuntimePresentationContext` so the backend can submit frame-graph work, composite UI, or trigger readbacks before diagnostics run. Lightweight integrations may continue to register callbacks with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper). Both backends and callbacks receive the frame `dt` so presentation logic can track timing alongside simulation state.
 
+The rendering module now ships `rendering::backend::opengl::OpenGLPresentationBackend`
+for hosts that want a ready-made OpenGL execution path. Supply a mesh resolver
+and register materials with its exposed `MaterialSystem` before attaching the
+backend to the runtime dependencies; `present()` will then call
+`RuntimeHost::submit_render_graph()` with the bundled submission context each
+tick.
+
 ## Diagnostics & Telemetry
 
 Access runtime metrics through `RuntimeHost::diagnostics()`:

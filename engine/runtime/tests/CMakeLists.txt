@@ -2,6 +2,7 @@ add_executable(engine_runtime_tests
         test_config_schema.cpp
         test_loop.cpp
         test_module.cpp
+        test_opengl_presentation_backend.cpp
 )
 
 target_link_libraries(engine_runtime_tests

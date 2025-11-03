@@ -2,6 +2,7 @@
 #include "engine/runtime/diagnostics_bridge.hpp"
 #include "engine/runtime/errors.hpp"
 #include "engine/runtime/loop.hpp"
+#include "engine/runtime/render_submission.hpp"
 #include "engine/runtime/loop_inspector.hpp"
 #include "engine/io/telemetry.hpp"
 #include "engine/math/telemetry/conversion_telemetry.hpp"
@@ -2784,6 +2785,11 @@ namespace engine::runtime
         impl_->diagnostics.frame_graph_serialization = context.frame_graph.serialize();
         const auto& events = context.frame_graph.resource_events();
         impl_->diagnostics.frame_graph_events.assign(events.begin(), events.end());
+    }
+
+    void submit_render_graph(RuntimeHost& host, rendering::RuntimeSubmissionContext& context)
+    {
+        host.submit_render_graph(context);
     }
 
     void RuntimeHost::configure_research_rendering(const rendering::ResearchBaselineOptions& options) noexcept
