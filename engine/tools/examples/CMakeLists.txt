@@ -11,6 +11,8 @@ target_link_libraries(geometry_viewer
         engine_scene
         engine_math
         engine_assets
+        engine_platform
+        glfw
 )
 
 # Install examples to bin directory

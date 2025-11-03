@@ -38,6 +38,11 @@ namespace
     {
         auto base = std::filesystem::temp_directory_path();
         base /= name;
+        // Clean out any existing files from previous test runs
+        if (std::filesystem::exists(base))
+        {
+            std::filesystem::remove_all(base);
+        }
         std::filesystem::create_directories(base);
         return base;
     }

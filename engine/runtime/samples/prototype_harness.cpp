@@ -44,6 +44,13 @@ namespace
         std::optional<std::filesystem::path> summary_path{};
         std::size_t frames = 600U;
         double timestep = 1.0 / 60.0;
+        std::optional<std::string> scenario{};
+        std::optional<std::string> runtime_profile{};
+        std::optional<int> resolution_width{};
+        std::optional<int> resolution_height{};
+        std::optional<int> run_index{};
+        std::optional<int> run_count{};
+        std::vector<std::string> overlays{};
     };
 
     struct HarnessSummary
@@ -56,6 +63,13 @@ namespace
         double average_tick_ms = 0.0;
         std::vector<std::string> dispatch_order{};
         std::vector<double> dispatch_durations_ms{};
+        std::optional<std::string> scenario{};
+        std::optional<std::string> runtime_profile{};
+        std::optional<int> resolution_width{};
+        std::optional<int> resolution_height{};
+        std::optional<int> run_index{};
+        std::optional<int> run_count{};
+        std::vector<std::string> overlays{};
     };
 
     [[nodiscard]] std::string format_error(const engine::runtime::RuntimeErrorCode& error)
@@ -115,6 +129,10 @@ namespace
                   << "  --dry-run               Validate configuration without executing runtime\n"
                   << "  --require-schema        Require configuration to declare ai-004.* headers\n"
                   << "  --summary-json <path>   Write execution summary to JSON file\n"
+                  << "  --runtime-profile <id>  Runtime profile/variant identifier\n"
+                  << "  --resolution-width <px> Resolution width in pixels\n"
+                  << "  --resolution-height <px> Resolution height in pixels\n"
+                  << "  --overlay <name=value>  Enable overlay (can be specified multiple times)\n"
                   << "  --help                  Display this message\n";
     }
 
@@ -179,6 +197,42 @@ namespace
                 }
                 continue;
             }
+            if (argument == "--runtime-profile")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--runtime-profile requires a value"};
+                }
+                options.runtime_profile = argv[++index];
+                continue;
+            }
+            if (argument == "--resolution-width")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--resolution-width requires a value"};
+                }
+                options.resolution_width = static_cast<int>(parse_size(argv[++index]));
+                continue;
+            }
+            if (argument == "--resolution-height")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--resolution-height requires a value"};
+                }
+                options.resolution_height = static_cast<int>(parse_size(argv[++index]));
+                continue;
+            }
+            if (argument == "--overlay")
+            {
+                if (index + 1 >= argc)
+                {
+                    throw std::invalid_argument{"--overlay requires a value"};
+                }
+                options.overlays.emplace_back(argv[++index]);
+                continue;
+            }
 
             std::ostringstream stream;
             stream << "unknown argument: " << argument;
@@ -239,12 +293,19 @@ namespace
     {
         HarnessSummary summary{};
         summary.dataset_identifier = dataset ? std::optional<std::string>{dataset->identifier} : std::nullopt;
+        summary.scenario = summary.dataset_identifier;  // Use dataset as scenario identifier
         if (configuration.rendering)
         {
             summary.rendering_preset = configuration.rendering->preset;
             summary.shading_mode = configuration.rendering->shading_mode;
         }
         summary.timestep_seconds = options.timestep;
+        summary.runtime_profile = options.runtime_profile;
+        summary.resolution_width = options.resolution_width;
+        summary.resolution_height = options.resolution_height;
+        summary.run_index = options.run_index;
+        summary.run_count = options.run_count;
+        summary.overlays = options.overlays;
 
         if (options.dry_run)
         {
@@ -368,6 +429,19 @@ namespace
         std::ostringstream stream;
         stream << "{\n";
         stream << "  \"dry_run\": " << (dry_run ? "true" : "false") << ",\n";
+
+        // scenario field (optional)
+        stream << "  \"scenario\": ";
+        if (summary.scenario)
+        {
+            stream << '\"' << *summary.scenario << '\"';
+        }
+        else
+        {
+            stream << "null";
+        }
+        stream << ",\n";
+
         stream << "  \"dataset\": ";
         if (summary.dataset_identifier)
         {
@@ -398,6 +472,55 @@ namespace
             stream << "null";
         }
         stream << ",\n";
+
+        // runtime_profile field (optional)
+        stream << "  \"runtime_profile\": ";
+        if (summary.runtime_profile)
+        {
+            stream << '\"' << *summary.runtime_profile << '\"';
+        }
+        else
+        {
+            stream << "null";
+        }
+        stream << ",\n";
+
+        // resolution fields (optional)
+        stream << "  \"resolution_width\": ";
+        if (summary.resolution_width)
+        {
+            stream << *summary.resolution_width;
+        }
+        else
+        {
+            stream << "null";
+        }
+        stream << ",\n";
+        stream << "  \"resolution_height\": ";
+        if (summary.resolution_height)
+        {
+            stream << *summary.resolution_height;
+        }
+        else
+        {
+            stream << "null";
+        }
+        stream << ",\n";
+
+        // overlays array
+        stream << "  \"overlays\": [";
+        for (std::size_t index = 0; index < summary.overlays.size(); ++index)
+        {
+            if (index != 0U)
+            {
+                stream << ", ";
+            }
+            stream << '\"' << summary.overlays[index] << '\"';
+        }
+        stream << "],\n";
+
+        // frames (using frames_executed)
+        stream << "  \"frames\": " << summary.frames_executed << ",\n";
         stream << "  \"frames_executed\": " << summary.frames_executed << ",\n";
         {
             const auto previous_flags = stream.flags();
@@ -414,6 +537,29 @@ namespace
             stream.flags(previous_flags);
             stream.precision(previous_precision);
         }
+
+        // run_index and run_count (optional)
+        stream << "  \"run_index\": ";
+        if (summary.run_index)
+        {
+            stream << *summary.run_index;
+        }
+        else
+        {
+            stream << "null";
+        }
+        stream << ",\n";
+        stream << "  \"run_count\": ";
+        if (summary.run_count)
+        {
+            stream << *summary.run_count;
+        }
+        else
+        {
+            stream << "null";
+        }
+        stream << ",\n";
+
         stream << "  \"dispatch_order\": [";
         for (std::size_t index = 0; index < summary.dispatch_order.size(); ++index)
         {
@@ -441,7 +587,10 @@ namespace
             stream.flags(previous_flags);
             stream.precision(previous_precision);
         }
-        stream << "]\n";
+        stream << "],\n";
+
+        // telemetry_outputs placeholder (for compatibility)
+        stream << "  \"telemetry_outputs\": []\n";
         stream << "}\n";
         return stream.str();
     }

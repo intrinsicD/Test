@@ -395,10 +395,6 @@ namespace engine::tools::sandbox
         {
             details << " run_index=" << *run_index;
         }
-        if (resolution_width && resolution_height)
-        {
-            details << " resolution=" << *resolution_width << 'x' << *resolution_height;
-        }
         details << "\nSummary saved to " << path.string();
         result.details = details.str();
         return result;

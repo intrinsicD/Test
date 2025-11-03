@@ -181,6 +181,9 @@ namespace engine::rendering::backend::opengl
         }
 
 #if ENGINE_RENDERING_HAS_GLAD
+        void destroy_gl_texture(GLuint name);
+        void destroy_gl_buffer(GLuint name);
+
         [[nodiscard]] GLenum buffer_target(ResourceUsage usage) noexcept
         {
             if (rendering::has_flag(usage, ResourceUsage::ShaderWrite))

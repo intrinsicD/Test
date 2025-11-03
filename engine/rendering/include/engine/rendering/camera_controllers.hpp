@@ -35,11 +35,11 @@ namespace engine::rendering
             return math::from_matrix(camera_.get().model).translation;
         }
 
-        void set_camera_position(const math::vec3& position) noexcept
+        void set_camera_position(const math::vec3& position) const noexcept
         {
             auto transform = camera_.get().transform();
             transform.translation = position;
-            camera_.get().set_transform(transform);
+            [[maybe_unused]] auto result = camera_.get().set_transform(transform);
         }
 
         [[nodiscard]] static math::vec3 world_up() noexcept { return math::vec3{0.0F, 1.0F, 0.0F}; }
@@ -134,7 +134,6 @@ namespace engine::rendering
             sin_pitch,
             -cos_pitch * cos_yaw};
         const math::vec3 right = math::normalize(math::cross(forward, world_up()));
-        const math::vec3 up = math::cross(right, forward);
 
         position_ += right * state.translation[0] * delta_seconds;
         position_ += world_up() * state.translation[1] * delta_seconds;
@@ -155,7 +154,7 @@ namespace engine::rendering
             sin_pitch,
             -cos_pitch * cos_yaw};
         const math::vec3 target = position_ + forward;
-        camera().look_at(position_, target, world_up());
+        [[maybe_unused]] auto result = camera().look_at(position_, target, world_up());
     }
 
     inline OrbitCameraController::OrbitCameraController(Camera& camera, math::vec3 target, float radius) noexcept
@@ -223,6 +222,6 @@ namespace engine::rendering
         const math::vec3 up = math::cross(right, forward);
         const math::vec3 position = target_ - forward * radius_;
 
-        camera().look_at(position, target_, up);
+        [[maybe_unused]] auto result = camera().look_at(position, target_, up);
     }
 } // namespace engine::rendering
