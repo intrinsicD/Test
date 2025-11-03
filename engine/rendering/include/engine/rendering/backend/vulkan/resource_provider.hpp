@@ -41,6 +41,7 @@ namespace engine::rendering::backend::vulkan
         [[nodiscard]] resources::FenceNativeHandle resolve_fence(const resources::Fence& fence) override;
         [[nodiscard]] resources::TimelineSemaphoreNativeHandle resolve_semaphore(
             const resources::TimelineSemaphore& semaphore) override;
+        [[nodiscard]] resources::GpuResourceUsage usage_snapshot() const noexcept override;
 
         void on_transient_acquire(FrameGraphResourceHandle handle, const FrameGraphResourceInfo& info) override;
         void on_transient_release(FrameGraphResourceHandle handle, const FrameGraphResourceInfo& info) override;

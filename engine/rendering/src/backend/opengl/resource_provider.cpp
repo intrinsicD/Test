@@ -603,6 +603,14 @@ namespace engine::rendering::backend::opengl
         return record.native;
     }
 
+    resources::GpuResourceUsage OpenGLGpuResourceProvider::usage_snapshot() const noexcept
+    {
+        resources::GpuResourceUsage usage{};
+        usage.buffer_bytes = buffer_bytes_;
+        usage.texture_bytes = texture_bytes_;
+        return usage;
+    }
+
     void OpenGLGpuResourceProvider::on_transient_acquire(FrameGraphResourceHandle handle,
                                                          const FrameGraphResourceInfo& info)
     {

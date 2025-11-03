@@ -66,11 +66,19 @@ TEST(OpenGLResourceProvider, AllocatesTextureOnAcquire)
     EXPECT_NE(record->handle, 0U);
     EXPECT_FALSE(record->depth_attachment);
 
+    auto usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.buffer_bytes, 0U);
+    EXPECT_EQ(usage.texture_bytes, record->byte_size);
+    EXPECT_EQ(usage.total_bytes(), provider.active_memory_bytes());
+
     provider.on_transient_release(handle, info);
 
     record = provider.texture(handle);
     ASSERT_NE(record, nullptr);
     EXPECT_FALSE(record->in_use);
+
+    usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.texture_bytes, record->byte_size);
 }
 
 TEST(OpenGLResourceProvider, AllocatesBufferOnAcquire)
@@ -93,11 +101,19 @@ TEST(OpenGLResourceProvider, AllocatesBufferOnAcquire)
     EXPECT_TRUE(record->in_use);
     EXPECT_NE(record->handle, 0U);
 
+    auto usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.buffer_bytes, record->size_bytes);
+    EXPECT_EQ(usage.texture_bytes, 0U);
+    EXPECT_EQ(usage.total_bytes(), provider.active_memory_bytes());
+
     provider.on_transient_release(handle, info);
 
     record = provider.buffer(handle);
     ASSERT_NE(record, nullptr);
     EXPECT_FALSE(record->in_use);
+
+    usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.buffer_bytes, record->size_bytes);
 }
 
 TEST(OpenGLResourceProvider, ReallocatesBufferWhenDescriptorChanges)
@@ -307,6 +323,9 @@ TEST(OpenGLResourceProvider, CollectsTexturesUnusedForMultipleFrames)
     provider.end_frame();
 
     EXPECT_EQ(provider.texture(handle), nullptr);
+    const auto usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.texture_bytes, 0U);
+    EXPECT_EQ(usage.total_bytes(), 0U);
 }
 
 TEST(OpenGLResourceProvider, CollectsBuffersUnusedForMultipleFrames)
@@ -326,6 +345,9 @@ TEST(OpenGLResourceProvider, CollectsBuffersUnusedForMultipleFrames)
     provider.end_frame();
 
     EXPECT_EQ(provider.buffer(handle), nullptr);
+    const auto usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.buffer_bytes, 0U);
+    EXPECT_EQ(usage.total_bytes(), 0U);
 }
 
 TEST(OpenGLResourceProvider, HonorsCustomRetentionWindow)

@@ -55,6 +55,11 @@ TEST(VulkanResourceProvider, AllocatesBuffers)
     EXPECT_NE(record->handle, 0U);
     EXPECT_EQ(provider.active_buffer_bytes(), 4096U);
 
+    auto usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.buffer_bytes, record->size_bytes);
+    EXPECT_EQ(usage.texture_bytes, 0U);
+    EXPECT_EQ(usage.total_bytes(), provider.active_memory_bytes());
+
     provider.on_transient_release(handle, info);
     record = provider.buffer(handle);
     ASSERT_NE(record, nullptr);
@@ -84,6 +89,11 @@ TEST(VulkanResourceProvider, AllocatesImages)
     EXPECT_NE(record->image, 0U);
     EXPECT_NE(record->view, 0U);
     EXPECT_GT(provider.active_image_bytes(), 0U);
+
+    auto usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.texture_bytes, provider.active_image_bytes());
+    EXPECT_EQ(usage.buffer_bytes, 0U);
+    EXPECT_EQ(usage.total_bytes(), provider.active_memory_bytes());
 
     provider.on_transient_release(handle, info);
     record = provider.image(handle);
@@ -134,6 +144,9 @@ TEST(VulkanResourceProvider, CollectsResourcesAfterRetentionWindow)
 
     EXPECT_EQ(provider.image(handle), nullptr);
     EXPECT_EQ(provider.active_image_bytes(), 0U);
+    const auto usage = provider.usage_snapshot();
+    EXPECT_EQ(usage.texture_bytes, 0U);
+    EXPECT_EQ(usage.total_bytes(), 0U);
 }
 
 TEST(VulkanResourceProvider, ProvidesCommandBufferHandles)

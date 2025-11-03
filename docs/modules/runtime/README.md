@@ -276,6 +276,7 @@ if (diag.scene_validation.has_cycles) {
 - **Lifecycle counters**: `initialize_count`, `tick_count`, `shutdown_count`, `initialize_failure_count`
 - **Timing data**: `last_*_ms`, `max_*_ms`, `average_tick_ms` plus per-stage timing (`RuntimeStageTiming`, including each stage's `phase` and `thread_affinity`) and aggregated per-phase totals exposed through `RuntimeDiagnostics::phase_timings`
 - **Streaming telemetry**: Worker health, queue depth, completion/failure rates (see [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md))
+- **GPU resource telemetry**: Buffer/texture/auxiliary usage gauges (`rendering.resources.*`) sourced from the active GPU resource provider so tooling can monitor residency alongside frame-graph execution.
 - **Animation telemetry**: Clip/pose metadata plus dispatcher aggregates grouped by animation category and queue, exposed via `RuntimeDiagnostics::animation` and mirrored through the C API for tooling.
 - **Scene validation**: Cycle detection, depth analysis, alert levels (see [`DIAGNOSTICS.md`](DIAGNOSTICS.md))
 - **Physics collisions**: Contact manifolds, broad-phase metrics

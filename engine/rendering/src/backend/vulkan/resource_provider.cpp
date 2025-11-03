@@ -158,6 +158,14 @@ namespace engine::rendering::backend::vulkan
         return native;
     }
 
+    resources::GpuResourceUsage VulkanGpuResourceProvider::usage_snapshot() const noexcept
+    {
+        resources::GpuResourceUsage usage{};
+        usage.buffer_bytes = active_buffer_bytes_;
+        usage.texture_bytes = active_image_bytes_;
+        return usage;
+    }
+
     void VulkanGpuResourceProvider::on_transient_acquire(FrameGraphResourceHandle handle,
                                                           const FrameGraphResourceInfo& info)
     {

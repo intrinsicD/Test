@@ -244,6 +244,7 @@ namespace engine::runtime
         core::telemetry::MetricSet metrics{};
         io::GeometryIoTelemetrySnapshot geometry_io{};
 #if ENGINE_ENABLE_RENDERING
+        rendering::resources::GpuResourceUsage gpu_resource_usage{};
         std::string frame_graph_serialization{};
         std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
 #endif

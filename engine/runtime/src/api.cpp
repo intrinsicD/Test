@@ -1332,6 +1332,24 @@ namespace engine::runtime
                           core::telemetry::MetricUnit::Milliseconds,
                           make_pass_labels(pass));
             }
+
+            const auto& gpu_usage = diagnostics.gpu_resource_usage;
+            add_gauge("rendering.resources.buffer_bytes",
+                      "GPU buffer memory currently tracked by the active resource provider",
+                      static_cast<double>(gpu_usage.buffer_bytes),
+                      core::telemetry::MetricUnit::Bytes);
+            add_gauge("rendering.resources.texture_bytes",
+                      "GPU texture/image memory currently tracked by the active resource provider",
+                      static_cast<double>(gpu_usage.texture_bytes),
+                      core::telemetry::MetricUnit::Bytes);
+            add_gauge("rendering.resources.other_bytes",
+                      "Additional GPU allocations (samplers, descriptors, etc.) tracked by the resource provider",
+                      static_cast<double>(gpu_usage.other_bytes),
+                      core::telemetry::MetricUnit::Bytes);
+            add_gauge("rendering.resources.total_bytes",
+                      "Total GPU memory tracked by the active resource provider",
+                      static_cast<double>(gpu_usage.total_bytes()),
+                      core::telemetry::MetricUnit::Bytes);
 #endif
 
             const auto make_dimension_labels = [](std::size_t dimension)
@@ -2832,6 +2850,7 @@ namespace engine::runtime
             pipeline = &impl_->forward_pipeline;
         }
         pipeline->render(impl_->scene, context);
+        impl_->diagnostics.gpu_resource_usage = context.device_resources.usage_snapshot();
         impl_->diagnostics.frame_graph_serialization = context.frame_graph.serialize();
         const auto& events = context.frame_graph.resource_events();
         impl_->diagnostics.frame_graph_events.assign(events.begin(), events.end());

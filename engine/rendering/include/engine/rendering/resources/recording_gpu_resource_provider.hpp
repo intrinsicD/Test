@@ -31,6 +31,7 @@ namespace engine::rendering::resources
         [[nodiscard]] FenceNativeHandle resolve_fence(const Fence& fence) override;
         [[nodiscard]] TimelineSemaphoreNativeHandle resolve_semaphore(
             const TimelineSemaphore& semaphore) override;
+        [[nodiscard]] GpuResourceUsage usage_snapshot() const noexcept override;
 
         void on_transient_acquire(FrameGraphResourceHandle handle,
                                   const FrameGraphResourceInfo& info) override;

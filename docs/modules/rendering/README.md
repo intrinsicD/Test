@@ -151,6 +151,11 @@ dashboards whenever the preset is configured or executed:
   recent execution time per pass measured while encoding GPU work.
 - `rendering.research.pass.max_gpu_time_ms` (gauge, unit Milliseconds) — peak
   execution time observed for each pass since the telemetry state was reset.
+- Runtime diagnostics also publish GPU resource usage gauges
+  (`rendering.resources.buffer_bytes`, `rendering.resources.texture_bytes`,
+  `rendering.resources.other_bytes`, `rendering.resources.total_bytes`) so
+  PM-510 demos can correlate buffer and texture residency with frame-graph
+  activity once GPU providers are active.
 
 Runtime diagnostics export these metrics through the shared telemetry schema so
 the prototyping harness and benchmarking automation can surface draw-call
