@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 
 #include "engine/rendering/backend/opengl/render_resource_provider.hpp"
@@ -25,7 +26,8 @@ namespace engine::rendering::backend::opengl
         using MeshResolver = OpenGLRenderResourceProvider::MeshResolver;
 
         explicit OpenGLPresentationBackend(MeshResolver mesh_resolver,
-                                           std::unique_ptr<ForwardPipeline> pipeline = nullptr);
+                                           std::unique_ptr<ForwardPipeline> pipeline = nullptr,
+                                           std::uint64_t retention_frames = 0);
 
         [[nodiscard]] MaterialSystem& material_system() noexcept { return materials_; }
         [[nodiscard]] const MaterialSystem& material_system() const noexcept { return materials_; }
@@ -35,6 +37,9 @@ namespace engine::rendering::backend::opengl
 
         [[nodiscard]] OpenGLRuntimeSubmission& submission() noexcept { return submission_; }
         [[nodiscard]] const OpenGLRuntimeSubmission& submission() const noexcept { return submission_; }
+
+        void set_resource_retention_frames(std::uint64_t frames) noexcept;
+        [[nodiscard]] std::uint64_t resource_retention_frames() const noexcept;
 
         void present(const RuntimePresentationContext& context) override;
 

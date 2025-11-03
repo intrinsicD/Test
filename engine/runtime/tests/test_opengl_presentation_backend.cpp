@@ -94,5 +94,22 @@ TEST(RuntimePresentationBackend, OpenGLBackendExecutesFrameGraph)
     EXPECT_EQ(diagnostics.frame_graph_events[1].resource_name, "ForwardDepth");
 }
 
+TEST(RuntimePresentationBackend, OpenGLBackendConfiguresRetentionFrames)
+{
+    ScopedHandleValidators handle_validators;
+
+    engine::rendering::backend::opengl::OpenGLPresentationBackend backend(
+        [](const engine::assets::MeshHandle&) -> std::optional<engine::geometry::SurfaceMesh> {
+            return std::nullopt;
+        },
+        nullptr,
+        3);
+
+    EXPECT_EQ(backend.resource_retention_frames(), 3U);
+
+    backend.set_resource_retention_frames(5);
+    EXPECT_EQ(backend.resource_retention_frames(), 5U);
+}
+
 #endif // ENGINE_ENABLE_RENDERING
 
