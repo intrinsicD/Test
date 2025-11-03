@@ -2133,6 +2133,7 @@ namespace engine::runtime
                     if (has_presentation_backend && host != nullptr)
                     {
                         rendering::RuntimePresentationContext context{*host, dt};
+                        context.submit_render_graph = &engine::runtime::submit_render_graph;
                         presentation_backend->present(context);
                     }
 #endif

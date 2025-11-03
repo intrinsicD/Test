@@ -296,8 +296,8 @@ for (const auto& barrier : submission.begin_barriers)
   submission adapter by implementing the `rendering::PresentationBackend`
   interface. Provide a mesh resolver callback and register materials with the
   embedded `MaterialSystem`, then call `present()` with the runtime's
-  `RuntimePresentationContext` to execute the frame graph through the OpenGL
-  stack each tick.
+  `RuntimePresentationContext` (which carries a `submit_render_graph` callback)
+  to execute the frame graph through the OpenGL stack each tick.
 
 ## Resource Management
 

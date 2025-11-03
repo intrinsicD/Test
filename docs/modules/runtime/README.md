@@ -112,10 +112,11 @@ the updated graph. Inspect the active plan via `RuntimeHost::loop_plan()` (or th
 
 The rendering module now ships `rendering::backend::opengl::OpenGLPresentationBackend`
 for hosts that want a ready-made OpenGL execution path. Supply a mesh resolver
-and register materials with its exposed `MaterialSystem` before attaching the
-backend to the runtime dependencies; `present()` will then call
-`RuntimeHost::submit_render_graph()` with the bundled submission context each
-tick.
+ and register materials with its exposed `MaterialSystem` before attaching the
+ backend to the runtime dependencies; runtime dispatch populates
+ `RuntimePresentationContext::submit_render_graph` so `present()` can forward
+ the bundled submission context to `RuntimeHost::submit_render_graph()` each
+ tick.
 
 ## Diagnostics & Telemetry
 

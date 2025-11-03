@@ -6,6 +6,7 @@
 #include "engine/rendering/backend/opengl/presentation_backend.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/runtime/api.hpp"
+#include "engine/runtime/render_submission.hpp"
 
 namespace
 {
@@ -73,6 +74,7 @@ TEST(RuntimePresentationBackend, OpenGLBackendExecutesFrameGraph)
         engine::rendering::MaterialSystem::MaterialRecord{material_handle, shader_handle});
 
     engine::rendering::RuntimePresentationContext presentation_context{host, 0.016};
+    presentation_context.submit_render_graph = &engine::runtime::submit_render_graph;
     backend.present(presentation_context);
 
     const auto& device_resources = backend.submission().device_resources;

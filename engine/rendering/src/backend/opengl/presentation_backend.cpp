@@ -1,8 +1,7 @@
 #include "engine/rendering/backend/opengl/presentation_backend.hpp"
 
+#include <stdexcept>
 #include <utility>
-
-#include "engine/runtime/render_submission.hpp"
 
 namespace engine::rendering::backend::opengl
 {
@@ -17,7 +16,12 @@ namespace engine::rendering::backend::opengl
     {
         auto* pipeline = pipeline_.get();
         auto submission_context = submission_.make_context(material_system(), frame_graph(), pipeline);
-        engine::runtime::submit_render_graph(context.host, submission_context);
+        const auto submit_render_graph = context.submit_render_graph;
+        if (submit_render_graph == nullptr)
+        {
+            throw std::runtime_error("RuntimePresentationContext.submit_render_graph must be set before presentation");
+        }
+        submit_render_graph(context.host, submission_context);
     }
 } // namespace engine::rendering::backend::opengl
 
