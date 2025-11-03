@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "../../../../runtime/include/engine/runtime/render_submission.hpp"
+#include "engine/runtime/render_submission.hpp"
 
 namespace engine::rendering::backend::opengl
 {
