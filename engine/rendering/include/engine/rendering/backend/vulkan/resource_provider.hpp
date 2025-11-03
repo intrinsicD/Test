@@ -3,11 +3,13 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
 
+#include "engine/rendering/backend/vulkan/command_encoder.hpp"
 #include "engine/rendering/frame_graph_types.hpp"
 #include "engine/rendering/resources/resource_provider.hpp"
 
@@ -95,9 +97,11 @@ namespace engine::rendering::backend::vulkan
             resources::CommandBufferNativeHandle native{};
             std::string label;
             QueueType queue{QueueType::Graphics};
+            std::unique_ptr<VulkanCommandBuffer> buffer;
         };
 
-        [[nodiscard]] const CommandBufferRecord* command_buffer(CommandBufferHandle handle) const noexcept;
+        [[nodiscard]] VulkanCommandBuffer* command_buffer(CommandBufferHandle handle) noexcept;
+        [[nodiscard]] const VulkanCommandBuffer* command_buffer(CommandBufferHandle handle) const noexcept;
 
         void set_retention_frames(std::uint64_t frames) noexcept;
         [[nodiscard]] std::uint64_t retention_frames() const noexcept;

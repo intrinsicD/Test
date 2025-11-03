@@ -1,14 +1,21 @@
 #pragma once
 
+#include <algorithm>
+#include <cctype>
 #include <cstdint>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "engine/rendering/backend/native_scheduler_base.hpp"
+#include "engine/rendering/backend/vulkan/command_encoder.hpp"
+#include "engine/rendering/backend/vulkan/resource_provider.hpp"
+#include "engine/rendering/render_pass.hpp"
 
 namespace engine::rendering::backend::vulkan
 {
+    class VulkanGpuResourceProvider;
+
     struct VulkanSemaphoreSubmit
     {
         resources::TimelineSemaphoreNativeHandle semaphore{};
@@ -31,6 +38,7 @@ namespace engine::rendering::backend::vulkan
         std::vector<VulkanSemaphoreSubmit> signals;
         resources::FenceNativeHandle fence{};
         std::uint64_t fence_value{0};
+        std::vector<EncodedCommand> commands;
     };
 
     /// GPU scheduler that translates frame-graph submissions into Vulkan primitives.
@@ -50,12 +58,17 @@ namespace engine::rendering::backend::vulkan
             {
                 return preferred;
             }
+
             const auto name = pass.name();
-            if (name.find("Transfer") != std::string_view::npos || name.find("Copy") != std::string_view::npos)
+            std::string lowercase{name.begin(), name.end()};
+            std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(),
+                           [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+
+            if (lowercase.find("transfer") != std::string::npos || lowercase.find("copy") != std::string::npos)
             {
                 return QueueType::Transfer;
             }
-            if (name.find("Compute") != std::string_view::npos)
+            if (lowercase.find("compute") != std::string::npos)
             {
                 return QueueType::Compute;
             }
@@ -102,6 +115,14 @@ namespace engine::rendering::backend::vulkan
                 submit.semaphore = provider_.resolve_semaphore(*signal.semaphore);
                 submit.value = signal.value;
                 submission.signals.push_back(submit);
+            }
+
+            if (auto* vulkan_provider = dynamic_cast<VulkanGpuResourceProvider*>(&provider_); vulkan_provider != nullptr)
+            {
+                if (auto* recorded_buffer = vulkan_provider->command_buffer(encoder.handle); recorded_buffer != nullptr)
+                {
+                    submission.commands = recorded_buffer->commands();
+                }
             }
 
             return submission;
