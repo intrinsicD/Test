@@ -292,6 +292,12 @@ for (const auto& barrier : submission.begin_barriers)
   command encoder provider, and scheduler, exposing a convenience helper for
   constructing `RuntimeSubmissionContext` instances without threading each
   dependency manually.
+- `rendering::backend::opengl::OpenGLPresentationBackend` builds on the runtime
+  submission adapter by implementing the `rendering::PresentationBackend`
+  interface. Provide a mesh resolver callback and register materials with the
+  embedded `MaterialSystem`, then call `present()` with the runtime's
+  `RuntimePresentationContext` (which carries a `submit_render_graph` callback)
+  to execute the frame graph through the OpenGL stack each tick.
 
 ## Resource Management
 

@@ -7,6 +7,10 @@ namespace engine::runtime
 
 namespace engine::rendering
 {
+    struct RuntimeSubmissionContext;
+
+    using SubmitRenderGraphFn = void (*)(runtime::RuntimeHost&, RuntimeSubmissionContext&);
+
     /**
      * \brief Context forwarded to presentation backends when dispatching a frame.
      */
@@ -14,6 +18,7 @@ namespace engine::rendering
     {
         runtime::RuntimeHost& host;
         double delta_seconds{0.0};
+        SubmitRenderGraphFn submit_render_graph{nullptr};
     };
 
     /**
