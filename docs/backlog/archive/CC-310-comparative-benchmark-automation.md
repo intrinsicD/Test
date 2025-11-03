@@ -30,10 +30,10 @@ Telemetry capture exists but researchers still run comparisons manually. CC-310 
 - [x] Benchmark playbook documents setup, execution, and integration steps for new algorithms.
 
 ## Dependencies
-- [`docs/backlog/active/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
-- [`docs/backlog/active/AS-330-reference-dataset-packages.md`](AS-330-reference-dataset-packages.md)
-- [`docs/backlog/active/TL-210-experiment-sandbox-ui.md`](TL-210-experiment-sandbox-ui.md)
-- [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
+- [`docs/backlog/archive/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
+- [`docs/backlog/archive/AS-330-reference-dataset-packages.md`](AS-330-reference-dataset-packages.md)
+- [`docs/backlog/archive/TL-210-experiment-sandbox-ui.md`](TL-210-experiment-sandbox-ui.md)
+- [`docs/backlog/archive/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
 
 ## Related Artefacts
 - [`docs/archive/backlog/legacy/tasks/CC-310-comparative-benchmark-automation.md`](../../archive/backlog/legacy/tasks/CC-310-comparative-benchmark-automation.md)

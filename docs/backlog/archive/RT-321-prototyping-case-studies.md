@@ -30,9 +30,9 @@ After RT-320 delivers the harness we must prove it supports real workflows. RT-3
 - [x] Integration + CI coverage executes both scenarios and records baseline metrics in documentation (`docs/design/RT-321-case-studies.md`).
 
 ## Dependencies
-- [`docs/backlog/active/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
-- [`docs/backlog/active/AS-330-reference-dataset-packages.md`](AS-330-reference-dataset-packages.md)
-- [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
+- [`docs/backlog/archive/RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md)
+- [`docs/backlog/archive/AS-330-reference-dataset-packages.md`](AS-330-reference-dataset-packages.md)
+- [`docs/backlog/archive/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
 
 ## Related Artefacts
 - [`docs/archive/backlog/legacy/tasks/RT-321-prototyping-case-study-validation.md`](../../archive/backlog/legacy/tasks/RT-321-prototyping-case-study-validation.md)

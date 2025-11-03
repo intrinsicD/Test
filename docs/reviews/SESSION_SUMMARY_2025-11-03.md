@@ -30,8 +30,8 @@ Successfully completed a comprehensive task involving:
 
 ### Architecture Analysis Documents
 
-1. **GEOMETRY_VIEWER_COMPLETION_GUIDE.md** - Identified missing window/input/loop components
-2. **GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md** - Status: functional but uses raw GLFW
+1. [**GEOMETRY_VIEWER_COMPLETION_GUIDE.md**](../examples/GEOMETRY_VIEWER_COMPLETION_GUIDE.md) - Identified missing window/input/loop components
+2. [**GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md**](../examples/GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md) - Status: functional but uses raw GLFW
 3. **GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md** - Root cause: engine abstractions incomplete
 4. **MISSING_COMPONENTS_SUMMARY.md** - Platform 60% complete, missing input integration
 5. **APPLICATION_FRAMEWORK_PROPOSAL.md** - Proposed 3-phase approach
@@ -207,7 +207,7 @@ static input::MouseButton map_glfw_mouse_button(int glfw_button);
    - Documented supported keys and mouse buttons
 
 2. **Geometry Viewer Summary**
-   - [`docs/examples/GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md`](GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md)
+   - [`docs/examples/GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md`](../examples/GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md)
    - Updated to reflect Phase 1 implementation
    - Documented unified input system
    - Added code structure showing simplified pattern

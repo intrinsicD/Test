@@ -37,10 +37,10 @@ dependencies, and risk mitigations.
 
 | Sequence | Target Date | Backlog | Owner | Dependencies | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 1 | 2026-02-07 | [`DC-041`](DC-041-ai-004-kickoff-readiness.md) | Product Manager | [`DC-040`](DC-040-ai-004-configuration-schema.md) | Kickoff brief, roadmap timeline, and sprint tracker cross-links published. |
-| 2 | 2026-02-12 | [`RT-320`](RT-320-runtime-prototyping-harness.md) | Runtime Lead | `DC-041` | Harness dry-run executes schema sample + telemetry export; smoke test recorded. |
-| 3 | 2026-02-14 | [`TL-210`](TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox consumes harness presets and exposes dataset selection for review demo. |
-| 4 | 2026-02-16 | [`AS-330`](AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Package manifests validated against harness + sandbox integration test. |
+| 1 | 2026-02-07 | [`DC-041`](../archive/DC-041-ai-004-kickoff-readiness.md) | Product Manager | [`DC-040`](../archive/DC-040-ai-004-configuration-schema.md) | Kickoff brief, roadmap timeline, and sprint tracker cross-links published. |
+| 2 | 2026-02-12 | [`RT-320`](../archive/RT-320-runtime-prototyping-harness.md) | Runtime Lead | `DC-041` | Harness dry-run executes schema sample + telemetry export; smoke test recorded. |
+| 3 | 2026-02-14 | [`TL-210`](../archive/TL-210-experiment-sandbox-ui.md) | Tools Lead | `RT-320` | Sandbox consumes harness presets and exposes dataset selection for review demo. |
+| 4 | 2026-02-16 | [`AS-330`](../archive/AS-330-reference-dataset-packages.md) | Assets Lead | `RT-320`, `TL-210` | Package manifests validated against harness + sandbox integration test. |
 
 ## Risk Ownership
 

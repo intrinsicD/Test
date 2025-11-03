@@ -1,23 +1,45 @@
 # Examples demonstrating engine capabilities
 
 # Geometry Viewer - demonstrates research baseline rendering
-add_executable(geometry_viewer
-        geometry_viewer.cpp
-)
+set(_geometry_viewer_requirements_met TRUE)
+set(_geometry_viewer_missing_targets "")
 
-target_link_libraries(geometry_viewer
-        PRIVATE
-        engine_rendering
-        engine_scene
-        engine_math
-        engine_assets
-        engine_platform
-        glfw
-        glad::gl_core
-)
+if(NOT TARGET glfw)
+    set(_geometry_viewer_requirements_met FALSE)
+    list(APPEND _geometry_viewer_missing_targets "glfw")
+endif()
 
-# Install examples to bin directory
-install(TARGETS geometry_viewer
-        RUNTIME DESTINATION bin/examples
-)
+if(NOT TARGET glad::gl_core)
+    set(_geometry_viewer_requirements_met FALSE)
+    list(APPEND _geometry_viewer_missing_targets "glad::gl_core")
+endif()
+
+if(_geometry_viewer_requirements_met)
+    add_executable(geometry_viewer
+            geometry_viewer.cpp
+    )
+
+    target_link_libraries(geometry_viewer
+            PRIVATE
+            engine_rendering
+            engine_scene
+            engine_math
+            engine_assets
+            engine_platform
+            glfw
+            glad::gl_core
+    )
+
+    # Install examples to bin directory
+    install(TARGETS geometry_viewer
+            RUNTIME DESTINATION bin/examples
+    )
+else()
+    list(JOIN _geometry_viewer_missing_targets ", " _geometry_viewer_missing_targets_joined)
+    message(STATUS "Skipping geometry_viewer example (missing targets: ${_geometry_viewer_missing_targets_joined}).")
+endif()
+
+unset(_geometry_viewer_requirements_met)
+unset(_geometry_viewer_missing_targets)
+unset(_geometry_viewer_missing_targets_joined)
 

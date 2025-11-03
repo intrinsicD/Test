@@ -30,9 +30,9 @@ Once CC-310 produces comparative artefacts they must be consumable by humans and
 - [x] Benchmark playbook and telemetry documentation describe usage, troubleshooting, and CI integration.
 
 ## Dependencies
-- [`docs/backlog/active/CC-310-comparative-benchmark-automation.md`](CC-310-comparative-benchmark-automation.md)
-- [`docs/backlog/active/RT-321-prototyping-case-studies.md`](RT-321-prototyping-case-studies.md)
-- [`docs/backlog/active/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
+- [`docs/backlog/archive/CC-310-comparative-benchmark-automation.md`](CC-310-comparative-benchmark-automation.md)
+- [`docs/backlog/archive/RT-321-prototyping-case-studies.md`](RT-321-prototyping-case-studies.md)
+- [`docs/backlog/archive/DC-040-ai-004-configuration-schema.md`](DC-040-ai-004-configuration-schema.md)
 
 ## Related Artefacts
 - [`docs/archive/backlog/legacy/tasks/CC-311-benchmark-visualization-integration.md`](../../archive/backlog/legacy/tasks/CC-311-benchmark-visualization-integration.md)
