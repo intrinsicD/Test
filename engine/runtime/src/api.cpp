@@ -3200,6 +3200,23 @@ namespace engine::runtime
         }
     }
 
+    extern "C" ENGINE_RUNTIME_API const char* engine_runtime_loop_plan_serialization() noexcept
+    {
+        try
+        {
+            const auto& runtime_diagnostics = engine::runtime::diagnostics();
+            if (runtime_diagnostics.loop_plan_serialization.empty())
+            {
+                return "";
+            }
+            return runtime_diagnostics.loop_plan_serialization.c_str();
+        }
+        catch (...)
+        {
+            return "";
+        }
+    }
+
     extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_body_count() noexcept
     {
         try

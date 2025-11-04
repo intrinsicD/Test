@@ -53,14 +53,15 @@ def _make_runtime_namespace(**overrides):
         "engine_runtime_mesh_bounds": _DummyFunction(lambda mins, maxs: None),
         "engine_runtime_dispatch_count": _DummyFunction(lambda: 0),
         "engine_runtime_dispatch_name": _DummyFunction(lambda index: b""),
-          "engine_runtime_dispatch_duration": _DummyFunction(lambda index: 0.0),
-          "engine_runtime_scene_node_count": _DummyFunction(lambda: 0),
-          "engine_runtime_scene_node_name": _DummyFunction(lambda index: b""),
-          "engine_runtime_scene_node_transform": _DummyFunction(
-              lambda index, scales, rotations, translations: None
-          ),
-          "engine_runtime_presentation_stage_active": _DummyFunction(lambda: True),
-      }
+        "engine_runtime_dispatch_duration": _DummyFunction(lambda index: 0.0),
+        "engine_runtime_scene_node_count": _DummyFunction(lambda: 0),
+        "engine_runtime_scene_node_name": _DummyFunction(lambda index: b""),
+        "engine_runtime_scene_node_transform": _DummyFunction(
+            lambda index, scales, rotations, translations: None
+        ),
+        "engine_runtime_presentation_stage_active": _DummyFunction(lambda: True),
+        "engine_runtime_loop_plan_serialization": _DummyFunction(lambda: b"{}"),
+    }
     defaults.update(overrides)
     return types.SimpleNamespace(**defaults)
 
@@ -561,6 +562,22 @@ class HandleBehaviourTests(unittest.TestCase):
     def test_engine_runtime_handle_requires_presentation_stage_symbol(self) -> None:
         fake_library = _make_runtime_namespace()
         delattr(fake_library, "engine_runtime_presentation_stage_active")
+
+        with self.assertRaises(RuntimeError):
+            loader.EngineRuntimeHandle(fake_library)
+
+    def test_engine_runtime_handle_loop_plan_serialization(self) -> None:
+        payload = b'{"stages": []}'
+        fake_library = _make_runtime_namespace(
+            engine_runtime_loop_plan_serialization=_DummyFunction(lambda: payload)
+        )
+        handle = loader.EngineRuntimeHandle(fake_library)
+
+        self.assertEqual(handle.loop_plan_serialization(), payload.decode("utf-8"))
+
+    def test_engine_runtime_handle_requires_loop_plan_symbol(self) -> None:
+        fake_library = _make_runtime_namespace()
+        delattr(fake_library, "engine_runtime_loop_plan_serialization")
 
         with self.assertRaises(RuntimeError):
             loader.EngineRuntimeHandle(fake_library)

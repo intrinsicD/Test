@@ -231,6 +231,10 @@ before the next frame begins. The host clears stage timing history and refreshes
 `diagnostics.loop_plan_serialization` whenever a plan swap occurs so tooling immediately observes
 the updated graph. Inspect the active plan via `RuntimeHost::loop_plan()` (or the global
 `engine::runtime::loop_plan()` helper) when exporting diagnostics or wiring control surfaces.
+Scripting clients can pull the JSON snapshot directly through the
+`engine_runtime_loop_plan_serialization()` C export (exposed as
+`EngineRuntimeHandle.loop_plan_serialization()` in the Python loader) to validate
+stage ordering without traversing the entire diagnostics payload.
 
 `presentation.dispatch` bridges the simulation stack to presentation tooling. Provide a presenter by attaching a `rendering::PresentationBackend` to `RuntimeHostDependencies::presentation_backend`; the host invokes it every tick with a `rendering::RuntimePresentationContext` so the backend can submit frame-graph work, composite UI, or trigger readbacks before diagnostics run. Lightweight integrations may continue to register callbacks with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper). Both backends and callbacks receive the frame `dt` so presentation logic can track timing alongside simulation state.
 

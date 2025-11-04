@@ -21,6 +21,8 @@
   misconfigured.
 - `EngineModuleHandle.compatibility_metadata()` parses JSON metadata exported by modules before the runtime initialises, allowing
   diagnostics to flag ABI or build skew without touching subsystem state.
+- `EngineRuntimeHandle.loop_plan_serialization()` returns the JSON description of the active runtime loop plan, mirroring the
+  native `engine_runtime_loop_plan_serialization()` export so harnesses can confirm stage ordering during RT-410 validation.
 - `EngineRuntimeHandle` implements the context manager protocol. Use `with loader.load_runtime() as runtime:` to automatically
   initialise the runtime on entry and shut it down on exit. When the runtime was already initialised, the context manager
   preserves the existing lifetime so shared handles remain valid.
