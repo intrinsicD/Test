@@ -90,7 +90,7 @@ Following AGENTS.md §0.2, completed full context ladder traversal:
 ## Artifacts Created (Per AGENTS.md §0.3)
 
 ### Task Coordination Documents
-1. **Task Brief:** [`agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md`](../../agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md)
+1. **Task Brief:** [`agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md`](../../docs/archive/agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md)
    - Complete scope definition
    - Role roster (9 agent roles)
    - Success criteria (functional, documentation, validation, quality)
@@ -98,7 +98,7 @@ Following AGENTS.md §0.2, completed full context ladder traversal:
    - Phase gate plan
    - Decision log with timestamps
 
-2. **Context Package:** [`agents/context_packages/2026-11-04-geometry-viewer-build-fix.md`](../../agents/context_packages/2026-11-04-geometry-viewer-build-fix.md)
+2. **Context Package:** [`agents/context_packages/2026-11-04-geometry-viewer-build-fix.md`](../../docs/archive/agents/context_packages/2026-11-04-geometry-viewer-build-fix.md)
    - Problem summary
    - Key artifacts table (19 references)
    - Complete context ladder trace
@@ -106,7 +106,7 @@ Following AGENTS.md §0.2, completed full context ladder traversal:
    - Implementation details
    - Quality gates evidence
 
-3. **Quality Report:** [`agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md`](../../agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md)
+3. **Quality Report:** [`agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md`](../../docs/archive/agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md)
    - All 7 quality gates (build, tests, documentation, code review, performance, security)
    - Regression analysis
    - Test coverage report

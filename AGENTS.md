@@ -231,15 +231,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
     agents/
         ROLES.md
         context_packages/
-            2026-02-26-rt-410-presentation-telemetry.md
-            2026-02-27-rt-410-presentation-loop-refresh.md
-            2026-02-28-rt-410-presentation-stage-query.md
-            2026-03-01-rt-410-presentation-stage-capi.md
         task_briefs/
-            2026-02-26-rt-410-presentation-telemetry.md
-            2026-02-27-rt-410-presentation-loop-refresh.md
-            2026-02-28-rt-410-presentation-stage-query.md
-            2026-03-01-rt-410-presentation-stage-capi.md
+            2026-11-04-documentation-hygiene-comprehensive.md
         TEMPLATES/
             ADR_TEMPLATE.md
             CONTEXT_PACKAGE_TEMPLATE.md
@@ -297,12 +290,60 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         ROADMAP.md
         architecture/
             module_dependency_graph.dot
+            module_dependency_graph.svg
             README.md
         archive/
+            ARCHIVE_INDEX.md
+            doc_audit_report.json
             README.md
+            agents/
+                context_packages/
+                    2026-02-26-rt-410-presentation-telemetry.md
+                    2026-02-27-rt-410-presentation-loop-refresh.md
+                    2026-02-28-rt-410-presentation-stage-query.md
+                    2026-03-01-backlog-roadmap-audit.md
+                    2026-03-01-rt-410-presentation-stage-capi.md
+                    2026-03-02-t-0119-vulkan-command-encoder.md
+                    2026-03-03-t-0119-vulkan-scheduler-validation.md
+                    2026-03-05-pm-520-backlog-hygiene.md
+                    2026-03-06-glad-configure-fallback.md
+                    2026-03-27-gpu-resource-telemetry.md
+                    2026-04-08-t-0120-opengl-retention.md
+                    2026-04-09-rt-410-stage-planner.md
+                    2026-04-10-rt-410-presentation-context.md
+                    2026-04-11-rt-410-presentation-context-submit.md
+                    2026-04-12-rt-410-presentation-diagnostics.md
+                    2026-11-03-application-framework-implementation.md
+                    2026-11-04-application-framework-phase2.md
+                    2026-11-04-geometry-viewer-build-fix.md
+                task_briefs/
+                    2026-02-26-rt-410-presentation-telemetry.md
+                    2026-02-27-rt-410-presentation-loop-refresh.md
+                    2026-02-28-rt-410-presentation-stage-query.md
+                    2026-03-01-backlog-roadmap-audit.md
+                    2026-03-01-rt-410-presentation-stage-capi.md
+                    2026-03-02-t-0119-vulkan-command-encoder.md
+                    2026-03-03-t-0119-vulkan-scheduler-validation.md
+                    2026-03-05-pm-520-backlog-hygiene.md
+                    2026-03-06-glad-configure-fallback.md
+                    2026-03-27-gpu-resource-telemetry.md
+                    2026-04-08-t-0120-opengl-retention.md
+                    2026-04-09-rt-410-stage-planner.md
+                    2026-04-10-rt-410-presentation-context.md
+                    2026-04-11-rt-410-presentation-context-submit.md
+                    2026-04-12-rt-410-presentation-diagnostics.md
+                    2026-11-03-application-framework-implementation.md
+                    2026-11-03-application-framework-quality-report.md
+                    2026-11-04-application-framework-phase2-quality-report.md
+                    2026-11-04-application-framework-phase2.md
+                    2026-11-04-geometry-viewer-build-fix-quality-report.md
+                    2026-11-04-geometry-viewer-build-fix.md
             backlog/
                 legacy/
                     README.md
+                    modules/
+                        geometry-BACKLOG.md
+                        tools-BACKLOG.md
                     tasks/
                         2025-02-17-sprint-06.md
                         AI-004-application-prototyping-enablement.md
@@ -337,6 +378,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         T-0128-geometry-frustum-utilities.md
                         T-0129-geometry-shape-intersection-coverage.md
                         TL-210-experiment-sandbox-ui.md
+            design/
+                AI004_CONFIGURATION_LOADER_DESIGN.md
             prints/
                 AI-002-STREAMING-GEOMETRY-TELEMETRY.md
                 AN-201-IMPLEMENTATION.md
@@ -371,6 +414,10 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 2025-03-TELEMETRY-METRIC-PREFIX.MD
                 2025-04-05-COMPUTE-CYCLE-DIAGNOSTICS.MD
                 README.md
+                legacy/
+                    ARCHITECTURE_EVALUATION_EXECUTIVE_SUMMARY.md
+                    GEOMETRY_VIEWER_BUILD_FIX_INDEX.md
+                    TASK_COMPLETION_SUMMARY.md
             workflow-migration/
                 DOCUMENTATION_RESTRUCTURE_CHANGELOG.md
                 DOCUMENTATION_RESTRUCTURE_PROPOSAL.md
@@ -380,22 +427,24 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             active/
                 2026-02-03-sprint-11.md
                 AI-004-kickoff-brief.md
+                PM-510-weekly-integration-demos.md
+                PM-520-backlog-hygiene-remediation.md
+                RT-410-runtime-stage-planner.md
+                T-0119-command-encoder-integration.md
+                T-0120-gpu-resource-provider.md
+                TL-310-editor-foundations.md
+            archive/
                 AS-330-reference-dataset-packages.md
                 CC-310-comparative-benchmark-automation.md
                 CC-311-benchmark-visualisation.md
                 DC-040-ai-004-configuration-schema.md
                 DC-041-ai-004-kickoff-readiness.md
                 PL-240-platform-filesystem-watcher-guidance.md
-                PM-510-weekly-integration-demos.md
+                RE-610-research-rendering-baseline.md
+                README.md
                 RT-320-runtime-prototyping-harness.md
                 RT-321-prototyping-case-studies.md
-                RT-410-runtime-stage-planner.md
-                T-0119-command-encoder-integration.md
-                T-0120-gpu-resource-provider.md
                 TL-210-experiment-sandbox-ui.md
-                TL-310-editor-foundations.md
-            archive/
-                RE-610-research-rendering-baseline.md
         design/
             AI-004-configuration-schema.md
             AI-004-prototyping-playbook.md
@@ -419,6 +468,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             TL-210-experiment-sandbox.md
         examples/
             ai004_sample.json
+            GEOMETRY_VIEWER_COMPLETION_GUIDE.md
+            GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md
             README.md
         modules/
             README.md
@@ -436,7 +487,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 BACKLOG.md
                 README.md
             geometry/
-                BACKLOG.md
                 README.md
             io/
                 BACKLOG.md
@@ -461,7 +511,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 QUICKSTART.md
                 README.md
             runtime/
-                AI004_CONFIGURATION_LOADER_DESIGN.md
                 ASYNC_STREAMING_INTEGRATION.md
                 BACKLOG.md
                 DIAGNOSTICS.md
@@ -471,7 +520,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 DIAGNOSTICS.md
                 README.md
             tools/
-                BACKLOG.md
                 README.md
         prompts/
             ARCHITECTURE-AUDIT.md
@@ -485,8 +533,15 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             2025-12-05-roadmap-direction-review.md
             2026-01-08-application-readiness-assessment.md
             2026-02-10-comprehensive-architecture-evaluation.md
-            ARCHITECTURE_EVALUATION_EXECUTIVE_SUMMARY.md
-            TASK_COMPLETION_SUMMARY.md
+            APPLICATION_FRAMEWORK_INDEX.md
+            APPLICATION_FRAMEWORK_PHASE1_COMPLETE.md
+            APPLICATION_FRAMEWORK_PHASE2_COMPLETE.md
+            APPLICATION_FRAMEWORK_PROPOSAL.md
+            GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md
+            MISSING_COMPONENTS_SUMMARY.md
+            SESSION_SUMMARY_2025-11-03.md
+            SESSION_SUMMARY_2025-11-04-BUILD-FIX.md
+            SESSION_SUMMARY_2025-11-04.md
         specs/
             ADR-0003-runtime-frame-graph.md
             ADR-0005-geometry-io-roundtrip.md
@@ -971,6 +1026,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                                 gpu_scheduler.hpp
                             metal/
                                 gpu_scheduler.hpp
+                            mock/
+                                presentation_backend.hpp
                             opengl/
                                 command_encoder.hpp
                                 gpu_scheduler.hpp
@@ -980,6 +1037,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                                 resource_provider.hpp
                                 runtime_adapter.hpp
                             vulkan/
+                                command_encoder.hpp
                                 gpu_scheduler.hpp
                                 resource_provider.hpp
                                 resource_translation.hpp
@@ -1009,6 +1067,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 material_system.cpp
                 backend/
                     validation.cpp
+                    mock/
+                        presentation_backend.cpp
                     opengl/
                         command_encoder.cpp
                         command_stream.cpp
@@ -1018,6 +1078,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         resource_provider.cpp
                         runtime_adapter.cpp
                     vulkan/
+                        command_encoder.cpp
                         resource_provider.cpp
                         resource_translation.cpp
                 pipeline/
@@ -1040,6 +1101,8 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 test_opengl_resource_provider.cpp
                 test_opengl_runtime_adapter.cpp
                 test_research_baseline.cpp
+                test_vulkan_command_encoder.cpp
+                test_vulkan_gpu_scheduler.cpp
                 test_vulkan_resource_provider.cpp
                 test_vulkan_resource_translation.cpp
         runtime/
@@ -1048,6 +1111,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 engine/
                     runtime/
                         api.hpp
+                        application.hpp
                         config_schema.hpp
                         diagnostics_bridge.hpp
                         errors.hpp
@@ -1061,6 +1125,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 README.md
             src/
                 api.cpp
+                application.cpp
                 config_schema.cpp
                 diagnostics_bridge.cpp
                 loop.cpp
@@ -1182,12 +1247,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             loader.pyi
             prototype_harness.py
             README.md
-            __pycache__/
-                __init__.cpython-312.pyc
-                case_studies.cpython-312.pyc
-                config_schema.cpython-312.pyc
-                loader.cpython-312.pyc
-                prototype_harness.cpython-312.pyc
         tests/
             _helpers.py
             README.md
@@ -1196,13 +1255,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_dataset_ingestion.py
             test_loader.py
             test_prototype_harness.py
-            __pycache__/
-                _helpers.cpython-312.pyc
-                test_case_studies.cpython-312-pytest-8.4.1.pyc
-                test_config_schema.cpython-312-pytest-8.4.1.pyc
-                test_dataset_ingestion.cpython-312-pytest-8.4.1.pyc
-                test_loader.cpython-312-pytest-8.4.1.pyc
-                test_prototype_harness.cpython-312-pytest-8.4.1.pyc
     scripts/
         __init__.py
         bootstrap_python_env.py
@@ -1212,33 +1264,17 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         update_agents_tree.py
         validate_ai004_config.py
         validate_docs.py
-        __pycache__/
-            __init__.cpython-312.pyc
-            bootstrap_python_env.cpython-312.pyc
-            generate_dependency_graph.cpython-312.pyc
-            update_agents_tree.cpython-312.pyc
-            validate_ai004_config.cpython-312.pyc
-            validate_docs.cpython-312.pyc
         benchmarks/
             __init__.py
             run_comparative_benchmarks.py
-            __pycache__/
-                __init__.cpython-312.pyc
-                run_comparative_benchmarks.cpython-312.pyc
         ci/
             package_runtime_artifacts.py
             README.md
             run_comparative_smoke.py
             run_presets.py
-            __pycache__/
-                package_runtime_artifacts.cpython-312.pyc
-                run_comparative_smoke.cpython-312.pyc
         datasets/
             __init__.py
             ingest_dataset.py
-            __pycache__/
-                __init__.cpython-312.pyc
-                ingest_dataset.cpython-312.pyc
         diagnostics/
             animation_sampling_report.py
             collision_benchmark_report.py
@@ -1249,28 +1285,13 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             runtime_frame_telemetry.py
             streaming_report.py
             telemetry_viewer.py
-            __pycache__/
-                animation_sampling_report.cpython-312.pyc
-                collision_benchmark_report.cpython-312.pyc
-                compute_dispatch_benchmark.cpython-312.pyc
-                compute_dispatch_report.cpython-312.pyc
-                geometry_normals_benchmark_report.cpython-312.pyc
-                runtime_frame_telemetry.cpython-312.pyc
-                streaming_report.cpython-312.pyc
-                telemetry_viewer.cpython-312.pyc
         lint/
             __init__.py
             error_handling.py
             legacy_error_allowlist.json
-            __pycache__/
-                __init__.cpython-312.pyc
-                error_handling.cpython-312.pyc
         prototyping/
             __init__.py
             run_prototype_harness.py
-            __pycache__/
-                __init__.cpython-312.pyc
-                run_prototype_harness.cpython-312.pyc
         tests/
             test_animation_sampling_report.py
             test_bootstrap_python_env.py
@@ -1291,26 +1312,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_update_agents_tree.py
             test_validate_ai004_config.py
             test_validate_docs.py
-            __pycache__/
-                test_animation_sampling_report.cpython-312-pytest-8.4.1.pyc
-                test_bootstrap_python_env.cpython-312-pytest-8.4.1.pyc
-                test_check_error_handling.cpython-312-pytest-8.4.1.pyc
-                test_collision_benchmark_report.cpython-312-pytest-8.4.1.pyc
-                test_compute_dispatch_benchmark.cpython-312-pytest-8.4.1.pyc
-                test_compute_dispatch_report.cpython-312-pytest-8.4.1.pyc
-                test_generate_dependency_graph.cpython-312-pytest-8.4.1.pyc
-                test_geometry_normals_benchmark_report.cpython-312-pytest-8.4.1.pyc
-                test_ingest_dataset.cpython-312-pytest-8.4.1.pyc
-                test_package_runtime_artifacts.cpython-312-pytest-8.4.1.pyc
-                test_run_comparative_benchmarks.cpython-312-pytest-8.4.1.pyc
-                test_run_comparative_smoke.cpython-312-pytest-8.4.1.pyc
-                test_runtime_frame_telemetry.cpython-312-pytest-8.4.1.pyc
-                test_streaming_report.cpython-312-pytest-8.4.1.pyc
-                test_telemetry_viewer.cpython-312-pytest-8.4.1.pyc
-                test_telemetry_viewer_smoke.cpython-312-pytest-8.4.1.pyc
-                test_update_agents_tree.cpython-312-pytest-8.4.1.pyc
-                test_validate_ai004_config.cpython-312-pytest-8.4.1.pyc
-                test_validate_docs.cpython-312-pytest-8.4.1.pyc
     telemetry/
         frame_timings.json
 ```

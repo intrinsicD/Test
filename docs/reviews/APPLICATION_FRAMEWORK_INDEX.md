@@ -23,9 +23,9 @@ This index documents the complete Application Framework implementation, from ini
 **Documents:**
 - [Session Summary](SESSION_SUMMARY_2025-11-03.md)
 - [Completion Summary](APPLICATION_FRAMEWORK_PHASE1_COMPLETE.md)
-- [Task Brief](../../agents/task_briefs/2026-11-03-application-framework-implementation.md)
-- [Context Package](../../agents/context_packages/2026-11-03-application-framework-implementation.md)
-- [Quality Report](../../agents/task_briefs/2026-11-03-application-framework-quality-report.md)
+- [Task Brief](../../docs/archive/agents/task_briefs/2026-11-03-application-framework-implementation.md)
+- [Context Package](../../docs/archive/agents/context_packages/2026-11-03-application-framework-implementation.md)
+- [Quality Report](../../docs/archive/agents/task_briefs/2026-11-03-application-framework-quality-report.md)
 
 **Code Changes:**
 - `engine/platform/include/engine/platform/windowing/window.hpp` - Added input_state()
@@ -53,9 +53,9 @@ This index documents the complete Application Framework implementation, from ini
 **Documents:**
 - [Session Summary](SESSION_SUMMARY_2025-11-04.md)
 - [Completion Summary](APPLICATION_FRAMEWORK_PHASE2_COMPLETE.md)
-- [Task Brief](../../agents/task_briefs/2026-11-04-application-framework-phase2.md)
-- [Context Package](../../agents/context_packages/2026-11-04-application-framework-phase2.md)
-- [Quality Report](../../agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md)
+- [Task Brief](../../docs/archive/agents/task_briefs/2026-11-04-application-framework-phase2.md)
+- [Context Package](../../docs/archive/agents/context_packages/2026-11-04-application-framework-phase2.md)
+- [Quality Report](../../docs/archive/agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md)
 
 **Code Changes:**
 - `engine/runtime/include/engine/runtime/application.hpp` - Application class (164 lines)

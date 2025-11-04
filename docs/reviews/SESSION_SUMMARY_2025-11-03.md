@@ -58,7 +58,7 @@ Successfully completed a comprehensive task involving:
 
 ### Artifacts Created
 
-1. **Task Brief:** [`agents/task_briefs/2026-11-03-application-framework-implementation.md`](../../agents/task_briefs/2026-11-03-application-framework-implementation.md)
+1. **Task Brief:** [`agents/task_briefs/2026-11-03-application-framework-implementation.md`](../../docs/archive/agents/task_briefs/2026-11-03-application-framework-implementation.md)
    - Complete scope definition (Phase 1 focus)
    - Role roster with all 9 agent roles assigned
    - Success criteria (functional, documentation, validation, quality)
@@ -66,7 +66,7 @@ Successfully completed a comprehensive task involving:
    - Phase gate plan (intake → release)
    - Risk assessment and mitigation
 
-2. **Context Package:** [`agents/context_packages/2026-11-03-application-framework-implementation.md`](../../agents/context_packages/2026-11-03-application-framework-implementation.md)
+2. **Context Package:** [`agents/context_packages/2026-11-03-application-framework-implementation.md`](../../docs/archive/agents/context_packages/2026-11-03-application-framework-implementation.md)
    - Problem summary (current vs. desired behavior)
    - Key artifacts table with context ladder steps
    - Complete context ladder trace with insights
@@ -214,7 +214,7 @@ static input::MouseButton map_glfw_mouse_button(int glfw_button);
    - Listed improvements over raw GLFW approach
 
 3. **Quality Report**
-   - [`agents/task_briefs/2026-11-03-application-framework-quality-report.md`](../../agents/task_briefs/2026-11-03-application-framework-quality-report.md)
+   - [`agents/task_briefs/2026-11-03-application-framework-quality-report.md`](../../docs/archive/agents/task_briefs/2026-11-03-application-framework-quality-report.md)
    - Comprehensive validation evidence
    - All quality gates documented
    - Performance analysis included
