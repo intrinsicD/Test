@@ -96,7 +96,7 @@ Render collected metadata into a single-page dashboard using a lightweight templ
 1. [x] Define schema + validation helpers for task metadata extraction.
 2. [x] Implement dashboard generator under `scripts/workflow/` with CLI entry point.
 3. [x] Add unit tests covering parser and rendering pipeline.
-4. [ ] Provide sample output under `assets/hybrid_workflow_dashboard/` (optional).
+4. [x] Provide sample output under `assets/hybrid_workflow_dashboard/` (optional).
 5. [x] Document workflow in `hybrid_workflow/README.md` and update roadmap bundle C checkbox.
 6. [x] Run `python scripts/validate_docs.py` after documentation updates.
 7. [ ] Mark task `done` and archive with evidence once dashboard shipped.
@@ -116,6 +116,7 @@ python scripts/validate_docs.py
 - Unit tests: `scripts/tests/test_dashboard.py`
 - Integration tests: covered by CLI invocation in tests
 - Documentation validation: `python scripts/validate_docs.py`
+- Static snapshot: `assets/hybrid_workflow_dashboard/` generated via `python -m scripts.workflow.dashboard --output-dir $(pwd)/assets/hybrid_workflow_dashboard`
 
 ### Quality Gate Sign-offs
 
@@ -134,6 +135,8 @@ python scripts/validate_docs.py
 - `hybrid_workflow/README.md`
 - `hybrid_workflow/ROADMAP.md`
 - `docs/NAVIGATION.md` (if adding dashboard reference)
+- `assets/hybrid_workflow_dashboard/index.html`
+- `assets/hybrid_workflow_dashboard/tasks.json`
 
 ---
 
@@ -142,7 +145,7 @@ python scripts/validate_docs.py
 - [x] Dashboard CLI generates HTML/JSON summary from hybrid workflow tasks.
 - [x] Tests added for parser + rendering logic.
 - [x] Documentation updated with usage instructions and links.
-- [ ] Optional static snapshot committed or instructions provided for generation.
+- [x] Optional static snapshot committed or instructions provided for generation.
 - [ ] Task status advanced to `done` and moved to archive with evidence.
 
 ---

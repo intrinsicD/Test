@@ -1,0 +1,167 @@
+{
+  "generated_at": "2025-11-04T17:48:51.479509+00:00",
+  "include_archived": false,
+  "summary": {
+    "blocked_tasks": 2,
+    "by_priority": {
+      "P1": 3,
+      "P2": 2,
+      "P3": 1
+    },
+    "by_status": {
+      "in_progress": 5,
+      "ready": 1
+    },
+    "total_tasks": 6
+  },
+  "tasks": [
+    {
+      "area": "program",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/PM-510-weekly-integration-demos.md",
+      "gates": [
+        "docs"
+      ],
+      "id": "PM-510",
+      "links": [
+        "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md",
+        "hybrid_workflow/backlog/T-0119-command-encoder-integration.md",
+        "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md",
+        "hybrid_workflow/backlog/TL-310-editor-foundations.md"
+      ],
+      "owner": "agent-orchestrator",
+      "priority": "P2",
+      "relates_to": [
+        "bundle:B"
+      ],
+      "size": "M",
+      "status": "in_progress",
+      "title": "Weekly GPU integration demos"
+    },
+    {
+      "area": "runtime",
+      "blocked_on": [
+        "T-0119",
+        "T-0120"
+      ],
+      "file": "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md",
+      "gates": [
+        "tests",
+        "perf",
+        "docs"
+      ],
+      "id": "RT-410",
+      "links": [
+        "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
+        "docs/modules/runtime/README.md",
+        "hybrid_workflow/backlog/T-0119-command-encoder-integration.md",
+        "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md"
+      ],
+      "owner": "runtime-lead",
+      "priority": "P1",
+      "relates_to": [
+        "bundle:B"
+      ],
+      "size": "L",
+      "status": "in_progress",
+      "title": "Runtime stage planner & presentation loop"
+    },
+    {
+      "area": "rendering",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/T-0119-command-encoder-integration.md",
+      "gates": [
+        "tests",
+        "perf",
+        "docs"
+      ],
+      "id": "T-0119",
+      "links": [
+        "docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md",
+        "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
+        "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md"
+      ],
+      "owner": "rendering-lead",
+      "priority": "P1",
+      "relates_to": [
+        "bundle:A"
+      ],
+      "size": "L",
+      "status": "in_progress",
+      "title": "Command encoder integration"
+    },
+    {
+      "area": "rendering",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md",
+      "gates": [
+        "tests",
+        "perf",
+        "docs"
+      ],
+      "id": "T-0120",
+      "links": [
+        "T-0119",
+        "docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md",
+        "docs/archive/backlog/legacy/tasks/T_0120_RENDERING_GPU_RESOURCE_PROVIDER_IMPLEMENTATION.md"
+      ],
+      "owner": "rendering-lead",
+      "priority": "P1",
+      "relates_to": [
+        "bundle:A"
+      ],
+      "size": "L",
+      "status": "in_progress",
+      "title": "GPU resource provider completion"
+    },
+    {
+      "area": "tools",
+      "blocked_on": [
+        "RT-410"
+      ],
+      "file": "hybrid_workflow/backlog/TL-310-editor-foundations.md",
+      "gates": [
+        "tests",
+        "docs"
+      ],
+      "id": "TL-310",
+      "links": [
+        "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
+        "docs/modules/tools/README.md",
+        "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md",
+        "hybrid_workflow/backlog/PM-510-weekly-integration-demos.md"
+      ],
+      "owner": "tools-lead",
+      "priority": "P2",
+      "relates_to": [
+        "bundle:B"
+      ],
+      "size": "L",
+      "status": "ready",
+      "title": "Editor foundations & tooling enablement"
+    },
+    {
+      "area": "tools",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/TL-320-task-dashboard.md",
+      "gates": [
+        "docs"
+      ],
+      "id": "TL-320",
+      "links": [
+        "scripts/workflow/report_hybrid_status.py",
+        "scripts/workflow/dashboard.py",
+        "hybrid_workflow/README.md",
+        "hybrid_workflow/ROADMAP.md"
+      ],
+      "owner": "tools-lead",
+      "priority": "P3",
+      "relates_to": [
+        "bundle:C"
+      ],
+      "size": "M",
+      "status": "in_progress",
+      "title": "Task status dashboard automation"
+    }
+  ]
+}

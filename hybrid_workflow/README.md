@@ -19,6 +19,17 @@ This directory contains the **hybrid workflow system** — a streamlined task ma
 4. **Pick a task:** [`ROADMAP.md`](./ROADMAP.md) — bundles and priorities
 5. **Use the template:** [`backlog/000-template.md`](./backlog/000-template.md) — task file structure
 
+### Sample Dashboard Snapshot
+
+- View the latest generated dashboard artifacts under [`assets/hybrid_workflow_dashboard/`](../assets/hybrid_workflow_dashboard/).
+- Regenerate the snapshot locally with:
+
+  ```bash
+  python -m scripts.workflow.dashboard --output-dir "$(pwd)/assets/hybrid_workflow_dashboard"
+  ```
+
+  Adjust the output directory path if your checkout lives elsewhere.
+
 ---
 
 ## Key Concepts
