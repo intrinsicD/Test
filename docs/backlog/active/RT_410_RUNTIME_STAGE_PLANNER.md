@@ -52,3 +52,5 @@ Coordinate with tooling to ensure ImGui overlays reuse the presentation adapters
 swap declarative plans at frame boundaries while keeping diagnostics serialisation in sync.
 **2026-03-01** — Exported `engine_runtime_presentation_stage_active()` with Python loader bindings so scripting
 surfaces detect presentation handlers without parsing diagnostics output.
+**2026-11-05** — Added `engine_runtime_loop_plan_serialization()` export with Python bindings to expose the stage planner JSON
+snapshot for harness validation.

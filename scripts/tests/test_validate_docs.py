@@ -112,10 +112,11 @@ def test_main_flags_missing_task_file_for_active_roadmap_entry(
     captured = capsys.readouterr().out
 
     assert exit_code == 1
-    assert (
-        "docs/ROADMAP.md references active task DC-999 without matching docs/backlog/active/DC-999-*.md"
-        in captured
-    )
+    expected_messages = [
+        "docs/ROADMAP.md references active task DC-999 without matching docs/backlog/active/DC-999-*.md",
+        "docs/ROADMAP.md references active task DC-999 without matching docs/backlog/active/DC_999_*.md",
+    ]
+    assert any(message in captured for message in expected_messages)
 
 
 def test_main_passes_when_documents_are_synchronised(

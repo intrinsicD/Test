@@ -377,6 +377,17 @@ class EngineRuntimeHandle:
         presentation_stage_active.restype = ctypes.c_bool
         presentation_stage_active.argtypes = []
         self._presentation_stage_active = presentation_stage_active
+        try:
+            loop_plan_serialization = (
+                self.library.engine_runtime_loop_plan_serialization
+            )
+        except AttributeError as error:
+            raise RuntimeError(
+                "runtime library is missing 'engine_runtime_loop_plan_serialization'"
+            ) from error
+        loop_plan_serialization.restype = ctypes.c_char_p
+        loop_plan_serialization.argtypes = []
+        self._loop_plan_serialization = loop_plan_serialization
         self._supports_average_tick_ms = hasattr(
             self.library, "engine_runtime_diagnostic_average_tick_ms"
         )
@@ -424,6 +435,14 @@ class EngineRuntimeHandle:
         """Return ``True`` when presentation callbacks/backends are engaged."""
 
         return bool(self._presentation_stage_active())
+
+    def loop_plan_serialization(self) -> str:
+        """Return the JSON serialization of the active runtime loop plan."""
+
+        result = self._loop_plan_serialization()
+        if not result:
+            return ""
+        return result.decode("utf-8")
 
     def __enter__(self) -> EngineRuntimeHandle:
         """Activate the runtime when used as a context manager."""
