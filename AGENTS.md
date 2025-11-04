@@ -347,16 +347,16 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                     tasks/
                         2025-02-17-sprint-06.md
                         AI-004-application-prototyping-enablement.md
-                        AI-004-kickoff-brief.md
-                        AS-330-reference-dataset-packages.md
-                        CC-310-comparative-benchmark-automation.md
+                        AI_004_KICKOFF_BRIEF.md
+                        AS_330_REFERENCE_DATASET_PACKAGES.md
+                        CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md
                         CC-311-benchmark-visualization-integration.md
                         CO-170-runtime-integration-sample.md
                         DC-040-ai-004-configuration-schema-alignment.md
-                        DC-041-ai-004-kickoff-readiness.md
-                        RE-610-research-rendering-baseline.md
+                        DC_041_AI_004_KICKOFF_READINESS.md
+                        RE_610_RESEARCH_RENDERING_BASELINE.md
                         README.md
-                        RT-320-runtime-prototyping-harness.md
+                        RT_320_RUNTIME_PROTOTYPING_HARNESS.md
                         RT-321-prototyping-case-study-validation.md
                         T-0104-runtime-frame-graph-integration.md
                         T-0112-geometry-io-roundtrip-hardening.md
@@ -377,7 +377,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                         T-0127-math-optional-curve-utilities.md
                         T-0128-geometry-frustum-utilities.md
                         T-0129-geometry-shape-intersection-coverage.md
-                        TL-210-experiment-sandbox-ui.md
+                        TL_210_EXPERIMENT_SANDBOX_UI.md
             design/
                 AI004_CONFIGURATION_LOADER_DESIGN.md
             prints/
@@ -425,29 +425,29 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         backlog/
             README.md
             active/
-                2026-02-03-sprint-11.md
-                AI-004-kickoff-brief.md
-                PM-510-weekly-integration-demos.md
-                PM-520-backlog-hygiene-remediation.md
-                RT-410-runtime-stage-planner.md
-                T-0119-command-encoder-integration.md
-                T-0120-gpu-resource-provider.md
-                TL-310-editor-foundations.md
+                2026-02-03-SPRINT_11.md
+                AI_004_KICKOFF_BRIEF.md
+                PM_510_WEEKLY_INTEGRATION_DEMOS.md
+                PM_520_BACKLOG_HYGIENE_REMEDIATION.md
+                RT_410_RUNTIME_STAGE_PLANNER.md
+                T_0119_COMMAND_ENCODER_INTEGRATION.md
+                T_0120_GPU_RESOURCE_PROVIDER.md
+                TL_310_EDITOR_FOUNDATIONS.md
             archive/
-                AS-330-reference-dataset-packages.md
-                CC-310-comparative-benchmark-automation.md
-                CC-311-benchmark-visualisation.md
-                DC-040-ai-004-configuration-schema.md
-                DC-041-ai-004-kickoff-readiness.md
-                PL-240-platform-filesystem-watcher-guidance.md
-                RE-610-research-rendering-baseline.md
+                AS_330_REFERENCE_DATASET_PACKAGES.md
+                CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md
+                CC_311_BENCHMARK_VISUALISATION.md
+                DC_040_AI_004_CONFIGURATION_SCHEMA.md
+                DC_041_AI_004_KICKOFF_READINESS.md
+                PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md
+                RE_610_RESEARCH_RENDERING_BASELINE.md
                 README.md
-                RT-320-runtime-prototyping-harness.md
-                RT-321-prototyping-case-studies.md
-                TL-210-experiment-sandbox-ui.md
+                RT_320_RUNTIME_PROTOTYPING_HARNESS.md
+                RT_321_PROTOTYPING_CASE_STUDIES.md
+                TL_210_EXPERIMENT_SANDBOX_UI.md
         design/
-            AI-004-configuration-schema.md
-            AI-004-prototyping-playbook.md
+            AI_004_CONFIGURATION_SCHEMA.md
+            AI_004_PROTOTYPING_PLAYBOOK.md
             AN-230-benchmark-harness-design.md
             AN-230.2-gpu-telemetry.md
             ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md
