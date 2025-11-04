@@ -47,6 +47,7 @@
 #include "engine/runtime/loop.hpp"
 #include "engine/runtime/loop_inspector.hpp"
 #include "engine/runtime/subsystem_registry.hpp"
+#include "engine/runtime/render_submission.hpp"
 #include "engine/scene/validation.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/command_encoder.hpp"
@@ -117,6 +118,7 @@ namespace
         std::vector<double> calls{};
         engine::runtime::RuntimeHost* last_host{nullptr};
     };
+
 #endif
 
     std::optional<std::size_t> find_metric_index(const engine::core::telemetry::MetricSet& metrics,
@@ -400,6 +402,106 @@ namespace
         std::vector<DescriptorRecord> end_records;
         std::vector<std::unique_ptr<RecordingCommandEncoder>> completed_encoders;
     };
+
+#if ENGINE_ENABLE_RENDERING
+    class RecordingForwardPipeline final : public engine::rendering::ForwardPipeline
+    {
+    public:
+        void render(engine::scene::Scene& scene, engine::rendering::RuntimeSubmissionContext& submission) override
+        {
+            invoked = true;
+            engine::rendering::ForwardPipeline::render(scene, submission);
+            last_event_count = submission.frame_graph.resource_events().size();
+        }
+
+        bool invoked{false};
+        std::size_t last_event_count{0};
+    };
+
+    struct SubmitGraphCapture
+    {
+        std::size_t invocations{0};
+        double last_delta{0.0};
+        bool host_matches{false};
+        engine::rendering::SubmitRenderGraphFn submit_fn{nullptr};
+        bool graph_submitted{false};
+        bool pipeline_invoked{false};
+        std::size_t frame_graph_event_count{0};
+        std::size_t encoder_count{0};
+        std::string frame_graph_serialization{};
+        std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
+        engine::rendering::resources::GpuResourceUsage resource_usage{};
+        std::vector<engine::assets::MeshHandle> requested_meshes{};
+        std::vector<engine::assets::MaterialHandle> requested_materials{};
+        RecordingForwardPipeline pipeline{};
+        engine::runtime::RuntimeHost* expected_host{nullptr};
+    };
+
+    class SubmittingPresentationBackend final : public engine::rendering::PresentationBackend
+    {
+    public:
+        SubmittingPresentationBackend(std::shared_ptr<SubmitGraphCapture> capture,
+                                      engine::assets::MaterialHandle material,
+                                      engine::assets::ShaderHandle shader)
+            : capture_(std::move(capture))
+            , material_(std::move(material))
+            , shader_(std::move(shader))
+        {
+        }
+
+        void present(const engine::rendering::RuntimePresentationContext& context) override
+        {
+            capture_->invocations += 1U;
+            capture_->last_delta = context.delta_seconds;
+            capture_->submit_fn = context.submit_render_graph;
+            capture_->host_matches = (capture_->expected_host == &context.host);
+
+            if (context.submit_render_graph == nullptr)
+            {
+                return;
+            }
+
+            engine::rendering::MaterialSystem materials;
+            materials.register_material(engine::rendering::MaterialSystem::MaterialRecord{
+                material_,
+                shader_,
+            });
+
+            RecordingRenderResourceProvider resources;
+            engine::rendering::resources::RecordingGpuResourceProvider device;
+            engine::rendering::backend::vulkan::VulkanGpuScheduler scheduler(device);
+            RecordingCommandEncoderProvider encoders;
+            engine::rendering::FrameGraph frame_graph;
+
+            engine::rendering::RuntimeSubmissionContext submission{
+                resources,
+                materials,
+                device,
+                scheduler,
+                encoders,
+                frame_graph,
+                &capture_->pipeline,
+            };
+
+            context.submit_render_graph(context.host, submission);
+            capture_->graph_submitted = true;
+            capture_->pipeline_invoked = capture_->pipeline.invoked;
+            capture_->frame_graph_event_count = capture_->pipeline.last_event_count;
+            capture_->encoder_count = encoders.completed_encoders.size();
+            capture_->frame_graph_serialization = submission.frame_graph.serialize();
+            const auto& events = submission.frame_graph.resource_events();
+            capture_->frame_graph_events.assign(events.begin(), events.end());
+            capture_->resource_usage = submission.device_resources.usage_snapshot();
+            capture_->requested_meshes = resources.meshes;
+            capture_->requested_materials = resources.materials;
+        }
+
+    private:
+        std::shared_ptr<SubmitGraphCapture> capture_;
+        engine::assets::MaterialHandle material_;
+        engine::assets::ShaderHandle shader_;
+    };
+#endif
 
     class QueueNormalisationPipeline final : public engine::rendering::ForwardPipeline
     {
@@ -2680,6 +2782,84 @@ TEST(RuntimeHost, MockPresentationBackendReceivesRuntimeContext)
     EXPECT_TRUE(capture->submit_available);
     EXPECT_TRUE(capture->host_matches);
     EXPECT_NEAR(capture->delta, dt, 1e-9);
+
+    host.shutdown();
+}
+
+TEST(RuntimeHost, PresentationContextSubmitRenderGraphExecutesPipeline)
+{
+    ScopedHandleValidators handle_validators;
+
+    engine::assets::MeshHandle mesh_handle{std::string{"runtime.presentation.mesh"}};
+    engine::assets::MeshHandle::pool_handle_type mesh_raw{};
+    mesh_raw.index = 0U;
+    mesh_raw.generation = 1U;
+    mesh_handle.bind(mesh_raw);
+
+    engine::assets::MaterialHandle material_handle{std::string{"runtime.presentation.material"}};
+    engine::assets::MaterialHandle::pool_handle_type material_raw{};
+    material_raw.index = 0U;
+    material_raw.generation = 1U;
+    material_handle.bind(material_raw);
+
+    engine::assets::ShaderHandle shader_handle{std::string{"runtime.presentation.shader"}};
+    engine::assets::ShaderHandle::pool_handle_type shader_raw{};
+    shader_raw.index = 0U;
+    shader_raw.generation = 1U;
+    shader_handle.bind(shader_raw);
+
+    auto capture = std::make_shared<SubmitGraphCapture>();
+    auto backend = std::make_shared<SubmittingPresentationBackend>(capture, material_handle, shader_handle);
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(
+        mesh_handle,
+        material_handle);
+    deps.renderable_name = "runtime.presentation";
+    deps.presentation_backend = backend;
+
+    engine::runtime::RuntimeHost host{deps};
+    capture->expected_host = &host;
+
+    host.initialize();
+    const double dt = 0.02;
+    host.tick(dt);
+
+    EXPECT_TRUE(host.presentation_stage_active());
+    EXPECT_EQ(capture->invocations, 1U);
+    EXPECT_TRUE(capture->host_matches);
+    ASSERT_NE(capture->submit_fn, nullptr);
+    const auto expected_submit = static_cast<engine::rendering::SubmitRenderGraphFn>(
+        &engine::runtime::submit_render_graph);
+    EXPECT_EQ(capture->submit_fn, expected_submit);
+    EXPECT_TRUE(capture->graph_submitted);
+    EXPECT_TRUE(capture->pipeline_invoked);
+    EXPECT_GT(capture->frame_graph_event_count, 0U);
+    EXPECT_GT(capture->encoder_count, 0U);
+    ASSERT_EQ(capture->requested_meshes.size(), 1U);
+    EXPECT_EQ(capture->requested_meshes.front().id(), std::string{"runtime.presentation.mesh"});
+    ASSERT_EQ(capture->requested_materials.size(), 1U);
+    EXPECT_EQ(capture->requested_materials.front().id(), std::string{"runtime.presentation.material"});
+    EXPECT_NEAR(capture->last_delta, dt, 1e-9);
+    EXPECT_FALSE(capture->frame_graph_serialization.empty());
+
+    const auto& diagnostics = host.diagnostics();
+    EXPECT_FALSE(diagnostics.frame_graph_serialization.empty());
+    EXPECT_EQ(diagnostics.frame_graph_serialization, capture->frame_graph_serialization);
+    ASSERT_EQ(diagnostics.frame_graph_events.size(), capture->frame_graph_events.size());
+    for (const auto& expected_event : capture->frame_graph_events)
+    {
+        const auto match = std::find_if(
+            diagnostics.frame_graph_events.begin(),
+            diagnostics.frame_graph_events.end(),
+            [&expected_event](const engine::rendering::ResourceEvent& event) {
+                return event.type == expected_event.type
+                    && event.resource_name == expected_event.resource_name
+                    && event.pass_name == expected_event.pass_name;
+            });
+        ASSERT_NE(match, diagnostics.frame_graph_events.end());
+    }
+    EXPECT_EQ(diagnostics.gpu_resource_usage.total_bytes(), capture->resource_usage.total_bytes());
 
     host.shutdown();
 }
