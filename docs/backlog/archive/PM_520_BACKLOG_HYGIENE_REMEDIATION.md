@@ -34,11 +34,9 @@ The March 2026 hygiene audit identified that the active backlog directory still 
 - Coordination with PM-510 demo cadence to communicate backlog changes in weekly summaries.【F:docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md†L1-L29】
 
 ## Related Artefacts
-- Task brief: [`agents/task_briefs/2026-03-01-BACKLOG_ROADMAP_AUDIT.md`](../../../docs/archive/agents/task_briefs/2026-03-01-BACKLOG_ROADMAP_AUDIT.md)
-- Context package: [`agents/context_packages/2026-03-01-BACKLOG_ROADMAP_AUDIT.md`](../../../docs/archive/agents/context_packages/2026-03-01-BACKLOG_ROADMAP_AUDIT.md)
 - AGENTS workflow: [`AGENTS.md`](../../../AGENTS.md)
 
 ## Notes
-- Run `python scripts/update_agents_tree.py` after archival to refresh generated guidance indexes if directory layouts shift.【F:README.md†L122-L142】
-- Ensure archived files retain their historical citations for future audits; do not rewrite completion notes beyond moving location.【F:docs/backlog/archive/README.md†L1-L64】
-- 2026-03-05 — Archived DC-040, DC-041, RT-320, TL-210, RT-321, AS-330, CC-310, CC-311, and PL-240; roadmap, navigation, and root README now reference `docs/backlog/archive/`.【F:docs/ROADMAP.md†L64-L118】【F:docs/NAVIGATION.md†L1-L113】【F:README.md†L98-L107】
+- Run `python scripts/update_agents_tree.py` after archival to refresh generated guidance indexes if directory layouts shift.
+- Ensure archived files retain their historical citations for future audits; do not rewrite completion notes beyond moving location.
+- Archived DC-040, DC-041, RT-320, TL-210, RT-321, AS-330, CC-310, CC-311, and PL-240; roadmap, navigation, and root README now reference `docs/backlog/archive/`.

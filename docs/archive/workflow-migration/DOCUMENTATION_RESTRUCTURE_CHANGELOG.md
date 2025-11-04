@@ -223,7 +223,7 @@ Categories of fixes:
 All cross-references have been updated. No action needed.
 
 ### For New Documentation
-- Use `docs/README_TEMPLATE.md` for new module docs
+- Use `docs/templates/README_TEMPLATE.md` for new module docs
 - Reference `docs/NAVIGATION.md` for linking conventions
 - All new .md files should use UPPERCASE naming
 

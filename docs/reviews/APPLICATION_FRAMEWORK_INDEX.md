@@ -21,11 +21,7 @@ This index documents the complete Application Framework implementation, from ini
 - Geometry viewer refactored (removed GLFW callbacks)
 
 **Documents:**
-- [Session Summary](SESSION_SUMMARY_2025_11_03.md)
 - [Completion Summary](APPLICATION_FRAMEWORK_PHASE1_COMPLETE.md)
-- [Task Brief](../../docs/archive/agents/task_briefs/2026-11-03-APPLICATION_FRAMEWORK_IMPLEMENTATION.md)
-- [Context Package](../../docs/archive/agents/context_packages/2026-11-03-APPLICATION_FRAMEWORK_IMPLEMENTATION.md)
-- [Quality Report](../../docs/archive/agents/task_briefs/2026-11-03-APPLICATION_FRAMEWORK_QUALITY_REPORT.md)
 
 **Code Changes:**
 - `engine/platform/include/engine/platform/windowing/window.hpp` - Added input_state()
@@ -40,7 +36,6 @@ This index documents the complete Application Framework implementation, from ini
 - Platform module: 60% → 70% complete
 
 ### Phase 2: Application Base Class ✅ IMPLEMENTATION COMPLETE
-**Date:** November 4, 2025  
 **Status:** ✅ Implemented, ⚠️ Validation Pending
 
 **Deliverables:**
@@ -51,11 +46,7 @@ This index documents the complete Application Framework implementation, from ini
 - Comprehensive documentation
 
 **Documents:**
-- [Session Summary](SESSION_SUMMARY_2025_11_04.md)
 - [Completion Summary](APPLICATION_FRAMEWORK_PHASE2_COMPLETE.md)
-- [Task Brief](../../docs/archive/agents/task_briefs/2026-11-04-APPLICATION_FRAMEWORK_PHASE2.md)
-- [Context Package](../../docs/archive/agents/context_packages/2026-11-04-APPLICATION_FRAMEWORK_PHASE2.md)
-- [Quality Report](../../docs/archive/agents/task_briefs/2026-11-04-APPLICATION_FRAMEWORK_PHASE2_QUALITY_REPORT.md)
 
 **Code Changes:**
 - `engine/runtime/include/engine/runtime/application.hpp` - Application class (164 lines)

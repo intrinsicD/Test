@@ -2,18 +2,12 @@
 
 This index catalogs all archived documentation with rationale and provenance. Archived content is preserved for historical reference but is no longer actively maintained.
 
-**Last Updated:** 2026-11-04  
-**Archival Scope:** Comprehensive documentation hygiene following AGENTS.md workflow
-
 ---
 
 ## Archive Structure
 
 ```
 docs/archive/
-├── agents/                      # Completed task coordination artifacts
-│   ├── task_briefs/            # Task briefs for completed work (2026-02-* through 2026-11-*)
-│   └── context_packages/       # Context packages for completed work
 ├── backlog/                     # Historical backlog and task tracking
 │   └── legacy/
 │       ├── tasks/              # Legacy task definitions
@@ -29,39 +23,7 @@ docs/archive/
 
 ## Archived Content Inventory
 
-### 1. Agent Coordination Artifacts (88 files)
-
-**Location:** `docs/archive/agents/`
-
-**Rationale:** Task briefs and context packages for completed work (RT-410, T-0119, T-0120, PM-520, application framework, geometry viewer fixes) contain completion markers and are no longer actively referenced. Archived to reduce clutter in active agents/ directory while preserving execution history.
-
-**Date Range:** 2026-02-26 through 2026-11-04
-
-**Contents:**
-- **task_briefs/** (21 files): Detailed task planning and execution tracking
-  - RT-410 presentation series (telemetry, loop refresh, stage query, stage CAPI, stage planner, presentation context, diagnostics)
-  - T-0119 Vulkan command encoder and scheduler validation
-  - T-0120 OpenGL resource retention
-  - PM-520 backlog hygiene
-  - Application framework phases 1 and 2
-  - Geometry viewer build fixes
-  - GLAD configure fallback
-  - GPU resource telemetry
-  
-- **context_packages/** (67 files): Context assembly for completed tasks
-  - Corresponding context packages for all task briefs above
-  - Additional context packages for incremental work items
-
-**Cross-References:** Some archived task briefs are referenced in:
-- `docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md` (references 2026-03-01-BACKLOG_ROADMAP_AUDIT.md)
-- `docs/reviews/APPLICATION_FRAMEWORK_INDEX.md` (references application framework artifacts)
-- `docs/reviews/SESSION_SUMMARY_*.md` (references various completed tasks)
-
-These references are preserved as historical links. The archive location maintains discoverability.
-
----
-
-### 2. Module Backlogs (2 files)
+### 1. Module Backlogs
 
 **Location:** `docs/archive/backlog/legacy/modules/`
 
@@ -80,7 +42,7 @@ These references are preserved as historical links. The archive location maintai
 
 ---
 
-### 3. Design Documents (1 file)
+### 3. Design Documents
 
 **Location:** `docs/archive/design/`
 
@@ -92,51 +54,35 @@ These references are preserved as historical links. The archive location maintai
 
 ---
 
-### 4. Review Summaries (3 files)
+### 4. Review Summaries
 
 **Location:** `docs/archive/reviews/legacy/`
 
 **Files:**
-- `TASK_COMPLETION_SUMMARY.md` - Historical task completion summary (orphaned)
-- `GEOMETRY_VIEWER_BUILD_FIX_INDEX.md` - Build fix session index (orphaned)
-- `ARCHITECTURE_EVALUATION_EXECUTIVE_SUMMARY.md` - Architecture evaluation summary (orphaned)
+- `TASK_COMPLETION_SUMMARY.md` - Historical task completion summary
+- `GEOMETRY_VIEWER_BUILD_FIX_INDEX.md` - Build fix session index
+- `ARCHITECTURE_EVALUATION_EXECUTIVE_SUMMARY.md` - Architecture evaluation summary
 
 **Rationale:** These review summaries documented completed work sessions but had no active cross-references. Archived to declutter active reviews/ directory. Current active reviews remain in `docs/reviews/`.
 
 **Active Reviews (not archived):**
-- `2025-10-26-ARCHITECTURE_AUDIT.md`
-- `2025-12-05-ROADMAP_DIRECTION_REVIEW.md`
-- `2026-01-08-APPLICATION_READINESS_ASSESSMENT.md`
-- `2026-02-10-COMPREHENSIVE_ARCHITECTURE_EVALUATION.md`
-- `2025-03-22-SCENE_DOCS.md`
-- `SESSION_SUMMARY_2025_11_03.md`
-- `SESSION_SUMMARY_2025_11_04.md`
-- `SESSION_SUMMARY_2025_11_04_BUILD_FIX.md`
-- `APPLICATION_FRAMEWORK_*.md` series
-- `MISSING_COMPONENTS_SUMMARY.md`
-- `GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md`
+- Architecture audits and roadmap reviews
+- Application framework completion summaries
+- Session summaries for recent work
+- Component analysis documents
+- Geometry viewer architecture analysis
 
 ---
 
 ### 5. Pre-existing Archives (Unchanged)
 
-The following archive categories existed prior to this cleanup and remain unchanged:
+The following archive categories existed prior to cleanup and remain unchanged:
 
-**`docs/archive/backlog/legacy/tasks/` (47 files):**
-- Sprint planning: `2025-02-17-SPRINT_06.md`
+**`docs/archive/backlog/legacy/tasks/`:**
+- Sprint planning
 - AI-004 initiative tasks
-- Asset streaming tasks (AS-330)
-- Benchmark tasks (CC-310, CC-311)
-- Compute tasks (CO-170)
-- Geometry tasks (T-0128, T-0129)
-- IO tasks (T-0112)
-- Math tasks (T-0125, T-0126, T-0127)
-- Physics tasks (T-0117)
-- Rendering tasks (T-0116, T-0119, T-0120, T-0121, T-0122, T-0123, T-0124)
-- Runtime tasks (T-0104, RT-320, RT-321)
-- Testing tasks (T-0114, T-0118)
-- Tooling tasks (TL-210)
-- Research tasks (RE-610)
+- Module-specific completed tasks (assets, benchmarks, compute, geometry, IO, math, physics, rendering, runtime, testing, tooling)
+- Research baseline tasks
 
 **`docs/archive/prints/` (16 files):**
 Historical implementation prints and documentation snapshots

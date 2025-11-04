@@ -23,7 +23,7 @@ Acceptance Criteria:
 - Review record `docs/reviews/2025-03-telemetry-metric-prefix.md` checks off the pending documentation items.
 - `scripts/validate_docs.py` passes.
 Interfaces & Data Flow: Documentation only; references to existing scripts (`runtime_frame_telemetry.py`, `telemetry_viewer.py`, `streaming_report.py`).
-Invariants: Maintain documentation style per `docs/README_TEMPLATE.md`, ensure command snippets match actual scripts, preserve roadmap tables.
+Invariants: Maintain documentation style per `docs/templates/README_TEMPLATE.md`, ensure command snippets match actual scripts, preserve roadmap tables.
 Compatibility/Migration: No API changes; docs now describe current behaviour.
 Security/Performance Considerations: None (Markdown update). Edge cases: clarify default prefix to avoid confusion when metrics missing.
 Test Strategy: Run `python scripts/validate_docs.py` to catch broken links and structural issues.

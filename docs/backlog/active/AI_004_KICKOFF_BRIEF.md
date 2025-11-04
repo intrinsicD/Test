@@ -123,5 +123,5 @@ table with timing data before the 2026-02-20 review.
 
 ## Links
 - Roadmap Phase 1 timeline: [`docs/ROADMAP.md#phase-1-milestone-timeline-kickoff-review-2026-02-20`](../../ROADMAP.md#phase-1-milestone-timeline-kickoff-review-2026-02-20)
-- Sprint tracker alignment: [`2026-02-03-SPRINT_11.md`](2026-02-03-SPRINT_11.md)
+- Sprint tracker alignment: [`SPRINT_11_ACTIVE.md`](SPRINT_11_ACTIVE.md)
 - AI-004 initiative card: [`AI_004_APPLICATION_PROTOTYPING_ENABLEMENT.md`](../../archive/backlog/legacy/tasks/AI_004_APPLICATION_PROTOTYPING_ENABLEMENT.md)

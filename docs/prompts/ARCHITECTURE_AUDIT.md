@@ -75,7 +75,7 @@ For each invariant in `docs/ARCHITECTURE.md`, record status and evidence.
 - [ ] Regression: `physics_static_bodies_ignore_gravity` passes.
 
 ### Documentation Discipline
-- [ ] Every affected module README matches `docs/README_TEMPLATE.md`.
+- [ ] Every affected module README matches `docs/templates/README_TEMPLATE.md`.
 - [ ] Module and central roadmaps cross-reference current status.
 - [ ] ADRs/design notes cover major decisions.
 

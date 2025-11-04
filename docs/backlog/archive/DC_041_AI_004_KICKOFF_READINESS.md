@@ -36,7 +36,7 @@ The initiative lacks a single source of truth for the kickoff review. This item 
 ## Related Artefacts
 - [`docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md`](DC_040_AI_004_CONFIGURATION_SCHEMA.md)
 - Kickoff brief: [`AI_004_KICKOFF_BRIEF.md`](../active/AI_004_KICKOFF_BRIEF.md)
-- Sprint tracker: [`2026-02-03-SPRINT_11.md`](../active/2026-02-03-SPRINT_11.md)
+- Sprint tracker: [`SPRINT_11_ACTIVE.md`](../active/SPRINT_11_ACTIVE.md)
 - [`docs/archive/backlog/legacy/tasks/AI_004_APPLICATION_PROTOTYPING_ENABLEMENT.md`](../../archive/backlog/legacy/tasks/AI_004_APPLICATION_PROTOTYPING_ENABLEMENT.md)
 
 ## Notes

@@ -154,7 +154,7 @@
         "README.md"
       ]
     },
-    "docs/README_TEMPLATE.md": {
+    "docs/templates/README_TEMPLATE.md": {
       "category": "active",
       "reason": "Template file (keep)",
       "modified": "2025-11-04T10:01:26.650241",

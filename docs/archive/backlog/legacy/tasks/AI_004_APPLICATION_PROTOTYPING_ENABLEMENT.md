@@ -54,7 +54,7 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
   - Dataset licensing approvals — @assets-lead — licensing checkpoint due **2026-02-13**.
   - Comparative plotting performance — @perf-lead — CI smoke sizing decision due **2026-02-13**.
   - Harness coverage assurance — @runtime-lead — schema + telemetry smoke confirmation due **2026-02-13**.
-- **Sprint tracker cross-link:** [`2026-02-03-SPRINT_11.md`](../../../../backlog/active/2026-02-03-SPRINT_11.md) surfaces the brief in the current coordination checklist.
+- **Sprint tracker cross-link:** [`SPRINT_11_ACTIVE.md`](../../../../backlog/active/SPRINT_11_ACTIVE.md) surfaces the brief in the current coordination checklist.
 - **Coordination cadence:** Weekly runtime/tools/performance syncs continue through the kickoff review; slide deck outline published **2026-02-09** alongside the milestone plan.
 
 ---

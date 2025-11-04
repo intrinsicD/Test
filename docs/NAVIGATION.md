@@ -72,7 +72,6 @@
 - **Dependency Graph:** [`architecture/README.md`](architecture/README.md)
 - **Research Template:** [`templates/RESEARCH_PAPER_TEMPLATE.md`](templates/RESEARCH_PAPER_TEMPLATE.md)
 - **Backlog Template:** [`backlog/README.md`](backlog/README.md)
-- **Architecture Reviews:** [`reviews/2025-10-26-ARCHITECTURE_AUDIT.md`](reviews/2025-10-26-ARCHITECTURE_AUDIT.md), [`reviews/2025-12-05-ROADMAP_DIRECTION_REVIEW.md`](reviews/2025-12-05-ROADMAP_DIRECTION_REVIEW.md), [`reviews/2026-01-08-APPLICATION_READINESS_ASSESSMENT.md`](reviews/2026-01-08-APPLICATION_READINESS_ASSESSMENT.md), [`reviews/2026-02-10-COMPREHENSIVE_ARCHITECTURE_EVALUATION.md`](reviews/2026-02-10-COMPREHENSIVE_ARCHITECTURE_EVALUATION.md)
 - **Archive Index:** [`archive/ARCHIVE_INDEX.md`](archive/ARCHIVE_INDEX.md)
 
 ## 🗂️ Module Overview
@@ -114,6 +113,3 @@ Run `python scripts/validate_docs.py` after editing to catch broken links.
 
 When a lower-precedence document conflicts with a higher one, update the higher-precedence document first, then cascade changes downstream.
 
----
-
-**Last updated:** 2026-02-10 (Agent directory guidance merged into root portal)
