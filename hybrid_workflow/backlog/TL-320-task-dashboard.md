@@ -1,15 +1,15 @@
 ---
 id: TL-320
 title: Task status dashboard automation
-status: new
+status: in_progress
 priority: P3
 area: tools
 size: M
 owner: tools-lead
 gates: [docs]
 relates_to: [bundle:C]
-blocked_on: ["DC-050"]
-links: ["scripts/workflow/report_hybrid_status.py", "hybrid_workflow/README.md", "hybrid_workflow/ROADMAP.md"]
+blocked_on: []
+links: ["scripts/workflow/report_hybrid_status.py", "scripts/workflow/dashboard.py", "hybrid_workflow/README.md", "hybrid_workflow/ROADMAP.md"]
 ---
 
 # Task TL-320 — Task Status Dashboard Automation
@@ -93,12 +93,12 @@ Render collected metadata into a single-page dashboard using a lightweight templ
 
 ## Steps
 
-1. [ ] Define schema + validation helpers for task metadata extraction.
-2. [ ] Implement dashboard generator under `scripts/workflow/` with CLI entry point.
-3. [ ] Add unit tests covering parser and rendering pipeline.
+1. [x] Define schema + validation helpers for task metadata extraction.
+2. [x] Implement dashboard generator under `scripts/workflow/` with CLI entry point.
+3. [x] Add unit tests covering parser and rendering pipeline.
 4. [ ] Provide sample output under `assets/hybrid_workflow_dashboard/` (optional).
-5. [ ] Document workflow in `hybrid_workflow/README.md` and update roadmap bundle C checkbox.
-6. [ ] Run `python scripts/validate_docs.py` after documentation updates.
+5. [x] Document workflow in `hybrid_workflow/README.md` and update roadmap bundle C checkbox.
+6. [x] Run `python scripts/validate_docs.py` after documentation updates.
 7. [ ] Mark task `done` and archive with evidence once dashboard shipped.
 
 ---
@@ -108,28 +108,29 @@ Render collected metadata into a single-page dashboard using a lightweight templ
 ### Test Results
 
 ```bash
-# Pending — execute once dashboard implementation completes
+pytest scripts/tests/test_dashboard.py
+python scripts/validate_docs.py
 ```
 
 **Summary:**
-- Unit tests: pending
-- Integration tests: pending
-- Documentation validation: pending
+- Unit tests: `scripts/tests/test_dashboard.py`
+- Integration tests: covered by CLI invocation in tests
+- Documentation validation: `python scripts/validate_docs.py`
 
 ### Quality Gate Sign-offs
 
 | Gate | Status | Owner | Evidence |
 |------|--------|-------|----------|
-| docs | [ ] Pending | Docs/DevRel | Dashboard usage documentation + validation logs |
-| tests | [ ] N/A | — | Covered implicitly via CLI tests |
+| docs | [x] Pass | Docs/DevRel | README/ROADMAP/NAVIGATION updates + `python scripts/validate_docs.py` |
+| tests | [x] Pass | QA/Test | `pytest scripts/tests/test_dashboard.py` |
 | perf | [ ] N/A | — | — |
 | safety | [ ] N/A | — | — |
 | release | [ ] N/A | — | — |
 
 ### Updated Files
 
-- `scripts/workflow/dashboard.py` (planned)
-- `scripts/workflow/tests/test_dashboard.py`
+- `scripts/workflow/dashboard.py`
+- `scripts/tests/test_dashboard.py`
 - `hybrid_workflow/README.md`
 - `hybrid_workflow/ROADMAP.md`
 - `docs/NAVIGATION.md` (if adding dashboard reference)
@@ -138,9 +139,9 @@ Render collected metadata into a single-page dashboard using a lightweight templ
 
 ## Completion Checklist (Definition of Done)
 
-- [ ] Dashboard CLI generates HTML/JSON summary from hybrid workflow tasks.
-- [ ] Tests added for parser + rendering logic.
-- [ ] Documentation updated with usage instructions and links.
+- [x] Dashboard CLI generates HTML/JSON summary from hybrid workflow tasks.
+- [x] Tests added for parser + rendering logic.
+- [x] Documentation updated with usage instructions and links.
 - [ ] Optional static snapshot committed or instructions provided for generation.
 - [ ] Task status advanced to `done` and moved to archive with evidence.
 

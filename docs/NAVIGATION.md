@@ -43,6 +43,7 @@
 | [`../AGENTS.md#agent-directory-workflow`](../AGENTS.md#agent-directory-workflow) | Directory overview, maintenance guardrails, workflow-change process | Managing artefacts inside `agents/` |
 | [`../agents/ROLES.md`](../agents/ROLES.md) | Specialised role responsibilities and approvals | Assigning or fulfilling roles |
 | [`../agents/TEMPLATES/`](../agents/TEMPLATES) | Task brief, context package, and quality report templates | Documenting and auditing work |
+| [`../scripts/workflow/dashboard.py`](../scripts/workflow/dashboard.py) | Generate HTML/JSON dashboard snapshots from task metadata | Sharing status updates with stakeholders |
 
 ## 🔧 Common Tasks
 

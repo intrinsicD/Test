@@ -73,6 +73,9 @@ grep -r "^priority: P1" hybrid_workflow/backlog/*.md
 
 # Find blocked tasks
 grep -r "^blocked_on:" hybrid_workflow/backlog/*.md
+
+# Generate HTML + JSON dashboard
+python -m scripts.workflow.dashboard --output-dir build/hybrid-dashboard
 ```
 
 ---
