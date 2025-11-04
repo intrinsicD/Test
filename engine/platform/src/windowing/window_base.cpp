@@ -100,7 +100,8 @@ namespace engine::platform::windowing
     {
         input_state_.begin_frame();
         flush_pending_events();
-        close_requested_ = false;
+        // Note: Do NOT reset close_requested_ here!
+        // It should remain true once requested until the application exits
     }
 
     EventQueue& HeadlessWindow::event_queue() noexcept

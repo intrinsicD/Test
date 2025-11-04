@@ -159,7 +159,8 @@ TEST(PlatformWindowing, MockWindowLifecycle)
     EXPECT_TRUE(window->close_requested());
 
     window->pump_events();
-    EXPECT_FALSE(window->close_requested());
+    // close_requested() should remain true - it indicates the window wants to close
+    EXPECT_TRUE(window->close_requested());
 
     Event event;
     ASSERT_TRUE(window->event_queue().poll(event));
