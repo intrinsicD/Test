@@ -230,9 +230,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
     README.md
     agents/
         ROLES.md
-        context_packages/
-        task_briefs/
-            2026-11-04-documentation-hygiene-comprehensive.md
         TEMPLATES/
             ADR_TEMPLATE.md
             CONTEXT_PACKAGE_TEMPLATE.md
@@ -282,11 +279,13 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 manifest.json
                 output_mesh.obj
                 source_mesh.obj
+        hybrid_workflow_dashboard/
+            index.html
+            tasks.json
     docs/
         ARCHITECTURE.md
         GLOSSARY.md
         NAVIGATION.md
-        README_TEMPLATE.md
         ROADMAP.md
         architecture/
             module_dependency_graph.dot
@@ -296,112 +295,70 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             ARCHIVE_INDEX.md
             doc_audit_report.json
             README.md
-            agents/
-                context_packages/
-                    2026-02-26-rt-410-presentation-telemetry.md
-                    2026-02-27-rt-410-presentation-loop-refresh.md
-                    2026-02-28-rt-410-presentation-stage-query.md
-                    2026-03-01-backlog-roadmap-audit.md
-                    2026-03-01-rt-410-presentation-stage-capi.md
-                    2026-03-02-t-0119-vulkan-command-encoder.md
-                    2026-03-03-t-0119-vulkan-scheduler-validation.md
-                    2026-03-05-pm-520-backlog-hygiene.md
-                    2026-03-06-glad-configure-fallback.md
-                    2026-03-27-gpu-resource-telemetry.md
-                    2026-04-08-t-0120-opengl-retention.md
-                    2026-04-09-rt-410-stage-planner.md
-                    2026-04-10-rt-410-presentation-context.md
-                    2026-04-11-rt-410-presentation-context-submit.md
-                    2026-04-12-rt-410-presentation-diagnostics.md
-                    2026-11-03-application-framework-implementation.md
-                    2026-11-04-application-framework-phase2.md
-                    2026-11-04-geometry-viewer-build-fix.md
-                task_briefs/
-                    2026-02-26-rt-410-presentation-telemetry.md
-                    2026-02-27-rt-410-presentation-loop-refresh.md
-                    2026-02-28-rt-410-presentation-stage-query.md
-                    2026-03-01-backlog-roadmap-audit.md
-                    2026-03-01-rt-410-presentation-stage-capi.md
-                    2026-03-02-t-0119-vulkan-command-encoder.md
-                    2026-03-03-t-0119-vulkan-scheduler-validation.md
-                    2026-03-05-pm-520-backlog-hygiene.md
-                    2026-03-06-glad-configure-fallback.md
-                    2026-03-27-gpu-resource-telemetry.md
-                    2026-04-08-t-0120-opengl-retention.md
-                    2026-04-09-rt-410-stage-planner.md
-                    2026-04-10-rt-410-presentation-context.md
-                    2026-04-11-rt-410-presentation-context-submit.md
-                    2026-04-12-rt-410-presentation-diagnostics.md
-                    2026-11-03-application-framework-implementation.md
-                    2026-11-03-application-framework-quality-report.md
-                    2026-11-04-application-framework-phase2-quality-report.md
-                    2026-11-04-application-framework-phase2.md
-                    2026-11-04-geometry-viewer-build-fix-quality-report.md
-                    2026-11-04-geometry-viewer-build-fix.md
             backlog/
                 legacy/
                     README.md
                     modules/
-                        geometry-BACKLOG.md
-                        tools-BACKLOG.md
+                        GEOMETRY_BACKLOG.md
+                        TOOLS_BACKLOG.md
                     tasks/
-                        2025-02-17-sprint-06.md
-                        AI-004-application-prototyping-enablement.md
+                        2025-02-17-SPRINT_06.md
+                        AI_004_APPLICATION_PROTOTYPING_ENABLEMENT.md
                         AI_004_KICKOFF_BRIEF.md
                         AS_330_REFERENCE_DATASET_PACKAGES.md
                         CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md
-                        CC-311-benchmark-visualization-integration.md
-                        CO-170-runtime-integration-sample.md
-                        DC-040-ai-004-configuration-schema-alignment.md
+                        CC_311_BENCHMARK_VISUALIZATION_INTEGRATION.md
+                        CO_170_RUNTIME_INTEGRATION_SAMPLE.md
+                        DC_040_AI_004_CONFIGURATION_SCHEMA_ALIGNMENT.md
                         DC_041_AI_004_KICKOFF_READINESS.md
                         RE_610_RESEARCH_RENDERING_BASELINE.md
                         README.md
                         RT_320_RUNTIME_PROTOTYPING_HARNESS.md
-                        RT-321-prototyping-case-study-validation.md
-                        T-0104-runtime-frame-graph-integration.md
-                        T-0112-geometry-io-roundtrip-hardening.md
-                        T-0113-animation-runtime-skinning.md
-                        T-0114-testing-integration-suites.md
-                        T-0115-assets-async-streaming-mvp.md
-                        T-0116-rendering-vulkan-resource-translation.md
-                        T-0117-physics-contact-manifolds.md
-                        T-0118-testing-framework-upgrade.md
-                        T-0119-rendering-command-encoder-implementation.md
-                        T-0120-rendering-gpu-resource-provider-implementation.md
-                        T-0121-rendering-standard-passes-library.md
-                        T-0122-rendering-visibility-culling-system.md
-                        T-0123-rendering-pipeline-state-management.md
-                        T-0124-rendering-lighting-system.md
-                        T-0125-math-convenience-rotation-builders.md
-                        T-0126-math-documentation-alignment.md
-                        T-0127-math-optional-curve-utilities.md
-                        T-0128-geometry-frustum-utilities.md
-                        T-0129-geometry-shape-intersection-coverage.md
+                        RT_321_PROTOTYPING_CASE_STUDY_VALIDATION.md
+                        T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md
+                        T_0112_GEOMETRY_IO_ROUNDTRIP_HARDENING.md
+                        T_0113_ANIMATION_RUNTIME_SKINNING.md
+                        T_0114_TESTING_INTEGRATION_SUITES.md
+                        T_0115_ASSETS_ASYNC_STREAMING_MVP.md
+                        T_0116_RENDERING_VULKAN_RESOURCE_TRANSLATION.md
+                        T_0117_PHYSICS_CONTACT_MANIFOLDS.md
+                        T_0118_TESTING_FRAMEWORK_UPGRADE.md
+                        T_0119_RENDERING_COMMAND_ENCODER_IMPLEMENTATION.md
+                        T_0120_RENDERING_GPU_RESOURCE_PROVIDER_IMPLEMENTATION.md
+                        T_0121_RENDERING_STANDARD_PASSES_LIBRARY.md
+                        T_0122_RENDERING_VISIBILITY_CULLING_SYSTEM.md
+                        T_0123_RENDERING_PIPELINE_STATE_MANAGEMENT.md
+                        T_0124_RENDERING_LIGHTING_SYSTEM.md
+                        T_0125_MATH_CONVENIENCE_ROTATION_BUILDERS.md
+                        T_0126_MATH_DOCUMENTATION_ALIGNMENT.md
+                        T_0127_MATH_OPTIONAL_CURVE_UTILITIES.md
+                        T_0128_GEOMETRY_FRUSTUM_UTILITIES.md
+                        T_0129_GEOMETRY_SHAPE_INTERSECTION_COVERAGE.md
                         TL_210_EXPERIMENT_SANDBOX_UI.md
             design/
                 AI004_CONFIGURATION_LOADER_DESIGN.md
             prints/
-                AI-002-STREAMING-GEOMETRY-TELEMETRY.md
-                AN-201-IMPLEMENTATION.md
-                AS-330-DIAGNOSTICS-SHELL-IMPLEMENTATION.md
-                CC-001-TELEMETRY-METRIC-PREFIX.md
-                CC-002-3-SHADER-IMPLEMENTATION.md
-                CO-150-CO-160-IMPLEMENTATION.md
-                CR-125-CR-130-IMPLEMENTATION.md
-                CR-135-IMPLEMENTATION.md
-                GE-212-GE-220-WORK-DIVISION.md
+                AI_002_STREAMING_GEOMETRY_TELEMETRY.md
+                AN_201_IMPLEMENTATION.md
+                AS_330_DIAGNOSTICS_SHELL_IMPLEMENTATION.md
+                CC_001_TELEMETRY_METRIC_PREFIX.md
+                CC_002_3_SHADER_IMPLEMENTATION.md
+                CO_150_CO_160_IMPLEMENTATION.md
+                CR_125_CR_130_IMPLEMENTATION.md
+                CR_135_IMPLEMENTATION.md
+                GE_212_GE_220_WORK_DIVISION.md
                 IMPLEMENTATION_PROMPT.md
-                IO-230-IMPLEMENTATION.md
-                MA-110-SIMD-VALIDATION-HARNESS-REVIEW.md
-                MA-110-SIMD-VALIDATION-HARNESS.md
-                MA-118-SOLVER-STABILITY-DOCUMENTATION.md
+                IO_230_IMPLEMENTATION.md
+                MA_110_SIMD_VALIDATION_HARNESS.md
+                MA_110_SIMD_VALIDATION_HARNESS_REVIEW.md
+                MA_118_SOLVER_STABILITY_DOCUMENTATION.md
                 README.md
-                RT-005-3-HIERARCHY-DIAGNOSTICS-DOCS.md
-                RT-005-4-HIERARCHY-ALERT-THRESHOLDS.md
-                RT-006-3-IO-DETECTION-DOCS.md
-                SC-220-DOCUMENTATION-REFRESH.md
-                SC-225-HIERARCHY-DIAGNOSTICS-SAMPLES.md
-                TL-110-TELEMETRY-DOCS-FOLLOWUP.md
+                RT_005_3_HIERARCHY_DIAGNOSTICS_DOCS.md
+                RT_005_4_HIERARCHY_ALERT_THRESHOLDS.md
+                RT_006_3_IO_DETECTION_DOCS.md
+                SC_220_DOCUMENTATION_REFRESH.md
+                SC_225_HIERARCHY_DIAGNOSTICS_SAMPLES.md
+                TL_110_TELEMETRY_DOCS_FOLLOWUP.md
             reviews/
                 2025-02-17-RUNTIME-TELEMETRY.MD
                 2025-02-18-IMPLEMENTATION-PROMPT.MD
@@ -416,7 +373,6 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 README.md
                 legacy/
                     ARCHITECTURE_EVALUATION_EXECUTIVE_SUMMARY.md
-                    GEOMETRY_VIEWER_BUILD_FIX_INDEX.md
                     TASK_COMPLETION_SUMMARY.md
             workflow-migration/
                 DOCUMENTATION_RESTRUCTURE_CHANGELOG.md
@@ -425,10 +381,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         backlog/
             README.md
             active/
-                2026-02-03-SPRINT_11.md
-                AI_004_KICKOFF_BRIEF.md
                 PM_510_WEEKLY_INTEGRATION_DEMOS.md
-                PM_520_BACKLOG_HYGIENE_REMEDIATION.md
                 RT_410_RUNTIME_STAGE_PLANNER.md
                 T_0119_COMMAND_ENCODER_INTEGRATION.md
                 T_0120_GPU_RESOURCE_PROVIDER.md
@@ -440,6 +393,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 DC_040_AI_004_CONFIGURATION_SCHEMA.md
                 DC_041_AI_004_KICKOFF_READINESS.md
                 PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md
+                PM_520_BACKLOG_HYGIENE_REMEDIATION.md
                 RE_610_RESEARCH_RENDERING_BASELINE.md
                 README.md
                 RT_320_RUNTIME_PROTOTYPING_HARNESS.md
@@ -448,24 +402,24 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         design/
             AI_004_CONFIGURATION_SCHEMA.md
             AI_004_PROTOTYPING_PLAYBOOK.md
-            AN-230-benchmark-harness-design.md
-            AN-230.2-gpu-telemetry.md
+            AN_230_2_GPU_TELEMETRY.md
+            AN_230_BENCHMARK_HARNESS_DESIGN.md
             ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md
             ARCHITECTURE_IMPROVEMENT_PLAN.md
             ASYNC_STREAMING.md
-            CC-310-benchmark-playbook.md
-            CO-170-runtime-integration-playbook.md
+            CC_310_BENCHMARK_PLAYBOOK.md
+            CO_170_RUNTIME_INTEGRATION_PLAYBOOK.md
             ERROR_HANDLING_MIGRATION.md
-            GE-212-REMESHING_PARAMETERIZATION_RFP.md
+            GE_212_REMESHING_PARAMETERIZATION_RFP.md
             MATERIAL_PERSISTENCE_STRATEGY.md
             PLUGIN_ARCHITECTURE.md
             RESOURCE_MANAGEMENT.md
-            RT-320-prototyping-harness.md
-            RT-321-case-studies.md
+            RT_320_PROTOTYPING_HARNESS.md
+            RT_321_CASE_STUDIES.md
             TELEMETRY_INSTRUMENTATION_GUIDE.md
             TELEMETRY_SCHEMA.md
-            TL-210-accessibility-checklist.md
-            TL-210-experiment-sandbox.md
+            TL_210_ACCESSIBILITY_CHECKLIST.md
+            TL_210_EXPERIMENT_SANDBOX.md
         examples/
             ai004_sample.json
             GEOMETRY_VIEWER_COMPLETION_GUIDE.md
@@ -481,7 +435,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 README.md
             compute/
                 BACKLOG.md
-                DISPATCHER-EXTENSION-GUIDE.md
+                DISPATCHER_EXTENSION_GUIDE.md
                 README.md
             core/
                 BACKLOG.md
@@ -507,7 +461,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 BACKEND_CHECKLIST.md
                 BACKLOG.md
                 METADATA_SCHEMA.md
-                PROGRESS_2025-10-27.md
+                PROGRESS_REPORT.md
                 QUICKSTART.md
                 README.md
             runtime/
@@ -522,35 +476,36 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             tools/
                 README.md
         prompts/
-            ARCHITECTURE-AUDIT.md
-            IMPLEMENTATION-PLAYBOOK.md
-            MASTER-AGENT-PROMPT.md
-            REFACTOR-PLAYBOOK.md
-            REVIEW-CHECKLIST.md
+            ARCHITECTURE_AUDIT.md
+            IMPLEMENTATION_PLAYBOOK.md
+            REFACTOR_PLAYBOOK.md
+            REVIEW_CHECKLIST.md
         reviews/
-            2025-03-22-scene-docs.md
-            2025-10-26-architecture-audit.md
-            2025-12-05-roadmap-direction-review.md
-            2026-01-08-application-readiness-assessment.md
-            2026-02-10-comprehensive-architecture-evaluation.md
             APPLICATION_FRAMEWORK_INDEX.md
             APPLICATION_FRAMEWORK_PHASE1_COMPLETE.md
             APPLICATION_FRAMEWORK_PHASE2_COMPLETE.md
             APPLICATION_FRAMEWORK_PROPOSAL.md
+            APPLICATION_READINESS_ASSESSMENT.md
+            ARCHITECTURE_AUDIT.md
+            COMPREHENSIVE_ARCHITECTURE_EVALUATION.md
+            DATE_REMOVAL_COMPLETE.md
+            DOC_HYGIENE_COMPLETION_SUMMARY.md
+            DOC_NAMING_STANDARDIZATION_COMPLETE.md
             GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md
+            GEOMETRY_VIEWER_RENDERING_GAPS.md
             MISSING_COMPONENTS_SUMMARY.md
-            SESSION_SUMMARY_2025-11-03.md
-            SESSION_SUMMARY_2025-11-04-BUILD-FIX.md
-            SESSION_SUMMARY_2025-11-04.md
+            ROADMAP_DIRECTION_REVIEW.md
+            SCENE_DOCS.md
         specs/
-            ADR-0003-runtime-frame-graph.md
-            ADR-0005-geometry-io-roundtrip.md
-            ADR-0006-animation-deformation.md
-            ADR-0007-ai-004-configuration-schema.md
-            ADR-0008-runtime-main-loop-and-tooling.md
-            AN-240-state-machine-authoring.md
+            ADR_0003_RUNTIME_FRAME_GRAPH.md
+            ADR_0005_GEOMETRY_IO_ROUNDTRIP.md
+            ADR_0006_ANIMATION_DEFORMATION.md
+            ADR_0007_AI_004_CONFIGURATION_SCHEMA.md
+            ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md
+            AN_240_STATE_MACHINE_AUTHORING.md
             README.md
         templates/
+            README_TEMPLATE.md
             RESEARCH_PAPER_TEMPLATE.md
     engine/
         CMakeLists.txt
@@ -1235,6 +1190,28 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
                 test_panel_registry.cpp
                 test_profiler.cpp
                 test_sandbox_configuration_loader.cpp
+    hybrid_workflow/
+        AGENTS.md
+        COMPLETE.md
+        CONTRIBUTING.md
+        IMPLEMENTATION_SUMMARY.md
+        MIGRATION.md
+        QUICK_REFERENCE.md
+        README.md
+        ROADMAP.md
+        task_status.py
+        backlog/
+            000-template.md
+            AI-004-kickoff-brief.md
+            PM-510-weekly-integration-demos.md
+            RT-410-runtime-stage-planner.md
+            SPRINT-11-alignment.md
+            T-0119-command-encoder-integration.md
+            T-0120-gpu-resource-provider.md
+            TL-310-editor-foundations.md
+            TL-320-task-dashboard.md
+            archive/
+                DC-050-workflow-migration.md
     python/
         README.md
         requirements.txt
@@ -1261,6 +1238,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
         cleanup_redundant_docs.sh
         generate_dependency_graph.py
         README.md
+        rename_docs_to_uppercase.py
         update_agents_tree.py
         validate_ai004_config.py
         validate_docs.py
@@ -1299,6 +1277,7 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_collision_benchmark_report.py
             test_compute_dispatch_benchmark.py
             test_compute_dispatch_report.py
+            test_dashboard.py
             test_generate_dependency_graph.py
             test_geometry_normals_benchmark_report.py
             test_ingest_dataset.py
@@ -1312,7 +1291,18 @@ Complete repository file hierarchy (excluding hidden entries). Regenerate this b
             test_update_agents_tree.py
             test_validate_ai004_config.py
             test_validate_docs.py
+        workflow/
+            __init__.py
+            dashboard.py
+            report_hybrid_status.py
     telemetry/
         frame_timings.json
+    workflow/
+        AGENTS.md
+        CONTRIBUTING.md
+        README.md
+        ROADMAP.md
+        backlog/
+            000-template.md
 ```
 <!-- END GENERATED FILE TREE -->

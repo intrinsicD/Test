@@ -2,10 +2,6 @@
 
 **Current Focus:** Restore GPU execution, runtime presentation readiness, and tooling parity for the AI-004 prototyping workflow.
 
-**Period:** Q1 2025 → Q2 2025
-
----
-
 ## Bundle A — GPU Execution (Priority 1)
 
 **Goal:** Enable real GPU rendering with backend command submission and shader pipelines.
@@ -46,6 +42,22 @@
 - All active tasks migrated to hybrid workflow format.
 - Automated dashboard reports task status from metadata.
 - Documentation cross-links validated in CI.
+
+---
+
+## Bundle D — Kickoff Coordination
+
+**Priority:** 0
+
+**Goal:** Align backlog, roadmap, and sprint artefacts for the AI-004 kickoff review.
+
+- [ ] **AI-004** — Kickoff brief readiness → `hybrid_workflow/backlog/AI-004-kickoff-brief.md`
+- [ ] **SPRINT-11** — Sprint 11 alignment → `hybrid_workflow/backlog/SPRINT-11-alignment.md`
+
+**Success Criteria:**
+- Kickoff packet consolidates agenda, risks, and demo evidence with accountable owners.
+- Sprint 11 ledger feeds directly into kickoff packet updates and roadmap milestones.
+- Documentation validation recorded after each update to kickoff artefacts.
 
 ---
 
@@ -97,5 +109,5 @@ Completed tasks move to `hybrid_workflow/backlog/archive/` with their original m
 
 ---
 
-_Last updated: 2025-11-04 · Source of truth: Task metadata in `hybrid_workflow/backlog/*.md`_
+_Source of truth: Task metadata in `hybrid_workflow/backlog/*.md`_
 

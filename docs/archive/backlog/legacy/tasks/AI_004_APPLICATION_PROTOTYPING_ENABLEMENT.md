@@ -48,13 +48,13 @@ Deliver a coordinated initiative that synchronises rendering, runtime, tooling, 
 3. **`CC-311` — Comparative visualisation:** integrate benchmark plots and CI gating so AI-004 demonstrations include side-by-side metrics.
 
 ### Kickoff Readiness Summary
-- **Milestone timeline:** See [`docs/backlog/active/AI_004_KICKOFF_BRIEF.md`](../../../../backlog/active/AI_004_KICKOFF_BRIEF.md) for the sequenced Phase 1 plan covering `DC-041` (kickoff packet, due 2026-02-07), `RT-320` (harness smoke, due 2026-02-12), `TL-210` (sandbox wiring, due 2026-02-14), and `AS-330` (dataset validation, due 2026-02-16).
+- **Milestone timeline:** See [`hybrid_workflow/backlog/AI-004-kickoff-brief.md`](../../../../../hybrid_workflow/backlog/AI-004-kickoff-brief.md) for the sequenced Phase 1 plan covering `DC-041` (kickoff packet, due 2026-02-07), `RT-320` (harness smoke, due 2026-02-12), `TL-210` (sandbox wiring, due 2026-02-14), and `AS-330` (dataset validation, due 2026-02-16).
 - **Risk owners & deadlines (all due ≥1 week before the 2026-02-20 kickoff review):**
   - Coordinated schema delivery — @pm-agent — mitigation deck due **2026-02-09**.
   - Dataset licensing approvals — @assets-lead — licensing checkpoint due **2026-02-13**.
   - Comparative plotting performance — @perf-lead — CI smoke sizing decision due **2026-02-13**.
   - Harness coverage assurance — @runtime-lead — schema + telemetry smoke confirmation due **2026-02-13**.
-- **Sprint tracker cross-link:** [`SPRINT_11_ACTIVE.md`](../../../../backlog/active/SPRINT_11_ACTIVE.md) surfaces the brief in the current coordination checklist.
+- **Sprint tracker cross-link:** [`SPRINT-11-alignment.md`](../../../../../hybrid_workflow/backlog/SPRINT-11-alignment.md) surfaces the brief in the current coordination checklist.
 - **Coordination cadence:** Weekly runtime/tools/performance syncs continue through the kickoff review; slide deck outline published **2026-02-09** alongside the milestone plan.
 
 ---
