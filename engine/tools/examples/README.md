@@ -2,18 +2,21 @@
 
 ## Overview
 
-The `geometry_viewer` example demonstrates how to use the Test Engine's rendering system to set up geometry rendering
-with the research baseline preset.
+The `geometry_viewer` is a fully interactive 3D viewer demonstrating the Test Engine's Application framework. It shows
+how to build a complete graphics application by inheriting from `runtime::Application` and implementing lifecycle
+callbacks. The viewer renders a cube with an orbit camera controller, accepting mouse and keyboard input in real-time.
 
 ## Purpose
 
 This example shows developers how to:
 
-- Initialize the OpenGL rendering backend
-- Create a scene with renderable geometry entities
-- Configure the research baseline rendering preset (forward/deferred shading)
-- Compile and prepare a frame graph for rendering
-- Understand the rendering pipeline architecture
+- Use the Application framework for automatic subsystem lifecycle management
+- Implement lifecycle callbacks (`on_initialize`, `on_update`, `on_render`, `on_shutdown`)
+- Integrate GLFW windowing and input handling
+- Create and manage an interactive orbit camera controller
+- Build an ECS scene with renderable geometry entities
+- Configure the research baseline rendering preset (RE-610)
+- Handle mouse and keyboard input for interactive camera control
 
 ## Building
 
@@ -32,51 +35,80 @@ cmake --build . --target geometry_viewer
 
 ## What It Demonstrates
 
-### 1. Rendering Backend Initialization
+### 1. Application Framework Pattern
 
-- Creates a recording GPU resource provider for OpenGL
-- Initializes the OpenGL GPU scheduler
+- Inherits from `runtime::Application` for automatic subsystem management
+- Implements lifecycle callbacks for clean separation of concerns:
+  - `on_initialize()` - Setup scene, camera, and rendering
+  - `on_update(delta_time)` - Process input and update state
+  - `on_render()` - Render frame (GPU execution pending RT-410)
+  - `on_shutdown()` - Cleanup
+- Minimal `main()` function - just create app and call `run()`
 
-### 2. Scene Setup
+### 2. Window & Input Integration
 
-- Creates an ECS scene using EnTT
-- Adds entities with transform and render geometry components
-- Demonstrates the factory pattern for creating geometry components
+- GLFW backend with native surface support
+- 1280x720 resizable window
+- Interactive controls:
+  - **Left mouse drag**: Rotate camera around target (orbit controller)
+  - **Mouse scroll**: Zoom in/out (1.0 to 20.0 units)
+  - **ESC**: Exit application
+- Real-time FPS display with camera state
 
-### 3. Research Baseline Preset
+### 3. Scene Management
 
-- Configures the research rendering baseline (RE-610)
-- Sets up forward shading mode
-- Configures viewport resolution
-- Optional debug overlays (normals, UVs, materials, light volumes)
+- ECS-based scene using EnTT registry
+- Cube entity with transform and render geometry components
+- Demonstrates factory pattern for creating geometry components
+- Material and mesh handle references
 
-### 4. Frame Graph
+### 4. Camera System
 
-- Creates and configures the frame graph
-- Compiles rendering passes
-- Shows available render targets (color, depth, G-buffers)
+- Perspective camera with ~60° FOV and aspect ratio
+- Orbit camera controller with:
+  - Yaw and pitch rotation (pitch clamped to avoid gimbal lock)
+  - Radius-based zoom
+  - Look-at positioning
+- Smooth camera updates each frame
+
+### 5. Rendering Setup
+
+- Research baseline configuration (RE-610)
+- Forward shading mode
+- Frame graph compilation with color and depth outputs
+- Viewport resolution configuration
+
+**Note:** Full GPU command execution is pending completion of RT-410 (Runtime Stage Planner). Currently demonstrates
+setup and interactivity; GPU submission will be enabled when RT-410 presentation backends land.
 
 ## Next Steps
 
-To create a fully functional geometry rendering application, you would:
+The viewer demonstrates a complete interactive application using the Application framework. To extend it, you could:
 
-1. **Create a window with OpenGL context** - Use the platform module with GLFW
-2. **Execute the frame graph each frame** - Call `graph.execute()` with render context
-3. **Present to screen** - Swap buffers and display the final color output
-4. **Handle input** - Process user input to manipulate camera and scene
-5. **Load actual geometry** - Implement mesh loading from files
+1. **Add more geometry** - Load meshes from files using the assets module
+2. **Implement lighting** - Add point lights, directional lights, or spotlights
+3. **Material system** - Create and apply different materials with textures
+4. **Post-processing** - Add effects using additional frame graph passes
+5. **UI overlay** - Integrate Dear ImGui for controls and diagnostics
+
+The full rendering pipeline will execute GPU commands once RT-410 (Runtime Stage Planner & Presentation Loop) is
+complete, enabling real-time geometry rendering to screen.
 
 ## Related Code
 
+- Application Framework: `engine/runtime/include/engine/runtime/application.hpp`
 - Research Baseline: `engine/rendering/src/pipeline/research_baseline.cpp`
 - Frame Graph: `engine/rendering/include/engine/rendering/frame_graph.hpp`
 - Render Components: `engine/rendering/include/engine/rendering/components.hpp`
-- OpenGL Scheduler: `engine/rendering/src/backend/opengl/`
+- Camera System: `engine/rendering/include/engine/rendering/camera.hpp`
+- Input System: `engine/platform/input/input_state.hpp`
+- GLFW Backend: `engine/platform/src/window/glfw/`
 
 ## Status
 
-✅ **Complete** - Example builds and runs successfully, demonstrating the research baseline rendering preset (RE-610).
+✅ **Complete** - Interactive viewer with Application framework integration, orbit camera controls, and input handling.
 
-The next priority is to implement actual window creation and frame graph execution to achieve real-time geometry
-rendering.
+⚠️ **Note** - Full GPU rendering execution to screen is pending RT-410 (Runtime Stage Planner) completion. The viewer
+currently demonstrates the complete Application lifecycle, input handling, camera control, and frame graph setup. GPU
+command submission and presentation will be enabled when RT-410 presentation backends are integrated.
 
