@@ -34,8 +34,8 @@ The March 2026 hygiene audit identified that the active backlog directory still 
 - Coordination with PM-510 demo cadence to communicate backlog changes in weekly summaries.【F:docs/backlog/active/PM-510-weekly-integration-demos.md†L1-L29】
 
 ## Related Artefacts
-- Task brief: [`agents/task_briefs/2026-03-01-backlog-roadmap-audit.md`](../../../agents/task_briefs/2026-03-01-backlog-roadmap-audit.md)
-- Context package: [`agents/context_packages/2026-03-01-backlog-roadmap-audit.md`](../../../agents/context_packages/2026-03-01-backlog-roadmap-audit.md)
+- Task brief: [`agents/task_briefs/2026-03-01-backlog-roadmap-audit.md`](../../../docs/archive/agents/task_briefs/2026-03-01-backlog-roadmap-audit.md)
+- Context package: [`agents/context_packages/2026-03-01-backlog-roadmap-audit.md`](../../../docs/archive/agents/context_packages/2026-03-01-backlog-roadmap-audit.md)
 - AGENTS workflow: [`AGENTS.md`](../../../AGENTS.md)
 
 ## Notes

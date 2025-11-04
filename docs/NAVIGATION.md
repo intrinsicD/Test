@@ -66,11 +66,14 @@
 - **Resource Management:** [`design/RESOURCE_MANAGEMENT.md`](design/RESOURCE_MANAGEMENT.md)
 - **Accessibility:** [`design/TL-210-accessibility-checklist.md`](design/TL-210-accessibility-checklist.md)
 - **Case Study Baselines:** [`design/RT-321-case-studies.md`](design/RT-321-case-studies.md)
-- **Benchmark Automation:** [`design/CC-310-benchmark-playbook.md`](design/CC-310-benchmark-playbook.md)
+- **Benchmark Automation:** [`design/CC-310-benchmark-playbook.md`](design/CC-310-benchmark-playbook.md), [`design/AN-230-benchmark-harness-design.md`](design/AN-230-benchmark-harness-design.md)
+- **Compute Dispatch:** [`modules/compute/DISPATCHER-EXTENSION-GUIDE.md`](modules/compute/DISPATCHER-EXTENSION-GUIDE.md)
+- **Rendering Quickstart:** [`modules/rendering/QUICKSTART.md`](modules/rendering/QUICKSTART.md)
 - **Dependency Graph:** [`architecture/README.md`](architecture/README.md)
 - **Research Template:** [`templates/RESEARCH_PAPER_TEMPLATE.md`](templates/RESEARCH_PAPER_TEMPLATE.md)
 - **Backlog Template:** [`backlog/README.md`](backlog/README.md)
 - **Architecture Reviews:** [`reviews/2025-10-26-architecture-audit.md`](reviews/2025-10-26-architecture-audit.md), [`reviews/2025-12-05-roadmap-direction-review.md`](reviews/2025-12-05-roadmap-direction-review.md), [`reviews/2026-01-08-application-readiness-assessment.md`](reviews/2026-01-08-application-readiness-assessment.md), [`reviews/2026-02-10-comprehensive-architecture-evaluation.md`](reviews/2026-02-10-comprehensive-architecture-evaluation.md)
+- **Archive Index:** [`archive/ARCHIVE_INDEX.md`](archive/ARCHIVE_INDEX.md)
 
 ## 🗂️ Module Overview
 
