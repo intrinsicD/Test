@@ -1,7 +1,7 @@
 ---
 id: DC-050
 title: Migrate workflow to hybrid model
-status: in_progress
+status: done
 priority: P3
 area: docs
 size: M
@@ -77,10 +77,10 @@ Create new `hybrid_workflow/` directory with:
 5. [x] Create `hybrid_workflow/backlog/000-template.md` with metadata template
 6. [x] Create example migration: `backlog/T-0120-gpu-resource-provider.md`
 7. [x] Create this meta-task as simple example: `backlog/DC-050-workflow-migration.md`
-8. [ ] Validate all cross-links work correctly
-9. [ ] Update `docs/NAVIGATION.md` to reference hybrid workflow
-10. [ ] Document migration guide for existing tasks
-11. [ ] Create automation examples (status queries, dashboard)
+8. [x] Validate all cross-links work correctly — ran `python scripts/validate_docs.py`
+9. [x] Update `docs/NAVIGATION.md` to reference hybrid workflow and directory additions
+10. [x] Document migration guide for existing tasks (`hybrid_workflow/MIGRATION.md`)
+11. [x] Create automation examples (status report script + README references)
 
 ---
 
@@ -89,53 +89,33 @@ Create new `hybrid_workflow/` directory with:
 ### Test Results
 
 ```bash
-# File creation successful
-$ ls -la hybrid_workflow/
-total 40
-drwxr-xr-x  3 alex alex  4096 Nov  4 10:30 .
-drwxr-xr-x 18 alex alex  4096 Nov  4 10:25 ..
--rw-r--r--  1 alex alex  8234 Nov  4 10:28 AGENTS.md
--rw-r--r--  1 alex alex  4512 Nov  4 10:29 CONTRIBUTING.md
--rw-r--r--  1 alex alex  3876 Nov  4 10:30 README.md
--rw-r--r--  1 alex alex  2145 Nov  4 10:30 ROADMAP.md
-drwxr-xr-x  3 alex alex  4096 Nov  4 10:31 backlog
+$ python scripts/validate_docs.py
+All documentation links resolved successfully.
 
-$ ls -la hybrid_workflow/backlog/
-total 24
-drwxr-xr-x 3 alex alex  4096 Nov  4 10:31 .
-drwxr-xr-x 3 alex alex  4096 Nov  4 10:30 ..
--rw-r--r-- 1 alex alex  6234 Nov  4 10:31 000-template.md
--rw-r--r-- 1 alex alex  8142 Nov  4 10:32 T-0120-gpu-resource-provider.md
--rw-r--r-- 1 alex alex  2456 Nov  4 10:33 DC-050-workflow-migration.md
-drwxr-xr-x 2 alex alex  4096 Nov  4 10:31 archive
+$ python -m scripts.workflow.report_hybrid_status --include-archived
+Status       Priority  ID      Owner               Title                             File
+===========  ========  ======  ==================  ================================  ===========================================
+in_progress  P1        T-0120  rendering-lead      GPU resource provider completion  hybrid_workflow/backlog/T-0120-gpu-resource-provider.md
+done         P3        DC-050  agent-orchestrator  Migrate workflow to hybrid model  hybrid_workflow/backlog/archive/DC-050-workflow-migration.md
 
-# Metadata query test
-$ grep "^status:" hybrid_workflow/backlog/*.md
-hybrid_workflow/backlog/000-template.md:status: new
-hybrid_workflow/backlog/DC-050-workflow-migration.md:status: in_progress
-hybrid_workflow/backlog/T-0120-gpu-resource-provider.md:status: in_progress
-
-$ grep "^priority:" hybrid_workflow/backlog/*.md
-hybrid_workflow/backlog/000-template.md:priority: P1
-hybrid_workflow/backlog/DC-050-workflow-migration.md:priority: P3
-hybrid_workflow/backlog/T-0120-gpu-resource-provider.md:priority: P1
+Status counts:
+  in_progress: 1
+  done: 1
 ```
 
 **Test Summary:**
-- File structure created successfully
-- Metadata queries working (grep-based)
-- Example task migration demonstrates template usage
-- Documentation validation: pending (step 8)
+- Hybrid workflow references validated with `python scripts/validate_docs.py`
+- Status reporting script surfaces active tasks and confirms migrated entry metadata
 
 ### Quality Gate Sign-offs
 
 | Gate | Status | Owner | Evidence |
 |------|--------|-------|----------|
-| docs | [~] In Progress | Docs/DevRel | Files created, validation pending |
+| docs | [x] Complete | Docs/DevRel | `python scripts/validate_docs.py`, automation script output |
 
 ### Updated Files
 
-**Created:**
+**Created (initial implementation):**
 - `hybrid_workflow/AGENTS.md`
 - `hybrid_workflow/CONTRIBUTING.md`
 - `hybrid_workflow/ROADMAP.md`
@@ -144,9 +124,18 @@ hybrid_workflow/backlog/T-0120-gpu-resource-provider.md:priority: P1
 - `hybrid_workflow/backlog/T-0120-gpu-resource-provider.md` (example)
 - `hybrid_workflow/backlog/DC-050-workflow-migration.md` (this file)
 
+**Finalisation assets:**
+- `hybrid_workflow/MIGRATION.md`
+- `scripts/workflow/__init__.py`
+- `scripts/workflow/report_hybrid_status.py`
+
+**Updated:**
+- `docs/NAVIGATION.md` — references hybrid workflow quick start and migration guide
+- `hybrid_workflow/README.md` — links migration guide and automation script
+- `hybrid_workflow/backlog/DC-050-workflow-migration.md` — completed status, evidence, and checklists
+
 **Pending Updates:**
-- `docs/NAVIGATION.md` — Add hybrid workflow section
-- Migration guide document
+- None (all scope complete)
 
 ---
 
@@ -155,11 +144,11 @@ hybrid_workflow/backlog/T-0120-gpu-resource-provider.md:priority: P1
 - [x] All core workflow files created
 - [x] Template created with metadata frontmatter
 - [x] Example task migration demonstrates usage
-- [ ] Cross-links validated with `python scripts/validate_docs.py`
-- [ ] `docs/NAVIGATION.md` updated with hybrid workflow references
-- [ ] Migration guide documented
-- [ ] Automation examples provided (grep queries, status dashboard)
-- [ ] Task metadata updated to `status: done`
+- [x] Cross-links validated with `python scripts/validate_docs.py`
+- [x] `docs/NAVIGATION.md` updated with hybrid workflow references
+- [x] Migration guide documented
+- [x] Automation examples provided (status report script + grep examples)
+- [x] Task metadata updated to `status: done`
 
 ---
 
@@ -167,7 +156,7 @@ hybrid_workflow/backlog/T-0120-gpu-resource-provider.md:priority: P1
 
 **PR:** (pending completion)  
 **SHA:** (pending merge)  
-**Completion Date:** (in progress, started 2025-11-04)
+**Completion Date:** 2025-11-05
 
 **Notes:**
 
@@ -183,9 +172,9 @@ Key design decisions:
 - Created both simple (this task) and complex (T-0120) examples
 
 **Next Steps:**
-- Complete validation and navigation updates
-- Create automation tooling (dashboard, queries)
-- Document migration process for remaining active tasks
+- Circulate migration guide to module leads and capture feedback in follow-up tasks
+- Prototype dashboard/roadmap automation (spawn TL-320/TL-321 follow-ups)
+- Monitor adoption and schedule retrospective after first migrated sprint
 
 **Follow-ups:**
 - [ ] Build web dashboard for task status → Create task TL-320

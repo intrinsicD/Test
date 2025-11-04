@@ -4,13 +4,13 @@
 
 **First-time or general questions?**
 1. Read [`../README.md`](../README.md) – workspace overview, build steps, module health.
-2. Load [`../AGENTS.md`](../AGENTS.md) – follow the Workflow Blueprint (Sections 0.1–0.7) to populate the context ladder and deliverable matrix for your task.
+2. Follow the hybrid workflow quick start in [`../hybrid_workflow/README.md`](../hybrid_workflow/README.md) and load the detailed 7-step guide in [`../hybrid_workflow/AGENTS.md`](../hybrid_workflow/AGENTS.md).
 3. Review [`../agents/ROLES.md`](../agents/ROLES.md) and the templates in [`../agents/TEMPLATES/`](../agents/TEMPLATES) for task-specific execution.
 4. Return here for specialised documentation and directory references.
 
 **Working on a specific task?**
 1. Check [`ROADMAP.md`](ROADMAP.md) – confirm the milestone and priority band.
-2. Open the relevant backlog entry under [`backlog/active/`](backlog/active/) – review its Role Roster, definition of done, dependencies, and artefacts.
+2. Open the relevant backlog entry under [`hybrid_workflow/backlog/`](../hybrid_workflow/backlog/) – review metadata, decision log, and evidence.
 3. Read the module notes in [`modules/<name>/README.md`](modules/) – understand subsystem invariants.
 4. Consult related specs in [`specs/`](specs/) – respect architectural decisions.
 
@@ -22,7 +22,8 @@
 
 | Directory | Purpose | When to Use |
 |-----------|---------|-------------|
-| `backlog/` | Active backlog in `backlog/active/`; completed entries move to [`backlog/archive/`](backlog/archive/README.md) with preserved metadata | Planning, status tracking |
+| `hybrid_workflow/` | Hybrid workflow system: quick start, task guide, backlog, migration aids | Selecting tasks, updating status, learning automation |
+| `backlog/` | Legacy backlog in `backlog/active/`; completed entries move to [`backlog/archive/`](backlog/archive/README.md) with preserved metadata | Planning, status tracking |
 | `design/` | Deep dives, guides, strategies | Understanding complex subsystems |
 | `architecture/` | Generated diagrams (module dependency graph, wiring snapshots) | Visualising system structure |
 | `modules/` | Per-module README + roadmap | Working in specific subsystem |
@@ -36,7 +37,9 @@
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
-| [`../AGENTS.md`](../AGENTS.md) | Workflow Blueprint (Sections 0.1–0.7), phase checklists, quality instrumentation | Beginning any contribution |
+| [`../hybrid_workflow/AGENTS.md`](../hybrid_workflow/AGENTS.md) | Hybrid 7-step workflow, context ladder, quality gates | Beginning any contribution |
+| [`../hybrid_workflow/MIGRATION.md`](../hybrid_workflow/MIGRATION.md) | Step-by-step guide for porting legacy tasks into the hybrid system | Migrating or auditing tasks |
+| [`../AGENTS.md`](../AGENTS.md) | Workflow Blueprint (Sections 0.1–0.7), phase checklists, quality instrumentation | Reference for legacy processes |
 | [`../AGENTS.md#agent-directory-workflow`](../AGENTS.md#agent-directory-workflow) | Directory overview, maintenance guardrails, workflow-change process | Managing artefacts inside `agents/` |
 | [`../agents/ROLES.md`](../agents/ROLES.md) | Specialised role responsibilities and approvals | Assigning or fulfilling roles |
 | [`../agents/TEMPLATES/`](../agents/TEMPLATES) | Task brief, context package, and quality report templates | Documenting and auditing work |
