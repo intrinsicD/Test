@@ -64,7 +64,7 @@
         "docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md",
         "docs/archive/backlog/legacy/tasks/T-0116-rendering-vulkan-resource-translation.md",
         "docs/archive/backlog/legacy/tasks/T-0117-physics-contact-manifolds.md",
-        "docs/backlog/archive/RT-320-runtime-prototyping-harness.md",
+        "docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md",
         "docs/modules/physics/README.md",
         "docs/modules/physics/README.md",
         "docs/modules/rendering/README.md",
@@ -288,9 +288,9 @@
         "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
         "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
         "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md",
-        "docs/backlog/active/T-0119-command-encoder-integration.md",
-        "docs/backlog/active/TL-310-editor-foundations.md",
-        "docs/backlog/active/RT-410-runtime-stage-planner.md",
+        "docs/backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md",
+        "docs/backlog/active/TL_310_EDITOR_FOUNDATIONS.md",
+        "docs/backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md",
         "docs/modules/rendering/README.md",
         "docs/modules/tools/README.md",
         "docs/modules/tools/README.md",
@@ -356,7 +356,7 @@
       "references": [
         "docs/design/RT-320-prototyping-harness.md",
         "docs/design/AI-004-configuration-schema.md",
-        "docs/backlog/archive/DC-040-ai-004-configuration-schema.md",
+        "docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md",
         "docs/modules/geometry/README.md"
       ]
     },
@@ -420,8 +420,8 @@
         "docs/specs/README.md",
         "docs/archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md",
         "docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md",
-        "docs/backlog/active/T-0119-command-encoder-integration.md",
-        "docs/backlog/active/T-0120-gpu-resource-provider.md",
+        "docs/backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md",
+        "docs/backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md",
         "docs/modules/rendering/README.md",
         "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
         "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
@@ -745,8 +745,8 @@
       "size": 10269,
       "lines": 128,
       "references": [
-        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
-        "docs/backlog/archive/RT-320-runtime-prototyping-harness.md"
+        "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md",
+        "docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md"
       ]
     },
     "docs/design/ERROR_HANDLING_MIGRATION.md": {
@@ -769,7 +769,7 @@
       "lines": 374,
       "references": [
         "docs/design/AI-004-prototyping-playbook.md",
-        "docs/backlog/archive/DC-040-ai-004-configuration-schema.md",
+        "docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md",
         "docs/modules/runtime/README.md"
       ]
     },
@@ -844,7 +844,7 @@
         "docs/NAVIGATION.md",
         "docs/design/RT-320-prototyping-harness.md",
         "docs/design/AI-004-prototyping-playbook.md",
-        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
+        "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md",
         "docs/modules/tools/README.md",
         "docs/modules/runtime/README.md"
       ]
@@ -895,7 +895,7 @@
       "references": [
         "docs/NAVIGATION.md",
         "docs/design/AI-004-configuration-schema.md",
-        "docs/backlog/archive/DC-040-ai-004-configuration-schema.md",
+        "docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md",
         "docs/modules/assets/README.md",
         "docs/modules/tools/README.md",
         "docs/modules/runtime/README.md",
@@ -1257,11 +1257,11 @@
       "lines": 183,
       "references": [
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
-        "docs/backlog/archive/RT-321-prototyping-case-studies.md"
+        "docs/archive/backlog/legacy/tasks/AI_004_KICKOFF_BRIEF.md",
+        "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md"
       ]
     },
-    "docs/archive/backlog/legacy/tasks/AS-330-reference-dataset-packages.md": {
+    "docs/archive/backlog/legacy/tasks/AS_330_REFERENCE_DATASET_PACKAGES.md": {
       "category": "completed",
       "reason": "Already in legacy archive",
       "modified": "2025-11-04T10:01:26.651242",
@@ -1269,11 +1269,11 @@
       "lines": 195,
       "references": [
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
-        "docs/backlog/archive/AS-330-reference-dataset-packages.md"
+        "docs/archive/backlog/legacy/tasks/AI_004_KICKOFF_BRIEF.md",
+        "docs/backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md"
       ]
     },
-    "docs/archive/backlog/legacy/tasks/DC-040-ai-004-configuration-schema-alignment.md": {
+    "docs/archive/backlog/legacy/tasks/DC_040_AI_004_CONFIGURATION_SCHEMA_ALIGNMENT.md": {
       "category": "completed",
       "reason": "Already in legacy archive",
       "modified": "2025-11-04T10:01:26.651242",
@@ -1281,7 +1281,7 @@
       "lines": 188,
       "references": [
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/backlog/archive/DC-040-ai-004-configuration-schema.md",
+        "docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md",
         "docs/modules/geometry/README.md"
       ]
     },
@@ -1293,9 +1293,9 @@
       "lines": 241,
       "references": [
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
-        "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md",
-        "docs/backlog/active/AI-004-kickoff-brief.md"
+        "docs/archive/backlog/legacy/tasks/AI_004_KICKOFF_BRIEF.md",
+        "docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md",
+        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md"
       ]
     },
     "docs/archive/backlog/legacy/tasks/T-0112-geometry-io-roundtrip-hardening.md": {
@@ -1339,7 +1339,7 @@
       "lines": 169,
       "references": [
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/backlog/active/T-0120-gpu-resource-provider.md"
+        "docs/backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md"
       ]
     },
     "docs/archive/backlog/legacy/tasks/CO-170-runtime-integration-sample.md": {
@@ -1363,7 +1363,7 @@
         "docs/archive/backlog/legacy/tasks/README.md"
       ]
     },
-    "docs/archive/backlog/legacy/tasks/TL-210-experiment-sandbox-ui.md": {
+    "docs/archive/backlog/legacy/tasks/TL_210_EXPERIMENT_SANDBOX_UI.md": {
       "category": "completed",
       "reason": "Already in legacy archive",
       "modified": "2025-11-04T10:01:26.652241",
@@ -1371,8 +1371,8 @@
       "lines": 203,
       "references": [
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
-        "docs/backlog/archive/TL-210-experiment-sandbox-ui.md"
+        "docs/archive/backlog/legacy/tasks/AI_004_KICKOFF_BRIEF.md",
+        "docs/backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md"
       ]
     },
     "docs/archive/backlog/legacy/tasks/RE-610-research-rendering-baseline.md": {
@@ -1386,7 +1386,7 @@
         "docs/backlog/archive/RE-610-research-rendering-baseline.md"
       ]
     },
-    "docs/archive/backlog/legacy/tasks/DC-041-ai-004-kickoff-readiness.md": {
+    "docs/archive/backlog/legacy/tasks/DC_041_AI_004_KICKOFF_READINESS.md": {
       "category": "completed",
       "reason": "Already in legacy archive",
       "modified": "2025-11-04T10:01:26.651242",
@@ -1425,7 +1425,7 @@
         "docs/archive/backlog/legacy/tasks/README.md"
       ]
     },
-    "docs/archive/backlog/legacy/tasks/CC-310-comparative-benchmark-automation.md": {
+    "docs/archive/backlog/legacy/tasks/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md": {
       "category": "completed",
       "reason": "Already in legacy archive",
       "modified": "2025-11-04T10:01:26.651242",
@@ -1433,7 +1433,7 @@
       "lines": 190,
       "references": [
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md"
+        "docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md"
       ]
     },
     "docs/archive/backlog/legacy/tasks/T-0125-math-convenience-rotation-builders.md": {
@@ -1494,11 +1494,11 @@
       "lines": 164,
       "references": [
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
-        "docs/backlog/archive/CC-311-benchmark-visualisation.md"
+        "docs/archive/backlog/legacy/tasks/AI_004_KICKOFF_BRIEF.md",
+        "docs/backlog/archive/CC_311_BENCHMARK_VISUALISATION.md"
       ]
     },
-    "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md": {
+    "docs/archive/backlog/legacy/tasks/AI_004_KICKOFF_BRIEF.md": {
       "category": "completed",
       "reason": "Already in legacy archive",
       "modified": "2025-11-04T10:01:26.651242",
@@ -1517,10 +1517,10 @@
       "references": [
         "docs/design/RT-320-prototyping-harness.md",
         "docs/archive/backlog/legacy/tasks/README.md",
-        "docs/backlog/archive/RT-320-runtime-prototyping-harness.md"
+        "docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md"
       ]
     },
-    "docs/backlog/archive/AS-330-reference-dataset-packages.md": {
+    "docs/backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md": {
       "category": "completed",
       "reason": "In archive directory",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1531,14 +1531,14 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/backlog/archive/PL-240-platform-filesystem-watcher-guidance.md",
-        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md",
-        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
-        "docs/backlog/active/2026-02-03-sprint-11.md",
-        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md",
+        "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md",
+        "docs/backlog/active/2026-02-03-SPRINT_11.md",
+        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
         "README.md"
       ]
     },
-    "docs/backlog/archive/DC-040-ai-004-configuration-schema.md": {
+    "docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md": {
       "category": "completed",
       "reason": "In archive directory",
       "modified": "2025-11-04T10:01:26.655241",
@@ -1548,20 +1548,20 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
-        "docs/backlog/archive/AS-330-reference-dataset-packages.md",
-        "docs/backlog/archive/CC-311-benchmark-visualisation.md",
-        "docs/backlog/archive/TL-210-experiment-sandbox-ui.md",
-        "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md",
-        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md",
-        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
-        "docs/backlog/archive/RT-320-runtime-prototyping-harness.md",
-        "docs/backlog/active/2026-02-03-sprint-11.md",
-        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md",
+        "docs/backlog/archive/CC_311_BENCHMARK_VISUALISATION.md",
+        "docs/backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md",
+        "docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md",
+        "docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md",
+        "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md",
+        "docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md",
+        "docs/backlog/active/2026-02-03-SPRINT_11.md",
+        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
         "docs/modules/runtime/AI004_CONFIGURATION_LOADER_DESIGN.md",
         "README.md"
       ]
     },
-    "docs/backlog/archive/CC-311-benchmark-visualisation.md": {
+    "docs/backlog/archive/CC_311_BENCHMARK_VISUALISATION.md": {
       "category": "completed",
       "reason": "In archive directory",
       "modified": "2025-11-04T10:01:26.655241",
@@ -1593,7 +1593,7 @@
         "docs/NAVIGATION.md"
       ]
     },
-    "docs/backlog/archive/TL-210-experiment-sandbox-ui.md": {
+    "docs/backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md": {
       "category": "completed",
       "reason": "In archive directory",
       "modified": "2025-11-04T10:01:26.655241",
@@ -1604,9 +1604,9 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/backlog/archive/PL-240-platform-filesystem-watcher-guidance.md",
-        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md",
-        "docs/backlog/active/2026-02-03-sprint-11.md",
-        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md",
+        "docs/backlog/active/2026-02-03-SPRINT_11.md",
+        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
         "README.md"
       ]
     },
@@ -1620,7 +1620,7 @@
         "docs/ROADMAP.md"
       ]
     },
-    "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md": {
+    "docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md": {
       "category": "completed",
       "reason": "In archive directory",
       "modified": "2025-11-04T10:01:26.655241",
@@ -1630,13 +1630,13 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
-        "docs/backlog/active/2026-02-03-sprint-11.md",
-        "docs/backlog/active/RT-410-runtime-stage-planner.md",
-        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "docs/backlog/active/2026-02-03-SPRINT_11.md",
+        "docs/backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md",
+        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
         "README.md"
       ]
     },
-    "docs/backlog/archive/CC-310-comparative-benchmark-automation.md": {
+    "docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md": {
       "category": "completed",
       "reason": "In archive directory",
       "modified": "2025-11-04T10:01:26.655241",
@@ -1645,12 +1645,12 @@
       "references": [
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
-        "docs/backlog/archive/CC-311-benchmark-visualisation.md",
-        "docs/backlog/archive/TL-210-experiment-sandbox-ui.md",
+        "docs/backlog/archive/CC_311_BENCHMARK_VISUALISATION.md",
+        "docs/backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md",
         "README.md"
       ]
     },
-    "docs/backlog/archive/RT-321-prototyping-case-studies.md": {
+    "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md": {
       "category": "completed",
       "reason": "In archive directory",
       "modified": "2025-11-04T10:01:26.655241",
@@ -1659,11 +1659,11 @@
       "references": [
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
-        "docs/backlog/archive/CC-311-benchmark-visualisation.md",
+        "docs/backlog/archive/CC_311_BENCHMARK_VISUALISATION.md",
         "README.md"
       ]
     },
-    "docs/backlog/archive/RT-320-runtime-prototyping-harness.md": {
+    "docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md": {
       "category": "completed",
       "reason": "In archive directory",
       "modified": "2025-11-04T10:01:26.655241",
@@ -1673,17 +1673,17 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
-        "docs/backlog/archive/AS-330-reference-dataset-packages.md",
-        "docs/backlog/archive/TL-210-experiment-sandbox-ui.md",
-        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md",
-        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
-        "docs/backlog/active/2026-02-03-sprint-11.md",
-        "docs/backlog/active/2026-02-03-sprint-11.md",
-        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md",
+        "docs/backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md",
+        "docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md",
+        "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md",
+        "docs/backlog/active/2026-02-03-SPRINT_11.md",
+        "docs/backlog/active/2026-02-03-SPRINT_11.md",
+        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
         "README.md"
       ]
     },
-    "docs/backlog/active/PM-510-weekly-integration-demos.md": {
+    "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md": {
       "category": "active",
       "reason": "Current documentation",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1694,15 +1694,15 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
-        "docs/backlog/active/T-0119-command-encoder-integration.md",
-        "docs/backlog/active/T-0120-gpu-resource-provider.md",
-        "docs/backlog/active/TL-310-editor-foundations.md",
+        "docs/backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md",
+        "docs/backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md",
+        "docs/backlog/active/TL_310_EDITOR_FOUNDATIONS.md",
         "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
         "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
         "README.md"
       ]
     },
-    "docs/backlog/active/T-0119-command-encoder-integration.md": {
+    "docs/backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md": {
       "category": "completed",
       "reason": "Task appears completed (contains completion markers)",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1713,12 +1713,12 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
-        "docs/backlog/active/PM-510-weekly-integration-demos.md",
-        "docs/backlog/active/PM-510-weekly-integration-demos.md",
-        "docs/backlog/active/T-0120-gpu-resource-provider.md",
-        "docs/backlog/active/T-0120-gpu-resource-provider.md",
-        "docs/backlog/active/RT-410-runtime-stage-planner.md",
-        "docs/backlog/active/RT-410-runtime-stage-planner.md",
+        "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md",
+        "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md",
+        "docs/backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md",
+        "docs/backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md",
+        "docs/backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md",
+        "docs/backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md",
         "docs/modules/rendering/README.md",
         "docs/modules/rendering/README.md",
         "docs/modules/tools/README.md",
@@ -1738,7 +1738,7 @@
         "README.md"
       ]
     },
-    "docs/backlog/active/T-0120-gpu-resource-provider.md": {
+    "docs/backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md": {
       "category": "completed",
       "reason": "Task appears completed (contains completion markers)",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1749,11 +1749,11 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
-        "docs/backlog/active/PM-510-weekly-integration-demos.md",
-        "docs/backlog/active/PM-510-weekly-integration-demos.md",
-        "docs/backlog/active/T-0119-command-encoder-integration.md",
-        "docs/backlog/active/T-0119-command-encoder-integration.md",
-        "docs/backlog/active/RT-410-runtime-stage-planner.md",
+        "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md",
+        "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md",
+        "docs/backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md",
+        "docs/backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md",
+        "docs/backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md",
         "docs/modules/rendering/README.md",
         "docs/modules/rendering/README.md",
         "docs/modules/runtime/README.md",
@@ -1772,7 +1772,7 @@
         "README.md"
       ]
     },
-    "docs/backlog/active/TL-310-editor-foundations.md": {
+    "docs/backlog/active/TL_310_EDITOR_FOUNDATIONS.md": {
       "category": "active",
       "reason": "Current documentation",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1782,8 +1782,8 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
-        "docs/backlog/active/PM-510-weekly-integration-demos.md",
-        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md",
+        "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md",
         "docs/modules/tools/README.md",
         "docs/modules/tools/README.md",
         "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
@@ -1792,7 +1792,7 @@
         "README.md"
       ]
     },
-    "docs/backlog/active/2026-02-03-sprint-11.md": {
+    "docs/backlog/active/2026-02-03-SPRINT_11.md": {
       "category": "active",
       "reason": "Current documentation",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1801,11 +1801,11 @@
       "references": [
         "docs/ROADMAP.md",
         "docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md",
-        "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md",
-        "docs/backlog/active/AI-004-kickoff-brief.md"
+        "docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md",
+        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md"
       ]
     },
-    "docs/backlog/active/PM-520-backlog-hygiene-remediation.md": {
+    "docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md": {
       "category": "active",
       "reason": "Current documentation",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1827,7 +1827,7 @@
         "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md"
       ]
     },
-    "docs/backlog/active/RT-410-runtime-stage-planner.md": {
+    "docs/backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md": {
       "category": "completed",
       "reason": "Task appears completed (contains completion markers)",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1838,10 +1838,10 @@
         "docs/ROADMAP.md",
         "docs/ROADMAP.md",
         "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
-        "docs/backlog/active/PM-510-weekly-integration-demos.md",
-        "docs/backlog/active/PM-510-weekly-integration-demos.md",
-        "docs/backlog/active/TL-310-editor-foundations.md",
-        "docs/backlog/active/TL-310-editor-foundations.md",
+        "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md",
+        "docs/backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md",
+        "docs/backlog/active/TL_310_EDITOR_FOUNDATIONS.md",
+        "docs/backlog/active/TL_310_EDITOR_FOUNDATIONS.md",
         "docs/modules/rendering/README.md",
         "docs/modules/tools/README.md",
         "docs/modules/runtime/README.md",
@@ -1887,7 +1887,7 @@
         "README.md"
       ]
     },
-    "docs/backlog/active/AI-004-kickoff-brief.md": {
+    "docs/backlog/active/AI_004_KICKOFF_BRIEF.md": {
       "category": "active",
       "reason": "Current documentation",
       "modified": "2025-11-04T10:01:26.654242",
@@ -1896,8 +1896,8 @@
       "references": [
         "docs/ROADMAP.md",
         "docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md",
-        "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md",
-        "docs/backlog/active/2026-02-03-sprint-11.md"
+        "docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md",
+        "docs/backlog/active/2026-02-03-SPRINT_11.md"
       ]
     },
     "docs/modules/physics/BACKLOG.md": {
@@ -2527,7 +2527,7 @@
       "size": 11242,
       "lines": 89,
       "references": [
-        "docs/backlog/active/PM-520-backlog-hygiene-remediation.md",
+        "docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md",
         "agents/context_packages/2026-03-01-backlog-roadmap-audit.md"
       ]
     },
@@ -2724,7 +2724,7 @@
       "size": 13227,
       "lines": 60,
       "references": [
-        "docs/backlog/active/PM-520-backlog-hygiene-remediation.md",
+        "docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md",
         "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md"
       ]
     },
@@ -2878,7 +2878,7 @@
         "docs/reviews/2026-01-08-application-readiness-assessment.md",
         "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
         "docs/reviews/2025-10-26-architecture-audit.md",
-        "docs/backlog/active/PM-520-backlog-hygiene-remediation.md",
+        "docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md",
         "agents/ROLES.md",
         "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
         "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
