@@ -2646,18 +2646,18 @@ TEST(RuntimeHost, MockPresentationBackendReceivesRuntimeContext)
         double delta{0.0};
         bool submit_available{false};
         bool host_matches{false};
+        engine::runtime::RuntimeHost* expected_host{nullptr};
     };
 
     auto capture = std::make_shared<PresentationCapture>();
-    auto host_ref = std::make_shared<engine::runtime::RuntimeHost*>(nullptr);
 
     auto backend = std::make_shared<engine::rendering::backend::mock::MockPresentationBackend>(
-        [capture, host_ref](const engine::rendering::RuntimePresentationContext& context)
+        [capture](const engine::rendering::RuntimePresentationContext& context)
         {
             capture->called = true;
             capture->delta = context.delta_seconds;
             capture->submit_available = context.submit_render_graph != nullptr;
-            capture->host_matches = (*host_ref == &context.host);
+            capture->host_matches = (capture->expected_host == &context.host);
         });
 
     engine::runtime::RuntimeHostDependencies deps{};
@@ -2668,7 +2668,7 @@ TEST(RuntimeHost, MockPresentationBackendReceivesRuntimeContext)
     deps.presentation_backend = backend;
 
     engine::runtime::RuntimeHost host{deps};
-    *host_ref = &host;
+    capture->expected_host = &host;
 
     host.initialize();
     const double dt = 0.016;
