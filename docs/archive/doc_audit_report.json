@@ -1295,7 +1295,7 @@
         "docs/archive/backlog/legacy/tasks/README.md",
         "docs/archive/backlog/legacy/tasks/AI_004_KICKOFF_BRIEF.md",
         "docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md",
-        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md"
+        "hybrid_workflow/backlog/AI-004-kickoff-brief.md"
       ]
     },
     "docs/archive/backlog/legacy/tasks/T-0112-geometry-io-roundtrip-hardening.md": {
@@ -1534,7 +1534,7 @@
         "docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md",
         "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md",
         "docs/backlog/active/2026-02-03-SPRINT_11.md",
-        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
+        "hybrid_workflow/backlog/AI-004-kickoff-brief.md",
         "README.md"
       ]
     },
@@ -1556,7 +1556,7 @@
         "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md",
         "docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md",
         "docs/backlog/active/2026-02-03-SPRINT_11.md",
-        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
+        "hybrid_workflow/backlog/AI-004-kickoff-brief.md",
         "docs/modules/runtime/AI004_CONFIGURATION_LOADER_DESIGN.md",
         "README.md"
       ]
@@ -1606,7 +1606,7 @@
         "docs/backlog/archive/PL-240-platform-filesystem-watcher-guidance.md",
         "docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md",
         "docs/backlog/active/2026-02-03-SPRINT_11.md",
-        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
+        "hybrid_workflow/backlog/AI-004-kickoff-brief.md",
         "README.md"
       ]
     },
@@ -1632,7 +1632,7 @@
         "docs/ROADMAP.md",
         "docs/backlog/active/2026-02-03-SPRINT_11.md",
         "docs/backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md",
-        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
+        "hybrid_workflow/backlog/AI-004-kickoff-brief.md",
         "README.md"
       ]
     },
@@ -1679,7 +1679,7 @@
         "docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md",
         "docs/backlog/active/2026-02-03-SPRINT_11.md",
         "docs/backlog/active/2026-02-03-SPRINT_11.md",
-        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md",
+        "hybrid_workflow/backlog/AI-004-kickoff-brief.md",
         "README.md"
       ]
     },
@@ -1802,7 +1802,7 @@
         "docs/ROADMAP.md",
         "docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md",
         "docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md",
-        "docs/backlog/active/AI_004_KICKOFF_BRIEF.md"
+        "hybrid_workflow/backlog/AI-004-kickoff-brief.md"
       ]
     },
     "docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md": {
@@ -1887,7 +1887,7 @@
         "README.md"
       ]
     },
-    "docs/backlog/active/AI_004_KICKOFF_BRIEF.md": {
+    "hybrid_workflow/backlog/AI-004-kickoff-brief.md": {
       "category": "active",
       "reason": "Current documentation",
       "modified": "2025-11-04T10:01:26.654242",

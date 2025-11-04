@@ -33,7 +33,7 @@ Successfully removed all date references from the entire workspace documentation
 
 | Old Name | New Name | Location |
 |----------|----------|----------|
-| `2026-02-03-SPRINT_11.md` | `SPRINT_11_ACTIVE.md` | `docs/backlog/active/` |
+| `2026-02-03-SPRINT_11.md` | `SPRINT-11-alignment.md` | `hybrid_workflow/backlog/` |
 | `2025-10-26-ARCHITECTURE_AUDIT.md` | `ARCHITECTURE_AUDIT.md` | `docs/reviews/` |
 | `2025-12-05-ROADMAP_DIRECTION_REVIEW.md` | `ROADMAP_DIRECTION_REVIEW.md` | `docs/reviews/` |
 | `2026-01-08-APPLICATION_READINESS_ASSESSMENT.md` | `APPLICATION_READINESS_ASSESSMENT.md` | `docs/reviews/` |
@@ -64,7 +64,7 @@ Successfully removed all date references from the entire workspace documentation
 - ✅ Simplified to essential archive structure
 
 ### Fixed Cross-References (8+ files)
-- `AI_004_KICKOFF_BRIEF.md` → SPRINT_11 reference
+- `AI-004-kickoff-brief.md` → SPRINT-11 reference
 - `DC_041_AI_004_KICKOFF_READINESS.md` → SPRINT_11 reference
 - `PM_520_BACKLOG_HYGIENE_REMEDIATION.md` → removed agent artifact references
 - `APPLICATION_FRAMEWORK_INDEX.md` → removed session summary references
@@ -106,10 +106,10 @@ agents/
     └── TASK_BRIEF_TEMPLATE.md
 
 docs/backlog/active/
-├── AI_004_KICKOFF_BRIEF.md
+├── AI-004-kickoff-brief.md
 ├── PM_510_WEEKLY_INTEGRATION_DEMOS.md
 ├── RT_410_RUNTIME_STAGE_PLANNER.md
-├── SPRINT_11_ACTIVE.md
+├── SPRINT-11-alignment.md
 ├── TL_310_EDITOR_FOUNDATIONS.md
 ├── T_0119_COMMAND_ENCODER_INTEGRATION.md
 └── T_0120_GPU_RESOURCE_PROVIDER.md

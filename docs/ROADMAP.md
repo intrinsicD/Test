@@ -31,7 +31,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 **Exit Criteria:** Schema approved, kickoff brief published, harness prototype booting sample datasets.
 
-**Completion:** All Phase 1 milestones delivered. Coordination artefacts: [`AI_004_KICKOFF_BRIEF.md`](backlog/active/AI_004_KICKOFF_BRIEF.md), [`SPRINT_11_ACTIVE.md`](backlog/active/SPRINT_11_ACTIVE.md).
+**Completion:** All Phase 1 milestones delivered. Coordination artefacts: [`AI-004-kickoff-brief.md`](../hybrid_workflow/backlog/AI-004-kickoff-brief.md), [`SPRINT-11-alignment.md`](../hybrid_workflow/backlog/SPRINT-11-alignment.md).
 
 ### Phase 2 — Harness & Dataset Integration *(Priorities 2–3)*
 | Priority | Backlog | Intent | Owner | Status |
