@@ -33,6 +33,7 @@
 #endif
 #include "engine/rendering/forward_pipeline.hpp"
 #if ENGINE_ENABLE_RENDERING
+#    include "engine/rendering/backend/mock/presentation_backend.hpp"
 #    include "engine/rendering/pipeline/research_baseline_telemetry.hpp"
 #    include "engine/rendering/presentation_backend.hpp"
 #endif
@@ -2514,6 +2515,32 @@ TEST(RuntimeHost, PresentationBackendInvoked)
 
     host.set_presentation_backend(nullptr);
     EXPECT_FALSE(host.presentation_stage_active());
+    host.shutdown();
+}
+
+TEST(RuntimeHost, MockPresentationBackendRecordsInvocation)
+{
+    engine::runtime::RuntimeHost host{};
+    auto backend = std::make_shared<engine::rendering::backend::mock::MockPresentationBackend>();
+    bool callback_invoked = false;
+    backend->set_callback([
+        &callback_invoked,
+        &host
+    ](const engine::rendering::RuntimePresentationContext& context)
+    {
+        callback_invoked = true;
+        EXPECT_EQ(&context.host, &host);
+    });
+
+    host.set_presentation_backend(backend);
+    EXPECT_TRUE(host.presentation_stage_active());
+    host.initialize();
+    host.tick(0.016);
+
+    EXPECT_TRUE(callback_invoked);
+    EXPECT_EQ(backend->invocation_count(), 1U);
+    EXPECT_NEAR(backend->last_delta_seconds(), 0.016, 1e-6);
+
     host.shutdown();
 }
 

@@ -163,15 +163,15 @@ backend pointer is replaced so `presentation.dispatch` telemetry only appears
 when a callback or presenter is active. Rendering builds may attach presenters
 after initialization via `host.set_presentation_backend(...)` without
 reconfiguring dependencies, and new presenters activate immediately even if a
-callback was already registered.【F:engine/runtime/src/api.cpp†L2183-L2228】
+callback was already registered.
 Check whether presentation handlers are active through
 `host.presentation_stage_active()` (or the global
 `engine::runtime::presentation_stage_active()` helper) to gate tooling and
-diagnostics behaviour without parsing execution reports.【F:engine/runtime/include/engine/runtime/api.hpp†L303-L346】【F:engine/runtime/src/api.cpp†L2783-L2831】
+diagnostics behaviour without parsing execution reports.
 Tooling that links against the C interface can query
 `engine_runtime_presentation_stage_active()` (exposed in Python via
 `EngineRuntimeHandle.presentation_stage_active()`) for the same boolean without
-touching diagnostics payloads.【F:engine/runtime/include/engine/runtime/api.hpp†L334-L357】【F:python/engine3g/loader.py†L317-L420】
+touching diagnostics payloads.
 
 ### Lifecycle
 
@@ -234,10 +234,15 @@ the updated graph. Inspect the active plan via `RuntimeHost::loop_plan()` (or th
 
 `presentation.dispatch` bridges the simulation stack to presentation tooling. Provide a presenter by attaching a `rendering::PresentationBackend` to `RuntimeHostDependencies::presentation_backend`; the host invokes it every tick with a `rendering::RuntimePresentationContext` so the backend can submit frame-graph work, composite UI, or trigger readbacks before diagnostics run. Lightweight integrations may continue to register callbacks with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper). Both backends and callbacks receive the frame `dt` so presentation logic can track timing alongside simulation state.
 
+Headless workflows that run without a GPU-backed swap chain can attach
+`rendering::backend::mock::MockPresentationBackend` to keep the presentation
+stage active and capture invocation cadence for diagnostics or tests without
+driving real rendering hardware.
+
 Backends can also be swapped in and out after initialization through
 `RuntimeHost::set_presentation_backend()`, ensuring the presentation stage is
 recorded or removed from execution reports automatically as presenters become
-available.【F:engine/runtime/src/api.cpp†L2183-L2226】
+available.
 
 The rendering module now ships `rendering::backend::opengl::OpenGLPresentationBackend`
 for hosts that want a ready-made OpenGL execution path. Supply a mesh resolver
