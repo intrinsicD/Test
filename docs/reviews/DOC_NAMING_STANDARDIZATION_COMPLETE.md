@@ -109,7 +109,7 @@ The script automatically updated 533 cross-references across all markdown files:
 
 **Most updated files:**
 - `archive/backlog/legacy/tasks/README.md` - 25 references
-- `backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md` - 14 references
+- `backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md` - 14 references
 - `reviews/DOC_HYGIENE_COMPLETION_SUMMARY.md` - 7 references
 - `backlog/active/AI_004_KICKOFF_BRIEF.md` - 7 references
 - `modules/runtime/README.md` - 8 references

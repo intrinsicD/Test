@@ -7,7 +7,7 @@
 - **Title:** Backlog and Roadmap Hygiene Audit
 - **Roadmap / Backlog Reference:** [`docs/ROADMAP.md`](../../../ROADMAP.md) and active backlog entries under [`docs/backlog/active/`](../../../backlog/active)
 - **Primary Goal:** Assess alignment between the roadmap, active backlog items, and shipped implementation state for rendering, runtime, and tooling subsystems while flagging archival or scope corrections.【F:README.md†L5-L105】【F:docs/ROADMAP.md†L64-L118】【F:docs/modules/rendering/README.md†L1-L15】【F:docs/modules/runtime/README.md†L1-L36】【F:docs/modules/tools/README.md†L1-L14】
-- **Linked Workflow Artefacts:** Task brief (`agents/task_briefs/2026-03-01-BACKLOG_ROADMAP_AUDIT.md`), context package (`agents/context_packages/2026-03-01-BACKLOG_ROADMAP_AUDIT.md`), remediation backlog item ([`docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md`](../../../backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md))
+- **Linked Workflow Artefacts:** Task brief (`agents/task_briefs/2026-03-01-BACKLOG_ROADMAP_AUDIT.md`), context package (`agents/context_packages/2026-03-01-BACKLOG_ROADMAP_AUDIT.md`), remediation backlog item ([`docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md`](../../../backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md))
 
 ## 2. Scope & Boundaries
 - In scope:
@@ -32,7 +32,7 @@
 | 1 | [`README.md`](../../../../README.md) | Confirms context ladder process, module health snapshot, and build/test workflow.【F:README.md†L5-L142】 | Product Manager |
 | 2 | [`docs/NAVIGATION.md`](../../../NAVIGATION.md) | Documents directory structure, backlog/roadmap entry points, and precedence rules.【F:docs/NAVIGATION.md†L1-L113】 | Knowledge Librarian |
 | 3 | [`docs/ROADMAP.md`](../../../ROADMAP.md) | Phase breakdown shows Phase 4 tasks active while Phase 1–3 entries marked complete; roadmap snapshot still lists archived-ready entries.【F:docs/ROADMAP.md†L64-L118】 | Product Manager |
-| 4 | [`docs/backlog/active/`](../../../backlog/active) | Active directory still contains numerous "Complete" items (DC-040, DC-041, RT-320, etc.) plus PL-240 that is absent from roadmap tables; remediation task tracked under PM-520.【F:docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md†L1-L42】【F:docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md†L1-L31】【F:docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md†L1-L62】【F:docs/backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md†L1-L27】【F:docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L86】 | Knowledge Librarian |
+| 4 | [`docs/backlog/active/`](../../../backlog/active) | Active directory still contains numerous "Complete" items (DC-040, DC-041, RT-320, etc.) plus PL-240 that is absent from roadmap tables; remediation task tracked under PM-520.【F:docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md†L1-L42】【F:docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md†L1-L31】【F:docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md†L1-L62】【F:docs/backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md†L1-L27】【F:docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L86】 | Knowledge Librarian |
 | 5 | [`docs/modules/rendering/README.md`](../../../modules/rendering/README.md) | Rendering remains blocked pending T-0119/T-0120; verifies backlog statuses against subsystem reality.【F:docs/modules/rendering/README.md†L1-L15】 | Specialist Engineer |
 | 6 | [`docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md`](../../../specs/ADR_0003_RUNTIME_FRAME_GRAPH.md) & [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) | Establishes binding requirements for GPU/resource work and runtime stage planner integration.【F:docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md†L1-L24】【F:docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md†L1-L118】 | Chief Architect |
 | 7 | [`engine/rendering/src/backend/opengl/command_stream.cpp`](../../../../engine/rendering/src/backend/opengl/command_stream.cpp) & [`engine/runtime/src/api.cpp`](../../../../engine/runtime/src/api.cpp) | Code inspection shows command stream default stub and runtime presentation stage rebuild hooks—evidence of partial implementation aligning with backlog "In Progress" status.【F:engine/rendering/src/backend/opengl/command_stream.cpp†L13-L58】【F:engine/runtime/src/api.cpp†L2160-L2228】 | Specialist Engineer |
@@ -72,7 +72,7 @@
   - Archival actions might desynchronise navigation links if not coordinated.【F:docs/NAVIGATION.md†L96-L107】
 - Dependencies:
   - Rendering and runtime leads to confirm status for T-0119, T-0120, RT-410.【F:docs/backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md†L1-L38】【F:docs/backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md†L1-L38】【F:docs/backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md†L1-L37】
-  - Docs/DevRel to execute archival moves and update navigation via PM-520.【F:docs/NAVIGATION.md†L21-L33】【F:docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L86】
+  - Docs/DevRel to execute archival moves and update navigation via PM-520.【F:docs/NAVIGATION.md†L21-L33】【F:docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L86】
 - Mitigations / contingency:
   - Stage archival via PR with navigation updates and docs validator to prevent broken links.【F:README.md†L122-L142】【F:docs/NAVIGATION.md†L99-L107】
 

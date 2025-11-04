@@ -53,7 +53,7 @@ docs/archive/
   - Additional context packages for incremental work items
 
 **Cross-References:** Some archived task briefs are referenced in:
-- `docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md` (references 2026-03-01-BACKLOG_ROADMAP_AUDIT.md)
+- `docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md` (references 2026-03-01-BACKLOG_ROADMAP_AUDIT.md)
 - `docs/reviews/APPLICATION_FRAMEWORK_INDEX.md` (references application framework artifacts)
 - `docs/reviews/SESSION_SUMMARY_*.md` (references various completed tasks)
 

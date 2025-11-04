@@ -5,7 +5,7 @@
 
 ## 1. Summary
 - **Title:** Guard geometry_viewer example behind GLAD/GLFW availability
-- **Roadmap / Backlog Reference:** [`PM-520`](../../../backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) follow-up quality gate to restore canonical build flow
+- **Roadmap / Backlog Reference:** [`PM-520`](../../../backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) follow-up quality gate to restore canonical build flow
 - **Primary Goal:** Allow the canonical build configure step to succeed when GLAD code generation is unavailable so PM-520 validation can proceed.
 - **Linked Workflow Artefacts:** Task brief (this file); context package ([`../context_packages/2026-03-06-GLAD_CONFIGURE_FALLBACK.md`](../context_packages/2026-03-06-GLAD_CONFIGURE_FALLBACK.md)); quality report TBD
 
@@ -35,7 +35,7 @@
 | 1 | [`README.md`](../../../../README.md) | Canonical command block fails due to missing GLAD target; need guard so configure succeeds.【F:README.md†L74-L142】【f7515f†L1-L19】 | PM |
 | 2 | [`docs/NAVIGATION.md`](../../../NAVIGATION.md) | Confirms workflow precedence and requirement to sync module docs after changes.【F:docs/NAVIGATION.md†L1-L113】 | PM |
 | 3 | [`docs/ROADMAP.md`](../../../ROADMAP.md) | Phase 4 milestones depend on GPU/tooling readiness; build stability unblocks demo cadence.【F:docs/ROADMAP.md†L64-L118】 | PM |
-| 4 | [`docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md`](../../../backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) | Quality gate follow-up requires rerunning canonical build commands once dependencies restored.【F:docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L64】 | PM |
+| 4 | [`docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md`](../../../backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) | Quality gate follow-up requires rerunning canonical build commands once dependencies restored.【F:docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L64】 | PM |
 | 5 | [`docs/modules/tools/README.md`](../../../modules/tools/README.md) | Geometry_viewer lives in disabled tools module; docs need to explain conditional build behaviour.【F:docs/modules/tools/README.md†L1-L24】 | PM |
 | 6 | [`third_party/cmake/glad.cmake`](../../../../third_party/cmake/glad.cmake) | Confirms `glad::gl_core` missing when Python/Jinja absent; example must tolerate it.【F:third_party/cmake/glad.cmake†L1-L33】 | PM |
 | 7 | [`engine/tools/examples/CMakeLists.txt`](../../../../engine/tools/examples/CMakeLists.txt) | Current linking unconditionally requires `glad::gl_core`, causing configure failure.【F:engine/tools/examples/CMakeLists.txt†L1-L19】 | PM |

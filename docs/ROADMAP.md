@@ -69,7 +69,6 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | 1 | [`RT-410`](backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | In Progress |
 | 2 | [`TL-310`](backlog/active/TL_310_EDITOR_FOUNDATIONS.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Sequenced (awaits RT-410 hooks) |
 | 2 | [`PM-510`](backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
-| 2 | [`PM-520`](backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) | Archive completed backlog entries and sync roadmap/navigation per audit findings. | Docs/DevRel | Planned |
 
 **Exit Criteria:** OpenGL/Vulkan execute real workloads with shader pipelines, runtime presentation loop synchronises with tooling, and the editor/tooling stack is buildable with baseline smoke coverage.
 
@@ -91,10 +90,9 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | [`RT-410`](backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
 | [`TL-310`](backlog/active/TL_310_EDITOR_FOUNDATIONS.md) | 2 | Sequenced | Editor builds remain disabled; work scheduled to start once RT-410 adapters merge. |
 | [`PM-510`](backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned. |
-| [`PM-520`](backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) | 2 | Planned | Executes backlog/roadmap archival cleanup identified by the March 2026 audit. |
-
+| [`PM-520`](backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) | 2 | Planned | Executes backlog/roadmap archival cleanup identified by the March 2026 audit. |
 > Archived backlog entries: [`DC-040`](backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [`DC-041`](backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [`RT-320`](backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md), [`TL-210`](backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [`RT-321`](backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md), [`AS-330`](backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [`CC-310`](backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [`CC-311`](backlog/archive/CC_311_BENCHMARK_VISUALISATION.md), and [`PL-240`](backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md) now reside under `docs/backlog/archive/` following PM-520 remediation.
-
+> Archived backlog entries: [`DC-040`](backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [`DC-041`](backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [`RT-320`](backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md), [`TL-210`](backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [`RT-321`](backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md), [`AS-330`](backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [`CC-310`](backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [`CC-311`](backlog/archive/CC_311_BENCHMARK_VISUALISATION.md), [`PL-240`](backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md), and [`PM-520`](backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) now reside under `docs/backlog/archive/` following PM-520 remediation (completed 2026-11-04).
 ## Risks & Mitigations
 
 | Priority | Risk | Owner | Mitigation | Mitigation Due |

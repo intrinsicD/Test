@@ -4,7 +4,7 @@
 
 ## 1. Task Reference
 - **Task Brief:** [`../task_briefs/2026-03-06-GLAD_CONFIGURE_FALLBACK.md`](../task_briefs/2026-03-06-GLAD_CONFIGURE_FALLBACK.md)
-- **Backlog Entry:** [`docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md`](../../../backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md)
+- **Backlog Entry:** [`docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md`](../../../backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md)
 - **Roadmap Link:** [`docs/ROADMAP.md#phase-4--gpu-execution--tooling-readiness-priorities-1–2`](../../../ROADMAP.md#phase-4--gpu-execution--tooling-readiness-priorities-1–2)
 - **Workflow Phase:** Phase 2 — Context Assembly (handoff to Specialist Engineer)
 
@@ -12,7 +12,7 @@
 - Current behaviour: CMake configure fails on the canonical preset because the geometry_viewer example always links against `glad::gl_core`, which is absent when GLAD generation is skipped due to missing Python/Jinja dependencies.【f7515f†L1-L19】【F:engine/tools/examples/CMakeLists.txt†L1-L19】【F:third_party/cmake/glad.cmake†L1-L33】
 - Desired behaviour: Configure should succeed by skipping or adjusting geometry_viewer when its optional dependencies are unavailable so QA can run the canonical build pipeline documented in the README.【F:README.md†L122-L142】
 - Constraints / invariants: Must respect platform backend fallback guidance (GLFW optional, mock backend default when dependencies missing) and avoid re-enabling disabled tooling features tracked by TL-310.【F:docs/modules/platform/README.md†L474-L526】【F:docs/modules/tools/README.md†L1-L24】
-- Quality budgets / telemetry notes: No runtime performance impact; goal is to restore build/test automation for PM-520 quality follow-up.【F:docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L64】
+- Quality budgets / telemetry notes: No runtime performance impact; goal is to restore build/test automation for PM-520 quality follow-up.【F:docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L64】
 
 ## 3. Key Artefacts
 | Type | Location | Notes | Context Ladder Step |
@@ -30,7 +30,7 @@
 | 1 | [`README.md`](../../../../README.md) | Canonical quality instrumentation block must succeed; currently blocked by configure failure.【F:README.md†L122-L142】【f7515f†L1-L19】 | Knowledge Librarian | Ensure post-fix commands logged |
 | 2 | [`docs/NAVIGATION.md`](../../../NAVIGATION.md) | Confirms documentation precedence and need to sync module READMEs after changes.【F:docs/NAVIGATION.md†L1-L113】 | Knowledge Librarian | Update tools README |
 | 3 | [`docs/ROADMAP.md`](../../../ROADMAP.md) | Phase 4 readiness depends on stable GPU/tooling demos; configure fix supports this cadence.【F:docs/ROADMAP.md†L64-L118】 | Knowledge Librarian | Reference in task brief |
-| 4 | [`docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md`](../../../backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) | Outstanding follow-up requires rerunning canonical commands after dependency fix.【F:docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L64】 | Knowledge Librarian | Close loop in quality report |
+| 4 | [`docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md`](../../../backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) | Outstanding follow-up requires rerunning canonical commands after dependency fix.【F:docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md†L1-L64】 | Knowledge Librarian | Close loop in quality report |
 | 5 | [`docs/modules/tools/README.md`](../../../modules/tools/README.md) | Document conditional behaviour for geometry_viewer and keep scope limited to tooling module. | Knowledge Librarian | Add note about optional build |
 | 5 | [`docs/modules/platform/README.md`](../../../modules/platform/README.md) | Reinforces optional GLFW backend; our change must preserve fallback semantics.【F:docs/modules/platform/README.md†L474-L526】 | Knowledge Librarian | Ensure CMake guard respects flag |
 | 6 | [`third_party/cmake/glad.cmake`](../../../../third_party/cmake/glad.cmake) | GLAD target omitted when Python/Jinja missing; we must not assume it exists. | Knowledge Librarian | Condition example on target |

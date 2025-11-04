@@ -168,7 +168,7 @@ docs/archive/
 4. **docs/reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md**
    - Updated 3 links to archived task briefs/context packages
 
-5. **docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md**
+5. **docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md**
    - Updated 2 links to archived context package
 
 ### Archived Files Updated (88+ files)
@@ -202,7 +202,7 @@ A  docs/archive/agents/task_briefs/ (21 files)
 A  docs/archive/backlog/legacy/modules/ (2 files)
 A  docs/archive/design/ (1 file)
 A  docs/archive/reviews/legacy/ (3 files)
-M  docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md
+M  docs/backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md
 M  docs/reviews/APPLICATION_FRAMEWORK_INDEX.md
 M  docs/reviews/SESSION_SUMMARY_2025_11_03.md
 M  docs/reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md
