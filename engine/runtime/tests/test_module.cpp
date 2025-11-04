@@ -2623,6 +2623,66 @@ TEST(RuntimeHost, PresentationBackendHotSwapRebuildsLoopPlan)
 
     host.shutdown();
 }
+
+TEST(RuntimeHost, MockPresentationBackendReceivesRuntimeContext)
+{
+    ScopedHandleValidators handle_validators;
+
+    engine::assets::MeshHandle mesh_handle{std::string{"runtime.mesh"}};
+    engine::assets::MeshHandle::pool_handle_type mesh_raw{};
+    mesh_raw.index = 0U;
+    mesh_raw.generation = 1U;
+    mesh_handle.bind(mesh_raw);
+
+    engine::assets::MaterialHandle material_handle{std::string{"runtime.material"}};
+    engine::assets::MaterialHandle::pool_handle_type material_raw{};
+    material_raw.index = 0U;
+    material_raw.generation = 1U;
+    material_handle.bind(material_raw);
+
+    struct PresentationCapture
+    {
+        bool called{false};
+        double delta{0.0};
+        bool submit_available{false};
+        bool host_matches{false};
+        engine::runtime::RuntimeHost* expected_host{nullptr};
+    };
+
+    auto capture = std::make_shared<PresentationCapture>();
+
+    auto backend = std::make_shared<engine::rendering::backend::mock::MockPresentationBackend>(
+        [capture](const engine::rendering::RuntimePresentationContext& context)
+        {
+            capture->called = true;
+            capture->delta = context.delta_seconds;
+            capture->submit_available = context.submit_render_graph != nullptr;
+            capture->host_matches = (capture->expected_host == &context.host);
+        });
+
+    engine::runtime::RuntimeHostDependencies deps{};
+    deps.render_geometry = engine::rendering::components::RenderGeometry::from_mesh(
+        mesh_handle,
+        material_handle);
+    deps.renderable_name = "runtime.renderable";
+    deps.presentation_backend = backend;
+
+    engine::runtime::RuntimeHost host{deps};
+    capture->expected_host = &host;
+
+    host.initialize();
+    const double dt = 0.016;
+    host.tick(dt);
+
+    EXPECT_TRUE(host.presentation_stage_active());
+    EXPECT_EQ(backend->invocation_count(), 1U);
+    EXPECT_TRUE(capture->called);
+    EXPECT_TRUE(capture->submit_available);
+    EXPECT_TRUE(capture->host_matches);
+    EXPECT_NEAR(capture->delta, dt, 1e-9);
+
+    host.shutdown();
+}
 #endif
 
 TEST(RuntimeModule, ConfiguresGlobalHostWithRegistrySelection)
