@@ -155,6 +155,15 @@ The hybrid workflow integrates with existing project infrastructure:
 python -m scripts.workflow.report_hybrid_status
 ```
 
+### Generate Task Dashboard
+```bash
+python -m scripts.workflow.dashboard --output-dir build/hybrid-dashboard
+```
+
+This command writes `index.html` and `tasks.json` containing the current task
+snapshot. Publish the HTML artifact to share progress during roadmap or PM-510
+demos.
+
 ### Query Ready Tasks
 ```bash
 grep -l "^status: ready" hybrid_workflow/backlog/*.md
