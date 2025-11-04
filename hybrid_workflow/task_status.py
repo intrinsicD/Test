@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Task Status Dashboard
+"""Task Status Dashboard.
 
 Query and display task status from hybrid workflow metadata.
 Demonstrates automation capabilities of the metadata-driven approach.
@@ -10,10 +9,9 @@ Usage:
 """
 
 import argparse
-import re
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
-from dataclasses import dataclass, field
 
 
 @dataclass
@@ -31,7 +29,7 @@ class Task:
     relates_to: List[str] = field(default_factory=list)
     blocked_on: List[str] = field(default_factory=list)
     links: List[str] = field(default_factory=list)
-    file_path: Path = None
+    file_path: Optional[Path] = None
 
 
 def parse_frontmatter(content: str) -> Dict[str, str]:
