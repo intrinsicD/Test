@@ -1,0 +1,2995 @@
+{
+  "timestamp": "2025-11-04T10:03:54.464687",
+  "total_files": 225,
+  "categories": {
+    "active": 114,
+    "completed": 95,
+    "duplicate": 0,
+    "outdated": 0,
+    "orphaned": 16
+  },
+  "files": {
+    "docs/GLOSSARY.md": {
+      "category": "active",
+      "reason": "Core documentation (keep)",
+      "modified": "2025-11-04T10:01:26.650241",
+      "size": 12016,
+      "lines": 208,
+      "references": []
+    },
+    "docs/ARCHITECTURE.md": {
+      "category": "active",
+      "reason": "Core documentation (keep)",
+      "modified": "2025-11-04T10:01:26.650241",
+      "size": 4959,
+      "lines": 42,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/prompts/ARCHITECTURE-AUDIT.md",
+        "docs/prompts/REVIEW-CHECKLIST.md",
+        "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md",
+        "docs/modules/physics/README.md",
+        "docs/modules/scene/README.md",
+        "docs/modules/platform/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/compute/README.md",
+        "docs/modules/core/README.md",
+        "CONTRIBUTION.md"
+      ]
+    },
+    "docs/ROADMAP.md": {
+      "category": "active",
+      "reason": "Core documentation (keep)",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 10901,
+      "lines": 114,
+      "references": [
+        "docs/ARCHITECTURE.md",
+        "docs/NAVIGATION.md",
+        "docs/specs/ADR-0007-ai-004-configuration-schema.md",
+        "docs/prompts/REFACTOR-PLAYBOOK.md",
+        "docs/reviews/2025-12-05-roadmap-direction-review.md",
+        "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/2026-01-08-application-readiness-assessment.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md",
+        "docs/archive/backlog/legacy/tasks/T-0118-testing-framework-upgrade.md",
+        "docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md",
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md",
+        "docs/archive/backlog/legacy/tasks/T-0116-rendering-vulkan-resource-translation.md",
+        "docs/archive/backlog/legacy/tasks/T-0117-physics-contact-manifolds.md",
+        "docs/backlog/archive/RT-320-runtime-prototyping-harness.md",
+        "docs/modules/physics/README.md",
+        "docs/modules/physics/README.md",
+        "docs/modules/rendering/README.md",
+        "docs/modules/assets/README.md",
+        "docs/modules/io/DETECTION_FUZZING_PLAYBOOK.md",
+        "docs/modules/platform/README.md",
+        "docs/modules/platform/README.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/geometry/README.md",
+        "docs/modules/geometry/README.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/task_briefs/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md",
+        "AGENTS.md",
+        "README.md",
+        "README.md"
+      ]
+    },
+    "docs/README_TEMPLATE.md": {
+      "category": "active",
+      "reason": "Template file (keep)",
+      "modified": "2025-11-04T10:01:26.650241",
+      "size": 1283,
+      "lines": 34,
+      "references": []
+    },
+    "docs/NAVIGATION.md": {
+      "category": "active",
+      "reason": "Core documentation (keep)",
+      "modified": "2025-11-04T10:01:26.650241",
+      "size": 7268,
+      "lines": 116,
+      "references": [
+        "docs/prompts/IMPLEMENTATION-PLAYBOOK.md",
+        "docs/prompts/ARCHITECTURE-AUDIT.md",
+        "docs/prompts/REVIEW-CHECKLIST.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md",
+        "AGENTS.md",
+        "AGENTS.md",
+        "AGENTS.md",
+        "AGENTS.md",
+        "README.md"
+      ]
+    },
+    "docs/archive/README.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 1855,
+      "lines": 34,
+      "references": []
+    },
+    "docs/examples/GEOMETRY_VIEWER_COMPLETION_GUIDE.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 9304,
+      "lines": 360,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md"
+      ]
+    },
+    "docs/examples/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 5198,
+      "lines": 129,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/examples/GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 9095,
+      "lines": 281,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md"
+      ]
+    },
+    "docs/backlog/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 2435,
+      "lines": 68,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/specs/ADR-0008-runtime-main-loop-and-tooling.md": {
+      "category": "active",
+      "reason": "Architecture Decision Record (keep)",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 7684,
+      "lines": 136,
+      "references": [
+        "docs/specs/README.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md",
+        "docs/backlog/active/T-0119-command-encoder-integration.md",
+        "docs/backlog/active/TL-310-editor-foundations.md",
+        "docs/backlog/active/RT-410-runtime-stage-planner.md",
+        "docs/modules/rendering/README.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md"
+      ]
+    },
+    "docs/specs/ADR-0007-ai-004-configuration-schema.md": {
+      "category": "active",
+      "reason": "Architecture Decision Record (keep)",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 7623,
+      "lines": 155,
+      "references": [
+        "docs/design/RT-320-prototyping-harness.md",
+        "docs/design/AI-004-configuration-schema.md",
+        "docs/backlog/archive/DC-040-ai-004-configuration-schema.md",
+        "docs/modules/geometry/README.md"
+      ]
+    },
+    "docs/specs/ADR-0005-geometry-io-roundtrip.md": {
+      "category": "active",
+      "reason": "Architecture Decision Record (keep)",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 1897,
+      "lines": 28,
+      "references": [
+        "docs/ARCHITECTURE.md",
+        "docs/specs/README.md",
+        "docs/design/GE-212-REMESHING_PARAMETERIZATION_RFP.md",
+        "docs/archive/backlog/legacy/tasks/T-0112-geometry-io-roundtrip-hardening.md",
+        "docs/modules/assets/README.md",
+        "docs/modules/io/README.md"
+      ]
+    },
+    "docs/specs/AN-240-state-machine-authoring.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 5895,
+      "lines": 143,
+      "references": [
+        "docs/specs/README.md",
+        "docs/modules/animation/BACKLOG.md",
+        "docs/modules/animation/README.md"
+      ]
+    },
+    "docs/specs/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 1327,
+      "lines": 18,
+      "references": []
+    },
+    "docs/specs/ADR-0006-animation-deformation.md": {
+      "category": "active",
+      "reason": "Architecture Decision Record (keep)",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 2699,
+      "lines": 58,
+      "references": [
+        "docs/specs/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md",
+        "docs/modules/animation/README.md"
+      ]
+    },
+    "docs/specs/ADR-0003-runtime-frame-graph.md": {
+      "category": "active",
+      "reason": "Architecture Decision Record (keep)",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 2150,
+      "lines": 24,
+      "references": [
+        "docs/ARCHITECTURE.md",
+        "docs/ROADMAP.md",
+        "docs/specs/ADR-0008-runtime-main-loop-and-tooling.md",
+        "docs/specs/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md",
+        "docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md",
+        "docs/backlog/active/T-0119-command-encoder-integration.md",
+        "docs/backlog/active/T-0120-gpu-resource-provider.md",
+        "docs/modules/rendering/README.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md"
+      ]
+    },
+    "docs/architecture/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 956,
+      "lines": 28,
+      "references": [
+        "docs/ARCHITECTURE.md",
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/prompts/IMPLEMENTATION-PLAYBOOK.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 7117,
+      "lines": 142,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/archive/prints/IMPLEMENTATION_PROMPT.md"
+      ]
+    },
+    "docs/prompts/ARCHITECTURE-AUDIT.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 9157,
+      "lines": 196,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/prompts/MASTER-AGENT-PROMPT.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 8352,
+      "lines": 144,
+      "references": []
+    },
+    "docs/prompts/REFACTOR-PLAYBOOK.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 8668,
+      "lines": 170,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/prompts/REVIEW-CHECKLIST.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 6173,
+      "lines": 126,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/reviews/TASK_COMPLETION_SUMMARY.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 16557,
+      "lines": 457,
+      "references": []
+    },
+    "docs/reviews/2025-12-05-roadmap-direction-review.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 4160,
+      "lines": 42,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 13315,
+      "lines": 425,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md"
+      ]
+    },
+    "docs/reviews/2025-03-22-scene-docs.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 635,
+      "lines": 20,
+      "references": [
+        "docs/archive/prints/SC-220-DOCUMENTATION-REFRESH.md"
+      ]
+    },
+    "docs/reviews/2026-02-10-comprehensive-architecture-evaluation.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 52573,
+      "lines": 1563,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/reviews/ARCHITECTURE_EVALUATION_EXECUTIVE_SUMMARY.md"
+      ]
+    },
+    "docs/reviews/APPLICATION_FRAMEWORK_PHASE2_COMPLETE.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 9879,
+      "lines": 347,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md"
+      ]
+    },
+    "docs/reviews/SESSION_SUMMARY_2025-11-04.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 13639,
+      "lines": 401,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md"
+      ]
+    },
+    "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 6443,
+      "lines": 177,
+      "references": []
+    },
+    "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 11547,
+      "lines": 392,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md"
+      ]
+    },
+    "docs/reviews/ARCHITECTURE_EVALUATION_EXECUTIVE_SUMMARY.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 7916,
+      "lines": 212,
+      "references": []
+    },
+    "docs/reviews/2026-01-08-application-readiness-assessment.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 4940,
+      "lines": 61,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/reviews/APPLICATION_FRAMEWORK_PROPOSAL.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 15188,
+      "lines": 540,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md"
+      ]
+    },
+    "docs/reviews/SESSION_SUMMARY_2025-11-03.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 14256,
+      "lines": 410,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md"
+      ]
+    },
+    "docs/reviews/APPLICATION_FRAMEWORK_PHASE1_COMPLETE.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 7683,
+      "lines": 232,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md"
+      ]
+    },
+    "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 10602,
+      "lines": 304,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md"
+      ]
+    },
+    "docs/reviews/MISSING_COMPONENTS_SUMMARY.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 8370,
+      "lines": 303,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md"
+      ]
+    },
+    "docs/reviews/2025-10-26-architecture-audit.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.659242",
+      "size": 3272,
+      "lines": 30,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/design/CC-310-benchmark-playbook.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 5520,
+      "lines": 120,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/design/TELEMETRY_SCHEMA.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 6603,
+      "lines": 152,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/design/TELEMETRY_INSTRUMENTATION_GUIDE.md",
+        "docs/design/TELEMETRY_INSTRUMENTATION_GUIDE.md",
+        "docs/modules/scene/DIAGNOSTICS.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/DIAGNOSTICS.md",
+        "docs/modules/core/BACKLOG.md",
+        "docs/modules/core/README.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md"
+      ]
+    },
+    "docs/design/ARCHITECTURE_IMPROVEMENT_PLAN.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 267,
+      "lines": 4,
+      "references": [
+        "docs/design/TELEMETRY_INSTRUMENTATION_GUIDE.md"
+      ]
+    },
+    "docs/design/RT-320-prototyping-harness.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 10269,
+      "lines": 128,
+      "references": [
+        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
+        "docs/backlog/archive/RT-320-runtime-prototyping-harness.md"
+      ]
+    },
+    "docs/design/ERROR_HANDLING_MIGRATION.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 2875,
+      "lines": 58,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/core/README.md",
+        "CONTRIBUTION.md"
+      ]
+    },
+    "docs/design/AI-004-configuration-schema.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 18792,
+      "lines": 374,
+      "references": [
+        "docs/design/AI-004-prototyping-playbook.md",
+        "docs/backlog/archive/DC-040-ai-004-configuration-schema.md",
+        "docs/modules/runtime/README.md"
+      ]
+    },
+    "docs/design/TL-210-accessibility-checklist.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 2785,
+      "lines": 65,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/design/CO-170-runtime-integration-playbook.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 8050,
+      "lines": 155,
+      "references": [
+        "docs/modules/compute/README.md"
+      ]
+    },
+    "docs/design/TL-210-experiment-sandbox.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 7307,
+      "lines": 152,
+      "references": [
+        "docs/modules/tools/README.md"
+      ]
+    },
+    "docs/design/AN-230.2-gpu-telemetry.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 4492,
+      "lines": 91,
+      "references": [
+        "docs/design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md"
+      ]
+    },
+    "docs/design/PLUGIN_ARCHITECTURE.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 2773,
+      "lines": 49,
+      "references": [
+        "docs/modules/core/README.md"
+      ]
+    },
+    "docs/design/MATERIAL_PERSISTENCE_STRATEGY.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 11567,
+      "lines": 216,
+      "references": [
+        "docs/modules/assets/BACKLOG.md",
+        "docs/modules/assets/README.md"
+      ]
+    },
+    "docs/design/RT-321-case-studies.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 4763,
+      "lines": 103,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/design/RT-320-prototyping-harness.md",
+        "docs/design/AI-004-prototyping-playbook.md",
+        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/runtime/README.md"
+      ]
+    },
+    "docs/design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 5245,
+      "lines": 108,
+      "references": [
+        "docs/modules/compute/README.md",
+        "docs/modules/animation/BACKLOG.md",
+        "docs/modules/animation/README.md"
+      ]
+    },
+    "docs/design/RESOURCE_MANAGEMENT.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 4077,
+      "lines": 86,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/assets/README.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md"
+      ]
+    },
+    "docs/design/ASYNC_STREAMING.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 13755,
+      "lines": 284,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md",
+        "docs/modules/assets/README.md",
+        "docs/modules/runtime/DIAGNOSTICS.md",
+        "docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md"
+      ]
+    },
+    "docs/design/AI-004-prototyping-playbook.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 11794,
+      "lines": 267,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/design/AI-004-configuration-schema.md",
+        "docs/backlog/archive/DC-040-ai-004-configuration-schema.md",
+        "docs/modules/assets/README.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/runtime/README.md",
+        "README.md"
+      ]
+    },
+    "docs/design/GE-212-REMESHING_PARAMETERIZATION_RFP.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 12828,
+      "lines": 232,
+      "references": [
+        "docs/modules/geometry/BACKLOG.md",
+        "docs/modules/geometry/README.md"
+      ]
+    },
+    "docs/design/AN-230-benchmark-harness-design.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 3857,
+      "lines": 84,
+      "references": []
+    },
+    "docs/design/TELEMETRY_INSTRUMENTATION_GUIDE.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 7265,
+      "lines": 180,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/core/README.md"
+      ]
+    },
+    "docs/templates/RESEARCH_PAPER_TEMPLATE.md": {
+      "category": "active",
+      "reason": "Template file (keep)",
+      "modified": "2025-11-04T10:01:26.660242",
+      "size": 1933,
+      "lines": 44,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/modules/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 1099,
+      "lines": 20,
+      "references": []
+    },
+    "docs/archive/prints/AI-002-STREAMING-GEOMETRY-TELEMETRY.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 17521,
+      "lines": 336,
+      "references": []
+    },
+    "docs/archive/prints/RT-005-4-HIERARCHY-ALERT-THRESHOLDS.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 23757,
+      "lines": 373,
+      "references": []
+    },
+    "docs/archive/prints/TL-110-TELEMETRY-DOCS-FOLLOWUP.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 8313,
+      "lines": 163,
+      "references": []
+    },
+    "docs/archive/prints/MA-110-SIMD-VALIDATION-HARNESS-REVIEW.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 1602,
+      "lines": 35,
+      "references": []
+    },
+    "docs/archive/prints/AN-201-IMPLEMENTATION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 16199,
+      "lines": 314,
+      "references": []
+    },
+    "docs/archive/prints/AS-330-DIAGNOSTICS-SHELL-IMPLEMENTATION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 5785,
+      "lines": 79,
+      "references": []
+    },
+    "docs/archive/prints/IMPLEMENTATION_PROMPT.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 121,
+      "lines": 3,
+      "references": []
+    },
+    "docs/archive/prints/CC-002-3-SHADER-IMPLEMENTATION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 9932,
+      "lines": 208,
+      "references": []
+    },
+    "docs/archive/prints/README.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 1468,
+      "lines": 41,
+      "references": []
+    },
+    "docs/archive/prints/SC-220-DOCUMENTATION-REFRESH.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 19395,
+      "lines": 269,
+      "references": [
+        "docs/modules/scene/DIAGNOSTICS.md"
+      ]
+    },
+    "docs/archive/prints/MA-118-SOLVER-STABILITY-DOCUMENTATION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 4543,
+      "lines": 69,
+      "references": []
+    },
+    "docs/archive/prints/GE-212-GE-220-WORK-DIVISION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 6578,
+      "lines": 128,
+      "references": []
+    },
+    "docs/archive/prints/CO-150-CO-160-IMPLEMENTATION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 10535,
+      "lines": 209,
+      "references": []
+    },
+    "docs/archive/prints/CC-001-TELEMETRY-METRIC-PREFIX.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 14504,
+      "lines": 365,
+      "references": []
+    },
+    "docs/archive/prints/MA-110-SIMD-VALIDATION-HARNESS.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 6029,
+      "lines": 111,
+      "references": []
+    },
+    "docs/archive/prints/IO-230-IMPLEMENTATION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 8656,
+      "lines": 155,
+      "references": []
+    },
+    "docs/archive/prints/CR-135-IMPLEMENTATION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 5444,
+      "lines": 78,
+      "references": []
+    },
+    "docs/archive/prints/RT-005-3-HIERARCHY-DIAGNOSTICS-DOCS.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 21832,
+      "lines": 364,
+      "references": [
+        "docs/modules/scene/DIAGNOSTICS.md"
+      ]
+    },
+    "docs/archive/prints/CR-125-CR-130-IMPLEMENTATION.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 20537,
+      "lines": 423,
+      "references": []
+    },
+    "docs/archive/prints/RT-006-3-IO-DETECTION-DOCS.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.653241",
+      "size": 8580,
+      "lines": 170,
+      "references": []
+    },
+    "docs/archive/prints/SC-225-HIERARCHY-DIAGNOSTICS-SAMPLES.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 7512,
+      "lines": 160,
+      "references": []
+    },
+    "docs/archive/workflow-migration/RESTRUCTURE_SUMMARY.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 9104,
+      "lines": 236,
+      "references": []
+    },
+    "docs/archive/workflow-migration/DOCUMENTATION_RESTRUCTURE_PROPOSAL.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 11459,
+      "lines": 331,
+      "references": []
+    },
+    "docs/archive/workflow-migration/DOCUMENTATION_RESTRUCTURE_CHANGELOG.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 8655,
+      "lines": 296,
+      "references": []
+    },
+    "docs/archive/reviews/README.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 2990,
+      "lines": 81,
+      "references": []
+    },
+    "docs/archive/backlog/legacy/README.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 381,
+      "lines": 3,
+      "references": []
+    },
+    "docs/archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 1394,
+      "lines": 28,
+      "references": [
+        "docs/specs/ADR-0003-runtime-frame-graph.md",
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/modules/rendering/README.md",
+        "docs/modules/scene/DIAGNOSTICS.md",
+        "docs/modules/runtime/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0118-testing-framework-upgrade.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 3125,
+      "lines": 63,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md",
+        "docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md",
+        "docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 5554,
+      "lines": 79,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/modules/animation/BACKLOG.md",
+        "docs/modules/animation/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0121-rendering-standard-passes-library.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 7307,
+      "lines": 211,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0126-math-documentation-alignment.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 4535,
+      "lines": 95,
+      "references": []
+    },
+    "docs/archive/backlog/legacy/tasks/T-0119-rendering-command-encoder-implementation.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 7088,
+      "lines": 117,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0128-geometry-frustum-utilities.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 7908,
+      "lines": 184,
+      "references": []
+    },
+    "docs/archive/backlog/legacy/tasks/T-0124-rendering-lighting-system.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 14337,
+      "lines": 380,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/RT-321-prototyping-case-study-validation.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 7312,
+      "lines": 183,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/RT-321-prototyping-case-studies.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/AS-330-reference-dataset-packages.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 7158,
+      "lines": 195,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/AS-330-reference-dataset-packages.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/DC-040-ai-004-configuration-schema-alignment.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 7658,
+      "lines": 188,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/backlog/archive/DC-040-ai-004-configuration-schema.md",
+        "docs/modules/geometry/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 11805,
+      "lines": 241,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md",
+        "docs/backlog/active/AI-004-kickoff-brief.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0112-geometry-io-roundtrip-hardening.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 1685,
+      "lines": 29,
+      "references": [
+        "docs/specs/ADR-0005-geometry-io-roundtrip.md",
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/modules/io/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 5628,
+      "lines": 91,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/modules/assets/BACKLOG.md",
+        "docs/modules/assets/README.md",
+        "docs/modules/runtime/DIAGNOSTICS.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/README.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 5605,
+      "lines": 46,
+      "references": []
+    },
+    "docs/archive/backlog/legacy/tasks/T-0120-rendering-gpu-resource-provider-implementation.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 7919,
+      "lines": 169,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/backlog/active/T-0120-gpu-resource-provider.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/CO-170-runtime-integration-sample.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 10780,
+      "lines": 276,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/modules/compute/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0122-rendering-visibility-culling-system.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 7237,
+      "lines": 202,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/TL-210-experiment-sandbox-ui.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 7885,
+      "lines": 203,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/TL-210-experiment-sandbox-ui.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/RE-610-research-rendering-baseline.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 7977,
+      "lines": 236,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/backlog/archive/RE-610-research-rendering-baseline.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/DC-041-ai-004-kickoff-readiness.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 5119,
+      "lines": 143,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0129-geometry-shape-intersection-coverage.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 12239,
+      "lines": 192,
+      "references": []
+    },
+    "docs/archive/backlog/legacy/tasks/T-0123-rendering-pipeline-state-management.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 7729,
+      "lines": 219,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 5264,
+      "lines": 82,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/T-0118-testing-framework-upgrade.md",
+        "docs/archive/backlog/legacy/tasks/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/CC-310-comparative-benchmark-automation.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 6794,
+      "lines": 190,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0125-math-convenience-rotation-builders.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 3249,
+      "lines": 68,
+      "references": []
+    },
+    "docs/archive/backlog/legacy/tasks/T-0116-rendering-vulkan-resource-translation.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 5019,
+      "lines": 77,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/modules/rendering/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0117-physics-contact-manifolds.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 3043,
+      "lines": 51,
+      "references": [
+        "docs/modules/physics/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/T-0127-math-optional-curve-utilities.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.652241",
+      "size": 7965,
+      "lines": 183,
+      "references": []
+    },
+    "docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 2332,
+      "lines": 37,
+      "references": [
+        "docs/ARCHITECTURE.md",
+        "docs/archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md",
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/modules/scene/README.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/CC-311-benchmark-visualization-integration.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 6082,
+      "lines": 164,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md",
+        "docs/backlog/archive/CC-311-benchmark-visualisation.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/AI-004-kickoff-brief.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 4555,
+      "lines": 56,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/2025-02-17-sprint-06.md"
+      ]
+    },
+    "docs/archive/backlog/legacy/tasks/RT-320-runtime-prototyping-harness.md": {
+      "category": "completed",
+      "reason": "Already in legacy archive",
+      "modified": "2025-11-04T10:01:26.651242",
+      "size": 6879,
+      "lines": 191,
+      "references": [
+        "docs/design/RT-320-prototyping-harness.md",
+        "docs/archive/backlog/legacy/tasks/README.md",
+        "docs/backlog/archive/RT-320-runtime-prototyping-harness.md"
+      ]
+    },
+    "docs/backlog/archive/AS-330-reference-dataset-packages.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 4272,
+      "lines": 58,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/archive/PL-240-platform-filesystem-watcher-guidance.md",
+        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md",
+        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
+        "docs/backlog/active/2026-02-03-sprint-11.md",
+        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/archive/DC-040-ai-004-configuration-schema.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 4064,
+      "lines": 52,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/archive/AS-330-reference-dataset-packages.md",
+        "docs/backlog/archive/CC-311-benchmark-visualisation.md",
+        "docs/backlog/archive/TL-210-experiment-sandbox-ui.md",
+        "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md",
+        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md",
+        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
+        "docs/backlog/archive/RT-320-runtime-prototyping-harness.md",
+        "docs/backlog/active/2026-02-03-sprint-11.md",
+        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "docs/modules/runtime/AI004_CONFIGURATION_LOADER_DESIGN.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/archive/CC-311-benchmark-visualisation.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 3547,
+      "lines": 48,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/archive/PL-240-platform-filesystem-watcher-guidance.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 2872,
+      "lines": 39,
+      "references": [
+        "docs/ROADMAP.md"
+      ]
+    },
+    "docs/backlog/archive/README.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 1075,
+      "lines": 10,
+      "references": [
+        "docs/NAVIGATION.md"
+      ]
+    },
+    "docs/backlog/archive/TL-210-experiment-sandbox-ui.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 4429,
+      "lines": 57,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/archive/PL-240-platform-filesystem-watcher-guidance.md",
+        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md",
+        "docs/backlog/active/2026-02-03-sprint-11.md",
+        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/archive/RE-610-research-rendering-baseline.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 1464,
+      "lines": 27,
+      "references": [
+        "docs/ROADMAP.md"
+      ]
+    },
+    "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 3233,
+      "lines": 44,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/active/2026-02-03-sprint-11.md",
+        "docs/backlog/active/RT-410-runtime-stage-planner.md",
+        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/archive/CC-310-comparative-benchmark-automation.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 3814,
+      "lines": 49,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/archive/CC-311-benchmark-visualisation.md",
+        "docs/backlog/archive/TL-210-experiment-sandbox-ui.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/archive/RT-321-prototyping-case-studies.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 3946,
+      "lines": 51,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/archive/CC-311-benchmark-visualisation.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/archive/RT-320-runtime-prototyping-harness.md": {
+      "category": "completed",
+      "reason": "In archive directory",
+      "modified": "2025-11-04T10:01:26.655241",
+      "size": 5876,
+      "lines": 63,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/archive/AS-330-reference-dataset-packages.md",
+        "docs/backlog/archive/TL-210-experiment-sandbox-ui.md",
+        "docs/backlog/archive/CC-310-comparative-benchmark-automation.md",
+        "docs/backlog/archive/RT-321-prototyping-case-studies.md",
+        "docs/backlog/active/2026-02-03-sprint-11.md",
+        "docs/backlog/active/2026-02-03-sprint-11.md",
+        "docs/backlog/active/AI-004-kickoff-brief.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/active/PM-510-weekly-integration-demos.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 3186,
+      "lines": 42,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/active/T-0119-command-encoder-integration.md",
+        "docs/backlog/active/T-0120-gpu-resource-provider.md",
+        "docs/backlog/active/TL-310-editor-foundations.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/active/T-0119-command-encoder-integration.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 3633,
+      "lines": 50,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
+        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/backlog/active/T-0120-gpu-resource-provider.md",
+        "docs/backlog/active/T-0120-gpu-resource-provider.md",
+        "docs/backlog/active/RT-410-runtime-stage-planner.md",
+        "docs/backlog/active/RT-410-runtime-stage-planner.md",
+        "docs/modules/rendering/README.md",
+        "docs/modules/rendering/README.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "README.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/active/T-0120-gpu-resource-provider.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 4230,
+      "lines": 55,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
+        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/backlog/active/T-0119-command-encoder-integration.md",
+        "docs/backlog/active/T-0119-command-encoder-integration.md",
+        "docs/backlog/active/RT-410-runtime-stage-planner.md",
+        "docs/modules/rendering/README.md",
+        "docs/modules/rendering/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "README.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/active/TL-310-editor-foundations.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 3494,
+      "lines": 49,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/tools/README.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "README.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/active/2026-02-03-sprint-11.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 3880,
+      "lines": 60,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md",
+        "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md",
+        "docs/backlog/active/AI-004-kickoff-brief.md"
+      ]
+    },
+    "docs/backlog/active/PM-520-backlog-hygiene-remediation.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 4921,
+      "lines": 44,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/task_briefs/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/task_briefs/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md"
+      ]
+    },
+    "docs/backlog/active/RT-410-runtime-stage-planner.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 4380,
+      "lines": 54,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/ROADMAP.md",
+        "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
+        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/backlog/active/PM-510-weekly-integration-demos.md",
+        "docs/backlog/active/TL-310-editor-foundations.md",
+        "docs/backlog/active/TL-310-editor-foundations.md",
+        "docs/modules/rendering/README.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "README.md",
+        "README.md"
+      ]
+    },
+    "docs/backlog/active/AI-004-kickoff-brief.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.654242",
+      "size": 8263,
+      "lines": 127,
+      "references": [
+        "docs/ROADMAP.md",
+        "docs/archive/backlog/legacy/tasks/AI-004-application-prototyping-enablement.md",
+        "docs/backlog/archive/DC-041-ai-004-kickoff-readiness.md",
+        "docs/backlog/active/2026-02-03-sprint-11.md"
+      ]
+    },
+    "docs/modules/physics/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 1274,
+      "lines": 33,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/T-0117-physics-contact-manifolds.md"
+      ]
+    },
+    "docs/modules/physics/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 5776,
+      "lines": 175,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0117-physics-contact-manifolds.md"
+      ]
+    },
+    "docs/modules/rendering/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 1862,
+      "lines": 43,
+      "references": [
+        "docs/modules/rendering/README.md"
+      ]
+    },
+    "docs/modules/rendering/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 23738,
+      "lines": 584,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/specs/ADR-0008-runtime-main-loop-and-tooling.md",
+        "docs/modules/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md"
+      ]
+    },
+    "docs/modules/rendering/METADATA_SCHEMA.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 5481,
+      "lines": 92,
+      "references": [
+        "docs/modules/rendering/README.md",
+        "docs/modules/rendering/README.md"
+      ]
+    },
+    "docs/modules/rendering/PROGRESS_2025-10-27.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 3849,
+      "lines": 119,
+      "references": [
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md"
+      ]
+    },
+    "docs/modules/rendering/QUICKSTART.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 3081,
+      "lines": 104,
+      "references": []
+    },
+    "docs/modules/rendering/BACKEND_CHECKLIST.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 8314,
+      "lines": 174,
+      "references": [
+        "docs/modules/rendering/README.md",
+        "docs/modules/rendering/README.md"
+      ]
+    },
+    "docs/modules/math/FORMAT_CONVERSIONS.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 3687,
+      "lines": 74,
+      "references": [
+        "docs/modules/math/BACKLOG.md",
+        "docs/modules/math/README.md",
+        "docs/modules/math/README.md",
+        "docs/modules/math/SOLVER_STABILITY.md"
+      ]
+    },
+    "docs/modules/math/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 3251,
+      "lines": 68,
+      "references": [
+        "docs/modules/math/README.md"
+      ]
+    },
+    "docs/modules/math/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 16873,
+      "lines": 559,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0126-math-documentation-alignment.md",
+        "docs/archive/backlog/legacy/tasks/T-0125-math-convenience-rotation-builders.md",
+        "docs/archive/backlog/legacy/tasks/T-0127-math-optional-curve-utilities.md"
+      ]
+    },
+    "docs/modules/math/SOLVER_STABILITY.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 7854,
+      "lines": 116,
+      "references": [
+        "docs/modules/math/FORMAT_CONVERSIONS.md",
+        "docs/modules/math/FORMAT_CONVERSIONS.md",
+        "docs/modules/math/BACKLOG.md",
+        "docs/modules/math/README.md"
+      ]
+    },
+    "docs/modules/scene/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 846,
+      "lines": 23,
+      "references": [
+        "docs/modules/scene/README.md"
+      ]
+    },
+    "docs/modules/scene/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 8801,
+      "lines": 340,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md"
+      ]
+    },
+    "docs/modules/scene/DIAGNOSTICS.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 7710,
+      "lines": 182,
+      "references": [
+        "docs/modules/scene/README.md",
+        "docs/modules/scene/README.md",
+        "docs/modules/runtime/DIAGNOSTICS.md"
+      ]
+    },
+    "docs/modules/assets/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 2425,
+      "lines": 51,
+      "references": [
+        "docs/modules/assets/README.md"
+      ]
+    },
+    "docs/modules/assets/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 15981,
+      "lines": 378,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md",
+        "docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md"
+      ]
+    },
+    "docs/modules/io/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 1598,
+      "lines": 39,
+      "references": [
+        "docs/modules/io/README.md"
+      ]
+    },
+    "docs/modules/io/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 8503,
+      "lines": 294,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md",
+        "docs/modules/assets/README.md"
+      ]
+    },
+    "docs/modules/io/DETECTION_FUZZING_PLAYBOOK.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 9259,
+      "lines": 184,
+      "references": [
+        "docs/modules/io/README.md",
+        "docs/modules/io/README.md",
+        "docs/modules/io/README.md"
+      ]
+    },
+    "docs/modules/platform/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 1077,
+      "lines": 28,
+      "references": [
+        "docs/modules/platform/README.md"
+      ]
+    },
+    "docs/modules/platform/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 14291,
+      "lines": 500,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/reviews/GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "docs/modules/README.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md",
+        "README.md"
+      ]
+    },
+    "docs/modules/tools/BACKLOG.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 1863,
+      "lines": 41,
+      "references": []
+    },
+    "docs/modules/tools/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 18147,
+      "lines": 437,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/specs/ADR-0008-runtime-main-loop-and-tooling.md",
+        "docs/design/TELEMETRY_INSTRUMENTATION_GUIDE.md",
+        "docs/modules/README.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md"
+      ]
+    },
+    "docs/modules/runtime/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 890,
+      "lines": 25,
+      "references": [
+        "docs/modules/runtime/README.md"
+      ]
+    },
+    "docs/modules/runtime/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 28118,
+      "lines": 557,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/specs/ADR-0008-runtime-main-loop-and-tooling.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/modules/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md",
+        "docs/modules/animation/README.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md"
+      ]
+    },
+    "docs/modules/runtime/DIAGNOSTICS.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 16039,
+      "lines": 296,
+      "references": [
+        "docs/modules/scene/DIAGNOSTICS.md",
+        "docs/modules/scene/DIAGNOSTICS.md",
+        "docs/modules/tools/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md"
+      ]
+    },
+    "docs/modules/runtime/AI004_CONFIGURATION_LOADER_DESIGN.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 5515,
+      "lines": 89,
+      "references": []
+    },
+    "docs/modules/runtime/ASYNC_STREAMING_INTEGRATION.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.658242",
+      "size": 8216,
+      "lines": 180,
+      "references": [
+        "docs/archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md",
+        "docs/modules/math/FORMAT_CONVERSIONS.md",
+        "docs/modules/assets/README.md",
+        "docs/modules/assets/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md",
+        "docs/modules/runtime/README.md"
+      ]
+    },
+    "docs/modules/compute/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 1711,
+      "lines": 38,
+      "references": [
+        "docs/modules/compute/README.md"
+      ]
+    },
+    "docs/modules/compute/DISPATCHER-EXTENSION-GUIDE.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 5873,
+      "lines": 138,
+      "references": []
+    },
+    "docs/modules/compute/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 13700,
+      "lines": 397,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md"
+      ]
+    },
+    "docs/modules/animation/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 3398,
+      "lines": 55,
+      "references": [
+        "docs/modules/animation/README.md"
+      ]
+    },
+    "docs/modules/animation/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 8703,
+      "lines": 238,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md"
+      ]
+    },
+    "docs/modules/core/BACKLOG.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 2072,
+      "lines": 44,
+      "references": [
+        "docs/modules/core/README.md"
+      ]
+    },
+    "docs/modules/core/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.656241",
+      "size": 9861,
+      "lines": 397,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md"
+      ]
+    },
+    "docs/modules/geometry/BACKLOG.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 6075,
+      "lines": 99,
+      "references": []
+    },
+    "docs/modules/geometry/README.md": {
+      "category": "active",
+      "reason": "Module/directory README (keep)",
+      "modified": "2025-11-04T10:01:26.657242",
+      "size": 26927,
+      "lines": 626,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/modules/README.md",
+        "docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md",
+        "docs/archive/backlog/legacy/tasks/T-0128-geometry-frustum-utilities.md",
+        "docs/modules/math/README.md",
+        "docs/modules/math/README.md"
+      ]
+    },
+    "agents/ROLES.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 4350,
+      "lines": 25,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/NAVIGATION.md",
+        "docs/backlog/README.md",
+        "docs/prompts/ARCHITECTURE-AUDIT.md",
+        "AGENTS.md",
+        "AGENTS.md"
+      ]
+    },
+    "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 9401,
+      "lines": 84,
+      "references": [
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md"
+      ]
+    },
+    "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 8577,
+      "lines": 78,
+      "references": [
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md"
+      ]
+    },
+    "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 7478,
+      "lines": 78,
+      "references": [
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md"
+      ]
+    },
+    "agents/task_briefs/2026-11-03-application-framework-quality-report.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 13126,
+      "lines": 336,
+      "references": [
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md"
+      ]
+    },
+    "agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 8892,
+      "lines": 176,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md"
+      ]
+    },
+    "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 7522,
+      "lines": 77,
+      "references": [
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md"
+      ]
+    },
+    "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 8658,
+      "lines": 78,
+      "references": [
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md"
+      ]
+    },
+    "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 7908,
+      "lines": 78,
+      "references": [
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md"
+      ]
+    },
+    "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 8487,
+      "lines": 78,
+      "references": [
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md"
+      ]
+    },
+    "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 11242,
+      "lines": 89,
+      "references": [
+        "docs/backlog/active/PM-520-backlog-hygiene-remediation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md"
+      ]
+    },
+    "agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 11658,
+      "lines": 340,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md"
+      ]
+    },
+    "agents/task_briefs/2026-03-06-glad-configure-fallback.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 6995,
+      "lines": 90,
+      "references": [
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md"
+      ]
+    },
+    "agents/task_briefs/2026-04-09-rt-410-stage-planner.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 8301,
+      "lines": 91,
+      "references": [
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md"
+      ]
+    },
+    "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 9590,
+      "lines": 79,
+      "references": [
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md"
+      ]
+    },
+    "agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 14189,
+      "lines": 396,
+      "references": [
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md"
+      ]
+    },
+    "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 8100,
+      "lines": 78,
+      "references": [
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md"
+      ]
+    },
+    "agents/task_briefs/2026-03-05-pm-520-backlog-hygiene.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 10487,
+      "lines": 92,
+      "references": [
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md"
+      ]
+    },
+    "agents/task_briefs/2026-11-03-application-framework-implementation.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 7372,
+      "lines": 135,
+      "references": [
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "agents/task_briefs/2026-11-03-application-framework-quality-report.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md"
+      ]
+    },
+    "agents/task_briefs/2026-04-10-rt-410-presentation-context.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 9079,
+      "lines": 90,
+      "references": [
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md"
+      ]
+    },
+    "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 7980,
+      "lines": 78,
+      "references": [
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md"
+      ]
+    },
+    "agents/task_briefs/2026-11-04-application-framework-phase2.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.649241",
+      "size": 7557,
+      "lines": 140,
+      "references": [
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md"
+      ]
+    },
+    "agents/context_packages/2026-03-27-gpu-resource-telemetry.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 6255,
+      "lines": 60,
+      "references": []
+    },
+    "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 7602,
+      "lines": 62,
+      "references": []
+    },
+    "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 5989,
+      "lines": 54,
+      "references": []
+    },
+    "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 13821,
+      "lines": 329,
+      "references": [
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md"
+      ]
+    },
+    "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 7169,
+      "lines": 61,
+      "references": []
+    },
+    "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 7787,
+      "lines": 54,
+      "references": []
+    },
+    "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 6598,
+      "lines": 54,
+      "references": []
+    },
+    "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 6762,
+      "lines": 62,
+      "references": []
+    },
+    "agents/context_packages/2026-03-01-backlog-roadmap-audit.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 13227,
+      "lines": 60,
+      "references": [
+        "docs/backlog/active/PM-520-backlog-hygiene-remediation.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md"
+      ]
+    },
+    "agents/context_packages/2026-03-06-glad-configure-fallback.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 6064,
+      "lines": 55,
+      "references": [
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md"
+      ]
+    },
+    "agents/context_packages/2026-04-09-rt-410-stage-planner.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 7109,
+      "lines": 61,
+      "references": [
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md"
+      ]
+    },
+    "agents/context_packages/2026-04-08-t-0120-opengl-retention.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 7557,
+      "lines": 61,
+      "references": []
+    },
+    "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 6076,
+      "lines": 60,
+      "references": []
+    },
+    "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 9742,
+      "lines": 57,
+      "references": []
+    },
+    "agents/context_packages/2026-11-03-application-framework-implementation.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 10094,
+      "lines": 228,
+      "references": [
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md"
+      ]
+    },
+    "agents/context_packages/2026-04-10-rt-410-presentation-context.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 6772,
+      "lines": 63,
+      "references": [
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md"
+      ]
+    },
+    "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md": {
+      "category": "orphaned",
+      "reason": "No references found from other docs",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 6732,
+      "lines": 62,
+      "references": []
+    },
+    "agents/context_packages/2026-11-04-application-framework-phase2.md": {
+      "category": "active",
+      "reason": "Current documentation",
+      "modified": "2025-11-04T10:01:26.648242",
+      "size": 15695,
+      "lines": 430,
+      "references": [
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md"
+      ]
+    },
+    "agents/TEMPLATES/CONTEXT_PACKAGE_TEMPLATE.md": {
+      "category": "active",
+      "reason": "Template file (keep)",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 1505,
+      "lines": 52,
+      "references": [
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "agents/ROLES.md",
+        "AGENTS.md"
+      ]
+    },
+    "agents/TEMPLATES/ADR_TEMPLATE.md": {
+      "category": "active",
+      "reason": "Template file (keep)",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 2788,
+      "lines": 147,
+      "references": []
+    },
+    "agents/TEMPLATES/QUALITY_REPORT_TEMPLATE.md": {
+      "category": "active",
+      "reason": "Template file (keep)",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 1813,
+      "lines": 53,
+      "references": [
+        "agents/ROLES.md",
+        "AGENTS.md"
+      ]
+    },
+    "agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md": {
+      "category": "completed",
+      "reason": "Task appears completed (contains completion markers)",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 2371,
+      "lines": 77,
+      "references": [
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "agents/ROLES.md",
+        "AGENTS.md"
+      ]
+    },
+    "AGENTS.md": {
+      "category": "active",
+      "reason": "Core documentation (keep)",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 55441,
+      "lines": 1317,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/NAVIGATION.md",
+        "docs/prompts/IMPLEMENTATION-PLAYBOOK.md",
+        "docs/prompts/ARCHITECTURE-AUDIT.md",
+        "docs/prompts/MASTER-AGENT-PROMPT.md",
+        "docs/prompts/MASTER-AGENT-PROMPT.md",
+        "docs/prompts/REFACTOR-PLAYBOOK.md",
+        "docs/prompts/REVIEW-CHECKLIST.md",
+        "docs/reviews/2025-12-05-roadmap-direction-review.md",
+        "docs/reviews/APPLICATION_FRAMEWORK_INDEX.md",
+        "docs/reviews/2026-01-08-application-readiness-assessment.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "docs/reviews/2025-10-26-architecture-audit.md",
+        "docs/backlog/active/PM-520-backlog-hygiene-remediation.md",
+        "agents/ROLES.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/TEMPLATES/TASK_BRIEF_TEMPLATE.md",
+        "CONTRIBUTION.md",
+        "CONTRIBUTION.md",
+        "README.md"
+      ]
+    },
+    "CONTRIBUTION.md": {
+      "category": "active",
+      "reason": "Core documentation (keep)",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 3858,
+      "lines": 53,
+      "references": [
+        "docs/NAVIGATION.md",
+        "docs/prompts/REVIEW-CHECKLIST.md",
+        "docs/archive/backlog/legacy/tasks/T-0114-testing-integration-suites.md",
+        "agents/ROLES.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/TEMPLATES/CONTEXT_PACKAGE_TEMPLATE.md",
+        "AGENTS.md"
+      ]
+    },
+    "README.md": {
+      "category": "active",
+      "reason": "Core documentation (keep)",
+      "modified": "2025-11-04T10:01:26.647241",
+      "size": 12465,
+      "lines": 144,
+      "references": [
+        "docs/ARCHITECTURE.md",
+        "docs/ROADMAP.md",
+        "docs/NAVIGATION.md",
+        "docs/prompts/IMPLEMENTATION-PLAYBOOK.md",
+        "docs/reviews/2025-12-05-roadmap-direction-review.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04.md",
+        "docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md",
+        "docs/reviews/2026-01-08-application-readiness-assessment.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-03.md",
+        "docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md",
+        "agents/task_briefs/2026-03-27-gpu-resource-telemetry.md",
+        "agents/task_briefs/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/task_briefs/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/task_briefs/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/task_briefs/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/task_briefs/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/task_briefs/2026-03-01-backlog-roadmap-audit.md",
+        "agents/task_briefs/2026-03-06-glad-configure-fallback.md",
+        "agents/task_briefs/2026-04-09-rt-410-stage-planner.md",
+        "agents/task_briefs/2026-04-08-t-0120-opengl-retention.md",
+        "agents/task_briefs/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/task_briefs/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/task_briefs/2026-11-03-application-framework-implementation.md",
+        "agents/task_briefs/2026-04-10-rt-410-presentation-context.md",
+        "agents/task_briefs/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/task_briefs/2026-11-04-application-framework-phase2.md",
+        "agents/context_packages/2026-03-27-gpu-resource-telemetry.md",
+        "agents/context_packages/2026-03-01-rt-410-presentation-stage-capi.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-02-26-rt-410-presentation-telemetry.md",
+        "agents/context_packages/2026-11-04-geometry-viewer-build-fix.md",
+        "agents/context_packages/2026-04-12-rt-410-presentation-diagnostics.md",
+        "agents/context_packages/2026-03-02-t-0119-vulkan-command-encoder.md",
+        "agents/context_packages/2026-02-27-rt-410-presentation-loop-refresh.md",
+        "agents/context_packages/2026-03-03-t-0119-vulkan-scheduler-validation.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-01-backlog-roadmap-audit.md",
+        "agents/context_packages/2026-03-06-glad-configure-fallback.md",
+        "agents/context_packages/2026-04-09-rt-410-stage-planner.md",
+        "agents/context_packages/2026-04-08-t-0120-opengl-retention.md",
+        "agents/context_packages/2026-02-28-rt-410-presentation-stage-query.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-03-05-pm-520-backlog-hygiene.md",
+        "agents/context_packages/2026-11-03-application-framework-implementation.md",
+        "agents/context_packages/2026-04-10-rt-410-presentation-context.md",
+        "agents/context_packages/2026-04-11-rt-410-presentation-context-submit.md",
+        "agents/context_packages/2026-11-04-application-framework-phase2.md",
+        "AGENTS.md"
+      ]
+    }
+  }
+}
