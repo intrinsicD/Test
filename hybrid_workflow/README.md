@@ -21,7 +21,7 @@ This directory contains the **hybrid workflow system** — a streamlined task ma
 
 ### Sample Dashboard Snapshot
 
-- View the latest generated dashboard artefacts under [`assets/hybrid_workflow_dashboard/`](../assets/hybrid_workflow_dashboard/).
+- View the latest generated dashboard artifacts under [`assets/hybrid_workflow_dashboard/`](../assets/hybrid_workflow_dashboard/).
 - Regenerate the snapshot locally with:
 
   ```bash
