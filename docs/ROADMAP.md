@@ -54,11 +54,11 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 ### Phase 4 — GPU Execution & Tooling Readiness *(Priorities 1–2)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 1 | [`T-0120`](backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | In Progress |
-| 1 | [`T-0119`](backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | In Progress |
-| 1 | [`RT-410`](backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | In Progress |
-| 2 | [`TL-310`](backlog/active/TL_310_EDITOR_FOUNDATIONS.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Sequenced (awaits RT-410 hooks) |
-| 2 | [`PM-510`](backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
+| 1 | [`T-0120`](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | In Progress |
+| 1 | [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | In Progress |
+| 1 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | In Progress |
+| 2 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Sequenced (awaits RT-410 hooks) |
+| 2 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
 
 **Exit Criteria:** OpenGL/Vulkan execute real workloads with shader pipelines, runtime presentation loop synchronises with tooling, and the editor/tooling stack is buildable with baseline smoke coverage.
 
@@ -72,18 +72,18 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
-| [`T-0120`](backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md) | 1 | In Progress | GPU allocations, textures, and shader pipelines being implemented with shared reviews alongside T-0119. |
-| [`T-0119`](backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md) | 1 | In Progress | Command encoder integration underway; smoke demos paired with T-0120 milestone. |
-| [`RT-410`](backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
-| [`TL-310`](backlog/active/TL_310_EDITOR_FOUNDATIONS.md) | 2 | Sequenced | Editor builds remain disabled; work scheduled to start once RT-410 adapters merge. |
-| [`PM-510`](backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned. |
+| [`T-0120`](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) | 1 | In Progress | GPU allocations, textures, and shader pipelines being implemented with shared reviews alongside T-0119. |
+| [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | 1 | In Progress | Command encoder integration underway; smoke demos paired with T-0120 milestone. |
+| [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
+| [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | Sequenced | Editor builds remain disabled; work scheduled to start once RT-410 adapters merge. |
+| [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned. |
 
 > **Archived backlog entries:** [`DC-040`](backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [`DC-041`](backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [`RT-320`](backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md), [`TL-210`](backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [`RT-321`](backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md), [`AS-330`](backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [`CC-310`](backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [`CC-311`](backlog/archive/CC_311_BENCHMARK_VISUALISATION.md), [`PL-240`](backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md), and [`PM-520`](backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md) are now in `docs/backlog/archive/` following completion of PM-520 backlog hygiene remediation.
 ## Risks & Mitigations
 
 | Priority | Risk | Owner | Mitigation |
 | --- | --- | --- | --- |
-| 1 | GPU resource provider/command encoder slip keeps backends non-functional. | Rendering Lead | Run the joint T-0120/T-0119 milestone with shared design reviews and publish outputs through [`PM-510`](backlog/active/PM_510_WEEKLY_INTEGRATION_DEMOS.md). |
+| 1 | GPU resource provider/command encoder slip keeps backends non-functional. | Rendering Lead | Run the joint T-0120/T-0119 milestone with shared design reviews and publish outputs through [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md). |
 | 1 | Stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Start RT-410 alongside the GPU milestone; present weekly planner/presentation progress in PM-510 demos. |
 | 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Sequence TL-310 immediately after RT-410 adapter merge and preview editor state during PM-510 demos. |
 | 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Capture updates from weekly demos and rerun docs validator after each milestone increment. |
