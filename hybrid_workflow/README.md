@@ -15,8 +15,9 @@ This directory contains the **hybrid workflow system** — a streamlined task ma
 
 1. **Read the workflow:** [`AGENTS.md`](./AGENTS.md) — 7-step task lifecycle
 2. **Check coding standards:** [`CONTRIBUTING.md`](./CONTRIBUTING.md) — naming, formatting, testing
-3. **Pick a task:** [`ROADMAP.md`](./ROADMAP.md) — bundles and priorities
-4. **Use the template:** [`backlog/000-template.md`](./backlog/000-template.md) — task file structure
+3. **Plan migrations:** [`MIGRATION.md`](./MIGRATION.md) — deterministic process for porting legacy tasks
+4. **Pick a task:** [`ROADMAP.md`](./ROADMAP.md) — bundles and priorities
+5. **Use the template:** [`backlog/000-template.md`](./backlog/000-template.md) — task file structure
 
 ---
 
@@ -148,6 +149,11 @@ The hybrid workflow integrates with existing project infrastructure:
 ---
 
 ## Automation Examples
+
+### Status Summary Script
+```bash
+python -m scripts.workflow.report_hybrid_status
+```
 
 ### Query Ready Tasks
 ```bash
