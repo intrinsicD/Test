@@ -265,7 +265,7 @@ if (mesh_result) {
 }
 ```
 
-See [`../io/README.md`](../io/README.md) and [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md) for IO architecture. Runtime consumers can supply cache pointers through `RuntimeHostDependencies::asset_streaming` and call `RuntimeHost::request_mesh_asset()` / `RuntimeHost::request_point_cloud_asset()` when orchestration should occur on the runtime thread. These runtime helpers return futures that resolve to `AssetLoadErrorCategory::ValidationError` when the host is not initialised or caches are absent, keeping async orchestration deterministic without throwing exceptions.
+See [`../io/README.md`](../io/README.md) and [`../../specs/ADR_0005_GEOMETRY_IO_ROUNDTRIP.md`](../../specs/ADR_0005_GEOMETRY_IO_ROUNDTRIP.md) for IO architecture. Runtime consumers can supply cache pointers through `RuntimeHostDependencies::asset_streaming` and call `RuntimeHost::request_mesh_asset()` / `RuntimeHost::request_point_cloud_asset()` when orchestration should occur on the runtime thread. These runtime helpers return futures that resolve to `AssetLoadErrorCategory::ValidationError` when the host is not initialised or caches are absent, keeping async orchestration deterministic without throwing exceptions.
 
 ## Testing
 
@@ -294,7 +294,7 @@ ctest --preset linux-gcc-debug -R assets
 - [`../../design/ASYNC_STREAMING.md`](../../design/ASYNC_STREAMING.md): Async architecture and design decisions
 - [`../../design/RESOURCE_MANAGEMENT.md`](../../design/RESOURCE_MANAGEMENT.md): Handle lifecycle patterns
 - [`../../design/MATERIAL_PERSISTENCE_STRATEGY.md`](../../design/MATERIAL_PERSISTENCE_STRATEGY.md): Material serialization planning
-- [`../../archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md`](../../archive/backlog/legacy/tasks/T-0115-assets-async-streaming-mvp.md): Async streaming milestone
+- [`../../archive/backlog/legacy/tasks/T_0115_ASSETS_ASYNC_STREAMING_MVP.md`](../../archive/backlog/legacy/tasks/T_0115_ASSETS_ASYNC_STREAMING_MVP.md): Async streaming milestone
 - [`../runtime/ASYNC_STREAMING_INTEGRATION.md`](../runtime/ASYNC_STREAMING_INTEGRATION.md)
 
 ## Current State
@@ -313,7 +313,7 @@ ctest --preset linux-gcc-debug -R assets
   - `ctest --preset linux-gcc-debug -R assets`
 - See examples above and tests under `engine/assets/tests/` for end-to-end usage.
 - The
-  [`AI-004 Prototyping Playbook`](../../design/AI-004-prototyping-playbook.md)
+  [`AI-004 Prototyping Playbook`](../../design/AI_004_PROTOTYPING_PLAYBOOK.md)
   outlines how dataset packaging, schema validation, and harness integration
   interact; consult it before publishing new manifests or ingestion scripts.
 - During AI-004 migration, dataset packaging must emit `ai-004.dataset` schema

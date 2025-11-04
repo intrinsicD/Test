@@ -53,7 +53,7 @@ docs/archive/
   - Additional context packages for incremental work items
 
 **Cross-References:** Some archived task briefs are referenced in:
-- `docs/backlog/active/PM-520-backlog-hygiene-remediation.md` (references 2026-03-01-backlog-roadmap-audit.md)
+- `docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md` (references 2026-03-01-BACKLOG_ROADMAP_AUDIT.md)
 - `docs/reviews/APPLICATION_FRAMEWORK_INDEX.md` (references application framework artifacts)
 - `docs/reviews/SESSION_SUMMARY_*.md` (references various completed tasks)
 
@@ -66,12 +66,12 @@ These references are preserved as historical links. The archive location maintai
 **Location:** `docs/archive/backlog/legacy/modules/`
 
 **Files:**
-- `geometry-BACKLOG.md` (last updated 2025-05-06)
-- `tools-BACKLOG.md` (last updated 2025-10-24)
+- `GEOMETRY_BACKLOG.md` (last updated 2025-05-06)
+- `TOOLS_BACKLOG.md` (last updated 2025-10-24)
 
 **Rationale:** Both files contain completed workstreams (all marked ✅ Done). Active module planning is now tracked in:
 - Geometry: `docs/modules/geometry/README.md` and `docs/ROADMAP.md`
-- Tools: `docs/modules/tools/README.md` and `docs/backlog/active/TL-310-editor-foundations.md`
+- Tools: `docs/modules/tools/README.md` and `docs/backlog/active/TL_310_EDITOR_FOUNDATIONS.md`
 
 **Preserved Content:**
 - Historical task IDs (GE-205, GE-212, GE-220, GE-230, GE-231, TL-101, TL-110, TL-115, TL-120)
@@ -88,7 +88,7 @@ These references are preserved as historical links. The archive location maintai
 
 **Rationale:** Superseded by ADR-0007 (AI-004 configuration schema). The ADR represents the binding architectural decision, while this design doc was an earlier exploration. Preserved for historical context.
 
-**Active Reference:** `docs/specs/ADR-0007-ai-004-configuration-schema.md`
+**Active Reference:** `docs/specs/ADR_0007_AI_004_CONFIGURATION_SCHEMA.md`
 
 ---
 
@@ -104,14 +104,14 @@ These references are preserved as historical links. The archive location maintai
 **Rationale:** These review summaries documented completed work sessions but had no active cross-references. Archived to declutter active reviews/ directory. Current active reviews remain in `docs/reviews/`.
 
 **Active Reviews (not archived):**
-- `2025-10-26-architecture-audit.md`
-- `2025-12-05-roadmap-direction-review.md`
-- `2026-01-08-application-readiness-assessment.md`
-- `2026-02-10-comprehensive-architecture-evaluation.md`
-- `2025-03-22-scene-docs.md`
-- `SESSION_SUMMARY_2025-11-03.md`
-- `SESSION_SUMMARY_2025-11-04.md`
-- `SESSION_SUMMARY_2025-11-04-BUILD-FIX.md`
+- `2025-10-26-ARCHITECTURE_AUDIT.md`
+- `2025-12-05-ROADMAP_DIRECTION_REVIEW.md`
+- `2026-01-08-APPLICATION_READINESS_ASSESSMENT.md`
+- `2026-02-10-COMPREHENSIVE_ARCHITECTURE_EVALUATION.md`
+- `2025-03-22-SCENE_DOCS.md`
+- `SESSION_SUMMARY_2025_11_03.md`
+- `SESSION_SUMMARY_2025_11_04.md`
+- `SESSION_SUMMARY_2025_11_04_BUILD_FIX.md`
 - `APPLICATION_FRAMEWORK_*.md` series
 - `MISSING_COMPONENTS_SUMMARY.md`
 - `GEOMETRY_VIEWER_ARCHITECTURE_ANALYSIS.md`
@@ -123,7 +123,7 @@ These references are preserved as historical links. The archive location maintai
 The following archive categories existed prior to this cleanup and remain unchanged:
 
 **`docs/archive/backlog/legacy/tasks/` (47 files):**
-- Sprint planning: `2025-02-17-sprint-06.md`
+- Sprint planning: `2025-02-17-SPRINT_06.md`
 - AI-004 initiative tasks
 - Asset streaming tasks (AS-330)
 - Benchmark tasks (CC-310, CC-311)
@@ -193,10 +193,10 @@ All archived files are preserved in git history at their original locations. The
 Example git commands:
 ```bash
 # View file at original location before archival
-git log --all --full-history -- agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md
+git log --all --full-history -- agents/task_briefs/2026-02-26-RT_410_PRESENTATION_TELEMETRY.md
 
 # View current archived location
-cat docs/archive/agents/task_briefs/2026-02-26-rt-410-presentation-telemetry.md
+cat docs/archive/agents/task_briefs/2026-02-26-RT_410_PRESENTATION_TELEMETRY.md
 ```
 
 ---

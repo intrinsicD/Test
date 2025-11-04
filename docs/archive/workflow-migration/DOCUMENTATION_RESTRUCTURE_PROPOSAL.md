@@ -185,7 +185,7 @@ docs/modules/<name>/
 1. Check [`ROADMAP.md`](ROADMAP.md) - is your work active, backlog, or blocked?
 2. Find your module in [`modules/<name>/README.md`](modules/) - understand the subsystem
 3. Read related specs in [`specs/`](specs/) - understand constraints
-4. Follow [`prompts/IMPLEMENTATION-PLAYBOOK.md`](prompts/IMPLEMENTATION-PLAYBOOK.md)
+4. Follow [`prompts/IMPLEMENTATION_PLAYBOOK.md`](prompts/IMPLEMENTATION_PLAYBOOK.md)
 
 **Need architectural context?**
 1. [`ARCHITECTURE.md`](ARCHITECTURE.md) - module boundaries, data flow, invariants
@@ -205,16 +205,16 @@ docs/modules/<name>/
 ## 🔧 Common Tasks
 
 ### Implementing a Feature
-→ [`prompts/IMPLEMENTATION-PLAYBOOK.md`](prompts/IMPLEMENTATION-PLAYBOOK.md)
+→ [`prompts/IMPLEMENTATION_PLAYBOOK.md`](prompts/IMPLEMENTATION_PLAYBOOK.md)
 
 ### Reviewing Code
-→ [`prompts/REVIEW-CHECKLIST.md`](prompts/REVIEW-CHECKLIST.md)
+→ [`prompts/REVIEW_CHECKLIST.md`](prompts/REVIEW_CHECKLIST.md)
 
 ### Refactoring
-→ [`prompts/REFACTOR-PLAYBOOK.md`](prompts/REFACTOR-PLAYBOOK.md)
+→ [`prompts/REFACTOR_PLAYBOOK.md`](prompts/REFACTOR_PLAYBOOK.md)
 
 ### Architecture Audit
-→ [`prompts/ARCHITECTURE-AUDIT.md`](prompts/ARCHITECTURE-AUDIT.md)
+→ [`prompts/ARCHITECTURE_AUDIT.md`](prompts/ARCHITECTURE_AUDIT.md)
 
 ## 📊 Key References
 

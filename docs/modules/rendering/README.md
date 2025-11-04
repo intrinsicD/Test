@@ -2,7 +2,7 @@
 
 ## Overview
 
-> **Status:** ⚠️ **Blocked** — GPU resource provider and command encoder work (see [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) and [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md)) remain unfinished. OpenGL and Vulkan command encoders now record frame-graph draw/dispatch commands for scheduler inspection, but the backends still rely on the recording provider and cannot allocate GPU buffers, textures, or shaders, so no real draw commands execute yet.
+> **Status:** ⚠️ **Blocked** — GPU resource provider and command encoder work (see [`T-0120`](../../backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md) and [`T-0119`](../../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md)) remain unfinished. OpenGL and Vulkan command encoders now record frame-graph draw/dispatch commands for scheduler inspection, but the backends still rely on the recording provider and cannot allocate GPU buffers, textures, or shaders, so no real draw commands execute yet.
 
 The rendering module currently provides frame-graph compilation, scheduler prototypes, and resource lifetime tracking, but the missing GPU execution path prevents end-to-end rendering. This README tracks the outstanding work needed to reach functional backends in addition to describing the existing infrastructure.
 
@@ -553,10 +553,10 @@ ctest --preset linux-gcc-debug -R rendering
 - [`BACKLOG.md`](BACKLOG.md): Module milestones including backend parity work
 - [`BACKEND_CHECKLIST.md`](BACKEND_CHECKLIST.md): Backend implementation status
 - [`METADATA_SCHEMA.md`](METADATA_SCHEMA.md): Frame graph metadata specification
-- [`../../specs/ADR-0003-runtime-frame-graph.md`](../../specs/ADR-0003-runtime-frame-graph.md): Frame graph architecture
-- [`../../specs/ADR-0008-runtime-main-loop-and-tooling.md`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md): Presentation abstraction and UI compositing requirements.
-- [`../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md`](../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md): Integration milestone
-- [`../../archive/backlog/legacy/tasks/T-0116-rendering-vulkan-resource-translation.md`](../../archive/backlog/legacy/tasks/T-0116-rendering-vulkan-resource-translation.md): Vulkan implementation
+- [`../../specs/ADR_0003_RUNTIME_FRAME_GRAPH.md`](../../specs/ADR_0003_RUNTIME_FRAME_GRAPH.md): Frame graph architecture
+- [`../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md): Presentation abstraction and UI compositing requirements.
+- [`../../archive/backlog/legacy/tasks/T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md`](../../archive/backlog/legacy/tasks/T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md): Integration milestone
+- [`../../archive/backlog/legacy/tasks/T_0116_RENDERING_VULKAN_RESOURCE_TRANSLATION.md`](../../archive/backlog/legacy/tasks/T_0116_RENDERING_VULKAN_RESOURCE_TRANSLATION.md): Vulkan implementation
 
 ## Current State
 
@@ -579,6 +579,6 @@ ctest --preset linux-gcc-debug -R rendering
 
 ## TODO / Next Steps
 
-- Deliver [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md): finish GPU buffer/texture/sampler creation, shader compilation, and hot-reload hooks so OpenGL/Vulkan providers allocate real resources. Track progress in [`../../ROADMAP.md`](../../ROADMAP.md).
-- Complete [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md): land command encoder APIs, backend submissions, and smoke coverage that translate frame-graph passes into GPU work.
-- Coordinate weekly with runtime/tools leads while `T-0120`/`T-0119` progress to align telemetry expectations and unblock downstream [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) integration.
+- Deliver [`T-0120`](../../backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md): finish GPU buffer/texture/sampler creation, shader compilation, and hot-reload hooks so OpenGL/Vulkan providers allocate real resources. Track progress in [`../../ROADMAP.md`](../../ROADMAP.md).
+- Complete [`T-0119`](../../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md): land command encoder APIs, backend submissions, and smoke coverage that translate frame-graph passes into GPU work.
+- Coordinate weekly with runtime/tools leads while `T-0120`/`T-0119` progress to align telemetry expectations and unblock downstream [`RT-410`](../../backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) integration.

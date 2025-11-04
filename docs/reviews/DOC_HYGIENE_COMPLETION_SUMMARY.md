@@ -55,12 +55,12 @@ Successfully audited and cleaned up 225 markdown files across the repository, ar
 
 **Resolved Orphaned Documents (16 files):**
 - ✅ 3 design docs linked from NAVIGATION.md
-  - AN-230-benchmark-harness-design.md
-  - DISPATCHER-EXTENSION-GUIDE.md
+  - AN_230_BENCHMARK_HARNESS_DESIGN.md
+  - DISPATCHER_EXTENSION_GUIDE.md
   - QUICKSTART.md
 - ✅ 2 module backlogs archived
-  - geometry-BACKLOG.md → `docs/archive/backlog/legacy/modules/`
-  - tools-BACKLOG.md → `docs/archive/backlog/legacy/modules/`
+  - GEOMETRY_BACKLOG.md → `docs/archive/backlog/legacy/modules/`
+  - TOOLS_BACKLOG.md → `docs/archive/backlog/legacy/modules/`
 - ✅ 3 review summaries archived  
   - TASK_COMPLETION_SUMMARY.md
   - GEOMETRY_VIEWER_BUILD_FIX_INDEX.md
@@ -102,8 +102,8 @@ docs/archive/
 │   └── legacy/
 │       ├── tasks/                # Pre-existing 47 legacy tasks (unchanged)
 │       └── modules/              # 2 completed module backlogs (NEW)
-│           ├── geometry-BACKLOG.md
-│           └── tools-BACKLOG.md
+│           ├── GEOMETRY_BACKLOG.md
+│           └── TOOLS_BACKLOG.md
 ├── design/                        # 1 superseded design doc (NEW)
 │   └── AI004_CONFIGURATION_LOADER_DESIGN.md
 ├── reviews/
@@ -138,8 +138,8 @@ docs/archive/
 - Additional context packages for incremental work items
 
 ### Module Backlogs (2 files)
-- geometry-BACKLOG.md (last updated 2025-05-06, all workstreams ✅ Done)
-- tools-BACKLOG.md (last updated 2025-10-24, all tasks ✅ Done)
+- GEOMETRY_BACKLOG.md (last updated 2025-05-06, all workstreams ✅ Done)
+- TOOLS_BACKLOG.md (last updated 2025-10-24, all tasks ✅ Done)
 
 ### Superseded Design (1 file)
 - AI004_CONFIGURATION_LOADER_DESIGN.md (superseded by ADR-0007)
@@ -162,13 +162,13 @@ docs/archive/
    - Updated 6 task brief links to archived locations
    - Updated 2 context package links to archived locations
 
-3. **docs/reviews/SESSION_SUMMARY_2025-11-03.md**
+3. **docs/reviews/SESSION_SUMMARY_2025_11_03.md**
    - Updated 3 links to archived task briefs/context packages
 
-4. **docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md**
+4. **docs/reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md**
    - Updated 3 links to archived task briefs/context packages
 
-5. **docs/backlog/active/PM-520-backlog-hygiene-remediation.md**
+5. **docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md**
    - Updated 2 links to archived context package
 
 ### Archived Files Updated (88+ files)
@@ -202,10 +202,10 @@ A  docs/archive/agents/task_briefs/ (21 files)
 A  docs/archive/backlog/legacy/modules/ (2 files)
 A  docs/archive/design/ (1 file)
 A  docs/archive/reviews/legacy/ (3 files)
-M  docs/backlog/active/PM-520-backlog-hygiene-remediation.md
+M  docs/backlog/active/PM_520_BACKLOG_HYGIENE_REMEDIATION.md
 M  docs/reviews/APPLICATION_FRAMEWORK_INDEX.md
-M  docs/reviews/SESSION_SUMMARY_2025-11-03.md
-M  docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md
+M  docs/reviews/SESSION_SUMMARY_2025_11_03.md
+M  docs/reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md
 A  docs/archive/doc_audit_report.json
 A  agents/task_briefs/2026-11-04-documentation-hygiene-comprehensive.md
 D  agents/task_briefs/ (21 files removed)

@@ -96,8 +96,8 @@ Halfedge conversion and utilities live under `engine/geometry/mesh/` and `engine
 The remeshing roadmap (`GE-221+`) now feeds directly into the `AI-004` prototyping workflow. Curated remesh outputs and UV reuse
 statistics populate the dataset manifests consumed by the runtime harness (`RT-320`) and sandbox UI (`TL-210`), ensuring
 geometry variants appear alongside rendering presets during experiment setup. Update remeshing jobs to emit `datasets` entries
-compatible with the shared configuration schema defined in [`ADR-0007`](../../specs/ADR-0007-ai-004-configuration-schema.md)
-and tracked by task [`DC-040`](../../archive/backlog/legacy/tasks/DC-040-ai-004-configuration-schema-alignment.md).
+compatible with the shared configuration schema defined in [`ADR-0007`](../../specs/ADR_0007_AI_004_CONFIGURATION_SCHEMA.md)
+and tracked by task [`DC-040`](../../archive/backlog/legacy/tasks/DC_040_AI_004_CONFIGURATION_SCHEMA_ALIGNMENT.md).
 
 ### Surface Topology Summary
 
@@ -344,7 +344,7 @@ repacking behaviour even if the source asset already contains UV coordinates.
 `RemeshRequest` captures edge-length targets, feature preservation options,
 attribute transfer policies, and parameterisation preferences while
 `ValidateRemeshRequest` enforces the invariants published in the
-[`GE-212` remeshing RFP](../../design/GE-212-REMESHING_PARAMETERIZATION_RFP.md).
+[`GE-212` remeshing RFP](../../design/GE_212_REMESHING_PARAMETERIZATION_RFP.md).
 Uniform and feature-preserving remeshing kernels consume these structures
 directly, returning a new `SurfaceMesh` alongside iteration counts and edge
 statistics in `RemeshOutput`. The adaptive remeshing mode extends this pipeline

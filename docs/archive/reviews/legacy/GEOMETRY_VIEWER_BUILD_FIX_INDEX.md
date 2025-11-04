@@ -26,10 +26,10 @@
 
 | Document | Location | Purpose |
 |----------|----------|---------|
-| Task Brief | [`agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md`](../../agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md) | Scope, roles, success criteria, phase gates |
-| Context Package | [`agents/context_packages/2026-11-04-geometry-viewer-build-fix.md`](../../agents/context_packages/2026-11-04-geometry-viewer-build-fix.md) | Context ladder, root cause, implementation details |
-| Quality Report | [`agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md`](../../agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md) | Quality gates, test results, sign-off |
-| Session Summary | [`docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md`](../../../reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md) | Executive summary, timeline, results |
+| Task Brief | [`agents/task_briefs/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX.md`](../../agents/task_briefs/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX.md) | Scope, roles, success criteria, phase gates |
+| Context Package | [`agents/context_packages/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX.md`](../../agents/context_packages/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX.md) | Context ladder, root cause, implementation details |
+| Quality Report | [`agents/task_briefs/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX_QUALITY_REPORT.md`](../../agents/task_briefs/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX_QUALITY_REPORT.md) | Quality gates, test results, sign-off |
+| Session Summary | [`docs/reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md`](../../../reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md) | Executive summary, timeline, results |
 | Artifact Index | [`docs/reviews/GEOMETRY_VIEWER_BUILD_FIX_INDEX.md`](GEOMETRY_VIEWER_BUILD_FIX_INDEX.md) | This file - quick reference |
 
 ### 2. Code Changes
@@ -50,7 +50,7 @@ All documents reviewed per AGENTS.md §0.2:
 | 3 | [`docs/ROADMAP.md`](../../../ROADMAP.md) | Phase 4 GPU Enablement |
 | 4 | Backlog (RT-410, T-0119, T-0120) | GPU work in progress |
 | 5 | [`docs/modules/runtime/README.md`](../../../modules/runtime/README.md) | Application Framework docs |
-| 6 | [`docs/specs/ADR-0008`](../../../specs/ADR-0008-runtime-main-loop-and-tooling.md) | Runtime loop architecture |
+| 6 | [`docs/specs/ADR-0008`](../../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) | Runtime loop architecture |
 | 7 | Phase 1 & 2 artifacts | Implementation history |
 
 ## Related Documentation
@@ -59,9 +59,9 @@ All documents reviewed per AGENTS.md §0.2:
 
 | Phase | Date | Status | Artifacts |
 |-------|------|--------|-----------|
-| Phase 1 | Nov 3, 2025 | ✅ Complete | [Session Summary](../../../reviews/SESSION_SUMMARY_2025-11-03.md), [Completion](../../../reviews/APPLICATION_FRAMEWORK_PHASE1_COMPLETE.md) |
-| Phase 2 | Nov 4, 2025 | ✅ Complete | [Session Summary](../../../reviews/SESSION_SUMMARY_2025-11-04.md), [Completion](../../../reviews/APPLICATION_FRAMEWORK_PHASE2_COMPLETE.md) |
-| Phase 2.5 | Nov 4, 2025 | ✅ Complete | [Session Summary](../../../reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md) (this fix) |
+| Phase 1 | Nov 3, 2025 | ✅ Complete | [Session Summary](../../../reviews/SESSION_SUMMARY_2025_11_03.md), [Completion](../../../reviews/APPLICATION_FRAMEWORK_PHASE1_COMPLETE.md) |
+| Phase 2 | Nov 4, 2025 | ✅ Complete | [Session Summary](../../../reviews/SESSION_SUMMARY_2025_11_04.md), [Completion](../../../reviews/APPLICATION_FRAMEWORK_PHASE2_COMPLETE.md) |
+| Phase 2.5 | Nov 4, 2025 | ✅ Complete | [Session Summary](../../../reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md) (this fix) |
 | Phase 3 | Future | ⏸️ Blocked | Waiting on RT-410 |
 
 ### Design & Analysis Documents
@@ -170,8 +170,8 @@ This fix followed AGENTS.md completely:
 ---
 
 > **Quick Navigation:**
-> - Task Brief: [`agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md`](../../agents/task_briefs/2026-11-04-geometry-viewer-build-fix.md)
-> - Context Package: [`agents/context_packages/2026-11-04-geometry-viewer-build-fix.md`](../../agents/context_packages/2026-11-04-geometry-viewer-build-fix.md)
-> - Quality Report: [`agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md`](../../agents/task_briefs/2026-11-04-geometry-viewer-build-fix-quality-report.md)
-> - Session Summary: [`docs/reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md`](../../../reviews/SESSION_SUMMARY_2025-11-04-BUILD-FIX.md)
+> - Task Brief: [`agents/task_briefs/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX.md`](../../agents/task_briefs/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX.md)
+> - Context Package: [`agents/context_packages/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX.md`](../../agents/context_packages/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX.md)
+> - Quality Report: [`agents/task_briefs/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX_QUALITY_REPORT.md`](../../agents/task_briefs/2026-11-04-GEOMETRY_VIEWER_BUILD_FIX_QUALITY_REPORT.md)
+> - Session Summary: [`docs/reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md`](../../../reviews/SESSION_SUMMARY_2025_11_04_BUILD_FIX.md)
 

@@ -187,7 +187,7 @@ dispatcher.execute("skinning", params); // Runtime selection
 ## Deliverables Created
 
 ### 1. Comprehensive Architecture Evaluation
-**File:** `docs/reviews/2026-02-10-comprehensive-architecture-evaluation.md` (52KB)
+**File:** `docs/reviews/2026-02-10-COMPREHENSIVE_ARCHITECTURE_EVALUATION.md` (52KB)
 
 **Contents:**
 - Executive summary

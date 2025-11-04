@@ -173,7 +173,7 @@ float max_val = compute::reduce_max(values);
 ## Runtime Integration Sample
 
 `engine_compute_runtime_sample` is the end-to-end harness delivered by
-[`CO-170`](../../archive/backlog/legacy/tasks/CO-170-runtime-integration-sample.md). It advances
+[`CO-170`](../../archive/backlog/legacy/tasks/CO_170_RUNTIME_INTEGRATION_SAMPLE.md). It advances
 `RuntimeHost`, schedules animation/physics/geometry kernels through the dispatcher,
 and records telemetry that mirrors production workloads.
 
@@ -250,7 +250,7 @@ python scripts/diagnostics/compute_dispatch_report.py \
 
 The report lists top kernels, queue/category totals, jitter warnings, baseline
 speed-up, memory estimates, and cross-queue dependency summaries. See
-[`docs/design/CO-170-runtime-integration-playbook.md`](../../design/CO-170-runtime-integration-playbook.md)
+[`docs/design/CO_170_RUNTIME_INTEGRATION_PLAYBOOK.md`](../../design/CO_170_RUNTIME_INTEGRATION_PLAYBOOK.md)
 for a deeper walkthrough.
 
 ## Integration with Physics

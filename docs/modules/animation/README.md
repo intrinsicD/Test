@@ -216,10 +216,10 @@ ctest --preset linux-gcc-debug -R animation
 ## Related Documentation
 
 - [`BACKLOG.md`](BACKLOG.md): Module-specific milestones and upcoming features
-- [`../../specs/ADR-0006-animation-deformation.md`](../../specs/ADR-0006-animation-deformation.md): Deformation architecture decisions
-- [`../../specs/AN-240-state-machine-authoring.md`](../../specs/AN-240-state-machine-authoring.md): Planned state machine design
+- [`../../specs/ADR_0006_ANIMATION_DEFORMATION.md`](../../specs/ADR_0006_ANIMATION_DEFORMATION.md): Deformation architecture decisions
+- [`../../specs/AN_240_STATE_MACHINE_AUTHORING.md`](../../specs/AN_240_STATE_MACHINE_AUTHORING.md): Planned state machine design
 - [`../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md`](../../design/ANIMATION_GPU_PARALLEL_SAMPLING_BENCHMARK.md): GPU sampling proposal
-- [`../../archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md`](../../archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md): Runtime integration milestone
+- [`../../archive/backlog/legacy/tasks/T_0113_ANIMATION_RUNTIME_SKINNING.md`](../../archive/backlog/legacy/tasks/T_0113_ANIMATION_RUNTIME_SKINNING.md): Runtime integration milestone
 
 ## Current State
 

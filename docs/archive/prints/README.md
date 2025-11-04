@@ -14,15 +14,15 @@ These files capture:
 Files follow the pattern: `{INITIATIVE-ID}-{DESCRIPTION}.md`
 
 Examples:
-- `AI-002-STREAMING-GEOMETRY-TELEMETRY.md` - Async streaming implementation
-- `CR-125-CR-130-IMPLEMENTATION.md` - Core module work
-- `SC-220-DOCUMENTATION-REFRESH.md` - Scene module docs update
+- `AI_002_STREAMING_GEOMETRY_TELEMETRY.md` - Async streaming implementation
+- `CR_125_CR_130_IMPLEMENTATION.md` - Core module work
+- `SC_220_DOCUMENTATION_REFRESH.md` - Scene module docs update
 
 ## Current Status
 
 **All files in this directory are historical.** For current implementation guidance, use:
-- `../../prompts/IMPLEMENTATION-PLAYBOOK.md` - Current standard implementation workflow
-- `../../prompts/REVIEW-CHECKLIST.md` - Current review process
+- `../../prompts/IMPLEMENTATION_PLAYBOOK.md` - Current standard implementation workflow
+- `../../prompts/REVIEW_CHECKLIST.md` - Current review process
 - `../../archive/backlog/legacy/tasks/` - Current work items
 
 ## Using These Archives

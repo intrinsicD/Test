@@ -111,10 +111,10 @@ docs/
 │   │   └── BACKLOG.md        ← Was ROADMAP.md
 │   └── ... (13 modules total)
 ├── prompts/                   ← All UPPERCASE.md
-│   ├── IMPLEMENTATION-PLAYBOOK.md
-│   ├── REVIEW-CHECKLIST.md
-│   ├── REFACTOR-PLAYBOOK.md
-│   └── ARCHITECTURE-AUDIT.md
+│   ├── IMPLEMENTATION_PLAYBOOK.md
+│   ├── REVIEW_CHECKLIST.md
+│   ├── REFACTOR_PLAYBOOK.md
+│   └── ARCHITECTURE_AUDIT.md
 ├── specs/                     ← ADRs and specifications
 └── tasks/                     ← Active sprint work
 ```
@@ -133,7 +133,7 @@ docs/
 2. Find module in `docs/modules/<name>/README.md`
 3. Check `docs/modules/<name>/BACKLOG.md` for module-specific work
 4. Read related specs in `docs/specs/`
-5. Follow `docs/prompts/IMPLEMENTATION-PLAYBOOK.md`
+5. Follow `docs/prompts/IMPLEMENTATION_PLAYBOOK.md`
 
 ### Need a Definition?
 → `docs/GLOSSARY.md` (100+ terms, all initiative IDs, acronyms)

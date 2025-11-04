@@ -28,7 +28,7 @@ _Last Updated: 2025-11-19_
 
 | Task ID | Description | Trigger |
 | --- | --- | --- |
-| `AN-240` | Draft state-machine authoring specification with transition orchestration and event propagation requirements ([spec](../../specs/AN-240-state-machine-authoring.md)). | After `AN-201` complete. |
+| `AN-240` | Draft state-machine authoring specification with transition orchestration and event propagation requirements ([spec](../../specs/AN_240_STATE_MACHINE_AUTHORING.md)). | After `AN-201` complete. |
 | `AN-250` | Investigate advanced deformation pipelines (dual quaternion, curve-driven rigs) and dependencies on geometry module upgrades. | Pending geometry remeshing roadmap. |
 
 ## Dependencies
@@ -39,7 +39,7 @@ _Last Updated: 2025-11-19_
 
 ## Notes
 
-- Record benchmark data in [`docs/archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md`](../../archive/backlog/legacy/tasks/T-0113-animation-runtime-skinning.md).
+- Record benchmark data in [`docs/archive/backlog/legacy/tasks/T_0113_ANIMATION_RUNTIME_SKINNING.md`](../../archive/backlog/legacy/tasks/T_0113_ANIMATION_RUNTIME_SKINNING.md).
 - Align telemetry hooks with the broader diagnostics initiative (`CC-001`).
 - 2025-11-19: Published `animation_sampling_report.py` to summarise CPU/GPU captures and closed `AN-230.3`, completing the benchmarking milestone.
 - 2025-11-18: Benchmark driver exposes `gpu_async` scenario via `compute::Dispatcher`, emitting queue/category telemetry compatible with the dispatcher schema (`AN-230.2`).

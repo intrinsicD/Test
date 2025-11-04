@@ -176,7 +176,7 @@ compare runtime telemetry against expected diagnostics output.
 ## Related References
 
 - [`docs/modules/runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md)
-- [`docs/archive/prints/SC-220-DOCUMENTATION-REFRESH.md`](../../archive/prints/SC-220-DOCUMENTATION-REFRESH.md)
-- [`docs/archive/prints/RT-005-3-HIERARCHY-DIAGNOSTICS-DOCS.md`](../../archive/prints/RT-005-3-HIERARCHY-DIAGNOSTICS-DOCS.md)
+- [`docs/archive/prints/SC_220_DOCUMENTATION_REFRESH.md`](../../archive/prints/SC_220_DOCUMENTATION_REFRESH.md)
+- [`docs/archive/prints/RT_005_3_HIERARCHY_DIAGNOSTICS_DOCS.md`](../../archive/prints/RT_005_3_HIERARCHY_DIAGNOSTICS_DOCS.md)
 - [`docs/design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md)
-- [`docs/archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md`](../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md)
+- [`docs/archive/backlog/legacy/tasks/T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md`](../../archive/backlog/legacy/tasks/T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md)

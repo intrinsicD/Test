@@ -102,10 +102,13 @@ def _index_task_files(tasks_dir: Path) -> dict[str, list[Path]]:
     for path in tasks_dir.rglob("*.md"):
         if path.name.lower() == "readme.md":
             continue
-        match = re.match(r"([A-Z]{2,}-\d+)", path.stem)
+        # Match both RT-410 and RT_410 patterns (hyphen and underscore)
+        match = re.match(r"([A-Z]{2,})[_-](\d+)", path.stem)
         if not match:
             continue
-        index.setdefault(match.group(1), []).append(path)
+        # Normalize to hyphen format for lookup (e.g., RT_410 -> RT-410)
+        task_id = f"{match.group(1)}-{match.group(2)}"
+        index.setdefault(task_id, []).append(path)
 
     return index
 
@@ -198,9 +201,11 @@ def main() -> int:
         task_index = _index_task_files(tasks_dir)
         for identifier in sorted(active_ids):
             if identifier not in task_index:
+                # Convert hyphen to underscore for filename check (RT-410 -> RT_410)
+                underscore_id = identifier.replace('-', '_')
                 failures.append(
                     "docs/ROADMAP.md references active task "
-                    f"{identifier} without matching docs/backlog/active/{identifier}-*.md"
+                    f"{identifier} without matching docs/backlog/active/{underscore_id}_*.md"
                 )
 
     if failures:

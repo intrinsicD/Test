@@ -44,19 +44,19 @@
 ## 🔧 Common Tasks
 
 ### Implementing a Feature
-→ [`prompts/IMPLEMENTATION-PLAYBOOK.md`](prompts/IMPLEMENTATION-PLAYBOOK.md)
+→ [`prompts/IMPLEMENTATION_PLAYBOOK.md`](prompts/IMPLEMENTATION_PLAYBOOK.md)
 
 ### Reviewing Code
-→ [`prompts/REVIEW-CHECKLIST.md`](prompts/REVIEW-CHECKLIST.md)
+→ [`prompts/REVIEW_CHECKLIST.md`](prompts/REVIEW_CHECKLIST.md)
 
 ### Refactoring
-→ [`prompts/REFACTOR-PLAYBOOK.md`](prompts/REFACTOR-PLAYBOOK.md)
+→ [`prompts/REFACTOR_PLAYBOOK.md`](prompts/REFACTOR_PLAYBOOK.md)
 
 ### Architecture Audit
-→ [`prompts/ARCHITECTURE-AUDIT.md`](prompts/ARCHITECTURE-AUDIT.md)
+→ [`prompts/ARCHITECTURE_AUDIT.md`](prompts/ARCHITECTURE_AUDIT.md)
 
 ### AI-004 Prototyping Workflow
-→ [`design/AI-004-prototyping-playbook.md`](design/AI-004-prototyping-playbook.md)
+→ [`design/AI_004_PROTOTYPING_PLAYBOOK.md`](design/AI_004_PROTOTYPING_PLAYBOOK.md)
 
 ## 📊 Key References
 
@@ -64,15 +64,15 @@
 - **Telemetry:** [`design/TELEMETRY_SCHEMA.md`](design/TELEMETRY_SCHEMA.md), [`design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](design/TELEMETRY_INSTRUMENTATION_GUIDE.md)
 - **Error Handling:** [`design/ERROR_HANDLING_MIGRATION.md`](design/ERROR_HANDLING_MIGRATION.md)
 - **Resource Management:** [`design/RESOURCE_MANAGEMENT.md`](design/RESOURCE_MANAGEMENT.md)
-- **Accessibility:** [`design/TL-210-accessibility-checklist.md`](design/TL-210-accessibility-checklist.md)
-- **Case Study Baselines:** [`design/RT-321-case-studies.md`](design/RT-321-case-studies.md)
-- **Benchmark Automation:** [`design/CC-310-benchmark-playbook.md`](design/CC-310-benchmark-playbook.md), [`design/AN-230-benchmark-harness-design.md`](design/AN-230-benchmark-harness-design.md)
-- **Compute Dispatch:** [`modules/compute/DISPATCHER-EXTENSION-GUIDE.md`](modules/compute/DISPATCHER-EXTENSION-GUIDE.md)
+- **Accessibility:** [`design/TL_210_ACCESSIBILITY_CHECKLIST.md`](design/TL_210_ACCESSIBILITY_CHECKLIST.md)
+- **Case Study Baselines:** [`design/RT_321_CASE_STUDIES.md`](design/RT_321_CASE_STUDIES.md)
+- **Benchmark Automation:** [`design/CC_310_BENCHMARK_PLAYBOOK.md`](design/CC_310_BENCHMARK_PLAYBOOK.md), [`design/AN_230_BENCHMARK_HARNESS_DESIGN.md`](design/AN_230_BENCHMARK_HARNESS_DESIGN.md)
+- **Compute Dispatch:** [`modules/compute/DISPATCHER_EXTENSION_GUIDE.md`](modules/compute/DISPATCHER_EXTENSION_GUIDE.md)
 - **Rendering Quickstart:** [`modules/rendering/QUICKSTART.md`](modules/rendering/QUICKSTART.md)
 - **Dependency Graph:** [`architecture/README.md`](architecture/README.md)
 - **Research Template:** [`templates/RESEARCH_PAPER_TEMPLATE.md`](templates/RESEARCH_PAPER_TEMPLATE.md)
 - **Backlog Template:** [`backlog/README.md`](backlog/README.md)
-- **Architecture Reviews:** [`reviews/2025-10-26-architecture-audit.md`](reviews/2025-10-26-architecture-audit.md), [`reviews/2025-12-05-roadmap-direction-review.md`](reviews/2025-12-05-roadmap-direction-review.md), [`reviews/2026-01-08-application-readiness-assessment.md`](reviews/2026-01-08-application-readiness-assessment.md), [`reviews/2026-02-10-comprehensive-architecture-evaluation.md`](reviews/2026-02-10-comprehensive-architecture-evaluation.md)
+- **Architecture Reviews:** [`reviews/2025-10-26-ARCHITECTURE_AUDIT.md`](reviews/2025-10-26-ARCHITECTURE_AUDIT.md), [`reviews/2025-12-05-ROADMAP_DIRECTION_REVIEW.md`](reviews/2025-12-05-ROADMAP_DIRECTION_REVIEW.md), [`reviews/2026-01-08-APPLICATION_READINESS_ASSESSMENT.md`](reviews/2026-01-08-APPLICATION_READINESS_ASSESSMENT.md), [`reviews/2026-02-10-COMPREHENSIVE_ARCHITECTURE_EVALUATION.md`](reviews/2026-02-10-COMPREHENSIVE_ARCHITECTURE_EVALUATION.md)
 - **Archive Index:** [`archive/ARCHIVE_INDEX.md`](archive/ARCHIVE_INDEX.md)
 
 ## 🗂️ Module Overview

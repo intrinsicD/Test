@@ -315,9 +315,9 @@ int main() {
 ## Task Brief and Context Artifacts
 
 Created comprehensive workflow documentation:
-1. **Task Brief:** `agents/task_briefs/2026-11-04-application-framework-phase2.md`
-2. **Context Package:** `agents/context_packages/2026-11-04-application-framework-phase2.md`
-3. **Quality Report:** `agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md`
+1. **Task Brief:** `agents/task_briefs/2026-11-04-APPLICATION_FRAMEWORK_PHASE2.md`
+2. **Context Package:** `agents/context_packages/2026-11-04-APPLICATION_FRAMEWORK_PHASE2.md`
+3. **Quality Report:** `agents/task_briefs/2026-11-04-APPLICATION_FRAMEWORK_PHASE2_QUALITY_REPORT.md`
 4. **This Document:** Completion summary
 
 ## Conclusion

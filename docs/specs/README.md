@@ -4,11 +4,11 @@ This directory houses ADRs, RFPs, and deep dives. They are the binding source of
 
 ## Index
 
-- [`ADR-0003-runtime-frame-graph.md`](ADR-0003-runtime-frame-graph.md) – scheduler requirements, metadata model, and backend integration strategy.
-- [`ADR-0005-geometry-io-roundtrip.md`](ADR-0005-geometry-io-roundtrip.md) – geometry/IO ownership, file formats, and validation pipeline.
-- [`ADR-0006-animation-deformation.md`](ADR-0006-animation-deformation.md) – runtime linear blend skinning pipeline and rig binding requirements.
-- [`AN-240-state-machine-authoring.md`](AN-240-state-machine-authoring.md) – specification for animation state-machine authoring, serialization, and tooling integration.
-- [`ADR-0008-runtime-main-loop-and-tooling.md`](ADR-0008-runtime-main-loop-and-tooling.md) – runtime loop configurability, presentation backends, and reusable ImGui panel registry.
+- [`ADR_0003_RUNTIME_FRAME_GRAPH.md`](ADR_0003_RUNTIME_FRAME_GRAPH.md) – scheduler requirements, metadata model, and backend integration strategy.
+- [`ADR_0005_GEOMETRY_IO_ROUNDTRIP.md`](ADR_0005_GEOMETRY_IO_ROUNDTRIP.md) – geometry/IO ownership, file formats, and validation pipeline.
+- [`ADR_0006_ANIMATION_DEFORMATION.md`](ADR_0006_ANIMATION_DEFORMATION.md) – runtime linear blend skinning pipeline and rig binding requirements.
+- [`AN_240_STATE_MACHINE_AUTHORING.md`](AN_240_STATE_MACHINE_AUTHORING.md) – specification for animation state-machine authoring, serialization, and tooling integration.
+- [`ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) – runtime loop configurability, presentation backends, and reusable ImGui panel registry.
 
 When creating a new record:
 

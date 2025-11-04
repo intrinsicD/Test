@@ -166,10 +166,10 @@ All markdown files renamed to UPPERCASE:
 - And 5 more...
 
 **Prompts (4 files):**
-- implementation-playbook.md → IMPLEMENTATION-PLAYBOOK.md
-- review-checklist.md → REVIEW-CHECKLIST.md
-- refactor-playbook.md → REFACTOR-PLAYBOOK.md
-- architecture-audit.md → ARCHITECTURE-AUDIT.md
+- implementation-playbook.md → IMPLEMENTATION_PLAYBOOK.md
+- review-checklist.md → REVIEW_CHECKLIST.md
+- refactor-playbook.md → REFACTOR_PLAYBOOK.md
+- architecture-audit.md → ARCHITECTURE_AUDIT.md
 
 **Module-specific (11 files):**
 - backend_checklist.md → BACKEND_CHECKLIST.md

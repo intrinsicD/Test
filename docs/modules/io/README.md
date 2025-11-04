@@ -275,8 +275,8 @@ cmake --build --preset linux-gcc-debug --target engine_io_geometry_fuzz
 
 - [`BACKLOG.md`](BACKLOG.md): Module milestones including `RT-006` fuzzing initiative
 - [`DETECTION_FUZZING_PLAYBOOK.md`](DETECTION_FUZZING_PLAYBOOK.md): Fuzzing workflows and signature database
-- [`../../specs/ADR-0005-geometry-io-roundtrip.md`](../../specs/ADR-0005-geometry-io-roundtrip.md): IO architecture decisions
-- [`../../archive/backlog/legacy/tasks/T-0112-geometry-io-roundtrip-hardening.md`](../../archive/backlog/legacy/tasks/T-0112-geometry-io-roundtrip-hardening.md): Hardening milestone
+- [`../../specs/ADR_0005_GEOMETRY_IO_ROUNDTRIP.md`](../../specs/ADR_0005_GEOMETRY_IO_ROUNDTRIP.md): IO architecture decisions
+- [`../../archive/backlog/legacy/tasks/T_0112_GEOMETRY_IO_ROUNDTRIP_HARDENING.md`](../../archive/backlog/legacy/tasks/T_0112_GEOMETRY_IO_ROUNDTRIP_HARDENING.md): Hardening milestone
 
 ## Current State
 

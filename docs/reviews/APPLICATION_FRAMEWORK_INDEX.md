@@ -21,11 +21,11 @@ This index documents the complete Application Framework implementation, from ini
 - Geometry viewer refactored (removed GLFW callbacks)
 
 **Documents:**
-- [Session Summary](SESSION_SUMMARY_2025-11-03.md)
+- [Session Summary](SESSION_SUMMARY_2025_11_03.md)
 - [Completion Summary](APPLICATION_FRAMEWORK_PHASE1_COMPLETE.md)
-- [Task Brief](../../docs/archive/agents/task_briefs/2026-11-03-application-framework-implementation.md)
-- [Context Package](../../docs/archive/agents/context_packages/2026-11-03-application-framework-implementation.md)
-- [Quality Report](../../docs/archive/agents/task_briefs/2026-11-03-application-framework-quality-report.md)
+- [Task Brief](../../docs/archive/agents/task_briefs/2026-11-03-APPLICATION_FRAMEWORK_IMPLEMENTATION.md)
+- [Context Package](../../docs/archive/agents/context_packages/2026-11-03-APPLICATION_FRAMEWORK_IMPLEMENTATION.md)
+- [Quality Report](../../docs/archive/agents/task_briefs/2026-11-03-APPLICATION_FRAMEWORK_QUALITY_REPORT.md)
 
 **Code Changes:**
 - `engine/platform/include/engine/platform/windowing/window.hpp` - Added input_state()
@@ -51,11 +51,11 @@ This index documents the complete Application Framework implementation, from ini
 - Comprehensive documentation
 
 **Documents:**
-- [Session Summary](SESSION_SUMMARY_2025-11-04.md)
+- [Session Summary](SESSION_SUMMARY_2025_11_04.md)
 - [Completion Summary](APPLICATION_FRAMEWORK_PHASE2_COMPLETE.md)
-- [Task Brief](../../docs/archive/agents/task_briefs/2026-11-04-application-framework-phase2.md)
-- [Context Package](../../docs/archive/agents/context_packages/2026-11-04-application-framework-phase2.md)
-- [Quality Report](../../docs/archive/agents/task_briefs/2026-11-04-application-framework-phase2-quality-report.md)
+- [Task Brief](../../docs/archive/agents/task_briefs/2026-11-04-APPLICATION_FRAMEWORK_PHASE2.md)
+- [Context Package](../../docs/archive/agents/context_packages/2026-11-04-APPLICATION_FRAMEWORK_PHASE2.md)
+- [Quality Report](../../docs/archive/agents/task_briefs/2026-11-04-APPLICATION_FRAMEWORK_PHASE2_QUALITY_REPORT.md)
 
 **Code Changes:**
 - `engine/runtime/include/engine/runtime/application.hpp` - Application class (164 lines)
@@ -94,7 +94,7 @@ This index documents the complete Application Framework implementation, from ini
 5. [Geometry Viewer Implementation Summary](../examples/GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md) - Current state
 
 ### ADRs & Specs
-- [ADR-0008: Runtime Main Loop and Tooling](../specs/ADR-0008-runtime-main-loop-and-tooling.md)
+- [ADR-0008: Runtime Main Loop and Tooling](../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md)
 
 ## Implementation Files
 

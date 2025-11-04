@@ -25,7 +25,7 @@ _Last Updated: 2025-03-25_
 ## Notes
 
 - Coordinate with runtime to surface manifold telemetry and benchmark trends for diagnostics viewers.
-- Capture benchmark results in task record `T-0117-physics-contact-manifolds.md` and update CI baselines as they evolve.
+- Capture benchmark results in task record `T_0117_PHYSICS_CONTACT_MANIFOLDS.md` and update CI baselines as they evolve.
 - Telemetry schema (`CC-001.1`) is available; runtime now publishes manifold
   metrics under the shared schema, completing `PH-420`.
 - Collision throughput harness (`engine_physics_benchmarks`) emits JSON metrics

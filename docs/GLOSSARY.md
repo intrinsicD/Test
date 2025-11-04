@@ -54,9 +54,9 @@ A comprehensive reference of terms, acronyms, and identifiers used throughout th
 | **ADR** | Architecture Decision Record. Binding documents stored in `docs/specs/` that define architectural choices until superseded. |
 | **Backlog** | Module-specific work queue documented in `docs/modules/<name>/BACKLOG.md`. Distinct from the central roadmap which tracks cross-cutting initiatives. |
 | **ECS** | Entity-Component-System. The architectural pattern used by the scene module, implemented via EnTT. |
-| **Frame Graph** | Dependency graph describing rendering passes, resources, and synchronization. Defined in `docs/specs/ADR-0003-runtime-frame-graph.md`. |
+| **Frame Graph** | Dependency graph describing rendering passes, resources, and synchronization. Defined in `docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md`. |
 | **Generational Handle** | Resource identifier combining an index and generation counter to detect stale references. See `docs/design/RESOURCE_MANAGEMENT.md`. |
-| **RFP** | Request for Proposal. Design documents outlining requirements for major features (e.g., `GE-212-REMESHING_PARAMETERIZATION_RFP.md`). |
+| **RFP** | Request for Proposal. Design documents outlining requirements for major features (e.g., `GE_212_REMESHING_PARAMETERIZATION_RFP.md`). |
 | **RuntimeHost** | Entry point that orchestrates animation, physics, geometry, and rendering submission. Documented in `docs/modules/runtime/README.md`. |
 | **Spatial Index** | Acceleration structure (kd-tree, octree) maintained by geometry module to speed spatial queries. |
 | **Task Record** | Markdown file under `docs/backlog/active/` (archived in `docs/backlog/archive/`) containing goal, inputs, constraints, deliverables, and acceptance checklist. |

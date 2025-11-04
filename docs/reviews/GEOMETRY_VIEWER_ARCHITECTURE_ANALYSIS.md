@@ -416,9 +416,9 @@ The engine has excellent architectural foundations, but several critical integra
 
 ## References
 
-- [RT-410: Runtime Stage Planner](../backlog/active/RT-410-runtime-stage-planner.md)
-- [T-0119: Command Encoder Integration](../backlog/active/T-0119-command-encoder-integration.md)
-- [T-0120: GPU Resource Provider](../backlog/active/T-0120-gpu-resource-provider.md)
+- [RT-410: Runtime Stage Planner](../backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md)
+- [T-0119: Command Encoder Integration](../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md)
+- [T-0120: GPU Resource Provider](../backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md)
 - [Architecture Overview](../ARCHITECTURE.md)
 - [Roadmap](../ROADMAP.md)
 - [Platform Module](../modules/platform/README.md)

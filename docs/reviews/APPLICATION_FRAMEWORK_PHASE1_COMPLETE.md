@@ -85,9 +85,9 @@ The refactored geometry viewer now serves as the **reference implementation** fo
 2. `docs/examples/GEOMETRY_VIEWER_IMPLEMENTATION_SUMMARY.md` - Updated summary
 
 ### Agent Artifacts (3 files)
-1. `agents/task_briefs/2026-11-03-application-framework-implementation.md`
-2. `agents/context_packages/2026-11-03-application-framework-implementation.md`
-3. `agents/task_briefs/2026-11-03-application-framework-quality-report.md`
+1. `agents/task_briefs/2026-11-03-APPLICATION_FRAMEWORK_IMPLEMENTATION.md`
+2. `agents/context_packages/2026-11-03-APPLICATION_FRAMEWORK_IMPLEMENTATION.md`
+3. `agents/task_briefs/2026-11-03-APPLICATION_FRAMEWORK_QUALITY_REPORT.md`
 
 ## API Reference
 

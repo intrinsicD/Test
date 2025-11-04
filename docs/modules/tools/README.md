@@ -4,15 +4,15 @@
 
 The tools module provides editor utilities, profiling tools, pipeline automation, and diagnostics viewers. It includes the telemetry viewer CLI for runtime snapshots, integration with Dear ImGui for debug UI, and runtime packaging scripts for CI/CD workflows.
 
-**Status:** 🚧 **Disabled** – The module remains excluded from the default build and ADR-0008 panel registry integration has not landed. See [`TL-310`](../../backlog/active/TL-310-editor-foundations.md) for the work required to re-enable the editor and tooling stack.
+**Status:** 🚧 **Disabled** – The module remains excluded from the default build and ADR-0008 panel registry integration has not landed. See [`TL-310`](../../backlog/active/TL_310_EDITOR_FOUNDATIONS.md) for the work required to re-enable the editor and tooling stack.
 
 > **Note:** The `geometry_viewer` sample depends on the GLFW backend and the generated `glad::gl_core` loader. CMake automatically skips the executable when either dependency is unavailable (for example, when Python/Jinja are missing or GLFW is disabled) so the canonical build presets continue to configure successfully.
 
 ## Outstanding Work
 
-- Restore build integration and CI coverage as tracked in [`TL-310`](../../backlog/active/TL-310-editor-foundations.md).
-- Implement the panel registry, runtime harness bridge, and ImGui reuse strategy from [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md).
-- Validate editor flows against GPU-enabled runtime once [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md) and [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) deliver synchronisation hooks.
+- Restore build integration and CI coverage as tracked in [`TL-310`](../../backlog/active/TL_310_EDITOR_FOUNDATIONS.md).
+- Implement the panel registry, runtime harness bridge, and ImGui reuse strategy from [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
+- Validate editor flows against GPU-enabled runtime once [`T-0119`](../../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md) and [`RT-410`](../../backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) deliver synchronisation hooks.
 
 ## Telemetry Viewer CLI
 
@@ -100,7 +100,7 @@ Key capabilities:
   metrics, and asset verification summaries (existence, size/hash checks,
   and harness-supplied diagnostics for each source/output artefact).
 - **Case study presets** – the preferences panel lists packaged AI-004 case
-  studies (see [`docs/design/RT-321-case-studies.md`](../../design/RT-321-case-studies.md))
+  studies (see [`docs/design/RT_321_CASE_STUDIES.md`](../../design/RT_321_CASE_STUDIES.md))
   with default dataset/preset/runtime selections and benchmark scenarios. The
   "Load" action synchronises harness callbacks (`on_case_study_requested`,
   `on_case_study_selected`) while updating dataset, rendering, and benchmark
@@ -167,7 +167,7 @@ sandbox.save_preferences(config_dir / "sandbox.ini");
 sandbox.save_layout(config_dir / "sandbox_layout.ini");
 ```
 
-Refer to [`docs/design/TL-210-experiment-sandbox.md`](../../design/TL-210-experiment-sandbox.md)
+Refer to [`docs/design/TL_210_EXPERIMENT_SANDBOX.md`](../../design/TL_210_EXPERIMENT_SANDBOX.md)
 for architecture and integration guidance.
 
 ### Benchmark Automation
@@ -371,7 +371,7 @@ ctest --preset linux-gcc-debug -R tools  # When enabled
 - [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Telemetry metric definitions
 - [`../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](../../design/TELEMETRY_INSTRUMENTATION_GUIDE.md): How to add telemetry
 - [`../runtime/DIAGNOSTICS.md`](../runtime/DIAGNOSTICS.md): Runtime diagnostics reference
-- [`../../specs/ADR-0008-runtime-main-loop-and-tooling.md`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md): Panel registry and runtime loop integration guidance.
+- [`../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md): Panel registry and runtime loop integration guidance.
 - Python tooling: `python/README.md`, `scripts/README.md`
 
 ## Current Status
@@ -400,7 +400,7 @@ Once modularization is complete, the module will be re-enabled and integrated in
   - `pytest scripts/tests/`
   - `ctest --preset linux-gcc-debug -R tools` (when C++ tools are enabled)
 - Review the
-  [`AI-004 Prototyping Playbook`](../../design/AI-004-prototyping-playbook.md)
+  [`AI-004 Prototyping Playbook`](../../design/AI_004_PROTOTYPING_PLAYBOOK.md)
   for the cross-module workflow that governs schema validation, dataset
   selection, sandbox integration, and benchmarking hand-offs.
 - Sandbox UI and prototyping harness consumers should adopt the shared AI-004

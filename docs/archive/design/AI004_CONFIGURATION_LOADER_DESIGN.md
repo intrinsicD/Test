@@ -2,7 +2,7 @@
 
 **Owner:** Tech Lead (Runtime)
 
-**Scope:** Implement schema-aligned configuration loading and validation for the runtime harness as part of backlog item [DC-040](../../backlog/archive/DC-040-ai-004-configuration-schema.md).
+**Scope:** Implement schema-aligned configuration loading and validation for the runtime harness as part of backlog item [DC-040](../../backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md).
 
 ## Purpose
 
@@ -80,7 +80,7 @@ The loader returns `RuntimeResult<T>` so callers can decide how to surface valid
   - Validate slug formatting, versioned metadata requirements, and cross-references (runtime dataset must exist).
   - Exercise rendering/runtime/benchmark/telemetry parsing using representative manifests.
 - **Integration hooks:** Python harness already exercises schema logic; the runtime harness will call the new loader once integrated.
-- **Docs:** Update `docs/design/AI-004-configuration-schema.md`, runtime module README, backlog, and roadmap entries to reflect native loader availability.
+- **Docs:** Update `docs/design/AI_004_CONFIGURATION_SCHEMA.md`, runtime module README, backlog, and roadmap entries to reflect native loader availability.
 
 ## Dependencies
 

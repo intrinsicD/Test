@@ -17,30 +17,30 @@ Each file in this directory documents a sprint backlog or a focused piece of wor
 
 ## Index
 
-- [`2025-02-17-sprint-06.md`](2025-02-17-sprint-06.md) – current sprint alignment.
-- [`T-0104-runtime-frame-graph-integration.md`](T-0104-runtime-frame-graph-integration.md) – runtime/rendering bridge work.
-- [`T-0112-geometry-io-roundtrip-hardening.md`](T-0112-geometry-io-roundtrip-hardening.md) – geometry/IO fidelity tasks.
-- [`T-0113-animation-runtime-skinning.md`](T-0113-animation-runtime-skinning.md) – deliver the remaining `RT-001` deformation pipeline work.
-- [`T-0114-testing-integration-suites.md`](T-0114-testing-integration-suites.md) – build the cross-module integration test harness for `TI-001`.
-- [`T-0118-testing-framework-upgrade.md`](T-0118-testing-framework-upgrade.md) – restore fixture support in the Googletest dependency to unblock `TI-001`.
-- [`CO-170-runtime-integration-sample.md`](CO-170-runtime-integration-sample.md) – activate the runtime ↔ compute sample, telemetry workflow, and documentation updates that unblock GPU sampling benchmarks.
-- [`T-0115-assets-async-streaming-mvp.md`](T-0115-assets-async-streaming-mvp.md) – complete the async streaming MVP for `AI-002`.
-- [`T-0116-rendering-vulkan-resource-translation.md`](T-0116-rendering-vulkan-resource-translation.md) – finish Vulkan backend deliverables for `RT-003`.
-- [`T-0119-rendering-command-encoder-implementation.md`](T-0119-rendering-command-encoder-implementation.md) – implement concrete command encoders for all graphics backends.
-- [`T-0120-rendering-gpu-resource-provider-implementation.md`](T-0120-rendering-gpu-resource-provider-implementation.md) – implement GPU resource creation and management for all backends.
-- [`T-0121-rendering-standard-passes-library.md`](T-0121-rendering-standard-passes-library.md) – build comprehensive library of standard render passes (shadows, lighting, post-processing).
-- [`T-0122-rendering-visibility-culling-system.md`](T-0122-rendering-visibility-culling-system.md) – implement frustum culling, occlusion culling, and LOD systems.
-- [`T-0123-rendering-pipeline-state-management.md`](T-0123-rendering-pipeline-state-management.md) – implement PSO caching, shader management, and state tracking.
-- [`T-0124-rendering-lighting-system.md`](T-0124-rendering-lighting-system.md) – implement comprehensive lighting with PBR shading, shadows, and light culling.
-- [`AI-004-application-prototyping-enablement.md`](AI-004-application-prototyping-enablement.md) – cross-module initiative aligning rendering, runtime, tools, assets, and benchmarking deliverables.
-- [`DC-040-ai-004-configuration-schema-alignment.md`](DC-040-ai-004-configuration-schema-alignment.md) – cross-module schema alignment.
-- [`DC-041-ai-004-kickoff-readiness.md`](DC-041-ai-004-kickoff-readiness.md) – publish kickoff milestone plan and risk ownership.
-- [`RE-610-research-rendering-baseline.md`](RE-610-research-rendering-baseline.md) – deliver research-grade rendering preset with telemetry.
-- [`RT-320-runtime-prototyping-harness.md`](RT-320-runtime-prototyping-harness.md) – build reusable harness with interactive/headless modes and scripting hooks.
-- [`RT-321-prototyping-case-study-validation.md`](RT-321-prototyping-case-study-validation.md) – deliver reproducible AI-004 case studies with telemetry baselines.
-- [`TL-210-experiment-sandbox-ui.md`](TL-210-experiment-sandbox-ui.md) – ship ImGui sandbox for experiment configuration and telemetry capture.
-- [`AS-330-reference-dataset-packages.md`](AS-330-reference-dataset-packages.md) – curate datasets with manifests, ingestion scripts, and provenance.
-- [`CC-310-comparative-benchmark-automation.md`](CC-310-comparative-benchmark-automation.md) – automate comparative benchmarking and CI gates.
-- [`CC-311-benchmark-visualization-integration.md`](CC-311-benchmark-visualization-integration.md) – integrate comparative plots and CI gating for AI-004 benchmarks.
+- [`2025-02-17-SPRINT_06.md`](2025-02-17-SPRINT_06.md) – current sprint alignment.
+- [`T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md`](T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md) – runtime/rendering bridge work.
+- [`T_0112_GEOMETRY_IO_ROUNDTRIP_HARDENING.md`](T_0112_GEOMETRY_IO_ROUNDTRIP_HARDENING.md) – geometry/IO fidelity tasks.
+- [`T_0113_ANIMATION_RUNTIME_SKINNING.md`](T_0113_ANIMATION_RUNTIME_SKINNING.md) – deliver the remaining `RT-001` deformation pipeline work.
+- [`T_0114_TESTING_INTEGRATION_SUITES.md`](T_0114_TESTING_INTEGRATION_SUITES.md) – build the cross-module integration test harness for `TI-001`.
+- [`T_0118_TESTING_FRAMEWORK_UPGRADE.md`](T_0118_TESTING_FRAMEWORK_UPGRADE.md) – restore fixture support in the Googletest dependency to unblock `TI-001`.
+- [`CO_170_RUNTIME_INTEGRATION_SAMPLE.md`](CO_170_RUNTIME_INTEGRATION_SAMPLE.md) – activate the runtime ↔ compute sample, telemetry workflow, and documentation updates that unblock GPU sampling benchmarks.
+- [`T_0115_ASSETS_ASYNC_STREAMING_MVP.md`](T_0115_ASSETS_ASYNC_STREAMING_MVP.md) – complete the async streaming MVP for `AI-002`.
+- [`T_0116_RENDERING_VULKAN_RESOURCE_TRANSLATION.md`](T_0116_RENDERING_VULKAN_RESOURCE_TRANSLATION.md) – finish Vulkan backend deliverables for `RT-003`.
+- [`T_0119_RENDERING_COMMAND_ENCODER_IMPLEMENTATION.md`](T_0119_RENDERING_COMMAND_ENCODER_IMPLEMENTATION.md) – implement concrete command encoders for all graphics backends.
+- [`T_0120_RENDERING_GPU_RESOURCE_PROVIDER_IMPLEMENTATION.md`](T_0120_RENDERING_GPU_RESOURCE_PROVIDER_IMPLEMENTATION.md) – implement GPU resource creation and management for all backends.
+- [`T_0121_RENDERING_STANDARD_PASSES_LIBRARY.md`](T_0121_RENDERING_STANDARD_PASSES_LIBRARY.md) – build comprehensive library of standard render passes (shadows, lighting, post-processing).
+- [`T_0122_RENDERING_VISIBILITY_CULLING_SYSTEM.md`](T_0122_RENDERING_VISIBILITY_CULLING_SYSTEM.md) – implement frustum culling, occlusion culling, and LOD systems.
+- [`T_0123_RENDERING_PIPELINE_STATE_MANAGEMENT.md`](T_0123_RENDERING_PIPELINE_STATE_MANAGEMENT.md) – implement PSO caching, shader management, and state tracking.
+- [`T_0124_RENDERING_LIGHTING_SYSTEM.md`](T_0124_RENDERING_LIGHTING_SYSTEM.md) – implement comprehensive lighting with PBR shading, shadows, and light culling.
+- [`AI_004_APPLICATION_PROTOTYPING_ENABLEMENT.md`](AI_004_APPLICATION_PROTOTYPING_ENABLEMENT.md) – cross-module initiative aligning rendering, runtime, tools, assets, and benchmarking deliverables.
+- [`DC_040_AI_004_CONFIGURATION_SCHEMA_ALIGNMENT.md`](DC_040_AI_004_CONFIGURATION_SCHEMA_ALIGNMENT.md) – cross-module schema alignment.
+- [`DC_041_AI_004_KICKOFF_READINESS.md`](DC_041_AI_004_KICKOFF_READINESS.md) – publish kickoff milestone plan and risk ownership.
+- [`RE_610_RESEARCH_RENDERING_BASELINE.md`](RE_610_RESEARCH_RENDERING_BASELINE.md) – deliver research-grade rendering preset with telemetry.
+- [`RT_320_RUNTIME_PROTOTYPING_HARNESS.md`](RT_320_RUNTIME_PROTOTYPING_HARNESS.md) – build reusable harness with interactive/headless modes and scripting hooks.
+- [`RT_321_PROTOTYPING_CASE_STUDY_VALIDATION.md`](RT_321_PROTOTYPING_CASE_STUDY_VALIDATION.md) – deliver reproducible AI-004 case studies with telemetry baselines.
+- [`TL_210_EXPERIMENT_SANDBOX_UI.md`](TL_210_EXPERIMENT_SANDBOX_UI.md) – ship ImGui sandbox for experiment configuration and telemetry capture.
+- [`AS_330_REFERENCE_DATASET_PACKAGES.md`](AS_330_REFERENCE_DATASET_PACKAGES.md) – curate datasets with manifests, ingestion scripts, and provenance.
+- [`CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md`](CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md) – automate comparative benchmarking and CI gates.
+- [`CC_311_BENCHMARK_VISUALIZATION_INTEGRATION.md`](CC_311_BENCHMARK_VISUALIZATION_INTEGRATION.md) – integrate comparative plots and CI gating for AI-004 benchmarks.
 
 Create new task files as work is planned. Archive completed tasks under a `done/` subdirectory if they remain valuable references.

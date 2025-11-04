@@ -322,7 +322,7 @@ ctest --preset linux-gcc-debug -R scene_samples
 - [`BACKLOG.md`](BACKLOG.md): Module milestones including `RT-005` validation work
 - [`DIAGNOSTICS.md`](DIAGNOSTICS.md): Scene validation diagnostics reference
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): Scene role in data flow
-- [`../../archive/backlog/legacy/tasks/2025-02-17-sprint-06.md`](../../archive/backlog/legacy/tasks/2025-02-17-sprint-06.md): Scene validation sprint milestone
+- [`../../archive/backlog/legacy/tasks/2025-02-17-SPRINT_06.md`](../../archive/backlog/legacy/tasks/2025-02-17-SPRINT_06.md): Scene validation sprint milestone
 
 ## Current State
 

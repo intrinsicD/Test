@@ -2,7 +2,7 @@
 
 ## Overview
 
-> **Status:** ⚠️ **At Risk** — `RuntimeHost` now compiles a declarative `RuntimeLoopPlan` with per-phase telemetry and supports the `rendering::PresentationBackend` interface, yet GPU-backed presenters and synchronisation APIs mandated by [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) remain outstanding until [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md) lands.
+> **Status:** ⚠️ **At Risk** — `RuntimeHost` now compiles a declarative `RuntimeLoopPlan` with per-phase telemetry and supports the `rendering::PresentationBackend` interface, yet GPU-backed presenters and synchronisation APIs mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) remain outstanding until [`RT-410`](../../backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) lands.
 
 The runtime module orchestrates the engine's main execution loop through `RuntimeHost`, which coordinates animation evaluation, physics simulation, geometry deformation, scene graph updates, and rendering submission. It acts as the integration point for all subsystems and provides comprehensive diagnostics and telemetry.
 
@@ -116,9 +116,9 @@ See [`engine/tools/examples/geometry_viewer.cpp`](../../../engine/tools/examples
 
 ## Outstanding Work
 
-- Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md) (`RT-410`).
+- Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) (`RT-410`).
 - Provide synchronisation hooks for scripting, diagnostics, and tooling integrations in tandem with rendering backends.
-- Validate the new loop against OpenGL/Vulkan once [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) and [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md) ship.
+- Validate the new loop against OpenGL/Vulkan once [`T-0120`](../../backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md) and [`T-0119`](../../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md) ship.
 
 ## Core Concepts
 
@@ -459,7 +459,7 @@ ctest --preset linux-gcc-debug -R runtime
 ### Prototyping Harness (AI-004)
 
 - Follow the end-to-end workflow in the
-  [`AI-004 Prototyping Playbook`](../../design/AI-004-prototyping-playbook.md) to align schema validation, dataset packaging,
+  [`AI-004 Prototyping Playbook`](../../design/AI_004_PROTOTYPING_PLAYBOOK.md) to align schema validation, dataset packaging,
   harness execution, sandbox integration, and benchmarking automation steps.
 - A sample configuration lives at `docs/examples/ai004_sample.json` and
   references the `assets/datasets/remesh_sample` manifest so new contributors
@@ -488,7 +488,7 @@ ctest --preset linux-gcc-debug -R runtime
   sync with the AI-004 kickoff plan tracked by `RT-321`. Baseline expectations
   for both scenarios (datasets, rendering presets, telemetry outputs, and
   manifest metrics) are recorded in
-  [`docs/design/RT-321-case-studies.md`](../../design/RT-321-case-studies.md).
+  [`docs/design/RT_321_CASE_STUDIES.md`](../../design/RT_321_CASE_STUDIES.md).
 - Continuous integration exercises both case studies via CTest:
   ```bash
   ctest --preset <preset> -R runtime_prototype_harness_geometry_case_study
@@ -534,7 +534,7 @@ ctest --preset linux-gcc-debug -R runtime
   1. Run `python -m scripts.validate_ai004_config --dataset <path> --config <path>`
      to surface missing headers or field violations.
   2. Update manifests to include the schema blocks described in
-     [`docs/design/AI-004-configuration-schema.md`](../../design/AI-004-configuration-schema.md).
+     [`docs/design/AI_004_CONFIGURATION_SCHEMA.md`](../../design/AI_004_CONFIGURATION_SCHEMA.md).
   3. Re-run the harness with `--require-schema` (or set
      `ENGINE_AI004_SCHEMA_V1=1`) to confirm the updated manifests satisfy v1.
   4. Remove temporary overrides once all modules publish schema-compliant
@@ -542,8 +542,8 @@ ctest --preset linux-gcc-debug -R runtime
 
 ## TODO / Next Steps
 
-- Execute [`RT-410`](../../backlog/active/RT-410-runtime-stage-planner.md): ship the stage planner, presentation adapters, and synchronisation hooks mandated by [`ADR-0008`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md).
-- Pair with rendering on [`T-0119`](../../backlog/active/T-0119-command-encoder-integration.md) and [`T-0120`](../../backlog/active/T-0120-gpu-resource-provider.md) milestones so submission timing and telemetry contracts stay aligned.
+- Execute [`RT-410`](../../backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md): ship the stage planner, presentation adapters, and synchronisation hooks mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
+- Pair with rendering on [`T-0119`](../../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md) and [`T-0120`](../../backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md) milestones so submission timing and telemetry contracts stay aligned.
 - Maintain the prototyping harness/case studies as new datasets land and record follow-on scenarios in [`../../ROADMAP.md`](../../ROADMAP.md) when they enter planning.
 
 ## Related Documentation
@@ -551,7 +551,7 @@ ctest --preset linux-gcc-debug -R runtime
 - [`BACKLOG.md`](BACKLOG.md): Module-specific task tracking
 - [`DIAGNOSTICS.md`](DIAGNOSTICS.md): Comprehensive telemetry reference and troubleshooting
 - [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md): Asset loading workflows
-- [`../../specs/ADR-0008-runtime-main-loop-and-tooling.md`](../../specs/ADR-0008-runtime-main-loop-and-tooling.md): Main loop configuration, presentation, and tooling registry.
+- [`../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md): Main loop configuration, presentation, and tooling registry.
 - [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md): System-level data flow and invariants
 - [`../../design/TELEMETRY_SCHEMA.md`](../../design/TELEMETRY_SCHEMA.md): Shared metric definitions
-- [`../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md`](../../archive/backlog/legacy/tasks/T-0104-runtime-frame-graph-integration.md): Frame-graph integration milestone
+- [`../../archive/backlog/legacy/tasks/T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md`](../../archive/backlog/legacy/tasks/T_0104_RUNTIME_FRAME_GRAPH_INTEGRATION.md): Frame-graph integration milestone
