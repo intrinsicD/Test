@@ -1,14 +1,26 @@
 #!/usr/bin/env python3
-"""Task Status Dashboard.
+"""Hybrid workflow task status dashboard.
 
-Query and display task status from hybrid workflow metadata.
-Demonstrates automation capabilities of the metadata-driven approach.
+This module provides a command-line utility that parses the backlog metadata
+files under :mod:`hybrid_workflow/backlog` and renders a concise table or
+summary.  It mirrors the repository documentation so contributors can discover
+high-priority tasks quickly.
 
-Usage:
-    python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY] [--area AREA]
+Usage
+-----
+
+The tool accepts optional filters for status, priority, and area:
+
+.. code-block:: bash
+
+   python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY] [--area AREA]
+
+Invoke ``--summary`` for aggregate statistics or ``--detail`` with a task ID to
+inspect a single record.
 """
 
 import argparse
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -274,5 +286,5 @@ def main():
 
 
 if __name__ == '__main__':
-    exit(main())
+    sys.exit(main())
 
