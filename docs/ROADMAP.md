@@ -57,7 +57,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
 | 1 | [`T-0120`](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | In Progress |
-| 1 | [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | In Progress |
+| 1 | [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | Done |
 | 1 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | In Progress |
 | 1 | [`RG-450`](../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) | Build modular render pipeline planner with node reflection, transient resources, and async scheduling. | Rendering Lead | New |
 | 2 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | In Progress (planning; blocked on RT-410 hooks) |
@@ -66,7 +66,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 **Exit Criteria:** OpenGL/Vulkan execute real workloads with shader pipelines, runtime presentation loop synchronises with tooling, and the editor/tooling stack is buildable with baseline smoke coverage.
 
 **Sequencing:**
-1. **T-0120 + T-0119** (Priority 1) - Joint GPU resource provider and command encoder work with shared design reviews
+1. **T-0120** (Priority 1) - Finalise GPU resource provider work; encoder integration (`T-0119`) is complete and ready to exercise real allocations
 2. **RT-410** (Priority 1) - Stage planner adapters, depends on GPU milestone progress
 3. **PM-510** (Priority 2) - Ongoing weekly integration demos covering GPU → runtime → tooling
 4. **TL-310** (Priority 2) - Editor re-enablement; planning underway while RT-410 adapters land
@@ -75,8 +75,8 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
-| [`T-0120`](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) | 1 | In Progress | GPU allocations, textures, and shader pipelines being implemented with shared reviews alongside T-0119. |
-| [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | 1 | In Progress | Command encoder integration underway; smoke demos paired with T-0120 milestone. |
+| [`T-0120`](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) | 1 | In Progress | GPU allocations, textures, and shader pipelines being implemented alongside the completed command encoder work. |
+| [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
 | [`RG-450`](../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) | 1 | New | Frame-graph planner to compose modular node-based render pipelines with transient allocator + async queue support. |
 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | In Progress | Context assembly started; implementation will begin once RT-410 exposes presentation hooks. |
@@ -87,7 +87,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 | Priority | Risk | Owner | Mitigation |
 | --- | --- | --- | --- |
-| 1 | GPU resource provider/command encoder slip keeps backends non-functional. | Rendering Lead | Run the joint T-0120/T-0119 milestone with shared design reviews and publish outputs through [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md). |
+| 1 | GPU resource provider slip keeps backends reliant on recording allocations despite encoder integration. | Rendering Lead | Close `T-0120` with weekly demos (`PM-510`) exercising the shipped encoder against real resource provisioning. |
 | 1 | Stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Start RT-410 alongside the GPU milestone; present weekly planner/presentation progress in PM-510 demos. |
 | 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Sequence TL-310 immediately after RT-410 adapter merge and preview editor state during PM-510 demos. |
 | 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Capture updates from weekly demos and rerun docs validator after each milestone increment. |

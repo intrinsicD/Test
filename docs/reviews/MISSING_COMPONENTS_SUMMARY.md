@@ -18,7 +18,7 @@
 | **Runtime::RuntimeLoopPlan** | ✅ Yes | ✅ Complete | ⚠️ Limited | No window integration |
 | **Rendering::FrameGraph** | ✅ Yes | ⚠️ Partial | ❌ No | GPU execution blocked |
 | **Rendering::PresentationBackend** | ⚠️ Interface | ❌ No | ❌ No | RT-410 in progress |
-| **Rendering::CommandEncoder** | ⚠️ Interface | ❌ No | ❌ No | T-0119 blocked |
+| **Rendering::CommandEncoder** | ✅ Yes | ⚠️ Partial | ⚠️ Limited | Awaiting T-0120 resource provider to drive real GPU memory |
 | **Rendering::GPUResourceProvider** | ❌ No | ❌ No | ❌ No | T-0120 blocked |
 | **Runtime::Application** | ❌ No | ❌ No | ❌ No | Not planned |
 | **Swapchain Management** | ⚠️ Partial | ❌ No | ❌ No | RT-410 in progress |
@@ -102,7 +102,6 @@ while (!should_quit) {
 ### 3. Rendering Module: 30% Complete 🚫
 
 **Missing:**
-- GPU command execution (T-0119)
 - Resource provider (T-0120)
 - Presentation backends (RT-410)
 - Swapchain management
@@ -214,7 +213,7 @@ int main() {
 2. ✅ **Window::input_state()** - needs wiring
 3. ✅ **Runtime::run()** - needs implementation
 4. ✅ **PresentationBackend** - RT-410 in progress
-5. ✅ **GPU execution** - T-0119/T-0120 blocked
+5. ✅ **GPU execution** - T-0120 resource provider remains outstanding
 
 **Estimated Timeline**: 2-3 months for full stack
 
@@ -223,7 +222,7 @@ int main() {
 ### For Engine Core Team
 
 1. **RT-410** (Priority 1): Implement presentation backends
-2. **T-0119/T-0120** (Priority 1): Complete GPU execution
+2. **T-0120** (Priority 1): Complete GPU execution now that the command encoder shipped
 3. **Platform Input** (Priority 2): Wire InputState to Window
 4. **Application Framework** (Priority 3): Consider base class design
 
@@ -299,5 +298,5 @@ The `geometry_viewer.cpp` pattern is a **temporary necessity**, not the intended
 
 ---
 
-**Track Progress**: Watch RT-410, T-0119, and T-0120 in the backlog for completion status.
+**Track Progress**: Watch RT-410 and T-0120 in the backlog for completion status; T-0119 is complete and ready for integration testing.
 

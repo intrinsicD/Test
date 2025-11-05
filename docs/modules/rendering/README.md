@@ -2,14 +2,13 @@
 
 ## Overview
 
-> **Status:** ⚠️ **Blocked** — GPU resource provider and command encoder work (see [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) and [`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md)) remain unfinished. A backend-agnostic recording encoder/provider now ships alongside the OpenGL and Vulkan integrations, enabling frame-graph passes to be validated without native command buffers, but the backends still rely on the recording provider and cannot allocate GPU buffers, textures, or shaders, so no real draw commands execute yet.
+> **Status:** ⚠️ **At Risk** — Command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md)) now records frame-graph passes into OpenGL/Vulkan command buffers, but the GPU resource provider ([`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md)) still gates real buffer/texture allocation, so backends execute against recording resources until that work lands.
 
 The rendering module currently provides frame-graph compilation, scheduler prototypes, and resource lifetime tracking, but the missing GPU execution path prevents end-to-end rendering. This README tracks the outstanding work needed to reach functional backends in addition to describing the existing infrastructure.
 
 ## Outstanding Work
 
 - Implement the GPU resource provider (`T-0120`) to create buffers, textures, and shader programs for real backends.
-- Land the command encoder integration (`T-0119`) so frame-graph passes emit backend command buffers.
 - Coordinate with the runtime stage planner (`RT-410`) to ensure presentation backends and synchronisation policies align with rendering.
 
 ## Camera System
@@ -78,6 +77,28 @@ if (result.success) {
     fmt::print("Render failed: {}\n", result.error_message);
 }
 ```
+
+### Command Encoder Integration
+
+`FrameGraphPassExecutionContext::command_encoder()` exposes the active encoder for the pass currently executing. The frame graph
+acquires a command buffer from the scheduler, asks the provider for an encoder, and hands it to the pass so draw and dispatch
+work can be recorded while resources transition:
+
+```cpp
+void GeometryPass::execute(FrameGraphPassExecutionContext& ctx)
+{
+    auto& encoder = ctx.command_encoder();
+    encoder.draw_geometry({
+        .geometry = mesh,
+        .material = material_handle,
+        .transform = world_from_object,
+    });
+}
+```
+
+Backends translate the recorded commands when `FrameGraph::execute` finalises the encoder scope. The OpenGL scheduler feeds the
+recorded command list to the command stream, while the Vulkan scheduler packages the encoded commands alongside queue metadata
+so presentation backends and diagnostics consume the same submission payloads.
 
 ### Resource Barriers
 
@@ -580,5 +601,5 @@ ctest --preset linux-gcc-debug -R rendering
 ## TODO / Next Steps
 
 - Deliver [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md): finish GPU buffer/texture/sampler creation, shader compilation, and hot-reload hooks so OpenGL/Vulkan providers allocate real resources. Track progress in [`../../ROADMAP.md`](../../ROADMAP.md).
-- Complete [`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md): land command encoder APIs, backend submissions, and smoke coverage that translate frame-graph passes into GPU work.
-- Coordinate weekly with runtime/tools leads while `T-0120`/`T-0119` progress to align telemetry expectations and unblock downstream [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) integration.
+- Harden encoder telemetry: extend tracing provider outputs into tooling dashboards and runtime diagnostics so PM-510 demos can trend draw/dispatch counts alongside queue timings.
+- Coordinate weekly with runtime/tools leads while `T-0120` progresses to align telemetry expectations and unblock downstream [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) integration.
