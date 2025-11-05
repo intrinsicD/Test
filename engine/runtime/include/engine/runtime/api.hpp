@@ -51,6 +51,17 @@
 
 namespace engine::runtime
 {
+#if ENGINE_ENABLE_RENDERING
+    struct ENGINE_RUNTIME_API RuntimeCommandEncoderStats
+    {
+        std::string pass_name{};
+        engine::rendering::QueueType queue{engine::rendering::QueueType::Graphics};
+        engine::rendering::CommandBufferHandle command_buffer{};
+        std::uint64_t draw_count{0};
+        std::uint64_t dispatch_count{0};
+    };
+#endif
+
     [[nodiscard]] ENGINE_RUNTIME_API std::string_view module_name() noexcept;
     [[nodiscard]] ENGINE_RUNTIME_API std::size_t module_count() noexcept;
     [[nodiscard]] ENGINE_RUNTIME_API std::string_view module_name_at(std::size_t index) noexcept;
@@ -247,6 +258,7 @@ namespace engine::runtime
         rendering::resources::GpuResourceUsage gpu_resource_usage{};
         std::string frame_graph_serialization{};
         std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
+        std::vector<RuntimeCommandEncoderStats> command_encoder_stats{};
 #endif
         std::string loop_plan_serialization{};
 #if ENGINE_ENABLE_ASSETS

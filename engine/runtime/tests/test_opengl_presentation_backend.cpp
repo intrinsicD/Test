@@ -92,6 +92,9 @@ TEST(RuntimePresentationBackend, OpenGLBackendExecutesFrameGraph)
     ASSERT_EQ(diagnostics.frame_graph_events.size(), 4U); // NOLINT
     EXPECT_EQ(diagnostics.frame_graph_events[0].resource_name, "ForwardColor");
     EXPECT_EQ(diagnostics.frame_graph_events[1].resource_name, "ForwardDepth");
+    ASSERT_EQ(diagnostics.command_encoder_stats.size(), 1U); // NOLINT
+    EXPECT_EQ(diagnostics.command_encoder_stats.front().draw_count, 1U);
+    EXPECT_EQ(diagnostics.command_encoder_stats.front().dispatch_count, 0U);
 }
 
 TEST(RuntimePresentationBackend, OpenGLBackendConfiguresRetentionFrames)

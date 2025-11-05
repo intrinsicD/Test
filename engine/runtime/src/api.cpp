@@ -54,6 +54,7 @@
 #if ENGINE_ENABLE_RENDERING
 #    include "engine/rendering/api.hpp"
 #    include "engine/rendering/command_encoder.hpp"
+#    include "engine/rendering/command_encoder_tracing.hpp"
 #    include "engine/rendering/components.hpp"
 #    include "engine/rendering/frame_graph.hpp"
 #    include "engine/rendering/forward_pipeline.hpp"
@@ -2849,7 +2850,33 @@ namespace engine::runtime
         {
             pipeline = &impl_->forward_pipeline;
         }
-        pipeline->render(impl_->scene, context);
+
+        rendering::TracingCommandEncoderProvider tracer(context.encoders);
+        rendering::RuntimeSubmissionContext traced_context{
+            context.resources,
+            context.materials,
+            context.device_resources,
+            context.scheduler,
+            tracer,
+            context.frame_graph,
+            pipeline,
+        };
+
+        pipeline->render(impl_->scene, traced_context);
+        auto trace_records = tracer.consume_records();
+        std::vector<RuntimeCommandEncoderStats> encoder_stats{};
+        encoder_stats.reserve(trace_records.size());
+        for (const auto& record : trace_records)
+        {
+            RuntimeCommandEncoderStats stats{};
+            stats.pass_name = record.pass_name;
+            stats.queue = record.queue;
+            stats.command_buffer = record.command_buffer;
+            stats.draw_count = record.draw_count;
+            stats.dispatch_count = record.dispatch_count;
+            encoder_stats.push_back(std::move(stats));
+        }
+        impl_->diagnostics.command_encoder_stats = std::move(encoder_stats);
         impl_->diagnostics.gpu_resource_usage = context.device_resources.usage_snapshot();
         impl_->diagnostics.frame_graph_serialization = context.frame_graph.serialize();
         const auto& events = context.frame_graph.resource_events();

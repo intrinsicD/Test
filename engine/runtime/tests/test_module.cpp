@@ -1151,6 +1151,11 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler)
     const auto& diagnostics = host.diagnostics();
     EXPECT_FALSE(diagnostics.frame_graph_serialization.empty());
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"ForwardGeometry\""), std::string::npos);
+    ASSERT_FALSE(diagnostics.command_encoder_stats.empty());
+    const auto& encoder_stats = diagnostics.command_encoder_stats.front();
+    EXPECT_EQ(encoder_stats.pass_name, "ForwardGeometry");
+    EXPECT_EQ(encoder_stats.draw_count, 1U);
+    EXPECT_EQ(encoder_stats.dispatch_count, 0U);
     EXPECT_FALSE(diagnostics.loop_plan_serialization.empty());
     EXPECT_NE(diagnostics.loop_plan_serialization.find("\"name\": \"animation.evaluate\""), std::string::npos);
     ASSERT_EQ(diagnostics.frame_graph_events.size(), 4U);
@@ -1371,6 +1376,13 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler)
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"queue\": \"Compute\""), std::string::npos);
     EXPECT_NE(diagnostics.frame_graph_serialization.find("\"queue\": \"Transfer\""), std::string::npos);
     EXPECT_FALSE(diagnostics.loop_plan_serialization.empty());
+
+    ASSERT_EQ(diagnostics.command_encoder_stats.size(), 3U); // NOLINT
+    for (const auto& stats : diagnostics.command_encoder_stats)
+    {
+        EXPECT_EQ(stats.draw_count, 0U);
+        EXPECT_EQ(stats.dispatch_count, 0U);
+    }
 
     ASSERT_EQ(diagnostics.frame_graph_events.size(), 6U); // NOLINT
     for (const auto& event : diagnostics.frame_graph_events)
