@@ -9,14 +9,15 @@ high-priority tasks quickly.
 Usage
 -----
 
-The tool accepts optional filters for status, priority, and area:
+The tool accepts optional filters for status, priority, area, and blocked tasks:
 
 .. code-block:: bash
 
-   python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY] [--area AREA]
+   python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY] [--area AREA] [--blocked]
 
 Invoke ``--summary`` for aggregate statistics or ``--detail`` with a task ID to
-inspect a single record.
+inspect a single record.  Combine ``--blocked`` with the other filters to audit
+outstanding blockers rapidly.
 """
 
 import argparse
@@ -128,20 +129,31 @@ def load_all_tasks(backlog_dir: Path) -> List[Task]:
     return tasks
 
 
-def filter_tasks(tasks: List[Task], status: Optional[str] = None,
-                 priority: Optional[str] = None, area: Optional[str] = None) -> List[Task]:
+def filter_tasks(
+    tasks: List[Task],
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    area: Optional[str] = None,
+    *,
+    blocked_only: Optional[bool] = None,
+) -> List[Task]:
     """Filter tasks by criteria."""
     filtered = tasks
-    
+
     if status:
         filtered = [t for t in filtered if t.status == status]
-    
+
     if priority:
         filtered = [t for t in filtered if t.priority == priority]
-    
+
     if area:
         filtered = [t for t in filtered if t.area == area]
-    
+
+    if blocked_only is True:
+        filtered = [t for t in filtered if t.blocked_on]
+    elif blocked_only is False:
+        filtered = [t for t in filtered if not t.blocked_on]
+
     return filtered
 
 
@@ -241,6 +253,11 @@ def main():
     parser.add_argument('--status', help="Filter by status (new, ready, in_progress, review, done)")
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
+    parser.add_argument(
+        '--blocked',
+        action='store_true',
+        help="Limit results to tasks with blockers",
+    )
     parser.add_argument('--summary', action='store_true', help="Show summary statistics")
     parser.add_argument('--detail', help="Show details for specific task ID")
     
@@ -271,7 +288,13 @@ def main():
         return 0
     
     # Filter tasks
-    filtered = filter_tasks(tasks, args.status, args.priority, args.area)
+    filtered = filter_tasks(
+        tasks,
+        args.status,
+        args.priority,
+        args.area,
+        blocked_only=True if args.blocked else None,
+    )
     
     # Show summary
     if args.summary:

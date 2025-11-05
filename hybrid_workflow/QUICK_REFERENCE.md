@@ -92,6 +92,10 @@ python hybrid_workflow/task_status.py --priority P1
 # Filter by area
 python hybrid_workflow/task_status.py --area rendering
 
+# Focus on blockers
+python hybrid_workflow/task_status.py --blocked
+python hybrid_workflow/task_status.py --blocked --status in_progress
+
 # Show summary (respects filters)
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --status in_progress --summary
