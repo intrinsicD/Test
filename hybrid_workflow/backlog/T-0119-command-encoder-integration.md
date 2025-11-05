@@ -80,6 +80,14 @@ public:
 - **Synchronization deadlocks:** Validate barrier ordering using scheduler integration tests and sanitize command dependencies.
 - **Shader/PSO compilation failure:** Bubble errors with contextual diagnostics and link to resource provider telemetry.
 
+### Encoder ↔ Resource Provider Handshake (2025-04-26)
+
+- `FrameGraph::execute` acquires a backend command buffer through the scheduler, begins an encoder scope, and hands the active encoder to the render pass so GPU work is recorded while resources are acquired and released deterministically (`engine/rendering/src/frame_graph.cpp`).
+- `NativeSchedulerBase::request_command_buffer` requests a handle from the GPU resource provider, storing queue metadata alongside the provider-supplied native command buffer so the scheduler can translate submissions later (`engine/rendering/include/engine/rendering/backend/native_scheduler_base.hpp`).
+- Backend providers expose concrete encoders by resolving the command buffer handle, resetting the recorded command list, and returning an encoder that appends draw/dispatch commands (`engine/rendering/src/backend/opengl/command_encoder.cpp`, `engine/rendering/src/backend/vulkan/command_encoder.cpp`).
+- During submission the backend scheduler builds a translated payload that includes recorded commands before invoking the command stream implementation responsible for issuing API calls or telemetry (`engine/rendering/include/engine/rendering/backend/opengl/gpu_scheduler.hpp`, `engine/rendering/src/backend/opengl/immediate_command_stream.cpp`).
+- Runtime submission wraps the provider in a tracing encoder so diagnostics capture per-pass draw and dispatch counts without altering the recorded command stream (`engine/runtime/src/api.cpp`).
+
 ### Test Plan
 
 - **Unit Tests:**
@@ -98,7 +106,8 @@ public:
 
 ## Steps
 
-1. [ ] Finalize encoder/provider handshake with T-0120 owners and record decisions in this file.
+1. [x] Finalize encoder/provider handshake with T-0120 owners and record decisions in this file.
+   - [x] (2025-04-26) Documented the command encoder ↔ resource provider handshake covering frame-graph encoder scopes, scheduler allocation, backend encoder providers, and submission/telemetry translation for diagnostics alignment with T-0120.
 2. [ ] Implement encoder core in `engine/rendering/src/command_encoder.cpp` with unit coverage.
 3. [ ] Wire OpenGL and Vulkan scheduler backends to consume encoded commands.
    - Frame-graph execution now finalizes command encoders before GPU submission so backend providers observe a completed recording prior to scheduler hand-off.

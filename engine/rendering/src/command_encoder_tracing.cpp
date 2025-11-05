@@ -1,5 +1,6 @@
 #include "engine/rendering/command_encoder_tracing.hpp"
 
+#include <iterator>
 #include <utility>
 
 namespace engine::rendering
@@ -82,7 +83,11 @@ namespace engine::rendering
 
     std::vector<EncoderTraceRecord> TracingCommandEncoderProvider::consume_records() noexcept
     {
-        return std::exchange(records_, {});
+        std::vector<EncoderTraceRecord> collected{};
+        collected.reserve(records_.size());
+        std::move(records_.begin(), records_.end(), std::back_inserter(collected));
+        records_.clear();
+        return collected;
     }
 } // namespace engine::rendering
 
