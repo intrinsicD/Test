@@ -55,3 +55,12 @@ def test_filter_tasks_excludes_blocked_when_requested() -> None:
     filtered = task_status.filter_tasks(tasks, blocked_only=False)
 
     assert [task.id for task in filtered] == ["B"]
+
+
+def test_build_parser_supports_unblocked_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--unblocked'])
+
+    assert args.unblocked is True
+    assert args.blocked is False

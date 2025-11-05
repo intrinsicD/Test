@@ -9,15 +9,17 @@ high-priority tasks quickly.
 Usage
 -----
 
-The tool accepts optional filters for status, priority, area, and blocked tasks:
+The tool accepts optional filters for status, priority, area, and blocker
+metadata:
 
 .. code-block:: bash
 
-   python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY] [--area AREA] [--blocked]
+   python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY]
+                                        [--area AREA] [--blocked | --unblocked]
 
 Invoke ``--summary`` for aggregate statistics or ``--detail`` with a task ID to
-inspect a single record.  Combine ``--blocked`` with the other filters to audit
-outstanding blockers rapidly.
+inspect a single record.  Combine ``--blocked`` or ``--unblocked`` with the
+other filters to audit blocker status rapidly.
 """
 
 import argparse
@@ -248,19 +250,35 @@ def print_summary(tasks: List[Task]):
     print("="*50 + "\n")
 
 
-def main():
+def build_parser() -> argparse.ArgumentParser:
+    """Construct the argument parser for the CLI."""
+
     parser = argparse.ArgumentParser(description="Query hybrid workflow task status")
     parser.add_argument('--status', help="Filter by status (new, ready, in_progress, review, done)")
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
-    parser.add_argument(
+
+    blocker_group = parser.add_mutually_exclusive_group()
+    blocker_group.add_argument(
         '--blocked',
         action='store_true',
         help="Limit results to tasks with blockers",
     )
+    blocker_group.add_argument(
+        '--unblocked',
+        action='store_true',
+        help="Limit results to tasks without blockers",
+    )
+
     parser.add_argument('--summary', action='store_true', help="Show summary statistics")
     parser.add_argument('--detail', help="Show details for specific task ID")
-    
+
+    return parser
+
+
+def main():
+    parser = build_parser()
+
     args = parser.parse_args()
     
     # Find backlog directory
@@ -293,7 +311,7 @@ def main():
         args.status,
         args.priority,
         args.area,
-        blocked_only=True if args.blocked else None,
+        blocked_only=True if args.blocked else False if args.unblocked else None,
     )
     
     # Show summary
