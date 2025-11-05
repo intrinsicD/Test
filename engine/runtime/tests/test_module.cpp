@@ -2261,6 +2261,50 @@ TEST(RuntimeDiagnosticsCAPI, AnimationTelemetryExposed)
     engine_runtime_shutdown();
 }
 
+#if ENGINE_ENABLE_RENDERING
+TEST(RuntimeDiagnosticsCAPI, CommandEncoderTelemetryExposed)
+{
+    engine_runtime_shutdown();
+    engine_runtime_initialize();
+    engine_runtime_tick(0.016);
+
+    const std::size_t count = engine_runtime_diagnostic_command_encoder_count();
+    EXPECT_GE(count, 0U);
+
+    bool found_forward_geometry = false;
+    if (count == 0U)
+    {
+        EXPECT_EQ(engine_runtime_diagnostic_command_encoder_pass_name(0), nullptr);
+        EXPECT_EQ(engine_runtime_diagnostic_command_encoder_queue(0), nullptr);
+        EXPECT_EQ(engine_runtime_diagnostic_command_encoder_command_buffer(0), 0U);
+        EXPECT_EQ(engine_runtime_diagnostic_command_encoder_draw_count(0), 0U);
+        EXPECT_EQ(engine_runtime_diagnostic_command_encoder_dispatch_count(0), 0U);
+    }
+    else
+    {
+        for (std::size_t index = 0; index < count; ++index)
+        {
+            const char* pass_name = engine_runtime_diagnostic_command_encoder_pass_name(index);
+            ASSERT_NE(pass_name, nullptr);
+            const char* queue = engine_runtime_diagnostic_command_encoder_queue(index);
+            ASSERT_NE(queue, nullptr);
+            EXPECT_STRNE(queue, "");
+            const std::uint64_t handle = engine_runtime_diagnostic_command_encoder_command_buffer(index);
+            EXPECT_GT(handle, 0U);
+            EXPECT_GE(engine_runtime_diagnostic_command_encoder_draw_count(index), 0U);
+            EXPECT_GE(engine_runtime_diagnostic_command_encoder_dispatch_count(index), 0U);
+            if (std::string_view{pass_name} == "ForwardGeometry")
+            {
+                found_forward_geometry = true;
+            }
+        }
+        EXPECT_TRUE(found_forward_geometry);
+    }
+
+    engine_runtime_shutdown();
+}
+#endif
+
 TEST(RuntimeHost, RejectsDependenciesWithMismatchedMeshVertexCounts)
 {
     engine::runtime::RuntimeHost host{};

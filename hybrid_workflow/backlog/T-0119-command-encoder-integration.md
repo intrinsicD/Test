@@ -115,11 +115,12 @@ public:
 3. [x] Wire OpenGL and Vulkan scheduler backends to consume encoded commands.
    - [x] (2025-04-26) Frame-graph execution now finalizes command encoders before GPU submission so backend providers observe a completed recording prior to scheduler hand-off.
    - [x] (2025-05-11) Recycled command buffer handles in `NativeSchedulerBase` so backend providers reuse encoder-backed buffers without unbounded handle growth.
-4. [ ] Add frame-graph integration tests and PM-510 smoke scenario hooks.
+4. [x] Add frame-graph integration tests and PM-510 smoke scenario hooks.
    - [x] Added `FrameGraph.RecordsCommandsThroughEncoderProvider` to verify command encoder submissions (2025-03-27).
    - [x] Runtime diagnostics capture per-pass command encoder stats for presentation submissions (2025-04-10).
    - [x] Added OpenGL backend integration test exercising frame-graph execution through real command encoder providers (2025-05-02).
-   - [ ] Extend PM-510 smoke scenarios once runtime submission wiring lands.
+   - [x] (2025-06-01) Extended the runtime telemetry harness so PM-510 smoke scenarios surface command encoder queues,
+         command buffer handles, and draw/dispatch counts exported through the C API.
 5. [ ] Document encoder usage in rendering/runtime READMEs and update roadmap entries.
    - [x] Documented command encoder diagnostics in runtime troubleshooting guide (2025-04-10).
 6. [ ] Run performance benchmarks and capture telemetry artefacts.
@@ -143,6 +144,8 @@ python scripts/validate_docs.py
 - Build + unit/integration suites: linux-gcc-debug preset ✅
 - Python + scripts: pytest ✅
 - Documentation validation: validate_docs ✅
+- (2025-06-01) Targeted validation: `engine_runtime_tests --gtest_filter=RuntimeDiagnosticsCAPI.*`,
+  `pytest scripts/tests/test_runtime_frame_telemetry.py`, `python scripts/validate_docs.py` ✅
 
 ### Performance
 

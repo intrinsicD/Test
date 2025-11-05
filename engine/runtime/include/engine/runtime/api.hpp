@@ -559,3 +559,15 @@ extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_metric_label
 extern "C" ENGINE_RUNTIME_API bool engine_runtime_diagnostic_metric_is_integral(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_metric_value(std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::int64_t engine_runtime_diagnostic_metric_value_int(std::size_t index) noexcept;
+#if ENGINE_ENABLE_RENDERING
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_command_encoder_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_command_encoder_pass_name(
+    std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_command_encoder_queue(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_command_encoder_command_buffer(
+    std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_command_encoder_draw_count(
+    std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_command_encoder_dispatch_count(
+    std::size_t index) noexcept;
+#endif

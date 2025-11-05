@@ -226,6 +226,15 @@ def test_diagnostics_to_dict_roundtrip() -> None:
                 last_initialize_failure_message="configuration missing",
             )
         ],
+        command_encoders=[
+            telemetry.RuntimeCommandEncoderStat(
+                pass_name="ForwardGeometry",
+                queue="Graphics",
+                command_buffer=1,
+                draw_count=2,
+                dispatch_count=0,
+            )
+        ],
         streaming=telemetry.RuntimeStreamingMetrics(
             worker_count=2,
             queue_capacity=16,
@@ -312,6 +321,8 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["subsystems"][0]["initialize_failure_count"] == 1
     assert payload["subsystems"][0]["last_initialize_failure_category"] == "physics.startup"
     assert payload["subsystems"][0]["last_initialize_failure_message"] == "configuration missing"
+    assert payload["command_encoders"][0]["pass_name"] == "ForwardGeometry"
+    assert payload["command_encoders"][0]["draw_count"] == 2
     assert payload["animation"]["clip_track_count"] == 1
     assert payload["animation"]["category_totals"][0]["label"] == "animation"
 
