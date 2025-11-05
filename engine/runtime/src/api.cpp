@@ -73,6 +73,17 @@ namespace
     constexpr std::uint64_t kHierarchyFailureWarningThreshold = 3;
     constexpr std::uint64_t kHierarchyFailureCriticalThreshold = 10;
 
+#if ENGINE_ENABLE_RENDERING
+    [[nodiscard]] const char* queue_type_to_cstr(engine::rendering::QueueType queue) noexcept
+    {
+        thread_local std::string buffer{};
+        std::ostringstream stream;
+        stream << queue;
+        buffer = stream.str();
+        return buffer.c_str();
+    }
+#endif
+
     [[nodiscard]] engine::runtime::SceneValidationAlertLevel evaluate_scene_validation_alert(
         std::uint64_t consecutive_failures) noexcept
     {
@@ -4283,3 +4294,108 @@ extern "C" ENGINE_RUNTIME_API std::int64_t engine_runtime_diagnostic_metric_valu
     }
     return engine::core::telemetry::as_int(metrics.samples[index].value);
 }
+
+#if ENGINE_ENABLE_RENDERING
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_command_encoder_count() noexcept
+{
+    try
+    {
+        const auto& stats = engine::runtime::diagnostics().command_encoder_stats;
+        return stats.size();
+    }
+    catch (...)
+    {
+        return 0U;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_command_encoder_pass_name(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& stats = engine::runtime::diagnostics().command_encoder_stats;
+        if (index >= stats.size())
+        {
+            return nullptr;
+        }
+        return stats[index].pass_name.c_str();
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_command_encoder_queue(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& stats = engine::runtime::diagnostics().command_encoder_stats;
+        if (index >= stats.size())
+        {
+            return nullptr;
+        }
+        return queue_type_to_cstr(stats[index].queue);
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t
+engine_runtime_diagnostic_command_encoder_command_buffer(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& stats = engine::runtime::diagnostics().command_encoder_stats;
+        if (index >= stats.size())
+        {
+            return 0U;
+        }
+        return static_cast<std::uint64_t>(stats[index].command_buffer.index);
+    }
+    catch (...)
+    {
+        return 0U;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t
+engine_runtime_diagnostic_command_encoder_draw_count(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& stats = engine::runtime::diagnostics().command_encoder_stats;
+        if (index >= stats.size())
+        {
+            return 0U;
+        }
+        return stats[index].draw_count;
+    }
+    catch (...)
+    {
+        return 0U;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t
+engine_runtime_diagnostic_command_encoder_dispatch_count(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& stats = engine::runtime::diagnostics().command_encoder_stats;
+        if (index >= stats.size())
+        {
+            return 0U;
+        }
+        return stats[index].dispatch_count;
+    }
+    catch (...)
+    {
+        return 0U;
+    }
+}
+#endif

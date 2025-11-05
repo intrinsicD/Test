@@ -34,7 +34,7 @@ import os
 import statistics
 import sys
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterable, List, MutableMapping, Optional, Sequence, Tuple, Type
 
@@ -95,6 +95,17 @@ class RuntimeStageMetric:
     average_ms: float
     max_ms: float
     sample_count: int
+
+
+@dataclass
+class RuntimeCommandEncoderStat:
+    """Per-pass GPU command encoder statistics captured via runtime diagnostics."""
+
+    pass_name: str
+    queue: str
+    command_buffer: int
+    draw_count: int
+    dispatch_count: int
 
 
 @dataclass
@@ -300,6 +311,7 @@ class RuntimeDiagnosticsSnapshot:
     phases: List[RuntimePhaseMetric]
     stages: List[RuntimeStageMetric]
     subsystems: List[RuntimeSubsystemMetric]
+    command_encoders: List[RuntimeCommandEncoderStat] = field(default_factory=list)
     streaming: Optional[RuntimeStreamingMetrics] = None
     hot_reload: Optional[HotReloadMetrics] = None
     scene_validation: Optional[SceneValidationSnapshot] = None
@@ -369,6 +381,7 @@ class RuntimeBindings:
         self._has_scene_validation = False
         self._has_metrics = False
         self._has_animation_metrics = False
+        self._has_command_encoder_stats = False
         self._streaming_metrics_capacity = _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK
         self._streaming_metrics_type: Type[ctypes.Structure]
         self._streaming_metrics_type = _create_streaming_metrics_type(
@@ -386,6 +399,12 @@ class RuntimeBindings:
         self._animation_queue_count_func = None
         self._animation_queue_label_func = None
         self._animation_queue_duration_func = None
+        self._command_encoder_count_func = None
+        self._command_encoder_pass_name_func = None
+        self._command_encoder_queue_func = None
+        self._command_encoder_command_buffer_func = None
+        self._command_encoder_draw_count_func = None
+        self._command_encoder_dispatch_count_func = None
         self._configure_signatures()
 
     @staticmethod
@@ -586,6 +605,45 @@ class RuntimeBindings:
         else:
             self._has_diagnostics = True
             self._has_metrics = True
+            try:
+                lib.engine_runtime_diagnostic_command_encoder_count.restype = ctypes.c_size_t
+                lib.engine_runtime_diagnostic_command_encoder_count.argtypes = []
+                lib.engine_runtime_diagnostic_command_encoder_pass_name.restype = ctypes.c_char_p
+                lib.engine_runtime_diagnostic_command_encoder_pass_name.argtypes = [ctypes.c_size_t]
+                lib.engine_runtime_diagnostic_command_encoder_queue.restype = ctypes.c_char_p
+                lib.engine_runtime_diagnostic_command_encoder_queue.argtypes = [ctypes.c_size_t]
+                lib.engine_runtime_diagnostic_command_encoder_command_buffer.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_command_encoder_command_buffer.argtypes = [ctypes.c_size_t]
+                lib.engine_runtime_diagnostic_command_encoder_draw_count.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_command_encoder_draw_count.argtypes = [ctypes.c_size_t]
+                lib.engine_runtime_diagnostic_command_encoder_dispatch_count.restype = ctypes.c_uint64
+                lib.engine_runtime_diagnostic_command_encoder_dispatch_count.argtypes = [ctypes.c_size_t]
+            except AttributeError:
+                self._has_command_encoder_stats = False
+                self._command_encoder_count_func = None
+                self._command_encoder_pass_name_func = None
+                self._command_encoder_queue_func = None
+                self._command_encoder_command_buffer_func = None
+                self._command_encoder_draw_count_func = None
+                self._command_encoder_dispatch_count_func = None
+            else:
+                self._has_command_encoder_stats = True
+                self._command_encoder_count_func = lib.engine_runtime_diagnostic_command_encoder_count
+                self._command_encoder_pass_name_func = (
+                    lib.engine_runtime_diagnostic_command_encoder_pass_name
+                )
+                self._command_encoder_queue_func = (
+                    lib.engine_runtime_diagnostic_command_encoder_queue
+                )
+                self._command_encoder_command_buffer_func = (
+                    lib.engine_runtime_diagnostic_command_encoder_command_buffer
+                )
+                self._command_encoder_draw_count_func = (
+                    lib.engine_runtime_diagnostic_command_encoder_draw_count
+                )
+                self._command_encoder_dispatch_count_func = (
+                    lib.engine_runtime_diagnostic_command_encoder_dispatch_count
+                )
 
         try:
             lib.engine_runtime_diagnostic_streaming_metrics.restype = None
@@ -931,6 +989,59 @@ class RuntimeBindings:
             queue_totals=queues,
         )
 
+    def _collect_command_encoder_stats(self) -> List[RuntimeCommandEncoderStat]:
+        if not self._has_command_encoder_stats or self._command_encoder_count_func is None:
+            return []
+
+        try:
+            count = int(self._command_encoder_count_func())
+        except Exception:
+            return []
+
+        stats: List[RuntimeCommandEncoderStat] = []
+        for index in range(count):
+            pass_ptr = (
+                self._command_encoder_pass_name_func(index)
+                if self._command_encoder_pass_name_func is not None
+                else None
+            )
+            queue_ptr = (
+                self._command_encoder_queue_func(index)
+                if self._command_encoder_queue_func is not None
+                else None
+            )
+            pass_name = pass_ptr.decode("utf-8") if pass_ptr else ""
+            queue = queue_ptr.decode("utf-8") if queue_ptr else ""
+            command_buffer = 0
+            draw_count = 0
+            dispatch_count = 0
+            if self._command_encoder_command_buffer_func is not None:
+                try:
+                    command_buffer = int(self._command_encoder_command_buffer_func(index))
+                except Exception:
+                    command_buffer = 0
+            if self._command_encoder_draw_count_func is not None:
+                try:
+                    draw_count = int(self._command_encoder_draw_count_func(index))
+                except Exception:
+                    draw_count = 0
+            if self._command_encoder_dispatch_count_func is not None:
+                try:
+                    dispatch_count = int(self._command_encoder_dispatch_count_func(index))
+                except Exception:
+                    dispatch_count = 0
+            stats.append(
+                RuntimeCommandEncoderStat(
+                    pass_name=pass_name,
+                    queue=queue,
+                    command_buffer=command_buffer,
+                    draw_count=draw_count,
+                    dispatch_count=dispatch_count,
+                )
+            )
+
+        return stats
+
     def diagnostics_snapshot(self) -> Optional[RuntimeDiagnosticsSnapshot]:
         if not self._has_diagnostics:
             return None
@@ -952,6 +1063,7 @@ class RuntimeBindings:
             phases=self._collect_phase_metrics(),
             stages=self._collect_stage_metrics(),
             subsystems=self._collect_subsystem_metrics(),
+            command_encoders=self._collect_command_encoder_stats(),
             streaming=self.streaming_metrics(),
             hot_reload=self._collect_hot_reload_metrics(),
             scene_validation=self._collect_scene_validation(),
@@ -1384,6 +1496,16 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
             }
             for subsystem in snapshot.subsystems
         ],
+        "command_encoders": [
+            {
+                "pass_name": stat.pass_name,
+                "queue": stat.queue,
+                "command_buffer": stat.command_buffer,
+                "draw_count": stat.draw_count,
+                "dispatch_count": stat.dispatch_count,
+            }
+            for stat in snapshot.command_encoders
+        ],
         "scene_validation": _scene_validation_to_dict(snapshot.scene_validation),
         "metrics": _metrics_to_dict(snapshot.metrics),
         "animation": _animation_to_dict(snapshot.animation),
@@ -1766,6 +1888,17 @@ def _print_summary(
                     f"samples={stage.sample_count:>3} "
                     f"avg={stage.average_ms:8.4f} ms "
                     f"last={stage.last_ms:8.4f} ms"
+                )
+        if diagnostics.command_encoders:
+            print("  command encoders:")
+            for encoder in diagnostics.command_encoders:
+                print(
+                    "    "
+                    f"{encoder.pass_name:<24} "
+                    f"queue={encoder.queue:<9} "
+                    f"buffer={encoder.command_buffer:>3} "
+                    f"draws={encoder.draw_count:>3} "
+                    f"dispatches={encoder.dispatch_count:>3}"
                 )
         if diagnostics.metrics is not None:
             _print_metric_summary(diagnostics.metrics, metric_prefixes)
