@@ -1,13 +1,20 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "engine/assets/handles.hpp"
+#include "engine/geometry/api.hpp"
 #include "engine/math/transform.hpp"
+#include "engine/rendering/backend/opengl/command_encoder.hpp"
+#include "engine/rendering/backend/opengl/gpu_scheduler.hpp"
+#include "engine/rendering/backend/opengl/immediate_command_stream.hpp"
+#include "engine/rendering/backend/opengl/render_resource_provider.hpp"
+#include "engine/rendering/backend/opengl/resource_provider.hpp"
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/rendering/render_pass.hpp"
@@ -519,6 +526,68 @@ TEST(FrameGraph, RecordsCommandsThroughEncoderProvider)
 
     ASSERT_EQ(scheduler.submissions.size(), 1U); // NOLINT
     EXPECT_EQ(scheduler.submissions.front().pass_name, "RecordPass");
+}
+
+TEST(FrameGraph, ExecutesWithOpenGLCommandEncoderProvider)
+{
+    engine::rendering::FrameGraph graph;
+    const auto color = graph.create_resource(make_color_resource("OpenGLColor"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "OpenGLPass",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext& context)
+        {
+            engine::rendering::GeometryDrawCommand draw{};
+            draw.geometry = engine::assets::MeshHandle{std::string{"ogl.mesh"}};
+            draw.material = engine::assets::MaterialHandle{std::string{"ogl.material"}};
+            draw.transform = engine::math::Transform<float>::Identity();
+            context.command_encoder().draw_geometry(draw);
+        }));
+
+    graph.compile();
+
+    engine::scene::Scene scene;
+    engine::rendering::MaterialSystem materials;
+
+    auto mesh_resolver = [](const engine::assets::MeshHandle&) -> std::optional<engine::geometry::SurfaceMesh>
+    {
+        engine::geometry::SurfaceMesh mesh{};
+        mesh.positions = {
+            {0.0F, 0.0F, 0.0F},
+            {1.0F, 0.0F, 0.0F},
+            {0.0F, 1.0F, 0.0F},
+        };
+        mesh.indices = {0U, 1U, 2U};
+        return mesh;
+    };
+
+    engine::rendering::backend::opengl::OpenGLRenderResourceProvider render_resources(mesh_resolver);
+    engine::rendering::backend::opengl::OpenGLImmediateCommandStream command_stream(render_resources);
+    engine::rendering::backend::opengl::OpenGLGpuResourceProvider device_resources;
+    engine::rendering::backend::opengl::OpenGLCommandEncoderProvider command_encoders(device_resources);
+    engine::rendering::backend::opengl::OpenGLGpuScheduler scheduler(device_resources, &command_stream);
+
+    engine::rendering::RenderExecutionContext context{
+        render_resources,
+        materials,
+        engine::rendering::RenderView{scene},
+        scheduler,
+        device_resources,
+        command_encoders,
+    };
+
+    graph.execute(context);
+
+    ASSERT_EQ(scheduler.submissions().size(), 1U); // NOLINT
+    const auto& submission = scheduler.submissions().front();
+    EXPECT_EQ(submission.pass_name, "OpenGLPass");
+    ASSERT_EQ(submission.commands.size(), 1U); // NOLINT
+    EXPECT_TRUE(submission.commands.front().is_draw());
+
+    EXPECT_EQ(command_stream.draw_call_count(), 1U);
+    EXPECT_EQ(command_stream.compute_dispatch_count(), 0U);
+    EXPECT_EQ(render_resources.loaded_mesh_count(), 1U);
 }
 
 TEST(FrameGraph, AllowsCompatibleComputeQueueUsage)
