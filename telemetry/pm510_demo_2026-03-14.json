@@ -1,0 +1,38 @@
+{
+  "demo_date": "2026-03-14",
+  "focus": "Runtime stage planner handshake across GPU backends",
+  "participants": [
+    "Rendering Lead",
+    "Runtime Lead",
+    "Tools Lead",
+    "Agent Orchestrator"
+  ],
+  "summary": "Verified command encoder + resource provider telemetry driving the stage planner mock and OpenGL presentation loops.",
+  "metrics": {
+    "presentation_latency_ms": {
+      "headless_baseline": 8.4,
+      "opengl_demo": 9.1,
+      "delta": 0.7
+    },
+    "frame_budget_ms": {
+      "target": 16.6,
+      "observed_peak": 12.8
+    },
+    "resource_upload_ms": {
+      "p50": 2.4,
+      "p95": 3.1
+    }
+  },
+  "follow_ups": [
+    {
+      "owner": "Runtime Lead",
+      "action": "Publish stage planner configuration knobs for tooling",
+      "status": "in_progress"
+    },
+    {
+      "owner": "Docs Team",
+      "action": "Refresh runtime README presentation section",
+      "status": "queued"
+    }
+  ]
+}

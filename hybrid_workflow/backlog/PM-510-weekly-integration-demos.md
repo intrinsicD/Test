@@ -82,16 +82,18 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 |------|-------|-----------|-------|
 | 2026-02-28 | GPU provider + encoder handshake | `telemetry/gpu_provider_baseline_2025-02-21.json`, design review notes | Shared resource/encoder contracts with rendering/runtime leads |
 | 2026-03-07 | Runtime stage planner scaffolding | Runtime loop plan prototype recording, doc diffs | Highlighted synchronization API plan and tooling impacts |
+| 2026-03-14 | Stage planner + presentation telemetry | `telemetry/pm510_demo_2026-03-14.json`, PM-510 recap | Captured headless vs. OpenGL latency deltas and documented tooling follow-ups |
 | _ongoing_ | — | — | Populate as demos continue |
 
 ### Documentation Validation
 
 ```bash
-# Pending — run after demo-driven documentation updates
+$ python scripts/validate_docs.py
+All documentation links resolved successfully.
 ```
 
 **Summary:**
-- Docs validation: pending
+- Docs validation: last run 2026-03-14
 - Roadmap/README updates: pending
 
 ### Quality Gate Sign-offs
