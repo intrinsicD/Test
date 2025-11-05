@@ -101,6 +101,7 @@ public:
 1. [ ] Finalize encoder/provider handshake with T-0120 owners and record decisions in this file.
 2. [ ] Implement encoder core in `engine/rendering/src/command_encoder.cpp` with unit coverage.
 3. [ ] Wire OpenGL and Vulkan scheduler backends to consume encoded commands.
+   - Frame-graph execution now finalizes command encoders before GPU submission so backend providers observe a completed recording prior to scheduler hand-off.
 4. [ ] Add frame-graph integration tests and PM-510 smoke scenario hooks.
 5. [ ] Document encoder usage in rendering/runtime READMEs and update roadmap entries.
 6. [ ] Run performance benchmarks and capture telemetry artefacts.
