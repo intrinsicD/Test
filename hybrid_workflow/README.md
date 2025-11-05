@@ -213,7 +213,7 @@ Future automation planned:
 - [ ] **Dependency graph visualization** — Show `blocked_on` relationships
 - [ ] **Metrics collection** — Time in each state, completion velocity
 
-See [`backlog/TL-320-task-dashboard.md`](./backlog/TL-320-task-dashboard.md) for details.
+See [`backlog/archive/TL-320-task-dashboard.md`](./backlog/archive/TL-320-task-dashboard.md) for details.
 
 ---
 

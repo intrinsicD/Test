@@ -1,20 +1,41 @@
 {
-  "generated_at": "2025-11-04T17:48:51.479509+00:00",
+  "generated_at": "2025-11-05T07:14:25.893432+00:00",
   "include_archived": false,
   "summary": {
-    "blocked_tasks": 2,
+    "blocked_tasks": 3,
     "by_priority": {
+      "P0": 2,
       "P1": 3,
-      "P2": 2,
-      "P3": 1
+      "P2": 2
     },
     "by_status": {
-      "in_progress": 5,
-      "ready": 1
+      "in_progress": 6,
+      "review": 1
     },
-    "total_tasks": 6
+    "total_tasks": 7
   },
   "tasks": [
+    {
+      "area": "program",
+      "blocked_on": [
+        "SPRINT-11",
+        "DC-041"
+      ],
+      "file": "hybrid_workflow/backlog/AI-004-kickoff-brief.md",
+      "gates": [
+        "docs"
+      ],
+      "id": "AI-004",
+      "links": [],
+      "owner": "agent-orchestrator",
+      "priority": "P0",
+      "relates_to": [
+        "bundle:D"
+      ],
+      "size": "L",
+      "status": "in_progress",
+      "title": "Kickoff brief readiness"
+    },
     {
       "area": "program",
       "blocked_on": [],
@@ -65,6 +86,24 @@
       "size": "L",
       "status": "in_progress",
       "title": "Runtime stage planner & presentation loop"
+    },
+    {
+      "area": "program",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/SPRINT-11-alignment.md",
+      "gates": [
+        "docs"
+      ],
+      "id": "SPRINT-11",
+      "links": [],
+      "owner": "agent-orchestrator",
+      "priority": "P0",
+      "relates_to": [
+        "bundle:D"
+      ],
+      "size": "M",
+      "status": "review",
+      "title": "Sprint 11 alignment"
     },
     {
       "area": "rendering",
@@ -137,31 +176,8 @@
         "bundle:B"
       ],
       "size": "L",
-      "status": "ready",
-      "title": "Editor foundations & tooling enablement"
-    },
-    {
-      "area": "tools",
-      "blocked_on": [],
-      "file": "hybrid_workflow/backlog/TL-320-task-dashboard.md",
-      "gates": [
-        "docs"
-      ],
-      "id": "TL-320",
-      "links": [
-        "scripts/workflow/report_hybrid_status.py",
-        "scripts/workflow/dashboard.py",
-        "hybrid_workflow/README.md",
-        "hybrid_workflow/ROADMAP.md"
-      ],
-      "owner": "tools-lead",
-      "priority": "P3",
-      "relates_to": [
-        "bundle:C"
-      ],
-      "size": "M",
       "status": "in_progress",
-      "title": "Task status dashboard automation"
+      "title": "Editor foundations & tooling enablement"
     }
   ]
 }

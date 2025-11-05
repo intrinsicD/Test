@@ -1,7 +1,7 @@
 ---
 id: TL-320
 title: Task status dashboard automation
-status: in_progress
+status: done
 priority: P3
 area: tools
 size: M
@@ -99,7 +99,7 @@ Render collected metadata into a single-page dashboard using a lightweight templ
 4. [x] Provide sample output under `assets/hybrid_workflow_dashboard/` (optional).
 5. [x] Document workflow in `hybrid_workflow/README.md` and update roadmap bundle C checkbox.
 6. [x] Run `python scripts/validate_docs.py` after documentation updates.
-7. [ ] Mark task `done` and archive with evidence once dashboard shipped.
+7. [x] Mark task `done` and archive with evidence once dashboard shipped.
 
 ---
 
@@ -108,8 +108,18 @@ Render collected metadata into a single-page dashboard using a lightweight templ
 ### Test Results
 
 ```bash
-pytest scripts/tests/test_dashboard.py
-python scripts/validate_docs.py
+$ pytest scripts/tests/test_dashboard.py
+===================================================== test session starts ======================================================
+platform linux -- Python 3.12.10, pytest-8.4.1, pluggy-1.6.0
+rootdir: /workspace/Test
+collected 5 items
+
+scripts/tests/test_dashboard.py .....                                                                                    [100%]
+
+====================================================== 5 passed in 0.05s =======================================================
+
+$ python scripts/validate_docs.py
+All documentation links resolved successfully.
 ```
 
 **Summary:**
@@ -146,17 +156,17 @@ python scripts/validate_docs.py
 - [x] Tests added for parser + rendering logic.
 - [x] Documentation updated with usage instructions and links.
 - [x] Optional static snapshot committed or instructions provided for generation.
-- [ ] Task status advanced to `done` and moved to archive with evidence.
+- [x] Task status advanced to `done` and moved to archive with evidence.
 
 ---
 
 ## Result
 
-**PR:** (pending)
+**PR:** (this change)
 
 **SHA:** (pending)
 
-**Completion Date:** (pending)
+**Completion Date:** 2025-11-05
 
 **Notes:**
 - Coordinate with PM-510 to reuse dashboard outputs during weekly demos.

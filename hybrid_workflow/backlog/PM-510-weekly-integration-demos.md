@@ -137,7 +137,7 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 - Align demo schedule with release planning to preview upcoming feature flags.
 
 **Follow-ups:**
-- [ ] Evaluate lightweight dashboard automation for demo artefacts → feed into TL-320.
+- [x] Evaluate lightweight dashboard automation for demo artefacts → feed into TL-320 (dashboard shipped 2025-11-05).
 
 ---
 

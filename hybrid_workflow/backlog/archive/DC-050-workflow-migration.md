@@ -177,7 +177,7 @@ Key design decisions:
 - Monitor adoption and schedule retrospective after first migrated sprint
 
 **Follow-ups:**
-- [ ] Build web dashboard for task status → Create task TL-320
+- [x] Build web dashboard for task status → Create task TL-320 (completed; see `backlog/archive/TL-320-task-dashboard.md`)
 - [ ] Script to auto-update ROADMAP from task metadata → Create task TL-321
 
 ---
