@@ -265,6 +265,9 @@ When rendering backends are available, `frame_graph_serialization` stores the
 latest JSON serialisation of the compiled frame graph and `frame_graph_events`
 replays resource lifetime events. Diagnostics scripts surface these payloads to
 validate queue affinity and resource hazards (`AI-003`, `RT-003`).
+`command_encoder_stats` augments this snapshot with per-pass draw and dispatch
+totals plus the originating command buffer handle so tooling can correlate
+runtime submissions with backend execution telemetry.
 
 ## Troubleshooting Workflows
 

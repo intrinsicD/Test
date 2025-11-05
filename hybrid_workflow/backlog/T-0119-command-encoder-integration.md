@@ -104,8 +104,10 @@ public:
    - Frame-graph execution now finalizes command encoders before GPU submission so backend providers observe a completed recording prior to scheduler hand-off.
 4. [ ] Add frame-graph integration tests and PM-510 smoke scenario hooks.
    - [x] Added `FrameGraph.RecordsCommandsThroughEncoderProvider` to verify command encoder submissions (2025-03-27).
+   - [x] Runtime diagnostics capture per-pass command encoder stats for presentation submissions (2025-04-10).
    - [ ] Extend PM-510 smoke scenarios once runtime submission wiring lands.
 5. [ ] Document encoder usage in rendering/runtime READMEs and update roadmap entries.
+   - [x] Documented command encoder diagnostics in runtime troubleshooting guide (2025-04-10).
 6. [ ] Run performance benchmarks and capture telemetry artefacts.
 7. [ ] Request review, update task status, and synchronize roadmap/README references.
 
