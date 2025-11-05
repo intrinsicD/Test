@@ -102,3 +102,32 @@ def test_filter_tasks_relates_to_is_case_insensitive() -> None:
     filtered = task_status.filter_tasks(tasks, relates_to=['bundle:x'])
 
     assert [task.id for task in filtered] == ['A']
+
+
+def test_load_task_parses_multiline_lists(tmp_path: Path) -> None:
+    task_file = tmp_path / 'TL-332-task-status-multiline.md'
+    task_file.write_text(
+        """---
+id: TL-332
+title: Task status multiline parsing
+status: done
+priority: P3
+area: tools
+gates: [tests]
+relates_to: [bundle:C]
+blocked_on:
+  - "dependency-A"
+  - dependency-B
+links:
+  - "docs/ROADMAP.md"
+  - hybrid_workflow/ROADMAP.md
+---
+""",
+        encoding='utf-8',
+    )
+
+    task = task_status.load_task(task_file)
+
+    assert task is not None
+    assert task.blocked_on == ['dependency-A', 'dependency-B']
+    assert task.links == ['docs/ROADMAP.md', 'hybrid_workflow/ROADMAP.md']

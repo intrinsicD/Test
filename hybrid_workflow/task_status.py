@@ -27,7 +27,7 @@ import argparse
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 
 @dataclass
@@ -48,43 +48,116 @@ class Task:
     file_path: Optional[Path] = None
 
 
-def parse_frontmatter(content: str) -> Dict[str, str]:
+def _strip_inline_comment(value: str) -> str:
+    """Remove inline YAML comments from a value string."""
+
+    if '#' in value:
+        value = value.split('#', 1)[0]
+
+    return value.strip()
+
+
+def _strip_quotes(value: str) -> str:
+    """Remove matching single or double quotes from a value."""
+
+    if (value.startswith('"') and value.endswith('"')) or (
+        value.startswith("'") and value.endswith("'")
+    ):
+        return value[1:-1]
+
+    return value
+
+
+def parse_frontmatter(content: str) -> Dict[str, object]:
     """Extract YAML frontmatter from markdown content."""
+
     lines = content.split('\n')
-    
+
     if not lines or lines[0].strip() != '---':
         return {}
-    
-    frontmatter = {}
-    in_frontmatter = True
-    
-    for line in lines[1:]:
+
+    frontmatter: Dict[str, object] = {}
+    index = 1
+
+    while index < len(lines):
+        line = lines[index]
         if line.strip() == '---':
             break
-        
-        if ':' in line:
-            key, value = line.split(':', 1)
-            key = key.strip()
-            value = value.strip()
-            
-            # Remove comments
-            if '#' in value:
-                value = value[:value.index('#')].strip()
-            
+
+        if ':' not in line:
+            index += 1
+            continue
+
+        key, raw_value = line.split(':', 1)
+        key = key.strip()
+        value = _strip_inline_comment(raw_value)
+
+        if not value:
+            # Attempt to parse a block list with leading "- " entries.
+            items: List[str] = []
+            lookahead = index + 1
+
+            while lookahead < len(lines):
+                candidate = lines[lookahead]
+                stripped = candidate.strip()
+
+                if not stripped:
+                    lookahead += 1
+                    continue
+
+                if stripped.startswith('- '):
+                    item = _strip_inline_comment(stripped[2:].strip())
+                    items.append(_strip_quotes(item))
+                    lookahead += 1
+                    continue
+
+                break
+
+            if items:
+                frontmatter[key] = items
+                index = lookahead
+                continue
+
             frontmatter[key] = value
-    
+            index += 1
+            continue
+
+        frontmatter[key] = _strip_quotes(value)
+        index += 1
+
     return frontmatter
 
 
-def parse_list_field(value: str) -> List[str]:
+def parse_list_field(value: Union[str, List[str]]) -> List[str]:
     """Parse a list field like '[item1, item2]' or '[]'."""
-    if not value or value == '[]':
+    if isinstance(value, list):
+        return [item.strip().strip('"').strip("'") for item in value if item.strip()]
+
+    if not value:
         return []
-    
+
+    value = value.strip()
+
+    if value == '[]':
+        return []
+
     # Remove brackets and quotes
     value = value.strip('[]')
-    items = [item.strip().strip('"').strip("'") for item in value.split(',')]
-    return [item for item in items if item]
+    items = []
+
+    for item in value.split(','):
+        stripped = item.strip()
+
+        if not stripped:
+            continue
+
+        stripped = _strip_inline_comment(stripped)
+        stripped = _strip_quotes(stripped)
+
+        if stripped:
+            items.append(stripped)
+
+    return items
 
 
 def load_task(file_path: Path) -> Optional[Task]:
@@ -104,10 +177,10 @@ def load_task(file_path: Path) -> Optional[Task]:
             area=fm.get('area', ''),
             size=fm.get('size', 'M'),
             owner=fm.get('owner', 'unassigned'),
-            gates=parse_list_field(fm.get('gates', '[]')),
-            relates_to=parse_list_field(fm.get('relates_to', '[]')),
-            blocked_on=parse_list_field(fm.get('blocked_on', '[]')),
-            links=parse_list_field(fm.get('links', '[]')),
+            gates=parse_list_field(fm.get('gates', [])),
+            relates_to=parse_list_field(fm.get('relates_to', [])),
+            blocked_on=parse_list_field(fm.get('blocked_on', [])),
+            links=parse_list_field(fm.get('links', [])),
             file_path=file_path
         )
         
