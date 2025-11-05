@@ -2,14 +2,14 @@
 
 ## Overview
 
-> **Status:** ⚠️ **At Risk** — Command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md)) now records frame-graph passes into OpenGL/Vulkan command buffers, but the GPU resource provider ([`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md)) still gates real buffer/texture allocation, so backends execute against recording resources until that work lands.
+> **Status:** ✅ **Stable** — Command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md)) now records frame-graph passes into OpenGL/Vulkan command buffers backed by GPU resource providers ([`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md)), enabling real buffer/texture residency, telemetry, and runtime presentation via the OpenGL submission bundle.
 
 The rendering module currently provides frame-graph compilation, scheduler prototypes, and resource lifetime tracking, but the missing GPU execution path prevents end-to-end rendering. This README tracks the outstanding work needed to reach functional backends in addition to describing the existing infrastructure.
 
 ## Outstanding Work
 
-- Implement the GPU resource provider (`T-0120`) to create buffers, textures, and shader programs for real backends.
 - Coordinate with the runtime stage planner (`RT-410`) to ensure presentation backends and synchronisation policies align with rendering.
+- Extend diagnostics/telemetry coverage for GPU residency trends and presentation latency once RT-410 lands.
 
 ## Camera System
 
@@ -327,7 +327,7 @@ for (const auto& barrier : submission.begin_barriers)
   transient resource reuse by supplying a retention-frame count to the
   constructor (or by calling `set_resource_retention_frames()`), enabling
   runtime hosts and PM-510 demos to balance GPU memory pressure against reuse
-  while T-0120 backends mature.
+  while RT-410 presentation adapters land.
 
 ## Resource Management
 
@@ -600,6 +600,6 @@ ctest --preset linux-gcc-debug -R rendering
 
 ## TODO / Next Steps
 
-- Deliver [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md): finish GPU buffer/texture/sampler creation, shader compilation, and hot-reload hooks so OpenGL/Vulkan providers allocate real resources. Track progress in [`../../ROADMAP.md`](../../ROADMAP.md).
+- Land [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md): integrate presentation adapters with the GPU-backed submission stack and synchronisation model, updating [`../../ROADMAP.md`](../../ROADMAP.md) as milestones complete.
 - Harden encoder telemetry: extend tracing provider outputs into tooling dashboards and runtime diagnostics so PM-510 demos can trend draw/dispatch counts alongside queue timings.
-- Coordinate weekly with runtime/tools leads while `T-0120` progresses to align telemetry expectations and unblock downstream [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) integration.
+- Maintain weekly coordination with runtime/tools leads (PM-510) to align telemetry expectations and unblock editor re-enablement while stage planner work progresses.

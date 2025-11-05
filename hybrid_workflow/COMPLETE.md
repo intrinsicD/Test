@@ -22,7 +22,7 @@ hybrid_workflow/
 ├── task_status.py                      # Automation tool (executable)
 └── backlog/
     ├── 000-template.md                 # Task template (copy this)
-    ├── T-0120-gpu-resource-provider.md # Complex task example
+    ├── archive/T-0120-gpu-resource-provider.md # Complex task example
     ├── DC-050-workflow-migration.md    # Simple task example
     └── archive/                        # For completed tasks
 ```
@@ -97,7 +97,7 @@ Demonstrates:
 - ✅ Role coordination matrix
 - ✅ Progress notes and decision log
 
-**File:** `backlog/T-0120-gpu-resource-provider.md` (8.1 KB)
+**File:** `backlog/archive/T-0120-gpu-resource-provider.md` (8.1 KB)
 
 ### Simple Task: DC-050 Workflow Migration
 Demonstrates:
@@ -134,7 +134,7 @@ Demonstrates:
 5. Use `task_status.py` to track progress
 
 ### Option 2: Migrate Existing Task
-1. Review example: `backlog/T-0120-gpu-resource-provider.md`
+1. Review example: `backlog/archive/T-0120-gpu-resource-provider.md`
 2. Copy structure to new file in `hybrid_workflow/backlog/`
 3. Convert to frontmatter format
 4. Preserve all context and history
@@ -310,7 +310,7 @@ The implementation is **complete and ready to use**. Start with the `QUICK_REFER
 - **How do I use it?** → Read `AGENTS.md` or `QUICK_REFERENCE.md`
 - **What's the template?** → See `backlog/000-template.md`
 - **How do I query tasks?** → Run `task_status.py --help`
-- **Complex task example?** → See `backlog/T-0120-gpu-resource-provider.md`
+- **Complex task example?** → See `backlog/archive/T-0120-gpu-resource-provider.md`
 - **Simple task example?** → See `backlog/DC-050-workflow-migration.md`
 
 ---

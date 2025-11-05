@@ -1,13 +1,13 @@
 # Backlog Item T-0120 — GPU Resource Provider Completion
 
-- **Status**: In Progress
+- **Status**: Done (2025-03-30)
 - **Priority**: 1
 - **Owner**: Rendering Lead
 - **Module(s)**: Rendering, Assets
 - **Goal**: Ship a production-ready GPU resource provider capable of creating buffers, textures, and shader programs for real backend execution.
 
 ## Summary
-The prototype renderer still routes all resource activity through the recording provider, preventing the OpenGL and Vulkan backends from allocating GPU buffers, uploading textures, or compiling shader programs. T-0120 reinstates the dedicated GPU resource provider so schedulers can transition from stubbed handles to real GPU objects and unlock end-to-end rendering. This task now operates as part of the combined GPU enablement milestone alongside [`T-0119`](T_0119_COMMAND_ENCODER_INTEGRATION.md), with shared design reviews and weekly integration demos captured under [`PM-510`](PM_510_WEEKLY_INTEGRATION_DEMOS.md).
+GPU resource providers for OpenGL and Vulkan now allocate, recycle, and track transient resources with retention policies, exposing telemetry and runtime submission hooks. Frame-graph schedulers and the runtime presentation backend consume the live providers, replacing recording fallbacks so demos execute against real GPU memory. Work remained coordinated with [`T-0119`](T_0119_COMMAND_ENCODER_INTEGRATION.md) and PM-510 weekly demos throughout the GPU enablement milestone.
 
 ## Current Plan
 - Hold joint API/design reviews with T-0119 owners before each implementation increment to ratify resource lifetimes and submission interfaces.
@@ -29,12 +29,12 @@ The prototype renderer still routes all resource activity through the recording 
 | Release Manager | Coordinate feature flagging and rollout. | Release Manager |
 
 ## Definition of Done
-- [ ] Implement GPU buffer, texture, and sampler creation across OpenGL and Vulkan providers with validation parity.
-- [ ] Integrate shader compilation and pipeline setup into the provider with cache invalidation + hot reload hooks.
-- [ ] Replace recording-provider fallbacks in schedulers and frame-graph execution with the real provider.
-- [ ] Add automated tests that exercise resource creation on supported backends and document setup requirements.
-- [ ] Update rendering module README, root README module status, and roadmap to reflect the new capability.
-- [ ] Produce weekly integration demo notes and telemetry captures linked from PM-510 until the milestone exits.
+- [x] Implement GPU buffer, texture, and sampler creation across OpenGL and Vulkan providers with validation parity.
+- [x] Integrate shader compilation and pipeline setup into the provider with cache invalidation + hot reload hooks.
+- [x] Replace recording-provider fallbacks in schedulers and frame-graph execution with the real provider.
+- [x] Add automated tests that exercise resource creation on supported backends and document setup requirements.
+- [x] Update rendering module README, root README module status, and roadmap to reflect the new capability.
+- [x] Produce weekly integration demo notes and telemetry captures linked from PM-510 until the milestone exits.
 
 ## Dependencies
 - [`T-0119`](T_0119_COMMAND_ENCODER_INTEGRATION.md) — shares command stream APIs and validation hooks.
@@ -49,7 +49,6 @@ The prototype renderer still routes all resource activity through the recording 
 ## Notes
 Ensure shader compilation integrates with the asset hot-reload telemetry so editor workflows observe consistent notifications across CPU and GPU resources.
 
-**2025-02-21** — OpenGL GPU resource provider now exposes a configurable
-retention window for transient resources with unit coverage so harnesses can
-experiment with reuse/memory trade-offs while command encoder integration
-progresses.
+**2025-02-21** — OpenGL GPU resource provider now exposes a configurable retention window for transient resources with unit coverage so harnesses can experiment with reuse/memory trade-offs while command encoder integration progresses.
+
+**2025-03-30** — OpenGL/Vulkan providers, runtime submission, and presentation backend now execute frame-graph workloads against live GPU resources with telemetry, replacing recording fallbacks and updating roadmap/module status.

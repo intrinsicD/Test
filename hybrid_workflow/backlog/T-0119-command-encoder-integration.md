@@ -9,7 +9,7 @@ owner: rendering-lead
 gates: [tests, perf, docs]
 relates_to: [bundle:A]
 blocked_on: []
-links: ["docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md", "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md"]
+links: ["docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md", "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"]
 ---
 
 # Task T-0119 — Command Encoder Integration
@@ -35,7 +35,7 @@ Restore the GPU command encoder so frame-graph passes emit backend work for Open
 **References:**
 - [`docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md`](../docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md)
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md)
-- [`hybrid_workflow/backlog/T-0120-gpu-resource-provider.md`](T-0120-gpu-resource-provider.md)
+- [`hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md`](archive/T-0120-gpu-resource-provider.md)
 - Rendering module README (`docs/modules/rendering/README.md`)
 
 ---

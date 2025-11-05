@@ -3,7 +3,7 @@
 ## Current Status (October 27, 2025)
 
 ✅ **Research Baseline Preset (RE-610)** - COMPLETE
-🟡 **GPU Resource Provider (T-0120)** - IN PROGRESS (command buffer orchestration live)
+✅ **GPU Resource Provider (T-0120)** - COMPLETE (OpenGL/Vulkan allocations, telemetry, runtime submission wiring)
 ✅ **Command Encoder (T-0119)** - COMPLETE (frame-graph passes now record draw/dispatch work through OpenGL/Vulkan providers)
 
 ## Quick Test
@@ -45,54 +45,40 @@ Frame graph configured with resources:
 3. **Frame Graph**: Compile rendering passes with resource dependencies
 4. **Backend Scheduling**: OpenGL/Vulkan command queue management
 
-## What's Missing (To Actually Render)
+## What's Next
 
-1. **GPU Resource Creation** (T-0120)
-   - Vertex/index buffer allocation
-   - Texture creation
-   - Shader compilation
-   - Upload + residency management (command buffer scaffolding now available)
+1. **Runtime Stage Planner (RT-410)**
+   - Integrate presentation adapters with runtime submission context
+   - Synchronise GPU timelines/fences with runtime loop phases
 
-2. **Command Recording** (T-0119)
-   - Translate recorded draw calls into OpenGL API submissions
-   - Shader binding
-   - Uniform setup
+2. **Editor/Tooling Re-Enablement (TL-310)**
+   - Hook PM-510 telemetry into editor panels once stage planner exposes presentation callbacks
 
-3. **Window & Presentation**
-   - GLFW window creation
-   - Frame graph execution loop
-   - Swap buffer presentation
+3. **Window & Presentation Polish**
+   - Finalise GLFW window creation + swap chain loop for demos
+   - Surface retention/telemetry controls in diagnostics tooling
 
-## Next Task: T-0120
+## Next Task: RT-410
 
-To get geometry rendering **working on screen**, implement the GPU Resource Provider:
+To ship interactive demos, complete the runtime stage planner integration so the presentation backend can drive the GPU-backed submission stack without manual wiring.
 
-**Location**: `engine/rendering/src/backend/opengl/resource_provider.cpp`
+**Location**: `hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`
 
-**Key functionality needed**:
+**Key integration points**:
 ```cpp
-class OpenGLResourceProvider : public IGpuResourceProvider {
-    // Create vertex buffer from mesh data
-    BufferHandle create_buffer(const BufferDescriptor& desc);
-    
-    // Create texture from image data
-    TextureHandle create_texture(const TextureDescriptor& desc);
-    
-    // Compile and link shader program
-    ShaderHandle create_shader(const ShaderDescriptor& desc);
-    
-    // Upload data to GPU
-    void upload_data(BufferHandle buffer, span<const byte> data);
-};
+rendering::backend::opengl::OpenGLRuntimeSubmission submission(mesh_resolver);
+submission.set_retention_frames(2);
+auto context = submission.make_context(materials, frame_graph, &pipeline);
+runtime::submit_render_graph(host, context);
 ```
 
 ## Timeline Estimate
 
-- **T-0120** (GPU Resource Provider): 3-4 days
-- **T-0119** (Command Encoder): 2-3 days  
-- **Window Integration**: 1-2 days
+- **RT-410** (Runtime Stage Planner): 3-4 days
+- **TL-310** (Editor Foundations follow-up): 2-3 days
+- **Presentation Polish**: 1-2 days
 
-**Total**: ~1-1.5 weeks to full geometry rendering
+**Total**: ~1 week to fully interactive GPU demos with tooling hooks
 
 ## Files Modified Today
 

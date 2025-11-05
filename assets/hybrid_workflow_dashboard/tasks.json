@@ -9,7 +9,8 @@
       "P2": 2
     },
     "by_status": {
-      "in_progress": 6,
+      "done": 1,
+      "in_progress": 5,
       "review": 1
     },
     "total_tasks": 7
@@ -45,7 +46,7 @@
       ],
       "id": "PM-510",
       "links": [
-        "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md",
+        "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md",
         "hybrid_workflow/backlog/T-0119-command-encoder-integration.md",
         "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md",
         "hybrid_workflow/backlog/TL-310-editor-foundations.md"
@@ -76,7 +77,7 @@
         "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
         "docs/modules/runtime/README.md",
         "hybrid_workflow/backlog/T-0119-command-encoder-integration.md",
-        "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md"
+        "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"
       ],
       "owner": "runtime-lead",
       "priority": "P1",
@@ -118,7 +119,7 @@
       "links": [
         "docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md",
         "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
-        "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md"
+        "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"
       ],
       "owner": "rendering-lead",
       "priority": "P1",
@@ -132,7 +133,7 @@
     {
       "area": "rendering",
       "blocked_on": [],
-      "file": "hybrid_workflow/backlog/T-0120-gpu-resource-provider.md",
+      "file": "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md",
       "gates": [
         "tests",
         "perf",
@@ -150,7 +151,7 @@
         "bundle:A"
       ],
       "size": "L",
-      "status": "in_progress",
+      "status": "done",
       "title": "GPU resource provider completion"
     },
     {
