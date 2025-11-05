@@ -15,7 +15,8 @@ metadata:
 .. code-block:: bash
 
    python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY]
-                                        [--area AREA] [--blocked | --unblocked]
+                                        [--area AREA] [--relates-to TAG ...]
+                                        [--blocked | --unblocked]
 
 Invoke ``--summary`` for aggregate statistics or ``--detail`` with a task ID to
 inspect a single record.  Combine ``--blocked`` or ``--unblocked`` with the
@@ -136,6 +137,7 @@ def filter_tasks(
     status: Optional[str] = None,
     priority: Optional[str] = None,
     area: Optional[str] = None,
+    relates_to: Optional[List[str]] = None,
     *,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
@@ -150,6 +152,14 @@ def filter_tasks(
 
     if area:
         filtered = [t for t in filtered if t.area == area]
+
+    if relates_to:
+        relates_lower = {tag.lower() for tag in relates_to}
+        filtered = [
+            t
+            for t in filtered
+            if relates_lower.intersection({value.lower() for value in t.relates_to})
+        ]
 
     if blocked_only is True:
         filtered = [t for t in filtered if t.blocked_on]
@@ -257,6 +267,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('--status', help="Filter by status (new, ready, in_progress, review, done)")
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
+    parser.add_argument(
+        '--relates-to',
+        metavar='TAG',
+        action='append',
+        nargs='+',
+        help=(
+            "Filter by roadmap bundle tag in the relates_to metadata. "
+            "Provide one or more tags; the filter matches tasks containing any tag."
+        ),
+    )
 
     blocker_group = parser.add_mutually_exclusive_group()
     blocker_group.add_argument(
@@ -306,11 +326,16 @@ def main():
         return 0
     
     # Filter tasks
+    relates_to = None
+    if args.relates_to:
+        relates_to = [tag for group in args.relates_to for tag in group]
+
     filtered = filter_tasks(
         tasks,
         args.status,
         args.priority,
         args.area,
+        relates_to,
         blocked_only=True if args.blocked else False if args.unblocked else None,
     )
     
