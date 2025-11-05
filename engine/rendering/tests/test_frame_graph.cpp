@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+#include "engine/assets/handles.hpp"
+#include "engine/math/transform.hpp"
 #include "engine/rendering/frame_graph.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/rendering/render_pass.hpp"
@@ -462,6 +464,61 @@ TEST(FrameGraph, RejectsIncompatibleQueueReadUsage)
         engine::rendering::QueueType::Transfer));
 
     EXPECT_THROW(graph.compile(), std::logic_error);
+}
+
+TEST(FrameGraph, RecordsCommandsThroughEncoderProvider)
+{
+    engine::rendering::FrameGraph graph;
+    const auto color = graph.create_resource(make_color_resource("RecordColor"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "RecordPass",
+        [=](engine::rendering::FrameGraphPassBuilder& builder)
+        {
+            builder.write(color);
+        },
+        [](engine::rendering::FrameGraphPassExecutionContext& context)
+        {
+            engine::rendering::GeometryDrawCommand draw{};
+            draw.geometry = engine::assets::MeshHandle{std::string{"frame-graph.mesh"}};
+            draw.material = engine::assets::MaterialHandle{std::string{"frame-graph.material"}};
+            draw.transform = engine::math::Transform<float>::Identity();
+
+            auto& encoder = context.command_encoder();
+            encoder.draw_geometry(draw);
+        }));
+
+    graph.compile();
+
+    engine::scene::Scene scene;
+    engine::rendering::MaterialSystem materials;
+    NullProvider provider;
+    engine::rendering::resources::RecordingGpuResourceProvider device_provider;
+    engine::rendering::tests::RecordingScheduler scheduler;
+    engine::rendering::tests::RecordingCommandEncoderProvider command_encoders;
+
+    engine::rendering::RenderExecutionContext context{
+        provider,
+        materials,
+        engine::rendering::RenderView{scene},
+        scheduler,
+        device_provider,
+        command_encoders,
+    };
+
+    graph.execute(context);
+
+    ASSERT_EQ(command_encoders.begin_records.size(), 1U); // NOLINT
+    EXPECT_EQ(command_encoders.begin_records.front().pass_name, "RecordPass");
+    ASSERT_EQ(command_encoders.completed_encoders.size(), 1U); // NOLINT
+    const auto& recorded_encoder = *command_encoders.completed_encoders.front();
+    ASSERT_EQ(recorded_encoder.commands.size(), 1U); // NOLINT
+    EXPECT_TRUE(recorded_encoder.commands.front().is_draw());
+    EXPECT_EQ(recorded_encoder.commands.front().geometry_draw().material.id(),
+              std::string{"frame-graph.material"});
+
+    ASSERT_EQ(scheduler.submissions.size(), 1U); // NOLINT
+    EXPECT_EQ(scheduler.submissions.front().pass_name, "RecordPass");
 }
 
 TEST(FrameGraph, AllowsCompatibleComputeQueueUsage)
