@@ -93,3 +93,93 @@ def test_render_json_handles_empty_and_multiple_statuses(status_values: list[rhs
     assert "by_status" in payload["counts"]
     assert payload["counts"]["total"] == len(status_values)
 
+
+def test_select_next_actions_prefers_ready_tasks() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "gamma.md",
+            identifier="HW-204",
+            title="Gamma",
+            status="in_progress",
+            priority="P0",
+            owner="agent",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "delta.md",
+            identifier="HW-205",
+            title="Delta",
+            status="ready",
+            priority="P1",
+            owner="agent",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "epsilon.md",
+            identifier="HW-206",
+            title="Epsilon",
+            status="ready",
+            priority="P0",
+            owner="agent",
+        ),
+    ]
+
+    selected = rhs.select_next_actions(tasks, limit=5)
+
+    assert [task.identifier for task in selected] == ["HW-206", "HW-205"]
+
+
+def test_select_next_actions_falls_back_to_new_when_no_ready() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "zeta.md",
+            identifier="HW-207",
+            title="Zeta",
+            status="new",
+            priority="P1",
+            owner="agent",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "eta.md",
+            identifier="HW-208",
+            title="Eta",
+            status="new",
+            priority="P0",
+            owner="agent",
+        ),
+    ]
+
+    selected = rhs.select_next_actions(tasks, limit=5)
+
+    assert [task.identifier for task in selected] == ["HW-208", "HW-207"]
+
+
+def test_select_next_actions_respects_limit() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / f"task-{idx}.md",
+            identifier=f"HW-{300 + idx}",
+            title=f"Task {idx}",
+            status="ready",
+            priority="P2",
+            owner="agent",
+        )
+        for idx in range(6)
+    ]
+
+    selected = rhs.select_next_actions(tasks, limit=3)
+
+    assert len(selected) == 3
+
+
+def test_select_next_actions_rejects_non_positive_limit() -> None:
+    task = _make_task(
+        path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "omega.md",
+        identifier="HW-400",
+        title="Omega",
+        status="ready",
+        priority="P1",
+        owner="agent",
+    )
+
+    with pytest.raises(ValueError):
+        rhs.select_next_actions([task], limit=0)
+
