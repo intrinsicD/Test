@@ -38,7 +38,11 @@ The hybrid workflow includes utility scripts that summarise backlog metadata. Us
 ### 3.1 Status Report Script
 
 ```bash
+# Inspect tasks in a readable table
 python -m scripts.workflow.report_hybrid_status
+
+# Export status as JSON for automation hooks
+python -m scripts.workflow.report_hybrid_status --format json
 ```
 
 Default output groups active tasks by status and priority. Use command-line flags for targeted audits:

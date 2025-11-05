@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Summarise hybrid workflow tasks using their YAML frontmatter.
 
-The script scans `hybrid_workflow/backlog/` (and optionally its `archive/`
-subdirectory) and prints a tabular summary grouped by task status.
+The script scans ``hybrid_workflow/backlog/`` (and optionally its ``archive/``
+subdirectory) and prints either a human readable table or JSON summary grouped
+by task status.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ from __future__ import annotations
 import argparse
 import ast
 import collections
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -40,6 +42,18 @@ class TaskMetadata:
     @property
     def relative_path(self) -> Path:
         return self.path.relative_to(REPO_ROOT)
+
+    def to_dict(self) -> Dict[str, str]:
+        """Return a JSON-serialisable representation of the task."""
+
+        return {
+            "id": self.identifier,
+            "title": self.title,
+            "status": self.status,
+            "priority": self.priority,
+            "owner": self.owner,
+            "file": str(self.relative_path),
+        }
 
 
 def parse_frontmatter(path: Path) -> Dict[str, object]:
@@ -135,7 +149,7 @@ def sort_key(task: TaskMetadata) -> tuple:
     )
 
 
-def render(tasks: List[TaskMetadata]) -> str:
+def render_table(tasks: List[TaskMetadata]) -> str:
     """Format the task summary as a human-readable table."""
 
     if not tasks:
@@ -170,6 +184,32 @@ def render(tasks: List[TaskMetadata]) -> str:
     return "\n".join(lines)
 
 
+def render_json(tasks: List[TaskMetadata]) -> str:
+    """Format the task summary as JSON for automation."""
+
+    if not tasks:
+        payload = {"tasks": [], "counts": {"by_status": {}, "total": 0}}
+        return json.dumps(payload, indent=2, sort_keys=True)
+
+    counter = collections.Counter(task.status for task in tasks)
+    payload = {
+        "tasks": [task.to_dict() for task in sorted(tasks, key=sort_key)],
+        "counts": {
+            "by_status": dict(
+                sorted(counter.items(), key=lambda item: STATUS_ORDER.get(item[0], len(STATUS_ORDER)))
+            ),
+            "total": len(tasks),
+        },
+    }
+    return json.dumps(payload, indent=2, sort_keys=True)
+
+
+def render(tasks: List[TaskMetadata], output_format: str) -> str:
+    if output_format == "json":
+        return render_json(tasks)
+    return render_table(tasks)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--status", help="Filter by exact status (e.g. ready, in_progress)")
@@ -179,6 +219,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Include tasks from hybrid_workflow/backlog/archive/ in the summary.",
     )
+    parser.add_argument(
+        "--format",
+        choices=("table", "json"),
+        default="table",
+        help="Output format for the summary (default: table).",
+    )
     return parser.parse_args()
 
 
@@ -186,7 +232,7 @@ def main() -> None:
     args = parse_args()
     tasks = collect_tasks(include_archived=args.include_archived)
     filtered = filter_tasks(tasks, args.status, args.priority)
-    print(render(filtered))
+    print(render(filtered, args.format))
 
 
 if __name__ == "__main__":
