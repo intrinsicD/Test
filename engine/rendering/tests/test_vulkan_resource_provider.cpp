@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "engine/rendering/backend/vulkan/resource_provider.hpp"
+#if ENGINE_RENDERING_HAS_VULKAN
+#    include "engine/rendering/backend/vulkan/resource_translation.hpp"
+#endif
 
 namespace
 {
@@ -170,4 +173,48 @@ TEST(VulkanResourceProvider, ProvidesCommandBufferHandles)
     ASSERT_NE(command_buffer, nullptr);
     EXPECT_EQ(command_buffer->queue(), QueueType::Graphics);
 }
+
+#if ENGINE_RENDERING_HAS_VULKAN
+TEST(VulkanResourceProvider, ExposesTranslatedBufferDescription)
+{
+    using namespace engine::rendering;
+    backend::vulkan::VulkanGpuResourceProvider provider{};
+
+    FrameGraphResourceHandle handle{};
+    handle.index = 9;
+
+    provider.begin_frame();
+    const auto info = make_buffer("Storage", 8192);
+    provider.on_transient_acquire(handle, info);
+
+    const auto* description = provider.buffer_description(handle);
+    ASSERT_NE(description, nullptr);
+    EXPECT_EQ(description->buffer.size, 8192U);
+    EXPECT_EQ(description->buffer.usage, backend::vulkan::translate_buffer_usage(info.usage));
+
+    provider.on_transient_release(handle, info);
+}
+
+TEST(VulkanResourceProvider, ExposesTranslatedImageDescription)
+{
+    using namespace engine::rendering;
+    backend::vulkan::VulkanGpuResourceProvider provider{};
+
+    FrameGraphResourceHandle handle{};
+    handle.index = 10;
+
+    provider.begin_frame();
+    const auto info = make_color_target("Color", 256, 256);
+    provider.on_transient_acquire(handle, info);
+
+    const auto* description = provider.image_description(handle);
+    ASSERT_NE(description, nullptr);
+    EXPECT_EQ(description->image.extent.width, 256U);
+    EXPECT_EQ(description->image.extent.height, 256U);
+    EXPECT_EQ(description->image.format, backend::vulkan::translate_format(info.format));
+    EXPECT_EQ(description->image.samples, backend::vulkan::translate_sample_count(info.sample_count));
+
+    provider.on_transient_release(handle, info);
+}
+#endif
 

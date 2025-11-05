@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <utility>
 
+#include "engine/rendering/backend/vulkan/resource_translation.hpp"
+
 namespace engine::rendering::backend::vulkan
 {
     namespace
@@ -403,6 +405,14 @@ namespace engine::rendering::backend::vulkan
         record.last_used_frame = current_frame_;
 
         active_buffer_bytes_ += record.size_bytes;
+#if ENGINE_RENDERING_HAS_VULKAN
+        record.description.reset();
+        const auto translated = translate_resource(info);
+        if (std::holds_alternative<VulkanBufferResourceDescription>(translated))
+        {
+            record.description = std::get<VulkanBufferResourceDescription>(translated);
+        }
+#endif
         buffers_[index] = std::move(record);
     }
 
@@ -429,6 +439,14 @@ namespace engine::rendering::backend::vulkan
         record.byte_size = estimate_image_size(info);
 
         active_image_bytes_ += record.byte_size;
+#if ENGINE_RENDERING_HAS_VULKAN
+        record.description.reset();
+        const auto translated = translate_resource(info);
+        if (std::holds_alternative<VulkanImageResourceDescription>(translated))
+        {
+            record.description = std::get<VulkanImageResourceDescription>(translated);
+        }
+#endif
         images_[index] = std::move(record);
     }
 
@@ -442,6 +460,9 @@ namespace engine::rendering::backend::vulkan
         {
             active_buffer_bytes_ = 0;
         }
+#if ENGINE_RENDERING_HAS_VULKAN
+        record.description.reset();
+#endif
         record = BufferRecord{};
     }
 
@@ -455,6 +476,9 @@ namespace engine::rendering::backend::vulkan
         {
             active_image_bytes_ = 0;
         }
+#if ENGINE_RENDERING_HAS_VULKAN
+        record.description.reset();
+#endif
         record = ImageRecord{};
     }
 
@@ -475,5 +499,29 @@ namespace engine::rendering::backend::vulkan
             && record.sample_count == info.sample_count && record.format == info.format;
         return matches_dimensions && matches_usage;
     }
+
+#if ENGINE_RENDERING_HAS_VULKAN
+    const VulkanBufferResourceDescription*
+    VulkanGpuResourceProvider::buffer_description(FrameGraphResourceHandle handle) const noexcept
+    {
+        const auto it = buffers_.find(handle.index);
+        if (it == buffers_.end() || !it->second.description.has_value())
+        {
+            return nullptr;
+        }
+        return &*it->second.description;
+    }
+
+    const VulkanImageResourceDescription*
+    VulkanGpuResourceProvider::image_description(FrameGraphResourceHandle handle) const noexcept
+    {
+        const auto it = images_.find(handle.index);
+        if (it == images_.end() || !it->second.description.has_value())
+        {
+            return nullptr;
+        }
+        return &*it->second.description;
+    }
+#endif
 }
 
