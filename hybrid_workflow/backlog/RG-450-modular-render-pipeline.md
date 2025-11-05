@@ -6,7 +6,7 @@ priority: P1
 area: rendering
 size: L
 owner: rendering-lead
-gates: [tests, perf, docs]
+gates: [tests, perf, docs, safety, release]
 relates_to: [bundle:A]
 blocked_on: ["T-0120", "T-0119", "RT-410"]
 links: ["docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md", "docs/modules/rendering/README.md"]
@@ -165,7 +165,7 @@ public:
 
 **Artifacts:**
 - Telemetry captures: `telemetry/render_graph/*.json`
-- Planner DOT exports: `docs/rendering/graphs/*.dot`
+- Planner DOT exports: `docs/modules/rendering/graphs/*.dot`
 
 ### Quality Gate Sign-offs
 
@@ -183,7 +183,7 @@ public:
 - `engine/rendering/src/framegraph/*`
 - `engine/rendering/tests/framegraph/*`
 - `docs/modules/rendering/README.md`
-- `docs/rendering/render_graph.md`
+- `docs/modules/rendering/render_graph.md`
 - `docs/NAVIGATION.md`
 - `hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
 
