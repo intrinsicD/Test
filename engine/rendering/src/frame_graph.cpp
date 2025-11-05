@@ -15,6 +15,65 @@ namespace engine::rendering
 {
     namespace
     {
+        class EncoderScope
+        {
+        public:
+            EncoderScope(CommandEncoderProvider& provider,
+                         CommandEncoderDescriptor descriptor,
+                         std::unique_ptr<CommandEncoder> encoder) noexcept
+                : provider_(&provider)
+                , descriptor_(descriptor)
+                , encoder_(std::move(encoder))
+            {
+            }
+
+            EncoderScope(const EncoderScope&) = delete;
+            EncoderScope& operator=(const EncoderScope&) = delete;
+
+            EncoderScope(EncoderScope&& other) noexcept
+                : provider_(std::exchange(other.provider_, nullptr))
+                , descriptor_(other.descriptor_)
+                , encoder_(std::move(other.encoder_))
+            {
+            }
+
+            EncoderScope& operator=(EncoderScope&& other) noexcept
+            {
+                if (this != &other)
+                {
+                    reset();
+                    provider_ = std::exchange(other.provider_, nullptr);
+                    descriptor_ = other.descriptor_;
+                    encoder_ = std::move(other.encoder_);
+                }
+                return *this;
+            }
+
+            ~EncoderScope()
+            {
+                reset();
+            }
+
+            [[nodiscard]] CommandEncoder* get() const noexcept
+            {
+                return encoder_.get();
+            }
+
+            void reset()
+            {
+                if (provider_ != nullptr && encoder_ != nullptr)
+                {
+                    auto local = std::move(encoder_);
+                    provider_->end_encoder(descriptor_, std::move(local));
+                }
+            }
+
+        private:
+            CommandEncoderProvider* provider_{nullptr};
+            CommandEncoderDescriptor descriptor_{};
+            std::unique_ptr<CommandEncoder> encoder_{};
+        };
+
         [[nodiscard]] std::string to_string(ResourceLifetime lifetime)
         {
             switch (lifetime)
@@ -597,6 +656,8 @@ namespace engine::rendering
                 throw std::runtime_error{"CommandEncoderProvider returned null encoder"};
             }
 
+            EncoderScope encoder_scope{context.encoders, encoder_descriptor, std::move(encoder)};
+
             auto signal_acquire = [&](FrameGraphResourceHandle handle)
             {
                 auto& resource = resources_[handle.index];
@@ -635,7 +696,7 @@ namespace engine::rendering
             FrameGraphPassExecutionContext pass_context{context, *this, pass_index};
             pass_context.command_buffer = command_buffer;
             pass_context.queue = queue;
-            pass_context.encoder = encoder.get();
+            pass_context.encoder = encoder_scope.get();
             pass.pass->execute(pass_context);
             pass_context.encoder = nullptr;
 
@@ -654,6 +715,8 @@ namespace engine::rendering
 
             auto begin_barriers = pass_begin_barriers_[pass_index];
             auto end_barriers = pass_end_barriers_[pass_index];
+
+            encoder_scope.reset();
 
             const auto stage_for_queue = [](QueueType queue_type)
             {
@@ -698,7 +761,6 @@ namespace engine::rendering
 
             context.scheduler.submit(submit_info);
             context.scheduler.recycle(command_buffer);
-            context.encoders.end_encoder(encoder_descriptor, std::move(encoder));
             timeline_value = submission_value;
         }
 
