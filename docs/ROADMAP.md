@@ -59,6 +59,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | 1 | [`T-0120`](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | In Progress |
 | 1 | [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | In Progress |
 | 1 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | In Progress |
+| 1 | [`RG-450`](../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) | Build modular render pipeline planner with node reflection, transient resources, and async scheduling. | Rendering Lead | New |
 | 2 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | In Progress (planning; blocked on RT-410 hooks) |
 | 2 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
 
@@ -77,6 +78,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | [`T-0120`](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) | 1 | In Progress | GPU allocations, textures, and shader pipelines being implemented with shared reviews alongside T-0119. |
 | [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | 1 | In Progress | Command encoder integration underway; smoke demos paired with T-0120 milestone. |
 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
+| [`RG-450`](../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) | 1 | New | Frame-graph planner to compose modular node-based render pipelines with transient allocator + async queue support. |
 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | In Progress | Context assembly started; implementation will begin once RT-410 exposes presentation hooks. |
 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned. |
 
