@@ -29,6 +29,8 @@
 - Editor builds are re-enabled with baseline smoke coverage.
 - Weekly demos capture GPU → runtime → tooling integration progress.
 
+_Current status:_ RT-410 remains in progress; TL-310 has entered planning under the hybrid workflow while waiting for presentation adapters; PM-510 continues to coordinate weekly integration demos.
+
 ---
 
 ## Bundle C — Documentation & Infrastructure (Priority 3)
