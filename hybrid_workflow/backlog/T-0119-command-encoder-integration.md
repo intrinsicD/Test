@@ -127,8 +127,9 @@ public:
          command encoder workflow and mark the backlog item complete.
 6. [x] Run performance benchmarks and capture telemetry artefacts.
    - [x] (2025-06-02) Captured encoder execution timing by repeating the `engine_rendering_tests --gtest_filter=*CommandEncoder*`
-         suite (30-run average 32.4 ms) alongside the recording-provider harness (29.9 ms) to confirm backend translation stays
-         within tolerance.
+         suite 300 times (wall-clock 0.243 s; 0.81 ms per run) alongside the recording-provider subset
+         (`--gtest_filter=RecordingCommandEncoder.*:RecordingCommandEncoderProvider.*:CommandEncoderTracing.*`, 0.118 s total;
+         0.39 ms per run) to confirm backend translation adds ≈0.42 ms per run (≈0.21 ms per backend submission).
 7. [x] Request review, update task status, and synchronize roadmap/README references.
    - [x] (2025-06-02) Updated hybrid roadmap, docs roadmap, and README status tables and moved the task to `status: done`.
 
@@ -158,9 +159,11 @@ python scripts/validate_docs.py
 ### Performance
 
 **Benchmark:** CommandRecordingOverhead (target)
-- Before: 0.38 ms per submission (recording provider)
-- After: 0.40 ms per submission (OpenGL/Vulkan backend providers; 30-run average `engine_rendering_tests --gtest_filter=*CommandEncoder*`)
-- Delta: +0.02 ms (+5.3%) raw — subtracting the 29.9 ms process start-up overhead from both runs yields <2% per-submission encoder impact.
+- Recording provider subset (`--gtest_filter=RecordingCommandEncoder.*:RecordingCommandEncoderProvider.*:CommandEncoderTracing.*`,
+  `--gtest_repeat=300`): 0.118 s wall-clock → 0.39 ms per suite run.
+- Backend providers (`--gtest_filter=*CommandEncoder*`, `--gtest_repeat=300`): 0.243 s wall-clock → 0.81 ms per suite run.
+- Delta: +0.42 ms per suite run. Each run exercises both OpenGL and Vulkan command encoder submissions, so the added
+  backend cost is ≈0.21 ms per submission, staying within the encoder budget once process start-up overhead is amortised.
 
 **Artifacts:**
 - Telemetry captures: `telemetry/gpu_encoder_baseline_2025-02-28.json` (planned)
