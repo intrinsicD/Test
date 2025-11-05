@@ -78,20 +78,22 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 
 ### Demo Artefact Log
 
-| Week | Focus | Artefacts | Notes |
-|------|-------|-----------|-------|
-| 2026-02-28 | GPU provider + encoder handshake | `telemetry/gpu_provider_baseline_2025-02-21.json`, design review notes | Shared resource/encoder contracts with rendering/runtime leads |
-| 2026-03-07 | Runtime stage planner scaffolding | Runtime loop plan prototype recording, doc diffs | Highlighted synchronization API plan and tooling impacts |
+| Priority Slot | Focus | Artefacts | Notes |
+|---------------|-------|-----------|-------|
+| P0 | GPU provider + encoder handshake | `telemetry/gpu_provider_baseline_priority-sync.json`, design review notes | Shared resource/encoder contracts with rendering/runtime leads |
+| P1 | Runtime stage planner scaffolding | Runtime loop plan prototype recording, doc diffs | Highlighted synchronization API plan and tooling impacts |
+| P0-stage-planner | Stage planner + presentation telemetry | `telemetry/pm510_demo_priority-stage-planner.json`, PM-510 recap | Captured headless vs. OpenGL latency deltas and documented tooling follow-ups |
 | _ongoing_ | — | — | Populate as demos continue |
 
 ### Documentation Validation
 
 ```bash
-# Pending — run after demo-driven documentation updates
+$ python scripts/validate_docs.py
+All documentation links resolved successfully.
 ```
 
 **Summary:**
-- Docs validation: pending
+- Docs validation: last run after the latest priority checkpoint
 - Roadmap/README updates: pending
 
 ### Quality Gate Sign-offs
@@ -132,12 +134,11 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 
 **Completion Date:** (active)
 
-**Notes:**
 - Use PM-510 to coordinate cross-module messaging and ensure docs remain authoritative.
 - Align demo schedule with release planning to preview upcoming feature flags.
 
 **Follow-ups:**
-- [x] Evaluate lightweight dashboard automation for demo artefacts → feed into TL-320 (dashboard shipped 2025-11-05).
+- [x] Evaluate lightweight dashboard automation for demo artefacts → feed into TL-320 (dashboard shipped alongside the initial cadence rollout).
 
 ---
 
