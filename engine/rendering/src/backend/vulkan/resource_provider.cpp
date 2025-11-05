@@ -3,9 +3,7 @@
 #include <algorithm>
 #include <utility>
 
-#if ENGINE_RENDERING_HAS_VULKAN
-#    include <variant>
-#endif
+#include "engine/rendering/backend/vulkan/resource_translation.hpp"
 
 namespace engine::rendering::backend::vulkan
 {
