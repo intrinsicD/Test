@@ -22,6 +22,7 @@ def _make_task(
     blocked: bool,
     status: str = "in_progress",
     relates_to: list[str] | None = None,
+    owner: str = "tools-team",
 ) -> task_status.Task:
     """Helper to create a task with deterministic defaults for testing."""
     blocked_on = ["dependency"] if blocked else []
@@ -31,6 +32,7 @@ def _make_task(
         status=status,
         priority="P1",
         area="tools",
+        owner=owner,
         blocked_on=blocked_on,
         relates_to=relates_to or [],
     )
@@ -64,6 +66,17 @@ def test_filter_tasks_excludes_blocked_when_requested() -> None:
     assert [task.id for task in filtered] == ["B"]
 
 
+def test_filter_tasks_filters_by_owner() -> None:
+    tasks = [
+        _make_task("A", blocked=False, owner="tools-team"),
+        _make_task("B", blocked=False, owner="runtime-lead"),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, owner="runtime-lead")
+
+    assert [task.id for task in filtered] == ["B"]
+
+
 def test_build_parser_supports_unblocked_flag() -> None:
     parser = task_status.build_parser()
 
@@ -71,6 +84,14 @@ def test_build_parser_supports_unblocked_flag() -> None:
 
     assert args.unblocked is True
     assert args.blocked is False
+
+
+def test_build_parser_supports_owner_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--owner', 'docs-devrel'])
+
+    assert args.owner == 'docs-devrel'
 
 
 def test_build_parser_supports_relates_to_flag() -> None:

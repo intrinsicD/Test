@@ -44,6 +44,7 @@ _Current status:_ RT-410 remains in progress; TL-310 has entered planning under 
 - [x] **TL-332** — Task status CLI multiline metadata parsing → `hybrid_workflow/backlog/archive/TL-332-task-status-multiline-metadata.md`
 - [x] **TL-341** — Next-action summary for hybrid status reporter → `hybrid_workflow/backlog/archive/TL-341-next-action-summary.md`
 - [x] **TL-342** — Hybrid status reporter owner filter → `hybrid_workflow/backlog/archive/TL-342-hybrid-status-owner-filter.md`
+- [x] **TL-343** — Task status CLI owner filter → `hybrid_workflow/backlog/archive/TL-343-task-status-owner-filter.md`
 
 **Success Criteria:**
 - All active tasks migrated to hybrid workflow format.

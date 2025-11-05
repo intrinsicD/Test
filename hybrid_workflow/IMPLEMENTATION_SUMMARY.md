@@ -123,6 +123,9 @@ python hybrid_workflow/task_status.py --status in_progress
 # Filter by priority
 python hybrid_workflow/task_status.py --priority P1
 
+# Filter by owner
+python hybrid_workflow/task_status.py --owner docs-devrel
+
 # Filter by roadmap bundle
 python hybrid_workflow/task_status.py --relates-to bundle:D
 
@@ -274,6 +277,9 @@ python hybrid_workflow/task_status.py --priority P1
 
 # Find rendering tasks
 python hybrid_workflow/task_status.py --area rendering
+
+# Show tasks by owner
+python hybrid_workflow/task_status.py --owner runtime-lead
 
 # Filter by roadmap bundle tag
 python hybrid_workflow/task_status.py --relates-to bundle:A

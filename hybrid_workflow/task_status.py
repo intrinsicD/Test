@@ -15,7 +15,8 @@ metadata:
 .. code-block:: bash
 
    python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY]
-                                        [--area AREA] [--relates-to TAG ...]
+                                        [--area AREA] [--owner OWNER]
+                                        [--relates-to TAG ...]
                                         [--blocked | --unblocked]
 
 Invoke ``--summary`` for aggregate statistics or ``--detail`` with a task ID to
@@ -210,6 +211,7 @@ def filter_tasks(
     status: Optional[str] = None,
     priority: Optional[str] = None,
     area: Optional[str] = None,
+    owner: Optional[str] = None,
     relates_to: Optional[List[str]] = None,
     *,
     blocked_only: Optional[bool] = None,
@@ -225,6 +227,9 @@ def filter_tasks(
 
     if area:
         filtered = [t for t in filtered if t.area == area]
+
+    if owner:
+        filtered = [t for t in filtered if t.owner == owner]
 
     if relates_to:
         relates_lower = {tag.lower() for tag in relates_to}
@@ -340,6 +345,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('--status', help="Filter by status (new, ready, in_progress, review, done)")
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
+    parser.add_argument('--owner', help="Filter by owner (e.g. docs-devrel, runtime-lead)")
     parser.add_argument(
         '--relates-to',
         metavar='TAG',
@@ -408,6 +414,7 @@ def main():
         args.status,
         args.priority,
         args.area,
+        args.owner,
         relates_to,
         blocked_only=True if args.blocked else False if args.unblocked else None,
     )
