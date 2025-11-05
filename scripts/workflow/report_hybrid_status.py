@@ -27,6 +27,15 @@ STATUS_ORDER = {
     "archived": 5,
 }
 
+PRIORITY_ORDER = {
+    "P0": 0,
+    "P1": 1,
+    "P2": 2,
+    "P3": 3,
+    "P4": 4,
+    "P5": 5,
+}
+
 
 @dataclass
 class TaskMetadata:
@@ -141,12 +150,32 @@ def filter_tasks(
     return filtered
 
 
+def _priority_rank(priority: str) -> int:
+    return PRIORITY_ORDER.get(priority, len(PRIORITY_ORDER))
+
+
 def sort_key(task: TaskMetadata) -> tuple:
     return (
         STATUS_ORDER.get(task.status, len(STATUS_ORDER)),
-        task.priority,
+        _priority_rank(task.priority),
         task.identifier,
     )
+
+
+def select_next_actions(tasks: Iterable[TaskMetadata], limit: int) -> List[TaskMetadata]:
+    """Return the highest-priority ready tasks (or new tasks if none are ready)."""
+
+    if limit <= 0:
+        raise ValueError("limit must be greater than zero")
+
+    task_list = list(tasks)
+    ready = [task for task in task_list if task.status == "ready"]
+    pool = ready if ready else [task for task in task_list if task.status == "new"]
+    if not pool:
+        return []
+
+    ordered = sorted(pool, key=lambda task: (_priority_rank(task.priority), task.identifier))
+    return ordered[:limit]
 
 
 def render_table(tasks: List[TaskMetadata]) -> str:
@@ -225,13 +254,30 @@ def parse_args() -> argparse.Namespace:
         default="table",
         help="Output format for the summary (default: table).",
     )
+    parser.add_argument(
+        "--next-actions",
+        action="store_true",
+        help=(
+            "Show the highest-priority ready tasks; fall back to new tasks when no ready "
+            "items exist (ignores --status/--priority filters)."
+        ),
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Maximum number of tasks to display when using --next-actions (default: 5).",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     tasks = collect_tasks(include_archived=args.include_archived)
-    filtered = filter_tasks(tasks, args.status, args.priority)
+    if args.next_actions:
+        filtered = select_next_actions(tasks, args.limit)
+    else:
+        filtered = filter_tasks(tasks, args.status, args.priority)
     print(render(filtered, args.format))
 
 

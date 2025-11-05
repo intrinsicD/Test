@@ -5,6 +5,7 @@
 1. Read: [`AGENTS.md`](./AGENTS.md) — The 7-step workflow
 2. Use: [`backlog/000-template.md`](./backlog/000-template.md) — Task template
 3. Check: [`ROADMAP.md`](./ROADMAP.md) — Pick a bundle
+4. Run: `python -m scripts.workflow.report_hybrid_status --next-actions` — Surface highest-priority ready work (falls back to `new`).
 
 ---
 
@@ -79,6 +80,10 @@ Paste output in task's **Evidence** section.
 ## 🔍 Query Tasks
 
 ```bash
+# Quick next actions
+python -m scripts.workflow.report_hybrid_status --next-actions
+python -m scripts.workflow.report_hybrid_status --next-actions --limit 10
+
 # List all tasks
 python hybrid_workflow/task_status.py
 
