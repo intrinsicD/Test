@@ -1,5 +1,5 @@
 {
-  "demo_date": "2026-03-14",
+  "priority_slot": "P0-stage-planner",
   "focus": "Runtime stage planner handshake across GPU backends",
   "participants": [
     "Rendering Lead",
