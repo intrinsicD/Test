@@ -8,6 +8,10 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
+#if ENGINE_RENDERING_HAS_VULKAN
+#    include <optional>
+#    include "engine/rendering/backend/vulkan/resource_translation.hpp"
+#endif
 
 #include "engine/rendering/backend/vulkan/command_encoder.hpp"
 #include "engine/rendering/frame_graph_types.hpp"
@@ -63,6 +67,9 @@ namespace engine::rendering::backend::vulkan
             std::uint64_t handle{0};
             bool in_use{false};
             std::uint64_t last_used_frame{0};
+#if ENGINE_RENDERING_HAS_VULKAN
+            std::optional<VulkanBufferResourceDescription> description{};
+#endif
         };
 
         [[nodiscard]] const BufferRecord* buffer(FrameGraphResourceHandle handle) const noexcept;
@@ -87,6 +94,9 @@ namespace engine::rendering::backend::vulkan
             bool in_use{false};
             std::uint64_t last_used_frame{0};
             std::uint64_t byte_size{0};
+#if ENGINE_RENDERING_HAS_VULKAN
+            std::optional<VulkanImageResourceDescription> description{};
+#endif
         };
 
         [[nodiscard]] const ImageRecord* image(FrameGraphResourceHandle handle) const noexcept;
@@ -106,6 +116,13 @@ namespace engine::rendering::backend::vulkan
 
         void set_retention_frames(std::uint64_t frames) noexcept;
         [[nodiscard]] std::uint64_t retention_frames() const noexcept;
+
+#if ENGINE_RENDERING_HAS_VULKAN
+        [[nodiscard]] const VulkanBufferResourceDescription*
+        buffer_description(FrameGraphResourceHandle handle) const noexcept;
+        [[nodiscard]] const VulkanImageResourceDescription*
+        image_description(FrameGraphResourceHandle handle) const noexcept;
+#endif
 
     private:
         struct QueueRecord

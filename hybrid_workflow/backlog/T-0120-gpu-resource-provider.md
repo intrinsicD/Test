@@ -136,7 +136,7 @@ namespace engine::rendering {
 1. [x] Research: Review ADR-0003, legacy implementation notes, T-0119 interfaces
 2. [x] Design: Hold joint API review with T-0119 owners (2025-02-15)
 3. [x] Implement: OpenGL GPU resource provider with retention window (2025-02-21)
-4. [ ] Implement: Vulkan GPU resource provider with descriptor management
+4. [x] Implement: Vulkan GPU resource provider with descriptor management (2025-05-11)
 5. [ ] Integrate: Replace recording-provider fallbacks in schedulers
 6. [ ] Test: Add automated tests for resource creation on both backends
 7. [ ] Test: Run backend smoke demos and capture telemetry
@@ -171,9 +171,14 @@ Test project /home/alex/Documents/Test/cmake-build-debug
 
 **Test Summary:**
 - Unit tests: 5 passed / 5 total (OpenGL provider only so far)
-- Vulkan provider tests: pending implementation
+- Vulkan provider tests: descriptor coverage added (requires `ENGINE_RENDERING_HAS_VULKAN=1`; targeted run below)
 - Integration tests: hot-reload integration validated
 - Documentation validation: pending final update
+
+```bash
+# Vulkan descriptor regression (2025-05-11)
+$ ctest --preset linux-gcc-debug -R VulkanResourceProvider
+```
 
 ### Performance
 
@@ -206,8 +211,12 @@ Test project /home/alex/Documents/Test/cmake-build-debug
 - `engine/rendering/tests/gpu_resource_provider_tests.cpp`
 - `engine/rendering/src/backend/resource_retention_policy.hpp`
 
+**Implemented (2025-05-11):**
+- `engine/rendering/include/engine/rendering/backend/vulkan/resource_provider.hpp`
+- `engine/rendering/src/backend/vulkan/resource_provider.cpp`
+- `engine/rendering/tests/test_vulkan_resource_provider.cpp`
+
 **Pending:**
-- `engine/rendering/src/backend/vulkan/vulkan_resource_provider.cpp`
 - `docs/modules/rendering/README.md` (update in progress)
 - `README.md` (module status table)
 
@@ -247,10 +256,15 @@ Test project /home/alex/Documents/Test/cmake-build-debug
 - Command encoder integration (T-0119) progressing in parallel
 - Shared design review successful, interfaces aligned
 
+**2025-05-11 Update:**
+- Vulkan provider now records translated buffer/image descriptors alongside transient resource metadata so backends can reuse
+  `Vk*CreateInfo` payloads without re-translating frame-graph descriptors. Added regression coverage ensuring
+  `VulkanGpuResourceProvider` surfaces the cached descriptions.
+
 **Next Steps:**
-- Complete Vulkan resource provider implementation
-- Integrate with schedulers and frame-graph execution
-- Run full backend smoke demos
+- Integrate provider descriptor cache with scheduler/runtime adapters
+- Replace recording-provider fallbacks in schedulers (T-0120 Step 5)
+- Run full backend smoke demos and capture telemetry
 - Capture final benchmarks and quality gate sign-offs
 
 **Follow-ups:**
