@@ -115,6 +115,7 @@ public:
 4. [ ] Add frame-graph integration tests and PM-510 smoke scenario hooks.
    - [x] Added `FrameGraph.RecordsCommandsThroughEncoderProvider` to verify command encoder submissions (2025-03-27).
    - [x] Runtime diagnostics capture per-pass command encoder stats for presentation submissions (2025-04-10).
+   - [x] Added OpenGL backend integration test exercising frame-graph execution through real command encoder providers (2025-05-02).
    - [ ] Extend PM-510 smoke scenarios once runtime submission wiring lands.
 5. [ ] Document encoder usage in rendering/runtime READMEs and update roadmap entries.
    - [x] Documented command encoder diagnostics in runtime troubleshooting guide (2025-04-10).
