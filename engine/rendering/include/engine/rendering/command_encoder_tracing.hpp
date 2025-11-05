@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <deque>
 #include <memory>
 #include <string>
 #include <vector>
@@ -49,7 +50,7 @@ namespace engine::rendering
 
     private:
         CommandEncoderProvider* inner_{nullptr};
-        std::vector<EncoderTraceRecord> records_{};
+        std::deque<EncoderTraceRecord> records_{};
     };
 } // namespace engine::rendering
 
