@@ -118,7 +118,7 @@ See [`engine/tools/examples/geometry_viewer.cpp`](../../../engine/tools/examples
 
 - Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) (`RT-410`).
 - Provide synchronisation hooks for scripting, diagnostics, and tooling integrations in tandem with rendering backends.
-- Validate the new loop against OpenGL/Vulkan once [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) and [`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) ship.
+- Validate the new loop against OpenGL/Vulkan once [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) ships; the command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md)) is already live.
 
 ## Core Concepts
 
@@ -547,7 +547,7 @@ ctest --preset linux-gcc-debug -R runtime
 ## TODO / Next Steps
 
 - Execute [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md): ship the stage planner, presentation adapters, and synchronisation hooks mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
-- Pair with rendering on [`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) and [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) milestones so submission timing and telemetry contracts stay aligned.
+- Pair with rendering on [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) while exercising the shipped command encoder (`T-0119`) so submission timing and telemetry contracts stay aligned.
 - Maintain the prototyping harness/case studies as new datasets land and record follow-on scenarios in [`../../ROADMAP.md`](../../ROADMAP.md) when they enter planning.
 
 ## Related Documentation

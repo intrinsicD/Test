@@ -30,23 +30,14 @@ The `ResourceProvider` interface exists but only has a "recording" implementatio
 
 ## Priority 1: Command Encoding & Submission (T-0119)
 
-The frame graph knows what to render but can't translate that into actual GPU commands.
+✅ **Complete.** Frame-graph passes now receive backend encoders, record draw/dispatch work, and submit through OpenGL and Vulkan schedulers.
 
-### What's Missing:
-- [ ] **Command Encoder Implementation** - Record draw calls into command buffers
-- [ ] **Backend Command Buffer Recording** - OpenGL/Vulkan-specific recording
-- [ ] **Queue Submission** - Submit command buffers to GPU for execution
-- [ ] **Synchronization** - Fences/semaphores to wait for GPU completion
-- [ ] **Frame Graph Execution** - Call `graph.execute()` with scene data
+### What Shipped:
+- `FrameGraph::execute` acquires encoders from the provider and finalises them before queue submission.
+- OpenGL/Vulkan command encoder providers translate recorded work into scheduler submissions and telemetry payloads.
+- Tracing encoders expose per-pass draw/dispatch counts consumed by runtime diagnostics and PM-510 demos.
 
-### Current Blocker:
-`CommandEncoder` interface exists but methods aren't implemented. Frame graph compiles but `execute()` is never called.
-
-**Estimated Work:** 2-3 days
-**Files to Modify:**
-- `engine/rendering/src/backend/opengl/opengl_command_encoder.cpp`
-- `engine/rendering/src/backend/vulkan/vulkan_command_encoder.cpp`
-- `engine/rendering/src/frame_graph.cpp` (execute implementation)
+**Follow-up Focus:** ensure real GPU resources arrive with [`T-0120`](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) so the shipped encoder executes against live buffers/textures.
 
 ---
 

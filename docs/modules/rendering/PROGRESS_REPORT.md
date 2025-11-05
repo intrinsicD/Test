@@ -53,17 +53,14 @@ To achieve **actual on-screen geometry rendering**, you need to complete these t
 new `OpenGLGpuResourceProvider`; actual GPU allocations remain pending.
 
 ### SECOND PRIORITY: T-0119 - Command Encoder Implementation
-**Status**: 🟡 In Progress
-**Depends on**: T-0120
-**Estimated**: 2-3 days
+**Status**: ✅ Complete
+**Depends on**: T-0120 (for real resource residency)
 
-**What's needed**:
-- Implement `CommandEncoder::draw_geometry()` with actual OpenGL calls
-- Bind shader programs and set uniforms
-- Configure vertex attribute pointers
-- Issue draw calls (glDrawElements, etc.)
-*2025-12-08 update*: `OpenGLCommandEncoder` now records geometry draw requests into native submissions, enabling scheduler tests
-to inspect draw lists even though backend-specific draw dispatch is still pending.
+**What shipped**:
+- `FrameGraphPassExecutionContext::command_encoder()` hands passes a backend encoder tied to the scheduler command buffer.
+- OpenGL/Vulkan providers translate recorded draws/dispatches into submission payloads consumed by schedulers and diagnostics.
+- Command encoder tracing surfaces per-pass draw/dispatch counts for PM-510 telemetry and runtime tooling.
+*2025-06-02 update*: The encoder integration is merged; remaining work focuses on feeding real GPU resources once T-0120 lands.
 
 ### THIRD PRIORITY: Window & Execution Loop
 **Status**: Not Started  
@@ -90,7 +87,7 @@ GPU Scheduler (OpenGL/Vulkan)
   ↓
 [MISSING] → GPU Resource Provider (T-0120) ← NEXT STEP
   ↓
-[MISSING] → Command Encoder (T-0119)
+Command Encoder (T-0119) ✅
   ↓
 OpenGL Driver
 ```
@@ -99,7 +96,7 @@ OpenGL Driver
 
 **Immediate Action**: Implement **T-0120 (GPU Resource Provider)** next. This is the single most critical blocker preventing actual geometry rendering.
 
-Once T-0120 and T-0119 are complete, you'll be able to render geometry in a window for your geometry processing applications.
+With T-0119 complete, finishing T-0120 will unlock live GPU resources so the shipped encoders can drive on-screen rendering.
 
 ## Build & Run
 

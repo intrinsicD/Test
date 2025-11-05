@@ -7,7 +7,7 @@
 **Goal:** Enable real GPU rendering with backend command submission and shader pipelines.
 
 - [ ] **T-0120** — GPU resource provider → `hybrid_workflow/backlog/T-0120-gpu-resource-provider.md`
-- [ ] **T-0119** — Command encoder integration → `hybrid_workflow/backlog/T-0119-command-encoder-integration.md`
+- [x] **T-0119** — Command encoder integration → `hybrid_workflow/backlog/T-0119-command-encoder-integration.md`
 
 **Success Criteria:**
 - OpenGL/Vulkan execute frame-graph workloads with deterministic telemetry traces.
