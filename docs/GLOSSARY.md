@@ -59,7 +59,7 @@ A comprehensive reference of terms, acronyms, and identifiers used throughout th
 | **RFP** | Request for Proposal. Design documents outlining requirements for major features (e.g., `GE_212_REMESHING_PARAMETERIZATION_RFP.md`). |
 | **RuntimeHost** | Entry point that orchestrates animation, physics, geometry, and rendering submission. Documented in `docs/modules/runtime/README.md`. |
 | **Spatial Index** | Acceleration structure (kd-tree, octree) maintained by geometry module to speed spatial queries. |
-| **Task Record** | Markdown file under `docs/backlog/active/` (archived in `docs/backlog/archive/`) containing goal, inputs, constraints, deliverables, and acceptance checklist. |
+| **Task Record** | Markdown file under `hybrid_workflow/backlog/` (archived in `hybrid_workflow/backlog/archive/`) containing goal, metadata, design, and acceptance checklist in structured YAML frontmatter format. |
 
 ### Rendering & Graphics
 
@@ -194,9 +194,10 @@ A comprehensive reference of terms, acronyms, and identifiers used throughout th
 | `docs/design/*.md` | Deep-dive design documents and guides |
 | `docs/modules/<name>/README.md` | Module overview and API documentation |
 | `docs/modules/<name>/BACKLOG.md` | Module-specific work queue |
-| `docs/backlog/active/T-*.md` | Individual task records with acceptance criteria |
-| `docs/backlog/active/YYYY-MM-DD-sprint-*.md` | Sprint planning documents |
-| `docs/archive/` | Historical artifacts (prints, reviews, completed tasks) |
+| `hybrid_workflow/backlog/<ID>-*.md` | Individual task records with structured metadata |
+| `hybrid_workflow/backlog/SPRINT-*.md` | Sprint planning and alignment documents |
+| `docs/backlog/archive/` | Historical completed tasks (old format) |
+| `docs/archive/` | Historical artifacts (prints, reviews, design docs) |
 | `engine/<module>/include/` | Public C++ headers |
 | `engine/<module>/src/` | C++ implementation files |
 | `engine/<module>/tests/` | Module-specific unit tests |

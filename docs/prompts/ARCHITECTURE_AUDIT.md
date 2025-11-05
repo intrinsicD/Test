@@ -14,7 +14,7 @@ triage, and roadmap alignment rather than single-change pull-request reviews.
       refresh invariants and reviewer expectations.
 - [ ] Align on workflow phases and quality gates in [`../../AGENTS.md`](../../AGENTS.md).
 - [ ] Inspect the architecture improvement plan tables in
-      [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked backlog records via [`../backlog/active/`](../backlog/active/).
+      [`../ROADMAP.md`](../ROADMAP.md#architecture-improvement-plan) and gather linked backlog records via [`../../hybrid_workflow/backlog/`](../../hybrid_workflow/backlog/).
 - [ ] Open relevant specs under [`../specs/`](../specs/) and design notes in [`../design/`](../design/).
 - [ ] Collect module READMEs/ROADMAPs for the subsystems in scope.
 - [ ] Confirm required tooling is available (`cmake`, `python`, telemetry scripts).

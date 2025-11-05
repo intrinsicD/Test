@@ -1,6 +1,8 @@
 # Central Roadmap
 
-This roadmap defines how the engine reaches **application readiness**—a state where research teams can prototype, benchmark, and ship interactive experiences with confidence. It complements module READMEs and the backlog entries under [`docs/backlog/`](backlog/). Update all three whenever priorities shift.
+This roadmap defines how the engine reaches **application readiness**—a state where research teams can prototype, benchmark, and ship interactive experiences with confidence. It complements module READMEs and active task tracking in [`../hybrid_workflow/backlog/`](../hybrid_workflow/backlog/). Update all three whenever priorities shift.
+
+> **Note:** For workflow-specific bundle tracking, see [`../hybrid_workflow/ROADMAP.md`](../hybrid_workflow/ROADMAP.md).
 
 ## Vision
 
@@ -89,7 +91,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Capture updates from weekly demos and rerun docs validator after each milestone increment. |
 
 ## Maintenance Checklist
-
+- When a backlog item completes, move its file to [`../hybrid_workflow/backlog/archive/`](../hybrid_workflow/backlog/archive/) or [`backlog/archive/`](backlog/archive/) (for old format tasks) and update tables above.
 - Review this roadmap weekly; update status/progress before each sync.
 - When a backlog item completes, move its file to [`backlog/archive/`](backlog/archive/) and update tables above.
 - Keep module READMEs and the root [`README.md`](../README.md) aligned with the priority bands listed here.

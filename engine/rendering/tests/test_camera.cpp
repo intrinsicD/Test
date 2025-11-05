@@ -45,7 +45,7 @@ TEST(Camera, SynchronizesViewWhenModelChanges)
     transform.scale = {1.0F, 2.0F, 1.0F};
 
     const auto model = engine::math::to_matrix(transform);
-    camera.set_model(model);
+    [[maybe_unused]] auto result = camera.set_model(model);
 
     expect_matrix_near(camera.model, model);
     const auto expected_view = engine::math::try_inverse(model);
@@ -61,7 +61,7 @@ TEST(Camera, LookAtUpdatesViewAndModel)
     const engine::math::vec3 target{0.0F, 0.0F, 0.0F};
     const engine::math::vec3 up{0.0F, 1.0F, 0.0F};
 
-    camera.look_at(eye, target, up);
+    [[maybe_unused]] auto result = camera.look_at(eye, target, up);
 
     const auto expected_view = engine::math::utils::look_at(eye, target, up);
     expect_matrix_near(camera.view, expected_view);

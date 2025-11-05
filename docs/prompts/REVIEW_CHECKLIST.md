@@ -12,7 +12,7 @@ Use this prompt to perform consistent, high-signal reviews for Test Engine pull 
 - [ ] Refresh invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md), workflow phases in [`../../AGENTS.md`](../../AGENTS.md), and coding/testing standards in
       [`../../CONTRIBUTION.md`](../../CONTRIBUTION.md).
 - [ ] Open module READMEs/ROADMAPs for affected subsystems.
-- [ ] Locate referenced tasks in [`../backlog/active/`](../backlog/active/) (verify Role Roster coverage) and consult [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) plus archived prints when historical context is required.
+- [ ] Locate referenced tasks in [`../../hybrid_workflow/backlog/`](../../hybrid_workflow/backlog/) (verify gates and owners in YAML frontmatter) and consult [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) plus archived prints when historical context is required.
 - [ ] Ensure access to build/test tooling to reproduce results if needed.
 
 ## Prompt Template
@@ -120,7 +120,7 @@ PROJECT STANDARDS (Test Engine)
 3. File follow-up task if remediation exceeds PR scope.
 
 ## Review Workflow Reminders
-1. Confirm PR references a task (`docs/backlog/active/<ID>-*.md`) and acceptance criteria (Role Roster owners engaged).
+1. Confirm PR references a task (`hybrid_workflow/backlog/<ID>-*.md`) and acceptance criteria (gates and owners defined in YAML frontmatter).
 2. Review documentation updates for affected modules and central artefacts.
 3. Execute targeted tests locally when behaviour is complex or determinism is at risk.
 4. Record findings in `docs/reviews/` if performing post-merge audits.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-> **Status:** ⚠️ **At Risk** — `RuntimeHost` now compiles a declarative `RuntimeLoopPlan` with per-phase telemetry and supports the `rendering::PresentationBackend` interface, yet GPU-backed presenters and synchronisation APIs mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) remain outstanding until [`RT-410`](../../backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) lands.
+> **Status:** ⚠️ **At Risk** — `RuntimeHost` now compiles a declarative `RuntimeLoopPlan` with per-phase telemetry and supports the `rendering::PresentationBackend` interface, yet GPU-backed presenters and synchronisation APIs mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) remain outstanding until [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) lands.
 
 The runtime module orchestrates the engine's main execution loop through `RuntimeHost`, which coordinates animation evaluation, physics simulation, geometry deformation, scene graph updates, and rendering submission. It acts as the integration point for all subsystems and provides comprehensive diagnostics and telemetry.
 
@@ -118,7 +118,7 @@ See [`engine/tools/examples/geometry_viewer.cpp`](../../../engine/tools/examples
 
 - Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) (`RT-410`).
 - Provide synchronisation hooks for scripting, diagnostics, and tooling integrations in tandem with rendering backends.
-- Validate the new loop against OpenGL/Vulkan once [`T-0120`](../../backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md) and [`T-0119`](../../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md) ship.
+- Validate the new loop against OpenGL/Vulkan once [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) and [`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) ship.
 
 ## Core Concepts
 
@@ -546,8 +546,8 @@ ctest --preset linux-gcc-debug -R runtime
 
 ## TODO / Next Steps
 
-- Execute [`RT-410`](../../backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md): ship the stage planner, presentation adapters, and synchronisation hooks mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
-- Pair with rendering on [`T-0119`](../../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md) and [`T-0120`](../../backlog/active/T_0120_GPU_RESOURCE_PROVIDER.md) milestones so submission timing and telemetry contracts stay aligned.
+- Execute [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md): ship the stage planner, presentation adapters, and synchronisation hooks mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
+- Pair with rendering on [`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) and [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) milestones so submission timing and telemetry contracts stay aligned.
 - Maintain the prototyping harness/case studies as new datasets land and record follow-on scenarios in [`../../ROADMAP.md`](../../ROADMAP.md) when they enter planning.
 
 ## Related Documentation

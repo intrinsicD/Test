@@ -10,7 +10,7 @@ invariants, roadmap intent, and determinism.
 - Technical-debt paydowns that require staged rollouts and regression coverage.
 
 ## Prerequisites Checklist
-- [ ] Map the work to a roadmap/backlog identifier in [`../ROADMAP.md`](../ROADMAP.md) and the matching record under [`../backlog/active/`](../backlog/active/) (Role Roster, Definition of Done). Use [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) for historical context if needed.
+- [ ] Map the work to a roadmap/backlog identifier in [`../ROADMAP.md`](../ROADMAP.md) and the matching record under [`../../hybrid_workflow/backlog/`](../../hybrid_workflow/backlog/) (YAML metadata and gates). Use [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) for historical context if needed.
 - [ ] Align on workflow phases and quality gates in [`../../AGENTS.md`](../../AGENTS.md).
 - [ ] Review relevant specs/ADRs in [`../specs/`](../specs/) and design notes in [`../design/`](../design/).
 - [ ] Collect READMEs/ROADMAPs for impacted modules under [`../modules/`](../modules/).
@@ -166,5 +166,5 @@ PROJECT STANDARDS (Test Engine)
 1. Start from the canonical roadmap entry (`../ROADMAP.md#architecture-improvement-plan`).
 2. Track dependencies and prerequisites among initiatives.
 3. Update roadmap tables and module READMEs as checkpoints are met.
-4. Synchronise task files (`docs/backlog/active/<ID>-*.md`) with execution notes, ensuring Role Roster updates are captured.
+4. Synchronise task files (`hybrid_workflow/backlog/<ID>-*.md`) with execution notes, ensuring metadata and gates are updated.
 5. Reflect milestone status in the root `README.md` snapshot when major work lands.

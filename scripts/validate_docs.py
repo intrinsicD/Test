@@ -181,6 +181,7 @@ def main() -> int:
     roadmap_path = DOCS_DIR / "ROADMAP.md"
     readme_path = ROOT / "README.md"
     tasks_dir = DOCS_DIR / "backlog" / "active"
+    hybrid_tasks_dir = ROOT / "hybrid_workflow" / "backlog"
 
     if roadmap_path.exists():
         roadmap_text = roadmap_path.read_text(encoding="utf-8")
@@ -199,13 +200,16 @@ def main() -> int:
 
         active_ids = _extract_active_roadmap_ids(roadmap_text)
         task_index = _index_task_files(tasks_dir)
+        hybrid_task_index = _index_task_files(hybrid_tasks_dir)
         for identifier in sorted(active_ids):
-            if identifier not in task_index:
+            # Check both old and new backlog locations
+            if identifier not in task_index and identifier not in hybrid_task_index:
                 # Convert hyphen to underscore for filename check (RT-410 -> RT_410)
                 underscore_id = identifier.replace('-', '_')
                 failures.append(
                     "docs/ROADMAP.md references active task "
-                    f"{identifier} without matching docs/backlog/active/{underscore_id}_*.md"
+                    f"{identifier} without matching docs/backlog/active/{underscore_id}_*.md "
+                    f"or hybrid_workflow/backlog/{identifier}-*.md"
                 )
 
     if failures:

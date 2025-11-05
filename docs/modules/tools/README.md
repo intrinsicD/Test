@@ -4,15 +4,15 @@
 
 The tools module provides editor utilities, profiling tools, pipeline automation, and diagnostics viewers. It includes the telemetry viewer CLI for runtime snapshots, integration with Dear ImGui for debug UI, and runtime packaging scripts for CI/CD workflows.
 
-**Status:** 🚧 **Disabled** – The module remains excluded from the default build and ADR-0008 panel registry integration has not landed. See [`TL-310`](../../backlog/active/TL_310_EDITOR_FOUNDATIONS.md) for the work required to re-enable the editor and tooling stack.
+**Status:** 🚧 **Disabled** – The module remains excluded from the default build and ADR-0008 panel registry integration has not landed. See [`TL-310`](../../../hybrid_workflow/backlog/TL-310-editor-foundations.md) for the work required to re-enable the editor and tooling stack.
 
 > **Note:** The `geometry_viewer` sample depends on the GLFW backend and the generated `glad::gl_core` loader. CMake automatically skips the executable when either dependency is unavailable (for example, when Python/Jinja are missing or GLFW is disabled) so the canonical build presets continue to configure successfully.
 
 ## Outstanding Work
 
-- Restore build integration and CI coverage as tracked in [`TL-310`](../../backlog/active/TL_310_EDITOR_FOUNDATIONS.md).
+- Restore build integration and CI coverage as tracked in [`TL-310`](../../../hybrid_workflow/backlog/TL-310-editor-foundations.md).
 - Implement the panel registry, runtime harness bridge, and ImGui reuse strategy from [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
-- Validate editor flows against GPU-enabled runtime once [`T-0119`](../../backlog/active/T_0119_COMMAND_ENCODER_INTEGRATION.md) and [`RT-410`](../../backlog/active/RT_410_RUNTIME_STAGE_PLANNER.md) deliver synchronisation hooks.
+- Validate editor flows against GPU-enabled runtime once [`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) and [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) deliver synchronisation hooks.
 
 ## Telemetry Viewer CLI
 

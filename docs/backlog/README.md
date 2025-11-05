@@ -1,68 +1,32 @@
-# Backlog Overview
+# Backlog Directory
 
-This directory holds the authoritative backlog for the Test Engine. Active work that contributes to making the engine production-ready lives under [`active/`](active/). Completed items move into [`archive/`](archive/) to keep the working set focused and searchable.
+> **⚠️ This directory structure is deprecated.**
 
-## Priority Scale
+## Active Tasks
 
-Priorities use a numeric scale where **1 is the highest urgency** and **5 is the lowest**:
+All **active** tasks are now managed in the hybrid workflow system:
 
-| Priority | Meaning | Typical Handling |
-| --- | --- | --- |
-| 1 | Critical blocker for the application readiness goal | Staff immediately, unblock dependencies |
-| 2 | Required for the current milestone | Plan in the next iteration |
-| 3 | Supports milestone polish or robustness | Schedule after priority 1–2 work |
-| 4 | Enhances diagnostics or automation | Slot when capacity allows |
-| 5 | Nice-to-have or exploratory | Track for future consideration |
+📁 **[`../../hybrid_workflow/backlog/`](../../hybrid_workflow/backlog/)**
 
-Each backlog item includes status, ownership, definition of done, dependencies, and linked artefacts so that any agent can execute without hunting for context.
+See [`../../hybrid_workflow/README.md`](../../hybrid_workflow/README.md) for the current workflow and task management process.
 
-## Workflow
+## Archived Tasks
 
-1. **Create** a new backlog file in `active/` using the template below and map responsibilities to roles defined in [`../../agents/ROLES.md`](../../agents/ROLES.md).
-2. **Update** the central roadmap (`../ROADMAP.md`) to reference the new file and capture the same role ownership.
-3. **Deliver** the work and update status to `Complete` when acceptance criteria are met.
-4. **Archive** the file by moving it into `archive/` and noting the completion date.
+Historical completed tasks remain in [`archive/`](archive/) for reference.
 
-### Backlog Template
+---
 
-````markdown
-# Backlog Item <ID> — <Title>
+## Migration Notice
 
-- **Status**: <Planned \| In Progress \| Complete>
-- **Priority**: <1-5>
-- **Owner**: <Role or person>
-- **Module(s)**: <Relevant modules>
-- **Goal**: <What changes when this is done>
+As of November 2025, the project has migrated to a unified hybrid workflow system. The old `docs/backlog/active/` structure has been replaced by `hybrid_workflow/backlog/` which provides:
 
-## Summary
-Concise description of the problem and the intended outcome.
+- ✅ Structured YAML frontmatter for metadata
+- ✅ Automated status tracking and reporting
+- ✅ Better integration with CI/CD tooling
+- ✅ Consistent naming conventions (kebab-case)
 
-## Role Roster
-| Role | Responsibilities | Owner |
-| --- | --- | --- |
-| Agent Orchestrator | | |
-| Product Manager | | |
-| Knowledge Librarian | | |
-| Specialist Engineer(s) | | |
-| Docs/DevRel | | |
-| QA/Test Specialist | | |
-| Performance Engineer | | |
-| Safety Reviewer | | |
-| Reviewer | | |
-| Release Manager | | |
+For creating new tasks, follow the workflow documented in:
+- [`../../hybrid_workflow/AGENTS.md`](../../hybrid_workflow/AGENTS.md) - 7-step workflow guide
+- [`../../hybrid_workflow/CONTRIBUTING.md`](../../hybrid_workflow/CONTRIBUTING.md) - Contribution standards
+- [`../../hybrid_workflow/backlog/000-template.md`](../../hybrid_workflow/backlog/000-template.md) - Task template
 
-## Definition of Done
-- [ ] Criterion 1
-- [ ] Criterion 2
-
-## Dependencies
-- <Link or "None">
-
-## Related Artefacts
-- <Specs, ADRs, code, datasets>
-
-## Notes
-Free-form notes, open questions, or decisions.
-````
-
-Keep backlog files short (≤200 lines) and link to deeper design docs when needed.

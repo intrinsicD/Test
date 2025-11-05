@@ -7,7 +7,7 @@ The workspace hosts a modular C++20 engine prototype. Each subsystem builds as a
 1. Load [AGENTS.md](AGENTS.md) and follow the Workflow Blueprint (Sections 0.1–0.7) to build the shared context ladder, phase checklists, and quality instrumentation for the session.
 2. Review [docs/NAVIGATION.md](docs/NAVIGATION.md) to confirm documentation precedence and locate module-level READMEs or design notes required by the context ladder.
 3. Confirm the initiative or module you are touching in [docs/ROADMAP.md](docs/ROADMAP.md) and the relevant `docs/modules/<name>/` README/ROADMAP pair.
-4. Open the matching record under [docs/backlog/](docs/backlog/) to understand acceptance criteria, role roster commitments, and required artefacts before editing code.
+4. Open the matching task record under [hybrid_workflow/backlog/](hybrid_workflow/backlog/) to understand acceptance criteria, metadata, and gates before editing code.
 5. Update documentation, task checklists, and roadmap status in the same change set so the agent + human workflow stays consistent with the deliverable matrix.
 
 ## Workspace Snapshot
@@ -97,12 +97,12 @@ with the mock backend.
 
 ## Execution Backlog Overview
 
-The application-readiness plan is maintained in [docs/ROADMAP.md](docs/ROADMAP.md) with detailed backlog entries under [docs/backlog/](docs/backlog/). Current focus areas:
+The application-readiness plan is maintained in [docs/ROADMAP.md](docs/ROADMAP.md) with active tasks managed in [hybrid_workflow/backlog/](hybrid_workflow/backlog/). Current focus areas:
 
 - **Phase 1 – Kickoff Ready (Completed):** [DC-040](docs/backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [DC-041](docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [RT-320](docs/backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md).
 - **Phase 2 – Harness & Datasets (Completed):** [AS-330](docs/backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [TL-210](docs/backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [RT-321](docs/backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md).
 - **Phase 3 – Benchmark Confidence (Priority 4):** [CC-310](docs/backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [CC-311](docs/backlog/archive/CC_311_BENCHMARK_VISUALISATION.md).
-- **Phase 4 – GPU Execution & Tooling (Priorities 1–2):** Joint GPU enablement milestone covering [T-0120](../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) + [T-0119](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md), parallel runtime presentation work in [RT-410](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md), coordinated tooling reactivation in [TL-310](../hybrid_workflow/backlog/TL-310-editor-foundations.md), and cross-module integration cadence in [PM-510](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md).
+- **Phase 4 – GPU Execution & Tooling (Priorities 1–2):** Joint GPU enablement milestone covering [T-0120](hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) + [T-0119](hybrid_workflow/backlog/T-0119-command-encoder-integration.md), parallel runtime presentation work in [RT-410](hybrid_workflow/backlog/RT-410-runtime-stage-planner.md), coordinated tooling reactivation in [TL-310](hybrid_workflow/backlog/TL-310-editor-foundations.md), and cross-module integration cadence in [PM-510](hybrid_workflow/backlog/PM-510-weekly-integration-demos.md).
 
 See the roadmap for risk owners, success metrics, and archival history.
 

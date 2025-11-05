@@ -5,13 +5,13 @@ previously stored under `docs/archive/prints/`.
 
 ## When to Use
 - Developing a new feature or bug fix that affects the engine, runtime tooling, or documentation.
-- Executing roadmap tasks from `docs/backlog/active/` that require both implementation and follow-up validation.
+- Executing roadmap tasks from `hybrid_workflow/backlog/` that require both implementation and follow-up validation.
 - Practising the dual-phase implementer/reviewer workflow prior to automating it in CI.
 
 ## Prerequisites Checklist
 Before invoking the prompt, confirm:
 - [ ] You have read [`../NAVIGATION.md`](../NAVIGATION.md), [`../../README.md`](../../README.md), and [`../../AGENTS.md`](../../AGENTS.md) for the current workflow snapshot.
-- [ ] The active backlog record in [`../backlog/active/`](../backlog/active/) (and its **Role Roster**) is open. Consult [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) for historical context if needed.
+- [ ] The active backlog record in [`../../hybrid_workflow/backlog/`](../../hybrid_workflow/backlog/) (with YAML frontmatter metadata and gates) is open. Consult [`../archive/backlog/legacy/tasks/`](../archive/backlog/legacy/tasks/) for historical context if needed.
 - [ ] Module-specific READMEs and roadmaps in [`../modules/`](../modules/) are reviewed for impacted subsystems.
 - [ ] Applicable specs or ADRs in [`../specs/`](../specs/) are identified.
 - [ ] Build and validation presets from [`../../README.md#build--test-workflow`](../../README.md#build--test-workflow) are
@@ -39,7 +39,7 @@ checklists.
 
 **Repository Context**
 - Review the subsystem overview in [`../../README.md`](../../README.md) and invariants in [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
-- Inspect the active backlog via [`../backlog/active/`](../backlog/active/) (Role Roster + Definition of Done). Use [`../archive/backlog/legacy/tasks/README.md`](../archive/backlog/legacy/tasks/README.md) for historical audits when needed.
+- Inspect the active backlog via [`../../hybrid_workflow/backlog/`](../../hybrid_workflow/backlog/) (YAML metadata + gates). Use [`../archive/backlog/legacy/tasks/README.md`](../archive/backlog/legacy/tasks/README.md) for historical audits when needed.
 - Honour non-goals described in [`../design/ASYNC_STREAMING.md#non-goals`](../design/ASYNC_STREAMING.md#non-goals) unless a task
   explicitly lifts them.
 
