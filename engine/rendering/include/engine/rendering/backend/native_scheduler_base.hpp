@@ -26,7 +26,17 @@ namespace engine::rendering::backend
 
         CommandBufferHandle request_command_buffer(QueueType queue, std::string_view pass_name) override
         {
-            CommandBufferHandle handle{++next_command_buffer_};
+            CommandBufferHandle handle{};
+            if (!recycled_handles_.empty())
+            {
+                handle = recycled_handles_.back();
+                recycled_handles_.pop_back();
+            }
+            else
+            {
+                handle.index = ++next_command_buffer_;
+            }
+
             auto native = provider_.allocate_command_buffer(queue, pass_name, handle);
             encoders_.push_back(EncoderRecord{handle, queue, std::string{pass_name}, native});
             return handle;
@@ -65,6 +75,17 @@ namespace engine::rendering::backend
 
         void recycle(CommandBufferHandle handle) override
         {
+            const auto it = std::find_if(encoders_.begin(), encoders_.end(),
+                                         [handle](const EncoderRecord& record)
+                                         {
+                                             return record.handle == handle;
+                                         });
+            if (it != encoders_.end())
+            {
+                recycled_handles_.push_back(it->handle);
+                encoders_.erase(it);
+            }
+
             provider_.recycle_command_buffer(handle);
         }
 
@@ -99,6 +120,7 @@ namespace engine::rendering::backend
         resources::IGpuResourceProvider& provider_;
         std::vector<EncoderRecord> encoders_{};
         std::vector<Submission> submissions_{};
+        std::vector<CommandBufferHandle> recycled_handles_{};
         std::size_t next_command_buffer_{0};
     };
 }

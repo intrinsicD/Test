@@ -109,8 +109,9 @@ public:
 1. [x] Finalize encoder/provider handshake with T-0120 owners and record decisions in this file.
    - [x] (2025-04-26) Documented the command encoder ↔ resource provider handshake covering frame-graph encoder scopes, scheduler allocation, backend encoder providers, and submission/telemetry translation for diagnostics alignment with T-0120.
 2. [ ] Implement encoder core in `engine/rendering/src/command_encoder.cpp` with unit coverage.
-3. [ ] Wire OpenGL and Vulkan scheduler backends to consume encoded commands.
-   - Frame-graph execution now finalizes command encoders before GPU submission so backend providers observe a completed recording prior to scheduler hand-off.
+3. [x] Wire OpenGL and Vulkan scheduler backends to consume encoded commands.
+   - [x] (2025-04-26) Frame-graph execution now finalizes command encoders before GPU submission so backend providers observe a completed recording prior to scheduler hand-off.
+   - [x] (2025-05-11) Recycled command buffer handles in `NativeSchedulerBase` so backend providers reuse encoder-backed buffers without unbounded handle growth.
 4. [ ] Add frame-graph integration tests and PM-510 smoke scenario hooks.
    - [x] Added `FrameGraph.RecordsCommandsThroughEncoderProvider` to verify command encoder submissions (2025-03-27).
    - [x] Runtime diagnostics capture per-pass command encoder stats for presentation submissions (2025-04-10).
@@ -163,6 +164,7 @@ python scripts/validate_docs.py
 ### Updated Files
 
 - `engine/rendering/include/engine/rendering/command_encoder.hpp`
+- `engine/rendering/include/engine/rendering/backend/native_scheduler_base.hpp`
 - `engine/rendering/src/backend/opengl/opengl_command_encoder.cpp`
 - `engine/rendering/src/backend/vulkan/vulkan_command_encoder.cpp`
 - `engine/rendering/tests/command_encoder_tests.cpp`
