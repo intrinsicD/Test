@@ -1,7 +1,7 @@
 ---
 id: TL-310
 title: Editor foundations & tooling enablement
-status: ready
+status: in_progress
 priority: P2
 area: tools
 size: L
@@ -37,6 +37,13 @@ Re-enable the tools/editor module with shared panel registries and runtime integ
 - [`docs/modules/tools/README.md`](../docs/modules/tools/README.md)
 - [`hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`](RT-410-runtime-stage-planner.md)
 - [`hybrid_workflow/backlog/PM-510-weekly-integration-demos.md`](PM-510-weekly-integration-demos.md)
+
+### Context Ladder Notes — 2025-11-04
+
+- [`README.md`](../../README.md) confirms the tools module remains disabled and highlights TL-310 as the vehicle for restoring editor builds once runtime presentation hooks arrive, reinforcing the dependency recorded in `blocked_on`.
+- [`docs/NAVIGATION.md`](../../docs/NAVIGATION.md) directs agents to the hybrid workflow artefacts and backlog before touching code, so this task will continue logging status, evidence, and coordination in sync with those references.
+- [`docs/ROADMAP.md`](../../docs/ROADMAP.md) lists TL-310 within Bundle B (Priority 2) and sequences it behind RT-410, so current work focuses on planning and documentation alignment while runtime adapters mature.
+- [`docs/modules/tools/README.md`](../../docs/modules/tools/README.md) reiterates that ADR-0008 integration and editor build re-enablement are outstanding, providing the module-level invariants that the implementation must satisfy.
 
 ---
 
@@ -99,6 +106,8 @@ public:
 6. [ ] Coordinate with PM-510 to schedule demo once runtime hooks ready.
 7. [ ] Capture test outputs, update docs, and advance task status.
 
+**Status Update (2025-11-04):** Initiated hybrid workflow for TL-310 by assembling context notes and aligning roadmap/backlog status; implementation will begin once RT-410 exposes presentation adapters required for editor bring-up.
+
 ---
 
 ## Evidence
@@ -113,6 +122,8 @@ public:
 - Unit tests: pending implementation
 - Integration tests: pending implementation
 - Documentation validation: pending implementation
+
+**Notes:** Planning-only phase; no code, tests, or benchmarks executed while RT-410 dependency remains outstanding.
 
 ### Quality Gate Sign-offs
 
