@@ -20,7 +20,7 @@ hybrid_workflow/
 ├── task_status.py (10.5KB)        # Automation tool for querying tasks
 └── backlog/
     ├── 000-template.md (6.2KB)    # Metadata-driven task template
-    ├── T-0120-gpu-resource-provider.md (8.1KB)   # Complex task example
+    ├── archive/T-0120-gpu-resource-provider.md (8.1KB)   # Complex task example
     ├── DC-050-workflow-migration.md (2.5KB)      # Simple task example
     └── archive/                   # For completed tasks
 ```
@@ -143,7 +143,7 @@ python hybrid_workflow/task_status.py --detail T-0120
 
 ### Complex Task Example: T-0120
 
-`hybrid_workflow/backlog/T-0120-gpu-resource-provider.md`
+`hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md`
 
 Shows how to migrate a complex, multi-role task:
 - ✅ Full frontmatter metadata

@@ -95,7 +95,7 @@ All documentation links resolved successfully.
 $ python -m scripts.workflow.report_hybrid_status --include-archived
 Status       Priority  ID      Owner               Title                             File
 ===========  ========  ======  ==================  ================================  ===========================================
-in_progress  P1        T-0120  rendering-lead      GPU resource provider completion  hybrid_workflow/backlog/T-0120-gpu-resource-provider.md
+done         P1        T-0120  rendering-lead      GPU resource provider completion  hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md
 done         P3        DC-050  agent-orchestrator  Migrate workflow to hybrid model  hybrid_workflow/backlog/archive/DC-050-workflow-migration.md
 
 Status counts:
@@ -121,7 +121,7 @@ Status counts:
 - `hybrid_workflow/ROADMAP.md`
 - `hybrid_workflow/README.md`
 - `hybrid_workflow/backlog/000-template.md`
-- `hybrid_workflow/backlog/T-0120-gpu-resource-provider.md` (example)
+- `hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md` (example)
 - `hybrid_workflow/backlog/DC-050-workflow-migration.md` (this file)
 
 **Finalisation assets:**

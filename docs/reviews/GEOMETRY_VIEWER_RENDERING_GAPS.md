@@ -37,7 +37,7 @@ The `ResourceProvider` interface exists but only has a "recording" implementatio
 - OpenGL/Vulkan command encoder providers translate recorded work into scheduler submissions and telemetry payloads.
 - Tracing encoders expose per-pass draw/dispatch counts consumed by runtime diagnostics and PM-510 demos.
 
-**Follow-up Focus:** ensure real GPU resources arrive with [`T-0120`](../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) so the shipped encoder executes against live buffers/textures.
+**Follow-up Focus:** ensure real GPU resources arrive with [`T-0120`](../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) so the shipped encoder executes against live buffers/textures. *(Update: delivered 2025-03-30.)*
 
 ---
 

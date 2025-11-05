@@ -12,7 +12,7 @@ The tools module provides editor utilities, profiling tools, pipeline automation
 
 - Restore build integration and CI coverage as tracked in [`TL-310`](../../../hybrid_workflow/backlog/TL-310-editor-foundations.md).
 - Implement the panel registry, runtime harness bridge, and ImGui reuse strategy from [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
-- Validate editor flows against GPU-enabled runtime once [`T-0120`](../../../hybrid_workflow/backlog/T-0120-gpu-resource-provider.md) and [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) deliver synchronisation hooks—the command encoder (`T-0119`) is already available for tooling telemetry.
+- Validate editor flows against GPU-enabled runtime now that [`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) shipped, and complete [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) synchronisation hooks so tooling telemetry stays aligned with runtime submissions.
 
 ## Telemetry Viewer CLI
 
