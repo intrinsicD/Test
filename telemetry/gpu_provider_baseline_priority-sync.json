@@ -1,0 +1,12 @@
+{
+  "priority_slot": "P0",
+  "focus": "GPU resource provider and command encoder handshake",
+  "summary": "Documented shared contracts for buffer lifecycle and descriptor ownership across rendering and runtime modules.",
+  "follow_ups": [
+    {
+      "owner": "Rendering Lead",
+      "action": "Surface encoder validation checklist in demo agenda",
+      "status": "queued"
+    }
+  ]
+}
