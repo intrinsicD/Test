@@ -221,7 +221,7 @@ Shows lightweight task tracking:
 
 Planned automation (see ROADMAP Bundle C):
 
-- [ ] **TL-320** — Web dashboard for visual task status board
+- [x] **TL-320** — Web dashboard for visual task status board (completed 2025-11-05)
 - [ ] **TL-321** — Script to auto-update ROADMAP from task metadata
 - [ ] Slack/notification integration for status changes
 - [ ] Dependency graph visualization from `blocked_on` fields

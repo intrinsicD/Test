@@ -220,7 +220,7 @@ The hybrid workflow achieves all design goals:
 
 ### Medium-term (This Month)
 1. **Migrate active tasks** — Convert existing backlog to new format
-2. **Build dashboard** — Web UI for task status (Bundle C, TL-320)
+2. **Build dashboard** — Web UI for task status (Bundle C, TL-320) ✅ Completed (see `backlog/archive/TL-320-task-dashboard.md`)
 3. **Automate ROADMAP sync** — Script to update from task metadata (TL-321)
 4. **Gather metrics** — Track time-in-state, completion velocity
 
