@@ -103,7 +103,10 @@ public:
 
 ## Steps
 
-1. [ ] Reconcile ADR-0008 plan with latest runtime loop implementation and log deltas here.
+1. [x] Reconcile ADR-0008 plan with latest runtime loop implementation and log deltas here.
+   - `RuntimeLoopStage`/`RuntimeLoopBuilder` already expose declarative stage metadata with dependencies and thread affinity, matching ADR-0008 foundations, but there is no `RuntimeStagePlanner` abstraction or stage handles/budget metadata yet (`engine/runtime/include/engine/runtime/loop.hpp`, `engine/runtime/src/loop.cpp`).
+   - `RuntimeHost::tick` consumes the compiled plan sequentially and records telemetry/diagnostics directly; it does not provide resumable `StageExecution` objects or scheduling APIs expected from the planner (`engine/runtime/src/api.cpp`).
+   - Presentation backends are partially integrated (mock + OpenGL implementations exist), yet they rely on callback invocation without the synchronized stage planner hooks that ADR-0008 reserves for deterministic presentation sequencing (`engine/runtime/src/api.cpp`, `engine/rendering/include/engine/rendering/presentation_backend.hpp`).
 2. [ ] Implement stage planner core plus serialization hooks in `engine/runtime/src/`.
 3. [ ] Deliver mock + GLFW presentation backends with shared configuration surfaces.
 4. [ ] Expose synchronization APIs to scripting/tooling and update documentation.
