@@ -31,6 +31,64 @@ def _make_task(
     )
 
 
+def test_filter_tasks_can_match_owner() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "alpha.md",
+            identifier="HW-100",
+            title="Alpha",
+            status="ready",
+            priority="P1",
+            owner="docs-devrel",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "beta.md",
+            identifier="HW-101",
+            title="Beta",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(tasks, status=None, priority=None, owner="docs-devrel")
+
+    assert [task.identifier for task in filtered] == ["HW-100"]
+
+
+def test_filter_tasks_owner_filter_composes_with_status() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "gamma.md",
+            identifier="HW-102",
+            title="Gamma",
+            status="ready",
+            priority="P1",
+            owner="docs-devrel",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "delta.md",
+            identifier="HW-103",
+            title="Delta",
+            status="in_progress",
+            priority="P1",
+            owner="docs-devrel",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "epsilon.md",
+            identifier="HW-104",
+            title="Epsilon",
+            status="ready",
+            priority="P2",
+            owner="runtime-lead",
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(tasks, status="ready", priority="P1", owner="docs-devrel")
+
+    assert [task.identifier for task in filtered] == ["HW-102"]
+
+
 def test_render_table_with_no_results_returns_message() -> None:
     output = rhs.render([], output_format="table")
     assert output == "No tasks matched the supplied filters."

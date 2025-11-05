@@ -137,6 +137,7 @@ def filter_tasks(
     tasks: Iterable[TaskMetadata],
     status: Optional[str],
     priority: Optional[str],
+    owner: Optional[str],
 ) -> List[TaskMetadata]:
     """Apply CLI filters to the task list."""
 
@@ -145,6 +146,8 @@ def filter_tasks(
         if status and task.status != status:
             continue
         if priority and task.priority != priority:
+            continue
+        if owner and task.owner != owner:
             continue
         filtered.append(task)
     return filtered
@@ -243,6 +246,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--status", help="Filter by exact status (e.g. ready, in_progress)")
     parser.add_argument("--priority", help="Filter by exact priority (e.g. P1, P2)")
+    parser.add_argument("--owner", help="Filter by exact owner (e.g. docs-devrel, runtime-lead)")
     parser.add_argument(
         "--include-archived",
         action="store_true",
@@ -277,7 +281,7 @@ def main() -> None:
     if args.next_actions:
         filtered = select_next_actions(tasks, args.limit)
     else:
-        filtered = filter_tasks(tasks, args.status, args.priority)
+        filtered = filter_tasks(tasks, args.status, args.priority, args.owner)
     print(render(filtered, args.format))
 
 
