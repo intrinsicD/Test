@@ -163,7 +163,11 @@ The hybrid workflow integrates with existing project infrastructure:
 
 ### Status Summary Script
 ```bash
+# Human-readable table (default)
 python -m scripts.workflow.report_hybrid_status
+
+# Machine-readable summary
+python -m scripts.workflow.report_hybrid_status --format json
 ```
 
 ### Generate Task Dashboard
