@@ -37,8 +37,9 @@ _Current status:_ RT-410 remains in progress; TL-310 has entered planning under 
 
 **Goal:** Keep documentation synchronized and improve automation/tooling.
 
-- [ ] **DC-050** — Workflow migration to hybrid model → `hybrid_workflow/backlog/DC-050-workflow-migration.md`
+- [x] **DC-050** — Workflow migration to hybrid model → `hybrid_workflow/backlog/archive/DC-050-workflow-migration.md`
 - [x] **TL-320** — Task status dashboard automation → `hybrid_workflow/backlog/archive/TL-320-task-dashboard.md`
+- [x] **TL-330** — Task status CLI blocked filter → `hybrid_workflow/backlog/archive/TL-330-task-status-blocked-filter.md`
 
 **Success Criteria:**
 - All active tasks migrated to hybrid workflow format.
