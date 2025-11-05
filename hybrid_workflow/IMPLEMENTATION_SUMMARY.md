@@ -123,6 +123,9 @@ python hybrid_workflow/task_status.py --status in_progress
 # Filter by priority
 python hybrid_workflow/task_status.py --priority P1
 
+# Filter by roadmap bundle
+python hybrid_workflow/task_status.py --relates-to bundle:D
+
 # Show summary statistics (respects filters)
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --area rendering --summary
@@ -271,6 +274,9 @@ python hybrid_workflow/task_status.py --priority P1
 
 # Find rendering tasks
 python hybrid_workflow/task_status.py --area rendering
+
+# Filter by roadmap bundle tag
+python hybrid_workflow/task_status.py --relates-to bundle:A
 
 # Check for blocked tasks
 grep -l "^blocked_on: \[" hybrid_workflow/backlog/*.md

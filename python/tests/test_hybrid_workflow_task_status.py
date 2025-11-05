@@ -16,7 +16,13 @@ if str(_REPO_ROOT) not in sys.path:
 from hybrid_workflow import task_status  # noqa: E402
 
 
-def _make_task(task_id: str, *, blocked: bool, status: str = "in_progress") -> task_status.Task:
+def _make_task(
+    task_id: str,
+    *,
+    blocked: bool,
+    status: str = "in_progress",
+    relates_to: list[str] | None = None,
+) -> task_status.Task:
     """Helper to create a task with deterministic defaults for testing."""
     blocked_on = ["dependency"] if blocked else []
     return task_status.Task(
@@ -26,6 +32,7 @@ def _make_task(task_id: str, *, blocked: bool, status: str = "in_progress") -> t
         priority="P1",
         area="tools",
         blocked_on=blocked_on,
+        relates_to=relates_to or [],
     )
 
 
@@ -64,3 +71,34 @@ def test_build_parser_supports_unblocked_flag() -> None:
 
     assert args.unblocked is True
     assert args.blocked is False
+
+
+def test_build_parser_supports_relates_to_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--relates-to', 'bundle:A', 'bundle:C'])
+
+    assert args.relates_to == [['bundle:A', 'bundle:C']]
+
+
+def test_filter_tasks_supports_relates_to_matching() -> None:
+    tasks = [
+        _make_task('A', blocked=False, relates_to=['bundle:A', 'bundle:D']),
+        _make_task('B', blocked=False, relates_to=['bundle:B']),
+        _make_task('C', blocked=False, relates_to=[]),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, relates_to=['bundle:B'])
+
+    assert [task.id for task in filtered] == ['B']
+
+
+def test_filter_tasks_relates_to_is_case_insensitive() -> None:
+    tasks = [
+        _make_task('A', blocked=False, relates_to=['Bundle:X']),
+        _make_task('B', blocked=False, relates_to=['bundle:y']),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, relates_to=['bundle:x'])
+
+    assert [task.id for task in filtered] == ['A']

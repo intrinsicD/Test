@@ -92,6 +92,10 @@ python hybrid_workflow/task_status.py --priority P1
 # Filter by area
 python hybrid_workflow/task_status.py --area rendering
 
+# Filter by roadmap bundle metadata
+python hybrid_workflow/task_status.py --relates-to bundle:D
+python hybrid_workflow/task_status.py --relates-to bundle:A bundle:C
+
 # Focus on blockers / unblocked work
 python hybrid_workflow/task_status.py --blocked
 python hybrid_workflow/task_status.py --blocked --status in_progress
