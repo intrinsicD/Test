@@ -1,7 +1,7 @@
 ---
 id: RG-450
 title: Modular render pipeline planner
-status: new
+status: ready
 priority: P1
 area: rendering
 size: L
@@ -126,7 +126,10 @@ public:
 
 ## Steps
 
-1. [ ] Draft planner architecture notes and confirm alignment with ADR-0003 and plugin constraints.
+1. [x] Draft planner architecture notes and confirm alignment with ADR-0003 and plugin constraints.
+   - Reviewed `docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md` for determinism, metadata, and barrier requirements.
+   - Cross-referenced plugin lifecycle guarantees in `docs/design/PLUGIN_ARCHITECTURE.md` to ensure hot-swappable node factories remain declarative.
+   - Mapped persistent history resources to generational handle expectations from `docs/design/RESOURCE_MANAGEMENT.md`.
 2. [ ] Implement `NodeDescriptor`, `ResourceDesc`, `ResourceUse`, and `INode` interfaces.
 3. [ ] Build registry/factory system with hot-reload hooks and plugin registration surface.
 4. [ ] Implement initial planner: resolve dependencies, allocate transients, emit single-queue schedule.
