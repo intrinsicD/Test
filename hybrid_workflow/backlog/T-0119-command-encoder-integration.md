@@ -103,6 +103,8 @@ public:
 3. [ ] Wire OpenGL and Vulkan scheduler backends to consume encoded commands.
    - Frame-graph execution now finalizes command encoders before GPU submission so backend providers observe a completed recording prior to scheduler hand-off.
 4. [ ] Add frame-graph integration tests and PM-510 smoke scenario hooks.
+   - [x] Added `FrameGraph.RecordsCommandsThroughEncoderProvider` to verify command encoder submissions (2025-03-27).
+   - [ ] Extend PM-510 smoke scenarios once runtime submission wiring lands.
 5. [ ] Document encoder usage in rendering/runtime READMEs and update roadmap entries.
 6. [ ] Run performance benchmarks and capture telemetry artefacts.
 7. [ ] Request review, update task status, and synchronize roadmap/README references.
@@ -114,13 +116,17 @@ public:
 ### Test Results
 
 ```bash
-# Pending — populate once implementation lands
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug
+ctest --preset linux-gcc-debug
+pytest python/tests scripts/tests
+python scripts/validate_docs.py
 ```
 
 **Test Summary:**
-- Unit tests: pending implementation
-- Integration tests: pending implementation
-- Documentation validation: pending implementation
+- Build + unit/integration suites: linux-gcc-debug preset ✅
+- Python + scripts: pytest ✅
+- Documentation validation: validate_docs ✅
 
 ### Performance
 
@@ -152,6 +158,7 @@ public:
 - `docs/modules/rendering/README.md`
 - `docs/modules/runtime/README.md`
 - `docs/ROADMAP.md`
+- `engine/rendering/tests/test_frame_graph.cpp`
 
 ---
 

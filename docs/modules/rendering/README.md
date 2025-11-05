@@ -528,7 +528,7 @@ Vulkan backend benchmarks (from `T-0116`):
 ## Testing
 
 Rendering tests validate:
-- Frame graph compilation (`test_frame_graph.cpp`)
+- Frame graph compilation and command encoder integration (`test_frame_graph.cpp`)
 - Backend parity (`test_backends.cpp`)
 - Resource lifetime tracking (`test_resources.cpp`)
 - Command recording (`test_commands.cpp`)
