@@ -165,8 +165,9 @@ python hybrid_workflow/task_status.py --priority P1
 # Rendering tasks
 python hybrid_workflow/task_status.py --area rendering
 
-# Summary statistics
+# Summary statistics (respects filters)
 python hybrid_workflow/task_status.py --summary
+python hybrid_workflow/task_status.py --priority P1 --summary
 
 # Task details
 python hybrid_workflow/task_status.py --detail T-0120

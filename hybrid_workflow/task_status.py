@@ -275,7 +275,10 @@ def main():
     
     # Show summary
     if args.summary:
-        print_summary(tasks)
+        if not filtered:
+            print("No tasks match the provided filters.")
+        else:
+            print_summary(filtered)
         return 0
     
     # Show table

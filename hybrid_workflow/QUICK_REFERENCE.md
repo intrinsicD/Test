@@ -92,8 +92,9 @@ python hybrid_workflow/task_status.py --priority P1
 # Filter by area
 python hybrid_workflow/task_status.py --area rendering
 
-# Show summary
+# Show summary (respects filters)
 python hybrid_workflow/task_status.py --summary
+python hybrid_workflow/task_status.py --status in_progress --summary
 
 # Show details
 python hybrid_workflow/task_status.py --detail T-0120
