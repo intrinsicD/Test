@@ -4,7 +4,7 @@
 
 ✅ **Research Baseline Preset (RE-610)** - COMPLETE
 🟡 **GPU Resource Provider (T-0120)** - IN PROGRESS (command buffer orchestration live)
-🟡 **Command Encoder (T-0119)** - IN PROGRESS (OpenGL draw recording implemented)
+🟡 **Command Encoder (T-0119)** - IN PROGRESS (backend-agnostic recording provider + OpenGL draw recording implemented)
 
 ## Quick Test
 

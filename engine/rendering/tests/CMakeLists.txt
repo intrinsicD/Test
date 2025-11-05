@@ -2,6 +2,7 @@ set(ENGINE_RENDERING_TEST_SOURCES
         test_module.cpp
         test_frame_graph.cpp
         test_camera.cpp
+        test_command_encoder.cpp
         test_forward_pipeline.cpp
         test_command_encoder_tracing.cpp
         test_opengl_command_encoder.cpp

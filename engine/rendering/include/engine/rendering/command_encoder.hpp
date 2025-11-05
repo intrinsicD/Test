@@ -2,8 +2,10 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <variant>
+#include <vector>
 
 #include "engine/assets/handles.hpp"
 #include "engine/math/transform.hpp"
@@ -125,5 +127,88 @@ namespace engine::rendering
         /// Finalise encoding for the render pass described by \p descriptor.
         virtual void end_encoder(const CommandEncoderDescriptor& descriptor,
                                  std::unique_ptr<CommandEncoder> encoder) = 0;
+    };
+
+    /**
+     * \brief Concrete command encoder that records draw and dispatch commands in memory.
+     *
+     * The recording encoder is useful for unit tests, diagnostics, and CPU-only execution
+     * paths that need to inspect the commands emitted by render passes without touching a
+     * backend-specific command buffer.
+     */
+    class RecordingCommandEncoder final : public CommandEncoder
+    {
+    public:
+        void draw_geometry(const GeometryDrawCommand& command) override;
+        void dispatch_compute(const ComputeDispatchCommand& command) override;
+
+        /// Remove all previously recorded commands.
+        void clear() noexcept;
+
+        [[nodiscard]] const std::vector<EncodedCommand>& commands() const noexcept
+        {
+            return commands_;
+        }
+
+        [[nodiscard]] const std::vector<GeometryDrawCommand>& geometry_draws() const noexcept
+        {
+            return geometry_draws_;
+        }
+
+        [[nodiscard]] const std::vector<ComputeDispatchCommand>& compute_dispatches() const noexcept
+        {
+            return compute_dispatches_;
+        }
+
+    private:
+        std::vector<EncodedCommand> commands_{};
+        std::vector<GeometryDrawCommand> geometry_draws_{};
+        std::vector<ComputeDispatchCommand> compute_dispatches_{};
+    };
+
+    /**
+     * \brief Provider that hands out \ref RecordingCommandEncoder instances and tracks pass metadata.
+     */
+    class RecordingCommandEncoderProvider final : public CommandEncoderProvider
+    {
+    public:
+        struct DescriptorRecord
+        {
+            std::string pass_name;
+            QueueType queue{QueueType::Graphics};
+            CommandBufferHandle command_buffer{};
+        };
+
+        [[nodiscard]] std::unique_ptr<CommandEncoder> begin_encoder(
+            const CommandEncoderDescriptor& descriptor) override;
+
+        void end_encoder(const CommandEncoderDescriptor& descriptor,
+                         std::unique_ptr<CommandEncoder> encoder) override;
+
+        /// Clear recorded begin/end descriptors and completed encoders.
+        void clear() noexcept;
+
+        [[nodiscard]] const std::vector<DescriptorRecord>& begin_records() const noexcept
+        {
+            return begin_records_;
+        }
+
+        [[nodiscard]] const std::vector<DescriptorRecord>& end_records() const noexcept
+        {
+            return end_records_;
+        }
+
+        [[nodiscard]] const std::vector<std::unique_ptr<RecordingCommandEncoder>>& completed_encoders() const noexcept
+        {
+            return completed_encoders_;
+        }
+
+        /// Transfer ownership of completed encoders to the caller.
+        [[nodiscard]] std::vector<std::unique_ptr<RecordingCommandEncoder>> release_completed_encoders() noexcept;
+
+    private:
+        std::vector<DescriptorRecord> begin_records_{};
+        std::vector<DescriptorRecord> end_records_{};
+        std::vector<std::unique_ptr<RecordingCommandEncoder>> completed_encoders_{};
     };
 }

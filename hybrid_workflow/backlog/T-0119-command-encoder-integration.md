@@ -108,7 +108,10 @@ public:
 
 1. [x] Finalize encoder/provider handshake with T-0120 owners and record decisions in this file.
    - [x] (2025-04-26) Documented the command encoder ↔ resource provider handshake covering frame-graph encoder scopes, scheduler allocation, backend encoder providers, and submission/telemetry translation for diagnostics alignment with T-0120.
-2. [ ] Implement encoder core in `engine/rendering/src/command_encoder.cpp` with unit coverage.
+2. [x] Implement encoder core in `engine/rendering/src/command_encoder.cpp` with unit coverage.
+   - [x] (2025-05-30) Introduced reusable recording encoders and provider infrastructure so frame-graph
+     passes can be validated without backend dependencies, with dedicated unit tests covering
+     command capture and lifecycle bookkeeping.
 3. [x] Wire OpenGL and Vulkan scheduler backends to consume encoded commands.
    - [x] (2025-04-26) Frame-graph execution now finalizes command encoders before GPU submission so backend providers observe a completed recording prior to scheduler hand-off.
    - [x] (2025-05-11) Recycled command buffer handles in `NativeSchedulerBase` so backend providers reuse encoder-backed buffers without unbounded handle growth.
@@ -165,6 +168,10 @@ python scripts/validate_docs.py
 ### Updated Files
 
 - `engine/rendering/include/engine/rendering/command_encoder.hpp`
+- `engine/rendering/src/command_encoder.cpp`
+- `engine/rendering/tests/test_command_encoder.cpp`
+- `engine/rendering/tests/CMakeLists.txt`
+- `engine/rendering/CMakeLists.txt`
 - `engine/rendering/include/engine/rendering/backend/native_scheduler_base.hpp`
 - `engine/rendering/src/backend/opengl/opengl_command_encoder.cpp`
 - `engine/rendering/src/backend/vulkan/vulkan_command_encoder.cpp`
@@ -178,7 +185,7 @@ python scripts/validate_docs.py
 
 ## Completion Checklist (Definition of Done)
 
-- [ ] Encoder APIs implemented with unit coverage.
+- [x] Encoder APIs implemented with unit coverage.
 - [ ] Backend schedulers submit encoded work for OpenGL and Vulkan.
 - [ ] Frame-graph integration tests validate end-to-end rendering.
 - [ ] Runtime/tooling docs updated with encoder usage patterns.
