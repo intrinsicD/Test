@@ -50,13 +50,26 @@ Every task follows this deterministic progression. Status is tracked in task fil
 - Update docs, presets, and datasets alongside code when behavior changes.
 - Log decisions and rationale in the task file's **Steps** section.
 
+**Use available tools** from `engine/tools/` to accelerate implementation:
+- **Profiling:** Use `PROFILE_SCOPE` for performance-critical sections (see [`TOOLS_REFERENCE.md`](./TOOLS_REFERENCE.md))
+- **Diagnostics:** Integrate `render_diagnostics()` for runtime visualization
+- **Benchmarking:** Use benchmark runners for automated performance testing
+- **UI Panels:** Register panels with `PanelRegistry` for editor features
+- **Configuration:** Load experiment configs with `load_summary_from_json()`
+
+See [`TOOLS_REFERENCE.md`](./TOOLS_REFERENCE.md) for quick examples and [`CONTRIBUTING.md`](./CONTRIBUTING.md) §Diagnostic Tools for integration patterns.
+
 ### 4. Test
 
 Run the canonical test stack:
 
 ```bash
+- **Generate profiler reports** for tasks with `perf` gate using `global_profiler().generate_report()`
+- **Run benchmark automation** via `PrototypeHarnessBenchmarkRunner` or `ComparativeBenchmarkRunner`
 cmake --preset linux-gcc-debug
 cmake --build --preset linux-gcc-debug
+See [`TOOLS_REFERENCE.md`](./TOOLS_REFERENCE.md) for evidence collection examples.
+
 ctest --preset linux-gcc-debug
 pytest python/tests scripts/tests
 python scripts/validate_docs.py

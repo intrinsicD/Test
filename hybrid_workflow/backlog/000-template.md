@@ -85,6 +85,36 @@ namespace engine::module {
   - Metric X must not degrade
   - Test Y guards against previous bug
 
+### Tool Integration
+
+<!-- Select tools that apply to this task from engine/tools/ -->
+
+**Profiling (for performance-critical code):**
+- [ ] Use `PROFILE_SCOPE("SectionName")` macro for timing
+- [ ] Generate profiler report for evidence section
+- [ ] Identify hot paths and optimization opportunities
+
+**Diagnostic UI (for runtime/editor features):**
+- [ ] Use `render_diagnostics()` for runtime health visualization
+- [ ] Use `render_validation_report()` for scene validation UI
+- [ ] Use `render_profiler_window()` for performance visualization
+- [ ] Register custom panels with `PanelRegistry` (if applicable)
+
+**Benchmark Automation (for comparative testing):**
+- [ ] Use `PrototypeHarnessBenchmarkRunner` for headless benchmarks
+- [ ] Use `ComparativeBenchmarkRunner` for engine vs reference testing
+- [ ] Configure via `ExperimentSandbox` for interactive workflows
+
+**Configuration Management (for prototyping workflows):**
+- [ ] Load experiment configs with `load_summary_from_json()`
+- [ ] Validate dataset manifests and asset checksums
+- [ ] Wire configuration callbacks to sandbox UI
+
+**References:**
+- Full tool documentation: `docs/modules/tools/README.md`
+- Integration patterns: `hybrid_workflow/CONTRIBUTING.md` §Diagnostic Tools
+- Available tools inventory: `hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md`
+
 ---
 
 ## Steps
@@ -132,6 +162,28 @@ namespace engine::module {
 **Artifacts:**
 - Telemetry captures: `telemetry/[filename]`
 - Benchmark logs: `[path or attachment]`
+
+**Profiler Report (if using engine::tools::profiling):**
+```
+# Example profiler output
+PhysicsUpdate: avg=2.341ms, min=1.890ms, max=3.120ms, calls=1000
+RenderSubmission: avg=8.123ms, min=7.340ms, max=10.230ms, calls=1000
+AssetLoading: avg=15.670ms, min=12.100ms, max=22.340ms, calls=50
+```
+
+**Benchmark Automation (if using benchmark runners):**
+```bash
+# PrototypeHarnessBenchmarkRunner output
+python -m scripts.prototyping.run_prototype_harness \
+    --config docs/examples/ai004_sample.json \
+    --dataset remesh-sample --frame-count 1000 \
+    --summary-json telemetry/benchmark_result.json
+
+# Or ComparativeBenchmarkRunner output
+python scripts/benchmarks/run_comparative_benchmarks.py \
+    --config benchmarks/scenario.json \
+    --output-dir telemetry/comparative/
+```
 
 ### Quality Gate Sign-offs
 

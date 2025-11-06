@@ -15,9 +15,10 @@ This directory contains the **hybrid workflow system** — a streamlined task ma
 
 1. **Read the workflow:** [`AGENTS.md`](./AGENTS.md) — 7-step task lifecycle
 2. **Check coding standards:** [`CONTRIBUTING.md`](./CONTRIBUTING.md) — naming, formatting, testing
-3. **Plan migrations:** [`MIGRATION.md`](./MIGRATION.md) — deterministic process for porting legacy tasks
-4. **Pick a task:** [`ROADMAP.md`](./ROADMAP.md) — bundles and priorities
-5. **Use the template:** [`backlog/000-template.md`](./backlog/000-template.md) — task file structure
+3. **Review available tools:** [`TOOLS_REFERENCE.md`](./TOOLS_REFERENCE.md) — engine tools quick reference
+4. **Plan migrations:** [`MIGRATION.md`](./MIGRATION.md) — deterministic process for porting legacy tasks
+5. **Pick a task:** [`ROADMAP.md`](./ROADMAP.md) — bundles and priorities
+6. **Use the template:** [`backlog/000-template.md`](./backlog/000-template.md) — task file structure
 
 ### Sample Dashboard Snapshot
 
@@ -125,6 +126,31 @@ hybrid_workflow/
 - ✅ Integration with existing documentation system
 
 ---
+## Available Tools
+
+The engine provides reusable tools to accelerate task implementation and evidence collection. See [`TOOLS_REFERENCE.md`](./TOOLS_REFERENCE.md) for quick examples.
+
+### Performance Tools
+- **Profiler** (`engine/tools/profiling/profiler.hpp`) — `PROFILE_SCOPE` macro for timing hot paths
+- **Benchmark Runners** — Automated headless and comparative benchmarking
+- Generate profiler reports for `perf` gate evidence
+
+### Diagnostic Tools
+- **ImGui Helpers** (`engine/tools/imgui_helpers.hpp`) — Runtime diagnostics visualization
+- **Panel Registry** — Reusable UI panels for editor/tooling (see TL-310)
+- Render diagnostics, validation reports, and profiler windows
+
+### Prototyping Tools
+- **Experiment Sandbox** (`engine/tools/sandbox/`) — Interactive AI-004 prototyping UI
+- **Configuration Loader** — JSON config parsing with validation
+- Dataset browser, benchmark triggers, telemetry visualization
+
+**Quick Reference:** [`TOOLS_REFERENCE.md`](./TOOLS_REFERENCE.md)  
+**Full Documentation:** [`../docs/modules/tools/README.md`](../docs/modules/tools/README.md)  
+**Integration Guide:** [`CONTRIBUTING.md`](./CONTRIBUTING.md) §Diagnostic Tools & Performance
+
+---
+
 
 ## Workflow Integration
 
