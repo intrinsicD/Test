@@ -53,6 +53,17 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 **Exit Criteria:** Automated benchmarks and visual reports block regressions; kickoff demo is reproducible on CI hardware.
 
+### Bundle C — Documentation & Infrastructure *(Complete)*
+- ✅ [`DC-050`](../hybrid_workflow/backlog/archive/DC-050-workflow-migration.md) — Workflow migration to hybrid model.
+- ✅ [`TL-320`](../hybrid_workflow/backlog/archive/TL-320-task-dashboard.md) — Task status dashboard automation.
+- ✅ [`TL-330`](../hybrid_workflow/backlog/archive/TL-330-task-status-blocked-filter.md) — Task status CLI blocked filter.
+- ✅ [`TL-331`](../hybrid_workflow/backlog/archive/TL-331-hybrid-status-json.md) — Hybrid status reporter JSON export.
+- ✅ [`TL-332`](../hybrid_workflow/backlog/archive/TL-332-task-status-multiline-metadata.md) — Task status CLI multiline metadata parsing.
+- ✅ [`TL-341`](../hybrid_workflow/backlog/archive/TL-341-next-action-summary.md) — Next-action summary for hybrid status reporter.
+- ✅ [`TL-342`](../hybrid_workflow/backlog/archive/TL-342-hybrid-status-owner-filter.md) — Hybrid status reporter owner filter.
+- ✅ [`TL-343`](../hybrid_workflow/backlog/archive/TL-343-task-status-owner-filter.md) — Task status CLI owner filter.
+- ✅ [`TL-344`](../hybrid_workflow/backlog/archive/TL-344-next-actions-guidance.md) — Next-actions guidance for empty ready queue.
+
 ### Phase 4 — GPU Execution & Tooling Readiness *(Priorities 1–2)*
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
