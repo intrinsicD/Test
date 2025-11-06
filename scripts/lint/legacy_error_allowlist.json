@@ -367,6 +367,7 @@
     "throw std::runtime_error(\"RuntimeHost must be initialized before accessing the pose\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before submitting a render graph\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before tick()\");": 1,
+    "throw std::runtime_error(std::move(error_message));": 1,
     "throw std::runtime_error(format_dependency_errors(errors));": 1,
     "throw;": 3,
     "throw_if_invalid_dependencies(deps);": 2
