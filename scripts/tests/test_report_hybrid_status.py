@@ -20,6 +20,8 @@ def _make_task(
     status: str,
     priority: str,
     owner: str,
+    *,
+    relates_to: tuple[str, ...] = (),
 ) -> rhs.TaskMetadata:
     return rhs.TaskMetadata(
         path=path,
@@ -28,6 +30,7 @@ def _make_task(
         status=status,
         priority=priority,
         owner=owner,
+        relates_to=relates_to,
     )
 
 
@@ -51,7 +54,9 @@ def test_filter_tasks_can_match_owner() -> None:
         ),
     ]
 
-    filtered = rhs.filter_tasks(tasks, status=None, priority=None, owner="docs-devrel")
+    filtered = rhs.filter_tasks(
+        tasks, status=None, priority=None, owner="docs-devrel", relates_to=None
+    )
 
     assert [task.identifier for task in filtered] == ["HW-100"]
 
@@ -84,9 +89,108 @@ def test_filter_tasks_owner_filter_composes_with_status() -> None:
         ),
     ]
 
-    filtered = rhs.filter_tasks(tasks, status="ready", priority="P1", owner="docs-devrel")
+    filtered = rhs.filter_tasks(
+        tasks,
+        status="ready",
+        priority="P1",
+        owner="docs-devrel",
+        relates_to=None,
+    )
 
     assert [task.identifier for task in filtered] == ["HW-102"]
+
+
+def test_filter_tasks_can_match_relates_to_tags() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "theta.md",
+            identifier="HW-110",
+            title="Theta",
+            status="ready",
+            priority="P1",
+            owner="tools-team",
+            relates_to=("bundle:A", "bundle:D"),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "iota.md",
+            identifier="HW-111",
+            title="Iota",
+            status="ready",
+            priority="P2",
+            owner="tools-team",
+            relates_to=("bundle:C",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "kappa.md",
+            identifier="HW-112",
+            title="Kappa",
+            status="ready",
+            priority="P2",
+            owner="tools-team",
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=("bundle:A",),
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-110"]
+
+
+def test_filter_tasks_relates_to_is_case_insensitive() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "lambda.md",
+            identifier="HW-113",
+            title="Lambda",
+            status="ready",
+            priority="P2",
+            owner="tools-team",
+            relates_to=("bundle:X",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "mu.md",
+            identifier="HW-114",
+            title="Mu",
+            status="ready",
+            priority="P2",
+            owner="tools-team",
+            relates_to=("bundle:Y",),
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=("BUNDLE:x",),
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-113"]
+
+
+def test_parse_args_supports_relates_to(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "report_hybrid_status",
+            "--relates-to",
+            "bundle:A",
+            "bundle:C",
+            "--relates-to",
+            "bundle:D",
+        ],
+    )
+
+    args = rhs.parse_args()
+
+    assert args.relates_to == [["bundle:A", "bundle:C"], ["bundle:D"]]
 
 
 def test_render_table_with_no_results_returns_message() -> None:
@@ -107,6 +211,7 @@ def test_render_json_reports_counts_and_tasks() -> None:
         status="ready",
         priority="P2",
         owner="tools",
+        relates_to=("bundle:C",),
     )
 
     payload = json.loads(rhs.render([task], output_format="json"))
@@ -120,6 +225,7 @@ def test_render_json_reports_counts_and_tasks() -> None:
             "priority": "P2",
             "status": "ready",
             "title": "Improve hybrid status reporter",
+            "relates_to": ["bundle:C"],
         }
     ]
 

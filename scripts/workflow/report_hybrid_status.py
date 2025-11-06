@@ -14,7 +14,7 @@ import collections
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BACKLOG_ROOT = REPO_ROOT / "hybrid_workflow" / "backlog"
@@ -47,6 +47,7 @@ class TaskMetadata:
     status: str
     priority: str
     owner: str
+    relates_to: Tuple[str, ...] = ()
 
     @property
     def relative_path(self) -> Path:
@@ -62,7 +63,32 @@ class TaskMetadata:
             "priority": self.priority,
             "owner": self.owner,
             "file": str(self.relative_path),
+            "relates_to": list(self.relates_to),
         }
+
+
+def _normalise_relates_to(value: object) -> Tuple[str, ...]:
+    """Convert raw frontmatter `relates_to` metadata into a tuple of strings."""
+
+    if value is None:
+        return ()
+
+    if isinstance(value, (list, tuple, set)):
+        items = [str(item).strip() for item in value if str(item).strip()]
+        return tuple(items)
+
+    text = str(value).strip()
+    if not text:
+        return ()
+
+    if text.startswith("[") and text.endswith("]"):
+        text = text[1:-1]
+
+    tokens = [token.strip() for token in text.split(",") if token.strip()]
+    if tokens:
+        return tuple(tokens)
+
+    return (text,) if text else ()
 
 
 def parse_frontmatter(path: Path) -> Dict[str, object]:
@@ -128,6 +154,7 @@ def collect_tasks(include_archived: bool) -> List[TaskMetadata]:
                 status=str(meta.get("status", "")).strip(),
                 priority=str(meta.get("priority", "")).strip(),
                 owner=str(meta.get("owner", "")).strip(),
+                relates_to=_normalise_relates_to(meta.get("relates_to")),
             )
         )
     return tasks
@@ -138,6 +165,7 @@ def filter_tasks(
     status: Optional[str],
     priority: Optional[str],
     owner: Optional[str],
+    relates_to: Optional[Sequence[str]],
 ) -> List[TaskMetadata]:
     """Apply CLI filters to the task list."""
 
@@ -149,6 +177,13 @@ def filter_tasks(
             continue
         if owner and task.owner != owner:
             continue
+        if relates_to:
+            wanted = {tag.lower() for tag in relates_to if tag}
+            if not wanted:
+                continue
+            task_tags = {tag.lower() for tag in task.relates_to}
+            if not task_tags.intersection(wanted):
+                continue
         filtered.append(task)
     return filtered
 
@@ -252,6 +287,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--priority", help="Filter by exact priority (e.g. P1, P2)")
     parser.add_argument("--owner", help="Filter by exact owner (e.g. docs-devrel, runtime-lead)")
     parser.add_argument(
+        "--relates-to",
+        metavar="TAG",
+        action="append",
+        nargs="+",
+        help=(
+            "Filter by roadmap bundle metadata stored in relates_to; accepts one or more "
+            "tags and matches tasks containing any case-insensitive tag."
+        ),
+    )
+    parser.add_argument(
         "--include-archived",
         action="store_true",
         help="Include tasks from hybrid_workflow/backlog/archive/ in the summary.",
@@ -282,10 +327,13 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     tasks = collect_tasks(include_archived=args.include_archived)
+    relates_to_filter: Optional[List[str]] = None
+    if args.relates_to:
+        relates_to_filter = [tag for group in args.relates_to for tag in group]
     if args.next_actions:
         filtered = select_next_actions(tasks, args.limit)
     else:
-        filtered = filter_tasks(tasks, args.status, args.priority, args.owner)
+        filtered = filter_tasks(tasks, args.status, args.priority, args.owner, relates_to_filter)
     print(render(filtered, args.format))
 
 

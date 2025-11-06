@@ -84,6 +84,10 @@ Paste output in task's **Evidence** section.
 python -m scripts.workflow.report_hybrid_status --next-actions
 python -m scripts.workflow.report_hybrid_status --next-actions --limit 10
 
+# Filter by roadmap bundle metadata (automation)
+python -m scripts.workflow.report_hybrid_status --relates-to bundle:C
+python -m scripts.workflow.report_hybrid_status --relates-to bundle:A bundle:D
+
 # List all tasks
 python hybrid_workflow/task_status.py
 
