@@ -168,6 +168,10 @@ python -m scripts.workflow.report_hybrid_status
 
 # Machine-readable summary
 python -m scripts.workflow.report_hybrid_status --format json
+
+# Filter by roadmap bundle metadata
+python -m scripts.workflow.report_hybrid_status --relates-to bundle:C
+python -m scripts.workflow.report_hybrid_status --relates-to bundle:A bundle:D
 ```
 
 ### Generate Task Dashboard
