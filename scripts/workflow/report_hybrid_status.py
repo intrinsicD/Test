@@ -200,15 +200,55 @@ def sort_key(task: TaskMetadata) -> tuple:
     )
 
 
-def select_next_actions(tasks: Iterable[TaskMetadata], limit: int) -> List[TaskMetadata]:
+def _matches_filters(
+    task: TaskMetadata,
+    *,
+    priority: Optional[str],
+    owner: Optional[str],
+    relates_to: Optional[Sequence[str]],
+) -> bool:
+    if priority and task.priority != priority:
+        return False
+    if owner and task.owner != owner:
+        return False
+    if relates_to:
+        wanted = {tag.lower() for tag in relates_to if tag}
+        if not wanted:
+            return False
+        task_tags = {tag.lower() for tag in task.relates_to}
+        if not task_tags.intersection(wanted):
+            return False
+    return True
+
+
+def select_next_actions(
+    tasks: Iterable[TaskMetadata],
+    limit: int,
+    *,
+    priority: Optional[str] = None,
+    owner: Optional[str] = None,
+    relates_to: Optional[Sequence[str]] = None,
+) -> List[TaskMetadata]:
     """Return the highest-priority ready tasks (or new tasks if none are ready)."""
 
     if limit <= 0:
         raise ValueError("limit must be greater than zero")
 
     task_list = list(tasks)
-    ready = [task for task in task_list if task.status == "ready"]
-    pool = ready if ready else [task for task in task_list if task.status == "new"]
+    ready = [
+        task
+        for task in task_list
+        if task.status == "ready"
+        and _matches_filters(task, priority=priority, owner=owner, relates_to=relates_to)
+    ]
+    pool = ready
+    if not pool:
+        pool = [
+            task
+            for task in task_list
+            if task.status == "new"
+            and _matches_filters(task, priority=priority, owner=owner, relates_to=relates_to)
+        ]
     if not pool:
         return []
 
@@ -331,7 +371,13 @@ def main() -> None:
     if args.relates_to:
         relates_to_filter = [tag for group in args.relates_to for tag in group]
     if args.next_actions:
-        filtered = select_next_actions(tasks, args.limit)
+        filtered = select_next_actions(
+            tasks,
+            args.limit,
+            priority=args.priority,
+            owner=args.owner,
+            relates_to=relates_to_filter,
+        )
     else:
         filtered = filter_tasks(tasks, args.status, args.priority, args.owner, relates_to_filter)
     print(render(filtered, args.format))
