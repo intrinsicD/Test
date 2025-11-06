@@ -20,7 +20,7 @@ in parallel with Bundles A-C technical work and don't block GPU/runtime/tooling 
 ---
 
 ### 2. ⚠️ RG-450 → RT-410 Dependency Flagged for Review
-**File:** `hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
+**File:** `hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md`
 
 **Problem:** RG-450 (Bundle A, rendering/frame-graph) depends on RT-410 (Bundle B, runtime/presentation) with no explanation in task context.
 
@@ -150,7 +150,7 @@ Could be broken into:
 | File | Change | Type |
 |------|--------|------|
 | `hybrid_workflow/ROADMAP.md` | Clarified Bundle D priority as process/coordination | Fix |
-| `hybrid_workflow/backlog/RG-450-modular-render-pipeline.md` | Added comment flagging RT-410 dependency for review | Flag |
+| `hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md` | Added comment flagging RT-410 dependency for review | Flag |
 
 ---
 

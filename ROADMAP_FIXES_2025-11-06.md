@@ -28,7 +28,7 @@ blocked_on: ["SPRINT-11"]
 
 ### 2. RG-450 — Removed Completed Task Blockers
 
-**File:** `hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
+**File:** `hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md`
 
 **Before:**
 ```yaml
@@ -153,7 +153,7 @@ If RT-410 completes:
 ## Files Modified
 
 1. `/home/alex/Documents/Test/hybrid_workflow/backlog/AI-004-kickoff-brief.md`
-2. `/home/alex/Documents/Test/hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
+2. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md`
 3. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
 
 ---

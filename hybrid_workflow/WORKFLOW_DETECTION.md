@@ -253,15 +253,15 @@ python -m scripts.workflow.report_hybrid_status --next-actions --format json > t
     {
       "id": "RG-450",
       "title": "Modular render pipeline planner",
-      "status": "ready",
+      "status": "done",
       "priority": "P1",
       "owner": "rendering-lead",
-      "file": "hybrid_workflow/backlog/RG-450-modular-render-pipeline.md",
+      "file": "hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md",
       "relates_to": ["bundle:A"]
     }
   ],
   "counts": {
-    "by_status": {"ready": 1},
+    "by_status": {"done": 1},
     "total": 1
   }
 }

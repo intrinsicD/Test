@@ -772,6 +772,6 @@ void on_plugin_reload(std::string_view plugin_name) {
 - [Frame Graph Node Header](../../engine/rendering/include/engine/rendering/frame_graph_node.hpp)
 - [Frame Graph Types Header](../../engine/rendering/include/engine/rendering/frame_graph_types.hpp)
 - [Plugin Architecture Design](PLUGIN_ARCHITECTURE.md)
-- [RG-450 Parent Task](../../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md)
-- [RG-450-A Subtask](../../hybrid_workflow/backlog/RG-450-A-node-descriptor-api.md)
+- [RG-450 Parent Task](../../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md)
+- [RG-450-A Subtask](../../hybrid_workflow/backlog/archive/RG-450-A-node-descriptor-api.md)
 

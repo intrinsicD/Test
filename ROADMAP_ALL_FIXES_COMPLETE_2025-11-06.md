@@ -64,7 +64,7 @@ Showing 1 of 7 tasks
 $ python -m scripts.workflow.report_hybrid_status --status ready
 Status  Priority  ID        Owner           Title                       File                                                   
 ======  ========  ========  ==============  ==========================  =======================================================
-ready   P1        RG-450-A  rendering-lead  Node descriptor API design  hybrid_workflow/backlog/RG-450-A-node-descriptor-api.md
+ready   P1        RG-450-A  rendering-lead  Node descriptor API design  hybrid_workflow/backlog/archive/RG-450-A-node-descriptor-api.md
 ready   P1        RT-410-A  runtime-lead    Stage planner API design    hybrid_workflow/backlog/RT-410-A-stage-planner-api.md  
 
 Status counts:
@@ -96,7 +96,7 @@ Status counts:
    - Removed SPRINT-11 blocker
    - Added SPRINT-11 archive link
 
-2. `/home/alex/Documents/Test/hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
+2. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md`
    - Removed T-0120, T-0119 blockers
    - Removed RT-410 blocker
    - Added architectural note on independence
@@ -131,7 +131,7 @@ Status counts:
 9. `/home/alex/Documents/Test/hybrid_workflow/backlog/RT-410-A-stage-planner-api.md`
    - Ready subtask for RT-410 API design
 
-10. `/home/alex/Documents/Test/hybrid_workflow/backlog/RG-450-A-node-descriptor-api.md`
+10. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/RG-450-A-node-descriptor-api.md`
     - Ready subtask for RG-450 node API design
 
 ---
