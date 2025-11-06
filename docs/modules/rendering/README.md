@@ -78,6 +78,11 @@ if (result.success) {
 }
 ```
 
+`FrameGraphPlanner` composes pass instances from the node registry before execution. Nodes expose declarative resource
+descriptions via `NodeDescriptor`, allowing the planner to resolve dependencies, allocate transient resources, and emit a
+single-queue schedule. Subsequent work will extend the planner with multi-queue partitioning and runtime execution hooks that
+drive `INode::Compile`/`INode::Execute` directly.
+
 ### Command Encoder Integration
 
 `FrameGraphPassExecutionContext::command_encoder()` exposes the active encoder for the pass currently executing. The frame graph
