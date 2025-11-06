@@ -2621,9 +2621,11 @@ namespace engine::runtime
                 auto next_stage = stage_planner.next_stage();
                 if (!next_stage)
                 {
-                    auto error_message = std::string{"RuntimeStagePlanner iteration failed: "};
-                    error_message.append(next_stage.error().message());
-                    throw std::runtime_error(std::move(error_message));
+                    spdlog::error(
+                        "RuntimeStagePlanner iteration failed: {}",
+                        next_stage.error().message());
+                    stage_planner.clear_plan();
+                    break;
                 }
 
                 auto& stage_execution_optional = next_stage.value();
