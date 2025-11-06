@@ -173,6 +173,13 @@ Tooling that links against the C interface can query
 `EngineRuntimeHandle.presentation_stage_active()`) for the same boolean without
 touching diagnostics payloads.
 
+Use `engine_runtime_loop_plan_serialization()` to retrieve the JSON description
+of the currently active loop plan. Python tooling can call
+`EngineRuntimeHandle.loop_plan_serialization()` to confirm stage ordering before
+recording telemetry or orchestrating scripted presentation captures. The helper
+returns an empty string when the runtime has not been initialized or when a
+plan has not yet been compiled, matching the native runtime diagnostics.
+
 ### Lifecycle
 
 1. **Construction**: Accept `RuntimeHostDependencies` with animation controllers, physics world, geometry, and subsystem plugins

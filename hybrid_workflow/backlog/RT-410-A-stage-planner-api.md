@@ -22,7 +22,9 @@ Design and document the stage planner API contracts so presentation backends and
    - Documented `PresentationConfig`, `PresentationFrame`, enhanced `PresentationBackend`
    - Specified `PresentationStageBuilder` and `PresentationSyncHandle` APIs
 4. [ ] Review API with module leads
-5. [ ] Update parent RT-410 with progress
+5. [x] Update parent RT-410 with progress
+   - (2026-02-19) Propagated documentation updates for scripting synchronization hooks to the
+     RT-410 parent task, marking Step 5 complete.
 
 ## Progress Notes
 
