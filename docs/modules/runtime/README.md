@@ -245,11 +245,12 @@ stage ordering without traversing the entire diagnostics payload.
 
 `RuntimeStagePlanner` now wraps the compiled plan inside the host. Each stage iteration returns a
 `RuntimeStageExecution` containing a stable `RuntimeStageHandle` with the stage index, phase,
-thread affinity, and execution-report flag so diagnostics can accumulate timings and presentation
-scheduling can detect when GPU presenters should run. Calling `next_stage()` without first invoking
-`configure_plan()` surfaces `RuntimeError::loop_stage_planner_unconfigured`, while unexpected index
-gaps raise `RuntimeError::loop_stage_planner_invalid_iteration` and abort the frame so invariants
-stay intact.
+thread affinity, execution-report flag, and a `StageBudget` hint. The budget records the nominal
+target duration (in milliseconds) plus an `enforce_budget` flag that telemetry surfaces whenever a
+stage exceeds its allocation, allowing diagnostics to warn long before PM-510 demos regress. Calling
+`next_stage()` without first invoking `configure_plan()` surfaces
+`RuntimeError::loop_stage_planner_unconfigured`, while unexpected index gaps raise
+`RuntimeError::loop_stage_planner_invalid_iteration` and abort the frame so invariants stay intact.
 
 `presentation.dispatch` bridges the simulation stack to presentation tooling. Provide a presenter by attaching a `rendering::PresentationBackend` to `RuntimeHostDependencies::presentation_backend`; the host invokes it every tick with a `rendering::RuntimePresentationContext` so the backend can submit frame-graph work, composite UI, or trigger readbacks before diagnostics run. Lightweight integrations may continue to register callbacks with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper). Both backends and callbacks receive the frame `dt` so presentation logic can track timing alongside simulation state.
 

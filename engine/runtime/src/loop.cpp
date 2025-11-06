@@ -36,7 +36,8 @@ namespace engine::runtime
                                                           RuntimeLoopStageFunction function,
                                                           std::vector<std::string> dependencies,
                                                           bool record_in_execution_report,
-                                                          RuntimeLoopThreadAffinity thread_affinity)
+                                                          RuntimeLoopThreadAffinity thread_affinity,
+                                                          StageBudget budget)
     {
         if (name.empty())
         {
@@ -63,6 +64,7 @@ namespace engine::runtime
         stage.dependencies = std::move(dependencies);
         stage.record_in_execution_report = record_in_execution_report;
         stage.thread_affinity = thread_affinity;
+        stage.budget = budget;
         stages_.push_back(std::move(stage));
         return RuntimeValidationResult{};
     }
@@ -145,6 +147,7 @@ namespace engine::runtime
             compiled.dependencies = stage.dependencies;
             compiled.record_in_execution_report = stage.record_in_execution_report;
             compiled.thread_affinity = stage.thread_affinity;
+            compiled.budget = stage.budget;
             sorted.push_back(std::move(compiled));
         }
 

@@ -19,6 +19,7 @@ namespace engine::runtime
             handle.thread_affinity = stage.thread_affinity;
             handle.record_in_execution_report = stage.record_in_execution_report;
             handle.index = index;
+            handle.budget = stage.budget;
             handles_.push_back(handle);
         }
         reset_iteration();
