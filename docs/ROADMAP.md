@@ -69,7 +69,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | --- | --- | --- | --- | --- |
 | 1 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | Done |
 | 1 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | Done |
-| 1 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | Review |
+| 1 | [`RT-410`](../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | Done |
 | 1 | [`RG-450`](../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) | Build modular render pipeline planner with node reflection, transient resources, and async scheduling. | Rendering Lead | Review |
 | 2 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | In Progress (planning; blocked on RT-410 hooks) |
 | 2 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
@@ -77,9 +77,9 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 **Exit Criteria:** OpenGL/Vulkan execute real workloads with shader pipelines, runtime presentation loop synchronises with tooling, and the editor/tooling stack is buildable with baseline smoke coverage.
 
 **Sequencing:**
-1. **RT-410** (Priority 1) - Stage planner adapters, depends on GPU milestone progress
+1. **RT-410** (Priority 1) - ✅ Completed; presentation adapters archived for tooling reuse
 2. **PM-510** (Priority 2) - Ongoing weekly integration demos covering GPU → runtime → tooling
-3. **TL-310** (Priority 2) - Editor re-enablement; planning underway while RT-410 adapters land
+3. **TL-310** (Priority 2) - Editor re-enablement; planning underway leveraging RT-410 adapters
 
 ### Bundle D — Kickoff Coordination *(Priorities 0)*
 
@@ -101,17 +101,16 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | [`AI-004`](../hybrid_workflow/backlog/AI-004-kickoff-brief.md) | 0 | In Progress | Kickoff brief coordination; SPRINT-11 complete, final artefacts in progress. |
 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | 1 | Done | GPU providers for OpenGL/Vulkan ship with runtime presentation integration and telemetry. |
 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
-| [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | 1 | Review | Stage planner adapters ready for sign-off; presentation telemetry captured for perf gate. |
 | [`RG-450`](../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) | 1 | Review | Planner executes modular pipelines with DOT exports and telemetry; finalising plugin hot-reload coverage. |
 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | In Progress | Context assembly started; implementation will begin once RT-410 exposes presentation hooks. |
 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned; latest capture documents modular planner telemetry. |
 
-> **Archived backlog entries:** [`SPRINT-11`](../hybrid_workflow/backlog/archive/SPRINT-11-alignment.md), [`DC-040`](backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [`DC-041`](backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [`RT-320`](backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md), [`TL-210`](backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [`RT-321`](backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md), [`AS-330`](backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [`CC-310`](backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [`CC-311`](backlog/archive/CC_311_BENCHMARK_VISUALISATION.md), [`PL-240`](backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md), [`PM-520`](backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md), and [`TL-320`](../hybrid_workflow/backlog/archive/TL-320-task-dashboard.md) are now in `docs/backlog/archive/` following completion of PM-520 backlog hygiene remediation.
+> **Archived backlog entries:** [`SPRINT-11`](../hybrid_workflow/backlog/archive/SPRINT-11-alignment.md), [`DC-040`](backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [`DC-041`](backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [`RT-320`](backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md), [`TL-210`](backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [`RT-321`](backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md), [`AS-330`](backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [`CC-310`](backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [`CC-311`](backlog/archive/CC_311_BENCHMARK_VISUALISATION.md), [`PL-240`](backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md), [`PM-520`](backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md), [`TL-320`](../hybrid_workflow/backlog/archive/TL-320-task-dashboard.md), and [`RT-410`](../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) are now in `docs/backlog/archive/` following completion of PM-520 backlog hygiene remediation.
 ## Risks & Mitigations
 
 | Priority | Risk | Owner | Mitigation |
 | --- | --- | --- | --- |
-| 1 | Runtime stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Start RT-410 alongside the GPU milestone; present weekly planner/presentation progress in PM-510 demos. |
+| 1 | Runtime stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Mitigated by RT-410 completion (2026-03-30); continue monitoring TL-310 enablement and presentation telemetry in PM-510 demos. |
 | 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Sequence TL-310 immediately after RT-410 adapter merge and preview editor state during PM-510 demos. |
 | 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Capture updates from weekly demos and rerun docs validator after each milestone increment. |
 

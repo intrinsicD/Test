@@ -616,6 +616,6 @@ ctest --preset linux-gcc-debug -R rendering
 
 ## TODO / Next Steps
 
-- Land [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md): integrate presentation adapters with the GPU-backed submission stack and synchronisation model, updating [`../../ROADMAP.md`](../../ROADMAP.md) as milestones complete.
+- Leverage archived [`RT-410`](../../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) presentation adapters: validate GPU-backed submission integration and keep [`../../ROADMAP.md`](../../ROADMAP.md) aligned as TL-310 consumes the shared hooks.
 - Harden encoder telemetry: extend tracing provider outputs into tooling dashboards and runtime diagnostics so PM-510 demos can trend draw/dispatch counts alongside queue timings.
 - Maintain weekly coordination with runtime/tools leads (PM-510) to align telemetry expectations and unblock editor re-enablement while stage planner work progresses.

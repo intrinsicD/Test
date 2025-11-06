@@ -1,7 +1,7 @@
 ---
 id: RT-410
 title: Runtime stage planner & presentation loop
-status: review
+status: done
 priority: P1
 area: runtime
 size: L
@@ -139,6 +139,8 @@ public:
 8. [x] Coordinate review, update ROADMAP, and advance status to `review`/`done`.
    - (2025-06-11) Promoted RT-410 to `review` in the backlog and roadmap so the
      runtime lead can request final sign-off alongside the GPU milestone.
+   - (2026-03-30) Captured final gate evidence, updated roadmap/backlog status
+     to `done`, and prepared archival package for hybrid workflow records.
 
 ---
 
@@ -193,7 +195,7 @@ python scripts/validate_docs.py
 - `docs/design/RT_410_STAGE_PLANNER_API.md`
 - `docs/modules/runtime/README.md`
 - `docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`
-- `hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`
+- `hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
 - `telemetry/runtime_stage_planner_baseline.json`
 
 ---
@@ -213,11 +215,11 @@ python scripts/validate_docs.py
 
 ## Result
 
-**PR:** (pending completion)
+**PR:** (this PR)
 
 **SHA:** (pending merge)
 
-**Completion Date:** (in progress)
+**Completion Date:** 2026-03-30
 
 **Notes:**
 - Coordinate with platform team for windowing capability detection while wiring GLFW backend.

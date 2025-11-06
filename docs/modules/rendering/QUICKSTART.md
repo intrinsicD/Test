@@ -62,7 +62,7 @@ Frame graph configured with resources:
 
 To ship interactive demos, complete the runtime stage planner integration so the presentation backend can drive the GPU-backed submission stack without manual wiring.
 
-**Location**: `hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`
+**Location**: `hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
 
 **Key integration points**:
 ```cpp

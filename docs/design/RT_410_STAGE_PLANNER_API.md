@@ -601,7 +601,7 @@ private:
 - [ADR-0008: Runtime Main Loop and Tooling Integration](../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md)
 - [Runtime Loop Plan Header](../../engine/runtime/include/engine/runtime/runtime_loop_plan.hpp)
 - [Presentation Backend Header](../../engine/rendering/include/engine/rendering/presentation_backend.hpp)
-- [RT-410 Parent Task](../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md)
+- [RT-410 Parent Task](../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md)
 - [TL-310 Editor Foundations](../../hybrid_workflow/backlog/TL-310-editor-foundations.md)
 - [PM-510 Weekly Demos](../../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md)
 
