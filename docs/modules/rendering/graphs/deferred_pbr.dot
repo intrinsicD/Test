@@ -1,0 +1,23 @@
+digraph FrameGraphPlan {
+    rankdir=LR;
+    graph [fontname="Helvetica"];
+    node [fontname="Helvetica"];
+    edge [fontname="Helvetica"];
+
+    pass0 [label="render.gbuffer\n[Graphics]", shape=box, style="rounded,filled", fillcolor="#1f2933", fontcolor="#f9fafb"];
+    pass1 [label="render.lighting\n[Graphics]", shape=box, style="rounded,filled", fillcolor="#1f2933", fontcolor="#f9fafb"];
+    pass2 [label="render.present\n[Graphics]", shape=box, style="rounded,filled", fillcolor="#1f2933", fontcolor="#f9fafb"];
+
+    resource0 [label="swapchain\nTexture2D Rgba8Unorm\n1920x1080\nExternal", shape=ellipse, style="filled", fillcolor="#7f1d1d", fontcolor="#ecfeff", peripheries=2];
+    resource1 [label="gbuffer.color\nTexture2D Rgba16f\n1920x1080\nTransient", shape=ellipse, style="filled", fillcolor="#0f766e", fontcolor="#ecfeff"];
+    resource2 [label="gbuffer.depth\nTexture2D Depth24Stencil8\n1920x1080\nTransient", shape=ellipse, style="filled", fillcolor="#0f766e", fontcolor="#ecfeff"];
+    resource3 [label="lighting.color\nTexture2D Rgba16f\n1920x1080\nTransient", shape=ellipse, style="filled", fillcolor="#0f766e", fontcolor="#ecfeff"];
+
+    pass0 -> resource1 [label="create"];
+    pass0 -> resource2 [label="create"];
+    pass1 -> resource3 [label="create"];
+    resource1 -> pass1 [label="read"];
+    resource2 -> pass1 [label="read"];
+    pass2 -> resource0 [label="write"];
+    resource3 -> pass2 [label="read"];
+}
