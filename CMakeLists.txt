@@ -16,7 +16,6 @@ set(ENGINE_MODULES
     rendering
     scene
     runtime
-    tools
 )
 
 option(ENGINE_ENABLE_CUDA "Enable CUDA support for compute module targets" OFF)
@@ -52,6 +51,7 @@ set(ENGINE_OPTIONAL_SUBSYSTEMS
     platform
     rendering
     scene
+    tools
 )
 
 foreach(subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
@@ -59,6 +59,8 @@ foreach(subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
     set(option_default ON)
     if(subsystem STREQUAL "compute_cuda")
         set(option_default ${ENGINE_ENABLE_CUDA})
+    elseif(subsystem STREQUAL "tools")
+        set(option_default OFF)
     endif()
     option(ENGINE_ENABLE_${subsystem_upper} "Enable ${subsystem} subsystem integration" ${option_default})
 endforeach()
@@ -76,6 +78,10 @@ foreach(subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
         add_compile_definitions(ENGINE_ENABLE_${subsystem_upper}=0)
     endif()
 endforeach()
+
+if(ENGINE_ENABLE_TOOLS)
+    list(APPEND ENGINE_MODULES tools)
+endif()
 
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)

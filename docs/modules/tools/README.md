@@ -4,7 +4,7 @@
 
 The tools module provides editor utilities, profiling tools, pipeline automation, and diagnostics viewers. It includes the telemetry viewer CLI for runtime snapshots, integration with Dear ImGui for debug UI, and runtime packaging scripts for CI/CD workflows.
 
-**Status:** 🚧 **Disabled** – The module remains excluded from the default build and ADR-0008 panel registry integration has not landed. See [`TL-310`](../../../hybrid_workflow/backlog/TL-310-editor-foundations.md) for the work required to re-enable the editor and tooling stack.
+**Status:** 🔧 **Feature-gated** – The module builds when `ENGINE_ENABLE_TOOLS=ON` (the repository presets enable it by default) and remains guarded by `TL-310` while editor harness integration and runtime bridging land. See [`TL-310`](../../../hybrid_workflow/backlog/TL-310-editor-foundations.md) for the end-to-end enablement plan.
 
 > **Note:** The `geometry_viewer` sample depends on the GLFW backend and the generated `glad::gl_core` loader. CMake automatically skips the executable when either dependency is unavailable (for example, when Python/Jinja are missing or GLFW is disabled) so the canonical build presets continue to configure successfully.
 
@@ -376,13 +376,7 @@ ctest --preset linux-gcc-debug -R tools  # When enabled
 
 ## Current Status
 
-The tools module is undergoing modularization and is currently **disabled in the build**. The comment in the root `CMakeLists.txt` indicates:
-
-```cmake
-#tools # Disabled for now as tools are not modularized yet
-```
-
-Once modularization is complete, the module will be re-enabled and integrated into the regular build process. Track progress in the main README's module status table.
+The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repository presets (`linux-gcc-*`, `windows-msvc-*`) now set the flag to `ON`, restoring the library, tests, and Dear ImGui helpers in default developer builds. Consumers that require slimmer builds (for example, CI images without editor dependencies) can pass `-DENGINE_ENABLE_TOOLS=OFF` to disable the module until TL-310 finishes re-integrating the editor harness.
 
 ## Current State
 
