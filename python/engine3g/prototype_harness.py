@@ -205,6 +205,8 @@ class HarnessRunSummary:
     average_tick_ms: Optional[float] = None
     dispatch_order: Tuple[str, ...] = ()
     dispatch_durations_ms: Tuple[float, ...] = ()
+    presentation_stage_active: bool = False
+    loop_plan_serialization: str = ""
     telemetry_outputs: Tuple[TelemetryOutputSummary, ...] = ()
     run_index: Optional[int] = None
     run_count: Optional[int] = None
@@ -1272,6 +1274,8 @@ class PrototypeHarness:
             if execution_with_profile.resolution_height is not None
             else configured_resolution_height
         )
+        summary_presentation_active = False
+        summary_loop_plan_serialization = ""
 
         if execution_with_profile.dry_run:
             return HarnessRunSummary(
@@ -1286,6 +1290,8 @@ class PrototypeHarness:
                 average_tick_ms=None,
                 dispatch_order=(),
                 dispatch_durations_ms=(),
+                presentation_stage_active=summary_presentation_active,
+                loop_plan_serialization=summary_loop_plan_serialization,
                 telemetry_outputs=telemetry_outputs,
                 run_index=execution_with_profile.run_index,
                 run_count=execution_with_profile.run_count,
@@ -1321,6 +1327,8 @@ class PrototypeHarness:
                 durations = durations[:count]
             dispatch_order = order
             dispatch_durations_ms = tuple(duration * 1000.0 for duration in durations)
+            summary_presentation_active = runtime.presentation_stage_active()
+            summary_loop_plan_serialization = runtime.loop_plan_serialization()
 
         return HarnessRunSummary(
             dataset_id=selected_dataset.identifier if selected_dataset else None,
@@ -1334,6 +1342,8 @@ class PrototypeHarness:
             average_tick_ms=average_tick_ms,
             dispatch_order=dispatch_order,
             dispatch_durations_ms=dispatch_durations_ms,
+            presentation_stage_active=summary_presentation_active,
+            loop_plan_serialization=summary_loop_plan_serialization,
             telemetry_outputs=telemetry_outputs,
             run_index=execution_with_profile.run_index,
             run_count=execution_with_profile.run_count,
@@ -1965,6 +1975,8 @@ def run_summary_to_dict(summary: HarnessRunSummary) -> Dict[str, object]:
         "average_tick_ms": summary.average_tick_ms,
         "dispatch_order": list(summary.dispatch_order),
         "dispatch_durations_ms": list(summary.dispatch_durations_ms),
+        "presentation_stage_active": summary.presentation_stage_active,
+        "loop_plan_serialization": summary.loop_plan_serialization,
         "telemetry_outputs": [output.to_dict() for output in summary.telemetry_outputs],
     }
     if summary.run_index is not None:

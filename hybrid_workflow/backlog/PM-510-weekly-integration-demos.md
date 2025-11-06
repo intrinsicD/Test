@@ -82,7 +82,7 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 |---------------|-------|-----------|-------|
 | P0 | GPU provider + encoder handshake | `telemetry/gpu_provider_baseline_priority-sync.json`, design review notes | Shared resource/encoder contracts with rendering/runtime leads |
 | P1 | Runtime stage planner scaffolding | Runtime loop plan prototype recording, doc diffs | Highlighted synchronization API plan and tooling impacts |
-| P0-stage-planner | Stage planner + presentation telemetry | `telemetry/pm510_demo_priority-stage-planner.json`, PM-510 recap | Captured headless vs. OpenGL latency deltas and documented tooling follow-ups |
+| P0-stage-planner | Stage planner + presentation telemetry | `telemetry/pm510_demo_priority-stage-planner.json`, PM-510 recap | Captured headless vs. OpenGL latency deltas, recorded harness stage planner summary (active flag + loop plan excerpt), and documented tooling follow-ups |
 | P1-modular-pipeline | Modular render pipeline planner | `telemetry/pm510_demo_priority-modular-render-pipeline.json`, `docs/modules/rendering/graphs/deferred_pbr.dot` | Recorded queue scheduling telemetry and published DOT snapshot covering the deferred baseline. |
 | _ongoing_ | — | — | Populate as demos continue |
 

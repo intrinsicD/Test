@@ -23,6 +23,12 @@
       "p95": 3.1
     }
   },
+  "runtime": {
+    "presentation_stage_active": true,
+    "loop_plan_stage_count": 6,
+    "loop_plan_serialization_excerpt":
+      "{\"stages\":[{\"name\":\"simulation.start\"},{\"name\":\"animation.evaluate\"},{\"name\":\"presentation.dispatch\"}]}"
+  },
   "follow_ups": [
     {
       "owner": "Runtime Lead",

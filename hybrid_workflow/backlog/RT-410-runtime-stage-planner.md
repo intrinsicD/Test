@@ -125,7 +125,10 @@ public:
         `engine_runtime_loop_plan_serialization()` in ADR-0008, the RT-410 design doc, the runtime
         module README, and the Python loader README so harnesses can gate presentation-dependent
         flows and introspect stage ordering directly from automation scripts.
-6. [ ] Extend harness/integration tests plus PM-510 demo scenario.
+6. [x] Extend harness/integration tests plus PM-510 demo scenario.
+   - (2026-03-04) Prototype harness summaries now capture `presentation_stage_active` and
+        `loop_plan_serialization`, Python tests exercise the new fields, and the PM-510 stage
+        planner artefact logs the harness snapshot for weekly demos.
 7. [ ] Capture telemetry + benchmark evidence and update quality gate table.
 8. [ ] Coordinate review, update ROADMAP, and advance status to `review`/`done`.
 
