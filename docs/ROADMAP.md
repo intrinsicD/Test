@@ -68,7 +68,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | Priority | Backlog | Intent | Owner | Status |
 | --- | --- | --- | --- | --- |
 | 1 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | Implement GPU resource provider to unlock backend allocations and shader pipelines. | Rendering Lead | Done |
-| 1 | [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | Done |
+| 1 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | Done |
 | 1 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | In Progress |
 | 1 | [`RG-450`](../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) | Build modular render pipeline planner with node reflection, transient resources, and async scheduling. | Rendering Lead | In Progress |
 | 2 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | In Progress (planning; blocked on RT-410 hooks) |
@@ -86,7 +86,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | 1 | Done | GPU providers for OpenGL/Vulkan ship with runtime presentation integration and telemetry. |
-| [`T-0119`](../hybrid_workflow/backlog/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
+| [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
 | [`RG-450`](../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) | 1 | In Progress | Planner implementation started with descriptor scaffolding drafted alongside frame-graph conventions. |
 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | In Progress | Context assembly started; implementation will begin once RT-410 exposes presentation hooks. |

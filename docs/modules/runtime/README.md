@@ -118,7 +118,7 @@ See [`engine/tools/examples/geometry_viewer.cpp`](../../../engine/tools/examples
 
 - Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) (`RT-410`).
 - Provide synchronisation hooks for scripting, diagnostics, and tooling integrations in tandem with rendering backends.
-- Exercise the GPU-backed submission stack shipped in [`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) while extending presentation hooks; the command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md)) is already live.
+- Exercise the GPU-backed submission stack shipped in [`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) while extending presentation hooks; the command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md)) is already live.
 
 ## Core Concepts
 
