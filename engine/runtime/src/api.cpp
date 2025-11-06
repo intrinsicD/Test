@@ -2623,6 +2623,7 @@ namespace engine::runtime
                 {
                     auto error_message = std::string{"RuntimeStagePlanner iteration failed: "};
                     error_message.append(next_stage.error().message());
+                    spdlog::error("{}", error_message);
                     throw std::runtime_error(std::move(error_message));
                 }
 
