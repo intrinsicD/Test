@@ -1,7 +1,7 @@
 ---
 id: TL-346
 title: Next-actions filter support in hybrid status reporter
-status: review
+status: done
 priority: P3
 area: tooling
 size: S
@@ -89,6 +89,7 @@ work can be triaged without scanning unrelated tasks.
 2. [x] 2026-02-19 — Implemented filtered `--next-actions` selection in the reporter.
 3. [x] 2026-02-19 — Extended reporter tests for owner/priority/relates_to filters.
 4. [x] 2026-02-19 — Ran validation commands, captured evidence, and refreshed roadmap links.
+5. [x] 2026-02-20 — Marked the task done, archived the record, and aligned roadmap references.
 
 ---
 
@@ -126,6 +127,6 @@ Tip: When the ready queue is empty, groom the highest-priority new backlog item 
 - [x] Reporter tests cover the new behaviour.
 - [x] Roadmap reflects the task and its status.
 - [x] Evidence section captures validation commands with passing results.
-- [ ] Task status updated and archived when complete.
+- [x] Task status updated and archived when complete.
 
 ---

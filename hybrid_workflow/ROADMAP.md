@@ -48,7 +48,7 @@ _Current status:_ RG-450 has shipped with descriptor-driven planner execution an
 - [x] **TL-343** — Task status CLI owner filter → `hybrid_workflow/backlog/archive/TL-343-task-status-owner-filter.md`
 - [x] **TL-344** — Next-actions guidance for empty ready queue → `hybrid_workflow/backlog/archive/TL-344-next-actions-guidance.md`
 - [x] **TL-345** — Hybrid status reporter relates_to filter → `hybrid_workflow/backlog/archive/TL-345-hybrid-status-relates-to-filter.md`
-- [ ] **TL-346** — Next-actions filter support → `hybrid_workflow/backlog/TL-346-next-actions-filter-support.md`
+- [x] **TL-346** — Next-actions filter support → `hybrid_workflow/backlog/archive/TL-346-next-actions-filter-support.md`
 
 **Success Criteria:**
 - All active tasks migrated to hybrid workflow format.
