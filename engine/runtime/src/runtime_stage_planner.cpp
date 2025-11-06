@@ -1,5 +1,6 @@
 #include "engine/runtime/runtime_loop_plan.hpp"
 
+#include <cassert>
 #include <utility>
 
 namespace engine::runtime
@@ -59,13 +60,7 @@ namespace engine::runtime
             return RuntimeResult<std::optional<RuntimeStageExecution>>{std::optional<RuntimeStageExecution>{}};
         }
 
-        if (next_index_ >= plan_->stages().size())
-        {
-            clear_plan();
-            return RuntimeResult<std::optional<RuntimeStageExecution>>{
-                make_runtime_error(RuntimeError::loop_stage_planner_invalid_iteration,
-                                    "RuntimeStagePlanner encountered an out-of-range stage index")};
-        }
+        assert(next_index_ < plan_->stages().size());
 
         RuntimeStageExecution execution{};
         execution.handle = handles_[next_index_];

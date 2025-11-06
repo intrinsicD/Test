@@ -2621,9 +2621,9 @@ namespace engine::runtime
                 auto next_stage = stage_planner.next_stage();
                 if (!next_stage)
                 {
-                    const auto error_message = std::string{next_stage.error().message()};
-                    throw std::runtime_error(
-                        "RuntimeStagePlanner iteration failed: " + error_message);
+                    auto error_message = std::string{"RuntimeStagePlanner iteration failed: "};
+                    error_message.append(next_stage.error().message());
+                    throw std::runtime_error(std::move(error_message));
                 }
 
                 auto& stage_execution_optional = next_stage.value();
