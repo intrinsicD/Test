@@ -20,6 +20,7 @@
         "GLFW_BUILD_X11": "ON",
         "GLFW_INSTALL": "OFF",
         "ENGINE_WINDOW_BACKEND": "GLFW",
+        "ENGINE_ENABLE_TOOLS": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       },
       "environment": {

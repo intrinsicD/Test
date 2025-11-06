@@ -98,7 +98,8 @@ public:
 
 ## Steps
 
-1. [ ] Update CMake presets to re-enable tools module behind feature flag.
+1. [x] Update CMake presets to re-enable tools module behind feature flag.
+   - (2025-11-06) Added `ENGINE_ENABLE_TOOLS` cache entry with presets defaulting to `ON` so the tools library/tests build while remaining easy to disable for lean configurations.
 2. [ ] Implement panel registry and editor harness bridge in `engine/tools/src/`.
 3. [ ] Restore unit tests in `engine/tools/tests/` for registry + configuration loader.
 4. [ ] Add editor smoke scenario to scripts/tests harness.
