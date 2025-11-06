@@ -9,7 +9,7 @@ owner: runtime-lead
 gates: [tests, perf, docs]
 relates_to: [bundle:B]
 blocked_on: []
-links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "docs/modules/runtime/README.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"]
+links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "docs/design/RT_410_STAGE_PLANNER_API.md", "docs/modules/runtime/README.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"]
 ---
 
 # Task RT-410 — Runtime Stage Planner & Presentation Loop
@@ -109,11 +109,17 @@ public:
    - Presentation backends are partially integrated (mock + OpenGL implementations exist), yet they rely on callback invocation without the synchronized stage planner hooks that ADR-0008 reserves for deterministic presentation sequencing (`engine/runtime/src/api.cpp`, `engine/rendering/include/engine/rendering/presentation_backend.hpp`).
 2. [x] Implement stage planner core plus serialization hooks in `engine/runtime/src/`.
    - [x] (2025-05-07) Introduced `RuntimeStagePlanner`, integrated planner iteration into the runtime host, and documented planner error handling.
-3. [ ] Deliver mock + GLFW presentation backends with shared configuration surfaces.
-4. [ ] Expose synchronization APIs to scripting/tooling and update documentation.
-5. [ ] Extend harness/integration tests plus PM-510 demo scenario.
-6. [ ] Capture telemetry + benchmark evidence and update quality gate table.
-7. [ ] Coordinate review, update ROADMAP, and advance status to `review`/`done`.
+3. [x] Design presentation backend API contracts (RT-410-A)
+   - [x] (2025-11-06) Created comprehensive API design document: `docs/design/RT_410_STAGE_PLANNER_API.md`
+   - [x] Specified `PresentationConfig`, `PresentationFrame`, enhanced `PresentationBackend` interface
+   - [x] Defined `PresentationStageBuilder` for runtime loop integration
+   - [x] Documented telemetry integration and tooling patterns
+   - [ ] Pending review with module leads before implementation
+4. [ ] Deliver mock + GLFW presentation backends with shared configuration surfaces.
+5. [ ] Expose synchronization APIs to scripting/tooling and update documentation.
+6. [ ] Extend harness/integration tests plus PM-510 demo scenario.
+7. [ ] Capture telemetry + benchmark evidence and update quality gate table.
+8. [ ] Coordinate review, update ROADMAP, and advance status to `review`/`done`.
 
 ---
 
