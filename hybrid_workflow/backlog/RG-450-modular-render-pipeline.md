@@ -138,7 +138,9 @@ public:
 3. [x] Build registry/factory system with hot-reload hooks and plugin registration surface.
    - Added `FrameGraphNodeRegistry` to manage built-in and plugin-sourced planner nodes with deterministic lifecycle tracking.
    - Introduced plugin hot-reload events and RAII registrations plus regression tests covering duplicate rejection and reload swaps.
-4. [ ] Implement initial planner: resolve dependencies, allocate transients, emit single-queue schedule.
+4. [x] Implement initial planner: resolve dependencies, allocate transients, emit single-queue schedule.
+   - Added `FrameGraphPlanner` with deterministic topological planning, transient alias reuse keyed by descriptor signatures, and
+     integration tests covering scheduling, validation, and alias pooling.
 5. [ ] Add runtime execution path driving per-frame graph execution with resource state transitions.
 6. [ ] Integrate transient allocator pooling textures/buffers keyed by descriptor compatibility.
 7. [ ] Enable queue partitioning and async compute overlap when descriptors allow.
@@ -162,9 +164,9 @@ Full `ctest --preset linux-gcc-debug` currently reports missing binaries for unr
 not built in this iteration; targeted rendering tests pass with the filtered invocation above.
 
 **Test Summary:**
-- Unit tests: [pending]
+- Unit tests: `ctest --preset linux-gcc-debug --output-on-failure --tests-regex engine_rendering_tests`
 - Integration tests: [pending]
-- Documentation validation: [pending]
+- Documentation validation: `python scripts/validate_docs.py`
 
 ### Performance (if applicable)
 
@@ -189,9 +191,9 @@ not built in this iteration; targeted rendering tests pass with the filtered inv
 
 ### Updated Files
 
-- `engine/rendering/include/engine/rendering/framegraph/*`
-- `engine/rendering/src/framegraph/*`
-- `engine/rendering/tests/framegraph/*`
+- `engine/rendering/include/engine/rendering/frame_graph_planner.hpp`
+- `engine/rendering/src/frame_graph_planner.cpp`
+- `engine/rendering/tests/test_frame_graph_planner.cpp`
 - `docs/modules/rendering/README.md`
 - `docs/modules/rendering/render_graph.md`
 - `docs/NAVIGATION.md`
