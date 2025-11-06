@@ -122,6 +122,13 @@ clone glue code, jeopardise determinism, and complicate backend validation.
      safe synchronization points (before the next frame begins).
    - Provide a `RuntimeLoopInspector` utility that dumps the compiled stage graph (topology,
      timings, dependencies) for tooling consumers.
+   - Export synchronization helpers through the C interface so lightweight tooling can observe
+     presentation state without embedding C++. `engine_runtime_presentation_stage_active()` reports
+     whether the presentation stage is currently wired, while
+     `engine_runtime_loop_plan_serialization()` returns the JSON-encoded stage sequence used by the
+     active runtime host. Python bindings in `engine3g.Loader` surface these helpers via
+     `EngineRuntimeHandle.presentation_stage_active()` and `.loop_plan_serialization()` so hybrid
+     harnesses can gate UI capture or confirm scheduler topology directly from scripts.
 
 5. **Document integration contracts.**
    - Record invariants in module READMEs and update the runtime/tooling APIs to require explicit

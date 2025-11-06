@@ -436,6 +436,36 @@ for frame in range(100):
     print(f"Frame {frame}: {telemetry.cpu_frame_time_ms}ms")
 ```
 
+### Scripting Synchronization Hooks
+
+Lightweight tooling does not need to link against the full C++ runtime to observe stage planner
+state. Two C exports provide the necessary synchronization context:
+
+```c
+bool engine_runtime_presentation_stage_active(void);
+const char* engine_runtime_loop_plan_serialization(void);
+```
+
+`engine_runtime_presentation_stage_active()` returns `true` when the presentation stage is wired
+into the active loop plan (either via a callback or a presentation backend). Scripts can check this
+flag before attempting screenshot capture or overlay composition. The serialization helper mirrors
+the JSON produced by `RuntimeDiagnostics::loop_plan_serialization`, allowing harnesses to validate
+stage ordering without parsing binary telemetry snapshots.
+
+Python bindings in `engine3g.Loader` expose these exports as
+`EngineRuntimeHandle.presentation_stage_active()` and `.loop_plan_serialization()`. Example:
+
+```python
+with engine3g.loader().runtime_session() as session:
+    runtime = session.runtime
+    if runtime.presentation_stage_active():
+        plan_json = runtime.loop_plan_serialization()
+        print("Presentation enabled; loop plan:")
+        print(plan_json)
+    else:
+        print("Headless execution — skipping presentation capture")
+```
+
 ## Edge Cases & Error Handling
 
 ### Backend Capability Mismatch
