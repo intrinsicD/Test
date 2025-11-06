@@ -320,6 +320,94 @@ def test_select_next_actions_falls_back_to_new_when_no_ready() -> None:
     assert [task.identifier for task in selected] == ["HW-208", "HW-207"]
 
 
+def test_select_next_actions_respects_owner_filter() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "theta.md",
+            identifier="HW-209",
+            title="Theta",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "iota.md",
+            identifier="HW-210",
+            title="Iota",
+            status="ready",
+            priority="P0",
+            owner="docs-devrel",
+        ),
+    ]
+
+    selected = rhs.select_next_actions(tasks, limit=5, owner="docs-devrel")
+
+    assert [task.identifier for task in selected] == ["HW-210"]
+
+
+def test_select_next_actions_filters_apply_before_fallback() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "kappa.md",
+            identifier="HW-211",
+            title="Kappa",
+            status="ready",
+            priority="P0",
+            owner="runtime-lead",
+            relates_to=("bundle:A",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "lambda.md",
+            identifier="HW-212",
+            title="Lambda",
+            status="new",
+            priority="P1",
+            owner="docs-devrel",
+            relates_to=("bundle:C",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "mu.md",
+            identifier="HW-213",
+            title="Mu",
+            status="new",
+            priority="P2",
+            owner="runtime-lead",
+            relates_to=("bundle:C",),
+        ),
+    ]
+
+    selected = rhs.select_next_actions(tasks, limit=5, owner="docs-devrel")
+
+    assert [task.identifier for task in selected] == ["HW-212"]
+
+
+def test_select_next_actions_respects_relates_to_case_insensitive() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "nu.md",
+            identifier="HW-214",
+            title="Nu",
+            status="ready",
+            priority="P1",
+            owner="tools-team",
+            relates_to=("bundle:X",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "xi.md",
+            identifier="HW-215",
+            title="Xi",
+            status="ready",
+            priority="P0",
+            owner="tools-team",
+            relates_to=("bundle:Y",),
+        ),
+    ]
+
+    selected = rhs.select_next_actions(tasks, limit=5, relates_to=("BUNDLE:x",))
+
+    assert [task.identifier for task in selected] == ["HW-214"]
+
+
 def test_select_next_actions_respects_limit() -> None:
     tasks = [
         _make_task(

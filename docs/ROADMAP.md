@@ -53,7 +53,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 **Exit Criteria:** Automated benchmarks and visual reports block regressions; kickoff demo is reproducible on CI hardware.
 
-### Bundle C — Documentation & Infrastructure *(Complete)*
+### Bundle C — Documentation & Infrastructure *(Priority 3 — Active)*
 - ✅ [`DC-050`](../hybrid_workflow/backlog/archive/DC-050-workflow-migration.md) — Workflow migration to hybrid model.
 - ✅ [`TL-320`](../hybrid_workflow/backlog/archive/TL-320-task-dashboard.md) — Task status dashboard automation.
 - ✅ [`TL-330`](../hybrid_workflow/backlog/archive/TL-330-task-status-blocked-filter.md) — Task status CLI blocked filter.
@@ -63,6 +63,8 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 - ✅ [`TL-342`](../hybrid_workflow/backlog/archive/TL-342-hybrid-status-owner-filter.md) — Hybrid status reporter owner filter.
 - ✅ [`TL-343`](../hybrid_workflow/backlog/archive/TL-343-task-status-owner-filter.md) — Task status CLI owner filter.
 - ✅ [`TL-344`](../hybrid_workflow/backlog/archive/TL-344-next-actions-guidance.md) — Next-actions guidance for empty ready queue.
+- ✅ [`TL-345`](../hybrid_workflow/backlog/archive/TL-345-hybrid-status-relates-to-filter.md) — Hybrid status reporter relates_to filter.
+- ☐ [`TL-346`](../hybrid_workflow/backlog/TL-346-next-actions-filter-support.md) — Next-actions filter support.
 
 ### Phase 4 — GPU Execution & Tooling Readiness *(Priorities 1–2)*
 | Priority | Backlog | Intent | Owner | Status |
