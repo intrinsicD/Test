@@ -46,6 +46,7 @@ _Current status:_ RG-450 entered implementation with descriptor scaffolding unde
 - [x] **TL-341** — Next-action summary for hybrid status reporter → `hybrid_workflow/backlog/archive/TL-341-next-action-summary.md`
 - [x] **TL-342** — Hybrid status reporter owner filter → `hybrid_workflow/backlog/archive/TL-342-hybrid-status-owner-filter.md`
 - [x] **TL-343** — Task status CLI owner filter → `hybrid_workflow/backlog/archive/TL-343-task-status-owner-filter.md`
+- [x] **TL-344** — Next-actions guidance for empty ready queue → `hybrid_workflow/backlog/archive/TL-344-next-actions-guidance.md`
 
 **Success Criteria:**
 - All active tasks migrated to hybrid workflow format.

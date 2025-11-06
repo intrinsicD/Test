@@ -91,7 +91,11 @@ def test_filter_tasks_owner_filter_composes_with_status() -> None:
 
 def test_render_table_with_no_results_returns_message() -> None:
     output = rhs.render([], output_format="table")
-    assert output == "No tasks matched the supplied filters."
+    assert output == (
+        "No tasks matched the supplied filters.\n"
+        "Tip: When the ready queue is empty, groom the highest-priority new "
+        "backlog item under hybrid_workflow/backlog/ and mark it ready once scoped."
+    )
 
 
 def test_render_json_reports_counts_and_tasks() -> None:

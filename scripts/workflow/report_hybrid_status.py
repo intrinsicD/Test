@@ -185,7 +185,11 @@ def render_table(tasks: List[TaskMetadata]) -> str:
     """Format the task summary as a human-readable table."""
 
     if not tasks:
-        return "No tasks matched the supplied filters."
+        return (
+            "No tasks matched the supplied filters.\n"
+            "Tip: When the ready queue is empty, groom the highest-priority new "
+            "backlog item under hybrid_workflow/backlog/ and mark it ready once scoped."
+        )
 
     counter = collections.Counter(task.status for task in tasks)
     header = ["Status", "Priority", "ID", "Owner", "Title", "File"]
