@@ -16,7 +16,7 @@
   1. Enhanced stage metadata with execution budgets
   2. Presentation configuration structures (`PresentationConfig`, `PresentationFrame`)
   3. Extended `PresentationBackend` interface with lifecycle and capabilities
-  4. Presentation stage coordination utilities (`PresentationSyncHandle`, `PresentationStageBuilder`)
+  4. Presentation stage coordination utilities (`PresentationSyncSlot`, `PresentationStageBuilder`)
   5. Integration patterns with `RuntimeStagePlanner`
 
 - **Backend Implementations** — Specifications for:
@@ -108,7 +108,7 @@ Created:
   docs/design/RT_410_STAGE_PLANNER_API.md
 
 Modified:
-  hybrid_workflow/backlog/RT-410-A-stage-planner-api.md
+  hybrid_workflow/backlog/archive/RT-410-A-stage-planner-api.md
   hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md
 ```
 
@@ -130,10 +130,10 @@ Modified:
 - [x] Telemetry integration designed
 - [x] Tooling patterns specified (sandbox, diagnostics, Python)
 - [x] Implementation roadmap created with 7 phases
-- [ ] API review with module leads (pending)
-- [ ] Parent RT-410 updated (completed)
+- [x] API review with module leads (completed)
+- [x] Parent RT-410 updated
 
 ---
 
-**Status:** RT-410-A design work complete, ready for module lead review before implementation begins.
+**Status:** RT-410-A design work and module lead review complete; implementation tasks may proceed.
 

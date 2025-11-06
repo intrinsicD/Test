@@ -65,7 +65,7 @@ $ python -m scripts.workflow.report_hybrid_status --status ready
 Status  Priority  ID        Owner           Title                       File                                                   
 ======  ========  ========  ==============  ==========================  =======================================================
 ready   P1        RG-450-A  rendering-lead  Node descriptor API design  hybrid_workflow/backlog/archive/RG-450-A-node-descriptor-api.md
-ready   P1        RT-410-A  runtime-lead    Stage planner API design    hybrid_workflow/backlog/RT-410-A-stage-planner-api.md  
+ready   P1        RT-410-A  runtime-lead    Stage planner API design    hybrid_workflow/backlog/archive/RT-410-A-stage-planner-api.md
 
 Status counts:
   ready: 2
@@ -128,7 +128,7 @@ Status counts:
    - Fixed SPRINT-11 archive link
 
 ### New Files Created
-9. `/home/alex/Documents/Test/hybrid_workflow/backlog/RT-410-A-stage-planner-api.md`
+9. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/RT-410-A-stage-planner-api.md`
    - Ready subtask for RT-410 API design
 
 10. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/RG-450-A-node-descriptor-api.md`
