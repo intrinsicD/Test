@@ -16,6 +16,7 @@ add_library(${target_name}
         src/command_encoder.cpp
         src/command_encoder_tracing.cpp
         src/frame_graph.cpp
+        src/frame_graph_execution.cpp
         src/frame_graph_planner.cpp
         src/frame_graph_registry.cpp
         src/forward_pipeline.cpp

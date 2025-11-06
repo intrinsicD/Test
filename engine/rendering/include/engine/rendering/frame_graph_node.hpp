@@ -13,6 +13,11 @@
 
 namespace engine::rendering
 {
+    class FrameGraphPlanner;
+
+    class CommandEncoder;
+    struct RenderExecutionContext;
+
     /**
      * \brief Resource categories managed by frame-graph planner nodes.
      */
@@ -117,5 +122,34 @@ namespace engine::rendering
         [[nodiscard]] virtual const NodeDescriptor& Reflect() const = 0;
         virtual void Compile(NodeContext& context) = 0;
         virtual void Execute(NodeContext& context) = 0;
+    };
+
+    /**
+     * \brief Context passed to planner nodes during compilation and execution.
+     */
+    class NodeContext
+    {
+    public:
+        struct State;
+
+        NodeContext() = default;
+        NodeContext(const NodeContext&) = delete;
+        NodeContext& operator=(const NodeContext&) = delete;
+        NodeContext(NodeContext&&) noexcept = default;
+        NodeContext& operator=(NodeContext&&) noexcept = default;
+        ~NodeContext() = default;
+
+        explicit NodeContext(State* state) noexcept;
+
+        [[nodiscard]] RenderExecutionContext& render_context() const;
+        [[nodiscard]] CommandEncoder& command_encoder() const;
+        [[nodiscard]] QueueType queue() const noexcept;
+        [[nodiscard]] const NodeDescriptor& descriptor() const;
+        [[nodiscard]] FrameGraphResourceHandle resource_handle(std::string_view name) const;
+        [[nodiscard]] const FrameGraphResourceInfo& resource_info(FrameGraphResourceHandle handle) const;
+        [[nodiscard]] const FrameGraphResourceInfo& resource_info(std::string_view name) const;
+
+    private:
+        State* state_{nullptr};
     };
 } // namespace engine::rendering
