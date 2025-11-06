@@ -107,7 +107,8 @@ public:
    - `RuntimeLoopStage`/`RuntimeLoopBuilder` already expose declarative stage metadata with dependencies and thread affinity, matching ADR-0008 foundations, but there is no `RuntimeStagePlanner` abstraction or stage handles/budget metadata yet (`engine/runtime/include/engine/runtime/loop.hpp`, `engine/runtime/src/loop.cpp`).
    - `RuntimeHost::tick` consumes the compiled plan sequentially and records telemetry/diagnostics directly; it does not provide resumable `StageExecution` objects or scheduling APIs expected from the planner (`engine/runtime/src/api.cpp`).
    - Presentation backends are partially integrated (mock + OpenGL implementations exist), yet they rely on callback invocation without the synchronized stage planner hooks that ADR-0008 reserves for deterministic presentation sequencing (`engine/runtime/src/api.cpp`, `engine/rendering/include/engine/rendering/presentation_backend.hpp`).
-2. [ ] Implement stage planner core plus serialization hooks in `engine/runtime/src/`.
+2. [x] Implement stage planner core plus serialization hooks in `engine/runtime/src/`.
+   - [x] (2025-05-07) Introduced `RuntimeStagePlanner`, integrated planner iteration into the runtime host, and documented planner error handling.
 3. [ ] Deliver mock + GLFW presentation backends with shared configuration surfaces.
 4. [ ] Expose synchronization APIs to scripting/tooling and update documentation.
 5. [ ] Extend harness/integration tests plus PM-510 demo scenario.
@@ -152,14 +153,14 @@ public:
 
 ### Updated Files
 
+- `engine/runtime/include/engine/runtime/errors.hpp`
 - `engine/runtime/include/engine/runtime/runtime_loop_plan.hpp`
+- `engine/runtime/src/api.cpp`
 - `engine/runtime/src/runtime_stage_planner.cpp`
-- `engine/runtime/src/presentation/mock_presentation_backend.cpp`
-- `engine/runtime/src/presentation/glfw_presentation_backend.cpp`
+- `engine/runtime/CMakeLists.txt`
 - `engine/runtime/tests/runtime_stage_planner_tests.cpp`
+- `engine/runtime/tests/CMakeLists.txt`
 - `docs/modules/runtime/README.md`
-- `docs/design/AI-004-prototyping-playbook.md`
-- `docs/ROADMAP.md`
 
 ---
 

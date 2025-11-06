@@ -5,6 +5,7 @@ add_library(${target_name}
         src/application.cpp
         src/loop.cpp
         src/loop_inspector.cpp
+        src/runtime_stage_planner.cpp
         src/config_schema.cpp
         src/diagnostics_bridge.cpp
         src/subsystem_registry.cpp

@@ -203,7 +203,7 @@ The subsystem registry validates dependencies and detects cycles during initiali
 
 `RuntimeLoopBuilder::build()` returns `RuntimeResult<RuntimeLoopPlan>`; callers must propagate or handle these errors before executing the plan. The default runtime loop logs a validation error and falls back to an empty plan if compilation ever fails.
 
-Each stage descriptor also captures a `thread_affinity` hint so upcoming stage planners can reason about where work should execute. The default (`main_thread`) keeps behaviour unchanged, while `worker_thread` and `any` reserve room for future parallel execution policies. Pass the hint when registering a stage:
+Each stage descriptor also captures a `thread_affinity` hint so the stage planner can reason about where work should execute. The default (`main_thread`) keeps behaviour unchanged, while `worker_thread` and `any` reserve room for future parallel execution policies. Pass the hint when registering a stage:
 
 ```cpp
 builder.add_stage(
@@ -235,6 +235,14 @@ Scripting clients can pull the JSON snapshot directly through the
 `engine_runtime_loop_plan_serialization()` C export (exposed as
 `EngineRuntimeHandle.loop_plan_serialization()` in the Python loader) to validate
 stage ordering without traversing the entire diagnostics payload.
+
+`RuntimeStagePlanner` now wraps the compiled plan inside the host. Each stage iteration returns a
+`RuntimeStageExecution` containing a stable `RuntimeStageHandle` with the stage index, phase,
+thread affinity, and execution-report flag so diagnostics can accumulate timings and presentation
+scheduling can detect when GPU presenters should run. Calling `next_stage()` without first invoking
+`configure_plan()` surfaces `RuntimeError::loop_stage_planner_unconfigured`, while unexpected index
+gaps raise `RuntimeError::loop_stage_planner_invalid_iteration` and abort the frame so invariants
+stay intact.
 
 `presentation.dispatch` bridges the simulation stack to presentation tooling. Provide a presenter by attaching a `rendering::PresentationBackend` to `RuntimeHostDependencies::presentation_backend`; the host invokes it every tick with a `rendering::RuntimePresentationContext` so the backend can submit frame-graph work, composite UI, or trigger readbacks before diagnostics run. Lightweight integrations may continue to register callbacks with `RuntimeHost::set_presentation_callback()` (or the global `engine::runtime::set_presentation_callback()` helper). Both backends and callbacks receive the frame `dt` so presentation logic can track timing alongside simulation state.
 

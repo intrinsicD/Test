@@ -21,7 +21,9 @@ namespace engine::runtime
         loop_stage_invalid_name,
         loop_stage_duplicate_name,
         loop_stage_unknown_dependency,
-        loop_stage_dependency_cycle
+        loop_stage_dependency_cycle,
+        loop_stage_planner_unconfigured,
+        loop_stage_planner_invalid_iteration
     };
 
     [[nodiscard]] constexpr std::string_view to_string(RuntimeError error) noexcept
@@ -50,6 +52,10 @@ namespace engine::runtime
             return "loop_stage_unknown_dependency";
         case RuntimeError::loop_stage_dependency_cycle:
             return "loop_stage_dependency_cycle";
+        case RuntimeError::loop_stage_planner_unconfigured:
+            return "loop_stage_planner_unconfigured";
+        case RuntimeError::loop_stage_planner_invalid_iteration:
+            return "loop_stage_planner_invalid_iteration";
         }
         return "unknown";
     }
