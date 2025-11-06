@@ -1,7 +1,7 @@
 ---
 id: RG-450
 title: Modular render pipeline planner
-status: ready
+status: in_progress
 priority: P1
 area: rendering
 size: L
@@ -131,6 +131,7 @@ public:
    - Cross-referenced plugin lifecycle guarantees in `docs/design/PLUGIN_ARCHITECTURE.md` to ensure hot-swappable node factories remain declarative.
    - Mapped persistent history resources to generational handle expectations from `docs/design/RESOURCE_MANAGEMENT.md`.
 2. [ ] Implement `NodeDescriptor`, `ResourceDesc`, `ResourceUse`, and `INode` interfaces.
+   - Drafting C++ scaffolding that mirrors the API sketch; align naming with `engine/rendering/framegraph/` conventions.
 3. [ ] Build registry/factory system with hot-reload hooks and plugin registration surface.
 4. [ ] Implement initial planner: resolve dependencies, allocate transients, emit single-queue schedule.
 5. [ ] Add runtime execution path driving per-frame graph execution with resource state transitions.

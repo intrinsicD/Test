@@ -8,6 +8,7 @@
 
 - [x] **T-0120** — GPU resource provider → `hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md`
 - [x] **T-0119** — Command encoder integration → `hybrid_workflow/backlog/T-0119-command-encoder-integration.md`
+- [ ] **RG-450** — Modular render pipeline planner → `hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
 
 **Success Criteria:**
 - OpenGL/Vulkan execute frame-graph workloads with deterministic telemetry traces.
@@ -29,7 +30,7 @@
 - Editor builds are re-enabled with baseline smoke coverage.
 - Weekly demos capture GPU → runtime → tooling integration progress.
 
-_Current status:_ RT-410 remains in progress; TL-310 has entered planning under the hybrid workflow while waiting for presentation adapters; PM-510 continues to coordinate weekly integration demos.
+_Current status:_ RG-450 entered implementation with descriptor scaffolding underway; RT-410 remains in progress; TL-310 has entered planning under the hybrid workflow while waiting for presentation adapters; PM-510 continues to coordinate weekly integration demos.
 
 ---
 
