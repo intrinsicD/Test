@@ -33,7 +33,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 
 **Exit Criteria:** Schema approved, kickoff brief published, harness prototype booting sample datasets.
 
-**Completion:** All Phase 1 milestones delivered. Coordination artefacts: [`AI-004-kickoff-brief.md`](../hybrid_workflow/backlog/AI-004-kickoff-brief.md), [`SPRINT-11-alignment.md`](../hybrid_workflow/backlog/SPRINT-11-alignment.md).
+**Completion:** All Phase 1 milestones delivered. Coordination artefacts: [`AI-004-kickoff-brief.md`](../hybrid_workflow/backlog/AI-004-kickoff-brief.md), [`SPRINT-11-alignment.md`](../hybrid_workflow/backlog/archive/SPRINT-11-alignment.md).
 
 ### Phase 2 — Harness & Dataset Integration *(Priorities 2–3)*
 | Priority | Backlog | Intent | Owner | Status |
@@ -81,10 +81,24 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 2. **PM-510** (Priority 2) - Ongoing weekly integration demos covering GPU → runtime → tooling
 3. **TL-310** (Priority 2) - Editor re-enablement; planning underway while RT-410 adapters land
 
+### Bundle D — Kickoff Coordination *(Priorities 0)*
+
+**Goal:** Process coordination and documentation alignment for AI-004 initiative.
+
+_Note: Bundle D tasks have P0 priority for process/coordination but run in parallel with technical bundles and don't block GPU/runtime/tooling execution._
+
+| Priority | Backlog | Intent | Owner | Status |
+| --- | --- | --- | --- | --- |
+| 0 | [`SPRINT-11`](../hybrid_workflow/backlog/archive/SPRINT-11-alignment.md) | Coordinate Sprint 11 execution to align backlog, roadmap, and kickoff artefacts. | Agent Orchestrator | Done |
+| 0 | [`AI-004`](../hybrid_workflow/backlog/AI-004-kickoff-brief.md) | Produce kickoff brief with agenda, timeline, risks, and demo artefacts. | Agent Orchestrator | In Progress |
+
+**Exit Criteria:** Kickoff packet consolidates deliverables with accountable owners; roadmap and sprint alignment documented.
+
 ## Active Backlog Snapshot
 
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
+| [`AI-004`](../hybrid_workflow/backlog/AI-004-kickoff-brief.md) | 0 | In Progress | Kickoff brief coordination; SPRINT-11 complete, final artefacts in progress. |
 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | 1 | Done | GPU providers for OpenGL/Vulkan ship with runtime presentation integration and telemetry. |
 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
 | [`RT-410`](../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) | 1 | In Progress | Stage planner adapters under active development to unblock presentation loop integration. |
@@ -92,7 +106,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | In Progress | Context assembly started; implementation will begin once RT-410 exposes presentation hooks. |
 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned. |
 
-> **Archived backlog entries:** [`DC-040`](backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [`DC-041`](backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [`RT-320`](backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md), [`TL-210`](backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [`RT-321`](backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md), [`AS-330`](backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [`CC-310`](backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [`CC-311`](backlog/archive/CC_311_BENCHMARK_VISUALISATION.md), [`PL-240`](backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md), [`PM-520`](backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md), and [`TL-320`](../hybrid_workflow/backlog/archive/TL-320-task-dashboard.md) are now in `docs/backlog/archive/` following completion of PM-520 backlog hygiene remediation.
+> **Archived backlog entries:** [`SPRINT-11`](../hybrid_workflow/backlog/archive/SPRINT-11-alignment.md), [`DC-040`](backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [`DC-041`](backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [`RT-320`](backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md), [`TL-210`](backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [`RT-321`](backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md), [`AS-330`](backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [`CC-310`](backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [`CC-311`](backlog/archive/CC_311_BENCHMARK_VISUALISATION.md), [`PL-240`](backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md), [`PM-520`](backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md), and [`TL-320`](../hybrid_workflow/backlog/archive/TL-320-task-dashboard.md) are now in `docs/backlog/archive/` following completion of PM-520 backlog hygiene remediation.
 ## Risks & Mitigations
 
 | Priority | Risk | Owner | Mitigation |

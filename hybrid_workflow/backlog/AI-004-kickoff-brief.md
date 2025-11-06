@@ -8,11 +8,12 @@ size: L
 owner: agent-orchestrator
 gates: [docs]
 relates_to: [bundle:D]
-blocked_on: ["SPRINT-11", "DC-041"]
+blocked_on: []
 links:
   - "docs/ROADMAP.md#bundle-d--kickoff-coordination"
   - "docs/backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md"
   - "docs/archive/backlog/legacy/tasks/AI_004_KICKOFF_BRIEF.md"
+  - "hybrid_workflow/backlog/archive/SPRINT-11-alignment.md"
 ---
 
 # Task AI-004 — Kickoff Brief Readiness

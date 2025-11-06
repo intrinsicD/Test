@@ -58,9 +58,11 @@ _Current status:_ RG-450 entered implementation with descriptor scaffolding unde
 
 ## Bundle D — Kickoff Coordination
 
-**Priority:** 0
+**Priority:** P0 (Process/Coordination — runs parallel to technical bundles)
 
 **Goal:** Align backlog, roadmap, and sprint artefacts for the AI-004 kickoff review.
+
+_Note: While Bundle D tasks have P0 priority for process coordination, they run in parallel with Bundles A-C technical work and don't block GPU/runtime/tooling execution._
 
 - [ ] **AI-004** — Kickoff brief readiness → `hybrid_workflow/backlog/AI-004-kickoff-brief.md`
 - [ ] **SPRINT-11** — Sprint 11 alignment → `hybrid_workflow/backlog/SPRINT-11-alignment.md`

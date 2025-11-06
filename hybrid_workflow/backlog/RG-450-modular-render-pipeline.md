@@ -8,7 +8,7 @@ size: L
 owner: rendering-lead
 gates: [tests, perf, docs, safety, release]
 relates_to: [bundle:A]
-blocked_on: ["T-0120", "T-0119", "RT-410"]
+blocked_on: []
 links: ["docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md", "docs/modules/rendering/README.md"]
 ---
 
@@ -38,6 +38,9 @@ Deliver a hot-swappable modular render pipeline planner so the renderer can comp
 - Rendering module README for existing frame graph expectations.
 - Plugin architecture guidelines in `docs/design/PLUGIN_ARCHITECTURE.md`.
 - Resource management design in `docs/design/RESOURCE_MANAGEMENT.md`.
+
+**Note on RT-410 Independence:**
+Per ADR-0003, the frame-graph model operates at the rendering layer with the runtime consuming graphs via a scheduler interface. RG-450 (modular render pipeline planner) composes frame-graph nodes for GPU execution, while RT-410 (runtime stage planner) manages main-loop presentation stages. These are orthogonal concerns and can proceed in parallel. GPU resource provider (T-0120) and command encoder (T-0119) prerequisites are already complete.
 
 ---
 
