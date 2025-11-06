@@ -1,6 +1,7 @@
 set(ENGINE_RENDERING_TEST_SOURCES
         test_module.cpp
         test_frame_graph.cpp
+        test_frame_graph_execution.cpp
         test_frame_graph_planner.cpp
         test_frame_graph_nodes.cpp
         test_frame_graph_registry.cpp

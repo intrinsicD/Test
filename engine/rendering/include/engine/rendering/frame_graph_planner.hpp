@@ -14,6 +14,8 @@
 
 namespace engine::rendering
 {
+    struct RenderExecutionContext;
+
     class FrameGraphPlanner
     {
     public:
@@ -48,6 +50,13 @@ namespace engine::rendering
         class Plan
         {
         public:
+            struct ExecutionTelemetry
+            {
+                std::size_t transient_acquires{0};
+                std::size_t transient_releases{0};
+                std::size_t submissions{0};
+            };
+
             Plan();
             Plan(const Plan&) = delete;
             Plan& operator=(const Plan&) = delete;
@@ -58,6 +67,7 @@ namespace engine::rendering
             [[nodiscard]] const std::vector<PlannedPass>& passes() const noexcept;
             [[nodiscard]] const std::vector<PlannedResource>& resources() const noexcept;
             [[nodiscard]] std::optional<std::size_t> find_resource(std::string_view name) const;
+            void execute(RenderExecutionContext& context, ExecutionTelemetry* telemetry = nullptr);
 
         private:
             friend class FrameGraphPlanner;

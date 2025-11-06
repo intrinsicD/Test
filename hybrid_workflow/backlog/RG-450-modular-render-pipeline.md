@@ -141,10 +141,19 @@ public:
 4. [x] Implement initial planner: resolve dependencies, allocate transients, emit single-queue schedule.
    - Added `FrameGraphPlanner` with deterministic topological planning, transient alias reuse keyed by descriptor signatures, and
      integration tests covering scheduling, validation, and alias pooling.
-5. [ ] Add runtime execution path driving per-frame graph execution with resource state transitions.
-6. [ ] Integrate transient allocator pooling textures/buffers keyed by descriptor compatibility.
-7. [ ] Enable queue partitioning and async compute overlap when descriptors allow.
-8. [ ] Add persistent history resource compatibility checks and telemetry counters.
+5. [x] Add runtime execution path driving per-frame graph execution with resource state transitions.
+   - Introduced `frame_graph_execution.cpp` with a planner-backed executor that stages command encoders, derives barriers from
+     declarative resource uses, and routes submissions through `IGpuScheduler`/`IGpuResourceProvider` with timeline fencing.
+   - Added `NodeContext` surface so planner nodes can introspect resource metadata, acquire command encoders, and emit work.
+6. [x] Integrate transient allocator pooling textures/buffers keyed by descriptor compatibility.
+   - Normalised transient handles so alias-compatible resources reuse GPU allocation slots while emitting acquire/release
+     telemetry to the device provider.
+7. [x] Enable queue partitioning and async compute overlap when descriptors allow.
+   - Planner execution now consults the scheduler per pass, honouring preferred queues and tracking begin-barrier stages to
+     enable overlap-ready submissions.
+8. [x] Add persistent history resource compatibility checks and telemetry counters.
+   - Executor validates that aliased history resources share identical descriptors and records per-frame telemetry (transient
+     acquire/release counts, submission totals) for diagnostics.
 9. [ ] Produce DOT/telemetry exports and integration demos recorded under PM-510.
 10. [ ] Update documentation (rendering module README, ROADMAP) and finalize task evidence.
 
@@ -191,20 +200,20 @@ not built in this iteration; targeted rendering tests pass with the filtered inv
 
 ### Updated Files
 
+- `engine/rendering/include/engine/rendering/frame_graph_node.hpp`
 - `engine/rendering/include/engine/rendering/frame_graph_planner.hpp`
-- `engine/rendering/src/frame_graph_planner.cpp`
-- `engine/rendering/tests/test_frame_graph_planner.cpp`
-- `docs/modules/rendering/README.md`
-- `docs/modules/rendering/render_graph.md`
-- `docs/NAVIGATION.md`
+- `engine/rendering/src/frame_graph_execution.cpp`
+- `engine/rendering/tests/test_frame_graph_execution.cpp`
+- `engine/rendering/tests/CMakeLists.txt`
+- `engine/rendering/CMakeLists.txt`
 - `hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
 
 ---
 
 ## Completion Checklist (Definition of Done)
 
-- [ ] Planner composes pipelines from descriptor-driven nodes with transient allocator support.
-- [ ] Async queue partitioning enabled with telemetry coverage.
+- [x] Planner composes pipelines from descriptor-driven nodes with transient allocator support.
+- [x] Async queue partitioning enabled with telemetry coverage.
 - [ ] Plugin hot-reload validated with automated task coverage.
 - [ ] Documentation (module README, roadmap, DOT exports) updated.
 - [ ] Quality gates signed off in Evidence section.
