@@ -115,7 +115,8 @@ public:
    - [x] Defined `PresentationStageBuilder` for runtime loop integration
    - [x] Documented telemetry integration and tooling patterns
    - [ ] Pending review with module leads before implementation
-4. [ ] Deliver mock + GLFW presentation backends with shared configuration surfaces.
+4. [x] Deliver mock + GLFW presentation backends with shared configuration surfaces.
+    - Added `runtime::create_presentation_surface()` plus config/surface bundles so mock and GLFW integrations share window + swapchain plumbing, recording errors through new runtime presentation surface error codes and covering the helper with unit tests.
 5. [ ] Expose synchronization APIs to scripting/tooling and update documentation.
 6. [ ] Extend harness/integration tests plus PM-510 demo scenario.
 7. [ ] Capture telemetry + benchmark evidence and update quality gate table.
