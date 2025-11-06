@@ -98,11 +98,13 @@ TEST(RuntimePresentationSurface, ReportsErrorWhenHookFails)
     config.surface_hook = [](const engine::platform::SwapchainSurfaceRequest&, void*)
         -> std::unique_ptr<engine::platform::SwapchainSurface>
     {
-        return nullptr;
+        throw std::runtime_error("Simulated surface creation failure");
     };
 
     auto result = engine::runtime::create_presentation_surface(config);
     ASSERT_FALSE(result);
     const auto error = result.error();
-    EXPECT_EQ(error.identifier(), std::string{"engine.runtime.presentation_surface_creation_failed"});
+    EXPECT_EQ(error.domain(), std::string_view{"engine.runtime"});
+    EXPECT_EQ(error.identifier(), std::string_view{"presentation_surface_creation_failed"});
+    EXPECT_TRUE(error.message().find("Simulated surface creation failure") != std::string_view::npos);
 }
