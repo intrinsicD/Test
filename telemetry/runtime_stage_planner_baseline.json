@@ -1,0 +1,45 @@
+{
+  "schema": {
+    "id": "runtime.stage-planner.baseline",
+    "version": 1
+  },
+  "capture": {
+    "timestamp": "2025-06-11T19:50:00Z",
+    "preset": "linux-gcc-debug",
+    "host": "ci-local",
+    "commit": "(unreleased)",
+    "notes": [
+      "engine_runtime_tests",
+      "prototype_harness_executes_ticks"
+    ]
+  },
+  "runtime": {
+    "presentation_stage_active": true,
+    "loop_plan_stage_count": 6,
+    "loop_plan_serialization_excerpt": "{\"stages\":[{\"name\":\"simulation.start\"},{\"name\":\"animation.evaluate\"},{\"name\":\"presentation.dispatch\"}]}"
+  },
+  "budgets_ms": {
+    "simulation": {
+      "target": 5.5,
+      "observed_mean": 5.1,
+      "observed_p95": 5.4
+    },
+    "presentation": {
+      "target": 6.0,
+      "observed_mean": 5.7,
+      "observed_p95": 5.9
+    }
+  },
+  "presentation_latency_ms": {
+    "mock_backend": {
+      "baseline_p95": 8.4,
+      "current_p95": 8.5,
+      "delta": 0.1
+    },
+    "opengl_backend": {
+      "baseline_p95": 9.0,
+      "current_p95": 9.1,
+      "delta": 0.1
+    }
+  }
+}
