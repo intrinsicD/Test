@@ -67,6 +67,7 @@ namespace engine::rendering
             [[nodiscard]] const std::vector<PlannedPass>& passes() const noexcept;
             [[nodiscard]] const std::vector<PlannedResource>& resources() const noexcept;
             [[nodiscard]] std::optional<std::size_t> find_resource(std::string_view name) const;
+            [[nodiscard]] std::string to_dot() const;
             void execute(RenderExecutionContext& context, ExecutionTelemetry* telemetry = nullptr);
 
         private:

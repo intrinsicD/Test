@@ -5,6 +5,7 @@
 
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <utility>
 
 namespace engine::rendering
@@ -133,6 +134,97 @@ namespace engine::rendering
         EXPECT_TRUE(swapchain_resource.external);
         EXPECT_FALSE(swapchain_resource.transient);
         EXPECT_EQ(swapchain_resource.alias, std::numeric_limits<std::size_t>::max());
+    }
+
+    TEST(FrameGraphPlanner, EmitsGraphvizDotForPlan)
+    {
+        FrameGraphNodeRegistry registry{};
+
+        NodeDescriptor gbuffer{};
+        gbuffer.id = "render.gbuffer";
+        ResourceDesc color{};
+        color.name = "gbuffer.color";
+        color.format = ResourceFormat::Rgba16f;
+        color.dimension = ResourceDimension::Texture2D;
+        color.width = 1920;
+        color.height = 1080;
+        gbuffer.creates.push_back(color);
+        ResourceDesc depth{};
+        depth.name = "gbuffer.depth";
+        depth.format = ResourceFormat::Depth24Stencil8;
+        depth.dimension = ResourceDimension::Texture2D;
+        depth.width = 1920;
+        depth.height = 1080;
+        gbuffer.creates.push_back(depth);
+        registry.register_builtin(make_factory(gbuffer));
+
+        NodeDescriptor lighting{};
+        lighting.id = "render.lighting";
+        ResourceUse color_read{};
+        color_read.name = "gbuffer.color";
+        color_read.state = ResourceState::ShaderRead;
+        lighting.reads.push_back(color_read);
+        ResourceUse depth_read{};
+        depth_read.name = "gbuffer.depth";
+        depth_read.state = ResourceState::ShaderRead;
+        lighting.reads.push_back(depth_read);
+        ResourceDesc lighting_output{};
+        lighting_output.name = "lighting.color";
+        lighting_output.format = ResourceFormat::Rgba16f;
+        lighting_output.dimension = ResourceDimension::Texture2D;
+        lighting_output.width = 1920;
+        lighting_output.height = 1080;
+        lighting.creates.push_back(lighting_output);
+        registry.register_builtin(make_factory(lighting));
+
+        NodeDescriptor present{};
+        present.id = "render.present";
+        ResourceUse final_color{};
+        final_color.name = "lighting.color";
+        final_color.state = ResourceState::ShaderRead;
+        present.reads.push_back(final_color);
+        ResourceUse swapchain_write{};
+        swapchain_write.name = "swapchain";
+        swapchain_write.access = resources::Access::Write;
+        swapchain_write.state = ResourceState::Present;
+        present.writes.push_back(swapchain_write);
+        registry.register_builtin(make_factory(present));
+
+        FrameGraphPlanner planner{registry};
+        FrameGraphPlanner::PlanRequest request{};
+        request.nodes = {"render.gbuffer", "render.lighting", "render.present"};
+        ResourceDesc swapchain{};
+        swapchain.name = "swapchain";
+        swapchain.format = ResourceFormat::Rgba8Unorm;
+        swapchain.dimension = ResourceDimension::Texture2D;
+        swapchain.width = 1920;
+        swapchain.height = 1080;
+        swapchain.transient = false;
+        request.external_resources.push_back(swapchain);
+
+        const auto plan = planner.plan(request);
+        const auto dot = plan.to_dot();
+
+        const auto contains = [&dot](std::string_view needle)
+        {
+            EXPECT_NE(dot.find(needle), std::string::npos) << "Missing substring: " << needle;
+        };
+
+        contains("digraph FrameGraphPlan");
+        contains("pass0 [label=\"render.gbuffer\\n[Graphics]");
+        contains("pass1 [label=\"render.lighting\\n[Graphics]");
+        contains("pass2 [label=\"render.present\\n[Graphics]");
+        contains("resource0 [label=\"swapchain\\nTexture2D Rgba8Unorm\\n1920x1080\\nExternal");
+        contains("resource1 [label=\"gbuffer.color\\nTexture2D Rgba16f\\n1920x1080\\nTransient");
+        contains("resource2 [label=\"gbuffer.depth\\nTexture2D Depth24Stencil8\\n1920x1080\\nTransient");
+        contains("resource3 [label=\"lighting.color\\nTexture2D Rgba16f\\n1920x1080\\nTransient");
+        contains("pass0 -> resource1 [label=\"create\"]");
+        contains("pass0 -> resource2 [label=\"create\"]");
+        contains("pass1 -> resource3 [label=\"create\"]");
+        contains("resource1 -> pass1 [label=\"read\"]");
+        contains("resource2 -> pass1 [label=\"read\"]");
+        contains("pass2 -> resource0 [label=\"write\"]");
+        contains("resource3 -> pass2 [label=\"read\"]");
     }
 
     TEST(FrameGraphPlanner, RejectsMissingResourceProducer)

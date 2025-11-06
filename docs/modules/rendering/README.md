@@ -2,14 +2,14 @@
 
 ## Overview
 
-> **Status:** ✅ **Stable** — Command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md)) now records frame-graph passes into OpenGL/Vulkan command buffers backed by GPU resource providers ([`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md)), enabling real buffer/texture residency, telemetry, and runtime presentation via the OpenGL submission bundle.
+> **Status:** ✅ **Stable** — Command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md)) now records frame-graph passes into OpenGL/Vulkan command buffers backed by GPU resource providers ([`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md)), enabling real buffer/texture residency, telemetry, and runtime presentation via the OpenGL submission bundle. The modular planner introduced by [`RG-450`](../../../hybrid_workflow/backlog/RG-450-modular-render-pipeline.md) emits Graphviz DOT exports and execution telemetry so PM-510 demos can validate queue scheduling and resource lifetimes.
 
 The rendering module currently provides frame-graph compilation, scheduler prototypes, and resource lifetime tracking, but the missing GPU execution path prevents end-to-end rendering. This README tracks the outstanding work needed to reach functional backends in addition to describing the existing infrastructure.
 
 ## Outstanding Work
 
 - Coordinate with the runtime stage planner (`RT-410`) to ensure presentation backends and synchronisation policies align with rendering.
-- Extend diagnostics/telemetry coverage for GPU residency trends and presentation latency once RT-410 lands.
+- Harden plugin hot-reload coverage for modular planner nodes and extend telemetry hooks once RT-410 lands.
 
 ## Camera System
 
@@ -82,6 +82,16 @@ if (result.success) {
 descriptions via `NodeDescriptor`, allowing the planner to resolve dependencies, allocate transient resources, and emit a
 single-queue schedule. Subsequent work will extend the planner with multi-queue partitioning and runtime execution hooks that
 drive `INode::Compile`/`INode::Execute` directly.
+
+### Planner Diagnostics
+
+- **Graphviz exports:** Call `FrameGraphPlanner::Plan::to_dot()` to serialise the scheduled graph for documentation. The
+  repository tracks canonical snapshots under [`docs/modules/rendering/graphs/`](./graphs/) such as the deferred PBR baseline
+  (`deferred_pbr.dot`).
+- **Execution telemetry:** `FrameGraphPlanner::Plan::ExecutionTelemetry` counts transient resource acquires/releases and GPU
+  submissions per frame. Weekly integration demos log representative captures in
+  [`telemetry/pm510_demo_priority-modular-render-pipeline.json`](../../../telemetry/pm510_demo_priority-modular-render-pipeline.json)
+  to document queue overlap efficiency and allocator churn alongside PM-510 notes.
 
 ### Command Encoder Integration
 
@@ -181,7 +191,8 @@ dashboards whenever the preset is configured or executed:
   (`rendering.resources.buffer_bytes`, `rendering.resources.texture_bytes`,
   `rendering.resources.other_bytes`, `rendering.resources.total_bytes`) so
   PM-510 demos can correlate buffer and texture residency with frame-graph
-  activity once GPU providers are active.
+  activity once GPU providers are active. Pair these gauges with the planner
+  telemetry exports described above when reviewing modular pipeline changes.
 
 Runtime diagnostics export these metrics through the shared telemetry schema so
 the prototyping harness and benchmarking automation can surface draw-call

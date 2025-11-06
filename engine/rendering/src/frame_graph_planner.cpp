@@ -2,9 +2,12 @@
 
 #include <algorithm>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -72,11 +75,11 @@ namespace engine::rendering
 {
     namespace
     {
-        struct ResourceInfo
-        {
-            std::string name;
-            ResourceDesc descriptor;
-            bool external{false};
+    struct ResourceInfo
+    {
+        std::string name;
+        ResourceDesc descriptor;
+        bool external{false};
             bool transient{false};
             std::size_t creating_pass{kInvalidIndex};
             std::size_t writing_pass{kInvalidIndex};
@@ -94,6 +97,113 @@ namespace engine::rendering
             std::vector<std::size_t> reads;
             std::vector<std::size_t> writes;
         };
+
+        [[nodiscard]] std::string escape_label(std::string_view text)
+        {
+            std::string escaped;
+            escaped.reserve(text.size());
+            for (const char ch : text)
+            {
+                switch (ch)
+                {
+                case '\\':
+                    escaped += "\\\\";
+                    break;
+                case '\"':
+                    escaped += "\\\"";
+                    break;
+                default:
+                    escaped += ch;
+                    break;
+                }
+            }
+            return escaped;
+        }
+
+        [[nodiscard]] std::string queue_label(QueueType queue)
+        {
+            std::ostringstream stream;
+            stream << queue;
+            return stream.str();
+        }
+
+        [[nodiscard]] std::string resource_lifecycle_label(const FrameGraphPlanner::PlannedResource& resource)
+        {
+            if (resource.external)
+            {
+                return "External";
+            }
+            if (resource.transient)
+            {
+                return "Transient";
+            }
+            return "Persistent";
+        }
+
+        [[nodiscard]] std::string resource_descriptor_label(const FrameGraphPlanner::PlannedResource& resource)
+        {
+            std::vector<std::string> lines;
+            lines.emplace_back(escape_label(resource.name));
+
+            {
+                std::ostringstream type_stream;
+                type_stream << resource.descriptor.dimension << ' ' << resource.descriptor.format;
+                lines.emplace_back(escape_label(type_stream.str()));
+            }
+
+            if (resource.descriptor.dimension != ResourceDimension::Buffer)
+            {
+                std::ostringstream size_stream;
+                size_stream << resource.descriptor.width;
+                if (resource.descriptor.dimension != ResourceDimension::Texture1D)
+                {
+                    size_stream << 'x' << resource.descriptor.height;
+                    if (resource.descriptor.dimension == ResourceDimension::Texture3D)
+                    {
+                        size_stream << 'x' << resource.descriptor.depth;
+                    }
+                }
+                if (resource.descriptor.array_layers > 1)
+                {
+                    size_stream << " L" << resource.descriptor.array_layers;
+                }
+                if (resource.descriptor.mip_levels > 1)
+                {
+                    size_stream << " M" << resource.descriptor.mip_levels;
+                }
+                if (resource.descriptor.sample_count != ResourceSampleCount::Count1)
+                {
+                    size_stream << " MS" << resource.descriptor.sample_count;
+                }
+                lines.emplace_back(escape_label(size_stream.str()));
+            }
+
+            lines.emplace_back(resource_lifecycle_label(resource));
+
+            std::string label;
+            for (std::size_t i = 0; i < lines.size(); ++i)
+            {
+                if (i != 0U)
+                {
+                    label += "\\n";
+                }
+                label += lines[i];
+            }
+            return label;
+        }
+
+        [[nodiscard]] std::string_view resource_fill_color(const FrameGraphPlanner::PlannedResource& resource)
+        {
+            if (resource.external)
+            {
+                return "#7f1d1d";
+            }
+            if (resource.transient)
+            {
+                return "#0f766e";
+            }
+            return "#1d4ed8";
+        }
     }
 
     FrameGraphPlanner::Plan::Plan() = default;
@@ -119,6 +229,76 @@ namespace engine::rendering
             return std::nullopt;
         }
         return it->second;
+    }
+
+    std::string FrameGraphPlanner::Plan::to_dot() const
+    {
+        std::ostringstream stream;
+        stream << "digraph FrameGraphPlan {\n";
+        stream << "    rankdir=LR;\n";
+        stream << "    graph [fontname=\"Helvetica\"];\n";
+        stream << "    node [fontname=\"Helvetica\"];\n";
+        stream << "    edge [fontname=\"Helvetica\"];\n\n";
+
+        for (std::size_t index = 0; index < passes_.size(); ++index)
+        {
+            const auto& pass = passes_[index];
+            stream << "    pass" << index << " [label=\"" << escape_label(pass.id) << "\\n["
+                   << escape_label(queue_label(pass.queue))
+                   << "]\", shape=box, style=\"rounded,filled\", fillcolor=\"#1f2933\", fontcolor=\"#f9fafb\"];\n";
+        }
+
+        if (!passes_.empty())
+        {
+            stream << '\n';
+        }
+
+        for (std::size_t index = 0; index < resources_.size(); ++index)
+        {
+            const auto& resource = resources_[index];
+            stream << "    resource" << index << " [label=\"" << resource_descriptor_label(resource)
+                   << "\", shape=ellipse, style=\"filled\", fillcolor=\"" << resource_fill_color(resource)
+                   << "\", fontcolor=\"#ecfeff\"";
+            if (resource.external)
+            {
+                stream << ", peripheries=2";
+            }
+            stream << "];\n";
+        }
+
+        if (!resources_.empty())
+        {
+            stream << '\n';
+        }
+
+        const auto emit_edge = [&stream](std::string_view from, std::string_view to, std::string_view label)
+        {
+            stream << "    " << from << " -> " << to << " [label=\"" << label << "\"];\n";
+        };
+
+        for (std::size_t pass_index = 0; pass_index < passes_.size(); ++pass_index)
+        {
+            const auto& pass = passes_[pass_index];
+            const std::string pass_id = "pass" + std::to_string(pass_index);
+
+            for (const auto resource_index : pass.creates)
+            {
+                emit_edge(pass_id, "resource" + std::to_string(resource_index), "create");
+            }
+
+            for (const auto resource_index : pass.writes)
+            {
+                emit_edge(pass_id, "resource" + std::to_string(resource_index), "write");
+            }
+
+            for (const auto resource_index : pass.reads)
+            {
+                emit_edge("resource" + std::to_string(resource_index), pass_id, "read");
+            }
+        }
+
+        stream << "}\n";
+        return stream.str();
     }
 
     FrameGraphPlanner::FrameGraphPlanner(const FrameGraphNodeRegistry& registry) noexcept
