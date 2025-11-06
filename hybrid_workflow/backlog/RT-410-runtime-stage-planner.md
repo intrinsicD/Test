@@ -109,7 +109,8 @@ public:
    - Presentation backends are partially integrated (mock + OpenGL implementations exist), yet they rely on callback invocation without the synchronized stage planner hooks that ADR-0008 reserves for deterministic presentation sequencing (`engine/runtime/src/api.cpp`, `engine/rendering/include/engine/rendering/presentation_backend.hpp`).
 2. [x] Implement stage planner core plus serialization hooks in `engine/runtime/src/`.
    - [x] (2025-05-07) Introduced `RuntimeStagePlanner`, integrated planner iteration into the runtime host, and documented planner error handling.
-3. [ ] Deliver mock + GLFW presentation backends with shared configuration surfaces.
+3. [x] Deliver mock + GLFW presentation backends with shared configuration surfaces.
+   - Added `runtime::create_presentation_surface()` plus config/surface bundles so mock and GLFW integrations share window + swapchain plumbing, recording errors through new runtime presentation surface error codes and covering the helper with unit tests.
 4. [ ] Expose synchronization APIs to scripting/tooling and update documentation.
 5. [ ] Extend harness/integration tests plus PM-510 demo scenario.
 6. [ ] Capture telemetry + benchmark evidence and update quality gate table.
