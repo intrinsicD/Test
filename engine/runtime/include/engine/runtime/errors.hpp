@@ -23,7 +23,9 @@ namespace engine::runtime
         loop_stage_unknown_dependency,
         loop_stage_dependency_cycle,
         loop_stage_planner_unconfigured,
-        loop_stage_planner_invalid_iteration
+        loop_stage_planner_invalid_iteration,
+        presentation_surface_backend_unavailable,
+        presentation_surface_creation_failed
     };
 
     [[nodiscard]] constexpr std::string_view to_string(RuntimeError error) noexcept
@@ -56,6 +58,10 @@ namespace engine::runtime
             return "loop_stage_planner_unconfigured";
         case RuntimeError::loop_stage_planner_invalid_iteration:
             return "loop_stage_planner_invalid_iteration";
+        case RuntimeError::presentation_surface_backend_unavailable:
+            return "presentation_surface_backend_unavailable";
+        case RuntimeError::presentation_surface_creation_failed:
+            return "presentation_surface_creation_failed";
         }
         return "unknown";
     }

@@ -251,6 +251,16 @@ Headless workflows that run without a GPU-backed swap chain can attach
 stage active and capture invocation cadence for diagnostics or tests without
 driving real rendering hardware.
 
+When wiring presentation backends, construct surfaces via
+`runtime::create_presentation_surface()`. The helper accepts a
+`RuntimePresentationSurfaceConfig` bundling a platform window description,
+backend preference (mock, GLFW, or auto), renderer identifier, and optional
+swapchain hook so runtime hosts, tooling harnesses, and presentation backends
+share a single configuration path. The returned
+`RuntimePresentationSurface` exposes the window, event queue, and swapchain
+surface; errors are reported through `RuntimeError::presentation_surface_*`
+codes so diagnostics align with the stage planner's telemetry exports.
+
 Backends can also be swapped in and out after initialization through
 `RuntimeHost::set_presentation_backend()`, ensuring the presentation stage is
 recorded or removed from execution reports automatically as presenters become

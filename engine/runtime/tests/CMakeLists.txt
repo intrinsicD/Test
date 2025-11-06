@@ -4,6 +4,7 @@ add_executable(engine_runtime_tests
         test_module.cpp
         test_opengl_presentation_backend.cpp
         runtime_stage_planner_tests.cpp
+        runtime_presentation_surface_tests.cpp
 )
 
 target_link_libraries(engine_runtime_tests
