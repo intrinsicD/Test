@@ -2,7 +2,7 @@
 
 ## Overview
 
-> **Status:** ✅ **Stable** — Command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/T-0119-command-encoder-integration.md)) now records frame-graph passes into OpenGL/Vulkan command buffers backed by GPU resource providers ([`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md)), enabling real buffer/texture residency, telemetry, and runtime presentation via the OpenGL submission bundle.
+> **Status:** ✅ **Stable** — Command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md)) now records frame-graph passes into OpenGL/Vulkan command buffers backed by GPU resource providers ([`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md)), enabling real buffer/texture residency, telemetry, and runtime presentation via the OpenGL submission bundle.
 
 The rendering module currently provides frame-graph compilation, scheduler prototypes, and resource lifetime tracking, but the missing GPU execution path prevents end-to-end rendering. This README tracks the outstanding work needed to reach functional backends in addition to describing the existing infrastructure.
 

@@ -1,19 +1,18 @@
 {
-  "generated_at": "2025-11-05T07:14:25.893432+00:00",
+  "generated_at": "2025-11-06T06:50:51.470489+00:00",
   "include_archived": false,
   "summary": {
-    "blocked_tasks": 3,
+    "blocked_tasks": 4,
     "by_priority": {
       "P0": 2,
-      "P1": 3,
+      "P1": 2,
       "P2": 2
     },
     "by_status": {
-      "done": 1,
       "in_progress": 5,
       "review": 1
     },
-    "total_tasks": 7
+    "total_tasks": 6
   },
   "tasks": [
     {
@@ -47,7 +46,7 @@
       "id": "PM-510",
       "links": [
         "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md",
-        "hybrid_workflow/backlog/T-0119-command-encoder-integration.md",
+        "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md",
         "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md",
         "hybrid_workflow/backlog/TL-310-editor-foundations.md"
       ],
@@ -59,6 +58,35 @@
       "size": "M",
       "status": "in_progress",
       "title": "Weekly GPU integration demos"
+    },
+    {
+      "area": "rendering",
+      "blocked_on": [
+        "T-0120",
+        "T-0119",
+        "RT-410"
+      ],
+      "file": "hybrid_workflow/backlog/RG-450-modular-render-pipeline.md",
+      "gates": [
+        "tests",
+        "perf",
+        "docs",
+        "safety",
+        "release"
+      ],
+      "id": "RG-450",
+      "links": [
+        "docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md",
+        "docs/modules/rendering/README.md"
+      ],
+      "owner": "rendering-lead",
+      "priority": "P1",
+      "relates_to": [
+        "bundle:A"
+      ],
+      "size": "L",
+      "status": "in_progress",
+      "title": "Modular render pipeline planner"
     },
     {
       "area": "runtime",
@@ -76,7 +104,7 @@
       "links": [
         "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
         "docs/modules/runtime/README.md",
-        "hybrid_workflow/backlog/T-0119-command-encoder-integration.md",
+        "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md",
         "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"
       ],
       "owner": "runtime-lead",
@@ -105,54 +133,6 @@
       "size": "M",
       "status": "review",
       "title": "Sprint 11 alignment"
-    },
-    {
-      "area": "rendering",
-      "blocked_on": [],
-      "file": "hybrid_workflow/backlog/T-0119-command-encoder-integration.md",
-      "gates": [
-        "tests",
-        "perf",
-        "docs"
-      ],
-      "id": "T-0119",
-      "links": [
-        "docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md",
-        "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
-        "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"
-      ],
-      "owner": "rendering-lead",
-      "priority": "P1",
-      "relates_to": [
-        "bundle:A"
-      ],
-      "size": "L",
-      "status": "in_progress",
-      "title": "Command encoder integration"
-    },
-    {
-      "area": "rendering",
-      "blocked_on": [],
-      "file": "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md",
-      "gates": [
-        "tests",
-        "perf",
-        "docs"
-      ],
-      "id": "T-0120",
-      "links": [
-        "T-0119",
-        "docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md",
-        "docs/archive/backlog/legacy/tasks/T_0120_RENDERING_GPU_RESOURCE_PROVIDER_IMPLEMENTATION.md"
-      ],
-      "owner": "rendering-lead",
-      "priority": "P1",
-      "relates_to": [
-        "bundle:A"
-      ],
-      "size": "L",
-      "status": "done",
-      "title": "GPU resource provider completion"
     },
     {
       "area": "tools",

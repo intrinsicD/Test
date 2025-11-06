@@ -9,7 +9,7 @@ owner: runtime-lead
 gates: [tests, perf, docs]
 relates_to: [bundle:B]
 blocked_on: ["T-0119", "T-0120"]
-links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "docs/modules/runtime/README.md", "hybrid_workflow/backlog/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"]
+links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "docs/modules/runtime/README.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"]
 ---
 
 # Task RT-410 — Runtime Stage Planner & Presentation Loop
@@ -35,7 +35,7 @@ Deliver the ADR-0008 stage planner, presentation adapters, and synchronization s
 **References:**
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md)
 - [`docs/modules/runtime/README.md`](../docs/modules/runtime/README.md)
-- [`hybrid_workflow/backlog/T-0119-command-encoder-integration.md`](T-0119-command-encoder-integration.md)
+- [`hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md`](archive/T-0119-command-encoder-integration.md)
 - [`hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md`](archive/T-0120-gpu-resource-provider.md)
 - Presentation notes in PM-510 weekly demos
 

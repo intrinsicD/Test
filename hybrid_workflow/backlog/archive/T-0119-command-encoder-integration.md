@@ -33,9 +33,9 @@ Restore the GPU command encoder so frame-graph passes emit backend work for Open
 - Runtime presentation loop consumes encoder submissions without bespoke glue code.
 
 **References:**
-- [`docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md`](../docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md)
-- [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md)
-- [`hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md`](archive/T-0120-gpu-resource-provider.md)
+- [`docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md`](../../../docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md)
+- [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md)
+- [`hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md`](T-0120-gpu-resource-provider.md)
 - Rendering module README (`docs/modules/rendering/README.md`)
 
 ---
