@@ -41,6 +41,13 @@ namespace engine::runtime
     /// Callback signature executed for each stage.
     using RuntimeLoopStageFunction = std::function<void(double)>;
 
+    /// Stage execution budget hint for scheduling and telemetry.
+    struct StageBudget
+    {
+        double target_milliseconds{0.0};
+        bool enforce_budget{false};
+    };
+
     /// Declarative description of a runtime loop stage.
     struct RuntimeLoopStage
     {
@@ -50,6 +57,7 @@ namespace engine::runtime
         std::vector<std::string> dependencies{};
         RuntimeLoopThreadAffinity thread_affinity{RuntimeLoopThreadAffinity::MainThread};
         bool record_in_execution_report{true};
+        StageBudget budget{};
     };
 
     /// Compiled runtime loop plan ordered topologically.
@@ -77,7 +85,8 @@ namespace engine::runtime
                                                         std::vector<std::string> dependencies = {},
                                                         bool record_in_execution_report = true,
                                                         RuntimeLoopThreadAffinity thread_affinity =
-                                                            RuntimeLoopThreadAffinity::MainThread);
+                                                            RuntimeLoopThreadAffinity::MainThread,
+                                                        StageBudget budget = {});
 
         [[nodiscard]] RuntimeResult<RuntimeLoopPlan> build() const;
 

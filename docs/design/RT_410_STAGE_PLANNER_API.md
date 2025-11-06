@@ -545,13 +545,13 @@ private:
 - [x] Specify `PresentationBackend` interface extensions
 - [x] Design `PresentationStageBuilder` utility
 - [ ] Review API with module leads
-- [ ] Update parent RT-410 with progress
+- [x] Update parent RT-410 with progress
 
 ### Phase 2: Core Implementation (RT-410-B)
 - [ ] Implement `PresentationStageBuilder`
-- [ ] Extend `RuntimeStageHandle` with budget support
+- [x] Extend `RuntimeStageHandle` with budget support
 - [ ] Add presentation telemetry structures
-- [ ] Update `RuntimeStagePlanner` to capture stage budgets
+- [x] Update `RuntimeStagePlanner` to capture stage budgets
 
 ### Phase 3: Backend Implementations (RT-410-C/D/E)
 - [ ] Implement `OpenGLPresentationBackend` (wrap existing)

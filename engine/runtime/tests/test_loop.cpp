@@ -85,4 +85,43 @@ namespace engine::runtime
         ASSERT_EQ(diagnostics.size(), 1U);
         EXPECT_EQ(diagnostics[0]->name, "Diag.A");
     }
+
+    TEST(RuntimeLoopBuilder, PropagatesStageBudgetMetadata)
+    {
+        RuntimeLoopBuilder builder{};
+        StageBudget simulation_budget{};
+        simulation_budget.target_milliseconds = 1.25;
+        simulation_budget.enforce_budget = true;
+        ASSERT_TRUE(builder
+                        .add_stage("Simulation.Update",
+                                   RuntimeLoopPhase::Simulation,
+                                   [](double) {},
+                                   {},
+                                   true,
+                                   RuntimeLoopThreadAffinity::MainThread,
+                                   simulation_budget)
+                        .has_value());
+
+        StageBudget presentation_budget{};
+        presentation_budget.target_milliseconds = 3.5;
+        ASSERT_TRUE(builder
+                        .add_stage("Presentation.Submit",
+                                   RuntimeLoopPhase::Presentation,
+                                   [](double) {},
+                                   {"Simulation.Update"},
+                                   true,
+                                   RuntimeLoopThreadAffinity::WorkerThread,
+                                   presentation_budget)
+                        .has_value());
+
+        const auto plan_result = builder.build();
+        ASSERT_TRUE(plan_result.has_value());
+        const auto& stages = plan_result.value().stages();
+        ASSERT_EQ(stages.size(), 2U);
+
+        EXPECT_DOUBLE_EQ(stages[0].budget.target_milliseconds, 1.25);
+        EXPECT_TRUE(stages[0].budget.enforce_budget);
+        EXPECT_DOUBLE_EQ(stages[1].budget.target_milliseconds, 3.5);
+        EXPECT_FALSE(stages[1].budget.enforce_budget);
+    }
 }

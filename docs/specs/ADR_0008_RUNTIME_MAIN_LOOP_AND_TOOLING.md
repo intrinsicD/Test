@@ -45,12 +45,17 @@ clone glue code, jeopardise determinism, and complicate backend validation.
      duplicating scheduler knowledge. The API surface comprises:
 
      ```cpp
+     struct StageBudget {
+       double target_ms;                  // Nominal budget used for telemetry comparisons.
+       bool enforce_budget;               // Emit diagnostics when the budget is exceeded.
+     };
+
      struct StageHandle {
        StageId id;                        // Stable identifier generated from stage name.
        std::string_view name;             // Human-readable label used by diagnostics/tooling.
        RuntimeLoopPhase phase;            // Simulation, Presentation, Diagnostics.
        RuntimeLoopThreadAffinity affinity;// Scheduling hint enforced by the planner.
-       RuntimeLoopDuration budget;        // Nominal budget used for telemetry comparisons.
+       StageBudget budget;                // Presentation + telemetry budget metadata.
        Span<const StageId> dependencies;  // Topologically sorted upstream requirements.
      };
 

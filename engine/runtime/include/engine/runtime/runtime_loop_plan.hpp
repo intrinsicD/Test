@@ -18,6 +18,7 @@ namespace engine::runtime
         RuntimeLoopThreadAffinity thread_affinity{RuntimeLoopThreadAffinity::MainThread};
         bool record_in_execution_report{true};
         std::size_t index{0};
+        StageBudget budget{};
     };
 
     /// Execution payload returned by the stage planner.

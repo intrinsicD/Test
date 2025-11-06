@@ -109,6 +109,7 @@ public:
    - Presentation backends are partially integrated (mock + OpenGL implementations exist), yet they rely on callback invocation without the synchronized stage planner hooks that ADR-0008 reserves for deterministic presentation sequencing (`engine/runtime/src/api.cpp`, `engine/rendering/include/engine/rendering/presentation_backend.hpp`).
 2. [x] Implement stage planner core plus serialization hooks in `engine/runtime/src/`.
    - [x] (2025-05-07) Introduced `RuntimeStagePlanner`, integrated planner iteration into the runtime host, and documented planner error handling.
+   - [x] (2026-02-21) Extended runtime loop stages and planner handles with `StageBudget` metadata, updated tests, and refreshed runtime module documentation to surface budget telemetry expectations.
 3. [x] Design presentation backend API contracts (RT-410-A)
    - [x] (2025-11-06) Created comprehensive API design document: `docs/design/RT_410_STAGE_PLANNER_API.md`
    - [x] Specified `PresentationConfig`, `PresentationFrame`, enhanced `PresentationBackend` interface
@@ -135,11 +136,13 @@ public:
 ### Test Results
 
 ```bash
-# Pending — fill after implementation milestones
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug --target engine_runtime_tests  # interrupted: full dependency build exceeded session budget
+pytest python/tests/test_hybrid_workflow_task_status.py
 ```
 
 **Test Summary:**
-- Unit tests: pending implementation
+- Unit tests: build pending (engine_runtime_tests build interrupted after exceeding session time budget)
 - Integration tests: pending implementation
 - Documentation validation: pending implementation
 
@@ -166,14 +169,16 @@ public:
 
 ### Updated Files
 
-- `engine/runtime/include/engine/runtime/errors.hpp`
+- `engine/runtime/include/engine/runtime/loop.hpp`
 - `engine/runtime/include/engine/runtime/runtime_loop_plan.hpp`
-- `engine/runtime/src/api.cpp`
+- `engine/runtime/src/loop.cpp`
 - `engine/runtime/src/runtime_stage_planner.cpp`
-- `engine/runtime/CMakeLists.txt`
 - `engine/runtime/tests/runtime_stage_planner_tests.cpp`
-- `engine/runtime/tests/CMakeLists.txt`
+- `engine/runtime/tests/test_loop.cpp`
+- `docs/design/RT_410_STAGE_PLANNER_API.md`
 - `docs/modules/runtime/README.md`
+- `docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`
+- `hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`
 
 ---
 
