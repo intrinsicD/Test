@@ -9,7 +9,7 @@ owner: tools-lead
 gates: [tests, docs]
 relates_to: [bundle:B]
 blocked_on: ["RT-410"]
-links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "docs/modules/tools/README.md", "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/PM-510-weekly-integration-demos.md"]
+links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "docs/modules/tools/README.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/PM-510-weekly-integration-demos.md"]
 ---
 
 # Task TL-310 — Editor Foundations & Tooling Enablement
@@ -35,7 +35,7 @@ Re-enable the tools/editor module with shared panel registries and runtime integ
 **References:**
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md)
 - [`docs/modules/tools/README.md`](../docs/modules/tools/README.md)
-- [`hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`](RT-410-runtime-stage-planner.md)
+- [`hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`](archive/RT-410-runtime-stage-planner.md)
 - [`hybrid_workflow/backlog/PM-510-weekly-integration-demos.md`](PM-510-weekly-integration-demos.md)
 
 ### Context Ladder Notes — 2025-11-04

@@ -2,7 +2,7 @@
 
 ## Overview
 
-> **Status:** ⚠️ **At Risk** — `RuntimeHost` now compiles a declarative `RuntimeLoopPlan` with per-phase telemetry and supports the `rendering::PresentationBackend` interface, yet GPU-backed presenters and synchronisation APIs mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) remain outstanding until [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md) lands.
+> **Status:** ✅ **Stable** — `RuntimeHost` executes the declarative `RuntimeLoopPlan` with deterministic stage planning, shared presentation adapters, and telemetry delivered through archived [`RT-410`](../../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) per [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
 
 The runtime module orchestrates the engine's main execution loop through `RuntimeHost`, which coordinates animation evaluation, physics simulation, geometry deformation, scene graph updates, and rendering submission. It acts as the integration point for all subsystems and provides comprehensive diagnostics and telemetry.
 
@@ -38,7 +38,7 @@ protected:
     
     void on_render() override
     {
-        // Rendering (when RT-410 completes)
+        // Rendering (stage planner hooks delivered via RT-410)
     }
 };
 
@@ -80,7 +80,7 @@ Override virtual methods to implement application-specific behavior:
 
 - **`on_initialize()`** - Called once before main loop starts. Setup scene, load assets, etc.
 - **`on_update(double dt)`** - Called every frame. Handle input, update game logic.
-- **`on_render()`** - Called every frame after update. Rendering logic (future RT-410 integration).
+- **`on_render()`** - Called every frame after update. Rendering logic (driven by RT-410 presentation adapters).
 - **`on_shutdown()`** - Called once after main loop exits. Clean up resources.
 
 ### Subsystem Accessors
@@ -116,7 +116,7 @@ See [`engine/tools/examples/geometry_viewer.cpp`](../../../engine/tools/examples
 
 ## Outstanding Work
 
-- Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) (`RT-410`).
+- Expand the new `RuntimeLoopPlan` stage planner with presentation adapters and runtime configurability described in [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) (delivered via archived `RT-410`).
 - Provide synchronisation hooks for scripting, diagnostics, and tooling integrations in tandem with rendering backends.
 - Exercise the GPU-backed submission stack shipped in [`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) while extending presentation hooks; the command encoder integration ([`T-0119`](../../../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md)) is already live.
 
@@ -572,7 +572,7 @@ ctest --preset linux-gcc-debug -R runtime
 
 ## TODO / Next Steps
 
-- Execute [`RT-410`](../../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md): ship the stage planner, presentation adapters, and synchronisation hooks mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
+- Leverage archived [`RT-410`](../../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md): stage planner, presentation adapters, and synchronisation hooks mandated by [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) are available for tooling integration.
 - Continue pairing with rendering on [`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) deliverables by exercising the shipped command encoder (`T-0119`) against GPU-backed submissions during RT-410 validation.
 - Maintain the prototyping harness/case studies as new datasets land and record follow-on scenarios in [`../../ROADMAP.md`](../../ROADMAP.md) when they enter planning.
 

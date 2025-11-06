@@ -9,7 +9,7 @@ owner: runtime-lead
 gates: [docs]
 relates_to: [bundle:B, RT-410]
 blocked_on: []
-links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md"]
+links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md"]
 ---
 # Task RT-410-A — Stage Planner API Design
 ## Intent

@@ -48,7 +48,7 @@ blocked_on: ["RT-410"]
 
 ### 3. RT-410 — Removed Completed Task Blockers ✅ NOW UNBLOCKED
 
-**File:** `hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`
+**File:** `hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
 
 **Before:**
 ```yaml
@@ -154,7 +154,7 @@ If RT-410 completes:
 
 1. `/home/alex/Documents/Test/hybrid_workflow/backlog/AI-004-kickoff-brief.md`
 2. `/home/alex/Documents/Test/hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
-3. `/home/alex/Documents/Test/hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`
+3. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
 
 ---
 

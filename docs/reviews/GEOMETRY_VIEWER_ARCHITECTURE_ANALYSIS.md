@@ -416,7 +416,7 @@ The engine has excellent architectural foundations, but several critical integra
 
 ## References
 
-- [RT-410: Runtime Stage Planner](../../hybrid_workflow/backlog/RT-410-runtime-stage-planner.md)
+- [RT-410: Runtime Stage Planner](../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md)
 - [T-0119: Command Encoder Integration](../../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md)
 - [T-0120: GPU Resource Provider](../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md)
 - [Architecture Overview](../ARCHITECTURE.md)

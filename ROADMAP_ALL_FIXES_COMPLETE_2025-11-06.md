@@ -101,7 +101,7 @@ Status counts:
    - Removed RT-410 blocker
    - Added architectural note on independence
 
-3. `/home/alex/Documents/Test/hybrid_workflow/backlog/RT-410-runtime-stage-planner.md`
+3. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
    - Removed T-0120, T-0119 blockers
 
 4. `/home/alex/Documents/Test/hybrid_workflow/backlog/archive/SPRINT-11-alignment.md` (moved)

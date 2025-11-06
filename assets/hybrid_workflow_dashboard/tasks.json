@@ -2,14 +2,15 @@
   "generated_at": "2025-11-06T06:50:51.470489+00:00",
   "include_archived": false,
   "summary": {
-    "blocked_tasks": 4,
+    "blocked_tasks": 3,
     "by_priority": {
       "P0": 2,
       "P1": 2,
       "P2": 2
     },
     "by_status": {
-      "in_progress": 5,
+      "done": 1,
+      "in_progress": 4,
       "review": 1
     },
     "total_tasks": 6
@@ -47,7 +48,7 @@
       "links": [
         "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md",
         "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md",
-        "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md",
+        "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md",
         "hybrid_workflow/backlog/TL-310-editor-foundations.md"
       ],
       "owner": "agent-orchestrator",
@@ -90,11 +91,8 @@
     },
     {
       "area": "runtime",
-      "blocked_on": [
-        "T-0119",
-        "T-0120"
-      ],
-      "file": "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md",
       "gates": [
         "tests",
         "perf",
@@ -113,7 +111,7 @@
         "bundle:B"
       ],
       "size": "L",
-      "status": "in_progress",
+      "status": "done",
       "title": "Runtime stage planner & presentation loop"
     },
     {
@@ -148,7 +146,7 @@
       "links": [
         "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
         "docs/modules/tools/README.md",
-        "hybrid_workflow/backlog/RT-410-runtime-stage-planner.md",
+        "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md",
         "hybrid_workflow/backlog/PM-510-weekly-integration-demos.md"
       ],
       "owner": "tools-lead",
