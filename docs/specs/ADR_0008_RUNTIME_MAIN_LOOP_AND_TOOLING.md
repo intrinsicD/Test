@@ -41,6 +41,33 @@ clone glue code, jeopardise determinism, and complicate backend validation.
    - `RuntimeHost` owns a compiled `RuntimeLoopPlan` produced by the builder at initialization.
      Each `tick` iterates the plan, executing stages with deterministic ordering and emitting
      per-stage telemetry.
+   - Expose planner contracts so tooling and backends can interact with the compiled plan without
+     duplicating scheduler knowledge. The API surface comprises:
+
+     ```cpp
+     struct StageHandle {
+       StageId id;                        // Stable identifier generated from stage name.
+       std::string_view name;             // Human-readable label used by diagnostics/tooling.
+       RuntimeLoopPhase phase;            // Simulation, Presentation, Diagnostics.
+       RuntimeLoopThreadAffinity affinity;// Scheduling hint enforced by the planner.
+       RuntimeLoopDuration budget;        // Nominal budget used for telemetry comparisons.
+       Span<const StageId> dependencies;  // Topologically sorted upstream requirements.
+     };
+
+     class RuntimeStagePlanner {
+     public:
+       void Reset(const RuntimeLoopPlan& plan);
+       Expected<StageExecution, PlannerError> AcquireNextStage(RuntimeContext& ctx);
+       void CompleteStage(StageExecutionToken token, StageResult result);
+       const RuntimeLoopPlan& InspectPlan() const noexcept;
+     };
+     ```
+
+     - `StageExecution` encapsulates a `StageHandle`, execution state, and timing accumulators.
+     - `StageExecutionToken` is an opaque handle guaranteeing balanced `Acquire`/`Complete` calls
+       for profiling and synchronization.
+     - `PlannerError` enumerates structural faults (cycle detection, missing dependencies) and
+       runtime errors (stage execution failures, timeout budget overruns).
 
 2. **Separate backend submission from presentation.**
    - Extend the rendering contract with a `PresentationBackend` interface encapsulating swap
@@ -48,6 +75,35 @@ clone glue code, jeopardise determinism, and complicate backend validation.
    - Frame-graph execution populates render targets and returns a `FrameOutput` handle. The loop
      passes this handle to the presentation backend, which resolves the final image, composites
      UI overlays, and performs presentation or readback.
+   - Standardise the interface so runtime/tooling code can manage lifecycle transitions:
+
+     ```cpp
+     class PresentationBackend {
+     public:
+       virtual ~PresentationBackend() = default;
+
+       virtual Expected<void, PresentationError>
+       Initialize(const PresentationConfig& config) = 0;   // Acquire swapchain/window state.
+
+       virtual Expected<PresentationFrame, PresentationError>
+       BeginFrame(const StageHandle& present_stage) = 0;    // Import runtime frame outputs.
+
+       virtual Expected<void, PresentationError>
+       CompositeOverlays(PresentationFrame& frame,
+                         const tools::imgui::DrawData* overlays) = 0; // Optional.
+
+       virtual Expected<void, PresentationError>
+       Submit(PresentationFrame&& frame) = 0;               // Present or perform readback.
+
+       virtual void Shutdown() noexcept = 0;                // Release native resources.
+     };
+     ```
+
+     - `PresentationConfig` captures windowing handles, vsync policy, colour space, and headless
+       readback toggles negotiated with platform services.
+     - `PresentationFrame` owns the resolved render targets and any synchronization fences needed
+       to guarantee GPU/CPU ownership transfer.
+     - `PresentationError` codes align with runtime error handling (`engine/runtime/errors.hpp`).
    - Provide built-in implementations for OpenGL (existing queue-normalised path) and a Vulkan
      WSI bridge. Mock/headless mode exposes a CPU readback presenter for CI.
 
@@ -96,8 +152,10 @@ clone glue code, jeopardise determinism, and complicate backend validation.
 1. Author header/API updates:
    - `engine/runtime/include/.../loop.hpp` for `RuntimeLoopStage`, `RuntimeLoopBuilder`, and
      inspection utilities.
+   - `engine/runtime/include/.../stage_planner.hpp` for `StageHandle`, `RuntimeStagePlanner`, and
+     associated error/result types consumed by tooling and scripting.
    - `engine/rendering/include/.../presentation_backend.hpp` describing the new interface and
-     default implementations.
+     default implementations, plus shared config/descriptor types consumed by runtime/tests.
    - `engine/tools/include/engine/tools/imgui/panel_registry.hpp` plus supporting source files.
 
 2. Refactor `RuntimeHost` initialization to build the default loop plan and expose configuration
