@@ -9,7 +9,7 @@ owner: rendering-lead
 gates: [tests, perf, docs, safety, release]
 relates_to: [bundle:A]
 blocked_on: []
-links: ["docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md", "docs/modules/rendering/README.md"]
+links: ["docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md", "docs/design/RG_450_NODE_DESCRIPTOR_API.md", "docs/modules/rendering/README.md"]
 ---
 
 # Task RG-450 — Modular Render Pipeline Planner
@@ -161,6 +161,12 @@ public:
    - Exported deferred baseline snapshot to `docs/modules/rendering/graphs/deferred_pbr.dot` and logged PM-510 capture in `telemetry/pm510_demo_priority-modular-render-pipeline.json` with queue overlap metrics.
 10. [x] Update documentation (rendering module README, ROADMAP) and finalize task evidence.
    - Refreshed rendering README planner diagnostics, updated roadmap status, and appended PM-510 artefact index with the new DOT/telemetry bundle.
+11. [x] Design node descriptor API (RG-450-A)
+   - [x] (2025-11-06) Created comprehensive API design document: `docs/design/RG_450_NODE_DESCRIPTOR_API.md`
+   - [x] Documented NodeDescriptor validation rules and INode interface semantics
+   - [x] Created 4 example node implementations (Geometry, Bloom compute, Deferred Lighting, Swapchain)
+   - [x] Specified tag-based pipeline profiles and hot-reload support
+   - [ ] Pending review with module leads before implementation
 
 ---
 

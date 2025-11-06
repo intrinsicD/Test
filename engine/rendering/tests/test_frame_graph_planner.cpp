@@ -241,7 +241,7 @@ namespace engine::rendering
         FrameGraphPlanner::PlanRequest request{};
         request.nodes = {"render.consumer"};
 
-        EXPECT_THROW(planner.plan(request), std::runtime_error);
+        EXPECT_THROW((void)planner.plan(request), std::runtime_error);
     }
 
     TEST(FrameGraphPlanner, ReusesTransientAllocationsWhenLifetimesDisjoint)
