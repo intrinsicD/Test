@@ -4,6 +4,7 @@
 #include "engine/runtime/loop.hpp"
 #include "engine/runtime/render_submission.hpp"
 #include "engine/runtime/loop_inspector.hpp"
+#include "engine/runtime/runtime_loop_plan.hpp"
 #include "engine/io/telemetry.hpp"
 #include "engine/math/telemetry/conversion_telemetry.hpp"
 #include "engine/animation/benchmarking/telemetry.hpp"
@@ -483,6 +484,7 @@ namespace engine::runtime
         std::unordered_map<std::string, std::size_t> subsystem_lookup{};
         std::array<double, runtime_loop_phase_count()> phase_frame_duration_seconds{};
         std::array<bool, runtime_loop_phase_count()> phase_active{};
+        RuntimeStagePlanner stage_planner{};
         RuntimeHost::PresentationCallback presentation_callback{};
 #if ENGINE_ENABLE_RENDERING
         rendering::components::RenderGeometry render_geometry{};
@@ -668,6 +670,15 @@ namespace engine::runtime
             {
                 diagnostics.loop_plan_serialization = serialize_loop_plan(loop_plan);
                 refresh_phase_metadata();
+            }
+
+            const auto planner_result = stage_planner.configure_plan(loop_plan);
+            if (!planner_result)
+            {
+                spdlog::error(
+                    "Failed to configure runtime stage planner: {}",
+                    planner_result.error().message());
+                stage_planner.clear_plan();
             }
         }
 
@@ -1967,6 +1978,7 @@ namespace engine::runtime
             subsystem_lookup.clear();
             phase_frame_duration_seconds.fill(0.0);
             phase_active.fill(false);
+            stage_planner.clear_plan();
             presentation_callback = dependencies.presentation_callback;
             scene = scene::Scene{scene_name()};
 #if ENGINE_ENABLE_RENDERING
@@ -2603,22 +2615,41 @@ namespace engine::runtime
             std::vector<std::size_t> report_indices(
                 stages.size(), std::numeric_limits<std::size_t>::max());
 
-            for (std::size_t index = 0; index < stages.size(); ++index)
+            stage_planner.reset_iteration();
+            while (true)
             {
-                const auto& stage = stages[index];
-                const auto stage_start = Clock::now();
-                if (stage.function)
+                auto next_stage = stage_planner.next_stage();
+                if (!next_stage)
                 {
-                    stage.function(dt);
+                    const auto error_message = std::string{next_stage.error().message()};
+                    throw std::runtime_error(
+                        "RuntimeStagePlanner iteration failed: " + error_message);
+                }
+
+                auto& stage_execution_optional = next_stage.value();
+                if (!stage_execution_optional.has_value())
+                {
+                    break;
+                }
+
+                const auto& stage_execution = stage_execution_optional.value();
+                const auto stage_start = Clock::now();
+                if (stage_execution.function)
+                {
+                    stage_execution.function(dt);
                 }
                 const auto stage_duration = Clock::now() - stage_start;
                 const double seconds = std::chrono::duration<double>(stage_duration).count();
-                record_stage_sample(stage.name, stage.phase, stage.thread_affinity, seconds);
-                if (stage.record_in_execution_report)
+                record_stage_sample(
+                    stage_execution.handle.name,
+                    stage_execution.handle.phase,
+                    stage_execution.handle.thread_affinity,
+                    seconds);
+                if (stage_execution.handle.record_in_execution_report)
                 {
                     const std::size_t report_index = last_report.execution_order.size();
-                    report_indices[index] = report_index;
-                    last_report.execution_order.push_back(stage.name);
+                    report_indices[stage_execution.handle.index] = report_index;
+                    last_report.execution_order.emplace_back(stage_execution.handle.name);
                     last_report.kernel_durations.push_back(seconds);
                 }
             }
