@@ -42,6 +42,8 @@ class _MockRuntime:
     dispatch_times: List[float] = field(default_factory=list)
     rendering_configurations: List[dict] = field(default_factory=list)
     configure_exception: Optional[Exception] = None
+    presentation_active: bool = False
+    loop_plan_json: str = ""
 
     def __enter__(self) -> "_MockRuntime":
         self.initialized = True
@@ -88,6 +90,12 @@ class _MockRuntime:
                 "overlays": dict(overlays),
             }
         )
+
+    def presentation_stage_active(self) -> bool:
+        return self.presentation_active
+
+    def loop_plan_serialization(self) -> str:
+        return self.loop_plan_json
 
 
 def _write_configuration(tmp_path: Path) -> Path:
@@ -317,6 +325,11 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
         average_tick_value=1.5,
         dispatch_names=["geometry::remesh", "render::composite"],
         dispatch_times=[0.001, 0.0025],
+        presentation_active=True,
+        loop_plan_json=(
+            '{"stages":[{"name":"simulation.start"},'
+            '{"name":"presentation.dispatch"}]}'
+        ),
     )
 
     harness = PrototypeHarness(
@@ -350,6 +363,8 @@ def test_prototype_harness_executes_ticks(tmp_path: Path) -> None:
     assert summary.dispatch_order == ("geometry::remesh", "render::composite")
     assert summary.dispatch_durations_ms == pytest.approx((1.0, 2.5))
     assert summary.average_tick_ms == pytest.approx(1.5)
+    assert summary.presentation_stage_active is True
+    assert summary.loop_plan_serialization == runtime.loop_plan_json
     assert tuple(output.kind for output in summary.telemetry_outputs) == ("file", "stdout")
     expected_output_path = (tmp_path / "telemetry" / "remesh-sample.json").resolve()
     assert summary.telemetry_outputs[0].path == str(expected_output_path)
@@ -452,6 +467,8 @@ def test_run_headless_supports_custom_scenario_label(tmp_path: Path) -> None:
 
     assert summary.scenario_label == "custom-scenario"
     assert summary.runtime_profile == "baseline"
+    assert summary.presentation_stage_active is False
+    assert summary.loop_plan_serialization == ""
     assert summary.telemetry_outputs
     assert summary.telemetry_outputs[0].path is not None
     assert summary.telemetry_outputs[0].path.endswith("telemetry/custom-scenario.json")
@@ -460,6 +477,8 @@ def test_run_headless_supports_custom_scenario_label(tmp_path: Path) -> None:
     assert payload["runtime_profile"] == "baseline"
     assert payload["resolution_width"] == 1920
     assert payload["resolution_height"] == 1080
+    assert payload["presentation_stage_active"] is False
+    assert payload["loop_plan_serialization"] == ""
 
 
 def test_run_headless_supports_run_metadata_placeholders(tmp_path: Path) -> None:
@@ -488,6 +507,8 @@ def test_run_headless_supports_run_metadata_placeholders(tmp_path: Path) -> None
     assert first_output.path is not None
     assert first_output.path.endswith("telemetry/remesh-sample-run02-of-05.json")
     assert summary.runtime_profile == "baseline"
+    assert summary.presentation_stage_active is False
+    assert summary.loop_plan_serialization == ""
 
 
 def test_interactive_session_configures_runtime(tmp_path: Path) -> None:
@@ -1054,6 +1075,8 @@ def test_summarize_formats_output() -> None:
     assert summary_payload["frames"] == 10
     assert summary_payload["dispatch_order"] == ["geometry::remesh"]
     assert summary_payload["dispatch_durations_ms"] == [1.5]
+    assert summary_payload["presentation_stage_active"] is False
+    assert summary_payload["loop_plan_serialization"] == ""
     assert summary_payload["telemetry_outputs"] == []
 
 
@@ -1079,6 +1102,8 @@ def test_summarize_includes_run_metadata() -> None:
     assert summary_payload["resolution_height"] is None
     assert summary_payload["run_index"] == 2
     assert summary_payload["run_count"] == 3
+    assert summary_payload["presentation_stage_active"] is False
+    assert summary_payload["loop_plan_serialization"] == ""
     assert summary_payload["telemetry_outputs"] == []
 
 
@@ -1123,6 +1148,8 @@ def test_cli_exports_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     assert summary_payload["runtime_profile"] == "baseline"
     assert summary_payload["dispatch_order"] == []
     assert summary_payload["dispatch_durations_ms"] == []
+    assert summary_payload["presentation_stage_active"] is False
+    assert summary_payload["loop_plan_serialization"] == ""
     assert len(summary_payload["telemetry_outputs"]) == 2
     telemetry_outputs = summary_payload["telemetry_outputs"]
     expected_output_path = (tmp_path / "telemetry" / "remesh-sample.json").resolve()
