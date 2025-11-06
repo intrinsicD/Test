@@ -295,4 +295,54 @@ namespace engine::rendering
         ASSERT_NE(depth_resource.alias, std::numeric_limits<std::size_t>::max());
         EXPECT_EQ(depth_resource.alias, blur_resource.alias);
     }
+
+    TEST(FrameGraphPlanner, RebuildsPlanWhenPluginDescriptorsReload)
+    {
+        FrameGraphNodeRegistry registry{};
+
+        NodeDescriptor initial{};
+        initial.id = "plugin.dynamic";
+        ResourceDesc output{};
+        output.name = "plugin.output";
+        output.format = ResourceFormat::Rgba16f;
+        output.dimension = ResourceDimension::Texture2D;
+        output.width = 1280;
+        output.height = 720;
+        initial.creates.push_back(output);
+        initial.tags.push_back("initial");
+
+        auto initial_handle = registry.register_plugin_nodes("plugin.dynamic", {make_factory(initial)});
+
+        FrameGraphPlanner planner{registry};
+        FrameGraphPlanner::PlanRequest request{};
+        request.nodes = {"plugin.dynamic"};
+
+        auto initial_plan = planner.plan(request);
+        ASSERT_EQ(initial_plan.passes().size(), 1U);
+        const auto& initial_pass = initial_plan.passes().front();
+        ASSERT_EQ(initial_pass.descriptor.tags.size(), 1U);
+        EXPECT_EQ(initial_pass.descriptor.tags.front(), "initial");
+
+        NodeDescriptor reloaded = initial;
+        reloaded.tags = {"reloaded"};
+        reloaded.creates[0].format = ResourceFormat::Rgba32f;
+        reloaded.creates[0].width = 2560;
+
+        auto reloaded_handle = registry.register_plugin_nodes("plugin.dynamic", {make_factory(reloaded)});
+
+        auto reloaded_plan = planner.plan(request);
+        ASSERT_EQ(reloaded_plan.passes().size(), 1U);
+        const auto& reloaded_pass = reloaded_plan.passes().front();
+        ASSERT_EQ(reloaded_pass.descriptor.tags.size(), 1U);
+        EXPECT_EQ(reloaded_pass.descriptor.tags.front(), "reloaded");
+
+        const auto output_index = reloaded_plan.find_resource("plugin.output");
+        ASSERT_TRUE(output_index.has_value());
+        const auto& output_resource = reloaded_plan.resources()[*output_index];
+        EXPECT_EQ(output_resource.descriptor.format, ResourceFormat::Rgba32f);
+        EXPECT_EQ(output_resource.descriptor.width, 2560U);
+
+        reloaded_handle.release();
+        initial_handle.release();
+    }
 }

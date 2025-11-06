@@ -172,8 +172,8 @@ Created:
   docs/design/RG_450_NODE_DESCRIPTOR_API.md
 
 Modified:
-  hybrid_workflow/backlog/RG-450-A-node-descriptor-api.md
-  hybrid_workflow/backlog/RG-450-modular-render-pipeline.md
+  hybrid_workflow/backlog/archive/RG-450-A-node-descriptor-api.md
+  hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md
 ```
 
 ## Metrics
