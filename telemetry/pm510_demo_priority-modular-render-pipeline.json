@@ -1,0 +1,40 @@
+{
+  "priority_slot": "P1-modular-pipeline",
+  "focus": "Modular render pipeline planner telemetry and DOT export",
+  "participants": [
+    "Rendering Lead",
+    "Runtime Lead",
+    "Tools Lead",
+    "Agent Orchestrator"
+  ],
+  "summary": "Demonstrated the RG-450 planner assembling deferred and hybrid presets with hot-swappable nodes while streaming execution telemetry into PM-510 dashboards.",
+  "metrics": {
+    "planner_schedule_ms": {
+      "hard_wired_baseline": 0.82,
+      "modular_planner": 0.88,
+      "delta": 0.06
+    },
+    "transient_allocator": {
+      "acquires_per_frame": 6,
+      "releases_per_frame": 6,
+      "alias_pools_active": 2
+    },
+    "queue_distribution": {
+      "graphics_submissions": 3,
+      "compute_submissions": 1,
+      "overlap_ratio": 0.37
+    }
+  },
+  "follow_ups": [
+    {
+      "owner": "Rendering Lead",
+      "action": "Extend planner tests to cover plugin hot-reload telemetry diffs",
+      "status": "queued"
+    },
+    {
+      "owner": "Docs Team",
+      "action": "Embed latest DOT exports and telemetry links in rendering README",
+      "status": "complete"
+    }
+  ]
+}

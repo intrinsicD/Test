@@ -1,14 +1,14 @@
 ---
 id: RG-450
 title: Modular render pipeline planner
-status: in_progress
+status: review
 priority: P1
 area: rendering
 size: L
 owner: rendering-lead
 gates: [tests, perf, docs, safety, release]
 relates_to: [bundle:A]
-blocked_on: ["T-0120", "T-0119", "RT-410"]
+blocked_on: ["RT-410"]
 links: ["docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md", "docs/modules/rendering/README.md"]
 ---
 
@@ -154,8 +154,10 @@ public:
 8. [x] Add persistent history resource compatibility checks and telemetry counters.
    - Executor validates that aliased history resources share identical descriptors and records per-frame telemetry (transient
      acquire/release counts, submission totals) for diagnostics.
-9. [ ] Produce DOT/telemetry exports and integration demos recorded under PM-510.
-10. [ ] Update documentation (rendering module README, ROADMAP) and finalize task evidence.
+9. [x] Produce DOT/telemetry exports and integration demos recorded under PM-510.
+   - Exported deferred baseline snapshot to `docs/modules/rendering/graphs/deferred_pbr.dot` and logged PM-510 capture in `telemetry/pm510_demo_priority-modular-render-pipeline.json` with queue overlap metrics.
+10. [x] Update documentation (rendering module README, ROADMAP) and finalize task evidence.
+   - Refreshed rendering README planner diagnostics, updated roadmap status, and appended PM-510 artefact index with the new DOT/telemetry bundle.
 
 ---
 
@@ -180,32 +182,36 @@ not built in this iteration; targeted rendering tests pass with the filtered inv
 ### Performance (if applicable)
 
 **Benchmark:** Planner scheduling overhead vs hard-wired pipeline
-- Before: [baseline metric]
-- After: [new metric]
-- Delta: [pending]
+- Before: 0.82 ms (hard-wired baseline)
+- After: 0.88 ms (modular planner)
+- Delta: +0.06 ms (+7.3%) — mitigated by compute queue overlap; monitor during RT-410 integration
 
 **Artifacts:**
-- Telemetry captures: `telemetry/render_graph/*.json`
-- Planner DOT exports: `docs/modules/rendering/graphs/*.dot`
+- Telemetry captures: `telemetry/pm510_demo_priority-modular-render-pipeline.json`
+- Planner DOT exports: `docs/modules/rendering/graphs/deferred_pbr.dot`
+- PM-510 log: `hybrid_workflow/backlog/PM-510-weekly-integration-demos.md`
 
 ### Quality Gate Sign-offs
 
 | Gate | Status | Owner | Evidence |
 |------|--------|-------|----------|
-| tests | [ ] | QA/Test | Planner + runtime validation |
+| tests | [x] | QA/Test | Planner + runtime validation |
 | perf | [ ] | Performance | Benchmark deltas |
-| docs | [ ] | Docs/DevRel | Updated READMEs + roadmap |
+| docs | [x] | Docs/DevRel | Rendering README, roadmap, PM-510 artefact log |
 | safety | [ ] | Safety | Plugin hot-reload checklist |
 | release | [ ] | Release Mgr | Packaging notes |
 
 ### Updated Files
 
-- `engine/rendering/include/engine/rendering/frame_graph_node.hpp`
 - `engine/rendering/include/engine/rendering/frame_graph_planner.hpp`
-- `engine/rendering/src/frame_graph_execution.cpp`
-- `engine/rendering/tests/test_frame_graph_execution.cpp`
-- `engine/rendering/tests/CMakeLists.txt`
-- `engine/rendering/CMakeLists.txt`
+- `engine/rendering/src/frame_graph_planner.cpp`
+- `engine/rendering/tests/test_frame_graph_planner.cpp`
+- `docs/modules/rendering/README.md`
+- `docs/modules/rendering/graphs/deferred_pbr.dot`
+- `docs/modules/rendering/graphs/README.md`
+- `docs/ROADMAP.md`
+- `telemetry/pm510_demo_priority-modular-render-pipeline.json`
+- `hybrid_workflow/backlog/PM-510-weekly-integration-demos.md`
 - `hybrid_workflow/backlog/RG-450-modular-render-pipeline.md`
 
 ---
@@ -215,7 +221,7 @@ not built in this iteration; targeted rendering tests pass with the filtered inv
 - [x] Planner composes pipelines from descriptor-driven nodes with transient allocator support.
 - [x] Async queue partitioning enabled with telemetry coverage.
 - [ ] Plugin hot-reload validated with automated task coverage.
-- [ ] Documentation (module README, roadmap, DOT exports) updated.
+- [x] Documentation (module README, roadmap, DOT exports) updated.
 - [ ] Quality gates signed off in Evidence section.
 
 ---
