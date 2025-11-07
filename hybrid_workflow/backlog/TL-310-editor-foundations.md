@@ -105,6 +105,19 @@ public:
     teardown without bespoke wiring.
    - (2026-04-24) Introduced `RuntimePanelBridge` to register diagnostics, profiler, and scene validation panels against the
     shared `PanelRegistry`, exposing a single render entry point for the editor harness.
+2a. [ ] **Integrate presentation backend into Application framework** (enables rendering for tools/examples).
+   - **See detailed subtask:** [`TL-310-2a-application-presentation-integration.md`](TL-310-2a-application-presentation-integration.md)
+   - **Context:** RT-410 delivered `PresentationBackend` implementations (Mock, GLFW, OpenGL), but `runtime::Application` doesn't instantiate or wire them. This prevents `geometry_viewer` and future editor harness from rendering. See `GEOMETRY_VIEWER_SOLUTION.md` for analysis.
+   - **Subtasks:**
+     - [ ] Add `RenderExecutionContext` and `PresentationBackend` members to `Application` class
+     - [ ] Initialize presentation backend in `Application::initialize_subsystems()` based on config
+     - [ ] Wire begin_frame/end_frame/present calls in `Application::run_main_loop()`
+     - [ ] Expose `render_context()` accessor to derived classes for frame graph execution
+     - [ ] Update `geometry_viewer` to store frame graph as member and call `frame_graph_.execute(render_context())` in `on_render()`
+     - [ ] Add unit tests for Application rendering lifecycle
+     - [ ] Document the pattern in `docs/modules/runtime/README.md`
+   - **Estimated effort:** 4-6 hours
+   - **Unblocks:** geometry_viewer rendering, TL-311+ editor panel visualization, any Application-based rendering tools
 3. [ ] Restore unit tests in `engine/tools/tests/` for registry + configuration loader.
 4. [ ] Add editor smoke scenario to scripts/tests harness.
 5. [ ] Refresh tools README and root README to describe revived workflow.
@@ -120,6 +133,8 @@ public:
 **Status Update (2026-04-24):** Added `engine::tools::editor::RuntimePanelBridge` so runtime diagnostics, profiler telemetry, and scene validation reports register automatically with the shared panel registry and render through a unified entry point during editor bring-up.
 
 **Status Update (2025-11-07):** RT-410 completed and archived (2026-03-30). All runtime presentation hooks, window backends (GLFW, Mock), and OpenGL presentation adapters are operational and verified. `geometry_viewer` example demonstrates end-to-end rendering pipeline working at 254k+ FPS. TL-310 is **no longer blocked** and proceeding with remaining implementation steps (editor smoke tests, documentation refresh, PM-510 demo coordination).
+
+**Status Update (2025-11-07 - later):** Added step 2a to integrate `PresentationBackend` into `Application` framework. While RT-410 delivered the backends, the `Application` class doesn't instantiate or wire them, preventing rendering in tools/examples. This integration is required to complete `geometry_viewer` and enable editor harness rendering. Analysis documented in `GEOMETRY_VIEWER_SOLUTION.md`.
 
 ---
 
@@ -167,6 +182,13 @@ broader editor harness remains in progress pending runtime presentation hooks.
 - `docs/modules/tools/README.md`
 - `README.md`
 - `docs/ROADMAP.md`
+- **Application integration (step 2a):**
+  - `engine/runtime/include/engine/runtime/application.hpp`
+  - `engine/runtime/src/application.cpp`
+  - `engine/runtime/tests/test_application_rendering.cpp`
+  - `engine/tools/examples/geometry_viewer.cpp`
+  - `docs/modules/runtime/README.md`
+  - `GEOMETRY_VIEWER_SOLUTION.md` (analysis document)
 - (2026-04-24) Added RAII registration handle + documentation refresh:
   - `hybrid_workflow/CONTRIBUTING.md`
   - `hybrid_workflow/TOOLS_REFERENCE.md`
@@ -180,6 +202,7 @@ broader editor harness remains in progress pending runtime presentation hooks.
 ## Completion Checklist (Definition of Done)
 
 - [ ] Tools module builds enabled with clear feature flag documentation.
+- [ ] **Application framework integrates with PresentationBackend (enables rendering in tools/examples).**
 - [ ] Panel registry, sandbox bridge, and editor harness implemented with tests.
 - [ ] CI smoke coverage restored for editor scenarios.
 - [ ] Documentation updated (tools README, root README, roadmap, navigation if needed).

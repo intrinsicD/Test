@@ -8,9 +8,10 @@ size: M
 owner: tools-lead
 gates: [tests, docs]
 relates_to: [bundle:B]
-blocked_on: ["TL-310 editor foundations (in progress, no longer blocked)"]
+blocked_on: ["TL-310 editor foundations (in progress)", "TL-310-2a Application rendering (needed for panel visualization)"]
 links:
   - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
+  - "hybrid_workflow/backlog/TL-310-2a-application-presentation-integration.md"
   - "hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md"
   - "docs/modules/tools/README.md"
   - "docs/modules/scene/README.md"
