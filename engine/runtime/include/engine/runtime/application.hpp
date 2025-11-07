@@ -62,6 +62,7 @@ namespace engine::runtime
             {
                 Auto,
                 Mock,
+                OpenGL,
             };
 
             /// Enable rendering integration for the application.

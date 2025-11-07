@@ -254,6 +254,8 @@ $ ./out/build/linux-gcc-debug/engine/runtime/tests/engine_runtime_tests --gtest_
 - (2026-04-24) Application now registers the presentation backend with `RuntimeHost` and forwards
   `RuntimePresentationContext::submit_render_graph` so future GPU backends (e.g., OpenGL) receive
   the submission callback described in the original design sketch.
+- (2026-04-26) Added automatic backend selection: `Auto` now prefers the OpenGL presenter when GLFW
+  windows are requested and gracefully falls back to the mock backend in headless configurations.
 
 **Follow-ups:**
 - [ ] Add Vulkan backend support (when Vulkan rendering ready)

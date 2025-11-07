@@ -331,8 +331,10 @@ external dependencies and remains available without additional packages.
 ## Key Insight
 
 The `Application` base class now drives rendering end-to-end when `ApplicationConfig::rendering.enable`
-is set. Use the mock backend to exercise the workflow in CI, then flip to GLFW/OpenGL on a workstation
-once the system packages are installed. `engine/tools/examples/geometry_viewer.cpp` remains the
+is set. Use the mock backend to exercise the workflow in CI. On workstations with GLFW/OpenGL
+dependencies installed, set `ApplicationConfig::rendering.backend` to `Auto` (with a GLFW window) or
+`OpenGL` to launch the interactive presenter. The configuration gracefully falls back to the mock
+backend when native surfaces are unavailable. `engine/tools/examples/geometry_viewer.cpp` remains the
 authoritative reference for frame-graph setup even though the binary is skipped in headless builds.
 
 ---
