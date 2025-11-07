@@ -75,6 +75,10 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | 1 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | Build modular render pipeline planner with node reflection, transient resources, and async scheduling. | Rendering Lead | Done |
 | 2 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | In Progress (planning; blocked on RT-410 hooks) |
 | 2 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
+| 2 | [`TL-311`](../hybrid_workflow/backlog/TL-311-scene-hierarchy-panel.md) | Ship scene hierarchy diagnostics panel to surface entity graph inside editor. | Tools Lead | New |
+| 2 | [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | Visualise profiler metrics and benchmark deltas in-editor for Bundle B demos. | Tools Lead | New |
+| 2 | [`TL-313`](../hybrid_workflow/backlog/TL-313-asset-browser-panel.md) | Expose asset cache state and hot reload telemetry within the editor. | Tools Lead | New |
+| 2 | [`TL-314`](../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) | Provide live telemetry overlays and alerts to monitor runtime health. | Tools Lead | New |
 
 **Exit Criteria:** OpenGL/Vulkan execute real workloads with shader pipelines, runtime presentation loop synchronises with tooling, and the editor/tooling stack is buildable with baseline smoke coverage.
 
@@ -106,6 +110,10 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | 1 | Done | Planner ships with hot-reload coverage and telemetry exports; monitoring perf delta in PM-510 demos. |
 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | In Progress | Context assembly started; implementation will begin once RT-410 exposes presentation hooks. |
 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned; latest capture documents modular planner telemetry. |
+| [`TL-311`](../hybrid_workflow/backlog/TL-311-scene-hierarchy-panel.md) | 2 | New | Panelising scene hierarchy diagnostics recommended by tooling analysis. |
+| [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | 2 | New | Profiler and benchmark visualisation panel extending TL-310 groundwork. |
+| [`TL-313`](../hybrid_workflow/backlog/TL-313-asset-browser-panel.md) | 2 | New | Asset cache inspector with hot reload telemetry surfaced in-editor. |
+| [`TL-314`](../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) | 2 | New | Telemetry overlays and alerting integrated with PM-510 evidence capture. |
 
 > **Archived backlog entries:** [`SPRINT-11`](../hybrid_workflow/backlog/archive/SPRINT-11-alignment.md), [`DC-040`](backlog/archive/DC_040_AI_004_CONFIGURATION_SCHEMA.md), [`DC-041`](backlog/archive/DC_041_AI_004_KICKOFF_READINESS.md), [`RT-320`](backlog/archive/RT_320_RUNTIME_PROTOTYPING_HARNESS.md), [`TL-210`](backlog/archive/TL_210_EXPERIMENT_SANDBOX_UI.md), [`RT-321`](backlog/archive/RT_321_PROTOTYPING_CASE_STUDIES.md), [`AS-330`](backlog/archive/AS_330_REFERENCE_DATASET_PACKAGES.md), [`CC-310`](backlog/archive/CC_310_COMPARATIVE_BENCHMARK_AUTOMATION.md), [`CC-311`](backlog/archive/CC_311_BENCHMARK_VISUALISATION.md), [`PL-240`](backlog/archive/PL_240_PLATFORM_FILESYSTEM_WATCHER_GUIDANCE.md), [`PM-520`](backlog/archive/PM_520_BACKLOG_HYGIENE_REMEDIATION.md), [`TL-320`](../hybrid_workflow/backlog/archive/TL-320-task-dashboard.md), and [`RT-410`](../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) are now in `docs/backlog/archive/` following completion of PM-520 backlog hygiene remediation.
 ## Risks & Mitigations

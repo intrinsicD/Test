@@ -218,9 +218,10 @@ Based on analysis of `engine/tools/`, the following tools are available:
    - Document diagnostic panel creation option
 
 3. **Create follow-up tasks for TL-310**:
-   - TL-311: Implement core diagnostic panels
-   - TL-312: Integrate profiler visualization
-   - TL-313: Add asset browser panel
+   - [TL-311](TL-311-scene-hierarchy-panel.md): Implement scene hierarchy diagnostics panel
+   - [TL-312](TL-312-performance-metrics-panel.md): Integrate profiler visualization panel
+   - [TL-313](TL-313-asset-browser-panel.md): Add asset browser panel
+   - [TL-314](TL-314-telemetry-visualization-panel.md): Deliver telemetry visualization panel
 
 ### Medium-term Actions (P2)
 
@@ -297,7 +298,7 @@ The hybrid_workflow has **good coverage** of high-level tools (Experiment Sandbo
 
 **Priority Recommendations:**
 1. ✅ Update CONTRIBUTING.md with profiling examples
-2. ✅ Create TL-311+ follow-up tasks for panel implementations
+2. ✅ Create TL-311+ follow-up tasks for panel implementations (`TL-311`–`TL-314` now tracked under hybrid_workflow/backlog/)
 3. ✅ Enhance task template with tool usage checklist
 4. ✅ Document benchmark runner workflow in quality gates
 

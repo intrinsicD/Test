@@ -9,7 +9,7 @@ owner: agent-orchestrator
 gates: [docs]
 relates_to: [bundle:B]
 blocked_on: []
-links: ["hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/TL-310-editor-foundations.md"]
+links: ["hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/TL-310-editor-foundations.md", "hybrid_workflow/backlog/TL-311-scene-hierarchy-panel.md", "hybrid_workflow/backlog/TL-312-performance-metrics-panel.md", "hybrid_workflow/backlog/TL-313-asset-browser-panel.md", "hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md"]
 ---
 
 # Task PM-510 — Weekly GPU Integration Demos
