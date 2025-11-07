@@ -105,16 +105,16 @@ public:
     teardown without bespoke wiring.
    - (2026-04-24) Introduced `RuntimePanelBridge` to register diagnostics, profiler, and scene validation panels against the
     shared `PanelRegistry`, exposing a single render entry point for the editor harness.
-2a. [ ] **Integrate presentation backend into Application framework** (enables rendering for tools/examples).
+2a. [x] **Integrate presentation backend into Application framework** (enables rendering for tools/examples).
    - **See detailed subtask:** [`TL-310-2a-application-presentation-integration.md`](TL-310-2a-application-presentation-integration.md)
    - **Context:** RT-410 delivered `PresentationBackend` implementations (Mock, GLFW, OpenGL), but `runtime::Application` doesn't instantiate or wire them. This prevents `geometry_viewer` and future editor harness from rendering. See `GEOMETRY_VIEWER_SOLUTION.md` for analysis.
    - **Subtasks:**
-     - [ ] Add `RenderExecutionContext` and `PresentationBackend` members to `Application` class
-     - [ ] Initialize presentation backend in `Application::initialize_subsystems()` based on config
-     - [ ] Wire begin_frame/end_frame/present calls in `Application::run_main_loop()`
-     - [ ] Expose `render_context()` accessor to derived classes for frame graph execution
-     - [ ] Update `geometry_viewer` to store frame graph as member and call `frame_graph_.execute(render_context())` in `on_render()`
-     - [ ] Add unit tests for Application rendering lifecycle
+     - [x] Add `RenderExecutionContext` and `PresentationBackend` members to `Application` class
+     - [x] Initialize presentation backend in `Application::initialize_subsystems()` based on config
+     - [x] Wire begin_frame/end_frame/present calls in `Application::run_main_loop()`
+     - [x] Expose `render_context()` accessor to derived classes for frame graph execution
+     - [x] Update `geometry_viewer` to store frame graph as member and call `frame_graph_.execute(render_context())` in `on_render()`
+     - [x] Add unit tests for Application rendering lifecycle
      - [ ] Document the pattern in `docs/modules/runtime/README.md`
    - **Estimated effort:** 4-6 hours
    - **Unblocks:** geometry_viewer rendering, TL-311+ editor panel visualization, any Application-based rendering tools
@@ -131,6 +131,8 @@ public:
 **Status Update (2026-04-24):** Implemented `PanelRegistry::register_scoped_panel()` RAII helper and accompanying tests/documentation so forthcoming editor panels can rely on deterministic registration lifecycles while TL-310 wiring continues.
 
 **Status Update (2026-04-24):** Added `engine::tools::editor::RuntimePanelBridge` so runtime diagnostics, profiler telemetry, and scene validation reports register automatically with the shared panel registry and render through a unified entry point during editor bring-up.
+
+**Status Update (2026-04-24):** Integrated the runtime `Application` rendering subsystem with a default mock presentation backend, exposed `render_context()` for tools, updated `geometry_viewer` to execute its frame graph through the new path, and added a headless regression test covering presentation invocation.
 
 **Status Update (2025-11-07):** RT-410 completed and archived (2026-03-30). All runtime presentation hooks, window backends (GLFW, Mock), and OpenGL presentation adapters are operational and verified. `geometry_viewer` example demonstrates end-to-end rendering pipeline working at 254k+ FPS. TL-310 is **no longer blocked** and proceeding with remaining implementation steps (editor smoke tests, documentation refresh, PM-510 demo coordination).
 

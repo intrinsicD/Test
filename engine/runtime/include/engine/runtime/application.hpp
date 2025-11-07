@@ -6,12 +6,29 @@
 #include "engine/scene/scene.hpp"
 
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <optional>
 
 namespace engine::runtime
 {
     class RuntimeLoopPlan;
 }
+
+namespace engine::rendering
+{
+    class RenderResourceProvider;
+    class MaterialSystem;
+    class CommandEncoderProvider;
+    struct RenderExecutionContext;
+    class PresentationBackend;
+    class IGpuScheduler;
+
+    namespace resources
+    {
+        class IGpuResourceProvider;
+    } // namespace resources
+} // namespace engine::rendering
 
 namespace engine::runtime
 {
@@ -35,6 +52,31 @@ namespace engine::runtime
 
         /// Enable runtime diagnostics
         bool enable_diagnostics{false};
+
+#if ENGINE_ENABLE_RENDERING
+        /// Rendering subsystem configuration
+        struct RenderingConfig
+        {
+            /// Available rendering backends.
+            enum class Backend
+            {
+                Auto,
+                Mock,
+            };
+
+            /// Enable rendering integration for the application.
+            bool enable{false};
+
+            /// Preferred rendering backend.
+            Backend backend{Backend::Auto};
+
+            /// Optional factory that returns a presentation backend instance.
+            std::function<std::shared_ptr<engine::rendering::PresentationBackend>()>
+                backend_factory{};
+        };
+
+        RenderingConfig rendering{};
+#endif
     };
 
     /// \brief Base class for engine applications
@@ -165,6 +207,18 @@ namespace engine::runtime
         /// \pre run() has been called and subsystems are initialized
         [[nodiscard]] const scene::Scene& scene() const noexcept;
 
+#if ENGINE_ENABLE_RENDERING
+        /// \brief Access the render execution context.
+        /// \return Reference to the current render execution context
+        /// \pre Rendering has been enabled via ApplicationConfig
+        [[nodiscard]] rendering::RenderExecutionContext& render_context();
+
+        /// \brief Access the render execution context (const).
+        /// \return Const reference to the current render execution context
+        /// \pre Rendering has been enabled via ApplicationConfig
+        [[nodiscard]] const rendering::RenderExecutionContext& render_context() const;
+#endif
+
         /// \brief Get elapsed time since application start
         /// \return Total elapsed time in seconds
         [[nodiscard]] double elapsed_time() const noexcept { return elapsed_time_; }
@@ -178,6 +232,11 @@ namespace engine::runtime
         void shutdown_subsystems();
         void run_main_loop();
 
+#if ENGINE_ENABLE_RENDERING
+        void initialize_rendering_subsystem();
+        void shutdown_rendering_subsystem() noexcept;
+#endif
+
         ApplicationConfig config_;
         std::shared_ptr<platform::Window> window_;
         std::unique_ptr<scene::Scene> scene_;
@@ -186,6 +245,21 @@ namespace engine::runtime
         int exit_code_{0};
         double elapsed_time_{0.0};
         std::uint64_t frame_count_{0};
+
+#if ENGINE_ENABLE_RENDERING
+        struct RenderingSubsystem
+        {
+            std::unique_ptr<rendering::RenderResourceProvider> resources;
+            std::unique_ptr<rendering::MaterialSystem> materials;
+            std::unique_ptr<rendering::resources::IGpuResourceProvider> device_resources;
+            std::unique_ptr<rendering::IGpuScheduler> scheduler;
+            std::unique_ptr<rendering::CommandEncoderProvider> encoders;
+            std::shared_ptr<rendering::PresentationBackend> backend;
+            std::optional<rendering::RenderExecutionContext> context;
+        } rendering_{};
+
+        std::unique_ptr<RuntimeHost> runtime_host_{};
+#endif
     };
 
 } // namespace engine::runtime
