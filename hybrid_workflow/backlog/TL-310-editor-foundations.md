@@ -106,7 +106,7 @@ public:
    - (2026-04-24) Introduced `RuntimePanelBridge` to register diagnostics, profiler, and scene validation panels against the
     shared `PanelRegistry`, exposing a single render entry point for the editor harness.
 2a. [x] **Integrate presentation backend into Application framework** (enables rendering for tools/examples).
-   - **See detailed subtask:** [`TL-310-2a-application-presentation-integration.md`](TL-310-2a-application-presentation-integration.md)
+   - **See detailed subtask:** [`TL-310-2a-application-presentation-integration.md`](archive/TL-310-2a-application-presentation-integration.md)
    - **Context:** RT-410 delivered `PresentationBackend` implementations (Mock, GLFW, OpenGL), but `runtime::Application` doesn't instantiate or wire them. This prevents `geometry_viewer` and future editor harness from rendering. See `GEOMETRY_VIEWER_SOLUTION.md` for analysis.
    - **Subtasks:**
      - [x] Add `RenderExecutionContext` and `PresentationBackend` members to `Application` class
@@ -115,7 +115,7 @@ public:
      - [x] Expose `render_context()` accessor to derived classes for frame graph execution
      - [x] Update `geometry_viewer` to store frame graph as member and call `frame_graph_.execute(render_context())` in `on_render()`
      - [x] Add unit tests for Application rendering lifecycle
-     - [ ] Document the pattern in `docs/modules/runtime/README.md`
+      - [x] Document the pattern in `docs/modules/runtime/README.md`
    - **Estimated effort:** 4-6 hours
    - **Unblocks:** geometry_viewer rendering, TL-311+ editor panel visualization, any Application-based rendering tools
 3. [ ] Restore unit tests in `engine/tools/tests/` for registry + configuration loader.

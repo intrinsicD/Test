@@ -12,7 +12,10 @@ The runtime module orchestrates the engine's main execution loop through `Runtim
 
 ### Quick Start
 
-The simplest way to create an engine application is to inherit from `runtime::Application`:
+The simplest way to create an engine application is to inherit from `runtime::Application`.
+When rendering is enabled (see [Rendering Integration (TL-310-2a)](#rendering-integration-tl-310-2a)),
+the base class exposes a `rendering::RenderExecutionContext` so derived applications can execute
+frame graphs without manually wiring presentation backends.
 
 ```cpp
 #include "engine/runtime/application.hpp"
@@ -38,7 +41,10 @@ protected:
     
     void on_render() override
     {
-        // Rendering (stage planner hooks delivered via RT-410)
+#if ENGINE_ENABLE_RENDERING
+        // Use render_context() to execute your frame graph or presentation logic.
+        // Example: viewer_frame_graph.execute(render_context());
+#endif
     }
 };
 
@@ -66,8 +72,14 @@ public:
                 .visible = true,
                 .resizable = true
             },
-            .window_backend = platform::WindowBackend::GLFW,
-            .target_fps = 60.0  // 0 = unlimited
+            .window_backend = platform::WindowBackend::Mock,
+            .target_fps = 60.0,
+#if ENGINE_ENABLE_RENDERING
+            .rendering = {
+                .enable = true,
+                .backend = engine::runtime::ApplicationConfig::RenderingConfig::Backend::Mock,
+            },
+#endif
         })
     {
     }
@@ -113,6 +125,30 @@ void on_update(double dt) override
 ### Example: Geometry Viewer
 
 See [`engine/tools/examples/geometry_viewer.cpp`](../../../engine/tools/examples/geometry_viewer.cpp) for a complete example using the Application framework.
+
+### Rendering Integration (TL-310-2a)
+
+`TL-310-2a` connects the `Application` base class to the presentation backends delivered in
+[`RT-410`](../../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md). Enabling
+`ApplicationConfig::rendering.enable` now wires the entire rendering stack:
+
+- A `rendering::RenderExecutionContext` is constructed during initialization and is available
+  via the protected `render_context()` accessor.
+- GPU resource providers, material systems, scheduler stubs, and command encoders are provisioned
+  automatically so frame graphs can execute without additional boilerplate.
+- A presentation backend is created on demand. Provide `rendering.backend_factory` to inject a
+  concrete backend; otherwise the mock backend is instantiated to keep headless environments working.
+- `RuntimeHost` is spun up lazily the first time a presentation backend is used, preserving
+  compatibility with pre-existing stage-planner workflows.
+
+**Headless validation.** CI containers omit the XRandR headers required by GLFW, so
+`cmake --preset linux-gcc-debug` skips the `geometry_viewer` target. The mock backend still drives
+`ApplicationRendering.ProvidesContextAndInvokesPresentation`, giving deterministic coverage of the
+rendering lifecycle even when real swap-chain integration is unavailable.
+
+**Desktop backends.** Installing GLFW dependencies (for example, `apt install libglfw3-dev libxrandr-dev`)
+allows a desktop build to provide an OpenGL-backed presentation factory via
+`rendering.backend_factory`, while the mock backend remains available for tests and automation.
 
 ## Outstanding Work
 
