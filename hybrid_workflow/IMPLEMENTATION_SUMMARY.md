@@ -117,6 +117,10 @@ Tasks link to bundles with `relates_to: [bundle:A]`
 # List all tasks
 python hybrid_workflow/task_status.py
 
+# Quick next actions
+python hybrid_workflow/task_status.py --next-actions
+python hybrid_workflow/task_status.py --next-actions --limit 5 --owner tools-lead
+
 # Filter by status
 python hybrid_workflow/task_status.py --status in_progress
 

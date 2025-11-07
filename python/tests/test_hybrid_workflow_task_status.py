@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 
+import pytest
+
 
 _TESTS_DIR = Path(__file__).resolve().parent
 _PROJECT_ROOT = _TESTS_DIR.parent
@@ -23,6 +25,8 @@ def _make_task(
     status: str = "in_progress",
     relates_to: list[str] | None = None,
     owner: str = "tools-team",
+    priority: str = "P1",
+    area: str = "tools",
 ) -> task_status.Task:
     """Helper to create a task with deterministic defaults for testing."""
     blocked_on = ["dependency"] if blocked else []
@@ -30,8 +34,8 @@ def _make_task(
         id=task_id,
         title=f"Task {task_id}",
         status=status,
-        priority="P1",
-        area="tools",
+        priority=priority,
+        area=area,
         owner=owner,
         blocked_on=blocked_on,
         relates_to=relates_to or [],
@@ -108,6 +112,15 @@ def test_build_parser_supports_include_archived_flag() -> None:
     args = parser.parse_args(['--include-archived'])
 
     assert args.include_archived is True
+
+
+def test_build_parser_supports_next_actions_flags() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--next-actions', '--limit', '3'])
+
+    assert args.next_actions is True
+    assert args.limit == 3
 
 
 def test_filter_tasks_supports_relates_to_matching() -> None:
@@ -196,3 +209,51 @@ area: tools
 
     with_archive = task_status.load_all_tasks(backlog_dir, include_archived=True)
     assert {task.id for task in with_archive} == {'TL-310', 'TL-210'}
+
+
+def test_select_next_actions_prefers_ready_tasks() -> None:
+    tasks = [
+        _make_task('A', blocked=False, status='ready', priority='P2'),
+        _make_task('B', blocked=False, status='ready', priority='P1'),
+        _make_task('C', blocked=False, status='new', priority='P0'),
+    ]
+
+    selected = task_status.select_next_actions(tasks, 5)
+
+    assert [task.id for task in selected] == ['B', 'A']
+
+
+def test_select_next_actions_falls_back_to_new_when_no_ready() -> None:
+    tasks = [
+        _make_task('A', blocked=False, status='new', priority='P1'),
+        _make_task('B', blocked=False, status='in_progress', priority='P0'),
+        _make_task('C', blocked=False, status='new', priority='P2'),
+    ]
+
+    selected = task_status.select_next_actions(tasks, 3)
+
+    assert [task.id for task in selected] == ['A', 'C']
+
+
+def test_select_next_actions_respects_filters_and_limit() -> None:
+    tasks = [
+        _make_task('A', blocked=False, status='ready', priority='P0', owner='tools', area='tools'),
+        _make_task('B', blocked=False, status='ready', priority='P1', owner='runtime', area='runtime'),
+        _make_task('C', blocked=True, status='ready', priority='P2', owner='tools', area='tools'),
+        _make_task('D', blocked=False, status='new', priority='P1', owner='tools', area='tools'),
+    ]
+
+    selected = task_status.select_next_actions(
+        tasks,
+        1,
+        owner='tools',
+        area='tools',
+        blocked_only=False,
+    )
+
+    assert [task.id for task in selected] == ['A']
+
+
+def test_select_next_actions_raises_for_invalid_limit() -> None:
+    with pytest.raises(ValueError):
+        task_status.select_next_actions([], 0)
