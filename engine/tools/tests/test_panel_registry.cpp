@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "engine/tools/imgui/panel_registry.hpp"
@@ -70,4 +71,33 @@ TEST(PanelRegistry, PreservesRegistrationOrder)
     EXPECT_EQ(identifiers[0], "first");
     EXPECT_EQ(identifiers[1], "second");
     EXPECT_EQ(identifiers[2], "third");
+}
+
+TEST(PanelRegistry, RegistrationHandleUnregistersOnScopeExit)
+{
+    PanelRegistry registry{};
+
+    {
+        auto handle = registry.register_scoped_panel("scoped", [](const PanelRenderContext&) {});
+        ASSERT_TRUE(handle);
+        EXPECT_TRUE(registry.contains("scoped"));
+    }
+
+    EXPECT_FALSE(registry.contains("scoped"));
+}
+
+TEST(PanelRegistry, RegistrationHandleSupportsMoveSemantics)
+{
+    PanelRegistry registry{};
+
+    auto handle = registry.register_scoped_panel("movable", [](const PanelRenderContext&) {});
+    ASSERT_TRUE(handle);
+
+    PanelRegistry::RegistrationHandle moved_handle = std::move(handle);
+    EXPECT_FALSE(handle.is_valid());
+    EXPECT_TRUE(registry.contains("movable"));
+
+    moved_handle.release();
+    EXPECT_FALSE(moved_handle.is_valid());
+    EXPECT_FALSE(registry.contains("movable"));
 }

@@ -83,7 +83,7 @@ Based on analysis of `engine/tools/`, the following tools are available:
 
 **Components:**
 - `PanelRegistry` class for panel management
-- `register_panel()` / `unregister_panel()` lifecycle
+- `register_scoped_panel()` RAII helpers plus explicit `register_panel()` / `unregister_panel()` lifecycle APIs
 - `render()` / `render_all()` for panel rendering
 - `PanelRenderContext` for state forwarding
 - Deterministic panel ordering

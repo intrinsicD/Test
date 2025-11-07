@@ -109,22 +109,28 @@ using namespace engine::tools::imgui;
 
 PanelRegistry registry;
 
-// Register custom panel
-registry.register_panel("scene_hierarchy", [](const PanelRenderContext& ctx) {
-    ImGui::Text("Scene Graph");
-    // ... render scene hierarchy
-});
+// Register custom panels and retain the handles until teardown
+auto scene_hierarchy_panel = registry.register_scoped_panel(
+    "scene_hierarchy",
+    [](const PanelRenderContext& ctx) {
+        ImGui::Text("Scene Graph");
+        // ... render scene hierarchy
+    }
+);
 
-registry.register_panel("performance_metrics", [](const PanelRenderContext& ctx) {
-    ImGui::Text("Frame Time: %.2fms", ctx.delta_time * 1000.0);
-    // ... render performance graphs
-});
+auto performance_panel = registry.register_scoped_panel(
+    "performance_metrics",
+    [](const PanelRenderContext& ctx) {
+        ImGui::Text("Frame Time: %.2fms", ctx.delta_time * 1000.0);
+        // ... render performance graphs
+    }
+);
 
-// Render all panels
+// Render all panels while the handles remain valid
 PanelRenderContext context{.delta_time = dt};
 registry.render_all(context);
 
-// Or render specific panel
+// Or render a specific panel
 registry.render("scene_hierarchy", context);
 ```
 
@@ -132,7 +138,8 @@ registry.render("scene_hierarchy", context);
 - Use `render_diagnostics()` for quick runtime inspection
 - Use `render_validation_report()` for scene health checks
 - Use `render_profiler_window()` to visualize performance data
-- Use `PanelRegistry` when building editor or tool surfaces (see TL-310)
+- Use `PanelRegistry` when building editor or tool surfaces (see TL-310); prefer `register_scoped_panel()` so panels unregister
+  automatically when the owning subsystem shuts down.
 
 ### Configuration Loading
 

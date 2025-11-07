@@ -85,19 +85,21 @@ void render_debug_ui() {
 using namespace engine::tools::imgui;
 
 PanelRegistry registry;
+auto my_panel = registry.register_scoped_panel(
+    "my_panel",
+    [](const PanelRenderContext& ctx) {
+        ImGui::Text("Delta Time: %.2fms", ctx.delta_time * 1000.0);
+        // ... custom UI code
+    }
+);
 
-// Register custom panel
-registry.register_panel("my_panel", [](const PanelRenderContext& ctx) {
-    ImGui::Text("Delta Time: %.2fms", ctx.delta_time * 1000.0);
-    // ... custom UI code
-});
-
-// Later: render all registered panels
+// Later: render all registered panels while the handle is alive
 PanelRenderContext context{.delta_time = dt};
 registry.render_all(context);
 ```
 
-**When:** Building editor with multiple panels, reusable diagnostic widgets.  
+**When:** Building editor with multiple panels, reusable diagnostic widgets. The returned `RegistrationHandle` automatically
+unregisters the panel when it goes out of scope, keeping editor teardown deterministic.
 **See:** TL-310 for editor foundation work.
 
 ---
@@ -306,13 +308,13 @@ if (all_valid) {
 // In editor initialization
 PanelRegistry registry;
 
-// Register standard panels
-registry.register_panel("scene", render_scene_panel);
-registry.register_panel("inspector", render_inspector_panel);
-registry.register_panel("profiler", [](const auto& ctx) {
+// Register standard panels and keep the handles alive for the editor lifetime
+auto scene_panel = registry.register_scoped_panel("scene", render_scene_panel);
+auto inspector_panel = registry.register_scoped_panel("inspector", render_inspector_panel);
+auto profiler_panel = registry.register_scoped_panel("profiler", [](const auto& ctx) {
     engine::tools::imgui::render_profiler_window();
 });
-registry.register_panel("diagnostics", [&](const auto& ctx) {
+auto diagnostics_panel = registry.register_scoped_panel("diagnostics", [&](const auto& ctx) {
     engine::tools::imgui::render_diagnostics(runtime.diagnostics());
 });
 
