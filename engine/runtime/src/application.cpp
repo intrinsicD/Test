@@ -11,6 +11,7 @@
 #include "engine/rendering/presentation_backend.hpp"
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
+#include "engine/runtime/render_submission.hpp"
 #endif
 
 #include <chrono>
@@ -170,30 +171,22 @@ namespace engine::runtime
             // Call user update callback
             on_update(delta_time);
 
-#if ENGINE_ENABLE_RENDERING
-            if (rendering_.device_resources)
-            {
-                rendering_.device_resources->begin_frame();
-            }
-#endif
             // Call user render callback
             on_render();
 #if ENGINE_ENABLE_RENDERING
-            if (rendering_.device_resources)
-            {
-                rendering_.device_resources->end_frame();
-            }
             if (rendering_.backend)
             {
                 if (!runtime_host_)
                 {
                     runtime_host_ = std::make_unique<RuntimeHost>();
                     runtime_host_->initialize();
+                    runtime_host_->set_presentation_backend(rendering_.backend);
                 }
                 rendering::RuntimePresentationContext presentation_context{
                     *runtime_host_,
                     delta_time,
                     nullptr};
+                presentation_context.submit_render_graph = &submit_render_graph;
                 rendering_.backend->present(presentation_context);
             }
 #endif
@@ -260,6 +253,8 @@ namespace engine::runtime
             runtime_host_->initialize();
         }
 
+        runtime_host_->set_presentation_backend(rendering_.backend);
+
         rendering_.context.emplace(
             *rendering_.resources,
             *rendering_.materials,
@@ -281,6 +276,7 @@ namespace engine::runtime
 
         if (runtime_host_)
         {
+            runtime_host_->set_presentation_backend(nullptr);
             runtime_host_->shutdown();
             runtime_host_.reset();
         }

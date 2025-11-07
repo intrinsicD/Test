@@ -251,6 +251,9 @@ $ ./out/build/linux-gcc-debug/engine/runtime/tests/engine_runtime_tests --gtest_
 - This closes the gap between RT-410 delivery and Application framework.
 - Headless validation runs through the mock backend; interactive builds require installing GLFW/XRandR.
 - Estimated 4-6 hours of focused work.
+- (2026-04-24) Application now registers the presentation backend with `RuntimeHost` and forwards
+  `RuntimePresentationContext::submit_render_graph` so future GPU backends (e.g., OpenGL) receive
+  the submission callback described in the original design sketch.
 
 **Follow-ups:**
 - [ ] Add Vulkan backend support (when Vulkan rendering ready)
