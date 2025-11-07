@@ -202,12 +202,16 @@ void Application::run_main_loop()
 
 ```bash
 $ cmake --preset linux-gcc-debug
-$ cmake --build --preset linux-gcc-debug --target engine_runtime_tests -j1
+$ cmake --build --preset linux-gcc-debug --target engine_runtime_tests -j2
 $ ./out/build/linux-gcc-debug/engine/runtime/tests/engine_runtime_tests --gtest_filter=ApplicationRendering.*
 ```
 
 > `cmake --preset linux-gcc-debug` reports the missing XRandR headers and skips `geometry_viewer`.
 > Rendering behavior is covered by the mock presentation backend in `ApplicationRendering.ProvidesContextAndInvokesPresentation`.
+
+- (2026-04-27) Re-ran the configure/build/test sequence above and confirmed
+  `ApplicationRendering.ProvidesContextAndInvokesPresentation` passes with the
+  mock backend, providing current-cycle evidence for TL-310-2a.
 
 ### Quality Gate Sign-offs
 
@@ -241,9 +245,9 @@ $ ./out/build/linux-gcc-debug/engine/runtime/tests/engine_runtime_tests --gtest_
 
 ## Result
 
-**PR:** (pending)
+**PR:** (this PR)
 
-**SHA:** (pending)
+**SHA:** (pending — populate with merge commit)
 
 **Completion Date:** 2025-11-07
 
