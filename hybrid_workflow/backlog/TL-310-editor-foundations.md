@@ -106,6 +106,8 @@ public:
 5. [ ] Refresh tools README and root README to describe revived workflow.
 6. [ ] Coordinate with PM-510 to schedule demo once runtime hooks ready.
 7. [ ] Capture test outputs, update docs, and advance task status.
+8. [ ] Transition panel-specific work to follow-up tasks (`TL-311`–`TL-314`) once the registry bridge stabilises.
+   - Ensure each panel task inherits context and validation hooks from this baseline implementation.
 
 **Status Update (2025-11-04):** Initiated hybrid workflow for TL-310 by assembling context notes and aligning roadmap/backlog status; implementation will begin once RT-410 exposes presentation adapters required for editor bring-up.
 

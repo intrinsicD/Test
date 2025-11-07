@@ -24,13 +24,17 @@
 - [x] **RT-410** — Runtime stage planner → `hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
 - [ ] **TL-310** — Editor foundations → `hybrid_workflow/backlog/TL-310-editor-foundations.md`
 - [ ] **PM-510** — Weekly integration demos → `hybrid_workflow/backlog/PM-510-weekly-integration-demos.md`
+- [ ] **TL-311** — Scene hierarchy panel → `hybrid_workflow/backlog/TL-311-scene-hierarchy-panel.md`
+- [ ] **TL-312** — Performance metrics panel → `hybrid_workflow/backlog/TL-312-performance-metrics-panel.md`
+- [ ] **TL-313** — Asset browser panel → `hybrid_workflow/backlog/TL-313-asset-browser-panel.md`
+- [ ] **TL-314** — Telemetry visualization panel → `hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md`
 
 **Success Criteria:**
 - Runtime presentation adapters drive editor/tooling previews without manual wiring.
 - Editor builds are re-enabled with baseline smoke coverage.
 - Weekly demos capture GPU → runtime → tooling integration progress.
 
-_Current status:_ RG-450 has shipped with descriptor-driven planner execution and hot-reload coverage; RT-410 is complete and archived; TL-310 has entered planning under the hybrid workflow while waiting for presentation adapters to unblock tooling activation; PM-510 continues to coordinate weekly integration demos.
+_Current status:_ RG-450 has shipped with descriptor-driven planner execution and hot-reload coverage; RT-410 is complete and archived; TL-310 has entered planning under the hybrid workflow while waiting for presentation adapters to unblock tooling activation; PM-510 continues to coordinate weekly integration demos, and TL-311–TL-314 track the diagnostic panels that build on the editor foundation.
 
 ---
 
