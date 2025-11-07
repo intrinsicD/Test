@@ -118,11 +118,15 @@ public:
       - [x] Document the pattern in `docs/modules/runtime/README.md`
    - **Estimated effort:** 4-6 hours
    - **Unblocks:** geometry_viewer rendering, TL-311+ editor panel visualization, any Application-based rendering tools
-3. [ ] Restore unit tests in `engine/tools/tests/` for registry + configuration loader.
-4. [ ] Add editor smoke scenario to scripts/tests harness.
-5. [ ] Refresh tools README and root README to describe revived workflow.
+3. [x] Restore unit tests in `engine/tools/tests/` for registry + configuration loader.
+   - (2026-04-25) Rebuilt `test_tools_module` under the default preset and re-enabled CTest coverage for the panel registry and sandbox configuration loader suites.
+4. [x] Add editor smoke scenario to scripts/tests harness.
+   - (2026-04-25) Added `scripts/tests/test_editor_smoke.py` to execute the compiled `test_tools_module` binary headlessly with GoogleTest filters covering the configuration loader, panel registry, and runtime panel bridge.
+5. [x] Refresh tools README and root README to describe revived workflow.
+   - (2026-04-25) Documented the new smoke workflow in `docs/modules/tools/README.md` and `README.md`, including preset overrides and binary location guidance.
 6. [ ] Coordinate with PM-510 to schedule demo once runtime hooks ready.
-7. [ ] Capture test outputs, update docs, and advance task status.
+7. [x] Capture test outputs, update docs, and advance task status.
+   - (2026-04-25) Recorded CTest and pytest evidence in the task log alongside the documentation refresh.
 8. [ ] Transition panel-specific work to follow-up tasks (`TL-311`–`TL-314`) once the registry bridge stabilises.
    - Ensure each panel task inherits context and validation hooks from this baseline implementation.
 
@@ -138,6 +142,8 @@ public:
 
 **Status Update (2025-11-07 - later):** Added step 2a to integrate `PresentationBackend` into `Application` framework. While RT-410 delivered the backends, the `Application` class doesn't instantiate or wire them, preventing rendering in tools/examples. This integration is required to complete `geometry_viewer` and enable editor harness rendering. Analysis documented in `GEOMETRY_VIEWER_SOLUTION.md`.
 
+**Status Update (2026-04-25):** Restored tools unit test execution through CTest, introduced a headless editor smoke test in `scripts/tests/test_editor_smoke.py`, and refreshed the README/docset so contributors know how to build and invoke the scenario before wiring TL-311+ panels.
+
 ---
 
 ## Evidence
@@ -149,6 +155,8 @@ $ cmake --preset linux-gcc-debug
 $ cmake --build --preset linux-gcc-debug --target test_tools_module
 $ ctest --preset linux-gcc-debug --output-on-failure -R test_tools_module
 # 1/1 test passed (test_tools_module)
+$ pytest scripts/tests/test_editor_smoke.py
+# 1 passed in 0.04s
 $ python scripts/validate_docs.py
 # All documentation links resolved successfully.
 ```
