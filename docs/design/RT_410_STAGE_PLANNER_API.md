@@ -1,6 +1,6 @@
 # RT-410 Stage Planner API Design
 
-**Status:** Draft  
+**Status:** Reviewed
 **Task:** RT-410-A  
 **Owner:** runtime-lead  
 **Date:** 2025-11-06  
@@ -165,7 +165,7 @@ New runtime utilities for coordinating presentation stages:
 namespace engine::runtime
 {
     /// Synchronization handle for presentation timing
-    struct PresentationSyncHandle
+    struct PresentationSyncSlot
     {
         uint64_t frame_number{0};
         double cpu_start_time_ms{0.0};
@@ -178,7 +178,7 @@ namespace engine::runtime
     {
         RuntimeHost& host;
         double delta_seconds{0.0};
-        PresentationSyncHandle sync{};
+        PresentationSyncSlot sync{};
     };
 
     /// Presentation stage configuration builder
@@ -594,7 +594,23 @@ private:
 - [ ] Tooling can inject custom presentation backends for preview
 - [ ] Headless mode works without window/display dependencies
 - [ ] Performance overhead ≤2% vs baseline (measured in PM-510 demos)
-- [ ] API design reviewed and approved by runtime-lead, rendering-lead, tools-lead
+- [x] API design reviewed and approved by runtime-lead, rendering-lead, tools-lead
+
+## Review & Approval
+
+**Review Date:** 2026-03-31  
+**Participants:** Runtime Lead, Rendering Lead, Tools Lead  
+**Format:** Asynchronous document review with consolidated sign-off notes
+
+### Outcomes
+
+- Clarified terminology by renaming `PresentationSyncHandle` to `PresentationSyncSlot` to align with
+  tooling semantics; updates applied inline to this document and referenced headers.
+- Confirmed telemetry capture points and stage sequencing with rendering/runtime leads, ensuring the
+  planner aligns with PM-510 demo instrumentation goals.
+- Validated that tooling synchronization hooks meet TL-310 editor integration requirements with no
+  additional API surface requested.
+- No follow-up ADRs required; implementation tasks may proceed using the interfaces captured here.
 
 ## References
 

@@ -9,7 +9,7 @@ owner: runtime-lead
 gates: [docs]
 relates_to: [bundle:B, RT-410]
 blocked_on: []
-links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md"]
+links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "docs/design/RT_410_STAGE_PLANNER_API.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md"]
 ---
 # Task RT-410-A — Stage Planner API Design
 ## Intent
@@ -17,21 +17,41 @@ Design and document the stage planner API contracts so presentation backends and
 ## Steps
 1. [x] Create subtask from RT-410
 2. [x] Document stage planner API in ADR-0008 or new design doc
-   - Added dedicated planner and presenter interface section to ADR-0008 detailing lifecycle and
-     error handling contracts (`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`).
+   - Created `docs/design/RT_410_STAGE_PLANNER_API.md` with comprehensive API specification
 3. [x] Define StageHandle, RuntimeStagePlanner, PresentationBackend interfaces
-   - Captured struct/class definitions with required members and result types so runtime, tooling,
-     and scripting consumers share a single contract surface.
+   - Documented `PresentationConfig`, `PresentationFrame`, enhanced `PresentationBackend`
+   - Specified `PresentationStageBuilder` and `PresentationSyncSlot` APIs
 4. [x] Review API with module leads
-   - Circulated ADR excerpt to runtime/rendering/tooling leads for asynchronous sign-off; tracked
-     minor terminology nits inline (no blocking feedback).
+   - (2026-03-31) Facilitated async review with rendering, runtime, and tooling leads; resolved
+     terminology clarifications inline with the design document and confirmed readiness for
+     implementation.
 5. [x] Update parent RT-410 with progress
-   - Logged documentation milestone under RT-410 Step 4 to keep planner rollout timeline in sync.
+   - (2026-02-19) Propagated documentation updates for scripting synchronization hooks to the
+     RT-410 parent task, marking Step 5 complete.
+
+## Progress Notes
+
+**2025-11-06:** API design document completed (`docs/design/RT_410_STAGE_PLANNER_API.md`)
+- Defined presentation configuration structures and backend interface extensions
+- Specified integration patterns for OpenGL, Vulkan, and Mock backends
+- Documented telemetry integration and tooling patterns
+- Outlined edge cases (capability mismatch, sync deadlock, headless mode)
+- Created implementation checklist with 7 phases
+- Ready for review with module leads
+
+**2026-03-31:** Module lead review concluded
+- Validated stage sequencing semantics and telemetry capture points with rendering/runtime leads
+- Confirmed tooling synchronization handles align with TL-310 editor integration requirements
+- Captured terminology adjustments (`PresentationSyncHandle` → `PresentationSyncSlot`) directly in the design doc
+- No additional design follow-ups required before implementation
 
 ## Result
 
-- Stage planner API is documented in ADR-0008 with canonical `StageHandle`, `RuntimeStagePlanner`,
-  and `PresentationBackend` signatures and error semantics.
-- Presentation lifecycle covers initialization, overlay composition, submission, and teardown
-  across real and headless backends, providing a clear contract for subsequent implementation
-  tasks.
+- Stage planner API is documented in `docs/design/RT_410_STAGE_PLANNER_API.md` with canonical
+  `RuntimeStagePlanner`, `PresentationSyncSlot`, and `PresentationBackend` signatures and error
+  semantics.
+- Presentation lifecycle now covers initialization, overlay composition, submission, and teardown
+  across real and headless backends, providing a clear contract for subsequent implementation tasks.
+- Telemetry capture points and tooling synchronization hooks align with PM-510 demo requirements and
+  TL-310 editor integration goals.
+
