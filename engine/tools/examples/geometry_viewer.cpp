@@ -123,14 +123,19 @@ namespace
             auto& transform = registry.emplace<engine::scene::components::WorldTransform>(cube);
             transform.value = engine::math::Transform<float>::Identity();
 
-            // Add render geometry component
-            auto mesh = engine::assets::MeshHandle{std::string{"examples/cube.mesh"}};
-            auto material = engine::assets::MaterialHandle{std::string{"examples/default.material"}};
-            registry.emplace<engine::rendering::components::RenderGeometry>(
-                cube,
-                engine::rendering::components::RenderGeometry::from_mesh(mesh, material));
+            // TODO: Add render geometry component once we have:
+            // 1. Actual mesh data (procedural cube generation or loaded mesh)
+            // 2. Application presentation backend integration (TL-310-2a)
+            // For now, we just create an entity with transform to validate the scene system.
 
-            std::cout << "  ✓ Scene created with 1 cube entity\n";
+            // Future code (once assets exist):
+            // auto mesh = engine::assets::MeshHandle{std::string{"examples/cube.mesh"}};
+            // auto material = engine::assets::MaterialHandle{std::string{"examples/default.material"}};
+            // registry.emplace<engine::rendering::components::RenderGeometry>(
+            //     cube,
+            //     engine::rendering::components::RenderGeometry::from_mesh(mesh, material));
+
+            std::cout << "  ✓ Scene created with 1 entity (no geometry yet)\n";
         }
 
         void setup_camera()
