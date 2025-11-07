@@ -7,55 +7,56 @@
 
 ## ✅ Current Status
 
-Everything is **READY TO GO**:
-- ✅ Build system configured
-- ✅ All backends implemented (GLFW, Mock, OpenGL)
-- ✅ Runtime presentation hooks complete (RT-410)
-- ✅ geometry_viewer working at 254k+ FPS
-- ✅ Tools module enabled by default
+The runtime/application pipeline now owns the presentation lifecycle:
+- ✅ `Application` constructs a `RenderExecutionContext` and presentation backend when rendering is enabled.
+- ✅ Mock presentation backend keeps headless CI builds green and powers automated tests.
+- ✅ Runtime presentation hooks from [`RT-410`](hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) are integrated.
+- ⚠️ Interactive `geometry_viewer` binaries require GLFW/XRandR development packages; headless containers skip that target by default.
 
 ---
 
 ## Quick Commands
 
-### 1. Build and Run geometry_viewer (Proven Working!)
+### 1. Configure the toolchain
 
 ```bash
-cd /home/alex/Documents/Test
+cmake --preset linux-gcc-debug
+```
 
-# Build
-cmake --build out/build/linux-gcc-debug --target geometry_viewer -j$(nproc)
+The preset disables GLFW automatically when the container lacks `libxrandr-dev`. You will see a
+warning and CMake will skip the `geometry_viewer` executable.
 
-# Run
+### 2. Build the runtime rendering tests
+
+```bash
+cmake --build --preset linux-gcc-debug --target engine_runtime_tests
+```
+
+This target compiles the Application rendering fixtures together with the mock presentation backend.
+
+### 3. Run the Application rendering suite
+
+```bash
+ctest --preset linux-gcc-debug -R ApplicationRendering --output-on-failure
+```
+
+The `ApplicationRendering.ProvidesContextAndInvokesPresentation` case verifies that `Application`
+constructs a render context, drives begin/end frame, and triggers presentation callbacks even in
+headless mode.
+
+### 4. (Optional) Enable geometry_viewer on a desktop
+
+Install GLFW/XRandR development packages, then rebuild:
+
+```bash
+sudo apt install libglfw3-dev libxrandr-dev
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug --target geometry_viewer
 ./out/build/linux-gcc-debug/engine/tools/examples/geometry_viewer
 ```
 
-**What you'll see:**
-- Interactive 3D viewer with orbit camera
-- Real-time FPS counter
-- Mouse controls (drag to rotate, scroll to zoom)
-
-### 2. Build Everything
-
-```bash
-# Configure (already done, but just in case)
-cmake --preset linux-gcc-debug
-
-# Build all
-cmake --build out/build/linux-gcc-debug -j$(nproc)
-
-# Run tests
-ctest --preset linux-gcc-debug --output-on-failure
-```
-
-### 3. Create Your Own Viewer
-
-Copy `geometry_viewer.cpp` as a starting point:
-
-```bash
-cp engine/tools/examples/geometry_viewer.cpp engine/tools/examples/my_viewer.cpp
-# Edit CMakeLists.txt to add your target
-```
+The binary will open a windowed viewer with orbit camera controls once the system packages are
+present. In headless CI the mock backend remains the supported validation path.
 
 ---
 
@@ -73,8 +74,13 @@ public:
             .height = 720,
             .visible = true
         },
-        .window_backend = engine::platform::WindowBackend::GLFW,
-        .target_fps = 60.0
+        .window_backend = engine::platform::WindowBackend::Mock,
+#if ENGINE_ENABLE_RENDERING
+        .rendering = {
+            .enable = true,
+            .backend = engine::runtime::ApplicationConfig::RenderingConfig::Backend::Mock,
+        },
+#endif
     }) {}
 
 protected:
@@ -87,7 +93,9 @@ protected:
     }
 
     void on_render() override {
-        // Frame graph execution happens here
+#if ENGINE_ENABLE_RENDERING
+        // Example: viewer_frame_graph.execute(render_context());
+#endif
     }
 };
 
@@ -107,12 +115,13 @@ int main() {
 2. **Rendering** - `engine::rendering`
    - Frame graph for pass scheduling
    - Research baseline pipeline (working reference)
-   - OpenGL backend (functional)
+   - Mock presentation backend (default for CI)
+   - OpenGL backend (requires GLFW/XRandR packages)
    - Material system
    - Camera abstraction
 
 3. **Platform** - `engine::platform`
-   - Window management (GLFW working)
+   - Window management (Mock backend in CI, GLFW available on desktops)
    - Input handling
    - Event queue
 
@@ -193,6 +202,21 @@ if (!frame_graph_result) {
 }
 ```
 
+### Execute the Frame Graph inside `Application::on_render`
+
+The snippet below assumes `frame_graph_` holds the compiled frame graph from the previous step.
+
+```cpp
+void on_render() override
+{
+#if ENGINE_ENABLE_RENDERING
+    if (frame_graph_) {
+        frame_graph_->execute(render_context());
+    }
+#endif
+}
+```
+
 ---
 
 ## File Locations Reference
@@ -253,13 +277,10 @@ auto handle = panel_registry.register_scoped_panel({
 
 ## Performance Notes
 
-Current geometry_viewer achieves:
-- **254k+ FPS** on debug build
-- Single cube scene
-- Interactive camera controls
-- Real-time input handling
-
-This proves the pipeline works end-to-end!
+The default CI configuration runs against the mock presentation backend, so no GPU work is executed
+and no frame rate is reported. Profile rendering performance on a workstation after installing the
+GLFW/OpenGL dependencies and running the viewer locally. The mock backend keeps tests deterministic
+while still covering the Application integration path.
 
 ---
 
@@ -278,56 +299,41 @@ cmake --preset linux-gcc-debug
 
 ### Window Not Showing
 
-Check backend selection in preset:
-```json
-"ENGINE_WINDOW_BACKEND": "GLFW"  // Must be GLFW for visual output
-```
-
-Mock backend is for headless/CI only.
+- Confirm `ApplicationConfig::window_backend` is set to `platform::WindowBackend::GLFW` (or the
+  equivalent JSON preset entry if you are launching through tooling).
+- Install the system packages listed in [Quick Commands](#4-optional-enable-geometry_viewer-on-a-desktop).
+- If the code runs inside the CI container it will fall back to the mock backend and no window is
+  expected.
 
 ### Missing Dependencies
 
-All required dependencies are in `third_party/`:
-- GLFW - window management
-- glad - OpenGL loader
-- ImGui - UI toolkit
-- spdlog - logging
-- EnTT - entity component system
-- stb - image loading
-
-They're fetched automatically via CMake FetchContent.
+CMake fetches engine-owned dependencies from `third_party/`, but platform libraries such as GLFW
+still require system headers and shared libraries. Install `libglfw3-dev`, `libxrandr-dev`, and
+matching OpenGL drivers on the host if you need an interactive build. The mock backend has no
+external dependencies and remains available without additional packages.
 
 ---
 
 ## Next Development Steps
 
-### This Week
-1. ✅ **Run geometry_viewer** - Proven reference
-2. ✅ **Study the code** - Understand patterns
-3. 🔄 **Modify geometry_viewer** - Add your own geometry/effects
-4. 🔄 **Complete TL-310** - Editor smoke tests + docs
+### Immediate
+1. ✅ **Run Application rendering tests** – Use the commands above to verify the mock backend path.
+2. ✅ **Document the integration** – Update module READMEs and quick starts (this document).
+3. 🔄 **Install desktop dependencies (optional)** – Add GLFW/XRandR if you need an interactive viewer.
 
-### Next Sprint
-1. **TL-311:** Scene hierarchy panel
-2. **Custom viewers:** Build domain-specific tools
-3. **Asset pipeline:** Hook up your own mesh/material loading
+### Upcoming
+1. **TL-311:** Scene hierarchy panel – depends on TL-310 and this rendering work.
+2. **Custom viewers:** Build domain-specific tools on top of `Application` once rendering is enabled.
+3. **Performance validation:** Capture GPU metrics after enabling a real backend on hardware.
 
 ---
 
 ## Key Insight
 
-**You don't have blockers - you have a working reference implementation!**
-
-`geometry_viewer.cpp` is your proof that:
-- Runtime lifecycle works
-- Window creation works
-- Scene management works
-- Camera controls work
-- Frame graph works
-- OpenGL rendering works
-- Input handling works
-
-**Clone it, modify it, ship it!** 🚀
+The `Application` base class now drives rendering end-to-end when `ApplicationConfig::rendering.enable`
+is set. Use the mock backend to exercise the workflow in CI, then flip to GLFW/OpenGL on a workstation
+once the system packages are installed. `engine/tools/examples/geometry_viewer.cpp` remains the
+authoritative reference for frame-graph setup even though the binary is skipped in headless builds.
 
 ---
 
@@ -341,5 +347,6 @@ They're fetched automatically via CMake FetchContent.
 
 ---
 
-**Bottom Line:** Everything is ready. Start coding! 💪
+**Bottom Line:** Rendering is wired through `Application` today—run the mock-backed tests in CI and
+add the GLFW/OpenGL packages locally when you are ready for an interactive viewer.
 
