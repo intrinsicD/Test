@@ -54,7 +54,14 @@ namespace
                     }
                 },
                 .window_backend = engine::platform::WindowBackend::GLFW,
-                .target_fps = 0.0  // Unlimited
+                .target_fps = 0.0,  // Unlimited
+#if ENGINE_ENABLE_RENDERING
+                .rendering = {
+                    .enable = true,
+                    .backend = engine::runtime::ApplicationConfig::RenderingConfig::Backend::Auto,
+                    .backend_factory = {}
+                }
+#endif
             })
         {
         }
@@ -94,10 +101,7 @@ namespace
 
         void on_render() override
         {
-            // Note: In full implementation with RT-410, we would:
-            // - Execute frame graph with scene
-            // - Render all geometry through presentation backend
-            // - Present the final image
+            frame_graph_.execute(render_context());
         }
 
         void on_shutdown() override
@@ -160,20 +164,20 @@ namespace
         {
             std::cout << "Configuring research baseline rendering preset...\n";
 
-            engine::rendering::FrameGraph graph;
             engine::rendering::ResearchBaselineOptions options{};
             options.shading_mode = engine::rendering::ResearchShadingMode::Forward;
             options.width = WINDOW_WIDTH;
             options.height = WINDOW_HEIGHT;
             options.enable_normals_overlay = false;
 
-            const auto resources = engine::rendering::configure_research_baseline(graph, options);
+            frame_graph_ = engine::rendering::FrameGraph{};
+            baseline_resources_ = engine::rendering::configure_research_baseline(frame_graph_, options);
 
             std::cout << "Compiling frame graph...\n";
-            graph.compile();
+            frame_graph_.compile();
 
-            std::cout << "  ✓ Final color: " << (resources.lighting_output.valid() ? "✓" : "✗") << "\n";
-            std::cout << "  ✓ Depth buffer: " << (resources.depth.valid() ? "✓" : "✗") << "\n";
+            std::cout << "  ✓ Final color: " << (baseline_resources_.lighting_output.valid() ? "✓" : "✗") << "\n";
+            std::cout << "  ✓ Depth buffer: " << (baseline_resources_.depth.valid() ? "✓" : "✗") << "\n";
         }
 
         void handle_input()
@@ -270,6 +274,9 @@ namespace
         // FPS tracking
         int fps_frame_count_{0};
         double fps_time_accumulator_{0.0};
+
+        engine::rendering::FrameGraph frame_graph_{};
+        engine::rendering::ResearchBaselineResources baseline_resources_{};
     };
 }
 

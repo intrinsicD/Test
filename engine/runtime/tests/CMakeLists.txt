@@ -1,4 +1,5 @@
 add_executable(engine_runtime_tests
+        test_application_rendering.cpp
         test_config_schema.cpp
         test_loop.cpp
         test_module.cpp
