@@ -5,6 +5,7 @@
 #if ENGINE_ENABLE_RENDERING
 #include "engine/assets/handles.hpp"
 #include "engine/rendering/backend/mock/presentation_backend.hpp"
+#include "engine/rendering/backend/opengl/presentation_backend.hpp"
 #include "engine/rendering/backend/stub_gpu_scheduler_base.hpp"
 #include "engine/rendering/command_encoder.hpp"
 #include "engine/rendering/material_system.hpp"
@@ -12,11 +13,13 @@
 #include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 #include "engine/runtime/render_submission.hpp"
+#include "engine/geometry/api.hpp"
 #endif
 
 #include <chrono>
 #include <stdexcept>
 #include <thread>
+#include <optional>
 
 namespace
 {
@@ -34,6 +37,70 @@ namespace
     class ApplicationGpuScheduler final : public engine::rendering::backend::StubGpuSchedulerBase
     {
     };
+
+    using RenderingConfig = engine::runtime::ApplicationConfig::RenderingConfig;
+
+    [[nodiscard]] RenderingConfig::Backend resolve_backend(
+        const engine::runtime::ApplicationConfig& config) noexcept
+    {
+        using Backend = RenderingConfig::Backend;
+        if (config.rendering.backend == Backend::Auto)
+        {
+            if (config.window_backend == engine::platform::WindowBackend::GLFW)
+            {
+                return Backend::OpenGL;
+            }
+
+            return Backend::Mock;
+        }
+
+        return config.rendering.backend;
+    }
+
+    std::shared_ptr<engine::rendering::PresentationBackend> instantiate_backend(
+        RenderingConfig::Backend backend,
+        engine::runtime::RuntimeHost& runtime_host)
+    {
+        using MockBackend = engine::rendering::backend::mock::MockPresentationBackend;
+        using OpenGlBackend = engine::rendering::backend::opengl::OpenGLPresentationBackend;
+
+        switch (backend)
+        {
+        case RenderingConfig::Backend::Mock:
+            return std::make_shared<MockBackend>();
+        case RenderingConfig::Backend::OpenGL:
+            try
+            {
+                auto backend_instance = std::make_shared<OpenGlBackend>(
+                    [&runtime_host](const engine::assets::MeshHandle&)
+                        -> std::optional<engine::geometry::SurfaceMesh>
+                    {
+                        if (!runtime_host.is_initialized())
+                        {
+                            return std::nullopt;
+                        }
+
+                        try
+                        {
+                            return runtime_host.current_mesh();
+                        }
+                        catch (...) // NOLINT(bugprone-empty-catch)
+                        {
+                            return std::nullopt;
+                        }
+                    });
+                return backend_instance;
+            }
+            catch (...) // NOLINT(bugprone-empty-catch)
+            {
+                return nullptr;
+            }
+        case RenderingConfig::Backend::Auto:
+            break;
+        }
+
+        return nullptr;
+    }
 #endif
 } // namespace
 
@@ -238,19 +305,25 @@ namespace engine::runtime
             rendering_.encoders = std::make_unique<rendering::RecordingCommandEncoderProvider>();
         }
 
-        if (config_.rendering.backend_factory)
-        {
-            rendering_.backend = config_.rendering.backend_factory();
-        }
-        if (!rendering_.backend)
-        {
-            rendering_.backend = std::make_shared<rendering::backend::mock::MockPresentationBackend>();
-        }
-
         if (!runtime_host_)
         {
             runtime_host_ = std::make_unique<RuntimeHost>();
             runtime_host_->initialize();
+        }
+
+        if (config_.rendering.backend_factory)
+        {
+            rendering_.backend = config_.rendering.backend_factory();
+        }
+        else
+        {
+            const auto backend_choice = resolve_backend(config_);
+            rendering_.backend = instantiate_backend(backend_choice, *runtime_host_);
+        }
+
+        if (!rendering_.backend)
+        {
+            rendering_.backend = std::make_shared<rendering::backend::mock::MockPresentationBackend>();
         }
 
         runtime_host_->set_presentation_backend(rendering_.backend);

@@ -137,7 +137,9 @@ See [`engine/tools/examples/geometry_viewer.cpp`](../../../engine/tools/examples
 - GPU resource providers, material systems, scheduler stubs, and command encoders are provisioned
   automatically so frame graphs can execute without additional boilerplate.
 - A presentation backend is created on demand. Provide `rendering.backend_factory` to inject a
-  concrete backend; otherwise the mock backend is instantiated to keep headless environments working.
+  concrete backend; otherwise the engine selects one of the built-in options. `rendering.backend`
+  accepts `Auto`, `Mock`, or `OpenGL`. `Auto` prefers `OpenGL` when the window backend is GLFW and
+  gracefully falls back to the mock backend when a native surface is unavailable.
 - `RuntimeHost` is spun up lazily the first time a presentation backend is used, preserving
   compatibility with pre-existing stage-planner workflows.
 
