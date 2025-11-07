@@ -102,6 +102,14 @@ def test_build_parser_supports_relates_to_flag() -> None:
     assert args.relates_to == [['bundle:A', 'bundle:C']]
 
 
+def test_build_parser_supports_include_archived_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--include-archived'])
+
+    assert args.include_archived is True
+
+
 def test_filter_tasks_supports_relates_to_matching() -> None:
     tasks = [
         _make_task('A', blocked=False, relates_to=['bundle:A', 'bundle:D']),
@@ -152,3 +160,39 @@ links:
     assert task is not None
     assert task.blocked_on == ['dependency-A', 'dependency-B']
     assert task.links == ['docs/ROADMAP.md', 'hybrid_workflow/ROADMAP.md']
+
+
+def test_load_all_tasks_optionally_includes_archive(tmp_path: Path) -> None:
+    backlog_dir = tmp_path
+    archive_dir = backlog_dir / 'archive'
+    archive_dir.mkdir()
+
+    (backlog_dir / 'TL-310-editor-foundations.md').write_text(
+        """---
+id: TL-310
+title: Editor foundations
+status: in_progress
+priority: P2
+area: tools
+---
+""",
+        encoding='utf-8',
+    )
+
+    (archive_dir / 'TL-210-experiment-sandbox.md').write_text(
+        """---
+id: TL-210
+title: Experiment sandbox
+status: archived
+priority: P3
+area: tools
+---
+""",
+        encoding='utf-8',
+    )
+
+    active_only = task_status.load_all_tasks(backlog_dir)
+    assert {task.id for task in active_only} == {'TL-310'}
+
+    with_archive = task_status.load_all_tasks(backlog_dir, include_archived=True)
+    assert {task.id for task in with_archive} == {'TL-310', 'TL-210'}

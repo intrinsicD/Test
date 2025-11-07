@@ -133,6 +133,10 @@ python hybrid_workflow/task_status.py --relates-to bundle:D
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --area rendering --summary
 
+# Include archived tasks in queries
+python hybrid_workflow/task_status.py --include-archived
+python hybrid_workflow/task_status.py --include-archived --summary
+
 # Show task details
 python hybrid_workflow/task_status.py --detail T-0120
 ```

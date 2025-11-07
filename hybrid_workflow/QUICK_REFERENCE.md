@@ -118,6 +118,10 @@ python hybrid_workflow/task_status.py --unblocked --priority P1
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --status in_progress --summary
 
+# Include archived records for retrospectives
+python hybrid_workflow/task_status.py --include-archived
+python hybrid_workflow/task_status.py --include-archived --summary
+
 # Show details
 python hybrid_workflow/task_status.py --detail T-0120
 
