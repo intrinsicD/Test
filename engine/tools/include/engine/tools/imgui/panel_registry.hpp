@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace engine::tools::imgui
@@ -21,8 +22,45 @@ namespace engine::tools::imgui
     class PanelRegistry
     {
     public:
+        class RegistrationHandle
+        {
+        public:
+            RegistrationHandle() = default;
+            RegistrationHandle(const RegistrationHandle&) = delete;
+            RegistrationHandle& operator=(const RegistrationHandle&) = delete;
+            RegistrationHandle(RegistrationHandle&& other) noexcept;
+            RegistrationHandle& operator=(RegistrationHandle&& other) noexcept;
+            ~RegistrationHandle();
+
+            /// True when the handle still owns a panel registration.
+            [[nodiscard]] bool is_valid() const noexcept;
+
+            /// Explicit boolean conversion for ergonomic guard usage.
+            explicit operator bool() const noexcept
+            {
+                return is_valid();
+            }
+
+            /// Release the registration without invoking the destructor path.
+            void release() noexcept;
+
+        private:
+            friend class PanelRegistry;
+
+            RegistrationHandle(PanelRegistry* registry, std::string identifier) noexcept;
+
+            PanelRegistry* registry_{nullptr};
+            std::string identifier_{};
+        };
+
         /// Register \p callback under \p identifier. Returns false when the identifier already exists.
         bool register_panel(std::string identifier, PanelRenderCallback callback);
+
+        /// Register a panel and return an RAII handle that unregisters on destruction.
+        [[nodiscard]] RegistrationHandle register_scoped_panel(
+            std::string identifier,
+            PanelRenderCallback callback
+        );
 
         /// Remove the panel associated with \p identifier.
         void unregister_panel(std::string_view identifier) noexcept;

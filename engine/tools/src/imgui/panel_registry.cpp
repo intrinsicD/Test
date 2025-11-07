@@ -5,6 +5,63 @@
 
 namespace engine::tools::imgui
 {
+    PanelRegistry::RegistrationHandle::RegistrationHandle(
+        PanelRegistry* registry,
+        std::string identifier
+    ) noexcept
+        : registry_(registry)
+        , identifier_(std::move(identifier))
+    {
+    }
+
+    PanelRegistry::RegistrationHandle::RegistrationHandle(RegistrationHandle&& other) noexcept
+        : registry_(other.registry_)
+        , identifier_(std::move(other.identifier_))
+    {
+        other.registry_ = nullptr;
+        other.identifier_.clear();
+    }
+
+    PanelRegistry::RegistrationHandle& PanelRegistry::RegistrationHandle::operator=(RegistrationHandle&& other) noexcept
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+
+        release();
+
+        registry_ = other.registry_;
+        identifier_ = std::move(other.identifier_);
+
+        other.registry_ = nullptr;
+        other.identifier_.clear();
+
+        return *this;
+    }
+
+    PanelRegistry::RegistrationHandle::~RegistrationHandle()
+    {
+        release();
+    }
+
+    bool PanelRegistry::RegistrationHandle::is_valid() const noexcept
+    {
+        return registry_ != nullptr;
+    }
+
+    void PanelRegistry::RegistrationHandle::release() noexcept
+    {
+        if (!registry_)
+        {
+            return;
+        }
+
+        registry_->unregister_panel(identifier_);
+        registry_ = nullptr;
+        identifier_.clear();
+    }
+
     bool PanelRegistry::register_panel(std::string identifier, PanelRenderCallback callback)
     {
         if (identifier.empty() || callback == nullptr)
@@ -21,6 +78,21 @@ namespace engine::tools::imgui
         it->second.callback = std::move(callback);
         it->second.order_iterator = order_it;
         return true;
+    }
+
+    PanelRegistry::RegistrationHandle PanelRegistry::register_scoped_panel(
+        std::string identifier,
+        PanelRenderCallback callback
+    )
+    {
+        auto registration_identifier = identifier;
+
+        if (!register_panel(std::move(identifier), std::move(callback)))
+        {
+            return {};
+        }
+
+        return RegistrationHandle{this, std::move(registration_identifier)};
     }
 
     void PanelRegistry::unregister_panel(std::string_view identifier) noexcept

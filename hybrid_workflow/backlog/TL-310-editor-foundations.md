@@ -101,6 +101,8 @@ public:
 1. [x] Update CMake presets to re-enable tools module behind feature flag.
    - (2025-11-06) Added `ENGINE_ENABLE_TOOLS` cache entry with presets defaulting to `ON` so the tools library/tests build while remaining easy to disable for lean configurations.
 2. [ ] Implement panel registry and editor harness bridge in `engine/tools/src/`.
+   - (2026-04-24) Added `register_scoped_panel()` RAII helper so editor subsystems can unregister panels deterministically during
+     teardown without bespoke wiring.
 3. [ ] Restore unit tests in `engine/tools/tests/` for registry + configuration loader.
 4. [ ] Add editor smoke scenario to scripts/tests harness.
 5. [ ] Refresh tools README and root README to describe revived workflow.
@@ -111,6 +113,8 @@ public:
 
 **Status Update (2025-11-04):** Initiated hybrid workflow for TL-310 by assembling context notes and aligning roadmap/backlog status; implementation will begin once RT-410 exposes presentation adapters required for editor bring-up.
 
+**Status Update (2026-04-24):** Implemented `PanelRegistry::register_scoped_panel()` RAII helper and accompanying tests/documentation so forthcoming editor panels can rely on deterministic registration lifecycles while TL-310 wiring continues.
+
 ---
 
 ## Evidence
@@ -118,15 +122,21 @@ public:
 ### Test Results
 
 ```bash
-# Pending — populate when editor enablement patches land
+$ cmake --preset linux-gcc-debug
+$ cmake --build --preset linux-gcc-debug --target test_tools_module
+$ ctest --preset linux-gcc-debug --output-on-failure -R test_tools_module
+# 1/1 test passed (test_tools_module)
+$ python scripts/validate_docs.py
+# All documentation links resolved successfully.
 ```
 
 **Test Summary:**
-- Unit tests: pending implementation
-- Integration tests: pending implementation
-- Documentation validation: pending implementation
+- Unit tests: `test_tools_module` (passes; exercises new registration handle coverage)
+- Integration tests: pending implementation (blocked on editor harness wiring)
+- Documentation validation: `python scripts/validate_docs.py`
 
-**Notes:** Planning-only phase; no code, tests, or benchmarks executed while RT-410 dependency remains outstanding.
+**Notes:** RAII registration handle landed alongside targeted tools unit test coverage and documentation validation while the
+broader editor harness remains in progress pending runtime presentation hooks.
 
 ### Quality Gate Sign-offs
 
@@ -148,6 +158,12 @@ public:
 - `docs/modules/tools/README.md`
 - `README.md`
 - `docs/ROADMAP.md`
+- (2026-04-24) Added RAII registration handle + documentation refresh:
+  - `hybrid_workflow/CONTRIBUTING.md`
+  - `hybrid_workflow/TOOLS_REFERENCE.md`
+  - `hybrid_workflow/backlog/TL-310-editor-foundations.md`
+  - `hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md`
+  - `docs/modules/tools/README.md`
 
 ---
 
