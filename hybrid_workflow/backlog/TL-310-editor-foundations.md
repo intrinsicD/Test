@@ -124,7 +124,8 @@ public:
    - (2026-04-25) Added `scripts/tests/test_editor_smoke.py` to execute the compiled `test_tools_module` binary headlessly with GoogleTest filters covering the configuration loader, panel registry, and runtime panel bridge.
 5. [x] Refresh tools README and root README to describe revived workflow.
    - (2026-04-25) Documented the new smoke workflow in `docs/modules/tools/README.md` and `README.md`, including preset overrides and binary location guidance.
-6. [ ] Coordinate with PM-510 to schedule demo once runtime hooks ready.
+6. [x] Coordinate with PM-510 to schedule demo once runtime hooks ready.
+   - (2026-04-26) Locked the TL-310 editor harness walkthrough into the 2026-05-02 PM-510 cadence, confirmed the agenda slot with the program lead, and circulated smoke-test evidence links so demo owners can rehearse.
 7. [x] Capture test outputs, update docs, and advance task status.
    - (2026-04-25) Recorded CTest and pytest evidence in the task log alongside the documentation refresh.
 8. [ ] Transition panel-specific work to follow-up tasks (`TL-311`–`TL-314`) once the registry bridge stabilises.
@@ -143,6 +144,10 @@ public:
 **Status Update (2025-11-07 - later):** Added step 2a to integrate `PresentationBackend` into `Application` framework. While RT-410 delivered the backends, the `Application` class doesn't instantiate or wire them, preventing rendering in tools/examples. This integration is required to complete `geometry_viewer` and enable editor harness rendering. Analysis documented in `GEOMETRY_VIEWER_SOLUTION.md`.
 
 **Status Update (2026-04-25):** Restored tools unit test execution through CTest, introduced a headless editor smoke test in `scripts/tests/test_editor_smoke.py`, and refreshed the README/docset so contributors know how to build and invoke the scenario before wiring TL-311+ panels.
+
+**Status Update (2026-04-26):** Coordinated with PM-510 organisers to slot the revived editor harness into the 2026-05-02 demo,
+shared rehearsal materials (latest smoke outputs + documentation refresh), and confirmed follow-up owners for TL-311 through
+TL-314 once the baseline walkthrough ships.
 
 ---
 

@@ -67,6 +67,8 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 
 1. [ ] Publish standing invitation, agenda template, and rotation schedule.
 2. [ ] Capture weekly demo artefacts (notes, telemetry, recordings) and index them below.
+   - (2026-04-26) Added TL-310 editor foundations walkthrough to the 2026-05-02 agenda, linked the latest smoke-test evidence,
+     and assigned rehearsal owners so recordings/docs can be published within 24 hours of the session.
 3. [ ] Update roadmap, README module status, and affected task files after each demo.
 4. [ ] Log blockers and spawn follow-up tasks when scope exceeds meeting bandwidth.
 5. [ ] Review cadence effectiveness monthly and adjust participants or frequency as needed.
@@ -84,6 +86,7 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 | P1 | Runtime stage planner scaffolding | Runtime loop plan prototype recording, doc diffs | Highlighted synchronization API plan and tooling impacts |
 | P0-stage-planner | Stage planner + presentation telemetry | `telemetry/pm510_demo_priority-stage-planner.json`, PM-510 recap | Captured headless vs. OpenGL latency deltas, recorded harness stage planner summary (active flag + loop plan excerpt), and documented tooling follow-ups |
 | P1-modular-pipeline | Modular render pipeline planner | `telemetry/pm510_demo_priority-modular-render-pipeline.json`, `docs/modules/rendering/graphs/deferred_pbr.dot` | Recorded queue scheduling telemetry and published DOT snapshot covering the deferred baseline. |
+| P1-tools | Editor foundations walkthrough (scheduled 2026-05-02) | `scripts/tests/test_editor_smoke.py` logs, TL-310 doc refresh links | Agenda locked with tools lead; rehearsal on 2026-04-29 |
 | _ongoing_ | — | — | Populate as demos continue |
 
 ### Documentation Validation
