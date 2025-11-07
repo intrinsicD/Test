@@ -31,6 +31,25 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 
+STATUS_ORDER = {
+    "new": 0,
+    "ready": 1,
+    "in_progress": 2,
+    "review": 3,
+    "done": 4,
+    "archived": 5,
+}
+
+PRIORITY_ORDER = {
+    "P0": 0,
+    "P1": 1,
+    "P2": 2,
+    "P3": 3,
+    "P4": 4,
+    "P5": 5,
+}
+
+
 @dataclass
 class Task:
     """Task metadata parsed from frontmatter."""
@@ -161,6 +180,18 @@ def parse_list_field(value: Union[str, List[str]]) -> List[str]:
     return items
 
 
+def _priority_rank(priority: str) -> int:
+    """Return a stable ordering key for priorities."""
+
+    return PRIORITY_ORDER.get(priority, len(PRIORITY_ORDER))
+
+
+def _status_rank(status: str) -> int:
+    """Return a stable ordering key for task status values."""
+
+    return STATUS_ORDER.get(status, len(STATUS_ORDER))
+
+
 def load_task(file_path: Path) -> Optional[Task]:
     """Load task metadata from a markdown file."""
     try:
@@ -262,6 +293,39 @@ def filter_tasks(
     return filtered
 
 
+def select_next_actions(
+    tasks: List[Task],
+    limit: int,
+    *,
+    priority: Optional[str] = None,
+    area: Optional[str] = None,
+    owner: Optional[str] = None,
+    relates_to: Optional[List[str]] = None,
+    blocked_only: Optional[bool] = None,
+) -> List[Task]:
+    """Return the highest-priority ready tasks, falling back to new tasks."""
+
+    if limit <= 0:
+        raise ValueError("limit must be greater than zero")
+
+    filtered = filter_tasks(
+        tasks,
+        status=None,
+        priority=priority,
+        area=area,
+        owner=owner,
+        relates_to=relates_to,
+        blocked_only=blocked_only,
+    )
+
+    ready = [task for task in filtered if task.status == "ready"]
+    pool = ready if ready else [task for task in filtered if task.status == "new"]
+
+    ordered = sorted(pool, key=lambda task: (_priority_rank(task.priority), task.id))
+
+    return ordered[:limit]
+
+
 def print_task_table(tasks: List[Task]):
     """Print tasks in a formatted table."""
     if not tasks:
@@ -287,10 +351,13 @@ def print_task_table(tasks: List[Task]):
     print("-" * len(header))
     
     # Rows
-    for task in sorted(tasks, key=lambda t: (t.priority, t.status, t.id)):
+    for task in sorted(
+        tasks,
+        key=lambda t: (_priority_rank(t.priority), _status_rank(t.status), t.id),
+    ):
         title = task.title[:47] + "..." if len(task.title) > 50 else task.title
         owner = task.owner[:17] + "..." if len(task.owner) > 20 else task.owner
-        
+
         blocked = " 🚫" if task.blocked_on else ""
         
         row = (f"{task.id:<{id_width}} "
@@ -342,13 +409,17 @@ def print_summary(tasks: List[Task]):
     print("="*50)
     print(f"Total tasks: {total}")
     print(f"\nBy Status:")
-    for status, count in sorted(status_counts.items()):
+    for status, count in sorted(
+        status_counts.items(), key=lambda item: _status_rank(item[0])
+    ):
         print(f"  {status:15} {count:3} ({count*100//total if total else 0}%)")
-    
+
     print(f"\nBy Priority:")
-    for priority, count in sorted(priority_counts.items()):
+    for priority, count in sorted(
+        priority_counts.items(), key=lambda item: _priority_rank(item[0])
+    ):
         print(f"  {priority:15} {count:3} ({count*100//total if total else 0}%)")
-    
+
     print(f"\nBlocked tasks: {blocked_count}")
     print("="*50 + "\n")
 
@@ -391,6 +462,23 @@ def build_parser() -> argparse.ArgumentParser:
         action='store_true',
         help="Include tasks stored in the backlog archive",
     )
+    parser.add_argument(
+        '--next-actions',
+        action='store_true',
+        help=(
+            "Display the highest-priority ready tasks; falls back to new tasks when "
+            "no ready items exist (ignores --status)."
+        ),
+    )
+    parser.add_argument(
+        '--limit',
+        type=int,
+        default=5,
+        help=(
+            "Maximum number of tasks to show with --next-actions (default: 5). Values "
+            "<= 0 are rejected."
+        ),
+    )
 
     return parser
 
@@ -429,16 +517,33 @@ def main():
     if args.relates_to:
         relates_to = [tag for group in args.relates_to for tag in group]
 
-    filtered = filter_tasks(
-        tasks,
-        args.status,
-        args.priority,
-        args.area,
-        args.owner,
-        relates_to,
-        blocked_only=True if args.blocked else False if args.unblocked else None,
-    )
-    
+    blocked_only = True if args.blocked else False if args.unblocked else None
+
+    if args.next_actions:
+        try:
+            filtered = select_next_actions(
+                tasks,
+                args.limit,
+                priority=args.priority,
+                area=args.area,
+                owner=args.owner,
+                relates_to=relates_to,
+                blocked_only=blocked_only,
+            )
+        except ValueError as exc:
+            print(f"Error: {exc}")
+            return 1
+    else:
+        filtered = filter_tasks(
+            tasks,
+            args.status,
+            args.priority,
+            args.area,
+            args.owner,
+            relates_to,
+            blocked_only=blocked_only,
+        )
+
     # Show summary
     if args.summary:
         if not filtered:

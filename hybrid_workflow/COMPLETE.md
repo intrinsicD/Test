@@ -156,6 +156,10 @@ Demonstrates:
 # List all tasks
 python hybrid_workflow/task_status.py
 
+# Next actions (ready → new fallback)
+python hybrid_workflow/task_status.py --next-actions
+python hybrid_workflow/task_status.py --next-actions --limit 4 --owner tools-lead
+
 # Show ready tasks
 python hybrid_workflow/task_status.py --status ready
 
