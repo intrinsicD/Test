@@ -8,7 +8,7 @@ size: L
 owner: tools-lead
 gates: [tests, docs]
 relates_to: [bundle:B]
-blocked_on: ["RT-410"]
+blocked_on: []
 links: ["docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md", "docs/modules/tools/README.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/PM-510-weekly-integration-demos.md"]
 ---
 
@@ -114,6 +114,8 @@ public:
 **Status Update (2025-11-04):** Initiated hybrid workflow for TL-310 by assembling context notes and aligning roadmap/backlog status; implementation will begin once RT-410 exposes presentation adapters required for editor bring-up.
 
 **Status Update (2026-04-24):** Implemented `PanelRegistry::register_scoped_panel()` RAII helper and accompanying tests/documentation so forthcoming editor panels can rely on deterministic registration lifecycles while TL-310 wiring continues.
+
+**Status Update (2025-11-07):** RT-410 completed and archived (2026-03-30). All runtime presentation hooks, window backends (GLFW, Mock), and OpenGL presentation adapters are operational and verified. `geometry_viewer` example demonstrates end-to-end rendering pipeline working at 254k+ FPS. TL-310 is **no longer blocked** and proceeding with remaining implementation steps (editor smoke tests, documentation refresh, PM-510 demo coordination).
 
 ---
 

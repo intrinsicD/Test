@@ -8,7 +8,7 @@ size: M
 owner: tools-lead
 gates: [tests, docs]
 relates_to: [bundle:B]
-blocked_on: ["TL-310 editor foundations"]
+blocked_on: ["TL-310 editor foundations (in progress, no longer blocked)"]
 links:
   - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
   - "hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md"
