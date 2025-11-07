@@ -387,6 +387,8 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   the runtime, sandbox UI, and future editor reuse diagnostics/presentation surfaces without duplicating layout code. RAII
   registration handles automatically unregister panels when editor modules tear down, and C++ tests exercise registration,
   ordering, and invocation semantics until the editor build is re-enabled (`TL-310`).
+- `engine::tools::editor::RuntimePanelBridge` registers runtime diagnostics, profiler, and scene validation panels with the
+  shared registry and exposes a single `render_all()` entry point for the editor harness.
 
 ## Usage
 
@@ -427,6 +429,21 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   ```
   Panels execute in registration order and can be invoked individually via `registry.render("panel.id", ctx)` when UI flows
   require targeted composition.
+
+- Bridge runtime telemetry directly into the registry when the editor harness starts:
+  ```cpp
+  engine::tools::imgui::PanelRegistry registry;
+  engine::tools::editor::RuntimePanelBridge bridge(
+      registry,
+      [&runtime]() -> const engine::runtime::RuntimeDiagnostics& { return runtime.diagnostics(); },
+      [&runtime]() -> const engine::scene::validation::HierarchyValidationReport* {
+          return &runtime.diagnostics().scene_validation;
+      }
+  );
+
+  // In the editor loop
+  bridge.render_all(delta_time_seconds);
+  ```
 
 ## TODO / Next Steps
 
