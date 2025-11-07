@@ -1,0 +1,122 @@
+#include <gtest/gtest.h>
+
+#include "engine/runtime/api.hpp"
+#include "engine/scene/validation.hpp"
+#include "engine/tools/editor/runtime_panel_bridge.hpp"
+#include "engine/tools/imgui/panel_registry.hpp"
+
+namespace
+{
+    using engine::runtime::RuntimeDiagnostics;
+    using engine::scene::validation::HierarchyValidationReport;
+    using engine::tools::editor::RuntimePanelBridge;
+    using engine::tools::imgui::PanelRegistry;
+    using engine::tools::imgui::PanelRenderContext;
+}
+
+TEST(RuntimePanelBridge, RegistersDefaultPanelsAndRenders)
+{
+    PanelRegistry registry{};
+    RuntimeDiagnostics diagnostics{};
+    diagnostics.tick_count = 42;
+    HierarchyValidationReport report{};
+    report.metrics.issue_count = 7;
+
+    bool diagnostics_rendered = false;
+    bool profiler_rendered = false;
+    bool scene_rendered = false;
+
+    RuntimePanelBridge bridge(
+        registry,
+        [&]() -> const RuntimeDiagnostics& {
+            diagnostics_rendered = true;
+            return diagnostics;
+        },
+        [&]() -> const HierarchyValidationReport* {
+            return &report;
+        },
+        RuntimePanelBridge::Renderers{
+            [&](const RuntimeDiagnostics& value) {
+                EXPECT_EQ(value.tick_count, diagnostics.tick_count);
+            },
+            [&](bool* visible) {
+                ASSERT_NE(visible, nullptr);
+                profiler_rendered = true;
+                *visible = false;
+            },
+            [&](const HierarchyValidationReport& value) {
+                scene_rendered = true;
+                EXPECT_EQ(value.metrics.issue_count, report.metrics.issue_count);
+            }
+        }
+    );
+
+    bridge.render_all(0.016);
+
+    EXPECT_TRUE(diagnostics_rendered);
+    EXPECT_TRUE(profiler_rendered);
+    EXPECT_TRUE(scene_rendered);
+    EXPECT_FALSE(bridge.profiler_visible());
+
+    bridge.set_profiler_visible(true);
+    EXPECT_TRUE(bridge.profiler_visible());
+}
+
+TEST(RuntimePanelBridge, ForwardsRenderContextDeltaTime)
+{
+    PanelRegistry registry{};
+    RuntimeDiagnostics diagnostics{};
+
+    RuntimePanelBridge bridge(
+        registry,
+        [&]() -> const RuntimeDiagnostics& {
+            return diagnostics;
+        },
+        RuntimePanelBridge::SceneValidationProvider{},
+        RuntimePanelBridge::Renderers{
+            [](const RuntimeDiagnostics&) {},
+            [](bool*) {},
+            [](const HierarchyValidationReport&) {}
+        }
+    );
+
+    double observed_delta = -1.0;
+    auto handle = registry.register_scoped_panel(
+        "custom.panel",
+        [&](const PanelRenderContext& ctx) {
+            observed_delta = ctx.delta_time;
+        }
+    );
+    ASSERT_TRUE(handle);
+
+    bridge.render_all(0.033);
+    EXPECT_DOUBLE_EQ(observed_delta, 0.033);
+}
+
+TEST(RuntimePanelBridge, ScenePanelSkipsWhenProviderReturnsNull)
+{
+    PanelRegistry registry{};
+    RuntimeDiagnostics diagnostics{};
+
+    bool scene_rendered = false;
+    RuntimePanelBridge bridge(
+        registry,
+        [&]() -> const RuntimeDiagnostics& {
+            return diagnostics;
+        },
+        [&]() -> const HierarchyValidationReport* {
+            return nullptr;
+        },
+        RuntimePanelBridge::Renderers{
+            [](const RuntimeDiagnostics&) {},
+            [](bool*) {},
+            [&](const HierarchyValidationReport&) {
+                scene_rendered = true;
+            }
+        }
+    );
+
+    bridge.render_all(0.0);
+    EXPECT_FALSE(scene_rendered);
+}
+

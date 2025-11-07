@@ -4,7 +4,8 @@ add_executable(test_tools_module
         test_experiment_sandbox.cpp
         test_sandbox_configuration_loader.cpp
         test_benchmark_runner.cpp
-        test_panel_registry.cpp)
+        test_panel_registry.cpp
+        test_runtime_panel_bridge.cpp)
 
 target_link_libraries(test_tools_module
         PRIVATE

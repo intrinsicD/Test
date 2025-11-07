@@ -100,9 +100,11 @@ public:
 
 1. [x] Update CMake presets to re-enable tools module behind feature flag.
    - (2025-11-06) Added `ENGINE_ENABLE_TOOLS` cache entry with presets defaulting to `ON` so the tools library/tests build while remaining easy to disable for lean configurations.
-2. [ ] Implement panel registry and editor harness bridge in `engine/tools/src/`.
+2. [x] Implement panel registry and editor harness bridge in `engine/tools/src/`.
    - (2026-04-24) Added `register_scoped_panel()` RAII helper so editor subsystems can unregister panels deterministically during
-     teardown without bespoke wiring.
+    teardown without bespoke wiring.
+   - (2026-04-24) Introduced `RuntimePanelBridge` to register diagnostics, profiler, and scene validation panels against the
+    shared `PanelRegistry`, exposing a single render entry point for the editor harness.
 3. [ ] Restore unit tests in `engine/tools/tests/` for registry + configuration loader.
 4. [ ] Add editor smoke scenario to scripts/tests harness.
 5. [ ] Refresh tools README and root README to describe revived workflow.
@@ -114,6 +116,8 @@ public:
 **Status Update (2025-11-04):** Initiated hybrid workflow for TL-310 by assembling context notes and aligning roadmap/backlog status; implementation will begin once RT-410 exposes presentation adapters required for editor bring-up.
 
 **Status Update (2026-04-24):** Implemented `PanelRegistry::register_scoped_panel()` RAII helper and accompanying tests/documentation so forthcoming editor panels can rely on deterministic registration lifecycles while TL-310 wiring continues.
+
+**Status Update (2026-04-24):** Added `engine::tools::editor::RuntimePanelBridge` so runtime diagnostics, profiler telemetry, and scene validation reports register automatically with the shared panel registry and render through a unified entry point during editor bring-up.
 
 **Status Update (2025-11-07):** RT-410 completed and archived (2026-03-30). All runtime presentation hooks, window backends (GLFW, Mock), and OpenGL presentation adapters are operational and verified. `geometry_viewer` example demonstrates end-to-end rendering pipeline working at 254k+ FPS. TL-310 is **no longer blocked** and proceeding with remaining implementation steps (editor smoke tests, documentation refresh, PM-510 demo coordination).
 
@@ -156,6 +160,9 @@ broader editor harness remains in progress pending runtime presentation hooks.
 - `engine/tools/include/engine/tools/imgui/panel_registry.hpp`
 - `engine/tools/src/imgui/panel_registry.cpp`
 - `engine/tools/tests/test_panel_registry.cpp`
+- `engine/tools/include/engine/tools/editor/runtime_panel_bridge.hpp`
+- `engine/tools/src/editor/runtime_panel_bridge.cpp`
+- `engine/tools/tests/test_runtime_panel_bridge.cpp`
 - `scripts/tests/test_editor_smoke.py`
 - `docs/modules/tools/README.md`
 - `README.md`
@@ -166,6 +173,7 @@ broader editor harness remains in progress pending runtime presentation hooks.
   - `hybrid_workflow/backlog/TL-310-editor-foundations.md`
   - `hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md`
   - `docs/modules/tools/README.md`
+  - `hybrid_workflow/TOOLS_REFERENCE.md`
 
 ---
 

@@ -98,6 +98,20 @@ PanelRenderContext context{.delta_time = dt};
 registry.render_all(context);
 ```
 
+When wiring runtime telemetry, reuse the dedicated bridge so diagnostics, profiler, and scene validation panels register
+automatically:
+
+```cpp
+engine::tools::editor::RuntimePanelBridge runtime_panels(
+    registry,
+    [&runtime]() -> const engine::runtime::RuntimeDiagnostics& { return runtime.diagnostics(); },
+    [&runtime]() -> const engine::scene::validation::HierarchyValidationReport* {
+        return &runtime.diagnostics().scene_validation;
+    }
+);
+runtime_panels.render_all(dt);
+```
+
 **When:** Building editor with multiple panels, reusable diagnostic widgets. The returned `RegistrationHandle` automatically
 unregisters the panel when it goes out of scope, keeping editor teardown deterministic.
 **See:** TL-310 for editor foundation work.
