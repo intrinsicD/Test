@@ -423,10 +423,7 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
           render_streaming_panel(ctx);
       }
   );
-  if (streaming_panel)
-  {
-      registry.render_all(engine::tools::imgui::PanelRenderContext{delta_time});
-  }
+  registry.render_all(engine::tools::imgui::PanelRenderContext{delta_time});
   ```
   Panels execute in registration order and can be invoked individually via `registry.render("panel.id", ctx)` when UI flows
   require targeted composition.

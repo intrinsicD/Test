@@ -95,10 +95,7 @@ auto my_panel = registry.register_scoped_panel(
 
 // Later: render all registered panels while the handle is alive
 PanelRenderContext context{.delta_time = dt};
-if (my_panel)
-{
-    registry.render_all(context);
-}
+registry.render_all(context);
 ```
 
 **When:** Building editor with multiple panels, reusable diagnostic widgets. The returned `RegistrationHandle` automatically
@@ -323,10 +320,7 @@ auto diagnostics_panel = registry.register_scoped_panel("diagnostics", [&](const
 
 // In editor loop
 PanelRenderContext ctx{.delta_time = dt};
-if (scene_panel && inspector_panel && profiler_panel && diagnostics_panel)
-{
-    registry.render_all(ctx);
-}
+registry.render_all(ctx);
 ```
 
 ---

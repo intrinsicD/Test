@@ -128,13 +128,10 @@ auto performance_panel = registry.register_scoped_panel(
 
 // Render all panels while the handles remain valid
 PanelRenderContext context{.delta_time = dt};
-if (scene_hierarchy_panel && performance_panel)
-{
-    registry.render_all(context);
+registry.render_all(context);
 
-    // Or render a specific panel
-    registry.render("scene_hierarchy", context);
-}
+// Or render a specific panel
+registry.render("scene_hierarchy", context);
 ```
 
 **When to Use:**
