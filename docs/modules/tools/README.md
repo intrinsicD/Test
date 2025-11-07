@@ -355,7 +355,13 @@ Run tests:
 ```bash
 pytest scripts/tests/tools/
 ctest --preset linux-gcc-debug -R tools  # When enabled
+cmake --build --preset linux-gcc-debug --target test_tools_module  # build smoke binary
+pytest scripts/tests/test_editor_smoke.py
 ```
+
+Set `TOOLS_EDITOR_SMOKE_PRESET` to target a non-default CMake preset or
+`TOOLS_EDITOR_SMOKE_BINARY` to point directly at the compiled
+`test_tools_module` executable.
 
 ## Dependencies
 
@@ -389,6 +395,8 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   ordering, and invocation semantics until the editor build is re-enabled (`TL-310`).
 - `engine::tools::editor::RuntimePanelBridge` registers runtime diagnostics, profiler, and scene validation panels with the
   shared registry and exposes a single `render_all()` entry point for the editor harness.
+- `scripts/tests/test_editor_smoke.py` runs the compiled `test_tools_module` binary with GoogleTest filters to validate the
+  sandbox configuration loader, panel registry, and runtime panel bridge in a headless smoke scenario.
 
 ## Usage
 
