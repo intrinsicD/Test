@@ -191,18 +191,33 @@ def load_task(file_path: Path) -> Optional[Task]:
         return None
 
 
-def load_all_tasks(backlog_dir: Path) -> List[Task]:
-    """Load all tasks from backlog directory (excluding archive and template)."""
-    tasks = []
-    
-    for md_file in backlog_dir.glob('*.md'):
-        if md_file.name.startswith('000-'):
-            continue  # Skip template
-        
+def _iter_backlog_files(backlog_dir: Path) -> List[Path]:
+    """Return markdown task files in ``backlog_dir`` (excluding the template)."""
+
+    return [
+        path
+        for path in backlog_dir.glob('*.md')
+        if not path.name.startswith('000-')
+    ]
+
+
+def load_all_tasks(backlog_dir: Path, *, include_archived: bool = False) -> List[Task]:
+    """Load tasks from ``backlog_dir`` and optionally from its ``archive`` folder."""
+    tasks: List[Task] = []
+
+    for md_file in _iter_backlog_files(backlog_dir):
         task = load_task(md_file)
         if task:
             tasks.append(task)
-    
+
+    if include_archived:
+        archive_dir = backlog_dir / 'archive'
+        if archive_dir.exists():
+            for md_file in _iter_backlog_files(archive_dir):
+                task = load_task(md_file)
+                if task:
+                    tasks.append(task)
+
     return tasks
 
 
@@ -371,6 +386,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('--summary', action='store_true', help="Show summary statistics")
     parser.add_argument('--detail', help="Show details for specific task ID")
+    parser.add_argument(
+        '--include-archived',
+        action='store_true',
+        help="Include tasks stored in the backlog archive",
+    )
 
     return parser
 
@@ -389,7 +409,7 @@ def main():
         return 1
     
     # Load tasks
-    tasks = load_all_tasks(backlog_dir)
+    tasks = load_all_tasks(backlog_dir, include_archived=args.include_archived)
     
     if not tasks:
         print("No tasks found in backlog directory.")
