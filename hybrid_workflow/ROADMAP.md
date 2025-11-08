@@ -34,7 +34,7 @@
 - Editor builds are re-enabled with baseline smoke coverage.
 - Weekly demos capture GPU → runtime → tooling integration progress.
 
-_Current status:_ RG-450 has shipped with descriptor-driven planner execution and hot-reload coverage; RT-410 is complete and archived; TL-310 has entered planning under the hybrid workflow while waiting for presentation adapters to unblock tooling activation; PM-510 continues to coordinate weekly integration demos, and TL-311–TL-314 track the diagnostic panels that build on the editor foundation.
+_Current status:_ RG-450 has shipped with descriptor-driven planner execution and hot-reload coverage; RT-410 is complete and archived; TL-310 has entered planning under the hybrid workflow while waiting for presentation adapters to unblock tooling activation; PM-510 continues to coordinate weekly integration demos, TL-311 is groomed and ready pending TL-310 completion, and TL-312–TL-314 track the remaining diagnostic panels that build on the editor foundation.
 
 ---
 

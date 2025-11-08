@@ -1,14 +1,14 @@
 ---
 id: TL-311
 title: Scene hierarchy diagnostic panel
-status: new
+status: ready
 priority: P2
 area: tools
 size: M
 owner: tools-lead
 gates: [tests, docs]
 relates_to: [bundle:B]
-blocked_on: ["TL-310 editor foundations (in progress)", "TL-310-2a Application rendering (needed for panel visualization)"]
+blocked_on: ["TL-310 editor foundations (in progress)"]
 links:
   - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
   - "hybrid_workflow/backlog/archive/TL-310-2a-application-presentation-integration.md"
@@ -116,7 +116,8 @@ class SceneHierarchyPanel : public engine::tools::Panel {
 
 ## Steps
 
-1. [ ] Review TL-310 implementation plan and confirm panel registry extension points.
+1. [x] Review TL-310 implementation plan and confirm panel registry extension points.
+   - (2026-04-26) Verified runtime/editor bridge delivered by TL-310 and the archived TL-310-2a subtask exposes presentation hooks required for panel rendering, so TL-311 can proceed once TL-310 finishes feature gating.
 2. [ ] Implement hierarchy model helpers and panel rendering code.
 3. [ ] Add editor harness smoke test exercising selection and validation display.
 4. [ ] Update tools and scene module READMEs with usage patterns and screenshots.
