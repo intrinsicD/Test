@@ -224,6 +224,11 @@ namespace engine::platform::windowing
                     request.user_data);
             }
 
+            [[nodiscard]] void* native_handle() noexcept override
+            {
+                return window_;
+            }
+
         private:
             void create_window()
             {
@@ -232,7 +237,11 @@ namespace engine::platform::windowing
                 const int visibility_hint = headless_ ? GLFW_FALSE : (cfg.visible ? GLFW_TRUE : GLFW_FALSE);
 
                 glfwDefaultWindowHints();
-                glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+                // Configure OpenGL 4.6 Core Profile for rendering backend
+                glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+                glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
                 glfwWindowHint(GLFW_VISIBLE, visibility_hint);
                 glfwWindowHint(GLFW_RESIZABLE, cfg.resizable ? GLFW_TRUE : GLFW_FALSE);
 

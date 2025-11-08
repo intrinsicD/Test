@@ -252,7 +252,8 @@ namespace engine::runtime
                 rendering::RuntimePresentationContext presentation_context{
                     *runtime_host_,
                     delta_time,
-                    nullptr};
+                    nullptr,
+                    window_->native_handle()};
                 presentation_context.submit_render_graph = &submit_render_graph;
                 rendering_.backend->present(presentation_context);
             }

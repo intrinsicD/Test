@@ -28,9 +28,35 @@
 #include "engine/rendering/pipeline/research_baseline.hpp"
 #include "engine/scene/components/transform.hpp"
 #include "engine/math/transform.hpp"
+#include "engine/geometry/api.hpp"
+#include "engine/rendering/backend/opengl/presentation_backend.hpp"
+#include "engine/assets/validation.hpp"
+#include <unordered_map>
+#include <memory>
 
 namespace
 {
+    /// Storage for procedural meshes accessible to the rendering backend
+    struct ProceduralMeshStorage
+    {
+        std::unordered_map<std::string, engine::geometry::SurfaceMesh> meshes;
+
+        void store(const std::string& name, engine::geometry::SurfaceMesh mesh)
+        {
+            meshes[name] = std::move(mesh);
+        }
+
+        std::optional<engine::geometry::SurfaceMesh> get(const std::string& name) const
+        {
+            auto it = meshes.find(name);
+            if (it != meshes.end())
+            {
+                return it->second;
+            }
+            return std::nullopt;
+        }
+    };
+
     constexpr int WINDOW_WIDTH = 1280;
     constexpr int WINDOW_HEIGHT = 720;
     constexpr float CAMERA_DISTANCE = 5.0f;
@@ -42,7 +68,8 @@ namespace
     {
     public:
         GeometryViewerApp()
-            : Application({
+            : mesh_storage_(std::make_shared<ProceduralMeshStorage>()),
+              Application({
                 .window = {
                     .title = "Geometry Viewer - Research Baseline",
                     .width = WINDOW_WIDTH,
@@ -54,12 +81,23 @@ namespace
                     }
                 },
                 .window_backend = engine::platform::WindowBackend::GLFW,
-                .target_fps = 0.0,  // Unlimited
+                .target_fps = 0.0, // Unlimited
 #if ENGINE_ENABLE_RENDERING
                 .rendering = {
                     .enable = true,
-                    .backend = engine::runtime::ApplicationConfig::RenderingConfig::Backend::Auto,
-                    .backend_factory = {}
+                    .backend = engine::runtime::ApplicationConfig::RenderingConfig::Backend::OpenGL,
+                    .backend_factory = [this]() -> std::shared_ptr<engine::rendering::PresentationBackend> {
+                        // Create custom MeshResolver that accesses our procedural mesh storage
+                        auto storage = this->mesh_storage_;
+                        auto mesh_resolver = [storage](const engine::assets::MeshHandle& handle)
+                            -> std::optional<engine::geometry::SurfaceMesh>
+                        {
+                            return storage->get(handle.id());
+                        };
+
+                        return std::make_shared<engine::rendering::backend::opengl::OpenGLPresentationBackend>(
+                            mesh_resolver);
+                    }
                 }
 #endif
             })
@@ -70,6 +108,18 @@ namespace
         void on_initialize() override
         {
             std::cout << "\n=== Initializing Geometry Viewer ===\n";
+
+            // Create and store procedural mesh FIRST (before validator registration)
+            auto cube_mesh = engine::geometry::make_unit_cube();
+            mesh_storage_->store("procedural_cube", std::move(cube_mesh));
+            std::cout << "  ✓ Created and stored procedural cube\n";
+
+            // Now register validator for procedural meshes
+            engine::assets::HandleValidatorRegistry::instance().register_mesh_validator(
+                [storage = mesh_storage_](const engine::assets::MeshHandle& handle) -> bool {
+                    // Accept any mesh that exists in our storage
+                    return storage->get(handle.id()).has_value();
+                });
 
             // Setup scene with cube
             setup_scene();
@@ -114,6 +164,7 @@ namespace
         {
             std::cout << "Creating scene...\n";
 
+
             auto& registry = scene().registry();
 
             // Create a cube entity
@@ -123,19 +174,15 @@ namespace
             auto& transform = registry.emplace<engine::scene::components::WorldTransform>(cube);
             transform.value = engine::math::Transform<float>::Identity();
 
-            // TODO: Add render geometry component once we have:
-            // 1. Actual mesh data (procedural cube generation or loaded mesh)
-            // 2. Application presentation backend integration (TL-310-2a)
-            // For now, we just create an entity with transform to validate the scene system.
+            // Add RenderGeometry component with our procedural mesh
+            auto mesh_handle = engine::assets::MeshHandle{std::string{"procedural_cube"}};
+            auto material_handle = engine::assets::MaterialHandle{}; // Empty material for now
 
-            // Future code (once assets exist):
-            // auto mesh = engine::assets::MeshHandle{std::string{"examples/cube.mesh"}};
-            // auto material = engine::assets::MaterialHandle{std::string{"examples/default.material"}};
-            // registry.emplace<engine::rendering::components::RenderGeometry>(
-            //     cube,
-            //     engine::rendering::components::RenderGeometry::from_mesh(mesh, material));
+            registry.emplace<engine::rendering::components::RenderGeometry>(
+                cube,
+                engine::rendering::components::RenderGeometry::from_mesh(mesh_handle, material_handle));
 
-            std::cout << "  ✓ Scene created with 1 entity (no geometry yet)\n";
+            std::cout << "  ✓ Scene created with 1 renderable cube entity\n";
         }
 
         void setup_camera()
@@ -153,10 +200,10 @@ namespace
             // Set up perspective projection
             const float aspect_ratio = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
             camera.set_perspective(
-                1.047f,  // ~60 degrees FOV
+                1.047f, // ~60 degrees FOV
                 aspect_ratio,
-                0.1f,    // Near plane
-                100.0f   // Far plane
+                0.1f, // Near plane
+                100.0f // Far plane
             );
 
             // Position camera
@@ -262,8 +309,8 @@ namespace
             {
                 const float fps = static_cast<float>(fps_frame_count_) / static_cast<float>(fps_time_accumulator_);
                 std::cout << "FPS: " << fps << " (Camera: yaw=" << camera_yaw_
-                          << ", pitch=" << camera_pitch_
-                          << ", radius=" << camera_radius_ << ")\n";
+                    << ", pitch=" << camera_pitch_
+                    << ", radius=" << camera_radius_ << ")\n";
                 fps_frame_count_ = 0;
                 fps_time_accumulator_ = 0.0;
             }
@@ -280,8 +327,12 @@ namespace
         int fps_frame_count_{0};
         double fps_time_accumulator_{0.0};
 
+        // Rendering
         engine::rendering::FrameGraph frame_graph_{};
         engine::rendering::ResearchBaselineResources baseline_resources_{};
+
+        // Procedural mesh storage
+        std::shared_ptr<ProceduralMeshStorage> mesh_storage_;
     };
 }
 

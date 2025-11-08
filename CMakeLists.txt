@@ -4,84 +4,85 @@ project(Modular3GEngine LANGUAGES CXX C)
 
 
 set(ENGINE_MODULES
-    math
-    animation
-    assets
-    compute
-    core
-    geometry
-    io
-    physics
-    platform
-    rendering
-    scene
-    runtime
+        math
+        animation
+        assets
+        compute
+        core
+        geometry
+        io
+        physics
+        platform
+        rendering
+        scene
+        runtime
+        tools
 )
 
 option(ENGINE_ENABLE_CUDA "Enable CUDA support for compute module targets" OFF)
 
 set(_engine_window_backend_options GLFW MOCK)
 set(ENGINE_WINDOW_BACKEND "GLFW" CACHE STRING
-    "Default window backend (GLFW, MOCK)")
+        "Default window backend (GLFW, MOCK)")
 set_property(CACHE ENGINE_WINDOW_BACKEND PROPERTY STRINGS ${_engine_window_backend_options})
 string(TOUPPER "${ENGINE_WINDOW_BACKEND}" _engine_window_backend_normalised)
 list(FIND _engine_window_backend_options "${_engine_window_backend_normalised}" _engine_window_backend_index)
-if(_engine_window_backend_index EQUAL -1)
+if (_engine_window_backend_index EQUAL -1)
     string(REPLACE ";" ", " _engine_window_backend_valid "${_engine_window_backend_options}")
     message(FATAL_ERROR
-        "ENGINE_WINDOW_BACKEND must be one of: ${_engine_window_backend_valid}. "
-        "Received '${ENGINE_WINDOW_BACKEND}'.")
-endif()
+            "ENGINE_WINDOW_BACKEND must be one of: ${_engine_window_backend_valid}. "
+            "Received '${ENGINE_WINDOW_BACKEND}'.")
+endif ()
 set(ENGINE_WINDOW_BACKEND "${_engine_window_backend_normalised}" CACHE STRING
-    "Default window backend (GLFW, MOCK)" FORCE)
+        "Default window backend (GLFW, MOCK)" FORCE)
 unset(_engine_window_backend_index)
 unset(_engine_window_backend_normalised)
 unset(_engine_window_backend_valid)
 unset(_engine_window_backend_options)
 
 set(ENGINE_OPTIONAL_SUBSYSTEMS
-    animation
-    assets
-    compute
-    compute_cuda
-    core
-    geometry
-    io
-    physics
-    platform
-    rendering
-    scene
-    tools
+        animation
+        assets
+        compute
+        compute_cuda
+        core
+        geometry
+        io
+        physics
+        platform
+        rendering
+        scene
+        tools
 )
 
-foreach(subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
+foreach (subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
     string(TOUPPER "${subsystem}" subsystem_upper)
     set(option_default ON)
-    if(subsystem STREQUAL "compute_cuda")
+    if (subsystem STREQUAL "compute_cuda")
         set(option_default ${ENGINE_ENABLE_CUDA})
-    elseif(subsystem STREQUAL "tools")
+    elseif (subsystem STREQUAL "tools")
         set(option_default OFF)
-    endif()
+    endif ()
     option(ENGINE_ENABLE_${subsystem_upper} "Enable ${subsystem} subsystem integration" ${option_default})
-endforeach()
+endforeach ()
 
-if(NOT ENGINE_ENABLE_CUDA AND ENGINE_ENABLE_COMPUTE_CUDA)
+if (NOT ENGINE_ENABLE_CUDA AND ENGINE_ENABLE_COMPUTE_CUDA)
     message(WARNING "ENGINE_ENABLE_COMPUTE_CUDA requested but ENGINE_ENABLE_CUDA=OFF; disabling compute CUDA subsystem integration.")
     set(ENGINE_ENABLE_COMPUTE_CUDA OFF CACHE BOOL "Enable compute_cuda subsystem integration" FORCE)
-endif()
+endif ()
 
-foreach(subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
+foreach (subsystem IN LISTS ENGINE_OPTIONAL_SUBSYSTEMS)
     string(TOUPPER "${subsystem}" subsystem_upper)
-    if(ENGINE_ENABLE_${subsystem_upper})
+    if (ENGINE_ENABLE_${subsystem_upper})
         add_compile_definitions(ENGINE_ENABLE_${subsystem_upper}=1)
-    else()
+    else ()
         add_compile_definitions(ENGINE_ENABLE_${subsystem_upper}=0)
-    endif()
-endforeach()
+    endif ()
+endforeach ()
 
-if(ENGINE_ENABLE_TOOLS)
+if (ENGINE_ENABLE_TOOLS)
     list(APPEND ENGINE_MODULES tools)
-endif()
+endif ()
 
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
@@ -89,18 +90,18 @@ option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
 option(ENGINE_ENABLE_GLFW "Fetch and build GLFW to provide the GLFW window backend" ON)
 option(ENGINE_ENABLE_FUZZING "Enable fuzzing harness targets" OFF)
 
-if(ENGINE_ENABLE_PYTHON AND NOT BUILD_SHARED_LIBS)
+if (ENGINE_ENABLE_PYTHON AND NOT BUILD_SHARED_LIBS)
     message(FATAL_ERROR "Python interoperability requires BUILD_SHARED_LIBS=ON. Set ENGINE_ENABLE_PYTHON=OFF to build static libraries.")
-endif()
+endif ()
 
 add_library(engine_project_options INTERFACE)
 target_compile_features(engine_project_options INTERFACE cxx_std_20)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(engine_project_options INTERFACE -stdlib=libc++)
     target_link_options(engine_project_options INTERFACE -stdlib=libc++)
     target_link_libraries(engine_project_options INTERFACE c++)
-endif()
+endif ()
 
 add_library(engine_module_headers INTERFACE)
 
@@ -110,78 +111,78 @@ add_library(engine::headers ALIAS engine_module_headers)
 target_link_libraries(engine_module_headers INTERFACE engine::project_options)
 
 function(engine_apply_module_defaults target)
-    if(NOT TARGET ${target})
+    if (NOT TARGET ${target})
         message(FATAL_ERROR "engine_apply_module_defaults called with unknown target '${target}'")
-    endif()
+    endif ()
 
     set(options)
     set(one_value_args)
     set(multi_value_args PUBLIC_INCLUDE_DIRS PRIVATE_INCLUDE_DIRS)
     cmake_parse_arguments(ENGINE_MODULE "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-    if(ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
+    if (ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
         target_include_directories(engine_module_headers INTERFACE
-            ${ENGINE_MODULE_PUBLIC_INCLUDE_DIRS}
+                ${ENGINE_MODULE_PUBLIC_INCLUDE_DIRS}
         )
-    endif()
+    endif ()
 
     get_target_property(_target_type ${target} TYPE)
 
-    if(_target_type STREQUAL "INTERFACE_LIBRARY")
-        if(ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
+    if (_target_type STREQUAL "INTERFACE_LIBRARY")
+        if (ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
             target_include_directories(${target}
-                INTERFACE
+                    INTERFACE
                     ${ENGINE_MODULE_PUBLIC_INCLUDE_DIRS}
             )
-        endif()
+        endif ()
 
         target_link_libraries(${target}
-            INTERFACE
+                INTERFACE
                 engine::project_options
         )
-    else()
-        if(ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
+    else ()
+        if (ENGINE_MODULE_PUBLIC_INCLUDE_DIRS)
             target_include_directories(${target}
-                PUBLIC
+                    PUBLIC
                     ${ENGINE_MODULE_PUBLIC_INCLUDE_DIRS}
             )
-        endif()
+        endif ()
 
-        if(ENGINE_MODULE_PRIVATE_INCLUDE_DIRS)
+        if (ENGINE_MODULE_PRIVATE_INCLUDE_DIRS)
             target_include_directories(${target}
-                PRIVATE
+                    PRIVATE
                     ${ENGINE_MODULE_PRIVATE_INCLUDE_DIRS}
             )
-        endif()
+        endif ()
 
         target_link_libraries(${target}
-            PUBLIC
+                PUBLIC
                 engine::project_options
         )
-    endif()
+    endif ()
 endfunction()
 
 include(CTest)
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 
-if(Python3_Interpreter_FOUND)
+if (Python3_Interpreter_FOUND)
     add_custom_target(docs
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/validate_docs.py
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMENT "Validating documentation links"
-        VERBATIM)
-else()
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/validate_docs.py
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            COMMENT "Validating documentation links"
+            VERBATIM)
+else ()
     message(WARNING "Python3 interpreter not found; the docs validation target is disabled.")
-endif()
+endif ()
 
 # Centralized third-party dependencies
 add_subdirectory(third_party)
 
 # Tests
-if(BUILD_TESTING)
+if (BUILD_TESTING)
     add_subdirectory(engine/tests/integration)
-endif()
+endif ()
 
 # Engine modules
 add_subdirectory(engine)

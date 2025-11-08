@@ -52,9 +52,7 @@ namespace engine::platform::windowing
             const SwapchainSurfaceRequest& request) override;
         [[nodiscard]] input::InputState& input_state() noexcept override;
         [[nodiscard]] const input::InputState& input_state() const noexcept override;
-
-    protected:
-        [[nodiscard]] void* native_handle() noexcept;
+        [[nodiscard]] void* native_handle() noexcept override;
 
     private:
         void flush_pending_events();

@@ -44,10 +44,17 @@ namespace engine::rendering::backend::opengl
         void present(const RuntimePresentationContext& context) override;
 
     private:
+        void initialize_context_if_needed(void* window_handle);
+        void clear_framebuffer();
+        void swap_buffers(void* window_handle);
+
         OpenGLRuntimeSubmission submission_;
         MaterialSystem materials_{};
         FrameGraph frame_graph_{};
         std::unique_ptr<ForwardPipeline> pipeline_{};
+
+        bool context_initialized_{false};
+        void* current_window_{nullptr};
     };
 } // namespace engine::rendering::backend::opengl
 

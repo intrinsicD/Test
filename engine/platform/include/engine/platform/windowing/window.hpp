@@ -287,6 +287,11 @@ namespace engine::platform
 
         /// Const overload of input_state().
         [[nodiscard]] virtual const input::InputState& input_state() const noexcept = 0;
+
+        /// Returns the native window handle (e.g., GLFWwindow* for GLFW backend).
+        /// This is backend-specific and should be cast to the appropriate type.
+        /// Returns nullptr if the backend doesn't expose a native handle.
+        [[nodiscard]] virtual void* native_handle() noexcept = 0;
     };
 
     /// \brief Allocates an in-memory event queue. The caller assumes shared

@@ -33,6 +33,11 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API SurfaceMesh make_unit_quad();
 
+    [[nodiscard]] ENGINE_GEOMETRY_API SurfaceMesh make_unit_cube();
+
+    /// Create a SurfaceMesh from an AABB shape (reuses existing shape utilities)
+    [[nodiscard]] ENGINE_GEOMETRY_API SurfaceMesh mesh_from_aabb(const Aabb& box);
+
 ENGINE_GEOMETRY_API void recompute_vertex_normals(SurfaceMesh& mesh);
 
 ENGINE_GEOMETRY_API void update_bounds(SurfaceMesh& mesh);

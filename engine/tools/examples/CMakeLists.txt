@@ -44,3 +44,17 @@ endif()
 unset(_geometry_viewer_requirements_met)
 unset(_geometry_viewer_missing_targets)
 
+# Procedural Cube Example - demonstrates geometry API for creating meshes
+add_executable(procedural_cube_example
+        procedural_cube_example.cpp
+)
+
+target_link_libraries(procedural_cube_example
+        PRIVATE
+        engine_geometry
+        engine_math
+)
+
+install(TARGETS procedural_cube_example
+        RUNTIME DESTINATION bin/examples
+)

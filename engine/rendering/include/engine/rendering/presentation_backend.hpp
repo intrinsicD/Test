@@ -19,6 +19,7 @@ namespace engine::rendering
         runtime::RuntimeHost& host;
         double delta_seconds{0.0};
         SubmitRenderGraphFn submit_render_graph{nullptr};
+        void* native_window_handle{nullptr};
     };
 
     /**
