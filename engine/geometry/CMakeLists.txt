@@ -32,6 +32,13 @@ add_library(${target_name}
         src/shapes/triangle.cpp
         src/utils/shape_interactions.cpp
         src/telemetry.cpp
+        src/surfaces/mesh_generation.cpp
+        src/surfaces/aabb_mesh.cpp
+        src/surfaces/sphere_mesh.cpp
+        src/surfaces/cylinder_mesh.cpp
+        src/surfaces/basic_shapes_mesh.cpp
+        src/surfaces/capsule_ellipsoid_mesh.cpp
+        src/surfaces/platonic_solids.cpp
 )
 
 engine_apply_module_defaults(${target_name}

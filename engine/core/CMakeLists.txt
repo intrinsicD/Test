@@ -2,6 +2,7 @@ set(target_name engine_core)
 
 add_library(${target_name}
         src/api.cpp
+        src/log.cpp
         src/ecs/registry.cpp
         src/ecs/system.cpp
         src/threading/io_thread_pool.cpp

@@ -21,6 +21,7 @@ if(_geometry_viewer_requirements_met)
 
     target_link_libraries(geometry_viewer
             PRIVATE
+            engine_core
             engine_runtime
             engine_rendering
             engine_scene

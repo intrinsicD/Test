@@ -4,6 +4,7 @@ add_executable(engine_core_tests
         io_thread_pool_tests.cpp
         resource_pool_tests.cpp
         telemetry_schema_tests.cpp
+        log_test.cpp
 )
 
 target_link_libraries(engine_core_tests

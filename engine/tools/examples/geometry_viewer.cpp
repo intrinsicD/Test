@@ -16,8 +16,8 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <iostream>
 
+#include "engine/core/log.hpp"
 #include "engine/runtime/application.hpp"
 #include "engine/platform/input/input_state.hpp"
 #include "engine/rendering/api.hpp"
@@ -107,19 +107,20 @@ namespace
     protected:
         void on_initialize() override
         {
-            std::cout << "\n=== Initializing Geometry Viewer ===\n";
+            ENGINE_INFO("=== Initializing Geometry Viewer ===");
 
             // Create and store procedural mesh FIRST (before validator registration)
             auto cube_mesh = engine::geometry::make_unit_cube();
             mesh_storage_->store("procedural_cube", std::move(cube_mesh));
-            std::cout << "  ✓ Created and stored procedural cube\n";
+            ENGINE_INFO("  ✓ Created and stored procedural cube");
 
             // Now register validator for procedural meshes
-            engine::assets::HandleValidatorRegistry::instance().register_mesh_validator(
-                [storage = mesh_storage_](const engine::assets::MeshHandle& handle) -> bool {
-                    // Accept any mesh that exists in our storage
-                    return storage->get(handle.id()).has_value();
-                });
+            [[maybe_unused]] auto validator_registered =
+                engine::assets::HandleValidatorRegistry::instance().register_mesh_validator(
+                    [storage = mesh_storage_](const engine::assets::MeshHandle& handle) -> bool {
+                        // Accept any mesh that exists in our storage
+                        return storage->get(handle.id()).has_value();
+                    });
 
             // Setup scene with cube
             setup_scene();
@@ -130,11 +131,11 @@ namespace
             // Configure frame graph
             setup_frame_graph();
 
-            std::cout << "=== Initialization Complete ===\n\n";
-            std::cout << "Controls:\n";
-            std::cout << "  - Left mouse drag: Rotate camera\n";
-            std::cout << "  - Mouse scroll: Zoom in/out\n";
-            std::cout << "  - ESC: Exit\n\n";
+            ENGINE_INFO("=== Initialization Complete ===");
+            ENGINE_INFO("Controls:");
+            ENGINE_INFO("  - Left mouse drag: Rotate camera");
+            ENGINE_INFO("  - Mouse scroll: Zoom in/out");
+            ENGINE_INFO("  - ESC: Exit");
         }
 
         void on_update(double delta_time) override
@@ -156,13 +157,13 @@ namespace
 
         void on_shutdown() override
         {
-            std::cout << "\n=== Shutting down ===\n";
+            ENGINE_INFO("=== Shutting down ===");
         }
 
     private:
         void setup_scene()
         {
-            std::cout << "Creating scene...\n";
+            ENGINE_DEBUG("Creating scene...");
 
 
             auto& registry = scene().registry();
@@ -182,12 +183,12 @@ namespace
                 cube,
                 engine::rendering::components::RenderGeometry::from_mesh(mesh_handle, material_handle));
 
-            std::cout << "  ✓ Scene created with 1 renderable cube entity\n";
+            ENGINE_INFO("  ✓ Scene created with 1 renderable cube entity");
         }
 
         void setup_camera()
         {
-            std::cout << "Setting up camera...\n";
+            ENGINE_DEBUG("Setting up camera...");
 
             auto& registry = scene().registry();
 
@@ -209,12 +210,12 @@ namespace
             // Position camera
             update_camera_position(camera);
 
-            std::cout << "  ✓ Camera created with orbit controller\n";
+            ENGINE_INFO("  ✓ Camera created with orbit controller");
         }
 
         void setup_frame_graph()
         {
-            std::cout << "Configuring research baseline rendering preset...\n";
+            ENGINE_DEBUG("Configuring research baseline rendering preset...");
 
             engine::rendering::ResearchBaselineOptions options{};
             options.shading_mode = engine::rendering::ResearchShadingMode::Forward;
@@ -225,11 +226,11 @@ namespace
             frame_graph_ = engine::rendering::FrameGraph{};
             baseline_resources_ = engine::rendering::configure_research_baseline(frame_graph_, options);
 
-            std::cout << "Compiling frame graph...\n";
+            ENGINE_DEBUG("Compiling frame graph...");
             frame_graph_.compile();
 
-            std::cout << "  ✓ Final color: " << (baseline_resources_.lighting_output.valid() ? "✓" : "✗") << "\n";
-            std::cout << "  ✓ Depth buffer: " << (baseline_resources_.depth.valid() ? "✓" : "✗") << "\n";
+            ENGINE_INFO("  ✓ Final color: {}", (baseline_resources_.lighting_output.valid() ? "✓" : "✗"));
+            ENGINE_INFO("  ✓ Depth buffer: {}", (baseline_resources_.depth.valid() ? "✓" : "✗"));
         }
 
         void handle_input()
@@ -308,9 +309,8 @@ namespace
             if (fps_time_accumulator_ >= 2.0)
             {
                 const float fps = static_cast<float>(fps_frame_count_) / static_cast<float>(fps_time_accumulator_);
-                std::cout << "FPS: " << fps << " (Camera: yaw=" << camera_yaw_
-                    << ", pitch=" << camera_pitch_
-                    << ", radius=" << camera_radius_ << ")\n";
+                ENGINE_DEBUG("FPS: {:.1f} (Camera: yaw={:.2f}, pitch={:.2f}, radius={:.2f})",
+                    fps, camera_yaw_, camera_pitch_, camera_radius_);
                 fps_frame_count_ = 0;
                 fps_time_accumulator_ = 0.0;
             }
@@ -341,18 +341,24 @@ int main(int argc, char* argv[])
     (void)argc;
     (void)argv;
 
-    std::cout << "=== Test Engine Geometry Viewer ===\n";
-    std::cout << "Interactive 3D Viewer with Orbit Camera\n";
+    // Initialize logging system
+    engine::core::Log::init();
+
+    ENGINE_INFO("=== Test Engine Geometry Viewer ===");
+    ENGINE_INFO("Interactive 3D Viewer with Orbit Camera");
 
     try
     {
         GeometryViewerApp app;
-        return app.run();
+        int result = app.run();
+
+        engine::core::Log::shutdown();
+        return result;
     }
     catch (const std::exception& e)
     {
-        std::cerr << "\n❌ Error: " << e.what() << "\n";
-
+        ENGINE_CRITICAL("Error: {}", e.what());
+        engine::core::Log::shutdown();
         return EXIT_FAILURE;
     }
 }

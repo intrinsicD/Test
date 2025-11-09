@@ -63,6 +63,7 @@ namespace engine::runtime
                 Auto,
                 Mock,
                 OpenGL,
+                //Vulkan // Future backend TODO
             };
 
             /// Enable rendering integration for the application.
