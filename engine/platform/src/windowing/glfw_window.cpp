@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <condition_variable>
 #include <cstddef>
+#include <filesystem>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -13,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace engine::platform::windowing
 {
@@ -332,6 +334,14 @@ namespace engine::platform::windowing
                         self->handle_scroll_event(xoffset, yoffset);
                     }
                 });
+
+                glfwSetDropCallback(window_, [](GLFWwindow* window, int count, const char** paths)
+                {
+                    if (auto* self = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(window)))
+                    {
+                        self->handle_file_drop(count, paths);
+                    }
+                });
             }
 
             void handle_close_request()
@@ -377,6 +387,38 @@ namespace engine::platform::windowing
             void handle_scroll_event(double xoffset, double yoffset)
             {
                 input_state().apply_scroll_delta(static_cast<float>(xoffset), static_cast<float>(yoffset));
+            }
+
+            void handle_file_drop(int count, const char** paths)
+            {
+                if (count <= 0 || paths == nullptr)
+                {
+                    return;
+                }
+
+                std::vector<std::filesystem::path> dropped;
+                dropped.reserve(static_cast<std::size_t>(count));
+                for (int index = 0; index < count; ++index)
+                {
+                    if (paths[index] == nullptr)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        dropped.emplace_back(std::filesystem::path{paths[index]});
+                    }
+                    catch (const std::exception&)
+                    {
+                        // Ignore malformed paths provided by the backend.
+                    }
+                }
+
+                if (!dropped.empty())
+                {
+                    HeadlessWindow::post_event(Event::file_drop(std::move(dropped)));
+                }
             }
 
             static input::Key map_glfw_key(int glfw_key)

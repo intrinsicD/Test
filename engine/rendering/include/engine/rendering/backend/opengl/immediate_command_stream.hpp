@@ -63,6 +63,7 @@ namespace engine::rendering::backend::opengl
 
         void execute_draw_command(const GeometryDrawCommand& command);
         void execute_mesh_draw(const GeometryDrawCommand& command);
+        void execute_point_cloud_draw(const GeometryDrawCommand& command);
         void execute_compute_dispatch(const ComputeDispatchCommand& command);
     };
 }

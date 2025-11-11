@@ -24,8 +24,10 @@ namespace engine::rendering::backend::opengl
     {
     public:
         using MeshResolver = OpenGLRenderResourceProvider::MeshResolver;
+        using PointCloudResolver = OpenGLRenderResourceProvider::PointCloudResolver;
 
         explicit OpenGLPresentationBackend(MeshResolver mesh_resolver,
+                                           PointCloudResolver point_cloud_resolver = {},
                                            std::unique_ptr<ForwardPipeline> pipeline = nullptr,
                                            std::uint64_t retention_frames = 0);
 

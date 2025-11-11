@@ -219,6 +219,14 @@ namespace engine::runtime
         /// \return Const reference to the current render execution context
         /// \pre Rendering has been enabled via ApplicationConfig
         [[nodiscard]] const rendering::RenderExecutionContext& render_context() const;
+
+        /// \brief Access the underlying runtime host.
+        /// \return Reference to the runtime host used by the application.
+        [[nodiscard]] RuntimeHost& runtime_host() noexcept;
+
+        /// \brief Access the underlying runtime host (const).
+        /// \return Const reference to the runtime host used by the application.
+        [[nodiscard]] const RuntimeHost& runtime_host() const noexcept;
 #endif
 
         /// \brief Get elapsed time since application start
@@ -237,6 +245,14 @@ namespace engine::runtime
 #if ENGINE_ENABLE_RENDERING
         void initialize_rendering_subsystem();
         void shutdown_rendering_subsystem() noexcept;
+#endif
+
+#if ENGINE_ENABLE_RENDERING
+        /// \brief Configure the runtime host prior to initialization.
+        ///
+        /// Derived classes may override to provide custom dependencies or streaming providers
+        /// before the host is initialized.
+        virtual void configure_runtime_host(RuntimeHost& host);
 #endif
 
         ApplicationConfig config_;

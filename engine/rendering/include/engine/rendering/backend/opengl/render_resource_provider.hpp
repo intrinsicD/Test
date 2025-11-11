@@ -10,6 +10,7 @@
 
 #include "engine/assets/handles.hpp"
 #include "engine/geometry/api.hpp"
+#include "engine/geometry/point_cloud/point_cloud.hpp"
 #include "engine/math/vector.hpp"
 #include "engine/rendering/render_pass.hpp"
 
@@ -29,6 +30,8 @@ namespace engine::rendering::backend::opengl
     public:
         using MeshResolver = std::function<std::optional<geometry::SurfaceMesh>(
             const assets::MeshHandle& handle)>;
+        using PointCloudResolver = std::function<std::optional<geometry::PointCloud>(
+            const assets::PointCloudHandle& handle)>;
 
         struct MeshRecord
         {
@@ -50,7 +53,8 @@ namespace engine::rendering::backend::opengl
 #endif
         };
 
-        explicit OpenGLRenderResourceProvider(MeshResolver mesh_resolver);
+        explicit OpenGLRenderResourceProvider(MeshResolver mesh_resolver,
+                                              PointCloudResolver point_cloud_resolver = {});
         ~OpenGLRenderResourceProvider() override;
 
         void require_mesh(const assets::MeshHandle& handle) override;
@@ -63,19 +67,43 @@ namespace engine::rendering::backend::opengl
         [[nodiscard]] std::size_t loaded_mesh_count() const noexcept;
         [[nodiscard]] std::size_t mesh_gpu_upload_count() const noexcept;
 
+        struct PointCloudRecord
+        {
+            assets::PointCloudHandle handle{};
+            std::vector<math::vec3> positions;
+            geometry::Aabb bounds{};
+#if ENGINE_RENDERING_HAS_GLAD
+            unsigned int vertex_array{0};
+            unsigned int position_buffer{0};
+            bool gpu_uploaded{false};
+#else
+            bool gpu_uploaded{false};
+#endif
+        };
+
+        [[nodiscard]] const PointCloudRecord*
+        point_cloud(const assets::PointCloudHandle& handle) const noexcept;
+        [[nodiscard]] std::size_t loaded_point_cloud_count() const noexcept;
+
     private:
         MeshResolver mesh_resolver_;
+        PointCloudResolver point_cloud_resolver_;
         std::unordered_map<std::string, MeshRecord> meshes_{};
         std::unordered_set<std::string> graphs_{};
-        std::unordered_set<std::string> point_clouds_{};
+        std::unordered_map<std::string, PointCloudRecord> point_clouds_{};
         std::unordered_set<std::string> materials_{};
         std::unordered_set<std::string> shaders_{};
         std::size_t mesh_gpu_uploads_{0};
+        std::size_t point_cloud_gpu_uploads_{0};
 
         void ensure_mesh_loaded(const assets::MeshHandle& handle);
         [[nodiscard]] static geometry::SurfaceMesh
         prepare_surface_mesh(geometry::SurfaceMesh mesh);
         void upload_mesh_to_gpu(MeshRecord& record);
         static void destroy_gpu_resources(MeshRecord& record) noexcept;
+        void ensure_point_cloud_loaded(const assets::PointCloudHandle& handle);
+        static geometry::PointCloud prepare_point_cloud(geometry::PointCloud cloud);
+        void upload_point_cloud_to_gpu(PointCloudRecord& record);
+        static void destroy_point_cloud_gpu_resources(PointCloudRecord& record) noexcept;
     };
 }

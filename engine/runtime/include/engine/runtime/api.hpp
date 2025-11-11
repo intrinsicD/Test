@@ -317,6 +317,9 @@ namespace engine::runtime
         void submit_render_graph(RenderSubmissionContext& context);
         void configure_research_rendering(const rendering::ResearchBaselineOptions& options) noexcept;
         void set_presentation_backend(std::shared_ptr<rendering::PresentationBackend> backend);
+        [[nodiscard]] scene::Scene& scene() noexcept;
+        [[nodiscard]] const scene::Scene& scene() const noexcept;
+        void set_render_geometry(rendering::components::RenderGeometry geometry);
 #endif
 
 #if ENGINE_ENABLE_ASSETS

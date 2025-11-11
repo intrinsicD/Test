@@ -309,6 +309,7 @@ namespace engine::runtime
         if (!runtime_host_)
         {
             runtime_host_ = std::make_unique<RuntimeHost>();
+            configure_runtime_host(*runtime_host_);
             runtime_host_->initialize();
         }
 
@@ -372,6 +373,28 @@ namespace engine::runtime
             throw std::runtime_error("Render context unavailable. Enable rendering in ApplicationConfig.");
         }
         return *rendering_.context;
+    }
+
+    RuntimeHost& Application::runtime_host() noexcept
+    {
+        if (!runtime_host_)
+        {
+            throw std::runtime_error("Runtime host unavailable. Enable rendering in ApplicationConfig.");
+        }
+        return *runtime_host_;
+    }
+
+    const RuntimeHost& Application::runtime_host() const noexcept
+    {
+        if (!runtime_host_)
+        {
+            throw std::runtime_error("Runtime host unavailable. Enable rendering in ApplicationConfig.");
+        }
+        return *runtime_host_;
+    }
+
+    void Application::configure_runtime_host(RuntimeHost&)
+    {
     }
 #endif
 

@@ -63,6 +63,10 @@ TEST(RuntimePresentationBackend, OpenGLBackendExecutesFrameGraph)
                 return host.current_mesh();
             }
             return std::nullopt;
+        },
+        [](const engine::assets::PointCloudHandle&) -> std::optional<engine::geometry::PointCloud>
+        {
+            return std::nullopt;
         });
 
     engine::assets::ShaderHandle shader_handle{std::string{"runtime.shader"}};
@@ -103,6 +107,9 @@ TEST(RuntimePresentationBackend, OpenGLBackendConfiguresRetentionFrames)
 
     engine::rendering::backend::opengl::OpenGLPresentationBackend backend(
         [](const engine::assets::MeshHandle&) -> std::optional<engine::geometry::SurfaceMesh> {
+            return std::nullopt;
+        },
+        [](const engine::assets::PointCloudHandle&) -> std::optional<engine::geometry::PointCloud> {
             return std::nullopt;
         },
         nullptr,
