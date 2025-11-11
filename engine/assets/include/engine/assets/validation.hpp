@@ -197,6 +197,17 @@ namespace engine::assets
         const auto type = std::string{handle_type_name<Handle>()};
         const auto identifier = std::string{handle.id()};
 
+        // Check custom validator first - allows validators to accept unbound handles
+        // (useful for procedural assets that bypass resource pools)
+        const bool valid = HandleValidatorRegistry::instance().validate(handle);
+        if (valid)
+        {
+            // Custom validator accepted the handle
+            HandleValidationTelemetry::instance().record_success(type, identifier);
+            return result;
+        }
+
+        // If custom validator rejected or no validator exists, check if handle is bound
         if (!handle.is_bound())
         {
             result.valid = false;
@@ -205,18 +216,12 @@ namespace engine::assets
             return result;
         }
 
-        const bool valid = HandleValidatorRegistry::instance().validate(handle);
-        if (!valid)
-        {
-            result.valid = false;
-            result.failure = HandleValidationFailure{
-                type, identifier, std::string{context}, "Handle validator rejected handle"
-            };
-            HandleValidationTelemetry::instance().record_failure(*result.failure);
-            return result;
-        }
-
-        HandleValidationTelemetry::instance().record_success(type, identifier);
+        // Handle is bound but validator rejected it
+        result.valid = false;
+        result.failure = HandleValidationFailure{
+            type, identifier, std::string{context}, "Handle validator rejected handle"
+        };
+        HandleValidationTelemetry::instance().record_failure(*result.failure);
         return result;
     }
 

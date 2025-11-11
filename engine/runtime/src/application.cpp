@@ -14,6 +14,7 @@
 #include "engine/rendering/resources/recording_gpu_resource_provider.hpp"
 #include "engine/runtime/render_submission.hpp"
 #include "engine/geometry/api.hpp"
+#include "engine/scene/scene.hpp"
 #endif
 
 #include <chrono>
@@ -33,6 +34,7 @@ namespace
         void require_material(const engine::assets::MaterialHandle&) override {}
         void require_shader(const engine::assets::ShaderHandle&) override {}
     };
+
 
     class ApplicationGpuScheduler final : public engine::rendering::backend::StubGpuSchedulerBase
     {
@@ -243,19 +245,32 @@ namespace engine::runtime
 #if ENGINE_ENABLE_RENDERING
             if (rendering_.backend)
             {
-                if (!runtime_host_)
+                // Check if this is an OpenGL backend that supports custom scene rendering
+                auto* opengl_backend = dynamic_cast<rendering::backend::opengl::OpenGLPresentationBackend*>(
+                    rendering_.backend.get());
+
+                if (opengl_backend)
                 {
-                    runtime_host_ = std::make_unique<RuntimeHost>();
-                    runtime_host_->initialize();
-                    runtime_host_->set_presentation_backend(rendering_.backend);
+                    // Use OpenGL backend's present_with_scene to render Application's scene
+                    opengl_backend->present_with_scene(*scene_, window_->native_handle());
                 }
-                rendering::RuntimePresentationContext presentation_context{
-                    *runtime_host_,
-                    delta_time,
-                    nullptr,
-                    window_->native_handle()};
-                presentation_context.submit_render_graph = &submit_render_graph;
-                rendering_.backend->present(presentation_context);
+                else
+                {
+                    // Fall back to standard presentation for other backends
+                    if (!runtime_host_)
+                    {
+                        runtime_host_ = std::make_unique<RuntimeHost>();
+                        runtime_host_->initialize();
+                        runtime_host_->set_presentation_backend(rendering_.backend);
+                    }
+                    rendering::RuntimePresentationContext presentation_context{
+                        *runtime_host_,
+                        delta_time,
+                        nullptr,
+                        window_->native_handle()};
+                    presentation_context.submit_render_graph = &engine::runtime::submit_render_graph;
+                    rendering_.backend->present(presentation_context);
+                }
             }
 #endif
 
@@ -372,6 +387,11 @@ namespace engine::runtime
             throw std::runtime_error("Render context unavailable. Enable rendering in ApplicationConfig.");
         }
         return *rendering_.context;
+    }
+
+    std::shared_ptr<rendering::PresentationBackend> Application::rendering_backend() noexcept
+    {
+        return rendering_.backend;
     }
 #endif
 

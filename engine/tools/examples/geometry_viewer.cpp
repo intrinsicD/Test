@@ -92,7 +92,15 @@ namespace
                         auto mesh_resolver = [storage](const engine::assets::MeshHandle& handle)
                             -> std::optional<engine::geometry::SurfaceMesh>
                         {
-                            return storage->get(handle.id());
+                            ENGINE_INFO("→ Mesh resolver called for: '{}'", handle.id());
+                            auto mesh = storage->get(handle.id());
+                            if (mesh.has_value()) {
+                                ENGINE_INFO("  ✓ Mesh found: {} vertices, {} indices",
+                                           mesh->positions.size(), mesh->indices.size());
+                            } else {
+                                ENGINE_WARN("  ✗ Mesh '{}' not found in storage!", handle.id());
+                            }
+                            return mesh;
                         };
 
                         return std::make_shared<engine::rendering::backend::opengl::OpenGLPresentationBackend>(
@@ -111,6 +119,8 @@ namespace
 
             // Create and store procedural mesh FIRST (before validator registration)
             auto cube_mesh = engine::geometry::make_unit_cube();
+            ENGINE_INFO("  Cube mesh created: {} vertices, {} indices",
+                       cube_mesh.positions.size(), cube_mesh.indices.size());
             mesh_storage_->store("procedural_cube", std::move(cube_mesh));
             ENGINE_INFO("  ✓ Created and stored procedural cube");
 
@@ -118,8 +128,10 @@ namespace
             [[maybe_unused]] auto validator_registered =
                 engine::assets::HandleValidatorRegistry::instance().register_mesh_validator(
                     [storage = mesh_storage_](const engine::assets::MeshHandle& handle) -> bool {
-                        // Accept any mesh that exists in our storage
-                        return storage->get(handle.id()).has_value();
+                        ENGINE_INFO("→ Validating mesh handle: '{}'", handle.id());
+                        bool valid = storage->get(handle.id()).has_value();
+                        ENGINE_INFO("  Validation result: {}", valid ? "VALID" : "INVALID");
+                        return valid;
                     });
 
             // Setup scene with cube
@@ -152,7 +164,15 @@ namespace
 
         void on_render() override
         {
-            frame_graph_.execute(render_context());
+            // The backend's present() will be called automatically by the Application framework
+            // after this method returns. It will initialize OpenGL context, execute the frame graph,
+            // and swap buffers.
+
+            render_frame_count_++;
+            if (render_frame_count_ <= 5)
+            {
+                ENGINE_INFO("═══ FRAME {} ═══", render_frame_count_);
+            }
         }
 
         void on_shutdown() override
@@ -177,13 +197,54 @@ namespace
 
             // Add RenderGeometry component with our procedural mesh
             auto mesh_handle = engine::assets::MeshHandle{std::string{"procedural_cube"}};
+            ENGINE_DEBUG("  Created mesh handle with id: '{}'", mesh_handle.id());
+
             auto material_handle = engine::assets::MaterialHandle{}; // Empty material for now
 
             registry.emplace<engine::rendering::components::RenderGeometry>(
                 cube,
                 engine::rendering::components::RenderGeometry::from_mesh(mesh_handle, material_handle));
 
+            // Verify entity and components
             ENGINE_INFO("  ✓ Scene created with 1 renderable cube entity");
+            ENGINE_INFO("  Entity ID: {}", static_cast<std::uint32_t>(cube));
+            ENGINE_INFO("  Has WorldTransform: {}", registry.all_of<engine::scene::components::WorldTransform>(cube));
+            ENGINE_INFO("  Has RenderGeometry: {}", registry.all_of<engine::rendering::components::RenderGeometry>(cube));
+
+            // Verify geometry component
+            if (registry.all_of<engine::rendering::components::RenderGeometry>(cube))
+            {
+                const auto& geom = registry.get<engine::rendering::components::RenderGeometry>(cube);
+                ENGINE_INFO("  Geometry component:");
+                ENGINE_INFO("    empty(): {}", geom.empty());
+                ENGINE_INFO("    has_mesh(): {}", geom.has_mesh());
+                ENGINE_INFO("    has_graph(): {}", geom.has_graph());
+                ENGINE_INFO("    has_point_cloud(): {}", geom.has_point_cloud());
+
+                if (const auto* mesh = geom.mesh())
+                {
+                    ENGINE_INFO("  Mesh handle: '{}', empty: {}, bound: {}",
+                               mesh->id(), mesh->empty(), mesh->is_bound());
+                }
+                else
+                {
+                    ENGINE_WARN("  mesh() returned nullptr!");
+                }
+            }
+
+            // Test the same query that the render pass uses
+            using engine::rendering::components::RenderGeometry;
+            using engine::scene::components::WorldTransform;
+            auto test_view = registry.view<WorldTransform, RenderGeometry>();
+            int count = 0;
+            for (auto [entity, world, geom] : test_view.each())
+            {
+                (void)entity;
+                (void)world;
+                (void)geom;
+                count++;
+            }
+            ENGINE_INFO("  Entities matching render query: {}", count);
         }
 
         void setup_camera()
@@ -217,20 +278,34 @@ namespace
         {
             ENGINE_DEBUG("Configuring research baseline rendering preset...");
 
-            engine::rendering::ResearchBaselineOptions options{};
-            options.shading_mode = engine::rendering::ResearchShadingMode::Forward;
-            options.width = WINDOW_WIDTH;
-            options.height = WINDOW_HEIGHT;
-            options.enable_normals_overlay = false;
+#if ENGINE_ENABLE_RENDERING
+            // Get the OpenGL backend's frame graph
+            auto* opengl_backend = dynamic_cast<engine::rendering::backend::opengl::OpenGLPresentationBackend*>(
+                rendering_backend().get());
 
-            frame_graph_ = engine::rendering::FrameGraph{};
-            baseline_resources_ = engine::rendering::configure_research_baseline(frame_graph_, options);
+            if (opengl_backend)
+            {
+                engine::rendering::ResearchBaselineOptions options{};
+                options.shading_mode = engine::rendering::ResearchShadingMode::Forward;
+                options.width = WINDOW_WIDTH;
+                options.height = WINDOW_HEIGHT;
+                options.enable_normals_overlay = false;
 
-            ENGINE_DEBUG("Compiling frame graph...");
-            frame_graph_.compile();
+                // Configure the backend's frame graph
+                baseline_resources_ = engine::rendering::configure_research_baseline(
+                    opengl_backend->frame_graph(), options);
 
-            ENGINE_INFO("  ✓ Final color: {}", (baseline_resources_.lighting_output.valid() ? "✓" : "✗"));
-            ENGINE_INFO("  ✓ Depth buffer: {}", (baseline_resources_.depth.valid() ? "✓" : "✗"));
+                ENGINE_DEBUG("Compiling frame graph...");
+                opengl_backend->frame_graph().compile();
+
+                ENGINE_INFO("  ✓ Final color: {}", (baseline_resources_.lighting_output.valid() ? "✓" : "✗"));
+                ENGINE_INFO("  ✓ Depth buffer: {}", (baseline_resources_.depth.valid() ? "✓" : "✗"));
+            }
+            else
+            {
+                ENGINE_WARN("  ✗ Backend is not OpenGL, skipping frame graph configuration");
+            }
+#endif
         }
 
         void handle_input()
@@ -298,7 +373,11 @@ namespace
             const engine::math::vec3 target{0.0f, 0.0f, 0.0f};
             const engine::math::vec3 up{0.0f, 1.0f, 0.0f};
 
-            [[maybe_unused]] auto result = camera.look_at(camera_pos, target, up);
+
+            auto result = camera.look_at(camera_pos, target, up);
+            if (!result) {
+                ENGINE_WARN("Camera look_at failed!");
+            }
         }
 
         void print_fps(double delta_time)
@@ -326,9 +405,9 @@ namespace
         // FPS tracking
         int fps_frame_count_{0};
         double fps_time_accumulator_{0.0};
+        int render_frame_count_{0};
 
-        // Rendering
-        engine::rendering::FrameGraph frame_graph_{};
+        // Rendering resources
         engine::rendering::ResearchBaselineResources baseline_resources_{};
 
         // Procedural mesh storage

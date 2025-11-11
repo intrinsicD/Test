@@ -55,6 +55,38 @@ namespace engine::rendering::backend::opengl
         swap_buffers(window);
     }
 
+    void OpenGLPresentationBackend::present_with_scene(scene::Scene& scene, void* window_handle)
+    {
+        ENGINE_INFO("OpenGL Backend: present_with_scene called");
+
+        auto* window = static_cast<GLFWwindow*>(window_handle);
+        if (!window)
+        {
+            ENGINE_WARN("  No window handle provided");
+            return;
+        }
+
+        // Initialize OpenGL context on first use or window change
+        initialize_context_if_needed(window);
+
+        // Clear the framebuffer
+        clear_framebuffer();
+
+        // Create submission context with OpenGL providers
+        auto submission_context = submission_.make_context(materials_, frame_graph_, nullptr);
+
+        // Create execution context with the provided scene
+        auto execution_context = submission_context.make_execution_context(scene);
+
+        ENGINE_INFO("  Executing frame graph with {} entities", scene.registry().size());
+
+        // Execute frame graph
+        frame_graph_.execute(execution_context);
+
+        // Swap buffers to present rendered frame
+        swap_buffers(window);
+    }
+
     void OpenGLPresentationBackend::set_resource_retention_frames(std::uint64_t frames) noexcept
     {
         submission_.set_retention_frames(frames);
@@ -78,6 +110,8 @@ namespace engine::rendering::backend::opengl
         // Make the OpenGL context current
         glfwMakeContextCurrent(window);
 
+        ENGINE_INFO("OpenGL Presentation Backend: Initializing context");
+
         // Load OpenGL functions on first initialization
         if (!context_initialized_)
         {
@@ -88,6 +122,8 @@ namespace engine::rendering::backend::opengl
                 throw std::runtime_error("Failed to load OpenGL functions with GLAD");
             }
 
+            ENGINE_INFO("  ✓ GLAD loaded OpenGL {}.{}", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+
             // Enable depth testing
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
@@ -96,6 +132,10 @@ namespace engine::rendering::backend::opengl
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
             glFrontFace(GL_CCW);
+
+            ENGINE_INFO("  ✓ OpenGL state configured (depth test, culling)");
+#else
+            ENGINE_WARN("  ✗ GLAD not available - OpenGL functions will not work!");
 #endif
             context_initialized_ = true;
         }

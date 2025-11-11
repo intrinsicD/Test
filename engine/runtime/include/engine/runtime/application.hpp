@@ -219,6 +219,11 @@ namespace engine::runtime
         /// \return Const reference to the current render execution context
         /// \pre Rendering has been enabled via ApplicationConfig
         [[nodiscard]] const rendering::RenderExecutionContext& render_context() const;
+
+        /// \brief Access the rendering backend.
+        /// \return Shared pointer to the presentation backend
+        /// \pre Rendering has been enabled via ApplicationConfig
+        [[nodiscard]] std::shared_ptr<rendering::PresentationBackend> rendering_backend() noexcept;
 #endif
 
         /// \brief Get elapsed time since application start
