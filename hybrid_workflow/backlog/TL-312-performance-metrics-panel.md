@@ -11,7 +11,7 @@ relates_to: [bundle:B]
 blocked_on: ["TL-310 editor foundations"]
 links:
   - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
-  - "hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md"
+  - "hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md"
   - "docs/modules/tools/README.md"
   - "docs/modules/runtime/README.md"
   - "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md"
@@ -30,7 +30,7 @@ Deliver an editor panel that visualises runtime profiling counters and frame tim
 **Current State:**
 - The global profiler and runtime telemetry feed `PROFILE_SCOPE` counters, yet tooling exposes them only through standalone scripts.
 - TL-310 restores the editor harness but does not ship a performance-focused panel by default.
-- [`TOOLS_USAGE_ANALYSIS.md`](TOOLS_USAGE_ANALYSIS.md) calls out the lack of profiler visualisation as a blocker for adopting engine tools consistently.
+- [`TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) calls out the lack of profiler visualisation as a blocker for adopting engine tools consistently.
 
 **Desired State:**
 - The editor surfaces CPU/GPU frame timings, recent profiler zones, and benchmark deltas within an interactive panel.
@@ -42,7 +42,7 @@ Deliver an editor panel that visualises runtime profiling counters and frame tim
 - [`docs/modules/runtime/README.md`](../../docs/modules/runtime/README.md) — runtime telemetry delivery and presentation adapters.
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) — guarantees about profiler hooks and runtime-tooling synchronisation.
 - [`hybrid_workflow/backlog/TL-310-editor-foundations.md`](TL-310-editor-foundations.md) — parent effort wiring the panel registry.
-- [`hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md`](TOOLS_USAGE_ANALYSIS.md) — recommendation to create TL-312 follow-up for profiler visualisation.
+- [`hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) — recommendation to create TL-312 follow-up for profiler visualisation.
 
 ---
 

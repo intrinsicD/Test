@@ -11,7 +11,7 @@ relates_to: [bundle:B]
 blocked_on: ["TL-310 editor foundations"]
 links:
   - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
-  - "hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md"
+  - "hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md"
   - "docs/modules/tools/README.md"
   - "docs/modules/runtime/README.md"
   - "telemetry/pm510_demo_priority-stage-planner.json"
@@ -30,7 +30,7 @@ Deliver an editor panel that streams runtime telemetry counters, timelines, and 
 **Current State:**
 - Telemetry JSON exports (e.g., `telemetry/pm510_demo_priority-stage-planner.json`) capture runtime metrics, but consumption requires external viewers.
 - TL-310 establishes the editor infrastructure without bundling telemetry visualisation.
-- [`TOOLS_USAGE_ANALYSIS.md`](TOOLS_USAGE_ANALYSIS.md) identifies the need for a telemetry-focused panel to complete the tooling suite.
+- [`TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) identifies the need for a telemetry-focused panel to complete the tooling suite.
 
 **Desired State:**
 - The editor renders live telemetry streams (frame timings, streaming health, scene validation, GPU stats) with configurable plots and alerts.
@@ -41,7 +41,7 @@ Deliver an editor panel that streams runtime telemetry counters, timelines, and 
 - [`docs/modules/tools/README.md`](../../docs/modules/tools/README.md) — telemetry overlay guidance and ImGui integration patterns.
 - [`docs/modules/runtime/README.md`](../../docs/modules/runtime/README.md) — runtime telemetry guarantees and presentation adapters.
 - [`hybrid_workflow/backlog/TL-310-editor-foundations.md`](TL-310-editor-foundations.md) — parent effort enabling panel registry.
-- [`hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md`](TOOLS_USAGE_ANALYSIS.md) — recommendation to add TL-314 telemetry visualisation follow-up.
+- [`hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) — recommendation to add TL-314 telemetry visualisation follow-up.
 - `telemetry/pm510_demo_priority-stage-planner.json` — sample dataset illustrating expected metrics.
 
 ---

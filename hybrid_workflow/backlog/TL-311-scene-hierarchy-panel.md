@@ -12,7 +12,7 @@ blocked_on: ["TL-310 editor foundations (in progress)"]
 links:
   - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
   - "hybrid_workflow/backlog/archive/TL-310-2a-application-presentation-integration.md"
-  - "hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md"
+  - "hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md"
   - "docs/modules/tools/README.md"
   - "docs/modules/scene/README.md"
   - "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md"
@@ -31,7 +31,7 @@ Deliver an interactive scene hierarchy panel inside the revived editor so tools 
 **Current State:**
 - [`TL-310`](TL-310-editor-foundations.md) is rebuilding the editor harness and panel registry, but no concrete panels ship with the baseline.
 - The tools module documentation highlights Dear ImGui helpers and panel registry support, yet there is no task covering an entity hierarchy view.
-- [`TOOLS_USAGE_ANALYSIS.md`](TOOLS_USAGE_ANALYSIS.md) flags the lack of panel implementation follow-ups as an adoption gap.
+- [`TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) flags the lack of panel implementation follow-ups as an adoption gap.
 
 **Desired State:**
 - The editor exposes a deterministic tree view of the runtime `scene::Scene`, reflecting parent/child relationships and selection state.
@@ -43,7 +43,7 @@ Deliver an interactive scene hierarchy panel inside the revived editor so tools 
 - [`docs/modules/scene/README.md`](../../docs/modules/scene/README.md) — hierarchy model, validation rules, and transform propagation guarantees.
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) — runtime ↔ tooling synchronisation contract.
 - [`hybrid_workflow/backlog/TL-310-editor-foundations.md`](TL-310-editor-foundations.md) — parent task restoring the panel registry.
-- [`hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md`](TOOLS_USAGE_ANALYSIS.md) — workflow analysis recommending TL-311–TL-314 follow-ups.
+- [`hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) — workflow analysis recommending TL-311–TL-314 follow-ups.
 
 ---
 
@@ -109,7 +109,7 @@ class SceneHierarchyPanel : public engine::tools::Panel {
 - [ ] Load mock scene configurations for tests via the harness JSON summaries to keep fixtures aligned with AI-004 workflows.
 
 **References:**
-- `hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md` — tool adoption guidance.
+- `hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md` — tool adoption guidance.
 - `docs/modules/tools/README.md` — ImGui helper usage and panel registry policies.
 
 ---

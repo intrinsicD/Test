@@ -222,7 +222,7 @@ $ timeout 5 out/build/linux-gcc-debug/engine/tools/examples/geometry_viewer
   - `hybrid_workflow/CONTRIBUTING.md`
   - `hybrid_workflow/TOOLS_REFERENCE.md`
   - `hybrid_workflow/backlog/TL-310-editor-foundations.md`
-  - `hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md`
+  - `hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`
   - `docs/modules/tools/README.md`
   - `hybrid_workflow/TOOLS_REFERENCE.md`
 
