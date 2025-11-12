@@ -219,8 +219,17 @@ namespace engine::rendering::backend::opengl
             && glad_glBufferData != nullptr && glad_glEnableVertexAttribArray != nullptr
             && glad_glVertexAttribPointer != nullptr;
 
+        ENGINE_INFO("OpenGL GPU Upload: ENGINE_RENDERING_HAS_GLAD=1");
+        ENGINE_INFO("  GLAD functions available: {}", has_gl);
+        ENGINE_INFO("  Vertex count: {}", record.positions.size());
+        ENGINE_INFO("  Index count: {}", record.indices.size());
+
         if (!has_gl || record.positions.empty())
         {
+            if (!has_gl)
+            {
+                ENGINE_WARN("  OpenGL functions not available - GLAD not initialized!");
+            }
             return;
         }
 
@@ -276,8 +285,12 @@ namespace engine::rendering::backend::opengl
 
         record.gpu_uploaded = true;
         ++mesh_gpu_uploads_;
+
+        ENGINE_INFO("  ✓ GPU upload successful: VAO={}, VBO={}, IBO={}, uploaded_count={}",
+                   record.vertex_array, record.position_buffer, record.index_buffer, mesh_gpu_uploads_);
 #else
         static_cast<void>(record);
+        ENGINE_WARN("GPU upload skipped: ENGINE_RENDERING_HAS_GLAD=0 (GLAD not enabled at compile time)");
 #endif
     }
 

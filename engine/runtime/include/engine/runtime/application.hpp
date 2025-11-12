@@ -227,7 +227,11 @@ namespace engine::runtime
         /// \brief Access the underlying runtime host (const).
         /// \return Const reference to the runtime host used by the application.
         [[nodiscard]] const RuntimeHost& runtime_host() const noexcept;
-#endif
+
+        /// \brief Access the rendering backend.
+        /// \return Shared pointer to the presentation backend
+        /// \pre Rendering has been enabled via ApplicationConfig
+        [[nodiscard]] std::shared_ptr<rendering::PresentationBackend> rendering_backend() noexcept;
 
         /// \brief Get elapsed time since application start
         /// \return Total elapsed time in seconds

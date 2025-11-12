@@ -45,6 +45,9 @@ namespace engine::rendering::backend::opengl
 
         void present(const RuntimePresentationContext& context) override;
 
+        /// Present a frame using a custom scene (for applications that manage their own scene)
+        void present_with_scene(scene::Scene& scene, void* window_handle);
+
     private:
         void initialize_context_if_needed(void* window_handle);
         void clear_framebuffer();

@@ -89,20 +89,22 @@ target_link_libraries(${target_name}
         engine_scene
 )
 
-if (TARGET glad::gl_core)
-    target_link_libraries(${target_name}
-            PUBLIC
-            glad::gl_core
-    )
-    target_compile_definitions(${target_name}
-            PRIVATE
-            ENGINE_RENDERING_HAS_GLAD=1
-    )
-else ()
-    target_compile_definitions(${target_name}
-            PRIVATE
-            ENGINE_RENDERING_HAS_GLAD=0
-    )
+# Link GLAD library directly by path
+set(GLAD_LIBRARY "${CMAKE_BINARY_DIR}/third_party/libglad_gl_core.so")
+set(GLAD_INCLUDE_DIR "${CMAKE_BINARY_DIR}/third_party/gladsources/glad_gl_core/include")
+
+if(EXISTS "${GLAD_LIBRARY}" AND EXISTS "${GLAD_INCLUDE_DIR}")
+    target_link_libraries(${target_name} PUBLIC ${GLAD_LIBRARY})
+    target_include_directories(${target_name} PUBLIC ${GLAD_INCLUDE_DIR})
+    target_compile_definitions(${target_name} PUBLIC ENGINE_RENDERING_HAS_GLAD=1)
+    message(STATUS "OpenGL GLAD: ${GLAD_LIBRARY}")
+
+    if(UNIX AND NOT APPLE)
+        target_link_libraries(${target_name} PUBLIC dl)
+    endif()
+else()
+    message(WARNING "GLAD not found: ${GLAD_LIBRARY}")
+    target_compile_definitions(${target_name} PUBLIC ENGINE_RENDERING_HAS_GLAD=0)
 endif ()
 
 if (BUILD_TESTING)
