@@ -72,7 +72,7 @@ _Current status:_ RG-450 has shipped with descriptor-driven planner execution an
 _Note: While Bundle D tasks have P0 priority for process coordination, they run in parallel with Bundles A-C technical work and don't block GPU/runtime/tooling execution._
 
 - [ ] **AI-004** — Kickoff brief readiness → `hybrid_workflow/backlog/AI-004-kickoff-brief.md`
-- [ ] **SPRINT-11** — Sprint 11 alignment → `hybrid_workflow/backlog/SPRINT-11-alignment.md`
+- [x] **SPRINT-11** — Sprint 11 alignment → `hybrid_workflow/backlog/archive/SPRINT-11-alignment.md`
 
 **Success Criteria:**
 - Kickoff packet consolidates agenda, risks, and demo evidence with accountable owners.

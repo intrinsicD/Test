@@ -113,7 +113,7 @@ namespace engine::module {
 **References:**
 - Full tool documentation: `docs/modules/tools/README.md`
 - Integration patterns: `hybrid_workflow/CONTRIBUTING.md` §Diagnostic Tools
-- Available tools inventory: `hybrid_workflow/backlog/TOOLS_USAGE_ANALYSIS.md`
+- Available tools inventory: `hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`
 
 ---
 
