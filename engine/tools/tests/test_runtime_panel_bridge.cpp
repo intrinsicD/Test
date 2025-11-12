@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/runtime/api.hpp"
+#include "engine/scene/scene.hpp"
 #include "engine/scene/validation.hpp"
 #include "engine/tools/editor/runtime_panel_bridge.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
@@ -9,6 +10,7 @@ namespace
 {
     using engine::runtime::RuntimeDiagnostics;
     using engine::scene::validation::HierarchyValidationReport;
+    using engine::scene::Scene;
     using engine::tools::editor::RuntimePanelBridge;
     using engine::tools::imgui::PanelRegistry;
     using engine::tools::imgui::PanelRenderContext;
@@ -118,5 +120,36 @@ TEST(RuntimePanelBridge, ScenePanelSkipsWhenProviderReturnsNull)
 
     bridge.render_all(0.0);
     EXPECT_FALSE(scene_rendered);
+}
+
+TEST(RuntimePanelBridge, RegistersHierarchyPanelWhenHooksProvided)
+{
+    PanelRegistry registry{};
+    RuntimeDiagnostics diagnostics{};
+    Scene scene{};
+
+    RuntimePanelBridge bridge(
+        registry,
+        [&]() -> const RuntimeDiagnostics& {
+            return diagnostics;
+        },
+        RuntimePanelBridge::SceneValidationProvider{},
+        RuntimePanelBridge::Renderers{
+            [](const RuntimeDiagnostics&) {},
+            [](bool*) {},
+            [](const HierarchyValidationReport&) {}
+        },
+        RuntimePanelBridge::HierarchyPanelHooks{
+            [&scene]() -> Scene* {
+                return &scene;
+            },
+            RuntimePanelBridge::HierarchySelectionProvider{},
+            RuntimePanelBridge::HierarchySelectionCallback{}
+        }
+    );
+
+    EXPECT_TRUE(registry.contains("editor.scene_hierarchy"));
+
+    EXPECT_NO_THROW(bridge.render_all(0.0));
 }
 

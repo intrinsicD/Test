@@ -395,6 +395,8 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   ordering, and invocation semantics until the editor build is re-enabled (`TL-310`).
 - `engine::tools::editor::RuntimePanelBridge` registers runtime diagnostics, profiler, and scene validation panels with the
   shared registry and exposes a single `render_all()` entry point for the editor harness.
+- `engine::tools::editor::SceneHierarchyPanel` visualises the runtime `scene::Scene` graph, lazily expands entity trees, and
+  surfaces hierarchy validation issues inline so tooling teams can triage structure problems without leaving the editor.
 - `scripts/tests/test_editor_smoke.py` runs the compiled `test_tools_module` binary with GoogleTest filters to validate the
   sandbox configuration loader, panel registry, and runtime panel bridge in a headless smoke scenario.
 
@@ -441,17 +443,27 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
 - Bridge runtime telemetry directly into the registry when the editor harness starts:
   ```cpp
   engine::tools::imgui::PanelRegistry registry;
+  entt::entity selected_entity = entt::null;
+
   engine::tools::editor::RuntimePanelBridge bridge(
       registry,
       [&runtime]() -> const engine::runtime::RuntimeDiagnostics& { return runtime.diagnostics(); },
       [&runtime]() -> const engine::scene::validation::HierarchyValidationReport* {
           return &runtime.diagnostics().scene_validation;
+      },
+      engine::tools::editor::RuntimePanelBridge::Renderers{},
+      engine::tools::editor::RuntimePanelBridge::HierarchyPanelHooks{
+          [&runtime]() -> engine::scene::Scene* { return &runtime.scene(); },
+          [&]() -> entt::entity { return selected_entity; },
+          [&](entt::entity entity_id) { selected_entity = entity_id; }
       }
   );
 
   // In the editor loop
   bridge.render_all(delta_time_seconds);
   ```
+
+- The scene hierarchy panel registers under the identifier `editor.scene_hierarchy`; use `PanelRegistry::render("editor.scene_hierarchy", ctx)` to render it selectively or rely on `render_all()` to include it with diagnostics and profiler panels.
 
 ## TODO / Next Steps
 

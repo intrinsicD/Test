@@ -35,12 +35,14 @@ namespace engine::tools::editor
         imgui::PanelRegistry& registry,
         DiagnosticsProvider diagnostics_provider,
         SceneValidationProvider scene_validation_provider,
-        Renderers renderers
+        Renderers renderers,
+        HierarchyPanelHooks hierarchy_hooks
     )
         : registry_(&registry)
         , diagnostics_provider_(std::move(diagnostics_provider))
         , scene_validation_provider_(std::move(scene_validation_provider))
         , renderers_(std::move(renderers))
+        , hierarchy_hooks_(std::move(hierarchy_hooks))
     {
         if (!renderers_.diagnostics)
         {
@@ -89,6 +91,27 @@ namespace engine::tools::editor
                 }
             );
         }
+
+        if (registry_ && hierarchy_hooks_.scene_provider)
+        {
+            hierarchy_panel_ = std::make_unique<SceneHierarchyPanel>();
+            if (hierarchy_hooks_.selection_callback)
+            {
+                hierarchy_panel_->set_selection_callback(hierarchy_hooks_.selection_callback);
+            }
+
+            hierarchy_panel_->set_scene(hierarchy_hooks_.scene_provider());
+            if (hierarchy_hooks_.selection_provider)
+            {
+                hierarchy_panel_->synchronize_external_selection(hierarchy_hooks_.selection_provider());
+            }
+
+            hierarchy_handle_ = register_scene_hierarchy_panel(
+                *registry_,
+                *hierarchy_panel_,
+                "editor.scene_hierarchy"
+            );
+        }
     }
 
     void RuntimePanelBridge::render_all(double delta_time) const
@@ -96,6 +119,19 @@ namespace engine::tools::editor
         if (!registry_)
         {
             return;
+        }
+
+        if (hierarchy_panel_)
+        {
+            if (hierarchy_hooks_.scene_provider)
+            {
+                hierarchy_panel_->set_scene(hierarchy_hooks_.scene_provider());
+            }
+
+            if (hierarchy_hooks_.selection_provider)
+            {
+                hierarchy_panel_->synchronize_external_selection(hierarchy_hooks_.selection_provider());
+            }
         }
 
         const imgui::PanelRenderContext context{.delta_time = delta_time};
