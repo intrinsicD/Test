@@ -1,16 +1,15 @@
 /**
  * @file geometry_viewer.cpp
- * @brief Interactive 3D geometry viewer using Application framework
+ * @brief Interactive 3D geometry viewer using the runtime application framework.
  *
- * Controls:
- * - Left mouse drag: Rotate camera around target
- * - Mouse scroll: Zoom in/out
- * - ESC: Exit application
+ * Features:
+ * - Orbit camera controls (mouse drag + scroll) driven by the unified input system.
+ * - Drag and drop mesh / point cloud files to stream them through the asset caches.
+ * - OpenGL presentation backend executing the research baseline frame graph.
  */
 
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -23,23 +22,28 @@
 
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/assets/point_cloud_asset.hpp"
+#include "engine/assets/validation.hpp"
 #include "engine/core/log.hpp"
+#include "engine/geometry/api.hpp"
+#include "engine/geometry/mesh/surface_mesh.hpp"
+#include "engine/geometry/mesh/surface_mesh_conversion.hpp"
+#include "engine/geometry/point_cloud/point_cloud.hpp"
+#include "engine/geometry/shapes/aabb.hpp"
 #include "engine/io/geometry_io.hpp"
 #include "engine/math/transform.hpp"
 #include "engine/platform/input/input_state.hpp"
+#include "engine/platform/windowing/event.hpp"
 #include "engine/rendering/backend/opengl/presentation_backend.hpp"
 #include "engine/rendering/camera.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/pipeline/research_baseline.hpp"
 #include "engine/runtime/api.hpp"
 #include "engine/runtime/application.hpp"
-#include "engine/platform/windowing/event.hpp"
 #include "engine/scene/components/hierarchy.hpp"
 #include "engine/scene/components/name.hpp"
 #include "engine/scene/components/transform.hpp"
+#include "engine/scene/scene.hpp"
 #include "engine/scene/systems/transform.hpp"
-#include "engine/geometry/mesh/surface_mesh_conversion.hpp"
-#include "engine/geometry/shapes/aabb.hpp"
 
 namespace
 {
@@ -48,6 +52,42 @@ namespace
     constexpr float CAMERA_DISTANCE = 5.0f;
     constexpr float CAMERA_ROTATE_SPEED = 0.005f;
     constexpr float CAMERA_ZOOM_SPEED = 0.1f;
+    constexpr std::string_view kProceduralCubeId{"procedural_cube"};
+
+    class ProceduralMeshStorage
+    {
+    public:
+        void store(std::string identifier, engine::geometry::SurfaceMesh mesh)
+        {
+            meshes_.insert_or_assign(std::move(identifier), std::move(mesh));
+        }
+
+        [[nodiscard]] bool contains(std::string_view identifier) const
+        {
+            return meshes_.find(std::string{identifier}) != meshes_.end();
+        }
+
+        [[nodiscard]] std::optional<engine::geometry::SurfaceMesh> get(std::string_view identifier) const
+        {
+            if (const auto it = meshes_.find(std::string{identifier}); it != meshes_.end())
+            {
+                return it->second;
+            }
+            return std::nullopt;
+        }
+
+        [[nodiscard]] const engine::geometry::SurfaceMesh* find(std::string_view identifier) const
+        {
+            if (const auto it = meshes_.find(std::string{identifier}); it != meshes_.end())
+            {
+                return &it->second;
+            }
+            return nullptr;
+        }
+
+    private:
+        std::unordered_map<std::string, engine::geometry::SurfaceMesh> meshes_{};
+    };
 
     class GeometryViewerApp : public engine::runtime::Application
     {
@@ -70,30 +110,57 @@ namespace
                   config.rendering.backend = engine::runtime::ApplicationConfig::RenderingConfig::Backend::OpenGL;
                   config.rendering.backend_factory = [this]() {
                       auto mesh_resolver = [this](const engine::assets::MeshHandle& handle)
-                          -> std::optional<engine::geometry::SurfaceMesh>
-                      {
-                          try
-                          {
-                              const auto& asset = mesh_cache_.get(handle);
-                              return engine::geometry::mesh::build_surface_mesh_from_halfedge(asset.mesh.interface);
-                          }
-                          catch (const std::exception&)
+                          -> std::optional<engine::geometry::SurfaceMesh> {
+                          if (handle.empty())
                           {
                               return std::nullopt;
                           }
+
+#    if ENGINE_ENABLE_ASSETS
+                          if (mesh_cache_.contains(handle))
+                          {
+                              try
+                              {
+                                  const auto& asset = mesh_cache_.get(handle);
+                                  return engine::geometry::mesh::build_surface_mesh_from_halfedge(
+                                      asset.mesh.interface);
+                              }
+                              catch (const std::exception& ex)
+                              {
+                                  ENGINE_WARN("Failed to resolve mesh '{}' from cache: {}", handle.id(), ex.what());
+                              }
+                          }
+#    endif
+
+                          if (mesh_storage_)
+                          {
+                              if (auto mesh = mesh_storage_->get(handle.id()))
+                              {
+                                  return mesh;
+                              }
+                          }
+                          return std::nullopt;
                       };
 
                       auto point_cloud_resolver = [this](const engine::assets::PointCloudHandle& handle)
-                          -> std::optional<engine::geometry::PointCloud>
-                      {
+                          -> std::optional<engine::geometry::PointCloud> {
+                          if (handle.empty())
+                          {
+                              return std::nullopt;
+                          }
+
+#    if ENGINE_ENABLE_ASSETS
                           try
                           {
                               return point_cloud_cache_.get(handle).point_cloud;
                           }
-                          catch (const std::exception&)
+                          catch (const std::exception& ex)
                           {
-                              return std::nullopt;
+                              ENGINE_WARN(
+                                  "Failed to resolve point cloud '{}' from cache: {}", handle.id(), ex.what());
                           }
+#    endif
+                          return std::nullopt;
                       };
 
                       auto backend = std::make_shared<engine::rendering::backend::opengl::OpenGLPresentationBackend>(
@@ -114,10 +181,10 @@ namespace
             engine::runtime::RuntimeHostDependencies deps{};
             deps.render_geometry = {};
             deps.renderable_name = "geometry_viewer.renderable";
-#if ENGINE_ENABLE_ASSETS
+#    if ENGINE_ENABLE_ASSETS
             deps.asset_streaming.mesh_cache = &mesh_cache_;
             deps.asset_streaming.point_cloud_cache = &point_cloud_cache_;
-#endif
+#    endif
             host.configure(std::move(deps));
         }
 #endif
@@ -127,29 +194,17 @@ namespace
             ENGINE_INFO("=== Initializing Geometry Viewer ===");
 
             setup_backend();
-
-            // Create and store procedural mesh FIRST (before validator registration)
-            auto cube_mesh = engine::geometry::make_unit_cube();
-            ENGINE_INFO("  Cube mesh created: {} vertices, {} indices",
-                       cube_mesh.positions.size(), cube_mesh.indices.size());
-            mesh_storage_->store("procedural_cube", std::move(cube_mesh));
-            ENGINE_INFO("  ✓ Created and stored procedural cube");
-
-            // Now register validator for procedural meshes
-            [[maybe_unused]] auto validator_registered =
-                engine::assets::HandleValidatorRegistry::instance().register_mesh_validator(
-                    [storage = mesh_storage_](const engine::assets::MeshHandle& handle) -> bool {
-                        ENGINE_INFO("→ Validating mesh handle: '{}'", handle.id());
-                        bool valid = storage->get(handle.id()).has_value();
-                        ENGINE_INFO("  Validation result: {}", valid ? "VALID" : "INVALID");
-                        return valid;
-                    });
-
-            // Setup scene with cube
+            setup_camera();
+            setup_procedural_assets();
             setup_scene();
 
-            // Setup camera
-            setup_camera();
+#if ENGINE_ENABLE_RENDERING
+            if (const auto* mesh = mesh_storage_->find(kProceduralCubeId))
+            {
+                focus_camera_on_bounds(mesh->bounds);
+            }
+#endif
+
             ENGINE_INFO("Drag and drop mesh (.obj/.ply/.stl) or point cloud (.ply/.pcd/.xyz) files into the window.");
         }
 
@@ -167,12 +222,12 @@ namespace
 
         void on_render() override
         {
-            // Rendering is handled by the presentation backend.
+            // Rendering handled by presentation backend.
         }
 
         void on_shutdown() override
         {
-            ENGINE_INFO("=== Shutting down ===");
+            ENGINE_INFO("=== Shutting down Geometry Viewer ===");
         }
 
     private:
@@ -181,6 +236,13 @@ namespace
 #if ENGINE_ENABLE_RENDERING
             if (!backend_)
             {
+                backend_ = std::dynamic_pointer_cast<engine::rendering::backend::opengl::OpenGLPresentationBackend>(
+                    rendering_backend());
+            }
+
+            if (!backend_)
+            {
+                ENGINE_WARN("OpenGL backend unavailable; rendering disabled");
                 return;
             }
 
@@ -190,71 +252,51 @@ namespace
             options.height = WINDOW_HEIGHT;
             baseline_resources_ = engine::rendering::configure_research_baseline(backend_->frame_graph(), options);
             backend_->frame_graph().compile();
-            
-            // Add RenderGeometry component with our procedural mesh
-            auto mesh_handle = engine::assets::MeshHandle{std::string{"procedural_cube"}};
-            ENGINE_DEBUG("  Created mesh handle with id: '{}'", mesh_handle.id());
+#endif
+        }
 
-            auto material_handle = engine::assets::MaterialHandle{}; // Empty material for now
-            
-            // Verify entity and components
-            ENGINE_INFO("  ✓ Scene created with 1 renderable cube entity");
-            ENGINE_INFO("  Entity ID: {}", static_cast<std::uint32_t>(cube));
-            ENGINE_INFO("  Has WorldTransform: {}", registry.all_of<engine::scene::components::WorldTransform>(cube));
-            ENGINE_INFO("  Has RenderGeometry: {}", registry.all_of<engine::rendering::components::RenderGeometry>(cube));
+        void setup_procedural_assets()
+        {
+#if ENGINE_ENABLE_RENDERING
+            auto cube_mesh = engine::geometry::make_unit_cube();
+            mesh_storage_->store(std::string{kProceduralCubeId}, std::move(cube_mesh));
 
-            // Verify geometry component
-            if (registry.all_of<engine::rendering::components::RenderGeometry>(cube))
-            {
-                const auto& geom = registry.get<engine::rendering::components::RenderGeometry>(cube);
-                ENGINE_INFO("  Geometry component:");
-                ENGINE_INFO("    empty(): {}", geom.empty());
-                ENGINE_INFO("    has_mesh(): {}", geom.has_mesh());
-                ENGINE_INFO("    has_graph(): {}", geom.has_graph());
-                ENGINE_INFO("    has_point_cloud(): {}", geom.has_point_cloud());
+#    if ENGINE_ENABLE_ASSETS
+            mesh_validator_registration_ =
+                engine::assets::HandleValidatorRegistry::instance().register_mesh_validator(
+                    [storage = mesh_storage_](const engine::assets::MeshHandle& handle) {
+                        if (!storage || handle.empty())
+                        {
+                            return false;
+                        }
+                        return storage->contains(handle.id());
+                    });
+#    endif
+#endif
+        }
 
-                if (const auto* mesh = geom.mesh())
-                {
-                    ENGINE_INFO("  Mesh handle: '{}', empty: {}, bound: {}",
-                               mesh->id(), mesh->empty(), mesh->is_bound());
-                }
-                else
-                {
-                    ENGINE_WARN("  mesh() returned nullptr!");
-                }
-            }
-
-            // Test the same query that the render pass uses
-            using engine::rendering::components::RenderGeometry;
-            using engine::scene::components::WorldTransform;
-            auto test_view = registry.view<WorldTransform, RenderGeometry>();
-            int count = 0;
-            for (auto [entity, world, geom] : test_view.each())
-            {
-                (void)entity;
-                (void)world;
-                (void)geom;
-                count++;
-            }
-            ENGINE_INFO("  Entities matching render query: {}", count);
+        void setup_scene()
+        {
+#if ENGINE_ENABLE_RENDERING && ENGINE_ENABLE_ASSETS
+            attach_render_geometry(std::string{kProceduralCubeId},
+                engine::rendering::components::RenderGeometry::from_mesh(
+                    engine::assets::MeshHandle{std::string{kProceduralCubeId}}));
 #endif
         }
 
         void setup_camera()
         {
 #if ENGINE_ENABLE_RENDERING
-            auto& host_scene = runtime_host().scene();
-            auto& registry = host_scene.registry();
+            auto& registry = scene().registry();
 
             camera_entity_ = registry.create();
-            const auto entity = camera_entity_;
-            registry.emplace<engine::scene::components::Name>(entity).value = "ViewerCamera";
-            registry.emplace<engine::scene::components::Hierarchy>(entity);
-            registry.emplace<engine::scene::components::LocalTransform>(entity);
-            auto& world = registry.emplace<engine::scene::components::WorldTransform>(entity);
-            world.value = engine::math::Transform<float>::Identity();
+            registry.emplace<engine::scene::components::Name>(camera_entity_).value = "ViewerCamera";
+            registry.emplace<engine::scene::components::Hierarchy>(camera_entity_);
+            registry.emplace<engine::scene::components::LocalTransform>(camera_entity_);
+            registry.emplace<engine::scene::components::WorldTransform>(camera_entity_).value =
+                engine::math::Transform<float>::Identity();
 
-            auto& camera = registry.emplace<engine::rendering::Camera>(entity);
+            auto& camera = registry.emplace<engine::rendering::Camera>(camera_entity_);
             const float aspect_ratio = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
             camera.set_perspective(1.047f, aspect_ratio, 0.1f, 100.0f);
             update_camera_position(camera);
@@ -288,7 +330,7 @@ namespace
         void load_geometry_from_path(const std::filesystem::path& raw_path)
         {
             std::filesystem::path path = raw_path;
-            std::error_code ec;
+            std::error_code ec{};
             path = std::filesystem::weakly_canonical(path, ec);
             if (ec)
             {
@@ -324,7 +366,8 @@ namespace
             {
                 auto descriptor = engine::assets::MeshAssetDescriptor::from_file(path, hint);
                 const auto& asset = mesh_cache_.load(descriptor);
-                focus_camera_on_bounds(engine::geometry::mesh::build_surface_mesh_from_halfedge(asset.mesh.interface).bounds);
+                auto surface_mesh = engine::geometry::mesh::build_surface_mesh_from_halfedge(asset.mesh.interface);
+                focus_camera_on_bounds(surface_mesh.bounds);
                 attach_render_geometry(std::string{asset.descriptor.handle.id()},
                     engine::rendering::components::RenderGeometry::from_mesh(asset.descriptor.handle));
                 ENGINE_INFO("Loaded mesh '{}'", path.string());
@@ -364,16 +407,14 @@ namespace
 #endif
         }
 
-        void attach_render_geometry(std::string identifier,
+        void attach_render_geometry(const std::string& identifier,
             engine::rendering::components::RenderGeometry geometry)
         {
 #if ENGINE_ENABLE_RENDERING
-            auto& host_scene = runtime_host().scene();
-            auto& registry = host_scene.registry();
+            auto& registry = scene().registry();
 
-            entt::entity entity{};
-            auto it = render_entities_.find(identifier);
-            if (it == render_entities_.end())
+            entt::entity entity{entt::null};
+            if (const auto it = render_entities_.find(identifier); it == render_entities_.end())
             {
                 entity = registry.create();
                 render_entities_.emplace(identifier, entity);
@@ -390,6 +431,9 @@ namespace
 
             registry.emplace_or_replace<engine::rendering::components::RenderGeometry>(entity, std::move(geometry));
             engine::scene::systems::mark_transform_dirty(registry, entity);
+#else
+            (void)identifier;
+            (void)geometry;
 #endif
         }
 
@@ -398,35 +442,8 @@ namespace
             const auto size = engine::geometry::Size(bounds);
             const float max_extent = std::max({size.x, size.y, size.z, 1.0f});
             camera_radius_ = std::clamp(max_extent * 1.5f, 1.0f, 50.0f);
-            
-#if ENGINE_ENABLE_RENDERING
-            // Get the OpenGL backend's frame graph
-            auto* opengl_backend = dynamic_cast<engine::rendering::backend::opengl::OpenGLPresentationBackend*>(
-                rendering_backend().get());
 
-            if (opengl_backend)
-            {
-                engine::rendering::ResearchBaselineOptions options{};
-                options.shading_mode = engine::rendering::ResearchShadingMode::Forward;
-                options.width = WINDOW_WIDTH;
-                options.height = WINDOW_HEIGHT;
-                options.enable_normals_overlay = false;
-
-                // Configure the backend's frame graph
-                baseline_resources_ = engine::rendering::configure_research_baseline(
-                    opengl_backend->frame_graph(), options);
-
-                ENGINE_DEBUG("Compiling frame graph...");
-                opengl_backend->frame_graph().compile();
-
-                ENGINE_INFO("  ✓ Final color: {}", (baseline_resources_.lighting_output.valid() ? "✓" : "✗"));
-                ENGINE_INFO("  ✓ Depth buffer: {}", (baseline_resources_.depth.valid() ? "✓" : "✗"));
-            }
-            else
-            {
-                ENGINE_WARN("  ✗ Backend is not OpenGL, skipping frame graph configuration");
-            }
-#endif
+            update_camera();
         }
 
         void handle_input()
@@ -465,8 +482,7 @@ namespace
         void update_camera()
         {
 #if ENGINE_ENABLE_RENDERING
-            auto& host_scene = runtime_host().scene();
-            auto& registry = host_scene.registry();
+            auto& registry = scene().registry();
             if (registry.valid(camera_entity_) && registry.any_of<engine::rendering::Camera>(camera_entity_))
             {
                 auto& camera = registry.get<engine::rendering::Camera>(camera_entity_);
@@ -489,12 +505,10 @@ namespace
 
             const engine::math::vec3 target{0.0f, 0.0f, 0.0f};
             const engine::math::vec3 up{0.0f, 1.0f, 0.0f};
-            
-            static_cast<void>(camera.look_at(camera_pos, target, up));
 
-            auto result = camera.look_at(camera_pos, target, up);
-            if (!result) {
-                ENGINE_WARN("Camera look_at failed!");
+            if (auto result = camera.look_at(camera_pos, target, up); !result)
+            {
+                ENGINE_WARN("Camera look_at failed: {}", result.error().message());
             }
         }
 
@@ -513,6 +527,8 @@ namespace
             }
         }
 
+        std::shared_ptr<ProceduralMeshStorage> mesh_storage_{std::make_shared<ProceduralMeshStorage>()};
+        std::shared_ptr<void> mesh_validator_registration_{};
 #if ENGINE_ENABLE_ASSETS
         engine::assets::MeshCache mesh_cache_{};
         engine::assets::PointCloudCache point_cloud_cache_{};
@@ -522,25 +538,15 @@ namespace
         engine::rendering::ResearchBaselineResources baseline_resources_{};
         entt::entity camera_entity_{entt::null};
 #endif
+        std::unordered_map<std::string, entt::entity> render_entities_{};
         float camera_yaw_{0.0f};
         float camera_pitch_{0.3f};
         float camera_radius_{CAMERA_DISTANCE};
         bool was_dragging_{false};
         int fps_frame_count_{0};
         double fps_time_accumulator_{0.0};
-
-        std::unordered_map<std::string, entt::entity> render_entities_{};
-
-        int render_frame_count_{0};
-
-        // Rendering resources
-        engine::rendering::ResearchBaselineResources baseline_resources_{};
-
-        // Procedural mesh storage
-        std::shared_ptr<ProceduralMeshStorage> mesh_storage_;
-
     };
-}
+} // namespace
 
 int main(int argc, char* argv[])
 {
@@ -564,3 +570,4 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 }
+
