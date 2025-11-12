@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <numbers>
 
+#include "engine/geometry/api.hpp"
 #include "engine/geometry/shapes.hpp"
 #include "engine/math/quaternion.hpp"
 #include "engine/math/utils/utils.hpp"
@@ -882,4 +884,44 @@ TEST(CylinderGeometry, EdgeCaseZeroHeight)
 
     const double dist_sq = SquaredDistance(cylinder, above);
     EXPECT_EQ(dist_sq, 9.0); // z-distance squared
+}
+
+TEST(SurfaceMesh, UnitCubeProvidesPerFaceTextureCoordinates)
+{
+    const auto cube = engine::geometry::make_unit_cube();
+    ASSERT_EQ(cube.positions.size(), 24U);
+    ASSERT_EQ(cube.indices.size(), 36U);
+    ASSERT_EQ(cube.normals.size(), cube.positions.size());
+    ASSERT_EQ(cube.texture_coordinates.size(), cube.positions.size());
+
+    const std::array<engine::math::vec2, 4> expected_uvs{
+        engine::math::vec2{0.0f, 0.0f},
+        engine::math::vec2{1.0f, 0.0f},
+        engine::math::vec2{1.0f, 1.0f},
+        engine::math::vec2{0.0f, 1.0f},
+    };
+
+    const std::size_t face_count = cube.texture_coordinates.size() / 4U;
+    for (std::size_t face = 0; face < face_count; ++face)
+    {
+        std::array<engine::math::vec2, 4> face_uvs{};
+        for (std::size_t corner = 0; corner < 4; ++corner)
+        {
+            const auto& uv = cube.texture_coordinates[face * 4U + corner];
+            EXPECT_GE(uv[0], 0.0f);
+            EXPECT_LE(uv[0], 1.0f);
+            EXPECT_GE(uv[1], 0.0f);
+            EXPECT_LE(uv[1], 1.0f);
+            face_uvs[corner] = uv;
+        }
+
+        for (const auto& expected : expected_uvs)
+        {
+            const bool found = std::any_of(face_uvs.begin(), face_uvs.end(), [&](const engine::math::vec2& actual) {
+                return std::fabs(actual[0] - expected[0]) < 1e-4f
+                    && std::fabs(actual[1] - expected[1]) < 1e-4f;
+            });
+            EXPECT_TRUE(found);
+        }
+    }
 }
