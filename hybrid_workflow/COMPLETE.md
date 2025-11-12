@@ -286,7 +286,7 @@ Consider these questions:
 
 ### Automation Tools
 - ✅ Status query script
-- ✅ Filter by status/priority/area
+- ✅ Filter by status/priority/area/gates
 - ✅ Summary statistics
 - ✅ Detail views
 - ✅ Grep-friendly metadata

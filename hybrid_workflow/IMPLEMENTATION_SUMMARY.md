@@ -130,6 +130,10 @@ python hybrid_workflow/task_status.py --priority P1
 # Filter by owner
 python hybrid_workflow/task_status.py --owner docs-devrel
 
+# Filter by quality gates (requires all provided gates)
+python hybrid_workflow/task_status.py --gate docs
+python hybrid_workflow/task_status.py --gate tests docs
+
 # Filter by roadmap bundle
 python hybrid_workflow/task_status.py --relates-to bundle:D
 
@@ -285,6 +289,9 @@ python hybrid_workflow/task_status.py --priority P1
 
 # Find rendering tasks
 python hybrid_workflow/task_status.py --area rendering
+
+# Filter by quality gates
+python hybrid_workflow/task_status.py --gate docs
 
 # Show tasks by owner
 python hybrid_workflow/task_status.py --owner runtime-lead

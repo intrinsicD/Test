@@ -106,6 +106,10 @@ python hybrid_workflow/task_status.py --area rendering
 # Filter by owner
 python hybrid_workflow/task_status.py --owner docs-devrel
 
+# Filter by quality gates (requires all provided gates)
+python hybrid_workflow/task_status.py --gate docs
+python hybrid_workflow/task_status.py --gate tests docs
+
 # Filter by roadmap bundle metadata
 python hybrid_workflow/task_status.py --relates-to bundle:D
 python hybrid_workflow/task_status.py --relates-to bundle:A bundle:C

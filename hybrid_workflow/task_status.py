@@ -9,13 +9,14 @@ high-priority tasks quickly.
 Usage
 -----
 
-The tool accepts optional filters for status, priority, area, and blocker
-metadata:
+The tool accepts optional filters for status, priority, area, quality gates,
+and blocker metadata:
 
 .. code-block:: bash
 
    python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY]
                                         [--area AREA] [--owner OWNER]
+                                        [--gate GATE ...]
                                         [--relates-to TAG ...]
                                         [--blocked | --unblocked]
 
@@ -259,6 +260,7 @@ def filter_tasks(
     area: Optional[str] = None,
     owner: Optional[str] = None,
     relates_to: Optional[List[str]] = None,
+    gates: Optional[List[str]] = None,
     *,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
@@ -276,6 +278,15 @@ def filter_tasks(
 
     if owner:
         filtered = [t for t in filtered if t.owner == owner]
+
+    if gates:
+        required = {gate.lower() for gate in gates if gate}
+        if required:
+            filtered = [
+                t
+                for t in filtered
+                if required.issubset({value.lower() for value in t.gates})
+            ]
 
     if relates_to:
         relates_lower = {tag.lower() for tag in relates_to}
@@ -300,6 +311,7 @@ def select_next_actions(
     priority: Optional[str] = None,
     area: Optional[str] = None,
     owner: Optional[str] = None,
+    gates: Optional[List[str]] = None,
     relates_to: Optional[List[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
@@ -314,6 +326,7 @@ def select_next_actions(
         priority=priority,
         area=area,
         owner=owner,
+        gates=gates,
         relates_to=relates_to,
         blocked_only=blocked_only,
     )
@@ -433,6 +446,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
     parser.add_argument('--owner', help="Filter by owner (e.g. docs-devrel, runtime-lead)")
     parser.add_argument(
+        '--gate',
+        metavar='GATE',
+        action='append',
+        nargs='+',
+        help=(
+            "Filter by quality gate metadata. Provide one or more gates; tasks must "
+            "declare all requested gates (case-insensitive)."
+        ),
+    )
+    parser.add_argument(
         '--relates-to',
         metavar='TAG',
         action='append',
@@ -517,6 +540,10 @@ def main():
     if args.relates_to:
         relates_to = [tag for group in args.relates_to for tag in group]
 
+    gates = None
+    if args.gate:
+        gates = [gate for group in args.gate for gate in group]
+
     blocked_only = True if args.blocked else False if args.unblocked else None
 
     if args.next_actions:
@@ -527,6 +554,7 @@ def main():
                 priority=args.priority,
                 area=args.area,
                 owner=args.owner,
+                gates=gates,
                 relates_to=relates_to,
                 blocked_only=blocked_only,
             )
@@ -541,6 +569,7 @@ def main():
             args.area,
             args.owner,
             relates_to,
+            gates,
             blocked_only=blocked_only,
         )
 

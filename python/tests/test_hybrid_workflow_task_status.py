@@ -27,6 +27,7 @@ def _make_task(
     owner: str = "tools-team",
     priority: str = "P1",
     area: str = "tools",
+    gates: list[str] | None = None,
 ) -> task_status.Task:
     """Helper to create a task with deterministic defaults for testing."""
     blocked_on = ["dependency"] if blocked else []
@@ -37,6 +38,7 @@ def _make_task(
         priority=priority,
         area=area,
         owner=owner,
+        gates=gates or [],
         blocked_on=blocked_on,
         relates_to=relates_to or [],
     )
@@ -81,6 +83,30 @@ def test_filter_tasks_filters_by_owner() -> None:
     assert [task.id for task in filtered] == ["B"]
 
 
+def test_filter_tasks_filters_by_gate() -> None:
+    tasks = [
+        _make_task("A", blocked=False, gates=["tests", "docs"]),
+        _make_task("B", blocked=False, gates=["docs"]),
+        _make_task("C", blocked=False, gates=["perf"]),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, gates=["docs"])
+
+    assert [task.id for task in filtered] == ["A", "B"]
+
+
+def test_filter_tasks_gate_filter_requires_all_requested_gates() -> None:
+    tasks = [
+        _make_task("A", blocked=False, gates=["tests", "docs"]),
+        _make_task("B", blocked=False, gates=["tests"]),
+        _make_task("C", blocked=False, gates=["docs", "perf"]),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, gates=["tests", "docs"])
+
+    assert [task.id for task in filtered] == ["A"]
+
+
 def test_build_parser_supports_unblocked_flag() -> None:
     parser = task_status.build_parser()
 
@@ -104,6 +130,14 @@ def test_build_parser_supports_relates_to_flag() -> None:
     args = parser.parse_args(['--relates-to', 'bundle:A', 'bundle:C'])
 
     assert args.relates_to == [['bundle:A', 'bundle:C']]
+
+
+def test_build_parser_supports_gate_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--gate', 'tests', 'docs', '--gate', 'perf'])
+
+    assert args.gate == [['tests', 'docs'], ['perf']]
 
 
 def test_build_parser_supports_include_archived_flag() -> None:
@@ -237,10 +271,42 @@ def test_select_next_actions_falls_back_to_new_when_no_ready() -> None:
 
 def test_select_next_actions_respects_filters_and_limit() -> None:
     tasks = [
-        _make_task('A', blocked=False, status='ready', priority='P0', owner='tools', area='tools'),
-        _make_task('B', blocked=False, status='ready', priority='P1', owner='runtime', area='runtime'),
-        _make_task('C', blocked=True, status='ready', priority='P2', owner='tools', area='tools'),
-        _make_task('D', blocked=False, status='new', priority='P1', owner='tools', area='tools'),
+        _make_task(
+            'A',
+            blocked=False,
+            status='ready',
+            priority='P0',
+            owner='tools',
+            area='tools',
+            gates=['tests', 'docs'],
+        ),
+        _make_task(
+            'B',
+            blocked=False,
+            status='ready',
+            priority='P1',
+            owner='runtime',
+            area='runtime',
+            gates=['tests'],
+        ),
+        _make_task(
+            'C',
+            blocked=True,
+            status='ready',
+            priority='P2',
+            owner='tools',
+            area='tools',
+            gates=['docs'],
+        ),
+        _make_task(
+            'D',
+            blocked=False,
+            status='new',
+            priority='P1',
+            owner='tools',
+            area='tools',
+            gates=['tests', 'docs'],
+        ),
     ]
 
     selected = task_status.select_next_actions(
@@ -248,6 +314,7 @@ def test_select_next_actions_respects_filters_and_limit() -> None:
         1,
         owner='tools',
         area='tools',
+        gates=['tests', 'docs'],
         blocked_only=False,
     )
 
