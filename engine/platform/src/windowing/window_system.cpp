@@ -192,7 +192,7 @@ namespace engine::platform
                 {
                     return std::nullopt;
                 }
-                if (auto parsed = parse_backend_override(*value))
+                if (auto parsed = parse_backend_override(normalised))
                 {
                     return parsed;
                 }

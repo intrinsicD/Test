@@ -29,6 +29,12 @@ namespace engine::platform::windowing
                 return library;
             }
 
+            ~GlfwLibrary() noexcept
+            {
+                // Mark as destroyed before actual destruction
+                get_alive_flag() = false;
+            }
+
             void retain()
             {
                 std::unique_lock lock{mutex_};
@@ -100,8 +106,19 @@ namespace engine::platform::windowing
         private:
             GlfwLibrary() = default;
 
+            static bool& get_alive_flag() noexcept
+            {
+                static bool alive = true;
+                return alive;
+            }
+
             static void handle_error(int code, const char* description) noexcept
             {
+                // Don't access the singleton if it's being destroyed
+                if (!get_alive_flag())
+                {
+                    return;
+                }
                 instance().record_error(code, description);
             }
 

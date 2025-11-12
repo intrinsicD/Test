@@ -584,14 +584,23 @@ int main(int argc, char* argv[])
 
     try
     {
+        ENGINE_INFO("Creating GeometryViewerApp...");
         GeometryViewerApp app;
+        ENGINE_INFO("Running app...");
         const int result = app.run();
+        ENGINE_INFO("App finished with result: {}", result);
         engine::core::Log::shutdown();
         return result;
     }
     catch (const std::exception& ex)
     {
         ENGINE_CRITICAL("Error: {}", ex.what());
+        engine::core::Log::shutdown();
+        return EXIT_FAILURE;
+    }
+    catch (...)
+    {
+        ENGINE_CRITICAL("Unknown error occurred");
         engine::core::Log::shutdown();
         return EXIT_FAILURE;
     }

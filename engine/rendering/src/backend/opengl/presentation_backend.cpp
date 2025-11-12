@@ -32,19 +32,18 @@ namespace engine::rendering::backend::opengl
     void OpenGLPresentationBackend::present(const RuntimePresentationContext& context)
     {
         auto* window = static_cast<GLFWwindow*>(context.native_window_handle);
-        if (!window)
+
+        // Only perform window operations if a window is available
+        if (window)
         {
-            // No window available, skip rendering
-            return;
+            // Initialize OpenGL context on first use or window change
+            initialize_context_if_needed(window);
+
+            // Clear the framebuffer
+            clear_framebuffer();
         }
 
-        // Initialize OpenGL context on first use or window change
-        initialize_context_if_needed(window);
-
-        // Clear the framebuffer
-        clear_framebuffer();
-
-        // Execute frame graph (submits draw commands)
+        // Execute frame graph (submits draw commands) even without a window for testing
         auto* pipeline = pipeline_.get();
         auto submission_context = submission_.make_context(material_system(), frame_graph(), pipeline);
         const auto submit_render_graph = context.submit_render_graph;
@@ -54,8 +53,11 @@ namespace engine::rendering::backend::opengl
         }
         submit_render_graph(context.host, submission_context);
 
-        // Swap buffers to present rendered frame
-        swap_buffers(window);
+        // Swap buffers to present rendered frame (only if window available)
+        if (window)
+        {
+            swap_buffers(window);
+        }
     }
 
     void OpenGLPresentationBackend::present_with_scene(scene::Scene& scene, void* window_handle)
