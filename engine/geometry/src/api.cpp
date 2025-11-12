@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <limits>
 #include <cmath>
+#include <vector>
 
 namespace engine::geometry
 {
@@ -64,18 +65,43 @@ namespace engine::geometry
         }};
 
         // Build mesh from AABB face quads
+        std::vector<math::vec2> texture_coordinates{};
+        texture_coordinates.reserve(face_quads.size() * 4U);
+
+        const math::vec3 extent = box.max - box.min;
+        const math::vec3 safe_extent{
+            std::max(extent[0], std::numeric_limits<float>::epsilon()),
+            std::max(extent[1], std::numeric_limits<float>::epsilon()),
+            std::max(extent[2], std::numeric_limits<float>::epsilon())
+        };
+
+        const std::array<std::pair<int, int>, 6> face_axes{{
+            {2, 1}, // -X: u = z, v = y
+            {2, 1}, // +X
+            {0, 2}, // -Y: u = x, v = z
+            {0, 2}, // +Y
+            {0, 1}, // -Z: u = x, v = y
+            {0, 1}  // +Z
+        }};
+
         for (std::size_t face_idx = 0; face_idx < face_quads.size(); ++face_idx)
         {
             const auto& quad = face_quads[face_idx];
             const auto& normal = face_normals[face_idx];
+            const auto [u_axis, v_axis] = face_axes[face_idx];
 
             const std::uint32_t base_vertex = static_cast<std::uint32_t>(mesh.rest_positions.size());
 
             // Add 4 vertices for this face
             for (int i = 0; i < 4; ++i)
             {
-                mesh.rest_positions.push_back(corners[quad[i]]);
+                const auto position = corners[quad[i]];
+                mesh.rest_positions.push_back(position);
                 mesh.normals.push_back(normal);
+
+                const float u = (position[u_axis] - box.min[u_axis]) / safe_extent[u_axis];
+                const float v = (position[v_axis] - box.min[v_axis]) / safe_extent[v_axis];
+                texture_coordinates.emplace_back(u, v);
             }
 
             // Add 2 triangles (quad = 2 tris)
@@ -89,13 +115,7 @@ namespace engine::geometry
         }
 
         mesh.positions = mesh.rest_positions;
-
-        // Simple UV coordinates
-        mesh.texture_coordinates.resize(mesh.positions.size());
-        for (std::size_t i = 0; i < mesh.texture_coordinates.size(); ++i)
-        {
-            mesh.texture_coordinates[i] = math::vec2{0.5F, 0.5F};
-        }
+        mesh.texture_coordinates = std::move(texture_coordinates);
 
         update_bounds(mesh);
         return mesh;

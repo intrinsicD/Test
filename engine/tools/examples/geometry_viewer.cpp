@@ -20,6 +20,7 @@
 
 #include <entt/entity/entity.hpp>
 
+#include "engine/assets/handles.hpp"
 #include "engine/assets/mesh_asset.hpp"
 #include "engine/assets/point_cloud_asset.hpp"
 #include "engine/assets/validation.hpp"
@@ -251,6 +252,7 @@ namespace
             options.height = WINDOW_HEIGHT;
             baseline_resources_ = engine::rendering::configure_research_baseline(backend_->frame_graph(), options);
             backend_->frame_graph().compile();
+            register_default_material();
 #endif
         }
 
@@ -259,6 +261,14 @@ namespace
 #if ENGINE_ENABLE_RENDERING
             auto cube_mesh = engine::geometry::make_unit_cube();
             mesh_storage_->store(std::string{kProceduralCubeId}, std::move(cube_mesh));
+
+#    if ENGINE_ENABLE_ASSETS
+            material_validator_registration_ =
+                engine::assets::HandleValidatorRegistry::instance().register_material_validator(
+                    [handle = default_material_](const engine::assets::MaterialHandle& candidate) {
+                        return !candidate.empty() && candidate.id() == handle.id();
+                    });
+#    endif
 
 #    if ENGINE_ENABLE_ASSETS
             mesh_validator_registration_ =
@@ -279,7 +289,7 @@ namespace
 #if ENGINE_ENABLE_RENDERING && ENGINE_ENABLE_ASSETS
             attach_render_geometry(std::string{kProceduralCubeId},
                 engine::rendering::components::RenderGeometry::from_mesh(
-                    engine::assets::MeshHandle{std::string{kProceduralCubeId}}));
+                    engine::assets::MeshHandle{std::string{kProceduralCubeId}}, default_material_));
 #endif
         }
 
@@ -368,7 +378,8 @@ namespace
                 auto surface_mesh = engine::geometry::mesh::build_surface_mesh_from_halfedge(asset.mesh.interface);
                 focus_camera_on_bounds(surface_mesh.bounds);
                 attach_render_geometry(std::string{asset.descriptor.handle.id()},
-                    engine::rendering::components::RenderGeometry::from_mesh(asset.descriptor.handle));
+                    engine::rendering::components::RenderGeometry::from_mesh(
+                        asset.descriptor.handle, default_material_));
                 ENGINE_INFO("Loaded mesh '{}'", path.string());
             }
             catch (const std::exception& ex)
@@ -392,7 +403,8 @@ namespace
                 const auto positions = asset.point_cloud.interface.positions();
                 focus_camera_on_bounds(engine::geometry::BoundingAabb(positions));
                 attach_render_geometry(std::string{asset.descriptor.handle.id()},
-                    engine::rendering::components::RenderGeometry::from_point_cloud(asset.descriptor.handle));
+                    engine::rendering::components::RenderGeometry::from_point_cloud(
+                        asset.descriptor.handle, default_material_));
                 ENGINE_INFO("Loaded point cloud '{}'", path.string());
             }
             catch (const std::exception& ex)
@@ -433,6 +445,19 @@ namespace
 #else
             (void)identifier;
             (void)geometry;
+#endif
+        }
+
+        void register_default_material()
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (!backend_)
+            {
+                return;
+            }
+
+            backend_->material_system().register_material(
+                engine::rendering::MaterialSystem::MaterialRecord{default_material_, {}});
 #endif
         }
 
@@ -528,6 +553,7 @@ namespace
 
         std::shared_ptr<ProceduralMeshStorage> mesh_storage_{std::make_shared<ProceduralMeshStorage>()};
         std::shared_ptr<void> mesh_validator_registration_{};
+        std::shared_ptr<void> material_validator_registration_{};
 #if ENGINE_ENABLE_ASSETS
         engine::assets::MeshCache mesh_cache_{};
         engine::assets::PointCloudCache point_cloud_cache_{};
@@ -538,6 +564,7 @@ namespace
         entt::entity camera_entity_{entt::null};
 #endif
         std::unordered_map<std::string, entt::entity> render_entities_{};
+        engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
         float camera_yaw_{0.0f};
         float camera_pitch_{0.3f};
         float camera_radius_{CAMERA_DISTANCE};
