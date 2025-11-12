@@ -67,6 +67,7 @@
 - **Coding Standards:** [`../CONTRIBUTION.md`](../CONTRIBUTION.md)
 - **Telemetry:** [`design/TELEMETRY_SCHEMA.md`](design/TELEMETRY_SCHEMA.md), [`design/TELEMETRY_INSTRUMENTATION_GUIDE.md`](design/TELEMETRY_INSTRUMENTATION_GUIDE.md)
 - **Error Handling:** [`design/ERROR_HANDLING_MIGRATION.md`](design/ERROR_HANDLING_MIGRATION.md)
+- **Result Adoption Opportunities:** [`reviews/RESULT_ADOPTION_OPPORTUNITIES.md`](reviews/RESULT_ADOPTION_OPPORTUNITIES.md)
 - **Resource Management:** [`design/RESOURCE_MANAGEMENT.md`](design/RESOURCE_MANAGEMENT.md)
 - **Accessibility:** [`design/TL_210_ACCESSIBILITY_CHECKLIST.md`](design/TL_210_ACCESSIBILITY_CHECKLIST.md)
 - **Case Study Baselines:** [`design/RT_321_CASE_STUDIES.md`](design/RT_321_CASE_STUDIES.md)
