@@ -151,7 +151,7 @@ $ python -m scripts.workflow.report_hybrid_status --next-actions --limit 3
 Status  Priority  ID      Owner         Title                        File
 ======  ========  ======  ============  ===========================  ===================
 ready   P1        RG-451  rendering     Shader pipeline compiler     backlog/RG-451...md
-ready   P2        TL-311  tools-lead    Scene hierarchy panel        backlog/TL-311...md
+ready   P2        TL-311  tools-lead    Scene hierarchy panel        backlog/archive/TL-311...md
 new     P1        RT-415  runtime-lead  Physics integration hooks    backlog/RT-415...md
 ```
 

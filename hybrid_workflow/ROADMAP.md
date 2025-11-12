@@ -25,7 +25,7 @@
 - [x] **RT-410** — Runtime stage planner → `hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
 - [ ] **TL-310** — Editor foundations → `hybrid_workflow/backlog/TL-310-editor-foundations.md`
 - [ ] **PM-510** — Weekly integration demos → `hybrid_workflow/backlog/PM-510-weekly-integration-demos.md`
-- [ ] **TL-311** — Scene hierarchy panel → `hybrid_workflow/backlog/TL-311-scene-hierarchy-panel.md`
+- [x] **TL-311** — Scene hierarchy panel → `hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md`
 - [ ] **TL-312** — Performance metrics panel → `hybrid_workflow/backlog/TL-312-performance-metrics-panel.md`
 - [ ] **TL-313** — Asset browser panel → `hybrid_workflow/backlog/TL-313-asset-browser-panel.md`
 - [ ] **TL-314** — Telemetry visualization panel → `hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md`
@@ -36,7 +36,7 @@
 - **Rendering validated with geometry_viewer at 7,818 FPS.** ✅ (2025-11-08)
 - Weekly demos capture GPU → runtime → tooling integration progress.
 
-_Current status:_ RG-450 has shipped with descriptor-driven planner execution and hot-reload coverage; RT-410 is complete and archived; **TL-310 achieved major rendering milestone (2025-11-08) with geometry_viewer demonstrating full OpenGL pipeline at 7,818 FPS** — Application framework + PresentationBackend integration verified working; PM-510 continues to coordinate weekly integration demos; TL-311 is groomed and ready pending TL-310 completion; and TL-312–TL-314 track the remaining diagnostic panels that build on the editor foundation.
+_Current status:_ RG-450 has shipped with descriptor-driven planner execution and hot-reload coverage; RT-410 is complete and archived; **TL-310 achieved major rendering milestone (2025-11-08) with geometry_viewer demonstrating full OpenGL pipeline at 7,818 FPS** — Application framework + PresentationBackend integration verified working; PM-510 continues to coordinate weekly integration demos; TL-311 shipped the scene hierarchy diagnostics panel with validation overlays; and TL-312–TL-314 track the remaining diagnostic panels that build on the editor foundation.
 
 ---
 

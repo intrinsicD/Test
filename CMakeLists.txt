@@ -84,6 +84,8 @@ if (ENGINE_ENABLE_TOOLS)
     list(APPEND ENGINE_MODULES tools)
 endif ()
 
+list(REMOVE_DUPLICATES ENGINE_MODULES)
+
 option(BUILD_SHARED_LIBS "Build libraries as shared" ON)
 option(ENGINE_ENABLE_PYTHON "Enable helpers for Python interoperability" ON)
 # Third-party knobs

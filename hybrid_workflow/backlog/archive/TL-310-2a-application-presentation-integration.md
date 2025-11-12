@@ -227,7 +227,7 @@ $ ./out/build/linux-gcc-debug/engine/runtime/tests/engine_runtime_tests --gtest_
 - `docs/modules/runtime/README.md`
 - `QUICK_START_RENDERING.md`
 - `hybrid_workflow/backlog/TL-310-editor-foundations.md` (parent task status)
-- `hybrid_workflow/backlog/TL-311-scene-hierarchy-panel.md` (blocked_on reference)
+- `hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md` (blocked_on reference)
 
 ---
 

@@ -179,6 +179,42 @@ Alert levels (from `SC-230`):
 - `Warning`: Minor issues, scene still functional
 - `Critical`: Cycles or orphans detected, requires intervention
 
+### Scene Hierarchy Diagnostics Panel
+
+The tools module ships an ImGui-powered scene hierarchy inspector (`engine::tools::editor::SceneHierarchyPanel`) that mirrors the
+runtime `scene::Scene` graph, highlights validation issues returned by `scene::validation::validate_hierarchy`, and keeps editor
+selection in sync with runtime systems. Register the panel through the shared `PanelRegistry` when wiring editor surfaces:
+
+```cpp
+engine::tools::imgui::PanelRegistry registry;
+engine::tools::editor::SceneHierarchyPanel panel{};
+auto handle = engine::tools::editor::register_scene_hierarchy_panel(
+    registry,
+    panel,
+    "editor.scene_hierarchy"
+);
+```
+
+When the runtime drives the editor, provide `RuntimePanelBridge::HierarchyPanelHooks` so the bridge updates the scene pointer each
+frame and propagates user selections back into the engine:
+
+```cpp
+engine::tools::editor::RuntimePanelBridge bridge(
+    registry,
+    diagnostics_provider,
+    validation_provider,
+    engine::tools::editor::RuntimePanelBridge::Renderers{},
+    engine::tools::editor::RuntimePanelBridge::HierarchyPanelHooks{
+        [&runtime]() -> engine::scene::Scene* { return &runtime.scene(); },
+        [&selection]() -> entt::entity { return selection; },
+        [&](entt::entity entity) { selection = entity; }
+    }
+);
+```
+
+The panel lazily expands branches as users explore the hierarchy, ensuring large scenes remain responsive while diagnostics stay
+visible during PM-510 demo capture and everyday workflows.
+
 See [`DIAGNOSTICS.md`](DIAGNOSTICS.md) for complete validation workflow.
 
 ## Serialization
