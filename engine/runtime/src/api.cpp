@@ -2950,7 +2950,7 @@ namespace engine::runtime
         impl_->set_presentation_backend(std::move(backend));
     }
 
-    scene::Scene& RuntimeHost::scene()
+    scene::Scene& RuntimeHost::scene() noexcept
     {
         if (impl_ == nullptr)
         {
@@ -2959,7 +2959,7 @@ namespace engine::runtime
         return impl_->scene;
     }
 
-    const scene::Scene& RuntimeHost::scene() const
+    const scene::Scene& RuntimeHost::scene() const noexcept
     {
         if (impl_ == nullptr)
         {

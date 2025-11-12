@@ -1,3 +1,5 @@
+#include "engine/core/log.hpp"
+#include "engine/scene/scene.hpp"
 #include "engine/rendering/backend/opengl/presentation_backend.hpp"
 
 #include <stdexcept>
@@ -79,7 +81,7 @@ namespace engine::rendering::backend::opengl
         // Create execution context with the provided scene
         auto execution_context = submission_context.make_execution_context(scene);
 
-        ENGINE_INFO("  Executing frame graph with {} entities", scene.registry().size());
+        ENGINE_INFO("  Executing frame graph with {} entities", scene.size());
 
         // Execute frame graph
         frame_graph_.execute(execution_context);

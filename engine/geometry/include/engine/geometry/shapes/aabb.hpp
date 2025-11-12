@@ -40,9 +40,9 @@ namespace engine::geometry
 
     [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(const math::vec3& point) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(std::span<math::vec3> points) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(const std::span<const math::vec3> points) noexcept;
 
-    [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(std::span<Aabb> aabbs) noexcept;
+    [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(const std::span<const Aabb> aabbs) noexcept;
 
     [[nodiscard]] ENGINE_GEOMETRY_API Aabb BoundingAabb(const Sphere& s) noexcept;
 

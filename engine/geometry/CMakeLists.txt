@@ -9,6 +9,7 @@ add_library(${target_name}
         src/properties/property_handle.cpp
         src/mesh/halfedge_mesh.cpp
         # src/mesh/halfedge_mesh_io.cpp moved to engine_geometry_io
+        src/mesh/surface_mesh.cpp
         src/mesh/surface_mesh_conversion.cpp
         src/topology/surface_curvature.cpp
         src/topology/surface_topology.cpp

@@ -32,7 +32,6 @@
 #include "engine/io/geometry_io.hpp"
 #include "engine/math/transform.hpp"
 #include "engine/platform/input/input_state.hpp"
-#include "engine/platform/windowing/event.hpp"
 #include "engine/rendering/backend/opengl/presentation_backend.hpp"
 #include "engine/rendering/camera.hpp"
 #include "engine/rendering/components.hpp"
@@ -43,7 +42,7 @@
 #include "engine/scene/components/name.hpp"
 #include "engine/scene/components/transform.hpp"
 #include "engine/scene/scene.hpp"
-#include "engine/scene/systems/transform.hpp"
+#include "engine/scene/systems/transform_system.hpp"
 
 namespace
 {
@@ -345,13 +344,13 @@ namespace
                 return;
             }
 
-            switch (detection->kind)
+            switch (detection.value().kind)
             {
             case engine::io::GeometryKind::mesh:
-                load_mesh_asset(path, detection->mesh_format);
+                load_mesh_asset(path, detection.value().mesh_format);
                 break;
             case engine::io::GeometryKind::point_cloud:
-                load_point_cloud_asset(path, detection->point_cloud_format);
+                load_point_cloud_asset(path, detection.value().point_cloud_format);
                 break;
             default:
                 ENGINE_WARN("Unsupported geometry kind for '{}'.", path.string());
@@ -440,7 +439,7 @@ namespace
         void focus_camera_on_bounds(const engine::geometry::Aabb& bounds)
         {
             const auto size = engine::geometry::Size(bounds);
-            const float max_extent = std::max({size.x, size.y, size.z, 1.0f});
+            const float max_extent = std::max({size[0], size[1], size[2], 1.0f});
             camera_radius_ = std::clamp(max_extent * 1.5f, 1.0f, 50.0f);
 
             update_camera();

@@ -43,7 +43,7 @@ namespace engine::geometry
         return Aabb{point, point};
     }
 
-    Aabb BoundingAabb(std::span<math::vec3> points) noexcept
+    Aabb BoundingAabb(const std::span<const math::vec3> points) noexcept
     {
         Aabb result;
         if (points.empty())
@@ -65,7 +65,7 @@ namespace engine::geometry
         return result;
     }
 
-    Aabb BoundingAabb(std::span<Aabb> aabbs) noexcept
+    Aabb BoundingAabb(const std::span<const Aabb> aabbs) noexcept
     {
         Aabb result;
         if (aabbs.empty())

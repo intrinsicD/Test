@@ -410,6 +410,8 @@ namespace engine::runtime
 
     void Application::configure_runtime_host(RuntimeHost&)
     {
+    }
+
     std::shared_ptr<rendering::PresentationBackend> Application::rendering_backend() noexcept
     {
         return rendering_.backend;

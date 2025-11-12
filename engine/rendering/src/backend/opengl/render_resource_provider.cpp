@@ -9,6 +9,7 @@
 #endif
 
 #include "engine/geometry/api.hpp"
+#include "engine/core/log.hpp"
 #include "engine/geometry/point_cloud/point_cloud.hpp"
 
 namespace engine::rendering::backend::opengl
