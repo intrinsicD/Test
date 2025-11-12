@@ -103,9 +103,16 @@ namespace engine::rendering::backend::opengl
                     execute_mesh_draw(command);
                 }
             }
+            else if constexpr (std::is_same_v<Handle, assets::PointCloudHandle>)
+            {
+                if (!geometry_handle.empty())
+                {
+                    execute_point_cloud_draw(command);
+                }
+            }
             else
             {
-                // Graphs and point clouds are currently not backed by OpenGL draw paths.
+                // Graphs are currently not backed by OpenGL draw paths.
                 static_cast<void>(geometry_handle);
             }
         };
@@ -146,6 +153,45 @@ namespace engine::rendering::backend::opengl
         {
             const auto vertex_count = static_cast<GLsizei>(record->positions.size());
             glad_glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+        }
+
+        if (glad_glBindVertexArray != nullptr)
+        {
+            glad_glBindVertexArray(0);
+        }
+#else
+        static_cast<void>(command);
+#endif
+    }
+
+    void OpenGLImmediateCommandStream::execute_point_cloud_draw(const GeometryDrawCommand& command)
+    {
+        if (render_resources_ == nullptr)
+        {
+            return;
+        }
+
+        const auto handle = std::get<assets::PointCloudHandle>(command.geometry);
+        render_resources_->require_point_cloud(handle);
+
+        const auto* record = render_resources_->point_cloud(handle);
+        if (record == nullptr)
+        {
+            return;
+        }
+
+        ++draw_calls_;
+
+#if ENGINE_RENDERING_HAS_GLAD
+        if (record->vertex_array != 0U && glad_glBindVertexArray != nullptr)
+        {
+            glad_glBindVertexArray(record->vertex_array);
+        }
+
+        const auto vertex_count = static_cast<GLsizei>(record->positions.size());
+        if (vertex_count > 0 && glad_glDrawArrays != nullptr)
+        {
+            glad_glDrawArrays(GL_POINTS, 0, vertex_count);
         }
 
         if (glad_glBindVertexArray != nullptr)

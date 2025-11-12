@@ -25,8 +25,10 @@ namespace engine::rendering::backend::opengl
     {
     public:
         using MeshResolver = OpenGLRenderResourceProvider::MeshResolver;
+        using PointCloudResolver = OpenGLRenderResourceProvider::PointCloudResolver;
 
         explicit OpenGLRuntimeSubmission(MeshResolver mesh_resolver,
+                                         PointCloudResolver point_cloud_resolver = {},
                                          std::uint64_t retention_frames = 0);
 
         void set_retention_frames(std::uint64_t frames) noexcept;

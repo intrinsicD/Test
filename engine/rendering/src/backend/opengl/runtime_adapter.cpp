@@ -5,8 +5,9 @@
 namespace engine::rendering::backend::opengl
 {
     OpenGLRuntimeSubmission::OpenGLRuntimeSubmission(MeshResolver mesh_resolver,
+                                                     PointCloudResolver point_cloud_resolver,
                                                      std::uint64_t retention_frames)
-        : render_resources(std::move(mesh_resolver))
+        : render_resources(std::move(mesh_resolver), std::move(point_cloud_resolver))
         , command_stream(render_resources)
         , device_resources(retention_frames)
         , command_encoders(device_resources)

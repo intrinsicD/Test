@@ -2949,6 +2949,37 @@ namespace engine::runtime
         }
         impl_->set_presentation_backend(std::move(backend));
     }
+
+    scene::Scene& RuntimeHost::scene()
+    {
+        if (impl_ == nullptr)
+        {
+            throw std::runtime_error("RuntimeHost has no implementation");
+        }
+        return impl_->scene;
+    }
+
+    const scene::Scene& RuntimeHost::scene() const
+    {
+        if (impl_ == nullptr)
+        {
+            throw std::runtime_error("RuntimeHost has no implementation");
+        }
+        return impl_->scene;
+    }
+
+    void RuntimeHost::set_render_geometry(rendering::components::RenderGeometry geometry)
+    {
+        if (impl_ == nullptr)
+        {
+            throw std::runtime_error("RuntimeHost has no implementation");
+        }
+        impl_->render_geometry = std::move(geometry);
+        if (impl_->initialized)
+        {
+            impl_->ensure_render_entity();
+        }
+    }
 #endif
 
     namespace

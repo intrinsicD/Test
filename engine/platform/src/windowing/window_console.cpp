@@ -112,6 +112,30 @@ namespace engine::platform
                 }
                 break;
             }
+        case EventType::FileDrop:
+            {
+                if (const auto* payload = std::get_if<FileDropEvent>(&event.payload))
+                {
+                    if (payload->paths.empty())
+                    {
+                        out << "[event] file drop: <empty>" << '\n';
+                    }
+                    else
+                    {
+                        out << "[event] file drop:";
+                        for (const auto& path : payload->paths)
+                        {
+                            out << '\n' << "           " << path.generic_string();
+                        }
+                        out << '\n';
+                    }
+                }
+                else
+                {
+                    out << "[event] file drop (missing payload)" << '\n';
+                }
+                break;
+            }
         case EventType::Custom:
             {
                 if (const auto* payload = std::get_if<std::string>(&event.payload))

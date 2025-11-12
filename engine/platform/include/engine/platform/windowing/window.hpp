@@ -5,12 +5,14 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <variant>
+#include <vector>
 
 namespace engine::platform
 {
@@ -106,6 +108,8 @@ namespace engine::platform
         Resized,
         /// The window focus has changed. Payload is FocusEvent.
         FocusChanged,
+        /// One or more paths were dropped onto the window. Payload is FileDropEvent.
+        FileDrop,
         /// Implementation specific custom payload. Payload is std::string.
         Custom,
     };
@@ -123,10 +127,16 @@ namespace engine::platform
         bool focused{false};
     };
 
+    /// \brief Payload describing a file drop event.
+    struct FileDropEvent
+    {
+        std::vector<std::filesystem::path> paths{};
+    };
+
     /// \brief Represents a window level event.
     struct Event
     {
-        using Payload = std::variant<std::monostate, ResizeEvent, FocusEvent, std::string>;
+        using Payload = std::variant<std::monostate, ResizeEvent, FocusEvent, FileDropEvent, std::string>;
 
         EventType type{EventType::None};
         Payload payload{};
@@ -147,6 +157,12 @@ namespace engine::platform
         static Event focus_changed(bool focused) noexcept
         {
             return Event{EventType::FocusChanged, FocusEvent{focused}};
+        }
+
+        /// Convenience helper constructing a file drop event.
+        static Event file_drop(std::vector<std::filesystem::path> paths)
+        {
+            return Event{EventType::FileDrop, FileDropEvent{std::move(paths)}};
         }
 
         /// Convenience helper constructing a custom payload event.
