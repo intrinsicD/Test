@@ -9,6 +9,7 @@
 
 #include "engine/assets/validation.hpp"
 #include "engine/rendering/command_encoder.hpp"
+#include "engine/rendering/camera.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/rendering/render_pass.hpp"
@@ -44,6 +45,39 @@ namespace engine::rendering
             Deferred,
         };
 
+        struct CameraUniforms
+        {
+            engine::math::mat4 view{engine::math::identity_matrix<float, 4>()};
+            engine::math::mat4 projection{engine::math::identity_matrix<float, 4>()};
+            engine::math::vec3 position{0.0F, 0.0F, 0.0F};
+        };
+
+        [[nodiscard]] CameraUniforms resolve_camera_uniforms(entt::registry& registry)
+        {
+            CameraUniforms uniforms{};
+
+            auto cameras = registry.view<engine::rendering::Camera>();
+            for (auto entity : cameras)
+            {
+                const auto& camera = cameras.get<engine::rendering::Camera>(entity);
+                uniforms.view = camera.view;
+                uniforms.projection = camera.projection;
+
+                if (registry.any_of<engine::scene::components::WorldTransform>(entity))
+                {
+                    uniforms.position =
+                        registry.get<engine::scene::components::WorldTransform>(entity).value.translation;
+                }
+                else
+                {
+                    uniforms.position = camera.transform().translation;
+                }
+                break;
+            }
+
+            return uniforms;
+        }
+
         class ResearchGeometryPass final : public RenderPass
         {
         public:
@@ -76,6 +110,7 @@ namespace engine::rendering
 
                 auto& scene = context.render.view.scene;
                 auto& registry = scene.registry();
+                const auto camera_uniforms = resolve_camera_uniforms(registry);
 
                 using engine::rendering::components::RenderGeometry;
                 using engine::scene::components::WorldTransform;
@@ -123,7 +158,11 @@ namespace engine::rendering
                         context.render.materials.ensure_material_loaded(geometry.material, context.render.resources);
                     }
 
-                    draw_commands_.push_back(GeometryDrawCommand{geometry.geometry(), geometry.material, world.value});
+                    GeometryDrawCommand command{geometry.geometry(), geometry.material, world.value};
+                    command.view_matrix = camera_uniforms.view;
+                    command.projection_matrix = camera_uniforms.projection;
+                    command.camera_position = camera_uniforms.position;
+                    draw_commands_.push_back(command);
                 }
 
                 auto& encoder = context.command_encoder();

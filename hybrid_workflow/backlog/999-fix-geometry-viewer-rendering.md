@@ -1,7 +1,7 @@
 ---
 id: 999
 title: Fix Geometry Viewer Black Screen - Enable Cube Rendering and Camera Controls
-status: in_progress
+status: review
 priority: P0
 area: rendering
 size: L
@@ -194,6 +194,18 @@ glClearColor(0.1f, 0.1f, 0.15f, 1.0f); // Dark blue-gray
 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 ```
 
+### Step 9: Bind Shader + Camera State for Draw Calls
+
+- `engine/rendering/include/engine/rendering/command_encoder.hpp`
+  - Extended `GeometryDrawCommand` to carry the active camera's view, projection, and eye position so GPU backends can render
+    world-space geometry without bespoke tool code.
+- `engine/rendering/src/forward_pipeline.cpp` and `engine/rendering/src/pipeline/research_baseline.cpp`
+  - Each geometry pass now resolves the primary `engine::rendering::Camera` from the scene registry and stamps the per-pass
+    uniforms onto every recorded draw command.
+- `engine/rendering/src/backend/opengl/immediate_command_stream.cpp`
+  - Added a fallback GLSL vertex/fragment shader, uniform upload helpers, and point-cloud tweaks so Research Baseline draws are
+    shaded instead of hitting the fixed pipeline.
+
 ## Testing
 
 ### Manual Test Cases
@@ -224,7 +236,16 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 ## Evidence
 
-_To be filled after implementation and testing_
+- `cmake --preset linux-gcc-debug` — Configured the workspace; `geometry_viewer` was skipped because GLFW/glad artifacts are
+  unavailable in this CI image. 【8f751d†L1-L16】【8f751d†L17-L24】
+- `ninja -C out/build/linux-gcc-debug engine/rendering/CMakeFiles/engine_rendering.dir/src/backend/opengl/immediate_command_stream.cpp.o`
+  — Rebuilt the updated OpenGL immediate command stream to validate shader compilation. 【90c72b†L1-L4】
+- `ninja -C out/build/linux-gcc-debug engine/rendering/CMakeFiles/engine_rendering.dir/src/forward_pipeline.cpp.o`
+  — Rebuilt the research baseline geometry pass entry point after threading camera uniforms. 【75ba1e†L1-L4】
+- `ninja -C out/build/linux-gcc-debug engine/rendering/CMakeFiles/engine_rendering.dir/src/pipeline/research_baseline.cpp.o`
+  — Recompiled the frame-graph preset that now stamps camera data into each draw call. 【ec7373†L1-L4】
+- `cmake --build --preset linux-gcc-debug --target engine_rendering` — Attempted a full rendering module build, but it fails in
+  this container because GLFW headers are not installed. 【1a3b67†L1-L20】
 
 ## Notes
 
