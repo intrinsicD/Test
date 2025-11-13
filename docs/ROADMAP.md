@@ -123,6 +123,7 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | 1 | Runtime stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Mitigated by RT-410 completion (2026-03-30); continue monitoring TL-310 enablement and presentation telemetry in PM-510 demos. |
 | 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Sequence TL-310 immediately after RT-410 adapter merge and preview editor state during PM-510 demos. |
 | 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Capture updates from weekly demos and rerun docs validator after each milestone increment. |
+| 3 | CI containers lack GLFW/Xrandr headers so geometry_viewer cannot render. | Tools Lead | Headless fallback now logs the dependency gap; coordinate with infra to install X11 dev packages before release validation. 【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】【e03c46†L1-L14】 |
 
 ## Maintenance Checklist
 - When a backlog item completes, move its file to [`../hybrid_workflow/backlog/archive/`](../hybrid_workflow/backlog/archive/) or [`backlog/archive/`](backlog/archive/) (for old format tasks) and update tables above.

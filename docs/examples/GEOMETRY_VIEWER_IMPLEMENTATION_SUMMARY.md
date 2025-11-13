@@ -11,7 +11,7 @@ The geometry viewer sample runs on top of `engine::runtime::Application` and exe
 | Area | Highlights |
 |------|------------|
 | **Runtime Integration** | Inherits from `engine::runtime::Application`, delegates window creation, input handling, and main-loop orchestration to the runtime host. |
-| **Rendering Backend** | Configures the OpenGL presentation backend and compiles the research baseline frame graph (`engine/rendering/pipeline/research_baseline.hpp`). |
+| **Rendering Backend** | Configures the OpenGL presentation backend and compiles the research baseline frame graph (`engine/rendering/pipeline/research_baseline.hpp`). When GLFW/GLAD are missing the runtime falls back to a mock presentation mode so workflow smoke tests can still run headless. |
 | **Asset Streaming** | Supports drag-and-drop for meshes (`.obj`, `.ply`, `.stl`) and point clouds (`.ply`, `.pcd`, `.xyz`). Assets load through `MeshCache` / `PointCloudCache` and resolve via backend-provided resource resolvers. |
 | **Procedural Geometry** | Provides a procedural unit cube stored in an internal cache so the viewer renders content even before streaming external assets. |
 | **Camera Controls** | Orbit camera driven by the unified input system (`engine::platform::input::InputState`). Mouse drag rotates, mouse wheel zooms, `Esc` quits. |
@@ -33,7 +33,7 @@ cmake --preset linux-gcc-debug
 cmake --build --preset linux-gcc-debug --target geometry_viewer
 ```
 
-The viewer depends on platform windowing (GLFW) and OpenGL loaders. When these libraries are unavailable (e.g., inside the minimal CI container) the build preset will report the missing dependencies and skip the executable; document this limitation in your task brief.
+The viewer depends on platform windowing (GLFW) and OpenGL loaders. When these libraries are unavailable (e.g., inside the minimal CI container) the build preset will report the missing dependencies and skip the executable; document this limitation in your task brief. At runtime the application now logs that OpenGL is disabled and continues in headless mode instead of throwing an exception.【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】
 
 ---
 
@@ -43,7 +43,7 @@ The viewer depends on platform windowing (GLFW) and OpenGL loaders. When these l
 ./out/build/linux-gcc-debug/engine/tools/examples/geometry_viewer
 ```
 
-> **Tip:** Launch the executable from a working directory that contains your assets so drag-and-drop resolves relative paths cleanly.  For headless environments use a virtual framebuffer (e.g., `xvfb-run`).
+> **Tip:** Launch the executable from a working directory that contains your assets so drag-and-drop resolves relative paths cleanly.  For headless environments use a virtual framebuffer (e.g., `xvfb-run`). When GLFW is unavailable the executable still runs, prints an explicit warning, and exercises input/asset pathways without attempting to render.【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】
 
 ---
 
