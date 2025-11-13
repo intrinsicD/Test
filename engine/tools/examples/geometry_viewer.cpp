@@ -45,6 +45,14 @@
 #include "engine/scene/scene.hpp"
 #include "engine/scene/systems/transform_system.hpp"
 
+#ifndef ENGINE_PLATFORM_HAS_GLFW
+#    define ENGINE_PLATFORM_HAS_GLFW 0
+#endif
+
+#ifndef ENGINE_RENDERING_HAS_GLAD
+#    define ENGINE_RENDERING_HAS_GLAD 0
+#endif
+
 namespace
 {
     constexpr int WINDOW_WIDTH = 1280;
@@ -103,6 +111,26 @@ namespace
                       .resizable = true,
                       .capability_requirements = {.require_native_surface = true}
                   };
+                  const bool opengl_available = (ENGINE_PLATFORM_HAS_GLFW != 0)
+                      && (ENGINE_RENDERING_HAS_GLAD != 0);
+                  opengl_supported_ = opengl_available;
+
+                  if (!opengl_available)
+                  {
+                      config.window_backend = engine::platform::WindowBackend::Mock;
+#if ENGINE_ENABLE_RENDERING
+                      config.rendering.enable = false;
+                      config.rendering.backend =
+                          engine::runtime::ApplicationConfig::RenderingConfig::Backend::Mock;
+                      config.rendering.backend_factory = {};
+#endif
+                      ENGINE_WARN(
+                          "OpenGL presentation disabled — GLFW target or GLAD loader not available. "
+                          "Viewer will run in headless mock mode. Install system X11/Xrandr headers "
+                          "and reconfigure to enable full rendering.");
+                      return config;
+                  }
+
                   config.window_backend = engine::platform::WindowBackend::GLFW;
                   config.target_fps = 0.0;
 #if ENGINE_ENABLE_RENDERING
@@ -234,6 +262,11 @@ namespace
         void setup_backend()
         {
 #if ENGINE_ENABLE_RENDERING
+            if (!opengl_supported_)
+            {
+                ENGINE_WARN("Skipping OpenGL backend setup — viewer running without GLFW/GLAD support.");
+                return;
+            }
             if (!backend_)
             {
                 backend_ = std::dynamic_pointer_cast<engine::rendering::backend::opengl::OpenGLPresentationBackend>(
@@ -565,6 +598,7 @@ namespace
 #endif
         std::unordered_map<std::string, entt::entity> render_entities_{};
         engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
+        bool opengl_supported_{(ENGINE_PLATFORM_HAS_GLFW != 0) && (ENGINE_RENDERING_HAS_GLAD != 0)};
         float camera_yaw_{0.0f};
         float camera_pitch_{0.3f};
         float camera_radius_{CAMERA_DISTANCE};

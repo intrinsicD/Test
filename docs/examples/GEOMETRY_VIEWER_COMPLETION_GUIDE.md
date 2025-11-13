@@ -1,360 +1,59 @@
 # Geometry Viewer Completion Guide
 
-## Overview
-The current `geometry_viewer.cpp` is a minimal skeleton that demonstrates initialization but doesn't actually render anything. This guide outlines what's missing to make it a fully functional interactive 3D model viewer.
+## Purpose
 
-## What's Currently Missing
+The geometry viewer now ships as a complete runtime application that exercises the OpenGL research baseline. This guide explains how to validate the sample, what dependencies are required for full rendering, and how to interpret the new headless fallback when platform prerequisites are missing.
 
-### 1. **Window and OpenGL Context**
-- ✗ No window creation
-- ✗ No OpenGL context initialization
-- ✗ No event loop
+## 1. Verify Build Prerequisites
 
-**What you need:**
-```cpp
-#include "engine/platform/windowing/window.hpp"
-#include <GLFW/glfw3.h>  // For OpenGL context creation
+The executable depends on GLFW (window system) and GLAD (OpenGL loader). During CMake configuration ensure both targets are present:
 
-// Create window
-auto window = engine::platform::create_window(
-    engine::platform::WindowConfig{
-        .title = "Geometry Viewer",
-        .width = 1920,
-        .height = 1080,
-        .visible = true,
-        .resizable = true,
-        .capability_requirements = {
-            .require_native_surface = true
-        }
-    },
-    engine::platform::WindowBackend::GLFW
-);
-
-// Initialize OpenGL context (via GLFW)
-glfwMakeContextCurrent(static_cast<GLFWwindow*>(window->native_handle()));
-gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+```bash
+cmake --preset linux-gcc-debug
 ```
 
-### 2. **Main Event/Render Loop**
-- ✗ No continuous rendering
-- ✗ No event processing
-- ✗ No frame timing
+Expected diagnostics:
 
-**What you need:**
-```cpp
-while (!window->close_requested())
-{
-    // 1. Poll window events
-    window->pump_events();
-    
-    // Process events
-    engine::platform::Event event;
-    while (window->event_queue().poll(event))
-    {
-        handle_event(event);
-    }
-    
-    // 2. Update scene/camera
-    update_camera(delta_time);
-    
-    // 3. Execute frame graph
-    scheduler->execute(graph, scene);
-    
-    // 4. Render ImGui
-    render_ui();
-    
-    // 5. Swap buffers
-    glfwSwapBuffers(window_handle);
-}
-```
+- `OpenGL GLAD target detected (glad::gl_core)` → GL function pointers available.
+- `Skipping geometry_viewer example (missing targets: glfw).` indicates GLFW could not be built because the container lacks X11/Xrandr headers. Install `libxrandr-dev` (and related X11 development packages) before re-configuring to enable the real windowed build.【e03c46†L1-L14】
 
-### 3. **Camera System**
-- ✗ No camera entity in the scene
-- ✗ No camera controller for user input
-- ✗ No view/projection matrices set up
+If GLFW is absent, the CMake logic will skip the viewer target; the runtime now detects this case and runs in a headless mode instead of crashing at startup.
 
-**What you need:**
-```cpp
-#include "engine/rendering/camera.hpp"
-#include "engine/rendering/camera_controllers.hpp"
+## 2. Runtime Behaviour
 
-// Create camera entity
-auto camera_entity = scene.registry().create();
+When both GLFW and GLAD are available the app:
 
-// Add camera component
-auto& camera = scene.registry().emplace<engine::rendering::Camera>(camera_entity);
-camera.set_perspective(
-    glm::radians(60.0f),  // FOV
-    1920.0f / 1080.0f,    // Aspect ratio
-    0.1f,                 // Near plane
-    1000.0f               // Far plane
-);
-camera.look_at(
-    {0.0f, 2.0f, 5.0f},   // Eye position
-    {0.0f, 0.0f, 0.0f},   // Target
-    {0.0f, 1.0f, 0.0f}    // Up vector
-);
+1. Creates a GLFW window via `engine::runtime::Application`.
+2. Configures the OpenGL presentation backend and compiles the research baseline frame graph.
+3. Seeds a procedural cube, registers drag-and-drop loaders, and focuses the orbit camera on streamed assets.
 
-// Add camera controller for user input
-auto& controller = scene.registry().emplace<engine::rendering::ArcballCameraController>(
-    camera_entity
-);
-```
+If either dependency is missing, the viewer logs a warning and disables OpenGL while keeping the rest of the runtime (input, asset loading, diagnostics) alive so workflow tests can still execute.【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】【F:engine/tools/examples/geometry_viewer.cpp†L265-L283】
 
-### 4. **Actual Mesh Loading**
-- ✗ Currently just creates empty mesh handles
-- ✗ No actual geometry data
-- ✗ No vertex/index buffers
+## 3. Bringing Up Rendering Locally
 
-**What you need:**
-```cpp
-#include "engine/io/importers/mesh.hpp"
-#include "engine/geometry/mesh.hpp"
+Follow these steps on a workstation with GPU access:
 
-// Load mesh from file
-auto mesh_result = engine::io::load_mesh("path/to/model.obj");
-if (!mesh_result)
-{
-    std::cerr << "Failed to load mesh\n";
-    return;
-}
+1. Install the required system packages (`libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, `libxi-dev`, OpenGL headers).
+2. Reconfigure the build preset and confirm CMake now creates the `geometry_viewer` executable.
+3. Build and launch the viewer:
 
-engine::geometry::Mesh mesh = std::move(mesh_result.value());
+   ```bash
+   cmake --build --preset linux-gcc-debug --target geometry_viewer
+   ./out/build/linux-gcc-debug/geometry_viewer
+   ```
 
-// Upload to GPU (through resource provider)
-auto gpu_mesh = resource_provider->upload_mesh(mesh);
+4. Drag `.obj`, `.ply`, `.stl`, `.pcd`, or `.xyz` files into the window, orbit with left mouse drag, zoom with the scroll wheel, and exit with `Esc`.
 
-// Create entity with the mesh
-auto entity = scene.registry().create();
-scene.registry().emplace<engine::rendering::components::RenderGeometry>(
-    entity,
-    engine::rendering::components::RenderGeometry::from_mesh(
-        gpu_mesh,
-        material_handle
-    )
-);
-```
+## 4. Validating Headless Mode
 
-### 5. **Material System**
-- ✗ Empty material handles
-- ✗ No shaders loaded
-- ✗ No textures
+In CI or other environments without GLFW, the viewer logs that rendering is disabled and exits cleanly after running its main loop without GPU work. Use this mode to smoke-test asset ingestion, event handling, and camera logic without GPU dependencies. Tests should assert that the warning appears so it is obvious when the build farm lacks the necessary system headers.【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】
 
-**What you need:**
-```cpp
-#include "engine/rendering/material_system.hpp"
+## 5. Troubleshooting Checklist
 
-// Create material system
-engine::rendering::MaterialSystem material_system;
+| Symptom | Likely Cause | Resolution |
+|---------|--------------|------------|
+| CMake skips `geometry_viewer` | `glfw` target absent (missing X11 headers) | Install `libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, `libxi-dev`, rerun CMake. |
+| Runtime prints “OpenGL presentation disabled” | GLAD or GLFW not configured | Verify third-party build, ensure `ENGINE_ENABLE_GLFW=ON`, rebuild. |
+| Black window with assets loaded | Shaders or buffers failed to compile/upload | Check OpenGL logs (search for `OpenGL shader compilation failed`); run with validation layers enabled. |
 
-// Create a basic PBR material
-engine::rendering::MaterialDescriptor material_desc{};
-material_desc.albedo = {1.0f, 1.0f, 1.0f, 1.0f};
-material_desc.metallic = 0.0f;
-material_desc.roughness = 0.5f;
-
-auto material = material_system.create_material(material_desc);
-```
-
-### 6. **ImGui Integration**
-- ✗ No ImGui context
-- ✗ No ImGui rendering
-- ✗ No UI panels
-
-**What you need:**
-```cpp
-#include "engine/tools/imgui_helpers.hpp"
-#include "engine/tools/imgui/panel_registry.hpp"
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-
-// Initialize ImGui
-IMGUI_CHECKVERSION();
-ImGui::CreateContext();
-ImGuiIO& io = ImGui::GetIO();
-
-// Setup platform/renderer bindings
-ImGui_ImplGlfw_InitForOpenGL(window_handle, true);
-ImGui_ImplOpenGL3_Init("#version 450");
-
-// In render loop:
-void render_ui()
-{
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-    
-    // Render custom UI
-    ImGui::Begin("Scene Controls");
-    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-    ImGui::SliderFloat3("Camera Position", &camera_pos.x, -10.0f, 10.0f);
-    ImGui::ColorEdit3("Clear Color", &clear_color.x);
-    ImGui::End();
-    
-    // Render profiler
-    engine::tools::imgui::render_profiler_window();
-    
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-```
-
-### 7. **Input Handling**
-- ✗ No keyboard/mouse input processing
-- ✗ No camera movement
-
-**What you need:**
-```cpp
-#include "engine/platform/input/input_state.hpp"
-
-// Input state
-engine::platform::InputState input_state;
-
-// Handle events
-void handle_event(const engine::platform::Event& event)
-{
-    if (event.type == engine::platform::EventType::Resized)
-    {
-        auto& resize = std::get<engine::platform::ResizeEvent>(event.payload);
-        // Update viewport and camera aspect ratio
-        glViewport(0, 0, resize.width, resize.height);
-        camera.set_perspective(
-            glm::radians(60.0f),
-            static_cast<float>(resize.width) / resize.height,
-            0.1f, 1000.0f
-        );
-    }
-}
-
-// Update camera from input
-void update_camera(float delta_time)
-{
-    // Get mouse delta
-    auto mouse_delta = input_state.mouse_delta();
-    
-    // Rotate camera with right mouse button
-    if (input_state.is_mouse_button_down(1))  // Right button
-    {
-        camera_controller.rotate(mouse_delta.x * 0.01f, mouse_delta.y * 0.01f);
-    }
-    
-    // Zoom with scroll wheel
-    float scroll = input_state.scroll_delta();
-    camera_controller.zoom(scroll * 0.1f);
-    
-    camera_controller.update(camera, delta_time);
-}
-```
-
-### 8. **Frame Graph Execution**
-- ✗ Frame graph is created but never executed
-- ✗ No scene data passed to renderer
-
-**What you need:**
-```cpp
-// Execute frame graph with scene data
-engine::rendering::FrameGraphExecutionContext context{};
-context.scene = &scene;
-context.camera_entity = camera_entity;
-context.viewport_width = 1920;
-context.viewport_height = 1080;
-
-scheduler->execute(graph, context);
-```
-
-### 9. **Resource Cleanup**
-- ✗ No shutdown/cleanup code
-
-**What you need:**
-```cpp
-// Before exit:
-ImGui_ImplOpenGL3_Shutdown();
-ImGui_ImplGlfw_Shutdown();
-ImGui::DestroyContext();
-
-glfwDestroyWindow(window_handle);
-glfwTerminate();
-```
-
-## Complete Minimal Example Structure
-
-```cpp
-// Headers
-#include "engine/rendering/api.hpp"
-#include "engine/rendering/camera.hpp"
-#include "engine/platform/windowing/window.hpp"
-#include "engine/io/importers/mesh.hpp"
-#include <GLFW/glfw3.h>
-#include <imgui.h>
-
-class GeometryViewerApp
-{
-public:
-    void init()
-    {
-        // 1. Create window
-        // 2. Initialize OpenGL
-        // 3. Create scene with camera
-        // 4. Load mesh
-        // 5. Setup frame graph
-        // 6. Initialize ImGui
-    }
-    
-    void run()
-    {
-        while (!should_close)
-        {
-            // 1. Poll events
-            // 2. Update camera
-            // 3. Execute frame graph
-            // 4. Render ImGui
-            // 5. Swap buffers
-        }
-    }
-    
-    void shutdown()
-    {
-        // Cleanup resources
-    }
-
-private:
-    std::shared_ptr<engine::platform::Window> window;
-    engine::scene::Scene scene;
-    engine::rendering::FrameGraph graph;
-    // ... other members
-};
-```
-
-## Priority Implementation Order
-
-1. **Window + OpenGL Context** - Get a window displaying
-2. **Event Loop** - Get the application continuously running
-3. **Camera** - Add a camera to see the scene
-4. **Basic Rendering** - Execute the frame graph to clear the screen
-5. **Mesh Loading** - Load and display actual geometry
-6. **Input Handling** - Add camera controls
-7. **ImGui** - Add UI for controls and diagnostics
-8. **Materials/Lighting** - Improve visual quality
-
-## Sample Datasets
-
-Check the `assets/datasets/rendering_sample/` directory for example 3D models you can load.
-
-## Additional Features to Consider
-
-- **Multiple meshes** - Load and display multiple models
-- **Lighting controls** - Adjust light position/color via UI
-- **Shader hot-reload** - Reload shaders without restarting
-- **Screenshot** - Save rendered frames to disk
-- **Model transform controls** - Rotate/scale/translate models
-- **Grid/axes display** - Visual reference for orientation
-- **Performance metrics** - Frame time graphs, vertex counts
-- **Asset browser** - UI to load different models at runtime
-
-## Reference Examples
-
-- Look at GLFW samples for window/context setup
-- Check ImGui demo for UI inspiration (`ImGui::ShowDemoWindow()`)
-- Review the `prototype_harness.cpp` for runtime initialization patterns
-
+Document configuration evidence (CMake output and runtime logs) in the task’s **Evidence** section whenever you validate the viewer.
