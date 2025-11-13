@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "engine/rendering/backend/opengl/gpu_scheduler.hpp"
+#include "engine/math/matrix.hpp"
 
 namespace engine::rendering::backend::opengl
 {
@@ -24,6 +25,7 @@ namespace engine::rendering::backend::opengl
     {
     public:
         explicit OpenGLImmediateCommandStream(OpenGLRenderResourceProvider& render_resources) noexcept;
+        ~OpenGLImmediateCommandStream() override;
 
         void begin_submission(const OpenGLSubmission& submission) override;
         void wait_timeline(const OpenGLTimelineSubmit& submit) override;
@@ -60,10 +62,21 @@ namespace engine::rendering::backend::opengl
         std::vector<OpenGLTimelineSubmit> waited_timelines_{};
         std::vector<OpenGLTimelineSubmit> signalled_timelines_{};
         std::vector<std::pair<resources::FenceNativeHandle, std::uint64_t>> signalled_fences_{};
+        unsigned int shader_program_{0};
+        int model_uniform_location_{-1};
+        int view_uniform_location_{-1};
+        int projection_uniform_location_{-1};
+        int light_pos_uniform_location_{-1};
+        int view_pos_uniform_location_{-1};
+        int object_color_uniform_location_{-1};
 
         void execute_draw_command(const GeometryDrawCommand& command);
         void execute_mesh_draw(const GeometryDrawCommand& command);
         void execute_point_cloud_draw(const GeometryDrawCommand& command);
         void execute_compute_dispatch(const ComputeDispatchCommand& command);
+        bool ensure_shader_program();
+        unsigned int compile_shader(unsigned int type, const char* source);
+        void upload_matrix(int location, const engine::math::mat4& matrix);
+        void upload_draw_uniforms(const GeometryDrawCommand& command);
     };
 }
