@@ -76,7 +76,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | 2 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | In Progress (planning; blocked on RT-410 hooks) |
 | 2 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
 | 2 | [`TL-311`](../hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md) | Ship scene hierarchy diagnostics panel to surface entity graph inside editor. | Tools Lead | Done |
-| 2 | [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | Visualise profiler metrics and benchmark deltas in-editor for Bundle B demos. | Tools Lead | New |
+| 2 | [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | Visualise profiler metrics and benchmark deltas in-editor for Bundle B demos. | Tools Lead | Ready |
 | 2 | [`TL-313`](../hybrid_workflow/backlog/TL-313-asset-browser-panel.md) | Expose asset cache state and hot reload telemetry within the editor. | Tools Lead | New |
 | 2 | [`TL-314`](../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) | Provide live telemetry overlays and alerts to monitor runtime health. | Tools Lead | New |
 
@@ -111,7 +111,7 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | 1 | Done | Planner ships with hot-reload coverage and telemetry exports; monitoring perf delta in PM-510 demos. |
 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | In Progress | Context assembly started; implementation will begin once RT-410 exposes presentation hooks. |
 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned; latest capture documents modular planner telemetry. |
-| [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | 2 | New | Profiler and benchmark visualisation panel extending TL-310 groundwork. |
+| [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | 2 | Ready | Groomed scope, waiting on TL-310 registry hooks to begin implementation. |
 | [`TL-313`](../hybrid_workflow/backlog/TL-313-asset-browser-panel.md) | 2 | New | Asset cache inspector with hot reload telemetry surfaced in-editor. |
 | [`TL-314`](../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) | 2 | New | Telemetry overlays and alerting integrated with PM-510 evidence capture. |
 

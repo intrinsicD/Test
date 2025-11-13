@@ -1,7 +1,7 @@
 ---
 id: TL-312
 title: Performance metrics and profiler panel
-status: new
+status: ready
 priority: P2
 area: tools
 size: M
@@ -150,3 +150,8 @@ class PerformanceMetricsPanel : public engine::tools::Panel {
 - Before: [pending]
 - After: [pending]
 - Delta: [pending]
+
+**Status Update (2026-04-30):** Completed grooming for TL-312, aligning profiler,
+telemetry, and benchmark integration points with TL-310's editor foundation so
+implementation can begin once panel registration hooks land. Task moved to
+`status: ready` while remaining blocked on TL-310 runtime bridge availability.
