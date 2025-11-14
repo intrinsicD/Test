@@ -8,9 +8,9 @@ size: M
 owner: tools-lead
 gates: [tests, docs]
 relates_to: [bundle:B]
-blocked_on: ["TL-310 editor foundations"]
+blocked_on: []
 links:
-  - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
+  - "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md"
   - "hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md"
   - "docs/modules/tools/README.md"
   - "docs/modules/assets/README.md"
@@ -29,7 +29,7 @@ Deliver an asset browser panel that exposes cache contents, hot-reload status, a
 
 **Current State:**
 - Asset caches support generational handles, hot reload, and telemetry, but the editor lacks a unified UI for browsing them.
-- TL-310 re-enables panel infrastructure without bundling domain-specific panels.
+- TL-310 re-enabled panel infrastructure without bundling domain-specific panels.
 - [`TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) identifies the missing asset browser as a follow-up required to leverage tooling fully.
 
 **Desired State:**
@@ -41,7 +41,7 @@ Deliver an asset browser panel that exposes cache contents, hot-reload status, a
 - [`docs/modules/assets/README.md`](../../docs/modules/assets/README.md) — cache behaviour, hot reload policies, and telemetry coverage.
 - [`docs/modules/tools/README.md`](../../docs/modules/tools/README.md) — ImGui helper usage and tooling invariants.
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) — runtime/tooling contract for resource ownership.
-- [`hybrid_workflow/backlog/TL-310-editor-foundations.md`](TL-310-editor-foundations.md) — editor enablement baseline.
+- [`hybrid_workflow/backlog/archive/TL-310-editor-foundations.md`](archive/TL-310-editor-foundations.md) — editor enablement baseline.
 - [`hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) — recommendation to add TL-313 asset browser follow-up.
 
 ---

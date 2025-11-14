@@ -1,27 +1,42 @@
 {
-  "generated_at": "2025-11-06T06:50:51.470489+00:00",
+  "generated_at": "2025-11-14T08:15:54.237931+00:00",
   "include_archived": false,
   "summary": {
-    "blocked_tasks": 3,
+    "blocked_tasks": 0,
     "by_priority": {
       "P0": 2,
-      "P1": 2,
-      "P2": 2
+      "P2": 4
     },
     "by_status": {
       "done": 1,
-      "in_progress": 4,
-      "review": 1
+      "in_progress": 2,
+      "new": 2,
+      "ready": 1
     },
     "total_tasks": 6
   },
   "tasks": [
     {
-      "area": "program",
-      "blocked_on": [
-        "SPRINT-11",
-        "DC-041"
+      "area": "rendering",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/999-fix-geometry-viewer-rendering.md",
+      "gates": [
+        "manual_test"
       ],
+      "id": "999",
+      "links": [],
+      "owner": "rendering-lead",
+      "priority": "P0",
+      "relates_to": [
+        "bundle:rendering"
+      ],
+      "size": "L",
+      "status": "done",
+      "title": "Fix Geometry Viewer Black Screen - Enable Cube Rendering and Camera Controls"
+    },
+    {
+      "area": "program",
+      "blocked_on": [],
       "file": "hybrid_workflow/backlog/AI-004-kickoff-brief.md",
       "gates": [
         "docs"
@@ -49,7 +64,11 @@
         "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md",
         "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md",
         "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md",
-        "hybrid_workflow/backlog/TL-310-editor-foundations.md"
+        "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md",
+        "hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md",
+        "hybrid_workflow/backlog/TL-312-performance-metrics-panel.md",
+        "hybrid_workflow/backlog/TL-313-asset-browser-panel.md",
+        "hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md"
       ],
       "owner": "agent-orchestrator",
       "priority": "P2",
@@ -61,102 +80,61 @@
       "title": "Weekly GPU integration demos"
     },
     {
-      "area": "rendering",
-      "blocked_on": [
-        "T-0120",
-        "T-0119",
-        "RT-410"
-      ],
-      "file": "hybrid_workflow/backlog/RG-450-modular-render-pipeline.md",
-      "gates": [
-        "tests",
-        "perf",
-        "docs",
-        "safety",
-        "release"
-      ],
-      "id": "RG-450",
-      "links": [
-        "docs/specs/ADR_0003_RUNTIME_FRAME_GRAPH.md",
-        "docs/modules/rendering/README.md"
-      ],
-      "owner": "rendering-lead",
-      "priority": "P1",
-      "relates_to": [
-        "bundle:A"
-      ],
-      "size": "L",
-      "status": "in_progress",
-      "title": "Modular render pipeline planner"
-    },
-    {
-      "area": "runtime",
-      "blocked_on": [],
-      "file": "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md",
-      "gates": [
-        "tests",
-        "perf",
-        "docs"
-      ],
-      "id": "RT-410",
-      "links": [
-        "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
-        "docs/modules/runtime/README.md",
-        "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md",
-        "hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md"
-      ],
-      "owner": "runtime-lead",
-      "priority": "P1",
-      "relates_to": [
-        "bundle:B"
-      ],
-      "size": "L",
-      "status": "done",
-      "title": "Runtime stage planner & presentation loop"
-    },
-    {
-      "area": "program",
-      "blocked_on": [],
-      "file": "hybrid_workflow/backlog/SPRINT-11-alignment.md",
-      "gates": [
-        "docs"
-      ],
-      "id": "SPRINT-11",
-      "links": [],
-      "owner": "agent-orchestrator",
-      "priority": "P0",
-      "relates_to": [
-        "bundle:D"
-      ],
-      "size": "M",
-      "status": "review",
-      "title": "Sprint 11 alignment"
-    },
-    {
       "area": "tools",
-      "blocked_on": [
-        "RT-410"
-      ],
-      "file": "hybrid_workflow/backlog/TL-310-editor-foundations.md",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/TL-312-performance-metrics-panel.md",
       "gates": [
         "tests",
         "docs"
       ],
-      "id": "TL-310",
-      "links": [
-        "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md",
-        "docs/modules/tools/README.md",
-        "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md",
-        "hybrid_workflow/backlog/PM-510-weekly-integration-demos.md"
-      ],
+      "id": "TL-312",
+      "links": [],
       "owner": "tools-lead",
       "priority": "P2",
       "relates_to": [
         "bundle:B"
       ],
-      "size": "L",
-      "status": "in_progress",
-      "title": "Editor foundations & tooling enablement"
+      "size": "M",
+      "status": "ready",
+      "title": "Performance metrics and profiler panel"
+    },
+    {
+      "area": "tools",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/TL-313-asset-browser-panel.md",
+      "gates": [
+        "tests",
+        "docs"
+      ],
+      "id": "TL-313",
+      "links": [],
+      "owner": "tools-lead",
+      "priority": "P2",
+      "relates_to": [
+        "bundle:B"
+      ],
+      "size": "M",
+      "status": "new",
+      "title": "Asset browser panel for editor workflows"
+    },
+    {
+      "area": "tools",
+      "blocked_on": [],
+      "file": "hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md",
+      "gates": [
+        "tests",
+        "docs"
+      ],
+      "id": "TL-314",
+      "links": [],
+      "owner": "tools-lead",
+      "priority": "P2",
+      "relates_to": [
+        "bundle:B"
+      ],
+      "size": "M",
+      "status": "new",
+      "title": "Telemetry visualization panel for runtime diagnostics"
     }
   ]
 }

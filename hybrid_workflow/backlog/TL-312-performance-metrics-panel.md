@@ -8,9 +8,9 @@ size: M
 owner: tools-lead
 gates: [tests, docs]
 relates_to: [bundle:B]
-blocked_on: ["TL-310 editor foundations"]
+blocked_on: []
 links:
-  - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
+  - "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md"
   - "hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md"
   - "docs/modules/tools/README.md"
   - "docs/modules/runtime/README.md"
@@ -29,7 +29,7 @@ Deliver an editor panel that visualises runtime profiling counters and frame tim
 
 **Current State:**
 - The global profiler and runtime telemetry feed `PROFILE_SCOPE` counters, yet tooling exposes them only through standalone scripts.
-- TL-310 restores the editor harness but does not ship a performance-focused panel by default.
+- TL-310 restored the editor harness but did not ship a performance-focused panel by default.
 - [`TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) calls out the lack of profiler visualisation as a blocker for adopting engine tools consistently.
 
 **Desired State:**
@@ -41,7 +41,7 @@ Deliver an editor panel that visualises runtime profiling counters and frame tim
 - [`docs/modules/tools/README.md`](../../docs/modules/tools/README.md) — profiler helpers, ImGui integration, and tooling invariants.
 - [`docs/modules/runtime/README.md`](../../docs/modules/runtime/README.md) — runtime telemetry delivery and presentation adapters.
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) — guarantees about profiler hooks and runtime-tooling synchronisation.
-- [`hybrid_workflow/backlog/TL-310-editor-foundations.md`](TL-310-editor-foundations.md) — parent effort wiring the panel registry.
+- [`hybrid_workflow/backlog/archive/TL-310-editor-foundations.md`](archive/TL-310-editor-foundations.md) — parent effort wiring the panel registry.
 - [`hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) — recommendation to create TL-312 follow-up for profiler visualisation.
 
 ---
@@ -155,3 +155,6 @@ class PerformanceMetricsPanel : public engine::tools::Panel {
 telemetry, and benchmark integration points with TL-310's editor foundation so
 implementation can begin once panel registration hooks land. Task moved to
 `status: ready` while remaining blocked on TL-310 runtime bridge availability.
+
+**Status Update (2026-05-07):** Dependency on TL-310 cleared after archival.
+Ready to begin implementation using the established registry bridge.

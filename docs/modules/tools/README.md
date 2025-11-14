@@ -4,13 +4,13 @@
 
 The tools module provides editor utilities, profiling tools, pipeline automation, and diagnostics viewers. It includes the telemetry viewer CLI for runtime snapshots, integration with Dear ImGui for debug UI, and runtime packaging scripts for CI/CD workflows.
 
-**Status:** 🔧 **Feature-gated** – The module builds when `ENGINE_ENABLE_TOOLS=ON` (the repository presets enable it by default) and remains guarded by `TL-310` while editor harness integration and runtime bridging land. See [`TL-310`](../../../hybrid_workflow/backlog/TL-310-editor-foundations.md) for the end-to-end enablement plan.
+**Status:** 🔧 **Feature-gated** – The module builds when `ENGINE_ENABLE_TOOLS=ON` (the repository presets enable it by default) and now rides on the archived [`TL-310`](../../../hybrid_workflow/backlog/archive/TL-310-editor-foundations.md) baseline that restored the editor harness, panel registry, and runtime bridge.
 
 > **Note:** The `geometry_viewer` sample depends on the GLFW backend and the generated `glad::gl_core` loader. CMake automatically skips the executable when either dependency is unavailable (for example, when Python/Jinja are missing or GLFW is disabled) so the canonical build presets continue to configure successfully.
 
 ## Outstanding Work
 
-- Restore build integration and CI coverage as tracked in [`TL-310`](../../../hybrid_workflow/backlog/TL-310-editor-foundations.md).
+- Execute the performance metrics panel and diagnostics overlays captured in [`TL-312`](../../../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md), [`TL-313`](../../../hybrid_workflow/backlog/TL-313-asset-browser-panel.md), and [`TL-314`](../../../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) on top of the TL-310 foundation.
 - Implement the panel registry, runtime harness bridge, and ImGui reuse strategy from [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
 - Validate editor flows against GPU-enabled runtime now that [`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) shipped, and integrate the archived [`RT-410`](../../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) synchronisation hooks so tooling telemetry stays aligned with runtime submissions.
 

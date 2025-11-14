@@ -189,20 +189,19 @@ review       P1        RG-450-A Node descriptor API
 ### Scenario 3: Finding Blockers
 
 ```bash
-# Agent asks: "Why is TL-310 not ready?"
-$ grep -A 5 "blocked_on:" hybrid_workflow/backlog/TL-310-editor-foundations.md
+# Agent asks: "Where are TL-310 blockers tracked now that the task is archived?"
+$ grep -A 5 "blocked_on:" hybrid_workflow/backlog/archive/TL-310-editor-foundations.md
 ```
 
 **Output:**
 ```yaml
-blocked_on: ["RT-410"]
+blocked_on: []
 ```
 
 **Agent decision:**
-- TL-310 blocked by RT-410
-- Check RT-410 status: `in_progress`
-- Work on something else until RT-410 completes
-- RT-410 owner should update when unblocking
+- TL-310 completed; blockers cleared before archival
+- Follow TL-312–TL-314 for active panel work
+- Use archived TL-310 log for historical context if regressions appear
 
 ---
 

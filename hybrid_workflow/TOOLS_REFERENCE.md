@@ -369,7 +369,7 @@ registry.render_all(ctx);
 - **Integration Guide:** `hybrid_workflow/CONTRIBUTING.md` §Diagnostic Tools
 - **Tools Analysis:** `hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`
 - **Task Template:** `hybrid_workflow/backlog/000-template.md` §Tool Integration
-- **Editor Foundations:** `hybrid_workflow/backlog/TL-310-editor-foundations.md`
+- **Editor Foundations:** `hybrid_workflow/backlog/archive/TL-310-editor-foundations.md`
 - **Experiment Design:** `docs/design/TL_210_EXPERIMENT_SANDBOX.md`
 - **ADR-0008:** `docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`
 

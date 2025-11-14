@@ -9,7 +9,7 @@ owner: agent-orchestrator
 gates: [docs]
 relates_to: [bundle:B, TL-310]
 blocked_on: []
-links: ["docs/modules/tools/README.md", "hybrid_workflow/backlog/TL-310-editor-foundations.md"]
+links: ["docs/modules/tools/README.md", "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md"]
 ---
 
 # Analysis: Engine Tools Usage in Hybrid Workflow

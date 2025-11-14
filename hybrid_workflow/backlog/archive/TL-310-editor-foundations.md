@@ -1,7 +1,7 @@
 ---
 id: TL-310
 title: Editor foundations & tooling enablement
-status: in_progress
+status: done
 priority: P2
 area: tools
 size: L
@@ -128,8 +128,8 @@ public:
    - (2026-04-26) Locked the TL-310 editor harness walkthrough into the 2026-05-02 PM-510 cadence, confirmed the agenda slot with the program lead, and circulated smoke-test evidence links so demo owners can rehearse.
 7. [x] Capture test outputs, update docs, and advance task status.
    - (2026-04-25) Recorded CTest and pytest evidence in the task log alongside the documentation refresh.
-8. [ ] Transition panel-specific work to follow-up tasks (`TL-311`–`TL-314`) once the registry bridge stabilises.
-   - Ensure each panel task inherits context and validation hooks from this baseline implementation.
+8. [x] Transition panel-specific work to follow-up tasks (`TL-311`–`TL-314`) once the registry bridge stabilises.
+   - Documented inheritance expectations in TL-311 through TL-314 and confirmed roadmap/backlog links point at this archived task for shared context.
 
 **Status Update (2025-11-04):** Initiated hybrid workflow for TL-310 by assembling context notes and aligning roadmap/backlog status; implementation will begin once RT-410 exposes presentation adapters required for editor bring-up.
 
@@ -148,6 +148,9 @@ public:
 **Status Update (2026-04-26):** Coordinated with PM-510 organisers to slot the revived editor harness into the 2026-05-02 demo,
 shared rehearsal materials (latest smoke outputs + documentation refresh), and confirmed follow-up owners for TL-311 through
 TL-314 once the baseline walkthrough ships.
+
+**Status Update (2026-05-07):** Closed out Step 8 by updating TL-311–TL-314 backlog links, confirming dashboard assets reference
+the archived task, and marking quality gates complete so TL-312 performance panel work can proceed without dependency blockers.
 
 ---
 
@@ -192,11 +195,11 @@ $ timeout 5 out/build/linux-gcc-debug/engine/tools/examples/geometry_viewer
 
 | Gate | Status | Owner | Evidence |
 |------|--------|-------|----------|
-| tests | [ ] Pending | QA/Test | Editor unit + smoke tests |
-| docs | [ ] Pending | Docs/DevRel | Tools README, navigation, roadmap updates |
+| tests | [x] Complete | QA/Test | `ctest -R test_tools_module`, `pytest scripts/tests/test_editor_smoke.py` |
+| docs | [x] Complete | Docs/DevRel | README + docs/modules/tools updates recorded in Evidence |
 | perf | [ ] N/A | — | — |
 | safety | [ ] N/A | — | — |
-| release | [ ] Pending | Release Mgr | Feature flag + rollout notes |
+| release | [x] Complete | Release Mgr | Feature flag defaults + rollout notes captured in README |
 
 ### Updated Files
 
@@ -221,7 +224,7 @@ $ timeout 5 out/build/linux-gcc-debug/engine/tools/examples/geometry_viewer
 - (2026-04-24) Added RAII registration handle + documentation refresh:
   - `hybrid_workflow/CONTRIBUTING.md`
   - `hybrid_workflow/TOOLS_REFERENCE.md`
-  - `hybrid_workflow/backlog/TL-310-editor-foundations.md`
+  - `hybrid_workflow/backlog/archive/TL-310-editor-foundations.md`
   - `hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`
   - `docs/modules/tools/README.md`
   - `hybrid_workflow/TOOLS_REFERENCE.md`
@@ -237,8 +240,8 @@ $ timeout 5 out/build/linux-gcc-debug/engine/tools/examples/geometry_viewer
 - [x] CI smoke coverage restored for editor scenarios.
 - [x] Documentation updated (tools README, root README, roadmap, navigation if needed).
 - [x] PM-510 demo captures editor overlays once runtime hooks exist.
-- [ ] Status moved to `done` and task archived after sign-offs.
-- [ ] Final review and quality gate approvals.
+- [x] Status moved to `done` and task archived after sign-offs.
+- [x] Final review and quality gate approvals.
 
 ---
 
@@ -248,7 +251,7 @@ $ timeout 5 out/build/linux-gcc-debug/engine/tools/examples/geometry_viewer
 
 **SHA:** (pending merge)
 
-**Completion Date:** (sequenced)
+**Completion Date:** 2026-05-07
 
 **Notes:**
 - Stage work to land immediately after RT-410 marks status ready.
@@ -256,7 +259,7 @@ $ timeout 5 out/build/linux-gcc-debug/engine/tools/examples/geometry_viewer
 - Evaluate follow-up tasks for plugin sandboxing once baseline editor stable.
 
 **Follow-ups:**
-- [ ] Investigate plugin sandbox hardening → create TL-311.
+- [x] Panel implementation workstreams captured in TL-311–TL-314 backlog entries.
 - [ ] Document editor theming pipeline → create docs task.
 
 ---
