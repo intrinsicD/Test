@@ -263,18 +263,18 @@
     "throw std::runtime_error{\"OpenGLCommandEncoderProvider could not resolve command buffer\"};": 1,
     "throw std::runtime_error{\"OpenGLCommandEncoderProvider has no resource provider\"};": 1
   },
-  "engine/rendering/src/backend/vulkan/command_encoder.cpp": {
-    "throw std::runtime_error{\"VulkanCommandEncoder invoked without active command buffer\"};": 2,
-    "throw std::runtime_error{\"VulkanCommandEncoderProvider could not resolve command buffer\"};": 1,
-    "throw std::runtime_error{\"VulkanCommandEncoderProvider has no resource provider\"};": 1
-  },
   "engine/rendering/src/backend/opengl/presentation_backend.cpp": {
+    "throw std::runtime_error(\"Failed to load OpenGL functions with GLAD\");": 1,
     "throw std::runtime_error(\"RuntimePresentationContext.submit_render_graph must be set before presentation\");": 1
   },
   "engine/rendering/src/backend/opengl/render_resource_provider.cpp": {
     "throw std::invalid_argument(": 1,
     "throw std::invalid_argument(\"Mesh handle identifier cannot be empty\");": 1,
+    "throw std::invalid_argument(\"Point cloud handle identifier cannot be empty\");": 1,
     "throw std::runtime_error(\"OpenGLRenderResourceProvider could not resolve mesh: \" + id);": 1,
+    "throw std::runtime_error(\"OpenGLRenderResourceProvider could not resolve point cloud: \" + id);": 1,
+    "throw std::runtime_error(\"OpenGLRenderResourceProvider requires a point cloud resolver to load point clouds\");": 1,
+    "throw std::runtime_error(\"Point cloud is missing vertices\");": 1,
     "throw std::runtime_error(\"Surface mesh is missing indices\");": 1,
     "throw std::runtime_error(\"Surface mesh is missing vertex positions\");": 1
   },
@@ -291,6 +291,11 @@
     "throw std::runtime_error{\"queue handle type mismatch\"};": 1,
     "throw std::runtime_error{\"timeline semaphore API mismatch\"};": 1,
     "throw std::runtime_error{\"timeline semaphore returned zero value\"};": 1
+  },
+  "engine/rendering/src/backend/vulkan/command_encoder.cpp": {
+    "throw std::runtime_error{\"VulkanCommandEncoder invoked without active command buffer\"};": 2,
+    "throw std::runtime_error{\"VulkanCommandEncoderProvider could not resolve command buffer\"};": 1,
+    "throw std::runtime_error{\"VulkanCommandEncoderProvider has no resource provider\"};": 1
   },
   "engine/rendering/src/backend/vulkan/resource_translation.cpp": {
     "throw std::invalid_argument{\"translate_access_mask received unknown access\"};": 1,
@@ -331,6 +336,45 @@
     "throw std::out_of_range{\"FrameGraphPassBuilder::write received invalid resource handle\"};": 1,
     "throw std::runtime_error{\"CommandEncoderProvider returned null encoder\"};": 1
   },
+  "engine/rendering/src/frame_graph_execution.cpp": {
+    "throw std::logic_error{\"NodeContext accessed without active render context\"};": 1,
+    "throw std::logic_error{\"NodeContext accessed without descriptor\"};": 1,
+    "throw std::logic_error{\"NodeContext cannot resolve resource info for inactive state\"};": 1,
+    "throw std::logic_error{\"NodeContext cannot resolve resources for inactive state\"};": 1,
+    "throw std::logic_error{\"NodeContext does not have an active command encoder\"};": 1,
+    "throw std::logic_error{\"Planner pass missing read declaration during execution\"};": 2,
+    "throw std::logic_error{\"Planner pass missing write declaration during execution\"};": 2,
+    "throw std::out_of_range{\"NodeContext::resource_handle index out of range\"};": 1,
+    "throw std::out_of_range{\"NodeContext::resource_handle unknown resource\"};": 1,
+    "throw std::out_of_range{\"NodeContext::resource_info handle out of range\"};": 1,
+    "throw std::out_of_range{\"NodeContext::resource_info received invalid handle\"};": 1,
+    "throw std::runtime_error{\"CommandEncoderProvider returned null encoder\"};": 1,
+    "throw std::runtime_error{\"Incompatible resource descriptors share the same transient alias\"};": 1
+  },
+  "engine/rendering/src/frame_graph_planner.cpp": {
+    "throw std::invalid_argument(\"External resource name must not be empty\");": 1,
+    "throw std::invalid_argument(\"Node id must not be empty\");": 1,
+    "throw std::invalid_argument(\"Resource descriptors must declare a name\");": 1,
+    "throw std::logic_error(\"FrameGraphPlanner constructed without registry\");": 1,
+    "throw std::runtime_error(\"Detected cycle while planning frame-graph nodes\");": 1,
+    "throw std::runtime_error(\"Duplicate resource declaration: \" + descriptor.name);": 1,
+    "throw std::runtime_error(\"Multiple nodes write resource \" + write.name);": 1,
+    "throw std::runtime_error(\"Node descriptor id mismatch for node: \" + node_id);": 1,
+    "throw std::runtime_error(\"Node factory returned null instance for id: \" + node_id);": 1,
+    "throw std::runtime_error(\"Resource \" + read.name + \" read by \" + node_id + \" has no producer\");": 1,
+    "throw std::runtime_error(\"Resource \" + resource.name + \" is missing a producer\");": 1,
+    "throw std::runtime_error(\"Resource \" + write.name + \" written by \" + node_id + \" has no producer\");": 1
+  },
+  "engine/rendering/src/frame_graph_registry.cpp": {
+    "throw std::invalid_argument(\"Frame-graph node already registered: \" + node_id);": 1,
+    "throw std::invalid_argument(\"Node descriptor id must not be empty\");": 1,
+    "throw std::invalid_argument(\"Node factory must not be null\");": 1,
+    "throw std::invalid_argument(\"plugin_id collides with reserved builtin origin\");": 1,
+    "throw std::invalid_argument(\"plugin_id must not be empty\");": 1,
+    "throw std::out_of_range(\"Unknown frame-graph node id\");": 1,
+    "throw std::runtime_error(\"Node factory returned mismatched descriptor\");": 1,
+    "throw std::runtime_error(\"Node factory returned null instance\");": 1
+  },
   "engine/runtime/samples/prototype_harness.cpp": {
     "throw HarnessError{\"configuration.runtime section is required for harness execution\"};": 1,
     "throw HarnessError{stream.str()};": 4,
@@ -351,14 +395,11 @@
     "throw std::out_of_range{\"value exceeds size_t range\"};": 1,
     "throw;": 1
   },
-  "engine/runtime/src/application.cpp": {
-    "throw std::runtime_error{\"Failed to create window\"};": 1
-  },
   "engine/runtime/src/api.cpp": {
     "static void throw_if_invalid_dependencies(const RuntimeHostDependencies& deps)": 1,
     "throw std::runtime_error(\"RuntimeHost cannot be configured while initialized\");": 1,
     "throw std::runtime_error(\"RuntimeHost dispatcher_factory produced a null dispatcher\");": 1,
-    "throw std::runtime_error(\"RuntimeHost has no implementation\");": 1,
+    "throw std::runtime_error(\"RuntimeHost has no implementation\");": 4,
     "throw std::runtime_error(\"RuntimeHost must be initialized before accessing body positions\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before accessing dispatch reports\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before accessing joint names\");": 1,
@@ -367,10 +408,15 @@
     "throw std::runtime_error(\"RuntimeHost must be initialized before accessing the pose\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before submitting a render graph\");": 1,
     "throw std::runtime_error(\"RuntimeHost must be initialized before tick()\");": 1,
-    "throw std::runtime_error(std::move(error_message));": 1,
     "throw std::runtime_error(format_dependency_errors(errors));": 1,
+    "throw std::runtime_error(std::move(error_message));": 1,
     "throw;": 3,
     "throw_if_invalid_dependencies(deps);": 2
+  },
+  "engine/runtime/src/application.cpp": {
+    "throw std::runtime_error(\"Render context unavailable. Enable rendering in ApplicationConfig.\");": 2,
+    "throw std::runtime_error(\"Runtime host unavailable. Enable rendering in ApplicationConfig.\");": 2,
+    "throw std::runtime_error{\"Failed to create window\"};": 1
   },
   "engine/runtime/src/config_schema.cpp": {
     "[[noreturn]] void throw_validation(std::string_view context, std::string_view message)": 1,
@@ -419,6 +465,9 @@
     "throw std::invalid_argument{\"Subsystem name must not be empty\"};": 1,
     "throw std::invalid_argument{format_cycle_message(*cycle)};": 2,
     "throw std::logic_error{\"Subsystem dependency cycle detected while computing load order\"};": 1
+  },
+  "engine/runtime/tests/runtime_presentation_surface_tests.cpp": {
+    "throw std::runtime_error(\"Simulated surface creation failure\");": 1
   },
   "engine/runtime/tests/test_module.cpp": {
     "FAIL() << \"Expected cycle detection to throw\";": 1,
