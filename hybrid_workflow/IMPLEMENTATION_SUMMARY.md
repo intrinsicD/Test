@@ -141,6 +141,11 @@ python hybrid_workflow/task_status.py --relates-to bundle:D
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --area rendering --summary
 
+# JSON output for automation
+python hybrid_workflow/task_status.py --format json
+python hybrid_workflow/task_status.py --format json --summary
+python hybrid_workflow/task_status.py --format json --detail T-0120
+
 # Include archived tasks in queries
 python hybrid_workflow/task_status.py --include-archived
 python hybrid_workflow/task_status.py --include-archived --summary

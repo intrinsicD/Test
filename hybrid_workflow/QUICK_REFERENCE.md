@@ -124,6 +124,11 @@ python hybrid_workflow/task_status.py --unblocked --priority P1
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --status in_progress --summary
 
+# Emit JSON for automation
+python hybrid_workflow/task_status.py --format json
+python hybrid_workflow/task_status.py --format json --summary
+python hybrid_workflow/task_status.py --format json --detail T-0120
+
 # Include archived records for retrospectives
 python hybrid_workflow/task_status.py --include-archived
 python hybrid_workflow/task_status.py --include-archived --summary

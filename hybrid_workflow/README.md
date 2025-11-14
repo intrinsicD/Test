@@ -201,6 +201,18 @@ python -m scripts.workflow.report_hybrid_status --relates-to bundle:C
 python -m scripts.workflow.report_hybrid_status --relates-to bundle:A bundle:D
 ```
 
+### Task CLI Automation
+```bash
+# Machine-readable backlog snapshot
+python hybrid_workflow/task_status.py --format json
+
+# Summary counts for dashboards
+python hybrid_workflow/task_status.py --format json --summary
+
+# Detailed metadata for a specific task
+python hybrid_workflow/task_status.py --format json --detail TL-310
+```
+
 ### Generate Task Dashboard
 ```bash
 python -m scripts.workflow.dashboard --output-dir build/hybrid-dashboard

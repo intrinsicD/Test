@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
 
@@ -138,6 +139,14 @@ def test_build_parser_supports_gate_flag() -> None:
     args = parser.parse_args(['--gate', 'tests', 'docs', '--gate', 'perf'])
 
     assert args.gate == [['tests', 'docs'], ['perf']]
+
+
+def test_build_parser_supports_format_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--format', 'json'])
+
+    assert args.format == 'json'
 
 
 def test_build_parser_supports_include_archived_flag() -> None:
@@ -324,3 +333,60 @@ def test_select_next_actions_respects_filters_and_limit() -> None:
 def test_select_next_actions_raises_for_invalid_limit() -> None:
     with pytest.raises(ValueError):
         task_status.select_next_actions([], 0)
+
+
+def test_render_json_tasks_serialises_expected_fields() -> None:
+    task_a = _make_task(
+        'A',
+        blocked=True,
+        status='ready',
+        priority='P0',
+        relates_to=['bundle:A'],
+        gates=['tests'],
+    )
+    task_a.links = ['docs/ROADMAP.md']
+    task_a.file_path = Path('hybrid_workflow/backlog/A-task.md')
+
+    task_b = _make_task('B', blocked=False, status='new', priority='P2')
+
+    payload = json.loads(
+        task_status.render_json_tasks([task_a, task_b], total_loaded=3)
+    )
+
+    assert payload['counts']['total'] == 2
+    assert payload['counts']['available'] == 3
+    assert payload['counts']['blocked'] == 1
+    first = payload['tasks'][0]
+    assert first['id'] == 'A'
+    assert first['blocked_on'] == ['dependency']
+    assert first['links'] == ['docs/ROADMAP.md']
+    assert first['gates'] == ['tests']
+    assert first['file'] == 'hybrid_workflow/backlog/A-task.md'
+
+
+def test_render_json_summary_reports_counts() -> None:
+    tasks = [
+        _make_task('A', blocked=True, status='ready', priority='P1'),
+        _make_task('B', blocked=False, status='in_progress', priority='P2'),
+    ]
+
+    payload = json.loads(task_status.render_json_summary(tasks, total_loaded=4))
+
+    assert payload['counts']['total'] == 2
+    assert payload['counts']['available'] == 4
+    assert payload['counts']['blocked'] == 1
+    assert payload['counts']['by_status']['ready'] == 1
+    assert payload['counts']['by_priority']['P1'] == 1
+
+
+def test_render_json_detail_includes_full_metadata() -> None:
+    task = _make_task('Z', blocked=True, status='review', priority='P3')
+    task.relates_to = ['bundle:Z']
+    task.links = ['docs/ROADMAP.md']
+
+    payload = json.loads(task_status.render_json_detail(task))
+
+    assert payload['task']['id'] == 'Z'
+    assert payload['task']['status'] == 'review'
+    assert payload['task']['blocked_on'] == ['dependency']
+    assert payload['task']['relates_to'] == ['bundle:Z']
