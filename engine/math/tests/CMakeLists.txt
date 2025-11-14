@@ -2,6 +2,7 @@ add_executable(engine_math_tests
         test_math.cpp
         test_conversion_telemetry.cpp
         test_solvers.cpp
+        test_utils_camera.cpp
 )
 
 target_link_libraries(engine_math_tests

@@ -11,24 +11,27 @@ namespace engine::math::utils
     ENGINE_MATH_INLINE Matrix<T, 4, 4> perspective(T fov_y, T aspect, T near, T far) noexcept
     {
         const T f = T(1) / utils::tan(fov_y / T(2));
-        Matrix<T, 4, 4> result{
-            f / aspect, T(0), T(0), T(0),
-            T(0), f, T(0), T(0),
-            T(0), T(0), (far + near) / (near - far), T(-1),
-            T(0), T(0), (T(2) * far * near) / (near - far), T(0)
-        };
+
+        Matrix<T, 4, 4> result{};
+        result[0][0] = f / aspect;
+        result[1][1] = f;
+        result[2][2] = (far + near) / (near - far);
+        result[2][3] = (T(2) * far * near) / (near - far);
+        result[3][2] = T(-1);
         return result;
     }
 
     template <typename T>
     ENGINE_MATH_INLINE Matrix<T, 4, 4> orthographic(T left, T right, T bottom, T top, T near, T far) noexcept
     {
-        Matrix<T, 4, 4> result{
-            T(2) / (right - left), T(0), T(0), T(0),
-            T(0), T(2) / (top - bottom), T(0), T(0),
-            T(0), T(0), T(-2) / (far - near), T(0),
-            -(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near), T(1)
-        };
+        Matrix<T, 4, 4> result{};
+        result[0][0] = T(2) / (right - left);
+        result[1][1] = T(2) / (top - bottom);
+        result[2][2] = T(-2) / (far - near);
+        result[0][3] = -(right + left) / (right - left);
+        result[1][3] = -(top + bottom) / (top - bottom);
+        result[2][3] = -(far + near) / (far - near);
+        result[3][3] = T(1);
         return result;
     }
 
