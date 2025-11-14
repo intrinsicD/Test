@@ -55,11 +55,16 @@ _Current status:_ RG-450 has shipped with descriptor-driven planner execution an
 - [x] **TL-344** — Next-actions guidance for empty ready queue → `hybrid_workflow/backlog/archive/TL-344-next-actions-guidance.md`
 - [x] **TL-345** — Hybrid status reporter relates_to filter → `hybrid_workflow/backlog/archive/TL-345-hybrid-status-relates-to-filter.md`
 - [x] **TL-346** — Next-actions filter support → `hybrid_workflow/backlog/archive/TL-346-next-actions-filter-support.md`
+- [x] **TL-348** — Task status CLI JSON output → `hybrid_workflow/backlog/archive/TL-348-task-status-json-output.md`
 
 **Success Criteria:**
 - All active tasks migrated to hybrid workflow format.
 - Automated dashboard reports task status from metadata. ✅ (2025-11-05)
 - Documentation cross-links validated in CI.
+
+_Update (2026-05-06):_ TL-348 adds JSON-formatted output to the lightweight CLI,
+making it easier for automation to consume the same backlog metadata exposed by
+the hybrid status reporter without additional parsing steps.
 
 ---
 

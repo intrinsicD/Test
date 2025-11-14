@@ -176,6 +176,11 @@ python hybrid_workflow/task_status.py --owner docs-devrel
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --priority P1 --summary
 
+# JSON output for automation
+python hybrid_workflow/task_status.py --format json
+python hybrid_workflow/task_status.py --format json --summary
+python hybrid_workflow/task_status.py --format json --detail T-0120
+
 # Task details
 python hybrid_workflow/task_status.py --detail T-0120
 ```

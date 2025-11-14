@@ -19,17 +19,20 @@ and blocker metadata:
                                         [--gate GATE ...]
                                         [--relates-to TAG ...]
                                         [--blocked | --unblocked]
+                                        [--format {table,json}]
 
-Invoke ``--summary`` for aggregate statistics or ``--detail`` with a task ID to
-inspect a single record.  Combine ``--blocked`` or ``--unblocked`` with the
+Invoke ``--summary`` for aggregate statistics, ``--detail`` with a task ID to
+inspect a single record, and ``--format json`` to emit machine-readable
+responses for automation.  Combine ``--blocked`` or ``--unblocked`` with the
 other filters to audit blocker status rapidly.
 """
 
 import argparse
+import json
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 
 STATUS_ORDER = {
@@ -49,6 +52,16 @@ PRIORITY_ORDER = {
     "P4": 4,
     "P5": 5,
 }
+
+
+def _task_sort_key(task: "Task") -> tuple[int, int, str]:
+    """Return a deterministic ordering tuple for tasks."""
+
+    return (
+        _priority_rank(task.priority),
+        _status_rank(task.status),
+        task.id,
+    )
 
 
 @dataclass
@@ -191,6 +204,86 @@ def _status_rank(status: str) -> int:
     """Return a stable ordering key for task status values."""
 
     return STATUS_ORDER.get(status, len(STATUS_ORDER))
+
+
+def _task_to_dict(task: Task) -> Dict[str, Any]:
+    """Serialise a task into a JSON-compatible dictionary."""
+
+    payload: Dict[str, Any] = {
+        "id": task.id,
+        "title": task.title,
+        "status": task.status,
+        "priority": task.priority,
+        "area": task.area,
+        "size": task.size,
+        "owner": task.owner,
+        "gates": list(task.gates),
+        "relates_to": list(task.relates_to),
+        "blocked_on": list(task.blocked_on),
+        "links": list(task.links),
+    }
+
+    if task.file_path is not None:
+        payload["file"] = str(task.file_path)
+
+    return payload
+
+
+def _status_counts(tasks: List[Task]) -> Dict[str, int]:
+    counts: Dict[str, int] = {}
+    for task in tasks:
+        counts[task.status] = counts.get(task.status, 0) + 1
+
+    return {status: counts[status] for status in sorted(counts, key=_status_rank)}
+
+
+def _priority_counts(tasks: List[Task]) -> Dict[str, int]:
+    counts: Dict[str, int] = {}
+    for task in tasks:
+        counts[task.priority] = counts.get(task.priority, 0) + 1
+
+    return {priority: counts[priority] for priority in sorted(counts, key=_priority_rank)}
+
+
+def render_json_tasks(tasks: List[Task], *, total_loaded: int) -> str:
+    """Return a JSON payload describing ``tasks``."""
+
+    payload = {
+        "tasks": [
+            _task_to_dict(task) for task in sorted(tasks, key=_task_sort_key)
+        ],
+        "counts": {
+            "by_status": _status_counts(tasks),
+            "by_priority": _priority_counts(tasks),
+            "blocked": sum(1 for task in tasks if task.blocked_on),
+            "total": len(tasks),
+            "available": total_loaded,
+        },
+    }
+
+    return json.dumps(payload, indent=2, sort_keys=True)
+
+
+def render_json_summary(tasks: List[Task], *, total_loaded: int) -> str:
+    """Return a JSON summary for ``tasks``."""
+
+    payload = {
+        "counts": {
+            "by_status": _status_counts(tasks),
+            "by_priority": _priority_counts(tasks),
+            "blocked": sum(1 for task in tasks if task.blocked_on),
+            "total": len(tasks),
+            "available": total_loaded,
+        }
+    }
+
+    return json.dumps(payload, indent=2, sort_keys=True)
+
+
+def render_json_detail(task: Task) -> str:
+    """Return a JSON payload representing ``task``."""
+
+    return json.dumps({"task": _task_to_dict(task)}, indent=2, sort_keys=True)
 
 
 def load_task(file_path: Path) -> Optional[Task]:
@@ -364,10 +457,7 @@ def print_task_table(tasks: List[Task]):
     print("-" * len(header))
     
     # Rows
-    for task in sorted(
-        tasks,
-        key=lambda t: (_priority_rank(t.priority), _status_rank(t.status), t.id),
-    ):
+    for task in sorted(tasks, key=_task_sort_key):
         title = task.title[:47] + "..." if len(task.title) > 50 else task.title
         owner = task.owner[:17] + "..." if len(task.owner) > 20 else task.owner
 
@@ -502,6 +592,12 @@ def build_parser() -> argparse.ArgumentParser:
             "<= 0 are rejected."
         ),
     )
+    parser.add_argument(
+        '--format',
+        choices=('table', 'json'),
+        default='table',
+        help="Output format for task listings and summaries (default: table).",
+    )
 
     return parser
 
@@ -510,6 +606,7 @@ def main():
     parser = build_parser()
 
     args = parser.parse_args()
+    output_format = args.format
     
     # Find backlog directory
     script_dir = Path(__file__).parent
@@ -530,9 +627,15 @@ def main():
     if args.detail:
         task = next((t for t in tasks if t.id == args.detail), None)
         if task:
-            print_task_details(task)
+            if output_format == 'json':
+                print(render_json_detail(task))
+            else:
+                print_task_details(task)
         else:
-            print(f"Task {args.detail} not found.")
+            if output_format == 'json':
+                print(json.dumps({"error": f"Task {args.detail} not found."}, indent=2, sort_keys=True))
+            else:
+                print(f"Task {args.detail} not found.")
         return 0
     
     # Filter tasks
@@ -575,12 +678,18 @@ def main():
 
     # Show summary
     if args.summary:
-        if not filtered:
+        if output_format == 'json':
+            print(render_json_summary(filtered, total_loaded=len(tasks)))
+        elif not filtered:
             print("No tasks match the provided filters.")
         else:
             print_summary(filtered)
         return 0
-    
+
+    if output_format == 'json':
+        print(render_json_tasks(filtered, total_loaded=len(tasks)))
+        return 0
+
     # Show table
     print_task_table(filtered)
     print(f"\nShowing {len(filtered)} of {len(tasks)} tasks")
