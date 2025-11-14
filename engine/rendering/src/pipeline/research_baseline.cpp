@@ -16,6 +16,7 @@
 #include "engine/rendering/pipeline/research_baseline_telemetry.hpp"
 #include "engine/scene/components/transform.hpp"
 #include "engine/scene/scene.hpp"
+#include "engine/core/log.hpp"
 
 namespace engine::rendering
 {
@@ -92,6 +93,7 @@ namespace engine::rendering
 
             void setup(FrameGraphPassBuilder& builder) override
             {
+                ENGINE_INFO("ResearchGeometryPass::setup() called!");
                 builder.write(outputs_.primary);
                 builder.write(outputs_.depth);
                 if (outputs_.normals.has_value())
@@ -110,18 +112,23 @@ namespace engine::rendering
 
                 auto& scene = context.render.view.scene;
                 auto& registry = scene.registry();
+
+                ENGINE_INFO("ResearchGeometryPass::execute - scene has {} total entities", scene.size());
+
                 const auto camera_uniforms = resolve_camera_uniforms(registry);
 
                 using engine::rendering::components::RenderGeometry;
                 using engine::scene::components::WorldTransform;
 
-                auto view = registry.view < WorldTransform, RenderGeometry
-                >
-                ();
+                auto combined_view = registry.view<WorldTransform, RenderGeometry>();
+
                 draw_commands_.clear();
 
-                for (auto [entity, world, geometry] : view.each())
+                for (auto [entity, world, geometry] : combined_view.each())
                 {
+                    ENGINE_INFO("  Processing entity {} at ({},{},{})",
+                               static_cast<std::uint32_t>(entity),
+                               world.value.translation[0], world.value.translation[1], world.value.translation[2]);
                     (void)entity;
                     if (const auto* mesh = geometry.mesh(); mesh != nullptr && !mesh->empty())
                     {

@@ -88,6 +88,7 @@ namespace engine::rendering::backend::opengl
         // Execute frame graph
         frame_graph_.execute(execution_context);
 
+
         // Swap buffers to present rendered frame
         swap_buffers(window);
     }

@@ -319,10 +319,16 @@ namespace
 
         void setup_scene()
         {
+            ENGINE_INFO("setup_scene() called");
 #if ENGINE_ENABLE_RENDERING && ENGINE_ENABLE_ASSETS
+            ENGINE_INFO("  ENGINE_ENABLE_RENDERING=1, ENGINE_ENABLE_ASSETS=1");
             attach_render_geometry(std::string{kProceduralCubeId},
                 engine::rendering::components::RenderGeometry::from_mesh(
                     engine::assets::MeshHandle{std::string{kProceduralCubeId}}, default_material_));
+            ENGINE_INFO("  Attached cube render geometry");
+#else
+            ENGINE_WARN("  ENGINE_ENABLE_RENDERING={}, ENGINE_ENABLE_ASSETS={}",
+                       ENGINE_ENABLE_RENDERING, ENGINE_ENABLE_ASSETS);
 #endif
         }
 
@@ -341,7 +347,20 @@ namespace
             auto& camera = registry.emplace<engine::rendering::Camera>(camera_entity_);
             const float aspect_ratio = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
             camera.set_perspective(1.047f, aspect_ratio, 0.1f, 100.0f);
-            update_camera_position(camera);
+
+            // Simple fixed camera for debugging - positioned at (0, 0, 5) looking at origin
+            const engine::math::vec3 camera_pos{0.0f, 0.0f, 5.0f};
+            const engine::math::vec3 target{0.0f, 0.0f, 0.0f};
+            const engine::math::vec3 up{0.0f, 1.0f, 0.0f};
+
+            if (auto result = camera.look_at(camera_pos, target, up); !result)
+            {
+                ENGINE_WARN("Camera look_at failed: {}", result.error().message());
+            }
+
+            ENGINE_INFO("Camera setup: pos=({}, {}, {}), target=({}, {}, {})",
+                       camera_pos[0], camera_pos[1], camera_pos[2],
+                       target[0], target[1], target[2]);
 #endif
         }
 

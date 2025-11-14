@@ -1,4 +1,5 @@
 #include "engine/rendering/frame_graph.hpp"
+#include "engine/core/log.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -697,8 +698,9 @@ namespace engine::rendering
             pass_context.command_buffer = command_buffer;
             pass_context.queue = queue;
             pass_context.encoder = encoder_scope.get();
-            pass.pass->execute(pass_context);
-            pass_context.encoder = nullptr;
+
+            ENGINE_INFO("FrameGraph: Executing pass '{}' (reads: {}, writes: {})",
+                       pass.pass->name(), pass.reads.size(), pass.writes.size());
 
             for (const auto handle : pass.reads)
             {

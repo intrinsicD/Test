@@ -572,7 +572,10 @@ namespace engine::rendering::backend::opengl
 
         if (object_color_uniform_location_ >= 0 && glad_glUniform3f != nullptr)
         {
-            glad_glUniform3f(object_color_uniform_location_, 0.85F, 0.72F, 0.60F);
+            // RED color for debugging
+            glad_glUniform3f(object_color_uniform_location_, 1.0F, 0.0F, 0.0F);
+            ENGINE_INFO("Drawing with red color, model matrix translation: ({}, {}, {})",
+                       model_matrix[0][3], model_matrix[1][3], model_matrix[2][3]);
         }
 
         if (glad_glUniform1i != nullptr)
