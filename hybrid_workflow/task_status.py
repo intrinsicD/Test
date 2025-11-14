@@ -351,6 +351,7 @@ def filter_tasks(
     status: Optional[str] = None,
     priority: Optional[str] = None,
     area: Optional[str] = None,
+    size: Optional[str] = None,
     owner: Optional[str] = None,
     relates_to: Optional[List[str]] = None,
     gates: Optional[List[str]] = None,
@@ -368,6 +369,9 @@ def filter_tasks(
 
     if area:
         filtered = [t for t in filtered if t.area == area]
+
+    if size:
+        filtered = [t for t in filtered if t.size == size]
 
     if owner:
         filtered = [t for t in filtered if t.owner == owner]
@@ -403,6 +407,7 @@ def select_next_actions(
     *,
     priority: Optional[str] = None,
     area: Optional[str] = None,
+    size: Optional[str] = None,
     owner: Optional[str] = None,
     gates: Optional[List[str]] = None,
     relates_to: Optional[List[str]] = None,
@@ -418,6 +423,7 @@ def select_next_actions(
         status=None,
         priority=priority,
         area=area,
+        size=size,
         owner=owner,
         gates=gates,
         relates_to=relates_to,
@@ -534,6 +540,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('--status', help="Filter by status (new, ready, in_progress, review, done)")
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
+    parser.add_argument('--size', help="Filter by task size (XS, S, M, L, XL)")
     parser.add_argument('--owner', help="Filter by owner (e.g. docs-devrel, runtime-lead)")
     parser.add_argument(
         '--gate',
@@ -656,6 +663,7 @@ def main():
                 args.limit,
                 priority=args.priority,
                 area=args.area,
+                size=args.size,
                 owner=args.owner,
                 gates=gates,
                 relates_to=relates_to,
@@ -669,10 +677,11 @@ def main():
             tasks,
             args.status,
             args.priority,
-            args.area,
-            args.owner,
-            relates_to,
-            gates,
+            area=args.area,
+            size=args.size,
+            owner=args.owner,
+            relates_to=relates_to,
+            gates=gates,
             blocked_only=blocked_only,
         )
 

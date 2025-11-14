@@ -104,6 +104,9 @@ python hybrid_workflow/task_status.py --priority P1
 # Filter by area
 python hybrid_workflow/task_status.py --area rendering
 
+# Filter by size
+python hybrid_workflow/task_status.py --size M
+
 # Filter by owner
 python hybrid_workflow/task_status.py --owner docs-devrel
 
