@@ -3,9 +3,10 @@
 ## 🚀 Quick Start (30 seconds)
 
 1. Read: [`AGENTS.md`](./AGENTS.md) — The 7-step workflow
-2. Use: [`backlog/000-template.md`](./backlog/000-template.md) — Task template
-3. Check: [`ROADMAP.md`](./ROADMAP.md) — Pick a bundle
-4. Run: `python -m scripts.workflow.report_hybrid_status --next-actions` — Surface highest-priority ready work (falls back to `new`).
+2. Load: [`CODING_MICRO_AGENT_SPEC.md`](./CODING_MICRO_AGENT_SPEC.md) — Micro-step coding prompt for agents
+3. Use: [`backlog/000-template.md`](./backlog/000-template.md) — Task template
+4. Check: [`ROADMAP.md`](./ROADMAP.md) — Pick a bundle
+5. Run: `python -m scripts.workflow.report_hybrid_status --next-actions` — Surface highest-priority ready work (falls back to `new`).
 
 ---
 
