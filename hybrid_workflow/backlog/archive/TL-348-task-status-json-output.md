@@ -75,7 +75,7 @@ documentation-first tooling experience.
       "gates": ["tests", "docs"],
       "relates_to": ["bundle:B"],
       "blocked_on": [],
-      "file": "hybrid_workflow/backlog/TL-310-editor-foundations.md"
+      "file": "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md"
     }
   ],
   "counts": {

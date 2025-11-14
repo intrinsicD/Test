@@ -73,7 +73,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | 1 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | Done |
 | 1 | [`RT-410`](../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | Done |
 | 1 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | Build modular render pipeline planner with node reflection, transient resources, and async scheduling. | Rendering Lead | Done |
-| 2 | [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | In Progress (planning; blocked on RT-410 hooks) |
+| 2 | [`TL-310`](../hybrid_workflow/backlog/archive/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Done (editor harness + registry baseline landed; follow-up panels tracked separately) |
 | 2 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
 | 2 | [`TL-311`](../hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md) | Ship scene hierarchy diagnostics panel to surface entity graph inside editor. | Tools Lead | Done |
 | 2 | [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | Visualise profiler metrics and benchmark deltas in-editor for Bundle B demos. | Tools Lead | Ready |
@@ -85,7 +85,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 **Sequencing:**
 1. **RT-410** (Priority 1) - ✅ Completed; presentation adapters archived for tooling reuse
 2. **PM-510** (Priority 2) - Ongoing weekly integration demos covering GPU → runtime → tooling
-3. **TL-310** (Priority 2) - Editor re-enablement; planning underway leveraging RT-410 adapters
+3. **TL-310** (Priority 2) - ✅ Editor re-enablement complete; registry + harness baseline archived for panel follow-ups
 4. **TL-311** (Priority 2) - ✅ Scene hierarchy panel landed; validation overlays now available for PM-510 rehearsals
 
 ### Bundle D — Kickoff Coordination *(Priorities 0)*
@@ -109,9 +109,9 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | 1 | Done | GPU providers for OpenGL/Vulkan ship with runtime presentation integration and telemetry. |
 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | 1 | Done | Planner ships with hot-reload coverage and telemetry exports; monitoring perf delta in PM-510 demos. |
-| [`TL-310`](../hybrid_workflow/backlog/TL-310-editor-foundations.md) | 2 | In Progress | Context assembly started; implementation will begin once RT-410 exposes presentation hooks. |
+| [`TL-310`](../hybrid_workflow/backlog/archive/TL-310-editor-foundations.md) | 2 | Done | Editor harness + registry shipped; TL-311–TL-314 deliver panel follow-ups. |
 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned; latest capture documents modular planner telemetry. |
-| [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | 2 | Ready | Groomed scope, waiting on TL-310 registry hooks to begin implementation. |
+| [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | 2 | Ready | Groomed scope; TL-310 registry hooks landed so implementation can begin. |
 | [`TL-313`](../hybrid_workflow/backlog/TL-313-asset-browser-panel.md) | 2 | New | Asset cache inspector with hot reload telemetry surfaced in-editor. |
 | [`TL-314`](../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) | 2 | New | Telemetry overlays and alerting integrated with PM-510 evidence capture. |
 
@@ -121,7 +121,7 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | Priority | Risk | Owner | Mitigation |
 | --- | --- | --- | --- |
 | 1 | Runtime stage planner delivery lags GPU work, blocking presentation. | Runtime Lead | Mitigated by RT-410 completion (2026-03-30); continue monitoring TL-310 enablement and presentation telemetry in PM-510 demos. |
-| 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Sequence TL-310 immediately after RT-410 adapter merge and preview editor state during PM-510 demos. |
+| 2 | Editor/tooling reinstatement blocked by runtime hooks. | Tools Lead | Mitigated by TL-310 completion; track TL-312–TL-314 implementation readiness in PM-510 demos. |
 | 3 | Legacy documentation remains out of sync with reopened tasks. | Knowledge Librarian | Capture updates from weekly demos and rerun docs validator after each milestone increment. |
 | 3 | CI containers lack GLFW/Xrandr headers so geometry_viewer cannot render. | Tools Lead | Headless fallback now logs the dependency gap; coordinate with infra to install X11 dev packages before release validation. 【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】【e03c46†L1-L14】 |
 

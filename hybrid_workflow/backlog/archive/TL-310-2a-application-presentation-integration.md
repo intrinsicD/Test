@@ -11,7 +11,7 @@ relates_to: [TL-310, RT-410]
 blocked_on: []
 parent_task: TL-310
 links:
-  - "hybrid_workflow/backlog/TL-310-editor-foundations.md"
+  - "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md"
   - "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md"
   - "GEOMETRY_VIEWER_SOLUTION.md"
   - "docs/modules/runtime/README.md"
@@ -226,7 +226,7 @@ $ ./out/build/linux-gcc-debug/engine/runtime/tests/engine_runtime_tests --gtest_
 
 - `docs/modules/runtime/README.md`
 - `QUICK_START_RENDERING.md`
-- `hybrid_workflow/backlog/TL-310-editor-foundations.md` (parent task status)
+- `hybrid_workflow/backlog/archive/TL-310-editor-foundations.md` (parent task status)
 - `hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md` (blocked_on reference)
 
 ---

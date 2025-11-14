@@ -10,7 +10,7 @@ gates: [tests, docs]
 relates_to: [bundle:B]
 blocked_on: []
 links:
-  - "../TL-310-editor-foundations.md"
+  - "TL-310-editor-foundations.md"
   - "TL-310-2a-application-presentation-integration.md"
   - "TOOLS_USAGE_ANALYSIS.md"
   - "../../../docs/modules/tools/README.md"
@@ -29,7 +29,7 @@ Deliver an interactive scene hierarchy panel inside the revived editor so tools 
 ## Context
 
 **Current State:**
-- [`TL-310`](TL-310-editor-foundations.md) is rebuilding the editor harness and panel registry, but no concrete panels ship with the baseline.
+- [`TL-310`](TL-310-editor-foundations.md) rebuilt the editor harness and panel registry, but no concrete panels shipped with the baseline.
 - The tools module documentation highlights Dear ImGui helpers and panel registry support, yet there is no task covering an entity hierarchy view.
 - [`TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) flags the lack of panel implementation follow-ups as an adoption gap.
 
@@ -42,7 +42,7 @@ Deliver an interactive scene hierarchy panel inside the revived editor so tools 
 - [`docs/modules/tools/README.md`](../../../docs/modules/tools/README.md) — module invariants and ImGui integration guidance.
 - [`docs/modules/scene/README.md`](../../../docs/modules/scene/README.md) — hierarchy model, validation rules, and transform propagation guarantees.
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) — runtime ↔ tooling synchronisation contract.
-- [`hybrid_workflow/backlog/TL-310-editor-foundations.md`](../TL-310-editor-foundations.md) — parent task restoring the panel registry.
+- [`hybrid_workflow/backlog/archive/TL-310-editor-foundations.md`](TL-310-editor-foundations.md) — parent task restoring the panel registry.
 - [`hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`](TOOLS_USAGE_ANALYSIS.md) — workflow analysis recommending TL-311–TL-314 follow-ups.
 
 ---

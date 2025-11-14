@@ -23,7 +23,7 @@
 **Goal:** Runtime presentation adapters and editor foundations for integrated workflows.
 
 - [x] **RT-410** — Runtime stage planner → `hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md`
-- [ ] **TL-310** — Editor foundations → `hybrid_workflow/backlog/TL-310-editor-foundations.md`
+- [x] **TL-310** — Editor foundations → `hybrid_workflow/backlog/archive/TL-310-editor-foundations.md`
 - [ ] **PM-510** — Weekly integration demos → `hybrid_workflow/backlog/PM-510-weekly-integration-demos.md`
 - [x] **TL-311** — Scene hierarchy panel → `hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md`
 - [ ] **TL-312** — Performance metrics panel → `hybrid_workflow/backlog/TL-312-performance-metrics-panel.md`
@@ -36,7 +36,7 @@
 - **Rendering validated with geometry_viewer at 7,818 FPS.** ✅ (2025-11-08)
 - Weekly demos capture GPU → runtime → tooling integration progress.
 
-_Current status:_ RG-450 has shipped with descriptor-driven planner execution and hot-reload coverage; RT-410 is complete and archived; **TL-310 achieved major rendering milestone (2025-11-08) with geometry_viewer demonstrating full OpenGL pipeline at 7,818 FPS** — Application framework + PresentationBackend integration verified working; PM-510 continues to coordinate weekly integration demos; TL-311 shipped the scene hierarchy diagnostics panel with validation overlays; TL-312 is now groomed and marked **ready**, awaiting TL-310 registry hooks before implementation begins; TL-313–TL-314 track the remaining diagnostic panels that build on the editor foundation; and geometry_viewer now detects missing GLFW/GLAD targets in CI, logs a headless fallback, and keeps workflow smoke tests actionable when the windowing stack is unavailable.【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】
+_Current status:_ RG-450 has shipped with descriptor-driven planner execution and hot-reload coverage; RT-410 is complete and archived; **TL-310 is finished and archived (2026-05-07)** after landing the editor harness + registry bridge with geometry_viewer demonstrating the full OpenGL pipeline at 7,818 FPS, so TL-312 performance panel work can start immediately; PM-510 continues to coordinate weekly integration demos; TL-311 shipped the scene hierarchy diagnostics panel with validation overlays; TL-313–TL-314 track the remaining diagnostic panels that build on the editor foundation; and geometry_viewer now detects missing GLFW/GLAD targets in CI, logs a headless fallback, and keeps workflow smoke tests actionable when the windowing stack is unavailable.【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】
 
 ---
 
@@ -91,8 +91,8 @@ _Note: While Bundle D tasks have P0 priority for process coordination, they run 
 | Priority | Risk | Mitigation | Owner |
 |----------|------|------------|-------|
 | 1 | GPU resource provider/command encoder slip | Joint milestone with shared design reviews; weekly demos in PM-510 | Rendering Lead |
-| 1 | Stage planner delays blocking presentation | Completed 2026-03-30; monitor TL-310 enablement and presentation telemetry | Runtime Lead |
-| 2 | Editor re-enablement blocked by runtime hooks | Sequence TL-310 after RT-410 adapters merge | Tools Lead |
+| 1 | Stage planner delays blocking presentation | Completed 2026-03-30; monitor TL-310 baseline telemetry and PM-510 evidence | Runtime Lead |
+| 2 | Editor re-enablement blocked by runtime hooks | Mitigated by TL-310 completion; focus on TL-312–TL-314 implementation | Tools Lead |
 | 3 | Workflow migration overhead | Gradual migration; new tasks use hybrid, old tasks migrated opportunistically | Agent Orchestrator |
 
 ---

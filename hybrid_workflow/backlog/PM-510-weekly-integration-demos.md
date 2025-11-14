@@ -9,7 +9,7 @@ owner: agent-orchestrator
 gates: [docs]
 relates_to: [bundle:B]
 blocked_on: []
-links: ["hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/TL-310-editor-foundations.md", "hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md", "hybrid_workflow/backlog/TL-312-performance-metrics-panel.md", "hybrid_workflow/backlog/TL-313-asset-browser-panel.md", "hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md"]
+links: ["hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md", "hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md", "hybrid_workflow/backlog/TL-312-performance-metrics-panel.md", "hybrid_workflow/backlog/TL-313-asset-browser-panel.md", "hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md"]
 ---
 
 # Task PM-510 — Weekly GPU Integration Demos
@@ -36,7 +36,7 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 - [`docs/ROADMAP.md`](../docs/ROADMAP.md)
 - [`README.md`](../README.md) module health snapshot
 - GPU milestone tasks: [`T-0120`](T-0120-gpu-resource-provider.md), [`T-0119`](archive/T-0119-command-encoder-integration.md)
-- Runtime/tooling tasks: [`RT-410`](archive/RT-410-runtime-stage-planner.md), [`TL-310`](TL-310-editor-foundations.md)
+- Runtime/tooling tasks: [`RT-410`](archive/RT-410-runtime-stage-planner.md), [`TL-310`](archive/TL-310-editor-foundations.md)
 
 ---
 
