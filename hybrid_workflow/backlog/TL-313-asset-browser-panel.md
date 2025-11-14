@@ -1,7 +1,7 @@
 ---
 id: TL-313
 title: Asset browser panel for editor workflows
-status: new
+status: ready
 priority: P2
 area: tools
 size: M
@@ -116,7 +116,9 @@ class AssetBrowserPanel : public engine::tools::Panel {
 
 ## Steps
 
-1. [ ] Audit asset cache APIs and hot reload notification hooks.
+1. [x] Confirm registry bridge readiness and asset cache API coverage.
+   - Validated `PanelRegistry` wiring in `hybrid_workflow/backlog/archive/TL-310-editor-foundations.md` and
+     cross-referenced cache/hot-reload guarantees in `docs/modules/assets/README.md` to scope integration points.
 2. [ ] Implement descriptor aggregation and panel rendering.
 3. [ ] Extend editor harness smoke test with sample assets and hot reload toggles.
 4. [ ] Document usage in tools and assets READMEs.
@@ -148,3 +150,7 @@ class AssetBrowserPanel : public engine::tools::Panel {
 - Before: [pending]
 - After: [pending]
 - Delta: [pending]
+
+**Status Update (2026-05-08):** Groomed TL-313 for implementation. Verified editor registry hooks and
+asset cache integration points so the panel work can proceed without additional discovery. Task moved to
+`status: ready` and roadmap/backlog alignment scheduled for completion post-implementation.
