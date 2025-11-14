@@ -178,6 +178,14 @@ def test_build_parser_supports_include_archived_flag() -> None:
     assert args.include_archived is True
 
 
+def test_build_parser_supports_repeating_status_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--status', 'ready,in_progress', '--status', 'review'])
+
+    assert args.status == ['ready,in_progress', 'review']
+
+
 def test_build_parser_supports_next_actions_flags() -> None:
     parser = task_status.build_parser()
 
@@ -197,6 +205,30 @@ def test_filter_tasks_supports_relates_to_matching() -> None:
     filtered = task_status.filter_tasks(tasks, relates_to=['bundle:B'])
 
     assert [task.id for task in filtered] == ['B']
+
+
+def test_filter_tasks_supports_multiple_status_values() -> None:
+    tasks = [
+        _make_task('A', blocked=False, status='ready'),
+        _make_task('B', blocked=False, status='review'),
+        _make_task('C', blocked=False, status='done'),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, status=['ready', 'review'])
+
+    assert [task.id for task in filtered] == ['A', 'B']
+
+
+def test_filter_tasks_supports_comma_separated_status_string() -> None:
+    tasks = [
+        _make_task('A', blocked=False, status='ready'),
+        _make_task('B', blocked=False, status='review'),
+        _make_task('C', blocked=False, status='done'),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, status='ready, review')
+
+    assert [task.id for task in filtered] == ['A', 'B']
 
 
 def test_filter_tasks_relates_to_is_case_insensitive() -> None:
