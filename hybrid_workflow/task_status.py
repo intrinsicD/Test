@@ -32,7 +32,7 @@ import json
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 
 STATUS_ORDER = {
@@ -194,6 +194,34 @@ def parse_list_field(value: Union[str, List[str]]) -> List[str]:
     return items
 
 
+def _normalise_filter_values(value: Optional[Union[str, Iterable[str]]]) -> List[str]:
+    """Normalise CLI filter values into a list of non-empty strings."""
+    if value is None:
+        return []
+
+    items: List[str] = []
+
+    if isinstance(value, str):
+        for part in value.split(','):
+            cleaned = part.strip()
+            if cleaned:
+                items.append(cleaned)
+    else:
+        for element in value:
+            if isinstance(element, str):
+                for part in element.split(','):
+                    cleaned = part.strip()
+                    if cleaned:
+                        items.append(cleaned)
+            elif element is not None:
+                cleaned = str(element).strip()
+                if cleaned:
+                    items.append(cleaned)
+
+    return items
+
+
+
 def _priority_rank(priority: str) -> int:
     """Return a stable ordering key for priorities."""
 
@@ -348,7 +376,7 @@ def load_all_tasks(backlog_dir: Path, *, include_archived: bool = False) -> List
 
 def filter_tasks(
     tasks: List[Task],
-    status: Optional[str] = None,
+    status: Optional[Union[str, Iterable[str]]] = None,
     priority: Optional[str] = None,
     area: Optional[str] = None,
     size: Optional[str] = None,
@@ -361,8 +389,9 @@ def filter_tasks(
     """Filter tasks by criteria."""
     filtered = tasks
 
-    if status:
-        filtered = [t for t in filtered if t.status == status]
+    status_values = {value.lower() for value in _normalise_filter_values(status)}
+    if status_values:
+        filtered = [t for t in filtered if t.status.lower() in status_values]
 
     if priority:
         filtered = [t for t in filtered if t.priority == priority]
@@ -537,7 +566,15 @@ def build_parser() -> argparse.ArgumentParser:
     """Construct the argument parser for the CLI."""
 
     parser = argparse.ArgumentParser(description="Query hybrid workflow task status")
-    parser.add_argument('--status', help="Filter by status (new, ready, in_progress, review, done)")
+    parser.add_argument(
+        '--status',
+        action='append',
+        metavar='STATUS',
+        help=(
+            "Filter by status (new, ready, in_progress, review, done). "
+            "Repeat or provide comma-separated values to match multiple statuses."
+        ),
+    )
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
     parser.add_argument('--size', help="Filter by task size (XS, S, M, L, XL)")
@@ -646,6 +683,8 @@ def main():
         return 0
     
     # Filter tasks
+    status_filter = _normalise_filter_values(args.status)
+
     relates_to = None
     if args.relates_to:
         relates_to = [tag for group in args.relates_to for tag in group]
@@ -675,8 +714,8 @@ def main():
     else:
         filtered = filter_tasks(
             tasks,
-            args.status,
-            args.priority,
+            status=status_filter,
+            priority=args.priority,
             area=args.area,
             size=args.size,
             owner=args.owner,
