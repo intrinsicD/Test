@@ -69,6 +69,10 @@ namespace engine::rendering::backend::opengl
         int light_pos_uniform_location_{-1};
         int view_pos_uniform_location_{-1};
         int object_color_uniform_location_{-1};
+        int has_texture_uniform_location_{-1};
+        int texture_sampler_uniform_location_{-1};
+        unsigned int default_texture_{0};
+        bool default_texture_initialised_{false};
 
         void execute_draw_command(const GeometryDrawCommand& command);
         void execute_mesh_draw(const GeometryDrawCommand& command);
@@ -77,6 +81,7 @@ namespace engine::rendering::backend::opengl
         bool ensure_shader_program();
         unsigned int compile_shader(unsigned int type, const char* source);
         void upload_matrix(int location, const engine::math::mat4& matrix);
-        void upload_draw_uniforms(const GeometryDrawCommand& command);
+        void upload_draw_uniforms(const GeometryDrawCommand& command, bool has_texture_coordinates);
+        void bind_default_texture();
     };
 }

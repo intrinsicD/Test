@@ -1,6 +1,7 @@
 #include "engine/rendering/backend/opengl/immediate_command_stream.hpp"
 
 #include <array>
+#include <cstdint>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -31,6 +32,7 @@ namespace engine::rendering::backend::opengl
 
             layout(location = 0) in vec3 aPosition;
             layout(location = 1) in vec3 aNormal;
+            layout(location = 2) in vec2 aTexCoord;
 
             uniform mat4 uModel;
             uniform mat4 uView;
@@ -38,6 +40,7 @@ namespace engine::rendering::backend::opengl
 
             out vec3 vNormal;
             out vec3 vFragPos;
+            out vec2 vTexCoord;
 
             void main()
             {
@@ -45,6 +48,7 @@ namespace engine::rendering::backend::opengl
                 vFragPos = world.xyz;
                 mat3 normalMatrix = mat3(transpose(inverse(uModel)));
                 vNormal = normalMatrix * aNormal;
+                vTexCoord = aTexCoord;
                 gl_Position = uProjection * uView * world;
             }
         )";
@@ -54,12 +58,15 @@ namespace engine::rendering::backend::opengl
 
             in vec3 vNormal;
             in vec3 vFragPos;
+            in vec2 vTexCoord;
 
             out vec4 FragColor;
 
             uniform vec3 uLightPos;
             uniform vec3 uViewPos;
             uniform vec3 uObjectColor;
+            uniform sampler2D uTexture;
+            uniform int uHasTexture;
 
             void main()
             {
@@ -74,7 +81,13 @@ namespace engine::rendering::backend::opengl
                 vec3 specular = vec3(0.25) * spec;
 
                 vec3 ambient = 0.2 * uObjectColor;
-                FragColor = vec4(ambient + diffuse + specular, 1.0);
+                vec3 baseColor = ambient + diffuse + specular;
+                if (uHasTexture == 1)
+                {
+                    vec3 tex = texture(uTexture, vTexCoord).rgb;
+                    baseColor *= tex;
+                }
+                FragColor = vec4(baseColor, 1.0);
             }
         )";
 #endif
@@ -92,6 +105,12 @@ namespace engine::rendering::backend::opengl
         {
             glad_glDeleteProgram(shader_program_);
             shader_program_ = 0U;
+        }
+        if (default_texture_ != 0U && glad_glDeleteTextures != nullptr)
+        {
+            glad_glDeleteTextures(1, &default_texture_);
+            default_texture_ = 0U;
+            default_texture_initialised_ = false;
         }
 #endif
     }
@@ -217,7 +236,8 @@ namespace engine::rendering::backend::opengl
             return;
         }
 
-        upload_draw_uniforms(command);
+        const bool has_texture = record->texcoord_buffer != 0U && !record->texture_coordinates.empty();
+        upload_draw_uniforms(command, has_texture);
 
         if (record->vertex_array != 0U && glad_glBindVertexArray != nullptr)
         {
@@ -268,7 +288,7 @@ namespace engine::rendering::backend::opengl
             return;
         }
 
-        upload_draw_uniforms(command);
+        upload_draw_uniforms(command, false);
 
         if (record->vertex_array != 0U && glad_glBindVertexArray != nullptr)
         {
@@ -384,6 +404,8 @@ namespace engine::rendering::backend::opengl
             light_pos_uniform_location_ = glad_glGetUniformLocation(shader_program_, "uLightPos");
             view_pos_uniform_location_ = glad_glGetUniformLocation(shader_program_, "uViewPos");
             object_color_uniform_location_ = glad_glGetUniformLocation(shader_program_, "uObjectColor");
+            has_texture_uniform_location_ = glad_glGetUniformLocation(shader_program_, "uHasTexture");
+            texture_sampler_uniform_location_ = glad_glGetUniformLocation(shader_program_, "uTexture");
         }
 
         return true;
@@ -462,7 +484,65 @@ namespace engine::rendering::backend::opengl
 #endif
     }
 
-    void OpenGLImmediateCommandStream::upload_draw_uniforms(const GeometryDrawCommand& command)
+    void OpenGLImmediateCommandStream::bind_default_texture()
+    {
+#if ENGINE_RENDERING_HAS_GLAD
+        if (!default_texture_initialised_)
+        {
+            if (glad_glGenTextures == nullptr || glad_glBindTexture == nullptr || glad_glTexParameteri == nullptr
+                || glad_glTexImage2D == nullptr)
+            {
+                return;
+            }
+
+            glad_glGenTextures(1, &default_texture_);
+            glad_glBindTexture(GL_TEXTURE_2D, default_texture_);
+            glad_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glad_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glad_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glad_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            const std::array<std::uint8_t, 4 * 4 * 4> data = {
+                255, 255, 255, 255,   30, 144, 255, 255,
+                 30, 144, 255, 255,  255, 255, 255, 255,
+                255, 255, 255, 255,   30, 144, 255, 255,
+                 30, 144, 255, 255,  255, 255, 255, 255,
+            };
+
+            glad_glTexImage2D(GL_TEXTURE_2D,
+                              0,
+                              GL_RGBA,
+                              4,
+                              4,
+                              0,
+                              GL_RGBA,
+                              GL_UNSIGNED_BYTE,
+                              data.data());
+
+            glad_glBindTexture(GL_TEXTURE_2D, 0);
+            default_texture_initialised_ = true;
+        }
+
+        if (!default_texture_initialised_)
+        {
+            return;
+        }
+
+        if (glad_glActiveTexture != nullptr)
+        {
+            glad_glActiveTexture(GL_TEXTURE0);
+        }
+        if (glad_glBindTexture != nullptr)
+        {
+            glad_glBindTexture(GL_TEXTURE_2D, default_texture_);
+        }
+#else
+        static_cast<void>(default_texture_initialised_);
+#endif
+    }
+
+    void OpenGLImmediateCommandStream::upload_draw_uniforms(const GeometryDrawCommand& command,
+                                                            bool has_texture_coordinates)
     {
 #if ENGINE_RENDERING_HAS_GLAD
         if (!ensure_shader_program() || glad_glUseProgram == nullptr)
@@ -494,8 +574,25 @@ namespace engine::rendering::backend::opengl
         {
             glad_glUniform3f(object_color_uniform_location_, 0.85F, 0.72F, 0.60F);
         }
+
+        if (glad_glUniform1i != nullptr)
+        {
+            if (has_texture_uniform_location_ >= 0)
+            {
+                glad_glUniform1i(has_texture_uniform_location_, has_texture_coordinates ? 1 : 0);
+            }
+            if (texture_sampler_uniform_location_ >= 0)
+            {
+                if (has_texture_coordinates)
+                {
+                    bind_default_texture();
+                }
+                glad_glUniform1i(texture_sampler_uniform_location_, 0);
+            }
+        }
 #else
         static_cast<void>(command);
+        static_cast<void>(has_texture_coordinates);
 #endif
     }
 }

@@ -213,6 +213,13 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   - Logs a headless-mode warning and skips OpenGL setup when dependencies are absent so workflow smoke tests continue without
     crashing.
 
+### Step 11: Bind procedural texture fallback inside OpenGL command stream
+
+- `engine/rendering/src/backend/opengl/immediate_command_stream.cpp`
+  - Extend the fallback GLSL program with UV attributes and a `sampler2D` so meshes can be textured.
+  - Upload a small procedural checkerboard to a default texture and bind it whenever geometry provides UV coordinates, keeping
+    shading consistent even without external material assets.
+
 ## Testing
 
 ### Manual Test Cases
@@ -253,6 +260,8 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   — Recompiled the frame-graph preset that now stamps camera data into each draw call. 【ec7373†L1-L4】
 - `cmake --build --preset linux-gcc-debug --target engine_rendering` — Attempted a full rendering module build, but it fails in
   this container because GLFW headers are not installed. 【1a3b67†L1-L20】
+- `cmake --build --preset linux-gcc-debug --target engine_rendering` — Re-run after texture fallback changes; still fails in
+  the container because GLFW headers are unavailable, blocking OpenGL compilation. 【3d5817†L1-L16】
 
 ## Notes
 
