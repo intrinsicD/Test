@@ -1,7 +1,7 @@
 ---
 id: TL-312
 title: Performance metrics and profiler panel
-status: ready
+status: in_progress
 priority: P2
 area: tools
 size: M
@@ -118,7 +118,8 @@ class PerformanceMetricsPanel : public engine::tools::Panel {
 
 ## Steps
 
-1. [ ] Audit existing profiler and telemetry APIs exposed by tools/runtime modules.
+1. [x] Audit existing profiler and telemetry APIs exposed by tools/runtime modules.
+   - Confirmed the tooling module exposes ImGui helpers and profiler integration hooks documented in `docs/modules/tools/README.md`, and that runtime telemetry surfaces frame timings via the presentation adapters outlined in `docs/modules/runtime/README.md`.
 2. [ ] Implement panel data adapters and rendering widgets.
 3. [ ] Extend editor harness smoke test to feed synthetic profiler data.
 4. [ ] Document panel usage in tools README and roadmap bundle notes.
