@@ -28,6 +28,7 @@ def _make_task(
     owner: str = "tools-team",
     priority: str = "P1",
     area: str = "tools",
+    size: str = "M",
     gates: list[str] | None = None,
 ) -> task_status.Task:
     """Helper to create a task with deterministic defaults for testing."""
@@ -38,6 +39,7 @@ def _make_task(
         status=status,
         priority=priority,
         area=area,
+        size=size,
         owner=owner,
         gates=gates or [],
         blocked_on=blocked_on,
@@ -84,6 +86,17 @@ def test_filter_tasks_filters_by_owner() -> None:
     assert [task.id for task in filtered] == ["B"]
 
 
+def test_filter_tasks_filters_by_size() -> None:
+    tasks = [
+        _make_task("A", blocked=False, size="S"),
+        _make_task("B", blocked=False, size="M"),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, size="S")
+
+    assert [task.id for task in filtered] == ["A"]
+
+
 def test_filter_tasks_filters_by_gate() -> None:
     tasks = [
         _make_task("A", blocked=False, gates=["tests", "docs"]),
@@ -123,6 +136,14 @@ def test_build_parser_supports_owner_flag() -> None:
     args = parser.parse_args(['--owner', 'docs-devrel'])
 
     assert args.owner == 'docs-devrel'
+
+
+def test_build_parser_supports_size_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--size', 'S'])
+
+    assert args.size == 'S'
 
 
 def test_build_parser_supports_relates_to_flag() -> None:
@@ -287,6 +308,7 @@ def test_select_next_actions_respects_filters_and_limit() -> None:
             priority='P0',
             owner='tools',
             area='tools',
+            size='M',
             gates=['tests', 'docs'],
         ),
         _make_task(
@@ -296,6 +318,7 @@ def test_select_next_actions_respects_filters_and_limit() -> None:
             priority='P1',
             owner='runtime',
             area='runtime',
+            size='L',
             gates=['tests'],
         ),
         _make_task(
@@ -305,6 +328,7 @@ def test_select_next_actions_respects_filters_and_limit() -> None:
             priority='P2',
             owner='tools',
             area='tools',
+            size='M',
             gates=['docs'],
         ),
         _make_task(
@@ -314,6 +338,7 @@ def test_select_next_actions_respects_filters_and_limit() -> None:
             priority='P1',
             owner='tools',
             area='tools',
+            size='S',
             gates=['tests', 'docs'],
         ),
     ]
@@ -323,6 +348,7 @@ def test_select_next_actions_respects_filters_and_limit() -> None:
         1,
         owner='tools',
         area='tools',
+        size='M',
         gates=['tests', 'docs'],
         blocked_only=False,
     )
