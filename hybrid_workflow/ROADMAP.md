@@ -9,6 +9,7 @@
 - [x] **T-0120** — GPU resource provider → `hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md`
 - [x] **T-0119** — Command encoder integration → `hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md`
 - [x] **RG-450** — Modular render pipeline planner → `hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md`
+- [ ] **RE-430** — WASD first-person camera controller → `hybrid_workflow/backlog/RE-430-wasd-camera-controller.md`
 
 **Success Criteria:**
 - OpenGL/Vulkan execute frame-graph workloads with deterministic telemetry traces. ✅
