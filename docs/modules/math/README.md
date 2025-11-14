@@ -202,6 +202,9 @@ const math::vec3 target{0.0f, 0.0f, 0.0f};
 const math::vec3 up{0.0f, 1.0f, 0.0f};
 math::mat4 view = math::utils::look_at(eye, target, up);
 
+// NOTE: All math::utils camera helpers emit column-major matrices.
+// Upload them directly to GPU APIs expecting column-major layout.
+
 // Perspective projection
 const float aspect_ratio = 16.0f / 9.0f;
 const float near_plane = 0.1f;
