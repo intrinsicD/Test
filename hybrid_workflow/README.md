@@ -16,10 +16,11 @@ This directory contains the **hybrid workflow system** — a streamlined task ma
 1. **Read the workflow:** [`AGENTS.md`](./AGENTS.md) — 7-step task lifecycle
 2. **Understand task detection:** [`WORKFLOW_DETECTION.md`](./WORKFLOW_DETECTION.md) — how the workflow selects what to work on
 3. **Check coding standards:** [`CONTRIBUTING.md`](./CONTRIBUTING.md) — naming, formatting, testing
-4. **Review available tools:** [`TOOLS_REFERENCE.md`](./TOOLS_REFERENCE.md) — engine tools quick reference
-5. **Plan migrations:** [`MIGRATION.md`](./MIGRATION.md) — deterministic process for porting legacy tasks
-6. **Pick a task:** [`ROADMAP.md`](./ROADMAP.md) — bundles and priorities
-7. **Use the template:** [`backlog/000-template.md`](./backlog/000-template.md) — task file structure
+4. **Load the coding micro-agent spec:** [`CODING_MICRO_AGENT_SPEC.md`](./CODING_MICRO_AGENT_SPEC.md) — MAKER-style guardrails for incremental changes
+5. **Review available tools:** [`TOOLS_REFERENCE.md`](./TOOLS_REFERENCE.md) — engine tools quick reference
+6. **Plan migrations:** [`MIGRATION.md`](./MIGRATION.md) — deterministic process for porting legacy tasks
+7. **Pick a task:** [`ROADMAP.md`](./ROADMAP.md) — bundles and priorities
+8. **Use the template:** [`backlog/000-template.md`](./backlog/000-template.md) — task file structure
 
 ### Sample Dashboard Snapshot
 
