@@ -4,10 +4,12 @@
 #include "engine/rendering/camera.hpp"
 
 #include "engine/math/vector.hpp"
+#include "engine/platform/input/input_state.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <limits>
 
 namespace engine::rendering
 {
@@ -69,6 +71,24 @@ namespace engine::rendering
         static constexpr float max_pitch_{1.55334306F};  // ~89 degrees
 
         void update_camera() noexcept;
+    };
+
+    class ENGINE_RENDERING_API WasdCameraController final : public FirstPersonCameraController
+    {
+    public:
+        WasdCameraController(Camera& camera, platform::input::InputState& input_state,
+            math::vec3 position = {0.0F, 0.0F, 0.0F}) noexcept;
+
+        void set_move_speed(float units_per_second) noexcept;
+        [[nodiscard]] float move_speed() const noexcept { return move_speed_; }
+
+        void update(const CameraControlState& state, float delta_seconds) noexcept override;
+
+    private:
+        [[nodiscard]] math::vec3 resolve_wasd_direction() const noexcept;
+
+        std::reference_wrapper<platform::input::InputState> input_state_;
+        float move_speed_{5.0F};
     };
 
     class ENGINE_RENDERING_API OrbitCameraController final : public CameraController
@@ -155,6 +175,58 @@ namespace engine::rendering
             -cos_pitch * cos_yaw};
         const math::vec3 target = position_ + forward;
         [[maybe_unused]] auto result = camera().look_at(position_, target, world_up());
+    }
+
+    inline WasdCameraController::WasdCameraController(
+        Camera& camera, platform::input::InputState& input_state, math::vec3 position) noexcept
+        : FirstPersonCameraController(camera, position), input_state_(input_state)
+    {
+    }
+
+    inline void WasdCameraController::set_move_speed(float units_per_second) noexcept
+    {
+        move_speed_ = std::max(units_per_second, 0.0F);
+    }
+
+    inline void WasdCameraController::update(
+        const CameraControlState& state, float delta_seconds) noexcept
+    {
+        CameraControlState combined_state = state;
+        const math::vec3 direction = resolve_wasd_direction();
+        combined_state.translation += direction * move_speed_;
+        FirstPersonCameraController::update(combined_state, delta_seconds);
+    }
+
+    inline math::vec3 WasdCameraController::resolve_wasd_direction() const noexcept
+    {
+        math::vec3 direction{0.0F, 0.0F, 0.0F};
+        auto& input_state = input_state_.get();
+
+        if (input_state.is_key_down(platform::input::Key::W))
+        {
+            direction[2] += 1.0F;
+        }
+        if (input_state.is_key_down(platform::input::Key::S))
+        {
+            direction[2] -= 1.0F;
+        }
+        if (input_state.is_key_down(platform::input::Key::D))
+        {
+            direction[0] += 1.0F;
+        }
+        if (input_state.is_key_down(platform::input::Key::A))
+        {
+            direction[0] -= 1.0F;
+        }
+
+        const float length_sq = math::length_squared(direction);
+        if (length_sq <= std::numeric_limits<float>::epsilon())
+        {
+            return math::vec3{0.0F, 0.0F, 0.0F};
+        }
+
+        const float inv_length = 1.0F / std::sqrt(length_sq);
+        return direction * inv_length;
     }
 
     inline OrbitCameraController::OrbitCameraController(Camera& camera, math::vec3 target, float radius) noexcept

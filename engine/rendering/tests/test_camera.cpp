@@ -8,6 +8,7 @@
 #include "engine/math/quaternion.hpp"
 #include "engine/math/transform.hpp"
 #include "engine/math/utils/utils_camera.hpp"
+#include "engine/platform/input/input_state.hpp"
 
 namespace
 {
@@ -165,4 +166,62 @@ TEST(CameraControllers, OrbitControllerOrbitsAndZooms)
     transform = engine::math::from_matrix(camera.model);
     const float expected_radius = 3.0F;
     EXPECT_NEAR(engine::math::distance(transform.translation, controller.target()), expected_radius, 1.0e-4F);
+}
+
+TEST(CameraControllers, WasdControllerMovesForward)
+{
+    engine::rendering::Camera camera;
+    engine::platform::input::InputState input_state{};
+    input_state.begin_frame();
+    input_state.apply_key_event(engine::platform::input::Key::W, true);
+
+    engine::rendering::WasdCameraController controller(camera, input_state);
+    controller.set_move_speed(1.0F);
+
+    engine::rendering::CameraControlState state{};
+    controller.update(state, 2.0F);
+
+    const auto position = controller.position();
+    EXPECT_NEAR(position[0], 0.0F, 1.0e-4F);
+    EXPECT_NEAR(position[1], 0.0F, 1.0e-4F);
+    EXPECT_NEAR(position[2], -2.0F, 1.0e-4F);
+}
+
+TEST(CameraControllers, WasdControllerNormalisesDiagonalMovement)
+{
+    engine::rendering::Camera camera;
+    engine::platform::input::InputState input_state{};
+    input_state.begin_frame();
+    input_state.apply_key_event(engine::platform::input::Key::W, true);
+    input_state.apply_key_event(engine::platform::input::Key::D, true);
+
+    engine::rendering::WasdCameraController controller(camera, input_state);
+    controller.set_move_speed(1.0F);
+
+    engine::rendering::CameraControlState state{};
+    controller.update(state, 1.0F);
+
+    const auto position = controller.position();
+    const float expected = 1.0F / std::sqrt(2.0F);
+    EXPECT_NEAR(position[0], expected, 1.0e-4F);
+    EXPECT_NEAR(position[1], 0.0F, 1.0e-4F);
+    EXPECT_NEAR(position[2], -expected, 1.0e-4F);
+}
+
+TEST(CameraControllers, WasdControllerRespectsExternalTranslation)
+{
+    engine::rendering::Camera camera;
+    engine::platform::input::InputState input_state{};
+    input_state.begin_frame();
+
+    engine::rendering::WasdCameraController controller(camera, input_state);
+
+    engine::rendering::CameraControlState state{};
+    state.translation[2] = 1.0F;
+    controller.update(state, 1.0F);
+
+    const auto position = controller.position();
+    EXPECT_NEAR(position[0], 0.0F, 1.0e-4F);
+    EXPECT_NEAR(position[1], 0.0F, 1.0e-4F);
+    EXPECT_NEAR(position[2], -1.0F, 1.0e-4F);
 }
