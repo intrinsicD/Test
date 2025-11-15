@@ -1,7 +1,7 @@
 ---
 id: RE-430
 title: Implement WASD first-person camera movement controller
-status: in_progress
+status: review
 priority: P1
 area: rendering
 size: S
@@ -112,7 +112,7 @@ class WasdCameraController final : public engine::rendering::FirstPersonCameraCo
 5. [x] Validate backlog/roadmap alignment once change lands.
    - Registered `RE-430` under Bundle A in `hybrid_workflow/ROADMAP.md`.
 6. [x] Run required tests and document evidence.
-   - Configured the `linux-gcc-debug` preset; OpenGL build halted due to missing `GLFW/glfw3.h`, recorded as environment gap.
+   - Configured the `linux-gcc-debug-mock` preset to avoid host GLFW dependencies, built `engine_rendering_tests`, and executed the `CameraControllers` suite directly.
    - Documentation validation succeeded via `python scripts/validate_docs.py`.
 7. [x] Prepare PR with summary referencing this task file.
    - Drafted PR "Add WASD first-person camera controller" referencing this backlog entry.
@@ -124,14 +124,15 @@ class WasdCameraController final : public engine::rendering::FirstPersonCameraCo
 ### Test Results
 
 ```bash
-cmake --preset linux-gcc-debug
-cmake --build --preset linux-gcc-debug --target engine_rendering_tests  # fails: GLFW/glfw3.h missing on host
+cmake --preset linux-gcc-debug-mock
+cmake --build --preset linux-gcc-debug-mock --target engine_rendering_tests
+out/build/linux-gcc-debug-mock/engine/rendering/tests/engine_rendering_tests --gtest_filter=CameraControllers.*
 python scripts/validate_docs.py
 ```
 
 **Test Summary:**
-- Unit tests: Blocked — `GLFW/glfw3.h` not present on runner, preventing `engine_rendering_tests` build.
-- Integration tests: Not run (dependent on unit test binary).
+- Unit tests: Pass — `engine_rendering_tests` (`CameraControllers` suite) built with the mock preset.
+- Integration tests: Not run (pending future geometry viewer integration).
 - Documentation validation: Pass (`python scripts/validate_docs.py`).
 
 ### Performance (if applicable)
@@ -145,8 +146,8 @@ Not applicable.
 
 | Gate | Status | Owner | Evidence |
 |------|--------|-------|----------|
-| tests | [ ] | QA/Test | `cmake --build` blocked by missing `GLFW/glfw3.h` (`6bb774†L1-L16`) |
-| docs | [x] | Docs/DevRel | `python scripts/validate_docs.py` (`5de832†L1-L2`) |
+| tests | [x] | QA/Test | `CameraControllers` suite via mock preset (`6b746a†L1-L21`) |
+| docs | [x] | Docs/DevRel | `python scripts/validate_docs.py` (`e51e97†L1-L2`) |
 
 ### Updated Files
 
