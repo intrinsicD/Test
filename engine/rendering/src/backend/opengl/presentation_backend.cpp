@@ -63,8 +63,7 @@ namespace engine::rendering::backend::opengl
         const auto submit_render_graph = context.submit_render_graph;
         if (submit_render_graph == nullptr)
         {
-            ENGINE_ERROR("RuntimePresentationContext.submit_render_graph must be set before presentation");
-            return;
+            throw std::runtime_error("RuntimePresentationContext.submit_render_graph must be set before presentation");
         }
         submit_render_graph(context.host, submission_context);
 
