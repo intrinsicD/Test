@@ -105,6 +105,8 @@ namespace engine::assets
 
         using HotReloadCallback = std::function<void(const TextureAsset&)>;
 
+        using Base::for_each_asset;
+
         [[nodiscard]] const TextureAsset& load(const TextureAssetDescriptor& descriptor);
         [[nodiscard]] bool contains(const TextureHandle& handle) const;
         [[nodiscard]] const TextureAsset& get(const TextureHandle& handle) const;

@@ -3,6 +3,7 @@
 #include "engine/runtime/api.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/scene/validation.hpp"
+#include "engine/tools/editor/asset_browser_panel.hpp"
 #include "engine/tools/editor/runtime_panel_bridge.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
 
@@ -11,6 +12,7 @@ namespace
     using engine::runtime::RuntimeDiagnostics;
     using engine::scene::validation::HierarchyValidationReport;
     using engine::scene::Scene;
+    using engine::tools::editor::AssetBrowserPanel;
     using engine::tools::editor::RuntimePanelBridge;
     using engine::tools::imgui::PanelRegistry;
     using engine::tools::imgui::PanelRenderContext;
@@ -151,5 +153,44 @@ TEST(RuntimePanelBridge, RegistersHierarchyPanelWhenHooksProvided)
     EXPECT_TRUE(registry.contains("editor.scene_hierarchy"));
 
     EXPECT_NO_THROW(bridge.render_all(0.0));
+}
+
+TEST(RuntimePanelBridge, RegistersAssetBrowserWhenProviderAvailable)
+{
+    PanelRegistry registry{};
+    RuntimeDiagnostics diagnostics{};
+
+    std::size_t provider_invocations{0};
+
+    RuntimePanelBridge bridge(
+        registry,
+        [&]() -> const RuntimeDiagnostics& {
+            return diagnostics;
+        },
+        RuntimePanelBridge::SceneValidationProvider{},
+        RuntimePanelBridge::Renderers{
+            [](const RuntimeDiagnostics&) {},
+            [](bool*) {},
+            [](const HierarchyValidationReport&) {}
+        },
+        RuntimePanelBridge::HierarchyPanelHooks{},
+        RuntimePanelBridge::AssetPanelHooks{
+            [&]() {
+                ++provider_invocations;
+                std::vector<AssetBrowserPanel::AssetDescriptorRow> rows;
+                rows.emplace_back(AssetBrowserPanel::AssetDescriptorRow{
+                    .identifier = "mesh.asset",
+                    .type = engine::assets::AssetType::mesh,
+                    .status = "loaded",
+                });
+                return rows;
+            }
+        }
+    );
+
+    EXPECT_TRUE(registry.contains("editor.asset_browser"));
+
+    bridge.render_all(0.016);
+    EXPECT_GE(provider_invocations, 1U);
 }
 

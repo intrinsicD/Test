@@ -90,6 +90,8 @@ namespace engine::assets
 
         using HotReloadCallback = std::function<void(const ShaderAsset&)>;
 
+        using Base::for_each_asset;
+
         [[nodiscard]] const ShaderAsset& load(const ShaderAssetDescriptor& descriptor);
         [[nodiscard]] bool contains(const ShaderHandle& handle) const;
         [[nodiscard]] const ShaderAsset& get(const ShaderHandle& handle) const;

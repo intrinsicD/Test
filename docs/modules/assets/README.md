@@ -164,6 +164,11 @@ handle pool) and exposes reusable primitives for:
 - enforcing hot-reload enablement via a template flag, and
 - releasing handles while respecting outstanding watchers.
 
+`AssetCacheLifecycle` now also exposes a read-only `for_each_asset` helper so tooling surfaces (for example the
+`AssetBrowserPanel`) can iterate over live cache entries without reaching into private state. The helper acquires the cache
+mutex, forwards the `RawHandle` and asset reference to the visitor, and allows derived caches to inherit the method directly via
+`using Base::for_each_asset;`.
+
 Debug builds route `get_asset_checked` failures through the helper, emitting the original diagnostic message with
 `std::abort()` so existing death tests continue to observe the explicit failure text. Release builds throw the corresponding
 exception as before.

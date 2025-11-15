@@ -50,7 +50,7 @@ namespace engine::rendering
         std::reference_wrapper<Camera> camera_;
     };
 
-    class ENGINE_RENDERING_API FirstPersonCameraController final : public CameraController
+    class ENGINE_RENDERING_API FirstPersonCameraController : public CameraController
     {
     public:
         explicit FirstPersonCameraController(Camera& camera, math::vec3 position = {0.0F, 0.0F, 0.0F}) noexcept;

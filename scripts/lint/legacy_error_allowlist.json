@@ -264,8 +264,7 @@
     "throw std::runtime_error{\"OpenGLCommandEncoderProvider has no resource provider\"};": 1
   },
   "engine/rendering/src/backend/opengl/presentation_backend.cpp": {
-    "throw std::runtime_error(\"Failed to load OpenGL functions with GLAD\");": 1,
-    "throw std::runtime_error(\"RuntimePresentationContext.submit_render_graph must be set before presentation\");": 1
+    "throw std::runtime_error(\"Failed to load OpenGL functions with GLAD\");": 1
   },
   "engine/rendering/src/backend/opengl/render_resource_provider.cpp": {
     "throw std::invalid_argument(": 1,

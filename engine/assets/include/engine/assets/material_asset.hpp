@@ -65,6 +65,8 @@ namespace engine::assets
 
         MaterialCache();
 
+        using Base::for_each_asset;
+
         [[nodiscard]] const MaterialAsset& load(const MaterialAssetDescriptor& descriptor);
         [[nodiscard]] bool contains(const MaterialHandle& handle) const;
         [[nodiscard]] const MaterialAsset& get(const MaterialHandle& handle) const;

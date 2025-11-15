@@ -2,6 +2,7 @@ set(target_name engine_tools)
 
 add_library(${target_name}
         src/api.cpp
+        src/editor/asset_browser_panel.cpp
         src/editor/runtime_panel_bridge.cpp
         src/editor/scene_hierarchy_panel.cpp
         src/profiling/profiler.cpp

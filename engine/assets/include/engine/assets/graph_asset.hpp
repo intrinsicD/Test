@@ -65,6 +65,8 @@ namespace engine::assets
 
         using HotReloadCallback = std::function<void(const GraphAsset&)>;
 
+        using Base::for_each_asset;
+
         [[nodiscard]] const GraphAsset& load(const GraphAssetDescriptor& descriptor);
         [[nodiscard]] bool contains(const GraphHandle& handle) const;
         [[nodiscard]] const GraphAsset& get(const GraphHandle& handle) const;
