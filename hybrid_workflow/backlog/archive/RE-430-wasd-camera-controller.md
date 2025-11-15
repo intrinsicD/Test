@@ -1,7 +1,7 @@
 ---
 id: RE-430
 title: Implement WASD first-person camera movement controller
-status: review
+status: done
 priority: P1
 area: rendering
 size: S
@@ -116,6 +116,8 @@ class WasdCameraController final : public engine::rendering::FirstPersonCameraCo
    - Documentation validation succeeded via `python scripts/validate_docs.py`.
 7. [x] Prepare PR with summary referencing this task file.
    - Drafted PR "Add WASD first-person camera controller" referencing this backlog entry.
+8. [x] Update roadmap/backlog metadata and archive the task once merged.
+   - Hybrid workflow roadmap now tracks `RE-430` under the archived bundle entry with the latest completion timestamp.
 
 ---
 
