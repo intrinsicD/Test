@@ -1,4 +1,5 @@
 add_executable(test_tools_module
+        test_asset_browser_panel.cpp
         test_module.cpp
         test_profiler.cpp
         test_experiment_sandbox.cpp

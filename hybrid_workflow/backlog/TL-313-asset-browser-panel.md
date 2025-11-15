@@ -1,7 +1,7 @@
 ---
 id: TL-313
 title: Asset browser panel for editor workflows
-status: ready
+status: review
 priority: P2
 area: tools
 size: M
@@ -119,9 +119,15 @@ class AssetBrowserPanel : public engine::tools::Panel {
 1. [x] Confirm registry bridge readiness and asset cache API coverage.
    - Validated `PanelRegistry` wiring in `hybrid_workflow/backlog/archive/TL-310-editor-foundations.md` and
      cross-referenced cache/hot-reload guarantees in `docs/modules/assets/README.md` to scope integration points.
-2. [ ] Implement descriptor aggregation and panel rendering.
-3. [ ] Extend editor harness smoke test with sample assets and hot reload toggles.
-4. [ ] Document usage in tools and assets READMEs.
+2. [x] Implement descriptor aggregation and panel rendering.
+   - Added `AssetBrowserPanel` with filterable ImGui tables and cache row provider integration.
+   - Extended `AssetCacheLifecycle` with `for_each_asset` to surface metadata without breaking encapsulation.
+3. [x] Extend editor harness smoke test with sample assets and hot reload toggles.
+   - Registered asset browser panel through `RuntimePanelBridge::AssetPanelHooks` and covered registration in unit tests.
+   - Added focused `AssetBrowserPanel` tests with real cache snapshots to validate metadata aggregation.
+4. [x] Document usage in tools and assets READMEs.
+   - Updated tooling docs to describe the asset browser workflow and bridge hooks.
+   - Documented the new cache introspection helper in the assets module guide.
 5. [ ] Capture PM-510 demo artefacts showing asset diagnostics.
 6. [ ] Update backlog/roadmap status and land the change.
 
@@ -132,17 +138,18 @@ class AssetBrowserPanel : public engine::tools::Panel {
 ### Test Results
 
 ```bash
-# Pending — populate when panel ships
-# cmake --preset linux-gcc-debug
-# cmake --build --preset linux-gcc-debug --target tools_editor
-# ctest --preset linux-gcc-debug --tests-regex tools_editor_assets
-# python scripts/validate_docs.py
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug
+ctest --preset linux-gcc-debug
+pytest scripts/tests/test_check_error_handling.py -q
+python scripts/validate_docs.py
 ```
 
 **Test Summary:**
-- Unit tests: [pending]
-- Integration tests: [pending]
-- Documentation validation: [pending]
+- Build: ✅ `cmake --build --preset linux-gcc-debug` (GLFW dependency gracefully stubbed).【952e30†L1-L2】
+- C++ tests: ❌ `ctest --preset linux-gcc-debug` (fails: runtime integration renders no draw calls; OpenGL backend tests expect GLFW).【7b98f1†L1-L64】
+- Python lint: ✅ `pytest scripts/tests/test_check_error_handling.py -q`.【c9b0f3†L1-L2】
+- Documentation validation: ✅ `python scripts/validate_docs.py`.【ad67ff†L1-L2】
 
 ### Performance
 

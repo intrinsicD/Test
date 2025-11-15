@@ -36,13 +36,15 @@ namespace engine::tools::editor
         DiagnosticsProvider diagnostics_provider,
         SceneValidationProvider scene_validation_provider,
         Renderers renderers,
-        HierarchyPanelHooks hierarchy_hooks
+        HierarchyPanelHooks hierarchy_hooks,
+        AssetPanelHooks asset_hooks
     )
         : registry_(&registry)
         , diagnostics_provider_(std::move(diagnostics_provider))
         , scene_validation_provider_(std::move(scene_validation_provider))
         , renderers_(std::move(renderers))
         , hierarchy_hooks_(std::move(hierarchy_hooks))
+        , asset_hooks_(std::move(asset_hooks))
     {
         if (!renderers_.diagnostics)
         {
@@ -110,6 +112,24 @@ namespace engine::tools::editor
                 *registry_,
                 *hierarchy_panel_,
                 "editor.scene_hierarchy"
+            );
+        }
+
+        if (registry_ && asset_hooks_.row_provider)
+        {
+            asset_panel_ = std::make_unique<AssetBrowserPanel>();
+            asset_handle_ = registry_->register_scoped_panel(
+                "editor.asset_browser",
+                [this](const imgui::PanelRenderContext& context) {
+                    if (!asset_panel_)
+                    {
+                        return;
+                    }
+
+                    auto rows = asset_hooks_.row_provider();
+                    asset_panel_->set_rows(std::move(rows));
+                    asset_panel_->render(context);
+                }
             );
         }
     }

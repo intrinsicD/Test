@@ -64,6 +64,8 @@ namespace engine::assets
 
         using HotReloadCallback = std::function<void(const MeshAsset&)>;
 
+        using Base::for_each_asset;
+
         [[nodiscard]] const MeshAsset& load(const MeshAssetDescriptor& descriptor);
         [[nodiscard]] bool contains(const MeshHandle& handle) const;
         [[nodiscard]] const MeshAsset& get(const MeshHandle& handle) const;

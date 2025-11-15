@@ -9,6 +9,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <functional>
 #include <filesystem>
 #include <iterator>
 #include <mutex>
@@ -253,6 +254,16 @@ namespace engine::assets::detail
                     }
                     register_watch_locked(handle, asset);
                 }
+            });
+        }
+
+        template <typename Visitor>
+        void for_each_asset(Visitor&& visitor) const
+        {
+            std::scoped_lock lock{mutex_};
+            assets_.for_each([&](const RawHandle& handle, const Asset& asset)
+            {
+                std::invoke(visitor, handle, asset);
             });
         }
 

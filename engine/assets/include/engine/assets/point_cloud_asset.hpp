@@ -66,6 +66,8 @@ namespace engine::assets
 
         using HotReloadCallback = std::function<void(const PointCloudAsset&)>;
 
+        using Base::for_each_asset;
+
         [[nodiscard]] const PointCloudAsset& load(const PointCloudAssetDescriptor& descriptor);
         [[nodiscard]] bool contains(const PointCloudHandle& handle) const;
         [[nodiscard]] const PointCloudAsset& get(const PointCloudHandle& handle) const;

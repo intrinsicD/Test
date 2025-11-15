@@ -8,6 +8,7 @@
 
 #include <entt/entt.hpp>
 
+#include "engine/tools/editor/asset_browser_panel.hpp"
 #include "engine/tools/editor/scene_hierarchy_panel.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
 
@@ -52,12 +53,19 @@ namespace engine::tools::editor
             HierarchySelectionCallback selection_callback;
         };
 
+        struct AssetPanelHooks
+        {
+            using RowProvider = std::function<std::vector<AssetBrowserPanel::AssetDescriptorRow>()>;
+            RowProvider row_provider;
+        };
+
         RuntimePanelBridge(
             imgui::PanelRegistry& registry,
             DiagnosticsProvider diagnostics_provider,
             SceneValidationProvider scene_validation_provider = SceneValidationProvider{},
             Renderers renderers = Renderers{},
-            HierarchyPanelHooks hierarchy_hooks = HierarchyPanelHooks{}
+            HierarchyPanelHooks hierarchy_hooks = HierarchyPanelHooks{},
+            AssetPanelHooks asset_hooks = AssetPanelHooks{}
         );
 
         /// Render all registered panels using \p delta_time for the render context.
@@ -81,6 +89,9 @@ namespace engine::tools::editor
         HierarchyPanelHooks hierarchy_hooks_{};
         std::unique_ptr<SceneHierarchyPanel> hierarchy_panel_{};
         imgui::PanelRegistry::RegistrationHandle hierarchy_handle_{};
+        AssetPanelHooks asset_hooks_{};
+        std::unique_ptr<AssetBrowserPanel> asset_panel_{};
+        imgui::PanelRegistry::RegistrationHandle asset_handle_{};
     };
 } // namespace engine::tools::editor
 

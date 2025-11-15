@@ -393,10 +393,14 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   the runtime, sandbox UI, and future editor reuse diagnostics/presentation surfaces without duplicating layout code. RAII
   registration handles automatically unregister panels when editor modules tear down, and C++ tests exercise registration,
   ordering, and invocation semantics until the editor build is re-enabled (`TL-310`).
-- `engine::tools::editor::RuntimePanelBridge` registers runtime diagnostics, profiler, and scene validation panels with the
-  shared registry and exposes a single `render_all()` entry point for the editor harness.
+- `engine::tools::editor::RuntimePanelBridge` registers runtime diagnostics, profiler, scene validation, and asset browser
+  panels with the shared registry and exposes a single `render_all()` entry point for the editor harness. Consumers provide
+  cache adapters through `AssetPanelHooks` so the bridge refreshes asset metadata every frame while respecting feature toggles.
 - `engine::tools::editor::SceneHierarchyPanel` visualises the runtime `scene::Scene` graph, lazily expands entity trees, and
   surfaces hierarchy validation issues inline so tooling teams can triage structure problems without leaving the editor.
+- `engine::tools::editor::AssetBrowserPanel` enumerates loaded asset caches through the new introspection helpers, applies
+  deterministic sorting and text filtering, and renders metadata via Dear ImGui tables with list clipping so large datasets stay
+  interactive.
 - `scripts/tests/test_editor_smoke.py` runs the compiled `test_tools_module` binary with GoogleTest filters to validate the
   sandbox configuration loader, panel registry, and runtime panel bridge in a headless smoke scenario.
 
