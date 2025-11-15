@@ -33,7 +33,11 @@ class TaskMetadata:
     status: str
     priority: str
     owner: str
+    area: str = ""
+    size: str = ""
     relates_to: Tuple[str, ...] = ()
+    gates: Tuple[str, ...] = ()
+    blocked_on: Tuple[str, ...] = ()
 
     @property
     def relative_path(self) -> Path:
@@ -61,8 +65,12 @@ def _task_from_metadata(task: TaskMetadata) -> hw_task_status.Task:
         title=task.title,
         status=task.status,
         priority=task.priority,
+        area=task.area,
+        size=task.size,
         owner=task.owner,
+        gates=list(task.gates),
         relates_to=list(task.relates_to),
+        blocked_on=list(task.blocked_on),
     )
     hw_task.file_path = task.path
     return hw_task
@@ -81,7 +89,11 @@ def _metadata_from_task(task: hw_task_status.Task) -> TaskMetadata:
         status=task.status,
         priority=task.priority,
         owner=task.owner,
+        area=task.area,
+        size=task.size,
         relates_to=tuple(task.relates_to),
+        gates=tuple(task.gates),
+        blocked_on=tuple(task.blocked_on),
     )
 
 
