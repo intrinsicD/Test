@@ -9,7 +9,7 @@ owner: agent-orchestrator
 gates: [docs]
 relates_to: [bundle:B]
 blocked_on: []
-links: ["hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md", "hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md", "hybrid_workflow/backlog/TL-312-performance-metrics-panel.md", "hybrid_workflow/backlog/TL-313-asset-browser-panel.md", "hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md"]
+links: ["hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md", "hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md", "hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md", "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md", "hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md", "hybrid_workflow/backlog/TL-312-performance-metrics-panel.md", "hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md", "hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md"]
 ---
 
 # Task PM-510 — Weekly GPU Integration Demos
@@ -67,10 +67,12 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 
 1. [ ] Publish standing invitation, agenda template, and rotation schedule.
 2. [ ] Capture weekly demo artefacts (notes, telemetry, recordings) and index them below.
-   - (2026-04-26) Added TL-310 editor foundations walkthrough to the 2026-05-02 agenda, linked the latest smoke-test evidence,
-     and assigned rehearsal owners so recordings/docs can be published within 24 hours of the session.
-   - (2026-04-28) Scheduled TL-311 scene hierarchy diagnostics preview for the 2026-05-09 cadence, linking new editor panel
-     tests/docs so Tools + Runtime leads can rehearse selection/validation hand-off ahead of demo.
+ - (2026-04-26) Added TL-310 editor foundations walkthrough to the 2026-05-02 agenda, linked the latest smoke-test evidence,
+    and assigned rehearsal owners so recordings/docs can be published within 24 hours of the session.
+  - (2026-04-28) Scheduled TL-311 scene hierarchy diagnostics preview for the 2026-05-09 cadence, linking new editor panel
+    tests/docs so Tools + Runtime leads can rehearse selection/validation hand-off ahead of demo.
+  - (2026-05-16) Captured TL-313 asset browser walkthrough with cache introspection metrics, logged in
+    `telemetry/pm510_demo_priority-asset-browser.json`, and aligned docs/roadmap references post-demo.
 3. [ ] Update roadmap, README module status, and affected task files after each demo.
 4. [ ] Log blockers and spawn follow-up tasks when scope exceeds meeting bandwidth.
 5. [ ] Review cadence effectiveness monthly and adjust participants or frequency as needed.
@@ -90,6 +92,7 @@ Operate a weekly integration cadence that synchronises GPU, runtime, and tooling
 | P1-modular-pipeline | Modular render pipeline planner | `telemetry/pm510_demo_priority-modular-render-pipeline.json`, `docs/modules/rendering/graphs/deferred_pbr.dot` | Recorded queue scheduling telemetry and published DOT snapshot covering the deferred baseline. |
 | P1-tools | Editor foundations walkthrough (scheduled 2026-05-02) | `scripts/tests/test_editor_smoke.py` logs, TL-310 doc refresh links | Agenda locked with tools lead; rehearsal on 2026-04-29 |
 | P1-tools-hierarchy | Scene hierarchy diagnostics panel walkthrough (scheduled 2026-05-09) | `engine/tools/tests/test_scene_hierarchy_panel.cpp`, `docs/modules/tools/README.md`, `docs/modules/scene/README.md` updates | Panel code/tests landed; rehearsal will exercise runtime selection + validation overlay |
+| P1-tools-asset-browser | Asset browser cache introspection demo | `telemetry/pm510_demo_priority-asset-browser.json`, `docs/modules/tools/README.md`, `docs/modules/assets/README.md` refresh | Confirmed live hot-reload signals, profiler scope, and metadata coverage for TL-313 |
 | _ongoing_ | — | — | Populate as demos continue |
 
 ### Documentation Validation
