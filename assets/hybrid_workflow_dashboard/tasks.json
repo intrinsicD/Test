@@ -133,7 +133,7 @@
         "bundle:B"
       ],
       "size": "M",
-      "status": "new",
+      "status": "in_progress",
       "title": "Telemetry visualization panel for runtime diagnostics"
     }
   ]

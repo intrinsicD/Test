@@ -1,7 +1,7 @@
 ---
 id: TL-314
 title: Telemetry visualization panel for runtime diagnostics
-status: new
+status: in_progress
 priority: P2
 area: tools
 size: M
@@ -115,7 +115,9 @@ class TelemetryVisualizationPanel : public engine::tools::Panel {
 
 ## Steps
 
-1. [ ] Audit telemetry streaming APIs and viewer CLI integration points.
+1. [x] Audit telemetry streaming APIs and viewer CLI integration points.
+   - Reviewed `docs/modules/tools/README.md`, `docs/modules/runtime/README.md`, and the `telemetry/pm510_demo_priority-stage-planner.json` capture to catalogue counters that must surface in the panel and to confirm schema alignment with the telemetry viewer CLI.
+   - Confirmed the editor harness inherits the telemetry stream published by TL-310 and that the existing Python viewer can provide export hooks for evidence capture.
 2. [ ] Implement data adapters, decimation logic, and panel rendering widgets.
 3. [ ] Extend editor harness smoke tests to cover telemetry streaming scenarios.
 4. [ ] Document usage in tools and runtime READMEs, including alert configuration guidance.
