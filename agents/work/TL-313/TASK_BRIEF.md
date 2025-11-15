@@ -5,7 +5,7 @@
 
 ## 1. Summary
 - **Title:** Ship asset browser panel for hybrid editor workflow
-- **Roadmap / Backlog Reference:** [`hybrid_workflow/backlog/TL-313-asset-browser-panel.md`](../../hybrid_workflow/backlog/TL-313-asset-browser-panel.md)
+- **Roadmap / Backlog Reference:** [`hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md`](../../hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md)
 - **Primary Goal:** Deliver an ImGui asset browser panel that surfaces cached asset metadata, filtering, and hot reload status for demo operators.
 - **Linked Workflow Artefacts:**
   - Task brief: (this document)
@@ -46,7 +46,7 @@
 | 1 | [`README.md`](../../README.md) | Confirms module layout and hybrid workflow emphasis. | tools-lead |
 | 2 | [`docs/NAVIGATION.md`](../../docs/NAVIGATION.md) | Located tooling & assets documentation anchors for updates. | knowledge-librarian |
 | 3 | [`docs/ROADMAP.md`](../../docs/ROADMAP.md) | Bundle B requires tooling panels; TL-313 is active. | knowledge-librarian |
-| 4 | [`hybrid_workflow/backlog/TL-313-asset-browser-panel.md`](../../hybrid_workflow/backlog/TL-313-asset-browser-panel.md) | Acceptance criteria specify metadata coverage, filters, docs/tests updates. | tools-lead |
+| 4 | [`hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md`](../../hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md) | Acceptance criteria specify metadata coverage, filters, docs/tests updates. | tools-lead |
 | 5 | [`docs/modules/tools/README.md`](../../docs/modules/tools/README.md) | ImGui patterns, panel registry usage, profiling expectations. | specialist-engineer |
 | 5 | [`docs/modules/assets/README.md`](../../docs/modules/assets/README.md) | Cache invariants, telemetry, handle validation constraints. | specialist-engineer |
 | 6 | [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) | Editor/runtime separation, panel registration responsibilities. | specialist-engineer |

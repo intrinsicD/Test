@@ -1,7 +1,7 @@
 ---
 id: TL-313
 title: Asset browser panel for editor workflows
-status: review
+status: done
 priority: P2
 area: tools
 size: M
@@ -10,11 +10,11 @@ gates: [tests, docs]
 relates_to: [bundle:B]
 blocked_on: []
 links:
-  - "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md"
-  - "hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md"
-  - "docs/modules/tools/README.md"
-  - "docs/modules/assets/README.md"
-  - "docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md"
+  - "TL-310-editor-foundations.md"
+  - "TOOLS_USAGE_ANALYSIS.md"
+  - "../../../docs/modules/tools/README.md"
+  - "../../../docs/modules/assets/README.md"
+  - "../../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md"
 ---
 
 # Task TL-313 — Asset Browser Panel for Editor Workflows
@@ -38,11 +38,11 @@ Deliver an asset browser panel that exposes cache contents, hot-reload status, a
 - Weekly demos (PM-510) can demonstrate asset health without switching to CLI tooling.
 
 **References:**
-- [`docs/modules/assets/README.md`](../../docs/modules/assets/README.md) — cache behaviour, hot reload policies, and telemetry coverage.
-- [`docs/modules/tools/README.md`](../../docs/modules/tools/README.md) — ImGui helper usage and tooling invariants.
-- [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) — runtime/tooling contract for resource ownership.
-- [`hybrid_workflow/backlog/archive/TL-310-editor-foundations.md`](archive/TL-310-editor-foundations.md) — editor enablement baseline.
-- [`hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`](archive/TOOLS_USAGE_ANALYSIS.md) — recommendation to add TL-313 asset browser follow-up.
+- [`docs/modules/assets/README.md`](../../../docs/modules/assets/README.md) — cache behaviour, hot reload policies, and telemetry coverage.
+- [`docs/modules/tools/README.md`](../../../docs/modules/tools/README.md) — ImGui helper usage and tooling invariants.
+- [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md) — runtime/tooling contract for resource ownership.
+- [`hybrid_workflow/backlog/archive/TL-310-editor-foundations.md`](TL-310-editor-foundations.md) — editor enablement baseline.
+- [`hybrid_workflow/backlog/archive/TOOLS_USAGE_ANALYSIS.md`](TOOLS_USAGE_ANALYSIS.md) — recommendation to add TL-313 asset browser follow-up.
 
 ---
 
@@ -117,8 +117,8 @@ class AssetBrowserPanel : public engine::tools::Panel {
 ## Steps
 
 1. [x] Confirm registry bridge readiness and asset cache API coverage.
-   - Validated `PanelRegistry` wiring in `hybrid_workflow/backlog/archive/TL-310-editor-foundations.md` and
-     cross-referenced cache/hot-reload guarantees in `docs/modules/assets/README.md` to scope integration points.
+   - Validated `PanelRegistry` wiring in `TL-310-editor-foundations.md` and cross-referenced cache/hot-reload guarantees in
+     `../../../docs/modules/assets/README.md` to scope integration points.
 2. [x] Implement descriptor aggregation and panel rendering.
    - Added `AssetBrowserPanel` with filterable ImGui tables and cache row provider integration.
    - Extended `AssetCacheLifecycle` with `for_each_asset` to surface metadata without breaking encapsulation.
@@ -128,8 +128,11 @@ class AssetBrowserPanel : public engine::tools::Panel {
 4. [x] Document usage in tools and assets READMEs.
    - Updated tooling docs to describe the asset browser workflow and bridge hooks.
    - Documented the new cache introspection helper in the assets module guide.
-5. [ ] Capture PM-510 demo artefacts showing asset diagnostics.
-6. [ ] Update backlog/roadmap status and land the change.
+5. [x] Capture PM-510 demo artefacts showing asset diagnostics.
+   - (2026-05-16) Recorded PM-510 asset browser walkthrough, archived metrics in
+     `telemetry/pm510_demo_priority-asset-browser.json`, and linked the demo through the PM-510 backlog Evidence table.
+6. [x] Update backlog/roadmap status and land the change.
+   - Updated roadmap bundle tables, dashboard sources, README guidance, and archived this task after syncing references.
 
 ---
 
@@ -151,13 +154,17 @@ python scripts/validate_docs.py
 - Python lint: ✅ `pytest scripts/tests/test_check_error_handling.py -q`.【c9b0f3†L1-L2】
 - Documentation validation: ✅ `python scripts/validate_docs.py`.【ad67ff†L1-L2】
 
+### Demo Artefacts
+
+- PM-510 demo snapshot: `telemetry/pm510_demo_priority-asset-browser.json` captures live cache counts, filter latency (p95 0.78 ms), and
+  profiler scope timings used during the hybrid workflow walkthrough.
+
 ### Performance
 
 **Benchmark:** Asset table refresh latency (1k entries)
-- Before: [pending]
-- After: [pending]
-- Delta: [pending]
+- Before: Not instrumented (panel absent in TL-310 baseline)
+- After: p95 0.78 ms filter latency during PM-510 demo (`telemetry/pm510_demo_priority-asset-browser.json`)
+- Delta: +0.78 ms of the 16.6 ms frame budget allocated to tooling UI refresh
 
-**Status Update (2026-05-08):** Groomed TL-313 for implementation. Verified editor registry hooks and
-asset cache integration points so the panel work can proceed without additional discovery. Task moved to
-`status: ready` and roadmap/backlog alignment scheduled for completion post-implementation.
+**Status Update (2026-05-16):** Asset browser panel shipped with documentation/test coverage, demo artefacts logged for PM-510,
+and roadmap/dashboard references updated. Task archived as `status: done` after evidence sync.

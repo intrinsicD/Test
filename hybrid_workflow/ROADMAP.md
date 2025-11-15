@@ -28,7 +28,7 @@
 - [ ] **PM-510** — Weekly integration demos → `hybrid_workflow/backlog/PM-510-weekly-integration-demos.md`
 - [x] **TL-311** — Scene hierarchy panel → `hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md`
 - [ ] **TL-312** — Performance metrics panel *(In Progress — panel implementation kicked off 2026-05-07)* → `hybrid_workflow/backlog/TL-312-performance-metrics-panel.md`
-- [ ] **TL-313** — Asset browser panel *(Ready — grooming completed 2026-05-08)* → `hybrid_workflow/backlog/TL-313-asset-browser-panel.md`
+- [x] **TL-313** — Asset browser panel *(Shipped 2026-05-16 with PM-510 demo artefacts)* → `hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md`
 - [ ] **TL-314** — Telemetry visualization panel → `hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md`
 
 **Success Criteria:**

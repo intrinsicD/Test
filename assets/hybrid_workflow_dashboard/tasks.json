@@ -67,7 +67,7 @@
         "hybrid_workflow/backlog/archive/TL-310-editor-foundations.md",
         "hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md",
         "hybrid_workflow/backlog/TL-312-performance-metrics-panel.md",
-        "hybrid_workflow/backlog/TL-313-asset-browser-panel.md",
+        "hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md",
         "hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md"
       ],
       "owner": "agent-orchestrator",
@@ -101,7 +101,7 @@
     {
       "area": "tools",
       "blocked_on": [],
-      "file": "hybrid_workflow/backlog/TL-313-asset-browser-panel.md",
+      "file": "hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md",
       "gates": [
         "tests",
         "docs"
@@ -114,7 +114,7 @@
         "bundle:B"
       ],
       "size": "M",
-      "status": "new",
+      "status": "done",
       "title": "Asset browser panel for editor workflows"
     },
     {
