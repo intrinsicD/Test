@@ -122,6 +122,7 @@ def filter_tasks(
     area: Optional[str] = None,
     size: Optional[str] = None,
     gates: Optional[Sequence[str]] = None,
+    search_terms: Optional[Sequence[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[TaskMetadata]:
     """Apply CLI filters to the task list."""
@@ -137,6 +138,7 @@ def filter_tasks(
         owner=owner,
         relates_to=list(relates_to) if relates_to else None,
         gates=list(gates) if gates else None,
+        search_terms=list(search_terms) if search_terms else None,
         blocked_only=blocked_only,
     )
 
@@ -165,6 +167,7 @@ def select_next_actions(
     area: Optional[str] = None,
     size: Optional[str] = None,
     gates: Optional[Sequence[str]] = None,
+    search_terms: Optional[Sequence[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[TaskMetadata]:
     """Return the highest-priority ready tasks (or new tasks if none are ready)."""
@@ -183,6 +186,7 @@ def select_next_actions(
         owner=owner,
         relates_to=list(relates_to) if relates_to else None,
         gates=list(gates) if gates else None,
+        search_terms=list(search_terms) if search_terms else None,
         blocked_only=blocked_only,
     )
 
@@ -283,6 +287,16 @@ def parse_args() -> argparse.Namespace:
             "and matches tasks containing every provided gate."
         ),
     )
+    parser.add_argument(
+        "--search",
+        metavar="TERM",
+        action="append",
+        nargs="+",
+        help=(
+            "Require each provided term to appear in the task metadata. Terms match against "
+            "ID, title, owner, area, status, priority, gates, and relates_to (case-insensitive)."
+        ),
+    )
     blocked_group = parser.add_mutually_exclusive_group()
     blocked_group.add_argument(
         "--blocked",
@@ -334,6 +348,10 @@ def main() -> None:
     if args.gate:
         gates_filter = [gate for group in args.gate for gate in group]
 
+    search_terms: Optional[List[str]] = None
+    if args.search:
+        search_terms = [term for group in args.search for term in group]
+
     blocked_only: Optional[bool] = None
     if args.blocked:
         blocked_only = True
@@ -350,6 +368,7 @@ def main() -> None:
             owner=args.owner,
             relates_to=relates_to_filter,
             gates=gates_filter,
+            search_terms=search_terms,
             blocked_only=blocked_only,
         )
     else:
@@ -362,6 +381,7 @@ def main() -> None:
             area=args.area,
             size=args.size,
             gates=gates_filter,
+            search_terms=search_terms,
             blocked_only=blocked_only,
         )
     print(render(filtered, args.format))

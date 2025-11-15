@@ -318,6 +318,40 @@ def test_filter_tasks_relates_to_is_case_insensitive() -> None:
     assert [task.identifier for task in filtered] == ["HW-113"]
 
 
+def test_filter_tasks_can_match_search_terms() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "docs-task.md",
+            identifier="HW-130",
+            title="Docs task",
+            status="ready",
+            priority="P1",
+            owner="docs-devrel",
+            area="docs",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "runtime-task.md",
+            identifier="HW-131",
+            title="Runtime task",
+            status="ready",
+            priority="P2",
+            owner="runtime-lead",
+            area="runtime",
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        search_terms=("docs",),
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-130"]
+
+
 def test_parse_args_supports_relates_to(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         sys,
@@ -374,6 +408,25 @@ def test_parse_args_supports_gate_and_blocked_flags(monkeypatch: pytest.MonkeyPa
     assert args.gate == [["tests", "docs"]]
     assert args.blocked is True
     assert args.unblocked is False
+
+
+def test_parse_args_supports_search_terms(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "report_hybrid_status",
+            "--search",
+            "docs",
+            "panel",
+            "--search",
+            "P1",
+        ],
+    )
+
+    args = rhs.parse_args()
+
+    assert args.search == [["docs", "panel"], ["P1"]]
 
 
 def test_render_table_with_no_results_returns_message() -> None:

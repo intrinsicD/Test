@@ -91,6 +91,11 @@ python hybrid_workflow/task_status.py --next-actions --limit 3 --owner tools-lea
 python -m scripts.workflow.report_hybrid_status --relates-to bundle:C
 python -m scripts.workflow.report_hybrid_status --relates-to bundle:A bundle:D
 
+# Keyword search across metadata (ID, title, owner, area, gates, etc.)
+python hybrid_workflow/task_status.py --search docs
+python hybrid_workflow/task_status.py --search docs --search P1
+python -m scripts.workflow.report_hybrid_status --search docs panel
+
 # List all tasks
 python hybrid_workflow/task_status.py
 

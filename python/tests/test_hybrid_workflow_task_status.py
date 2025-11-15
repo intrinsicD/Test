@@ -178,6 +178,14 @@ def test_build_parser_supports_include_archived_flag() -> None:
     assert args.include_archived is True
 
 
+def test_build_parser_supports_search_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--search', 'docs', '--search', 'P1'])
+
+    assert args.search == ['docs', 'P1']
+
+
 def test_build_parser_supports_repeating_status_flag() -> None:
     parser = task_status.build_parser()
 
@@ -205,6 +213,52 @@ def test_filter_tasks_supports_relates_to_matching() -> None:
     filtered = task_status.filter_tasks(tasks, relates_to=['bundle:B'])
 
     assert [task.id for task in filtered] == ['B']
+
+
+def test_filter_tasks_supports_search_terms() -> None:
+    tasks = [
+        _make_task(
+            'DOCS-1',
+            blocked=False,
+            owner='docs-devrel',
+            area='docs',
+            priority='P1',
+        ),
+        _make_task(
+            'RT-1',
+            blocked=False,
+            owner='runtime-lead',
+            area='runtime',
+            priority='P2',
+        ),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, search_terms=['docs'])
+
+    assert [task.id for task in filtered] == ['DOCS-1']
+
+
+def test_filter_tasks_requires_all_search_terms() -> None:
+    tasks = [
+        _make_task(
+            'DOCS-1',
+            blocked=False,
+            owner='docs-devrel',
+            area='docs',
+            priority='P1',
+        ),
+        _make_task(
+            'DOCS-2',
+            blocked=False,
+            owner='docs-devrel',
+            area='docs',
+            priority='P2',
+        ),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, search_terms=['docs', 'p1'])
+
+    assert [task.id for task in filtered] == ['DOCS-1']
 
 
 def test_filter_tasks_supports_multiple_status_values() -> None:

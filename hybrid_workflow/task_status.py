@@ -15,11 +15,12 @@ and blocker metadata:
 .. code-block:: bash
 
    python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY]
-                                        [--area AREA] [--owner OWNER]
-                                        [--gate GATE ...]
-                                        [--relates-to TAG ...]
-                                        [--blocked | --unblocked]
-                                        [--format {table,json}]
+                                         [--area AREA] [--owner OWNER]
+                                         [--gate GATE ...]
+                                         [--relates-to TAG ...]
+                                         [--search TERM ...]
+                                         [--blocked | --unblocked]
+                                         [--format {table,json}]
 
 Invoke ``--summary`` for aggregate statistics, ``--detail`` with a task ID to
 inspect a single record, and ``--format json`` to emit machine-readable
@@ -383,6 +384,7 @@ def filter_tasks(
     owner: Optional[str] = None,
     relates_to: Optional[List[str]] = None,
     gates: Optional[List[str]] = None,
+    search_terms: Optional[Iterable[str]] = None,
     *,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
@@ -422,6 +424,30 @@ def filter_tasks(
             if relates_lower.intersection({value.lower() for value in t.relates_to})
         ]
 
+    if search_terms:
+        normalised_terms = [term.strip().lower() for term in search_terms if term]
+
+        if normalised_terms:
+            def _matches(term: str, task: Task) -> bool:
+                haystack_parts = [
+                    task.id,
+                    task.title,
+                    task.area,
+                    task.owner,
+                    task.status,
+                    task.priority,
+                    " ".join(task.relates_to),
+                    " ".join(task.gates),
+                ]
+                haystack = " ".join(part for part in haystack_parts if part).lower()
+                return term in haystack
+
+            filtered = [
+                task
+                for task in filtered
+                if all(_matches(term, task) for term in normalised_terms)
+            ]
+
     if blocked_only is True:
         filtered = [t for t in filtered if t.blocked_on]
     elif blocked_only is False:
@@ -440,6 +466,7 @@ def select_next_actions(
     owner: Optional[str] = None,
     gates: Optional[List[str]] = None,
     relates_to: Optional[List[str]] = None,
+    search_terms: Optional[Iterable[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
     """Return the highest-priority ready tasks, falling back to new tasks."""
@@ -456,6 +483,7 @@ def select_next_actions(
         owner=owner,
         gates=gates,
         relates_to=relates_to,
+        search_terms=search_terms,
         blocked_only=blocked_only,
     )
 
@@ -599,6 +627,15 @@ def build_parser() -> argparse.ArgumentParser:
             "Provide one or more tags; the filter matches tasks containing any tag."
         ),
     )
+    parser.add_argument(
+        '--search',
+        metavar='TERM',
+        action='append',
+        help=(
+            "Filter tasks whose metadata contains all provided terms. Matches "
+            "against ID, title, owner, area, status, priority, gates, and relates_to."
+        ),
+    )
 
     blocker_group = parser.add_mutually_exclusive_group()
     blocker_group.add_argument(
@@ -693,6 +730,8 @@ def main():
     if args.gate:
         gates = [gate for group in args.gate for gate in group]
 
+    search_terms = _normalise_filter_values(args.search)
+
     blocked_only = True if args.blocked else False if args.unblocked else None
 
     if args.next_actions:
@@ -706,6 +745,7 @@ def main():
                 owner=args.owner,
                 gates=gates,
                 relates_to=relates_to,
+                search_terms=search_terms,
                 blocked_only=blocked_only,
             )
         except ValueError as exc:
@@ -721,6 +761,7 @@ def main():
             owner=args.owner,
             relates_to=relates_to,
             gates=gates,
+            search_terms=search_terms,
             blocked_only=blocked_only,
         )
 
