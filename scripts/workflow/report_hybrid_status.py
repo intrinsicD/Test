@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Summarise hybrid workflow tasks using their YAML frontmatter.
+"""Report hybrid workflow task status.
 
-The script scans ``hybrid_workflow/backlog/`` (and optionally its ``archive/``
+This script queries the hybrid workflow backlog (``hybrid_workflow/backlog/``
 subdirectory) and prints either a human readable table or JSON summary grouped
 by task status.
 """
@@ -9,32 +9,18 @@ by task status.
 from __future__ import annotations
 
 import argparse
-import ast
 import collections
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
+
+from hybrid_workflow import task_status as hw_task_status
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BACKLOG_ROOT = REPO_ROOT / "hybrid_workflow" / "backlog"
-STATUS_ORDER = {
-    "new": 0,
-    "ready": 1,
-    "in_progress": 2,
-    "review": 3,
-    "done": 4,
-    "archived": 5,
-}
-
-PRIORITY_ORDER = {
-    "P0": 0,
-    "P1": 1,
-    "P2": 2,
-    "P3": 3,
-    "P4": 4,
-    "P5": 5,
-}
+STATUS_ORDER = hw_task_status.STATUS_ORDER
+PRIORITY_ORDER = hw_task_status.PRIORITY_ORDER
 
 
 @dataclass
@@ -67,125 +53,78 @@ class TaskMetadata:
         }
 
 
-def _normalise_relates_to(value: object) -> Tuple[str, ...]:
-    """Convert raw frontmatter `relates_to` metadata into a tuple of strings."""
+def _task_from_metadata(task: TaskMetadata) -> hw_task_status.Task:
+    """Convert :class:`TaskMetadata` into :class:`hw_task_status.Task`."""
 
-    if value is None:
-        return ()
-
-    if isinstance(value, (list, tuple, set)):
-        items = [str(item).strip() for item in value if str(item).strip()]
-        return tuple(items)
-
-    text = str(value).strip()
-    if not text:
-        return ()
-
-    if text.startswith("[") and text.endswith("]"):
-        text = text[1:-1]
-
-    tokens = [token.strip() for token in text.split(",") if token.strip()]
-    if tokens:
-        return tuple(tokens)
-
-    return (text,) if text else ()
+    hw_task = hw_task_status.Task(
+        id=task.identifier,
+        title=task.title,
+        status=task.status,
+        priority=task.priority,
+        owner=task.owner,
+        relates_to=list(task.relates_to),
+    )
+    hw_task.file_path = task.path
+    return hw_task
 
 
-def parse_frontmatter(path: Path) -> Dict[str, object]:
-    """Parse the YAML frontmatter section of a task file.
+def _metadata_from_task(task: hw_task_status.Task) -> TaskMetadata:
+    """Convert :class:`hw_task_status.Task` into :class:`TaskMetadata`."""
 
-    The template uses simple key-value pairs and inline lists; to avoid an
-    additional dependency we rely on ``ast.literal_eval`` for list parsing.
-    """
+    if task.file_path is None:
+        raise ValueError("task.file_path must be set to convert to TaskMetadata")
 
-    text = path.read_text(encoding="utf-8")
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        raise ValueError(f"{path} does not start with YAML frontmatter")
-
-    data: Dict[str, object] = {}
-    for line in lines[1:]:
-        stripped = line.strip()
-        if stripped == "---":
-            break
-        if not stripped or stripped.startswith("#"):
-            continue
-        if ":" not in stripped:
-            continue
-        key, raw_value = stripped.split(":", 1)
-        key = key.strip()
-        raw_value = raw_value.strip()
-        if not raw_value:
-            data[key] = ""
-            continue
-        if raw_value.startswith("[") and raw_value.endswith("]"):
-            try:
-                data[key] = ast.literal_eval(raw_value)
-            except (SyntaxError, ValueError):
-                items = [item.strip() for item in raw_value[1:-1].split(",") if item.strip()]
-                data[key] = items
-            continue
-        if raw_value.startswith(('"', "'")) and raw_value.endswith(('"', "'")):
-            raw_value = raw_value[1:-1]
-        data[key] = raw_value
-    return data
+    return TaskMetadata(
+        path=task.file_path,
+        identifier=task.id,
+        title=task.title,
+        status=task.status,
+        priority=task.priority,
+        owner=task.owner,
+        relates_to=tuple(task.relates_to),
+    )
 
 
 def collect_tasks(include_archived: bool) -> List[TaskMetadata]:
     """Load task metadata from backlog files."""
 
-    candidates: List[Path] = sorted(BACKLOG_ROOT.glob("*.md"))
-    if include_archived:
-        candidates.extend(sorted((BACKLOG_ROOT / "archive").glob("*.md")))
+    tasks = hw_task_status.load_all_tasks(
+        BACKLOG_ROOT,
+        include_archived=include_archived,
+    )
 
-    tasks: List[TaskMetadata] = []
-    for path in candidates:
-        if path.name == "000-template.md":
-            continue
-        try:
-            meta = parse_frontmatter(path)
-        except ValueError as exc:  # pragma: no cover - defensive branch
-            raise SystemExit(str(exc))
-        tasks.append(
-            TaskMetadata(
-                path=path,
-                identifier=str(meta.get("id", "")),
-                title=str(meta.get("title", "")),
-                status=str(meta.get("status", "")).strip(),
-                priority=str(meta.get("priority", "")).strip(),
-                owner=str(meta.get("owner", "")).strip(),
-                relates_to=_normalise_relates_to(meta.get("relates_to")),
-            )
-        )
-    return tasks
+    return [_metadata_from_task(task) for task in tasks if task.file_path]
 
 
 def filter_tasks(
     tasks: Iterable[TaskMetadata],
-    status: Optional[str],
+    status: Optional[Union[str, Sequence[str]]],
     priority: Optional[str],
     owner: Optional[str],
     relates_to: Optional[Sequence[str]],
+    *,
+    area: Optional[str] = None,
+    size: Optional[str] = None,
+    gates: Optional[Sequence[str]] = None,
+    blocked_only: Optional[bool] = None,
 ) -> List[TaskMetadata]:
     """Apply CLI filters to the task list."""
 
-    filtered: List[TaskMetadata] = []
-    for task in tasks:
-        if status and task.status != status:
-            continue
-        if priority and task.priority != priority:
-            continue
-        if owner and task.owner != owner:
-            continue
-        if relates_to:
-            wanted = {tag.lower() for tag in relates_to if tag}
-            if not wanted:
-                continue
-            task_tags = {tag.lower() for tag in task.relates_to}
-            if not task_tags.intersection(wanted):
-                continue
-        filtered.append(task)
-    return filtered
+    hw_tasks = [_task_from_metadata(task) for task in tasks]
+
+    filtered = hw_task_status.filter_tasks(
+        hw_tasks,
+        status=status,
+        priority=priority,
+        area=area,
+        size=size,
+        owner=owner,
+        relates_to=list(relates_to) if relates_to else None,
+        gates=list(gates) if gates else None,
+        blocked_only=blocked_only,
+    )
+
+    return [_metadata_from_task(task) for task in filtered]
 
 
 def _priority_rank(priority: str) -> int:
@@ -200,27 +139,6 @@ def sort_key(task: TaskMetadata) -> tuple:
     )
 
 
-def _matches_filters(
-    task: TaskMetadata,
-    *,
-    priority: Optional[str],
-    owner: Optional[str],
-    relates_to: Optional[Sequence[str]],
-) -> bool:
-    if priority and task.priority != priority:
-        return False
-    if owner and task.owner != owner:
-        return False
-    if relates_to:
-        wanted = {tag.lower() for tag in relates_to if tag}
-        if not wanted:
-            return False
-        task_tags = {tag.lower() for tag in task.relates_to}
-        if not task_tags.intersection(wanted):
-            return False
-    return True
-
-
 def select_next_actions(
     tasks: Iterable[TaskMetadata],
     limit: int,
@@ -228,32 +146,31 @@ def select_next_actions(
     priority: Optional[str] = None,
     owner: Optional[str] = None,
     relates_to: Optional[Sequence[str]] = None,
+    area: Optional[str] = None,
+    size: Optional[str] = None,
+    gates: Optional[Sequence[str]] = None,
+    blocked_only: Optional[bool] = None,
 ) -> List[TaskMetadata]:
     """Return the highest-priority ready tasks (or new tasks if none are ready)."""
 
     if limit <= 0:
         raise ValueError("limit must be greater than zero")
 
-    task_list = list(tasks)
-    ready = [
-        task
-        for task in task_list
-        if task.status == "ready"
-        and _matches_filters(task, priority=priority, owner=owner, relates_to=relates_to)
-    ]
-    pool = ready
-    if not pool:
-        pool = [
-            task
-            for task in task_list
-            if task.status == "new"
-            and _matches_filters(task, priority=priority, owner=owner, relates_to=relates_to)
-        ]
-    if not pool:
-        return []
+    hw_tasks = [_task_from_metadata(task) for task in tasks]
 
-    ordered = sorted(pool, key=lambda task: (_priority_rank(task.priority), task.identifier))
-    return ordered[:limit]
+    selected = hw_task_status.select_next_actions(
+        hw_tasks,
+        limit,
+        priority=priority,
+        area=area,
+        size=size,
+        owner=owner,
+        relates_to=list(relates_to) if relates_to else None,
+        gates=list(gates) if gates else None,
+        blocked_only=blocked_only,
+    )
+
+    return [_metadata_from_task(task) for task in selected]
 
 
 def render_table(tasks: List[TaskMetadata]) -> str:
@@ -290,7 +207,9 @@ def render_table(tasks: List[TaskMetadata]) -> str:
     lines.extend(format_row(row) for row in rows)
     lines.append("")
     lines.append("Status counts:")
-    for status, count in sorted(counter.items(), key=lambda item: STATUS_ORDER.get(item[0], len(STATUS_ORDER))):
+    for status, count in sorted(
+        counter.items(), key=lambda item: STATUS_ORDER.get(item[0], len(STATUS_ORDER))
+    ):
         lines.append(f"  {status}: {count}")
     return "\n".join(lines)
 
@@ -367,9 +286,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     tasks = collect_tasks(include_archived=args.include_archived)
+
     relates_to_filter: Optional[List[str]] = None
     if args.relates_to:
         relates_to_filter = [tag for group in args.relates_to for tag in group]
+
     if args.next_actions:
         filtered = select_next_actions(
             tasks,
@@ -379,7 +300,13 @@ def main() -> None:
             relates_to=relates_to_filter,
         )
     else:
-        filtered = filter_tasks(tasks, args.status, args.priority, args.owner, relates_to_filter)
+        filtered = filter_tasks(
+            tasks,
+            args.status,
+            args.priority,
+            args.owner,
+            relates_to_filter,
+        )
     print(render(filtered, args.format))
 
 
