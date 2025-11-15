@@ -21,6 +21,7 @@ This directory contains the **hybrid workflow system** — a streamlined task ma
 6. **Plan migrations:** [`MIGRATION.md`](./MIGRATION.md) — deterministic process for porting legacy tasks
 7. **Pick a task:** [`ROADMAP.md`](./ROADMAP.md) — bundles and priorities
 8. **Use the template:** [`backlog/000-template.md`](./backlog/000-template.md) — task file structure
+9. **Search the backlog:** `python hybrid_workflow/task_status.py --search docs --search P1` — keyword search across metadata (ID, title, owner, gates, etc.)
 
 ### Sample Dashboard Snapshot
 
