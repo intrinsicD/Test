@@ -22,6 +22,10 @@ def _make_task(
     owner: str,
     *,
     relates_to: tuple[str, ...] = (),
+    area: str = "",
+    size: str = "",
+    gates: tuple[str, ...] = (),
+    blocked_on: tuple[str, ...] = (),
 ) -> rhs.TaskMetadata:
     return rhs.TaskMetadata(
         path=path,
@@ -31,6 +35,10 @@ def _make_task(
         priority=priority,
         owner=owner,
         relates_to=relates_to,
+        area=area,
+        size=size,
+        gates=gates,
+        blocked_on=blocked_on,
     )
 
 
@@ -141,6 +149,142 @@ def test_filter_tasks_can_match_relates_to_tags() -> None:
     assert [task.identifier for task in filtered] == ["HW-110"]
 
 
+def test_filter_tasks_can_match_area() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "area-alpha.md",
+            identifier="HW-120",
+            title="Area Alpha",
+            status="ready",
+            priority="P1",
+            owner="docs-devrel",
+            area="rendering",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "area-beta.md",
+            identifier="HW-121",
+            title="Area Beta",
+            status="ready",
+            priority="P1",
+            owner="docs-devrel",
+            area="docs",
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        area="rendering",
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-120"]
+
+
+def test_filter_tasks_can_match_size() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "size-alpha.md",
+            identifier="HW-122",
+            title="Size Alpha",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            size="S",
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "size-beta.md",
+            identifier="HW-123",
+            title="Size Beta",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            size="L",
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        size="S",
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-122"]
+
+
+def test_filter_tasks_require_all_requested_gates() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "gate-alpha.md",
+            identifier="HW-124",
+            title="Gate Alpha",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            gates=("tests", "docs"),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "gate-beta.md",
+            identifier="HW-125",
+            title="Gate Beta",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            gates=("tests",),
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        gates=("tests", "docs"),
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-124"]
+
+
+def test_filter_tasks_support_blocked_only_flag() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "blocked-alpha.md",
+            identifier="HW-126",
+            title="Blocked Alpha",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            blocked_on=("dependency",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "blocked-beta.md",
+            identifier="HW-127",
+            title="Blocked Beta",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            blocked_on=(),
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        blocked_only=True,
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-126"]
+
+
 def test_filter_tasks_relates_to_is_case_insensitive() -> None:
     tasks = [
         _make_task(
@@ -193,6 +337,45 @@ def test_parse_args_supports_relates_to(monkeypatch: pytest.MonkeyPatch) -> None
     assert args.relates_to == [["bundle:A", "bundle:C"], ["bundle:D"]]
 
 
+def test_parse_args_supports_area_and_size(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "report_hybrid_status",
+            "--area",
+            "rendering",
+            "--size",
+            "S",
+        ],
+    )
+
+    args = rhs.parse_args()
+
+    assert args.area == "rendering"
+    assert args.size == "S"
+
+
+def test_parse_args_supports_gate_and_blocked_flags(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "report_hybrid_status",
+            "--gate",
+            "tests",
+            "docs",
+            "--blocked",
+        ],
+    )
+
+    args = rhs.parse_args()
+
+    assert args.gate == [["tests", "docs"]]
+    assert args.blocked is True
+    assert args.unblocked is False
+
+
 def test_render_table_with_no_results_returns_message() -> None:
     output = rhs.render([], output_format="table")
     assert output == (
@@ -219,13 +402,17 @@ def test_render_json_reports_counts_and_tasks() -> None:
     assert payload["counts"] == {"by_status": {"ready": 1}, "total": 1}
     assert payload["tasks"] == [
         {
+            "area": "",
+            "blocked_on": [],
             "file": "hybrid_workflow/backlog/example.md",
+            "gates": [],
             "id": "HW-201",
             "owner": "tools",
             "priority": "P2",
+            "relates_to": ["bundle:C"],
+            "size": "",
             "status": "ready",
             "title": "Improve hybrid status reporter",
-            "relates_to": ["bundle:C"],
         }
     ]
 

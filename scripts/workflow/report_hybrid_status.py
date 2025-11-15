@@ -43,7 +43,7 @@ class TaskMetadata:
     def relative_path(self) -> Path:
         return self.path.relative_to(REPO_ROOT)
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, object]:
         """Return a JSON-serialisable representation of the task."""
 
         return {
@@ -52,6 +52,10 @@ class TaskMetadata:
             "status": self.status,
             "priority": self.priority,
             "owner": self.owner,
+            "area": self.area,
+            "size": self.size,
+            "gates": list(self.gates),
+            "blocked_on": list(self.blocked_on),
             "file": str(self.relative_path),
             "relates_to": list(self.relates_to),
         }
@@ -257,6 +261,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--status", help="Filter by exact status (e.g. ready, in_progress)")
     parser.add_argument("--priority", help="Filter by exact priority (e.g. P1, P2)")
     parser.add_argument("--owner", help="Filter by exact owner (e.g. docs-devrel, runtime-lead)")
+    parser.add_argument("--area", help="Filter by task area tag (e.g. rendering, docs)")
+    parser.add_argument("--size", help="Filter by task size classification (e.g. S, M, L)")
     parser.add_argument(
         "--relates-to",
         metavar="TAG",
@@ -266,6 +272,27 @@ def parse_args() -> argparse.Namespace:
             "Filter by roadmap bundle metadata stored in relates_to; accepts one or more "
             "tags and matches tasks containing any case-insensitive tag."
         ),
+    )
+    parser.add_argument(
+        "--gate",
+        metavar="GATE",
+        action="append",
+        nargs="+",
+        help=(
+            "Require tasks to include all specified quality gates; accepts multiple entries "
+            "and matches tasks containing every provided gate."
+        ),
+    )
+    blocked_group = parser.add_mutually_exclusive_group()
+    blocked_group.add_argument(
+        "--blocked",
+        action="store_true",
+        help="Show only tasks with one or more blocked_on entries.",
+    )
+    blocked_group.add_argument(
+        "--unblocked",
+        action="store_true",
+        help="Show only tasks with an empty blocked_on list.",
     )
     parser.add_argument(
         "--include-archived",
@@ -303,13 +330,27 @@ def main() -> None:
     if args.relates_to:
         relates_to_filter = [tag for group in args.relates_to for tag in group]
 
+    gates_filter: Optional[List[str]] = None
+    if args.gate:
+        gates_filter = [gate for group in args.gate for gate in group]
+
+    blocked_only: Optional[bool] = None
+    if args.blocked:
+        blocked_only = True
+    elif args.unblocked:
+        blocked_only = False
+
     if args.next_actions:
         filtered = select_next_actions(
             tasks,
             args.limit,
             priority=args.priority,
+            area=args.area,
+            size=args.size,
             owner=args.owner,
             relates_to=relates_to_filter,
+            gates=gates_filter,
+            blocked_only=blocked_only,
         )
     else:
         filtered = filter_tasks(
@@ -318,6 +359,10 @@ def main() -> None:
             args.priority,
             args.owner,
             relates_to_filter,
+            area=args.area,
+            size=args.size,
+            gates=gates_filter,
+            blocked_only=blocked_only,
         )
     print(render(filtered, args.format))
 
