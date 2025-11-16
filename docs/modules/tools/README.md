@@ -10,7 +10,7 @@ The tools module provides editor utilities, profiling tools, pipeline automation
 
 ## Outstanding Work
 
-- Execute the performance metrics panel and diagnostics overlays captured in [`TL-312`](../../../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md), [`TL-313`](../../../hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md), and [`TL-314`](../../../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) on top of the TL-310 foundation; TL-314 telemetry stream audit is complete and implementation is now in progress.
+- Execute the performance metrics panel and diagnostics overlays captured in [`TL-312`](../../../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md), [`TL-313`](../../../hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md), and [`TL-314`](../../../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) on top of the TL-310 foundation; TL-312 and TL-314 implementations are now in review pending acceptance of the editor panels.
 - Implement the panel registry, runtime harness bridge, and ImGui reuse strategy from [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
 - Validate editor flows against GPU-enabled runtime now that [`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) shipped, and integrate the archived [`RT-410`](../../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) synchronisation hooks so tooling telemetry stays aligned with runtime submissions.
 
