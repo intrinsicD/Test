@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <span>
 #include <string>
@@ -99,6 +100,12 @@ namespace engine::rendering
         return os;
     }
 
+    struct FrameGraphCacheStats
+    {
+        std::uint64_t hits{0};
+        std::uint64_t misses{0};
+    };
+
     /// Frame-graph implementation responsible for scheduling and execution.
     class FrameGraph
     {
@@ -123,8 +130,21 @@ namespace engine::rendering
         [[nodiscard]] std::span<const FrameGraphResourceHandle> pass_writes(std::size_t pass_index);
         [[nodiscard]] std::string_view pass_name(std::size_t pass_index) const;
         [[nodiscard]] std::string serialize() const;
+        [[nodiscard]] FrameGraphCacheStats cache_stats() const noexcept;
+        void clear_cache() noexcept;
 
     private:
+        struct CompilationCache
+        {
+            std::size_t resource_hash{0};
+            std::size_t pass_hash{0};
+            std::vector<std::size_t> execution_order;
+            std::vector<std::vector<resources::Barrier>> pass_begin_barriers;
+            std::vector<std::vector<resources::Barrier>> pass_end_barriers;
+            std::vector<std::size_t> resource_first_use;
+            std::vector<std::size_t> resource_last_use;
+        };
+
         struct ResourceNode
         {
             std::string name;
@@ -161,8 +181,16 @@ namespace engine::rendering
         std::vector<std::vector<resources::Barrier>> pass_begin_barriers_;
         std::vector<std::vector<resources::Barrier>> pass_end_barriers_;
         bool compiled_{false};
+        std::optional<CompilationCache> compilation_cache_{};
+        std::uint64_t cache_hits_{0};
+        std::uint64_t cache_misses_{0};
 
         friend class FrameGraphPassBuilder;
         friend struct FrameGraphPassExecutionContext;
+
+        [[nodiscard]] std::size_t compute_resource_hash() const noexcept;
+        [[nodiscard]] std::size_t compute_pass_hash() const noexcept;
+        bool try_restore_from_cache(std::size_t resource_hash, std::size_t pass_hash);
+        void update_cache(std::size_t resource_hash, std::size_t pass_hash);
     };
 }

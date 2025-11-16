@@ -557,6 +557,12 @@ Frame graph compilation is deterministic and cached:
 - Execution overhead: ~0.1ms per frame
 - Resource barriers: Automatically optimized
 
+`FrameGraph` now persists compilation artefacts (execution order, transient barrier plans, and resource lifetime spans) between
+`reset()` calls. A deterministic hash derived from resource descriptors and pass wiring drives the cache lookup so identical
+graphs rehydrate immediately while divergent graphs fall back to a full compile. Cache behaviour is observable via
+`FrameGraph::cache_stats()` (for telemetry exports) and controllable via `FrameGraph::clear_cache()` when experiments require a
+fresh baseline.
+
 Vulkan backend benchmarks (from `T-0116`):
 - Simple scene: ~2.0ms GPU time
 - Complex scene (10k draw calls): ~8.5ms GPU time
