@@ -86,6 +86,21 @@ def test_filter_tasks_filters_by_owner() -> None:
     assert [task.id for task in filtered] == ["B"]
 
 
+def test_filter_tasks_supports_multiple_owners() -> None:
+    tasks = [
+        _make_task("A", blocked=False, owner="tools-team"),
+        _make_task("B", blocked=False, owner="runtime-lead"),
+        _make_task("C", blocked=False, owner="docs-devrel"),
+    ]
+
+    filtered = task_status.filter_tasks(
+        tasks,
+        owner=["runtime-lead", "docs-devrel"],
+    )
+
+    assert [task.id for task in filtered] == ["B", "C"]
+
+
 def test_filter_tasks_filters_by_size() -> None:
     tasks = [
         _make_task("A", blocked=False, size="S"),
@@ -169,7 +184,17 @@ def test_build_parser_supports_owner_flag() -> None:
 
     args = parser.parse_args(['--owner', 'docs-devrel'])
 
-    assert args.owner == 'docs-devrel'
+    assert args.owner == ['docs-devrel']
+
+
+def test_build_parser_supports_multiple_owner_values() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(
+        ['--owner', 'docs-devrel,runtime-lead', '--owner', 'tools-team']
+    )
+
+    assert args.owner == ['docs-devrel,runtime-lead', 'tools-team']
 
 
 def test_build_parser_supports_size_flag() -> None:

@@ -129,6 +129,7 @@ python hybrid_workflow/task_status.py --priority P1
 
 # Filter by owner
 python hybrid_workflow/task_status.py --owner docs-devrel
+python hybrid_workflow/task_status.py --owner docs-devrel --owner runtime-lead
 
 # Filter by quality gates (requires all provided gates)
 python hybrid_workflow/task_status.py --gate docs
