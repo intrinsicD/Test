@@ -130,13 +130,13 @@ class FrameGraph {
 ## Steps
 
 0. [x] Scope cache design, hash inputs, and cache lifecycle so the task can progress from `status: new` to `status: ready`.
-1. [ ] Research hashing strategy; document invariants in this file.
-2. [ ] Implement cache structures and hashing within `engine/rendering/src/frame_graph/frame_graph.cpp`.
-3. [ ] Add unit tests in `engine/rendering/tests/frame_graph_tests.cpp` for cache hit/miss coverage.
+1. [x] Research hashing strategy; document invariants in this file.
+2. [x] Implement cache structures and hashing within `engine/rendering/src/frame_graph/frame_graph.cpp`.
+3. [x] Add unit tests in `engine/rendering/tests/frame_graph_tests.cpp` for cache hit/miss coverage.
 4. [ ] Wire telemetry counters for cache hit rate into runtime diagnostics.
-5. [ ] Update `docs/modules/rendering/README.md` with caching behavior and tunables.
+5. [x] Update `docs/modules/rendering/README.md` with caching behavior and tunables.
 6. [ ] Capture benchmark evidence (PM-510) proving compile-time reduction.
-7. [ ] Validate docs via `python scripts/validate_docs.py` and update roadmap/backlog status.
+7. [x] Validate docs via `python scripts/validate_docs.py` and update roadmap/backlog status.
 8. [ ] Open PR referencing this task and attach evidence logs.
 
 ---
@@ -146,18 +146,16 @@ class FrameGraph {
 ### Test Results
 
 ```bash
-# Pending implementation
-# cmake --preset linux-gcc-debug
-# cmake --build --preset linux-gcc-debug
-# ctest --preset linux-gcc-debug --output-on-failure
-# pytest python/tests scripts/tests
-# python scripts/validate_docs.py
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug --target engine_rendering_tests
+ctest --preset linux-gcc-debug -R engine_rendering_tests
+python scripts/validate_docs.py
 ```
 
 **Test Summary:**
-- Unit tests: _pending_
+- Unit tests: `engine_rendering_tests`
 - Integration tests: _pending_
-- Documentation validation: _pending_
+- Documentation validation: `python scripts/validate_docs.py`
 
 ### Performance (if applicable)
 
@@ -192,4 +190,7 @@ class FrameGraph {
 
 ### Updated Files
 
-- _pending_
+- `engine/rendering/include/engine/rendering/frame_graph.hpp`
+- `engine/rendering/src/frame_graph.cpp`
+- `engine/rendering/tests/test_frame_graph.cpp`
+- `docs/modules/rendering/README.md`

@@ -3,11 +3,15 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <limits>
+#include <optional>
 #include <queue>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+#include <type_traits>
 #include <utility>
 
 #include "engine/rendering/command_encoder.hpp"
@@ -16,6 +20,19 @@ namespace engine::rendering
 {
     namespace
     {
+        template <typename T>
+        constexpr void hash_combine(std::size_t& seed, const T& value) noexcept
+        {
+            seed ^= std::hash<T>{}(value) + 0x9e3779b97f4a7c15ULL + (seed << 6U) + (seed >> 2U);
+        }
+
+        template <typename Enum>
+        constexpr void hash_enum(std::size_t& seed, Enum value) noexcept
+        {
+            using Underlying = std::underlying_type_t<Enum>;
+            hash_combine(seed, static_cast<Underlying>(value));
+        }
+
         class EncoderScope
         {
         public:
@@ -501,6 +518,16 @@ namespace engine::rendering
             }
         }
 
+        const auto resource_hash = compute_resource_hash();
+        const auto pass_hash = compute_pass_hash();
+        if (try_restore_from_cache(resource_hash, pass_hash))
+        {
+            compiled_ = true;
+            return;
+        }
+
+        ++cache_misses_;
+
         std::vector<std::vector<std::size_t>> adjacency(passes_.size());
         std::vector<std::size_t> indegree(passes_.size(), 0);
 
@@ -620,6 +647,7 @@ namespace engine::rendering
         }
 
         compiled_ = true;
+        update_cache(resource_hash, pass_hash);
     }
 
     void FrameGraph::execute(RenderExecutionContext& context)
@@ -931,5 +959,127 @@ namespace engine::rendering
 
         stream << "}\n";
         return stream.str();
+    }
+
+    FrameGraphCacheStats FrameGraph::cache_stats() const noexcept
+    {
+        return FrameGraphCacheStats{cache_hits_, cache_misses_};
+    }
+
+    void FrameGraph::clear_cache() noexcept
+    {
+        compilation_cache_.reset();
+        cache_hits_ = 0;
+        cache_misses_ = 0;
+    }
+
+    std::size_t FrameGraph::compute_resource_hash() const noexcept
+    {
+        std::size_t seed = resources_.size();
+        for (const auto& resource : resources_)
+        {
+            hash_combine(seed, std::string_view{resource.name});
+            hash_enum(seed, resource.lifetime);
+            hash_enum(seed, resource.format);
+            hash_enum(seed, resource.dimension);
+            hash_enum(seed, resource.usage);
+            hash_enum(seed, resource.initial_state);
+            hash_enum(seed, resource.final_state);
+            hash_combine(seed, resource.width);
+            hash_combine(seed, resource.height);
+            hash_combine(seed, resource.depth);
+            hash_combine(seed, resource.array_layers);
+            hash_combine(seed, resource.mip_levels);
+            hash_enum(seed, resource.sample_count);
+            hash_combine(seed, resource.size_bytes);
+        }
+        return seed;
+    }
+
+    std::size_t FrameGraph::compute_pass_hash() const noexcept
+    {
+        std::size_t seed = passes_.size();
+        for (const auto& pass : passes_)
+        {
+            hash_combine(seed, std::string_view{pass.pass->name()});
+            hash_enum(seed, pass.pass->queue());
+            hash_enum(seed, pass.pass->phase());
+            hash_enum(seed, pass.pass->validation_severity());
+
+            const auto hash_handles = [&](const std::vector<FrameGraphResourceHandle>& handles)
+            {
+                hash_combine(seed, handles.size());
+                for (const auto handle : handles)
+                {
+                    hash_combine(seed, handle.index);
+                    if (handle.index < resources_.size())
+                    {
+                        hash_combine(seed, std::string_view{resources_[handle.index].name});
+                    }
+                }
+            };
+
+            hash_handles(pass.reads);
+            hash_handles(pass.writes);
+        }
+
+        return seed;
+    }
+
+    bool FrameGraph::try_restore_from_cache(std::size_t resource_hash, std::size_t pass_hash)
+    {
+        if (!compilation_cache_)
+        {
+            return false;
+        }
+
+        const auto& cache = *compilation_cache_;
+        if (cache.resource_hash != resource_hash || cache.pass_hash != pass_hash)
+        {
+            return false;
+        }
+
+        if (cache.execution_order.size() != passes_.size() ||
+            cache.pass_begin_barriers.size() != passes_.size() ||
+            cache.pass_end_barriers.size() != passes_.size() ||
+            cache.resource_first_use.size() != resources_.size() ||
+            cache.resource_last_use.size() != resources_.size())
+        {
+            return false;
+        }
+
+        execution_order_ = cache.execution_order;
+        pass_begin_barriers_ = cache.pass_begin_barriers;
+        pass_end_barriers_ = cache.pass_end_barriers;
+        for (std::size_t index = 0; index < resources_.size(); ++index)
+        {
+            resources_[index].first_use = cache.resource_first_use[index];
+            resources_[index].last_use = cache.resource_last_use[index];
+        }
+
+        ++cache_hits_;
+        return true;
+    }
+
+    void FrameGraph::update_cache(std::size_t resource_hash, std::size_t pass_hash)
+    {
+        if (!compilation_cache_)
+        {
+            compilation_cache_.emplace();
+        }
+
+        auto& cache = *compilation_cache_;
+        cache.resource_hash = resource_hash;
+        cache.pass_hash = pass_hash;
+        cache.execution_order = execution_order_;
+        cache.pass_begin_barriers = pass_begin_barriers_;
+        cache.pass_end_barriers = pass_end_barriers_;
+        cache.resource_first_use.resize(resources_.size());
+        cache.resource_last_use.resize(resources_.size());
+        for (std::size_t index = 0; index < resources_.size(); ++index)
+        {
+            cache.resource_first_use[index] = resources_[index].first_use;
+            cache.resource_last_use[index] = resources_[index].last_use;
+        }
     }
 }

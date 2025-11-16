@@ -113,6 +113,37 @@ namespace
         descriptor.size_bytes = 4096;
         return descriptor;
     }
+
+    void build_basic_graph(engine::rendering::FrameGraph& graph)
+    {
+        const auto depth = graph.create_resource(make_depth_resource("Depth"));
+        const auto color = graph.create_resource(make_color_resource("Color"));
+
+        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+            "DepthPrepass",
+            [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(depth); },
+            [](engine::rendering::FrameGraphPassExecutionContext&)
+            {
+            }));
+
+        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+            "GBuffer",
+            [=](engine::rendering::FrameGraphPassBuilder& builder)
+            {
+                builder.read(depth);
+                builder.write(color);
+            },
+            [](engine::rendering::FrameGraphPassExecutionContext&)
+            {
+            }));
+
+        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+            "Lighting",
+            [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
+            [](engine::rendering::FrameGraphPassExecutionContext&)
+            {
+            }));
+    }
 }
 
 TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
@@ -184,6 +215,30 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
     EXPECT_EQ(order[0], "DepthPrepass");
     EXPECT_EQ(order[1], "GBuffer");
     EXPECT_EQ(order[2], "Lighting");
+}
+
+TEST(FrameGraph, ReusesCompilationCacheAcrossReset)
+{
+    engine::rendering::FrameGraph graph;
+    build_basic_graph(graph);
+    graph.compile();
+
+    auto stats = graph.cache_stats();
+    EXPECT_EQ(stats.misses, 1U);
+    EXPECT_EQ(stats.hits, 0U);
+
+    graph.reset();
+    build_basic_graph(graph);
+    graph.compile();
+
+    stats = graph.cache_stats();
+    EXPECT_EQ(stats.misses, 1U);
+    EXPECT_EQ(stats.hits, 1U);
+
+    graph.clear_cache();
+    stats = graph.cache_stats();
+    EXPECT_EQ(stats.misses, 0U);
+    EXPECT_EQ(stats.hits, 0U);
 }
 
 TEST(FrameGraph, TracksResourceLifetimes)
