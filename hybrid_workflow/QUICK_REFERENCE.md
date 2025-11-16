@@ -111,6 +111,7 @@ python hybrid_workflow/task_status.py --area rendering
 
 # Filter by size
 python hybrid_workflow/task_status.py --size M
+python hybrid_workflow/task_status.py --size S --size L
 
 # Filter by owner
 python hybrid_workflow/task_status.py --owner docs-devrel

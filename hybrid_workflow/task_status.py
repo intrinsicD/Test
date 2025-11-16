@@ -380,7 +380,7 @@ def filter_tasks(
     status: Optional[Union[str, Iterable[str]]] = None,
     priority: Optional[Union[str, Iterable[str]]] = None,
     area: Optional[str] = None,
-    size: Optional[str] = None,
+    size: Optional[Union[str, Iterable[str]]] = None,
     owner: Optional[Union[str, Iterable[str]]] = None,
     relates_to: Optional[List[str]] = None,
     gates: Optional[List[str]] = None,
@@ -403,9 +403,9 @@ def filter_tasks(
         area_normalised = area.strip().lower()
         filtered = [t for t in filtered if t.area.lower() == area_normalised]
 
-    if size:
-        size_normalised = size.strip().lower()
-        filtered = [t for t in filtered if t.size.lower() == size_normalised]
+    size_values = {value.lower() for value in _normalise_filter_values(size)}
+    if size_values:
+        filtered = [t for t in filtered if t.size.lower() in size_values]
 
     owner_values = {value.lower() for value in _normalise_filter_values(owner)}
     if owner_values:
@@ -466,7 +466,7 @@ def select_next_actions(
     *,
     priority: Optional[Union[str, Iterable[str]]] = None,
     area: Optional[str] = None,
-    size: Optional[str] = None,
+    size: Optional[Union[str, Iterable[str]]] = None,
     owner: Optional[Union[str, Iterable[str]]] = None,
     gates: Optional[List[str]] = None,
     relates_to: Optional[List[str]] = None,
@@ -609,7 +609,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
-    parser.add_argument('--size', help="Filter by task size (XS, S, M, L, XL)")
+    parser.add_argument(
+        '--size',
+        metavar='SIZE',
+        action='append',
+        help=(
+            "Filter by task size (XS, S, M, L, XL). Repeat or provide comma-separated "
+            "values to match multiple sizes (case-insensitive)."
+        ),
+    )
     parser.add_argument(
         '--owner',
         metavar='OWNER',
