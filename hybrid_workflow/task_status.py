@@ -378,7 +378,7 @@ def load_all_tasks(backlog_dir: Path, *, include_archived: bool = False) -> List
 def filter_tasks(
     tasks: List[Task],
     status: Optional[Union[str, Iterable[str]]] = None,
-    priority: Optional[str] = None,
+    priority: Optional[Union[str, Iterable[str]]] = None,
     area: Optional[str] = None,
     size: Optional[str] = None,
     owner: Optional[str] = None,
@@ -388,24 +388,28 @@ def filter_tasks(
     *,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
-    """Filter tasks by criteria."""
+    """Filter tasks by criteria (case-insensitive for textual metadata)."""
     filtered = tasks
 
     status_values = {value.lower() for value in _normalise_filter_values(status)}
     if status_values:
         filtered = [t for t in filtered if t.status.lower() in status_values]
 
-    if priority:
-        filtered = [t for t in filtered if t.priority == priority]
+    priority_values = {value.lower() for value in _normalise_filter_values(priority)}
+    if priority_values:
+        filtered = [t for t in filtered if t.priority.lower() in priority_values]
 
     if area:
-        filtered = [t for t in filtered if t.area == area]
+        area_normalised = area.strip().lower()
+        filtered = [t for t in filtered if t.area.lower() == area_normalised]
 
     if size:
-        filtered = [t for t in filtered if t.size == size]
+        size_normalised = size.strip().lower()
+        filtered = [t for t in filtered if t.size.lower() == size_normalised]
 
     if owner:
-        filtered = [t for t in filtered if t.owner == owner]
+        owner_normalised = owner.strip().lower()
+        filtered = [t for t in filtered if t.owner.lower() == owner_normalised]
 
     if gates:
         required = {gate.lower() for gate in gates if gate}
@@ -460,7 +464,7 @@ def select_next_actions(
     tasks: List[Task],
     limit: int,
     *,
-    priority: Optional[str] = None,
+    priority: Optional[Union[str, Iterable[str]]] = None,
     area: Optional[str] = None,
     size: Optional[str] = None,
     owner: Optional[str] = None,
