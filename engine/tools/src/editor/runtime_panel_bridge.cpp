@@ -5,6 +5,9 @@
 
 #include <vector>
 
+#include <string>
+
+#include "engine/core/telemetry/schema.hpp"
 #include "engine/runtime/api.hpp"
 #include "engine/scene/validation.hpp"
 
@@ -12,6 +15,8 @@ namespace engine::tools::editor
 {
     namespace
     {
+        using core::telemetry::MetricSet;
+
         RuntimePanelBridge::DiagnosticsRenderer make_default_diagnostics_renderer()
         {
             return [](const runtime::RuntimeDiagnostics& diagnostics) {
@@ -32,6 +37,36 @@ namespace engine::tools::editor
                 imgui::render_validation_report(report);
             };
         }
+
+        [[nodiscard]] std::vector<TelemetryVisualizationPanel::SeriesSample> make_metric_samples(
+            const MetricSet& metric_set
+        )
+        {
+            std::vector<TelemetryVisualizationPanel::SeriesSample> samples;
+            if (metric_set.samples.empty() || metric_set.descriptors.empty())
+            {
+                return samples;
+            }
+
+            samples.reserve(metric_set.samples.size());
+            for (const auto& sample : metric_set.samples)
+            {
+                if (sample.descriptor_index >= metric_set.descriptors.size())
+                {
+                    continue;
+                }
+
+                const auto& descriptor = metric_set.descriptors[sample.descriptor_index];
+                TelemetryVisualizationPanel::SeriesSample entry{};
+                entry.identifier = descriptor.name;
+                entry.label = descriptor.name;
+                entry.unit = std::string(core::telemetry::to_string(descriptor.unit));
+                entry.value = core::telemetry::as_double(sample.value);
+                samples.push_back(std::move(entry));
+            }
+
+            return samples;
+        }
     } // namespace
 
     RuntimePanelBridge::RuntimePanelBridge(
@@ -41,7 +76,8 @@ namespace engine::tools::editor
         Renderers renderers,
         HierarchyPanelHooks hierarchy_hooks,
         AssetPanelHooks asset_hooks,
-        PerformancePanelHooks performance_hooks
+        PerformancePanelHooks performance_hooks,
+        TelemetryPanelHooks telemetry_hooks
     )
         : registry_(&registry)
         , diagnostics_provider_(std::move(diagnostics_provider))
@@ -50,6 +86,7 @@ namespace engine::tools::editor
         , hierarchy_hooks_(std::move(hierarchy_hooks))
         , asset_hooks_(std::move(asset_hooks))
         , performance_hooks_(std::move(performance_hooks))
+        , telemetry_hooks_(std::move(telemetry_hooks))
     {
         if (!renderers_.diagnostics)
         {
@@ -152,6 +189,21 @@ namespace engine::tools::editor
                 }
             );
         }
+
+        if (registry_ && diagnostics_provider_)
+        {
+            telemetry_panel_ = std::make_unique<TelemetryVisualizationPanel>();
+            telemetry_panel_->set_history_capacity(telemetry_hooks_.history_capacity);
+            telemetry_handle_ = registry_->register_scoped_panel(
+                "runtime.telemetry",
+                [this](const imgui::PanelRenderContext& context) {
+                    if (telemetry_panel_)
+                    {
+                        telemetry_panel_->render(context);
+                    }
+                }
+            );
+        }
     }
 
     void RuntimePanelBridge::render_all(double delta_time) const
@@ -174,52 +226,70 @@ namespace engine::tools::editor
             }
         }
 
-        if (performance_panel_ && diagnostics_provider_)
+        if ((performance_panel_ || telemetry_panel_) && diagnostics_provider_)
         {
             const auto& diagnostics = diagnostics_provider_();
-            PerformanceMetricsPanel::FrameSample sample{
-                diagnostics.last_tick_ms,
-                diagnostics.average_tick_ms,
-                diagnostics.max_tick_ms,
-            };
-            performance_panel_->push_frame_sample(sample);
+            if (performance_panel_)
+            {
+                PerformanceMetricsPanel::FrameSample sample{
+                    diagnostics.last_tick_ms,
+                    diagnostics.average_tick_ms,
+                    diagnostics.max_tick_ms,
+                };
+                performance_panel_->push_frame_sample(sample);
 
-            std::vector<PerformanceMetricsPanel::StageTimingRow> stage_rows;
-            stage_rows.reserve(diagnostics.stage_timings.size());
-            for (const auto& stage : diagnostics.stage_timings)
-            {
-                stage_rows.push_back(PerformanceMetricsPanel::StageTimingRow{
-                    stage.name,
-                    stage.last_ms,
-                    stage.average_ms,
-                    stage.max_ms,
-                });
-            }
-            performance_panel_->set_stage_timings(std::move(stage_rows));
+                std::vector<PerformanceMetricsPanel::StageTimingRow> stage_rows;
+                stage_rows.reserve(diagnostics.stage_timings.size());
+                for (const auto& stage : diagnostics.stage_timings)
+                {
+                    stage_rows.push_back(PerformanceMetricsPanel::StageTimingRow{
+                        stage.name,
+                        stage.last_ms,
+                        stage.average_ms,
+                        stage.max_ms,
+                    });
+                }
+                performance_panel_->set_stage_timings(std::move(stage_rows));
 
-            const auto profiler_report = profiling::global_profiler().generate_report();
-            std::vector<PerformanceMetricsPanel::ProfilerEntryRow> profiler_rows;
-            profiler_rows.reserve(profiler_report.entries.size());
-            for (const auto& entry : profiler_report.entries)
-            {
-                profiler_rows.push_back(PerformanceMetricsPanel::ProfilerEntryRow{
-                    entry.name,
-                    entry.duration_ms,
-                    entry.average_ms,
-                    entry.min_ms,
-                    entry.max_ms,
-                    entry.call_count,
-                });
-            }
-            performance_panel_->set_profiler_entries(std::move(profiler_rows));
+                const auto profiler_report = profiling::global_profiler().generate_report();
+                std::vector<PerformanceMetricsPanel::ProfilerEntryRow> profiler_rows;
+                profiler_rows.reserve(profiler_report.entries.size());
+                for (const auto& entry : profiler_report.entries)
+                {
+                    profiler_rows.push_back(PerformanceMetricsPanel::ProfilerEntryRow{
+                        entry.name,
+                        entry.duration_ms,
+                        entry.average_ms,
+                        entry.min_ms,
+                        entry.max_ms,
+                        entry.call_count,
+                    });
+                }
+                performance_panel_->set_profiler_entries(std::move(profiler_rows));
 
-            if (performance_hooks_.benchmark_provider)
-            {
-                performance_panel_->set_benchmark_entries(performance_hooks_.benchmark_provider());
+                if (performance_hooks_.benchmark_provider)
+                {
+                    performance_panel_->set_benchmark_entries(performance_hooks_.benchmark_provider());
+                }
+                else
+                {
+                    performance_panel_->set_benchmark_entries({});
+                }
             }
-            else
+
+            if (telemetry_panel_)
             {
-                performance_panel_->set_benchmark_entries({});
+                std::vector<TelemetryVisualizationPanel::SeriesSample> samples;
+                if (telemetry_hooks_.series_provider)
+                {
+                    samples = telemetry_hooks_.series_provider(diagnostics);
+                }
+                else
+                {
+                    samples = make_metric_samples(diagnostics.metrics);
+                }
+
+                telemetry_panel_->update_series(std::move(samples));
             }
         }
 

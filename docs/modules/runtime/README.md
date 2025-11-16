@@ -361,6 +361,11 @@ if (diag.scene_validation.has_cycles) {
 
 See [`DIAGNOSTICS.md`](DIAGNOSTICS.md) for complete metric reference and troubleshooting workflows.
 
+The tooling module consumes the same snapshot via `engine::tools::editor::TelemetryVisualizationPanel` (see
+[`TL-314`](../../../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md)), so the editor now renders runtime telemetry
+streams alongside the diagnostics/profiler panels. When the runtime bridge is active, every call to `RuntimeHost::diagnostics()`
+feeds the panel with schema-aligned metrics, preserving warning/critical thresholds for PM-510 demo evidence.
+
 ## Async Streaming Integration
 
 The runtime manages the IO thread pool for asynchronous asset loading:

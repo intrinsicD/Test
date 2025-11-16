@@ -399,6 +399,9 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
 - `engine::tools::editor::PerformanceMetricsPanel` captures frame-time history, aggregates runtime stage timings, surfaces
   profiler zones, and compares benchmark baselines so PM-510 demos document regressions directly from the editor UI. The bridge
   wires the panel automatically and exposes `PerformancePanelHooks` for benchmark deltas/history tuning.
+- `engine::tools::editor::TelemetryVisualizationPanel` streams runtime telemetry series directly into Dear ImGui, preserves a
+  rolling history, and highlights warning/critical thresholds so demos can snapshot health without leaving the editor. Hook it
+  up through `RuntimePanelBridge::TelemetryPanelHooks` to reuse runtime counters or add bespoke alerting heuristics.
 - `engine::tools::editor::SceneHierarchyPanel` visualises the runtime `scene::Scene` graph, lazily expands entity trees, and
   surfaces hierarchy validation issues inline so tooling teams can triage structure problems without leaving the editor.
 - `engine::tools::editor::AssetBrowserPanel` enumerates loaded asset caches through the new introspection helpers, applies
@@ -456,6 +459,24 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   perf_hooks.benchmark_provider = []() {
       return std::vector<engine::tools::editor::PerformanceMetricsPanel::BenchmarkEntry>{};
   };
+  engine::tools::editor::RuntimePanelBridge::TelemetryPanelHooks telemetry_hooks{};
+  telemetry_hooks.history_capacity = 300;
+  telemetry_hooks.series_provider = [](const engine::runtime::RuntimeDiagnostics& diagnostics) {
+      std::vector<engine::tools::editor::TelemetryVisualizationPanel::SeriesSample> samples;
+      samples.reserve(diagnostics.stage_timings.size());
+      for (const auto& timing : diagnostics.stage_timings)
+      {
+          engine::tools::editor::TelemetryVisualizationPanel::SeriesSample entry{};
+          entry.identifier = timing.name;
+          entry.label = timing.name;
+          entry.value = timing.last_ms;
+          entry.warning_threshold = 8.0;
+          entry.critical_threshold = 12.0;
+          entry.unit = "ms";
+          samples.push_back(std::move(entry));
+      }
+      return samples;
+  };
 
   engine::tools::editor::RuntimePanelBridge bridge(
       registry,
@@ -470,7 +491,8 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
           [&](entt::entity entity_id) { selected_entity = entity_id; }
       },
       engine::tools::editor::RuntimePanelBridge::AssetPanelHooks{},
-      perf_hooks
+      perf_hooks,
+      telemetry_hooks
   );
 
   // In the editor loop

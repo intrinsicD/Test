@@ -6,6 +6,7 @@
 #include "engine/tools/editor/asset_browser_panel.hpp"
 #include "engine/tools/editor/performance_metrics_panel.hpp"
 #include "engine/tools/editor/runtime_panel_bridge.hpp"
+#include "engine/tools/editor/telemetry_visualization_panel.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
 
 namespace
@@ -17,6 +18,7 @@ namespace
     using engine::tools::editor::AssetBrowserPanel;
     using engine::tools::editor::PerformanceMetricsPanel;
     using engine::tools::editor::RuntimePanelBridge;
+    using engine::tools::editor::TelemetryVisualizationPanel;
     using engine::tools::imgui::PanelRegistry;
     using engine::tools::imgui::PanelRenderContext;
 }
@@ -55,7 +57,11 @@ TEST(RuntimePanelBridge, RegistersDefaultPanelsAndRenders)
                 scene_rendered = true;
                 EXPECT_EQ(value.metrics.issue_count, report.metrics.issue_count);
             }
-        }
+        },
+        RuntimePanelBridge::HierarchyPanelHooks{},
+        RuntimePanelBridge::AssetPanelHooks{},
+        RuntimePanelBridge::PerformancePanelHooks{},
+        RuntimePanelBridge::TelemetryPanelHooks{}
     );
 
     bridge.render_all(0.016);
@@ -84,7 +90,11 @@ TEST(RuntimePanelBridge, ForwardsRenderContextDeltaTime)
             [](const RuntimeDiagnostics&) {},
             [](bool*) {},
             [](const HierarchyValidationReport&) {}
-        }
+        },
+        RuntimePanelBridge::HierarchyPanelHooks{},
+        RuntimePanelBridge::AssetPanelHooks{},
+        RuntimePanelBridge::PerformancePanelHooks{},
+        RuntimePanelBridge::TelemetryPanelHooks{}
     );
 
     double observed_delta = -1.0;
@@ -120,7 +130,11 @@ TEST(RuntimePanelBridge, ScenePanelSkipsWhenProviderReturnsNull)
             [&](const HierarchyValidationReport&) {
                 scene_rendered = true;
             }
-        }
+        },
+        RuntimePanelBridge::HierarchyPanelHooks{},
+        RuntimePanelBridge::AssetPanelHooks{},
+        RuntimePanelBridge::PerformancePanelHooks{},
+        RuntimePanelBridge::TelemetryPanelHooks{}
     );
 
     bridge.render_all(0.0);
@@ -150,7 +164,10 @@ TEST(RuntimePanelBridge, RegistersHierarchyPanelWhenHooksProvided)
             },
             RuntimePanelBridge::HierarchySelectionProvider{},
             RuntimePanelBridge::HierarchySelectionCallback{}
-        }
+        },
+        RuntimePanelBridge::AssetPanelHooks{},
+        RuntimePanelBridge::PerformancePanelHooks{},
+        RuntimePanelBridge::TelemetryPanelHooks{}
     );
 
     EXPECT_TRUE(registry.contains("editor.scene_hierarchy"));
@@ -188,7 +205,9 @@ TEST(RuntimePanelBridge, RegistersAssetBrowserWhenProviderAvailable)
                 });
                 return rows;
             }
-        }
+        },
+        RuntimePanelBridge::PerformancePanelHooks{},
+        RuntimePanelBridge::TelemetryPanelHooks{}
     );
 
     EXPECT_TRUE(registry.contains("editor.asset_browser"));
@@ -237,12 +256,59 @@ TEST(RuntimePanelBridge, RegistersPerformancePanelWhenDiagnosticsAvailable)
         },
         RuntimePanelBridge::HierarchyPanelHooks{},
         RuntimePanelBridge::AssetPanelHooks{},
-        performance_hooks
+        performance_hooks,
+        RuntimePanelBridge::TelemetryPanelHooks{}
     );
 
     EXPECT_TRUE(registry.contains("runtime.performance_metrics"));
 
     bridge.render_all(0.0);
     EXPECT_TRUE(benchmark_invoked);
+}
+
+TEST(RuntimePanelBridge, RegistersTelemetryPanelAndInvokesProvider)
+{
+    PanelRegistry registry{};
+    RuntimeDiagnostics diagnostics{};
+    diagnostics.tick_count = 7;
+
+    bool provider_invoked = false;
+    RuntimePanelBridge::TelemetryPanelHooks telemetry_hooks{};
+    telemetry_hooks.history_capacity = 3;
+    telemetry_hooks.series_provider = [&](const RuntimeDiagnostics& snapshot) {
+        provider_invoked = true;
+        EXPECT_EQ(snapshot.tick_count, diagnostics.tick_count);
+        std::vector<TelemetryVisualizationPanel::SeriesSample> samples;
+        TelemetryVisualizationPanel::SeriesSample entry{};
+        entry.identifier = "runtime.fps";
+        entry.label = "Frame Time";
+        entry.value = 16.0;
+        entry.warning_threshold = 18.0;
+        entry.critical_threshold = 25.0;
+        samples.push_back(std::move(entry));
+        return samples;
+    };
+
+    RuntimePanelBridge bridge(
+        registry,
+        [&]() -> const RuntimeDiagnostics& {
+            return diagnostics;
+        },
+        RuntimePanelBridge::SceneValidationProvider{},
+        RuntimePanelBridge::Renderers{
+            [](const RuntimeDiagnostics&) {},
+            [](bool*) {},
+            [](const HierarchyValidationReport&) {},
+        },
+        RuntimePanelBridge::HierarchyPanelHooks{},
+        RuntimePanelBridge::AssetPanelHooks{},
+        RuntimePanelBridge::PerformancePanelHooks{},
+        telemetry_hooks
+    );
+
+    EXPECT_TRUE(registry.contains("runtime.telemetry"));
+
+    bridge.render_all(0.0);
+    EXPECT_TRUE(provider_invoked);
 }
 

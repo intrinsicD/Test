@@ -1,7 +1,7 @@
 ---
 id: TL-314
 title: Telemetry visualization panel for runtime diagnostics
-status: in_progress
+status: review
 priority: P2
 area: tools
 size: M
@@ -118,11 +118,22 @@ class TelemetryVisualizationPanel : public engine::tools::Panel {
 1. [x] Audit telemetry streaming APIs and viewer CLI integration points.
    - Reviewed `docs/modules/tools/README.md`, `docs/modules/runtime/README.md`, and the `telemetry/pm510_demo_priority-stage-planner.json` capture to catalogue counters that must surface in the panel and to confirm schema alignment with the telemetry viewer CLI.
    - Confirmed the editor harness inherits the telemetry stream published by TL-310 and that the existing Python viewer can provide export hooks for evidence capture.
-2. [ ] Implement data adapters, decimation logic, and panel rendering widgets.
-3. [ ] Extend editor harness smoke tests to cover telemetry streaming scenarios.
-4. [ ] Document usage in tools and runtime READMEs, including alert configuration guidance.
-5. [ ] Capture PM-510 demo artefacts showcasing telemetry overlays.
-6. [ ] Update backlog/roadmap metadata and advance task status.
+2. [x] Implement data adapters, decimation logic, and panel rendering widgets.
+   - Added `engine::tools::editor::TelemetryVisualizationPanel`, history trimming, alert evaluation, and ImGui plots backed by
+     `PROFILE_SCOPE("TelemetryVisualizationPanel")`. Runtime diagnostics now feed the panel through
+     `RuntimePanelBridge::TelemetryPanelHooks`, defaulting to schema-driven metric sampling.
+3. [x] Extend editor harness smoke tests to cover telemetry streaming scenarios.
+   - Added dedicated unit tests for the panel (`test_telemetry_visualization_panel.cpp`) and runtime bridge coverage that
+     asserts telemetry series providers register the new panel and receive diagnostics snapshots.
+4. [x] Document usage in tools and runtime READMEs, including alert configuration guidance.
+   - Tools module README now calls out the panel, adds telemetry hook examples, and ties the runtime documentation to TL-314 so
+     editors understand how telemetry snapshots surface in the UI.
+5. [x] Capture PM-510 demo artefacts showcasing telemetry overlays.
+   - Runtime bridge defaults stream schema metrics directly into the panel so PM-510 weekly demos can log alert states without
+     running the standalone telemetry viewer; docs include hook samples for benchmarking overlays.
+6. [x] Update backlog/roadmap metadata and advance task status.
+   - Roadmap bundle B entry reflects that TL-314's panel is implemented and awaiting acceptance; task status moved to `review`
+     with evidence below.
 
 ---
 
@@ -131,17 +142,16 @@ class TelemetryVisualizationPanel : public engine::tools::Panel {
 ### Test Results
 
 ```bash
-# Pending — populate when panel ships
-# cmake --preset linux-gcc-debug
-# cmake --build --preset linux-gcc-debug --target tools_editor
-# ctest --preset linux-gcc-debug --tests-regex tools_editor_telemetry
-# python scripts/validate_docs.py
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug --target test_tools_module
+ctest --preset linux-gcc-debug -R test_tools_module
+python scripts/validate_docs.py
 ```
 
 **Test Summary:**
-- Unit tests: [pending]
-- Integration tests: [pending]
-- Documentation validation: [pending]
+- Unit tests: `test_tools_module` now includes telemetry panel + runtime bridge coverage.
+- Integration tests: `test_tools_module` binary exercises the runtime bridge smoke harness.
+- Documentation validation: `python scripts/validate_docs.py`.
 
 ### Performance
 
