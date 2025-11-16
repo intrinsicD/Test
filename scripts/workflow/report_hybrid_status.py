@@ -23,6 +23,18 @@ STATUS_ORDER = hw_task_status.STATUS_ORDER
 PRIORITY_ORDER = hw_task_status.PRIORITY_ORDER
 
 
+def parse_frontmatter(path: Path) -> Dict[str, object]:
+    """Return the parsed YAML frontmatter for a backlog markdown file.
+
+    The dashboard generator imports this helper directly so it can reuse the
+    same normalisation logic as the task-status utilities without duplicating
+    parsing rules for inline comments or multiline list fields.
+    """
+
+    content = path.read_text(encoding="utf-8")
+    return hw_task_status.parse_frontmatter(content)
+
+
 @dataclass
 class TaskMetadata:
     """Minimal metadata extracted from a hybrid workflow task file."""

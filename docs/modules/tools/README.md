@@ -401,7 +401,8 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   wires the panel automatically and exposes `PerformancePanelHooks` for benchmark deltas/history tuning.
 - `engine::tools::editor::TelemetryVisualizationPanel` streams runtime telemetry series directly into Dear ImGui, preserves a
   rolling history, and highlights warning/critical thresholds so demos can snapshot health without leaving the editor. Hook it
-  up through `RuntimePanelBridge::TelemetryPanelHooks` to reuse runtime counters or add bespoke alerting heuristics.
+  up through `RuntimePanelBridge::TelemetryPanelHooks` by passing a `TelemetryPanelHooks` instance to the
+  `RuntimePanelBridge` constructor so diagnostics wiring stays consistent with other panels.
 - `engine::tools::editor::SceneHierarchyPanel` visualises the runtime `scene::Scene` graph, lazily expands entity trees, and
   surfaces hierarchy validation issues inline so tooling teams can triage structure problems without leaving the editor.
 - `engine::tools::editor::AssetBrowserPanel` enumerates loaded asset caches through the new introspection helpers, applies
@@ -460,7 +461,8 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
       return std::vector<engine::tools::editor::PerformanceMetricsPanel::BenchmarkEntry>{};
   };
   engine::tools::editor::RuntimePanelBridge::TelemetryPanelHooks telemetry_hooks{};
-  telemetry_hooks.history_capacity = 300;
+  // Retain the default 180-sample history; increase this window when demos require longer trends.
+  telemetry_hooks.history_capacity = 180;
   telemetry_hooks.series_provider = [](const engine::runtime::RuntimeDiagnostics& diagnostics) {
       std::vector<engine::tools::editor::TelemetryVisualizationPanel::SeriesSample> samples;
       samples.reserve(diagnostics.stage_timings.size());
@@ -488,7 +490,7 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
       engine::tools::editor::RuntimePanelBridge::HierarchyPanelHooks{
           [&runtime]() -> engine::scene::Scene* { return &runtime.scene(); },
           [&]() -> entt::entity { return selected_entity; },
-          [&](entt::entity entity_id) { selected_entity = entity_id; }
+          [&](entt::entity entity_id) { selected_entity = entity_id; },
       },
       engine::tools::editor::RuntimePanelBridge::AssetPanelHooks{},
       perf_hooks,
