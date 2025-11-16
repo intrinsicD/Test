@@ -423,10 +423,19 @@ namespace
                 const auto& asset = mesh_cache_.load(descriptor);
                 auto surface_mesh = engine::geometry::mesh::build_surface_mesh_from_halfedge(asset.mesh.interface);
                 focus_camera_on_bounds(surface_mesh.bounds);
-                attach_render_geometry(std::string{asset.descriptor.handle.id()},
+
+                const std::string model_id = std::string{asset.descriptor.handle.id()};
+                attach_render_geometry(model_id,
                     engine::rendering::components::RenderGeometry::from_mesh(
                         asset.descriptor.handle, default_material_));
-                ENGINE_INFO("Loaded mesh '{}'", path.string());
+
+                // Track this model for deletion (if not already tracked)
+                if (std::find(loaded_models_order_.begin(), loaded_models_order_.end(), model_id) == loaded_models_order_.end())
+                {
+                    loaded_models_order_.push_back(model_id);
+                }
+
+                ENGINE_INFO("Loaded mesh '{}' (total models: {})", path.string(), loaded_models_order_.size());
             }
             catch (const std::exception& ex)
             {
@@ -448,10 +457,19 @@ namespace
                 const auto& asset = point_cloud_cache_.load(descriptor);
                 const auto positions = asset.point_cloud.interface.positions();
                 focus_camera_on_bounds(engine::geometry::BoundingAabb(positions));
-                attach_render_geometry(std::string{asset.descriptor.handle.id()},
+
+                const std::string model_id = std::string{asset.descriptor.handle.id()};
+                attach_render_geometry(model_id,
                     engine::rendering::components::RenderGeometry::from_point_cloud(
                         asset.descriptor.handle, default_material_));
-                ENGINE_INFO("Loaded point cloud '{}'", path.string());
+
+                // Track this model for deletion (if not already tracked)
+                if (std::find(loaded_models_order_.begin(), loaded_models_order_.end(), model_id) == loaded_models_order_.end())
+                {
+                    loaded_models_order_.push_back(model_id);
+                }
+
+                ENGINE_INFO("Loaded point cloud '{}' (total models: {})", path.string(), loaded_models_order_.size());
             }
             catch (const std::exception& ex)
             {
@@ -543,25 +561,32 @@ namespace
             // Trackball rotation with left mouse button
             if (input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left))
             {
+                const auto cursor = input_state.cursor_position();
+                // Normalize cursor to [-1,1] range centered at window center (absolute)
+                const float half = static_cast<float>(std::min(WINDOW_WIDTH, WINDOW_HEIGHT)) * 0.5f;
+                const engine::math::vec2 abs_cursor{
+                    (cursor.x - static_cast<float>(WINDOW_WIDTH) * 0.5f) / half,
+                    (static_cast<float>(WINDOW_HEIGHT) * 0.5f - cursor.y) / half
+                };
+
+                // Project the trackball center into the same normalized space
+                const engine::math::vec2 projected_center = project_world_point_to_trackball_coords(trackball_controller_->center());
+
+                // Convert absolute cursor into coordinates relative to projected center
+                const engine::math::vec2 relative_cursor = abs_cursor - projected_center;
+
                 if (was_dragging_)
                 {
-                    const auto delta = input_state.cursor_delta();
-                    if (delta.x != 0.0f || delta.y != 0.0f)
-                    {
-                        // Normalize delta to screen space (-1 to 1 range roughly)
-                        // Multiply by sensitivity factor for good feel
-                        const float sensitivity = 2.0f;
-                        const engine::math::vec2 normalized_delta{
-                            delta.x / static_cast<float>(WINDOW_WIDTH) * sensitivity,
-                            -delta.y / static_cast<float>(WINDOW_HEIGHT) * sensitivity // Invert Y for natural feel
-                        };
-
-                        trackball_controller_->rotate(normalized_delta);
-                    }
+                    const engine::math::vec2 prev_abs = last_cursor_pos_;
+                    const engine::math::vec2 prev_rel = prev_abs - projected_center;
+                    const engine::math::vec2 curr_rel = relative_cursor;
+                    trackball_controller_->rotate_from(prev_rel, curr_rel);
+                    last_cursor_pos_ = abs_cursor;
                 }
                 else
                 {
                     was_dragging_ = true;
+                    last_cursor_pos_ = abs_cursor;
                 }
             }
             else
@@ -576,9 +601,89 @@ namespace
                 trackball_controller_->zoom(-scroll.y * CAMERA_ZOOM_SPEED);
             }
 
+            // Toggle cube visibility with 'T' key
+            if (input_state.was_key_pressed(engine::platform::input::Key::T))
+            {
+                toggle_cube();
+            }
+
+            // Delete last loaded model with Delete key
+            if (input_state.was_key_pressed(engine::platform::input::Key::Delete))
+            {
+                delete_last_model();
+            }
+
             if (input_state.was_key_pressed(engine::platform::input::Key::Escape))
             {
                 quit();
+            }
+#endif
+        }
+
+        void toggle_cube()
+        {
+#if ENGINE_ENABLE_RENDERING
+            cube_visible_ = !cube_visible_;
+
+            auto& registry = scene().registry();
+            const auto cube_id = std::string{kProceduralCubeId};
+
+            if (const auto it = render_entities_.find(cube_id); it != render_entities_.end())
+            {
+                const auto entity = it->second;
+                if (cube_visible_)
+                {
+                    // Re-attach the cube geometry
+                    attach_render_geometry(cube_id,
+                        engine::rendering::components::RenderGeometry::from_mesh(
+                            engine::assets::MeshHandle{cube_id}, default_material_));
+                    ENGINE_INFO("Cube visible");
+                }
+                else
+                {
+                    // Remove the render geometry component (keeps entity but makes it invisible)
+                    if (registry.valid(entity) && registry.any_of<engine::rendering::components::RenderGeometry>(entity))
+                    {
+                        registry.remove<engine::rendering::components::RenderGeometry>(entity);
+                        ENGINE_INFO("Cube hidden");
+                    }
+                }
+            }
+#endif
+        }
+
+        void delete_last_model()
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (loaded_models_order_.empty())
+            {
+                ENGINE_INFO("No models to delete");
+                return;
+            }
+
+            // Get the last loaded model (LIFO - stack order)
+            const std::string model_id = loaded_models_order_.back();
+            loaded_models_order_.pop_back();
+
+            auto& registry = scene().registry();
+            if (const auto it = render_entities_.find(model_id); it != render_entities_.end())
+            {
+                const auto entity = it->second;
+                if (registry.valid(entity))
+                {
+                    registry.destroy(entity);
+                }
+                render_entities_.erase(it);
+                ENGINE_INFO("Deleted model: {}", model_id);
+            }
+
+            // If no models left, refocus on cube if visible
+            if (loaded_models_order_.empty() && cube_visible_)
+            {
+                if (const auto* mesh = mesh_storage_->find(kProceduralCubeId))
+                {
+                    focus_camera_on_bounds(mesh->bounds);
+                }
             }
 #endif
         }
@@ -597,6 +702,46 @@ namespace
             }
         }
 
+        // Project a world-space point to normalized screen coordinates centered at 0: (-1..1)
+        [[nodiscard]] engine::math::vec2 project_world_point_to_trackball_coords(const engine::math::vec3& world_point) const
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (!trackball_controller_)
+            {
+                return engine::math::vec2{0.0f, 0.0f};
+            }
+            auto& registry = scene().registry();
+            if (!registry.valid(camera_entity_) || !registry.any_of<engine::rendering::Camera>(camera_entity_))
+            {
+                return engine::math::vec2{0.0f, 0.0f};
+            }
+            const auto& cam = registry.get<engine::rendering::Camera>(camera_entity_);
+            const auto vp = cam.view_projection();
+
+            // Convert world_point to clip space
+            const engine::math::vec4 clip = vp * engine::math::vec4{world_point[0], world_point[1], world_point[2], 1.0f};
+            if (clip[3] == 0.0f)
+            {
+                return engine::math::vec2{0.0f, 0.0f};
+            }
+            const engine::math::vec3 ndc = engine::math::vec3{clip[0] / clip[3], clip[1] / clip[3], clip[2] / clip[3]};
+
+            // Convert NDC (-1..1) to pixel coordinates
+            const float px = (ndc[0] * 0.5f + 0.5f) * static_cast<float>(WINDOW_WIDTH);
+            const float py = (1.0f - (ndc[1] * 0.5f + 0.5f)) * static_cast<float>(WINDOW_HEIGHT);
+
+            // Convert pixel coords to normalized trackball coords centered at the projected center.
+            // We return coordinates in [-1,1] relative to the smaller window dimension.
+            const float half = static_cast<float>(std::min(WINDOW_WIDTH, WINDOW_HEIGHT)) * 0.5f;
+            const float cx = (px - static_cast<float>(WINDOW_WIDTH) * 0.5f) / half;
+            const float cy = (static_cast<float>(WINDOW_HEIGHT) * 0.5f - py) / half;
+            return engine::math::vec2{cx, cy};
+#else
+            (void)world_point;
+            return engine::math::vec2{0.0f, 0.0f};
+#endif
+        }
+
         std::shared_ptr<ProceduralMeshStorage> mesh_storage_{std::make_shared<ProceduralMeshStorage>()};
         std::shared_ptr<void> mesh_validator_registration_{};
         std::shared_ptr<void> material_validator_registration_{};
@@ -611,9 +756,12 @@ namespace
         std::unique_ptr<engine::rendering::TrackballCameraController> trackball_controller_{};
 #endif
         std::unordered_map<std::string, entt::entity> render_entities_{};
+        std::vector<std::string> loaded_models_order_{}; // Track loaded models in creation order (excluding cube)
+        bool cube_visible_{true}; // Toggle state for default cube
         engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
         bool opengl_supported_{(ENGINE_PLATFORM_HAS_GLFW != 0) && (ENGINE_RENDERING_HAS_GLAD != 0)};
         bool was_dragging_{false};
+        engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};
         int fps_frame_count_{0};
         double fps_time_accumulator_{0.0};
     };
@@ -650,4 +798,3 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 }
-

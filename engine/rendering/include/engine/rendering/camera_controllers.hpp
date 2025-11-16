@@ -131,6 +131,10 @@ namespace engine::rendering
         [[nodiscard]] float distance() const noexcept { return distance_; }
 
         /// Rotate trackball based on normalized screen coordinates delta
+        // Rotate from previous normalized screen point to current (both in trackball coords)
+        void rotate_from(const math::vec2& prev, const math::vec2& curr) noexcept;
+
+        // Backwards-compatible wrapper that treats delta as movement from origin
         void rotate(const math::vec2& delta) noexcept;
 
         /// Zoom by changing distance from center
@@ -361,32 +365,40 @@ namespace engine::rendering
 
     inline void TrackballCameraController::rotate(const math::vec2& delta) noexcept
     {
-        if (math::length_squared(delta) < 1e-8f)
-        {
-            return; // No movement
-        }
+        // Treat delta as movement from origin to delta (legacy behavior)
+        rotate_from(math::vec2{0.0f, 0.0f}, delta);
+    }
 
-        // Map screen coordinates to sphere (trackball projection)
-        const math::vec2 p1{0.0f, 0.0f}; // Previous point (origin since we're using delta)
-        const math::vec2 p2 = delta;
+    inline void TrackballCameraController::rotate_from(const math::vec2& prev, const math::vec2& curr) noexcept
+    {
+        // Project both points onto virtual sphere
+        const math::vec3 v1 = project_onto_sphere(prev);
+        const math::vec3 v2 = project_onto_sphere(curr);
 
-        const math::vec3 v1 = project_onto_sphere(p1);
-        const math::vec3 v2 = project_onto_sphere(p2);
-
-        // Rotation axis is perpendicular to the two vectors
+        // Compute rotation axis and angle robustly
         const math::vec3 axis = math::cross(v1, v2);
-        const float axis_length = math::length(axis);
+        const float axis_len = math::length(axis);
 
-        if (axis_length < 1e-8f)
+        if (axis_len < 1e-8f)
         {
-            return; // Points are too close
+            // Vectors nearly parallel - fallback to small rotation from dot
+            const float d = std::clamp(math::dot(v1, v2), -1.0f, 1.0f);
+            const float angle = std::acos(d);
+            if (angle < 1e-8f)
+            {
+                return;
+            }
+            const math::vec3 fallback_axis = math::normalize(math::cross(v1, math::vec3{1.0f, 0.0f, 0.0f}));
+            const math::Quaternion<float> delta_q = math::from_angle_axis(angle, fallback_axis);
+            rotation_ = math::normalize(delta_q * rotation_);
+            update_camera();
+            return;
         }
 
-        // Rotation angle from dot product
-        const float angle = std::asin(std::clamp(axis_length, 0.0f, 1.0f));
+        const float dot = std::clamp(math::dot(v1, v2), -1.0f, 1.0f);
+        const float angle = std::atan2(axis_len, dot);
 
-        // Create rotation quaternion and compose with existing rotation
-        const math::Quaternion<float> delta_rotation = math::from_angle_axis(angle, axis / axis_length);
+        const math::Quaternion<float> delta_rotation = math::from_angle_axis(angle, axis / axis_len);
         rotation_ = math::normalize(delta_rotation * rotation_);
 
         update_camera();

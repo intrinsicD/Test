@@ -448,6 +448,7 @@ namespace engine::platform::windowing
                     case GLFW_KEY_ENTER: return input::Key::Enter;
                     case GLFW_KEY_TAB: return input::Key::Tab;
                     case GLFW_KEY_BACKSPACE: return input::Key::Backspace;
+                    case GLFW_KEY_DELETE: return input::Key::Delete;
                     case GLFW_KEY_LEFT_SHIFT: return input::Key::LeftShift;
                     case GLFW_KEY_RIGHT_SHIFT: return input::Key::RightShift;
                     case GLFW_KEY_LEFT_CONTROL: return input::Key::LeftCtrl;
@@ -466,6 +467,7 @@ namespace engine::platform::windowing
                     case GLFW_KEY_D: return input::Key::D;
                     case GLFW_KEY_Q: return input::Key::Q;
                     case GLFW_KEY_E: return input::Key::E;
+                    case GLFW_KEY_T: return input::Key::T;
                     case GLFW_KEY_0: return input::Key::Digit0;
                     case GLFW_KEY_1: return input::Key::Digit1;
                     case GLFW_KEY_2: return input::Key::Digit2;
