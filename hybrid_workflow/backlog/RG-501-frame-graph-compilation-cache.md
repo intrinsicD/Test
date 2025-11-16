@@ -133,7 +133,7 @@ class FrameGraph {
 1. [x] Research hashing strategy; document invariants in this file.
 2. [x] Implement cache structures and hashing within `engine/rendering/src/frame_graph/frame_graph.cpp`.
 3. [x] Add unit tests in `engine/rendering/tests/frame_graph_tests.cpp` for cache hit/miss coverage.
-4. [ ] Wire telemetry counters for cache hit rate into runtime diagnostics.
+4. [x] Wire telemetry counters for cache hit rate into runtime diagnostics.
 5. [x] Update `docs/modules/rendering/README.md` with caching behavior and tunables.
 6. [ ] Capture benchmark evidence (PM-510) proving compile-time reduction.
 7. [x] Validate docs via `python scripts/validate_docs.py` and update roadmap/backlog status.
@@ -147,15 +147,22 @@ class FrameGraph {
 
 ```bash
 cmake --preset linux-gcc-debug
-cmake --build --preset linux-gcc-debug --target engine_rendering_tests
-ctest --preset linux-gcc-debug -R engine_rendering_tests
+cmake --build --preset linux-gcc-debug --target engine_runtime_tests
+ctest --preset linux-gcc-debug -R engine_runtime_tests
+pytest python/tests scripts/tests
 python scripts/validate_docs.py
 ```
 
 **Test Summary:**
-- Unit tests: `engine_rendering_tests`
+- Unit tests: `engine_runtime_tests`
 - Integration tests: _pending_
 - Documentation validation: `python scripts/validate_docs.py`
+- Full evidence captured on 2025-11-16:
+  - `cmake --preset linux-gcc-debug`
+  - `cmake --build --preset linux-gcc-debug --target engine_runtime_tests`
+  - `ctest --preset linux-gcc-debug -R engine_runtime_tests`
+  - `pytest python/tests scripts/tests`
+  - `python scripts/validate_docs.py`
 
 ### Performance (if applicable)
 
@@ -182,9 +189,9 @@ python scripts/validate_docs.py
 
 | Gate | Status | Owner | Evidence |
 |------|--------|-------|----------|
-| tests | [ ] | QA/Test | Compile + test logs |
+| tests | [x] | QA/Test | `cmake --preset linux-gcc-debug`, `cmake --build --preset linux-gcc-debug --target engine_runtime_tests`, `ctest --preset linux-gcc-debug -R engine_runtime_tests`, `pytest python/tests scripts/tests` |
 | perf | [ ] | Performance | Benchmark results |
-| docs | [ ] | Docs/DevRel | README + roadmap updates |
+| docs | [x] | Docs/DevRel | `python scripts/validate_docs.py`, module/telemetry README updates |
 | safety | [ ] | Safety | N/A |
 | release | [ ] | Release Mgr | N/A |
 

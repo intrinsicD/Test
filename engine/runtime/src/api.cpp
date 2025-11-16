@@ -1373,6 +1373,24 @@ namespace engine::runtime
                       "Total GPU memory tracked by the active resource provider",
                       static_cast<double>(gpu_usage.total_bytes()),
                       core::telemetry::MetricUnit::Bytes);
+
+            const auto& frame_graph_cache = diagnostics.frame_graph_cache_stats;
+            add_counter("rendering.frame_graph.cache_hits",
+                        "Frame graph compilation cache hits recorded since runtime startup",
+                        clamp_to_int(frame_graph_cache.hits));
+            add_counter("rendering.frame_graph.cache_misses",
+                        "Frame graph compilation cache misses recorded since runtime startup",
+                        clamp_to_int(frame_graph_cache.misses));
+            const std::uint64_t total_compilations =
+                frame_graph_cache.hits + frame_graph_cache.misses;
+            const double hit_rate = total_compilations == 0
+                                        ? 0.0
+                                        : static_cast<double>(frame_graph_cache.hits) /
+                                              static_cast<double>(total_compilations);
+            add_gauge("rendering.frame_graph.cache_hit_rate",
+                      "Frame graph compilation cache hit ratio (0-1)",
+                      hit_rate,
+                      core::telemetry::MetricUnit::None);
 #endif
 
             const auto make_dimension_labels = [](std::size_t dimension)
@@ -2924,6 +2942,7 @@ namespace engine::runtime
         impl_->diagnostics.frame_graph_serialization = context.frame_graph.serialize();
         const auto& events = context.frame_graph.resource_events();
         impl_->diagnostics.frame_graph_events.assign(events.begin(), events.end());
+        impl_->diagnostics.frame_graph_cache_stats = context.frame_graph.cache_stats();
     }
 
     void submit_render_graph(RuntimeHost& host, rendering::RuntimeSubmissionContext& context)
