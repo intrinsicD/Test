@@ -121,6 +121,40 @@ def test_filter_tasks_gate_filter_requires_all_requested_gates() -> None:
     assert [task.id for task in filtered] == ["A"]
 
 
+def test_filter_tasks_priority_filter_is_case_insensitive() -> None:
+    tasks = [
+        _make_task("A", blocked=False, priority="P1"),
+        _make_task("B", blocked=False, priority="P2"),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, priority="p1")
+
+    assert [task.id for task in filtered] == ["A"]
+
+
+def test_filter_tasks_priority_accepts_comma_separated_values() -> None:
+    tasks = [
+        _make_task("A", blocked=False, priority="P1"),
+        _make_task("B", blocked=False, priority="P2"),
+        _make_task("C", blocked=False, priority="P3"),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, priority="P1, p2")
+
+    assert [task.id for task in filtered] == ["A", "B"]
+
+
+def test_filter_tasks_area_filter_is_case_insensitive() -> None:
+    tasks = [
+        _make_task("A", blocked=False, area="Docs"),
+        _make_task("B", blocked=False, area="runtime"),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, area="DOCS")
+
+    assert [task.id for task in filtered] == ["A"]
+
+
 def test_build_parser_supports_unblocked_flag() -> None:
     parser = task_status.build_parser()
 
