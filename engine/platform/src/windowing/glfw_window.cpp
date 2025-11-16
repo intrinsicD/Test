@@ -211,6 +211,9 @@ namespace engine::platform::windowing
 
             void pump_events() override
             {
+                // Begin frame BEFORE polling events so cursor delta accumulates correctly
+                HeadlessWindow::pump_events();
+
                 glfwPollEvents();
 
                 if (window_ != nullptr && glfwWindowShouldClose(window_) == GLFW_TRUE)
@@ -221,8 +224,6 @@ namespace engine::platform::windowing
                     }
                     glfwSetWindowShouldClose(window_, GLFW_FALSE);
                 }
-
-                HeadlessWindow::pump_events();
             }
 
             [[nodiscard]] std::unique_ptr<SwapchainSurface> create_swapchain_surface(

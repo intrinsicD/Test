@@ -526,28 +526,53 @@ namespace
         {
             auto& input_state = input();
 
+            // Debug: Log input state
+            static int frame_count = 0;
+            if (frame_count++ % 60 == 0)
+            {
+                ENGINE_DEBUG("Input state - Mouse button down: {}, Cursor pos: ({}, {}), Cursor delta: ({}, {}), Scroll delta: ({}, {})",
+                    input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left),
+                    input_state.cursor_position().x, input_state.cursor_position().y,
+                    input_state.cursor_delta().x, input_state.cursor_delta().y,
+                    input_state.scroll_delta().x, input_state.scroll_delta().y);
+            }
+
             if (input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left))
             {
                 if (was_dragging_)
                 {
                     const auto delta = input_state.cursor_delta();
-                    camera_yaw_ += delta.x * CAMERA_ROTATE_SPEED;
-                    camera_pitch_ -= delta.y * CAMERA_ROTATE_SPEED;
-                    camera_pitch_ = std::clamp(camera_pitch_, -1.5f, 1.5f);
+                    if (delta.x != 0.0f || delta.y != 0.0f)
+                    {
+                        ENGINE_DEBUG("Applying camera rotation - delta: ({}, {}), yaw: {}, pitch: {}",
+                            delta.x, delta.y, camera_yaw_, camera_pitch_);
+                        camera_yaw_ += delta.x * CAMERA_ROTATE_SPEED;
+                        camera_pitch_ -= delta.y * CAMERA_ROTATE_SPEED;
+                        camera_pitch_ = std::clamp(camera_pitch_, -1.5f, 1.5f);
+                    }
                 }
                 else
                 {
+                    ENGINE_DEBUG("Started dragging");
                     was_dragging_ = true;
                 }
             }
             else
             {
+                if (was_dragging_)
+                {
+                    ENGINE_DEBUG("Stopped dragging");
+                }
                 was_dragging_ = false;
             }
 
             auto scroll = input_state.scroll_delta();
-            camera_radius_ -= scroll.y * CAMERA_ZOOM_SPEED;
-            camera_radius_ = std::clamp(camera_radius_, 1.0f, 50.0f);
+            if (scroll.y != 0.0f)
+            {
+                ENGINE_DEBUG("Applying zoom - scroll.y: {}, radius: {}", scroll.y, camera_radius_);
+                camera_radius_ -= scroll.y * CAMERA_ZOOM_SPEED;
+                camera_radius_ = std::clamp(camera_radius_, 1.0f, 50.0f);
+            }
 
             if (input_state.was_key_pressed(engine::platform::input::Key::Escape))
             {
