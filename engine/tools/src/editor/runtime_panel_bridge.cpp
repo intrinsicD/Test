@@ -1,6 +1,9 @@
 #include "engine/tools/editor/runtime_panel_bridge.hpp"
 
 #include "engine/tools/imgui_helpers.hpp"
+#include "engine/tools/profiling/profiler.hpp"
+
+#include <vector>
 
 #include "engine/runtime/api.hpp"
 #include "engine/scene/validation.hpp"
@@ -37,7 +40,8 @@ namespace engine::tools::editor
         SceneValidationProvider scene_validation_provider,
         Renderers renderers,
         HierarchyPanelHooks hierarchy_hooks,
-        AssetPanelHooks asset_hooks
+        AssetPanelHooks asset_hooks,
+        PerformancePanelHooks performance_hooks
     )
         : registry_(&registry)
         , diagnostics_provider_(std::move(diagnostics_provider))
@@ -45,6 +49,7 @@ namespace engine::tools::editor
         , renderers_(std::move(renderers))
         , hierarchy_hooks_(std::move(hierarchy_hooks))
         , asset_hooks_(std::move(asset_hooks))
+        , performance_hooks_(std::move(performance_hooks))
     {
         if (!renderers_.diagnostics)
         {
@@ -132,6 +137,21 @@ namespace engine::tools::editor
                 }
             );
         }
+
+        if (registry_ && diagnostics_provider_)
+        {
+            performance_panel_ = std::make_unique<PerformanceMetricsPanel>();
+            performance_panel_->set_history_capacity(performance_hooks_.history_capacity);
+            performance_handle_ = registry_->register_scoped_panel(
+                "runtime.performance_metrics",
+                [this](const imgui::PanelRenderContext& context) {
+                    if (performance_panel_)
+                    {
+                        performance_panel_->render(context);
+                    }
+                }
+            );
+        }
     }
 
     void RuntimePanelBridge::render_all(double delta_time) const
@@ -151,6 +171,55 @@ namespace engine::tools::editor
             if (hierarchy_hooks_.selection_provider)
             {
                 hierarchy_panel_->synchronize_external_selection(hierarchy_hooks_.selection_provider());
+            }
+        }
+
+        if (performance_panel_ && diagnostics_provider_)
+        {
+            const auto& diagnostics = diagnostics_provider_();
+            PerformanceMetricsPanel::FrameSample sample{
+                diagnostics.last_tick_ms,
+                diagnostics.average_tick_ms,
+                diagnostics.max_tick_ms,
+            };
+            performance_panel_->push_frame_sample(sample);
+
+            std::vector<PerformanceMetricsPanel::StageTimingRow> stage_rows;
+            stage_rows.reserve(diagnostics.stage_timings.size());
+            for (const auto& stage : diagnostics.stage_timings)
+            {
+                stage_rows.push_back(PerformanceMetricsPanel::StageTimingRow{
+                    stage.name,
+                    stage.last_ms,
+                    stage.average_ms,
+                    stage.max_ms,
+                });
+            }
+            performance_panel_->set_stage_timings(std::move(stage_rows));
+
+            const auto profiler_report = profiling::global_profiler().generate_report();
+            std::vector<PerformanceMetricsPanel::ProfilerEntryRow> profiler_rows;
+            profiler_rows.reserve(profiler_report.entries.size());
+            for (const auto& entry : profiler_report.entries)
+            {
+                profiler_rows.push_back(PerformanceMetricsPanel::ProfilerEntryRow{
+                    entry.name,
+                    entry.duration_ms,
+                    entry.average_ms,
+                    entry.min_ms,
+                    entry.max_ms,
+                    entry.call_count,
+                });
+            }
+            performance_panel_->set_profiler_entries(std::move(profiler_rows));
+
+            if (performance_hooks_.benchmark_provider)
+            {
+                performance_panel_->set_benchmark_entries(performance_hooks_.benchmark_provider());
+            }
+            else
+            {
+                performance_panel_->set_benchmark_entries({});
             }
         }
 

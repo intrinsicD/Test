@@ -6,6 +6,7 @@ add_executable(test_tools_module
         test_sandbox_configuration_loader.cpp
         test_benchmark_runner.cpp
         test_panel_registry.cpp
+        test_performance_metrics_panel.cpp
         test_scene_hierarchy_panel.cpp
         test_runtime_panel_bridge.cpp)
 

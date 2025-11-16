@@ -9,6 +9,7 @@
 #include <entt/entt.hpp>
 
 #include "engine/tools/editor/asset_browser_panel.hpp"
+#include "engine/tools/editor/performance_metrics_panel.hpp"
 #include "engine/tools/editor/scene_hierarchy_panel.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
 
@@ -59,13 +60,27 @@ namespace engine::tools::editor
             RowProvider row_provider;
         };
 
+        struct PerformancePanelHooks
+        {
+            using BenchmarkProvider =
+                std::function<std::vector<PerformanceMetricsPanel::BenchmarkEntry>()>;
+            PerformancePanelHooks()
+                : history_capacity(240)
+            {
+            }
+
+            std::size_t history_capacity;
+            BenchmarkProvider benchmark_provider{};
+        };
+
         RuntimePanelBridge(
             imgui::PanelRegistry& registry,
             DiagnosticsProvider diagnostics_provider,
             SceneValidationProvider scene_validation_provider = SceneValidationProvider{},
             Renderers renderers = Renderers{},
             HierarchyPanelHooks hierarchy_hooks = HierarchyPanelHooks{},
-            AssetPanelHooks asset_hooks = AssetPanelHooks{}
+            AssetPanelHooks asset_hooks = AssetPanelHooks{},
+            PerformancePanelHooks performance_hooks = PerformancePanelHooks{}
         );
 
         /// Render all registered panels using \p delta_time for the render context.
@@ -92,6 +107,9 @@ namespace engine::tools::editor
         AssetPanelHooks asset_hooks_{};
         std::unique_ptr<AssetBrowserPanel> asset_panel_{};
         imgui::PanelRegistry::RegistrationHandle asset_handle_{};
+        PerformancePanelHooks performance_hooks_{};
+        std::unique_ptr<PerformanceMetricsPanel> performance_panel_{};
+        imgui::PanelRegistry::RegistrationHandle performance_handle_{};
     };
 } // namespace engine::tools::editor
 

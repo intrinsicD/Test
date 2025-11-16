@@ -396,6 +396,9 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
 - `engine::tools::editor::RuntimePanelBridge` registers runtime diagnostics, profiler, scene validation, and asset browser
   panels with the shared registry and exposes a single `render_all()` entry point for the editor harness. Consumers provide
   cache adapters through `AssetPanelHooks` so the bridge refreshes asset metadata every frame while respecting feature toggles.
+- `engine::tools::editor::PerformanceMetricsPanel` captures frame-time history, aggregates runtime stage timings, surfaces
+  profiler zones, and compares benchmark baselines so PM-510 demos document regressions directly from the editor UI. The bridge
+  wires the panel automatically and exposes `PerformancePanelHooks` for benchmark deltas/history tuning.
 - `engine::tools::editor::SceneHierarchyPanel` visualises the runtime `scene::Scene` graph, lazily expands entity trees, and
   surfaces hierarchy validation issues inline so tooling teams can triage structure problems without leaving the editor.
 - `engine::tools::editor::AssetBrowserPanel` enumerates loaded asset caches through the new introspection helpers, applies
@@ -448,6 +451,11 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   ```cpp
   engine::tools::imgui::PanelRegistry registry;
   entt::entity selected_entity = entt::null;
+  engine::tools::editor::RuntimePanelBridge::PerformancePanelHooks perf_hooks{};
+  perf_hooks.history_capacity = 240;
+  perf_hooks.benchmark_provider = []() {
+      return std::vector<engine::tools::editor::PerformanceMetricsPanel::BenchmarkEntry>{};
+  };
 
   engine::tools::editor::RuntimePanelBridge bridge(
       registry,
@@ -460,7 +468,9 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
           [&runtime]() -> engine::scene::Scene* { return &runtime.scene(); },
           [&]() -> entt::entity { return selected_entity; },
           [&](entt::entity entity_id) { selected_entity = entity_id; }
-      }
+      },
+      engine::tools::editor::RuntimePanelBridge::AssetPanelHooks{},
+      perf_hooks
   );
 
   // In the editor loop
