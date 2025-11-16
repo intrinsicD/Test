@@ -112,6 +112,18 @@ def test_filter_tasks_filters_by_size() -> None:
     assert [task.id for task in filtered] == ["A"]
 
 
+def test_filter_tasks_supports_multiple_size_values() -> None:
+    tasks = [
+        _make_task("A", blocked=False, size="XS"),
+        _make_task("B", blocked=False, size="S"),
+        _make_task("C", blocked=False, size="L"),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, size=["s, l"])
+
+    assert [task.id for task in filtered] == ["B", "C"]
+
+
 def test_filter_tasks_filters_by_gate() -> None:
     tasks = [
         _make_task("A", blocked=False, gates=["tests", "docs"]),
@@ -202,7 +214,15 @@ def test_build_parser_supports_size_flag() -> None:
 
     args = parser.parse_args(['--size', 'S'])
 
-    assert args.size == 'S'
+    assert args.size == ['S']
+
+
+def test_build_parser_supports_multiple_size_values() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--size', 'S,M', '--size', 'L'])
+
+    assert args.size == ['S,M', 'L']
 
 
 def test_build_parser_supports_relates_to_flag() -> None:
