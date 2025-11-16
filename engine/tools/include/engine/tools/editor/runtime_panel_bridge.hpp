@@ -10,6 +10,7 @@
 
 #include "engine/tools/editor/asset_browser_panel.hpp"
 #include "engine/tools/editor/performance_metrics_panel.hpp"
+#include "engine/tools/editor/telemetry_visualization_panel.hpp"
 #include "engine/tools/editor/scene_hierarchy_panel.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
 
@@ -73,6 +74,20 @@ namespace engine::tools::editor
             BenchmarkProvider benchmark_provider{};
         };
 
+        struct TelemetryPanelHooks
+        {
+            using SeriesProvider = std::function<std::vector<TelemetryVisualizationPanel::SeriesSample>(
+                const runtime::RuntimeDiagnostics&)>;
+
+            TelemetryPanelHooks()
+                : history_capacity(120)
+            {
+            }
+
+            std::size_t history_capacity;
+            SeriesProvider series_provider{};
+        };
+
         RuntimePanelBridge(
             imgui::PanelRegistry& registry,
             DiagnosticsProvider diagnostics_provider,
@@ -80,7 +95,8 @@ namespace engine::tools::editor
             Renderers renderers = Renderers{},
             HierarchyPanelHooks hierarchy_hooks = HierarchyPanelHooks{},
             AssetPanelHooks asset_hooks = AssetPanelHooks{},
-            PerformancePanelHooks performance_hooks = PerformancePanelHooks{}
+            PerformancePanelHooks performance_hooks = PerformancePanelHooks{},
+            TelemetryPanelHooks telemetry_hooks = TelemetryPanelHooks{}
         );
 
         /// Render all registered panels using \p delta_time for the render context.
@@ -110,6 +126,9 @@ namespace engine::tools::editor
         PerformancePanelHooks performance_hooks_{};
         std::unique_ptr<PerformanceMetricsPanel> performance_panel_{};
         imgui::PanelRegistry::RegistrationHandle performance_handle_{};
+        TelemetryPanelHooks telemetry_hooks_{};
+        std::unique_ptr<TelemetryVisualizationPanel> telemetry_panel_{};
+        imgui::PanelRegistry::RegistrationHandle telemetry_handle_{};
     };
 } // namespace engine::tools::editor
 
