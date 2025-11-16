@@ -111,6 +111,12 @@ metrics aligned with task `RE-610`:
   `rendering.resources.other_bytes`, `rendering.resources.total_bytes`
   (gauges, unit Bytes) — GPU memory tracked by the active resource provider,
   partitioned by buffer/texture/auxiliary classes with an aggregate total.
+- `rendering.frame_graph.cache_hits`, `rendering.frame_graph.cache_misses`
+  (counters, unit Count) — cumulative cache utilisation statistics emitted from
+  the frame-graph compilation cache.
+- `rendering.frame_graph.cache_hit_rate` (gauge, unit None) — hit ratio in the
+  `[0, 1]` range calculated from the cumulative counters to spotlight cache
+  regressions in tooling overlays.
 
 The C API exposes descriptors and samples through the following functions
 (`engine/runtime/api.hpp`):

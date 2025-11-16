@@ -2113,7 +2113,9 @@ TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
     engine::runtime::RuntimeHost host{};
     host.shutdown();
     host.initialize();
-    host.tick(0.016);
+    constexpr double kFrameDt = 0.016;
+    host.tick(kFrameDt);
+    host.tick(kFrameDt);
 
     const auto& metrics = host.diagnostics().metrics;
 
@@ -2148,6 +2150,27 @@ TEST(RuntimeDiagnostics, IncludesResearchRenderingTelemetry)
     const auto gpu_total_metric = find_metric_index(metrics, "rendering.resources.total_bytes");
     ASSERT_TRUE(gpu_total_metric.has_value());
     EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*gpu_total_metric].value), 0.0);
+
+    const auto stats = host.diagnostics().frame_graph_cache_stats;
+    const auto cache_hits_metric = find_metric_index(metrics, "rendering.frame_graph.cache_hits");
+    ASSERT_TRUE(cache_hits_metric.has_value());
+    EXPECT_EQ(engine::core::telemetry::as_int(metrics.samples[*cache_hits_metric].value),
+              static_cast<int>(stats.hits));
+
+    const auto cache_miss_metric = find_metric_index(metrics, "rendering.frame_graph.cache_misses");
+    ASSERT_TRUE(cache_miss_metric.has_value());
+    EXPECT_EQ(engine::core::telemetry::as_int(metrics.samples[*cache_miss_metric].value),
+              static_cast<int>(stats.misses));
+
+    const auto cache_hit_rate_metric =
+        find_metric_index(metrics, "rendering.frame_graph.cache_hit_rate");
+    ASSERT_TRUE(cache_hit_rate_metric.has_value());
+    const auto total = stats.hits + stats.misses;
+    const double expected_rate = total == 0 ? 0.0
+                                            : static_cast<double>(stats.hits) /
+            static_cast<double>(total);
+    EXPECT_DOUBLE_EQ(engine::core::telemetry::as_double(metrics.samples[*cache_hit_rate_metric].value),
+                     expected_rate);
 
     host.shutdown();
 }

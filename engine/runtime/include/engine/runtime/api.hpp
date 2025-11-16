@@ -259,6 +259,7 @@ namespace engine::runtime
         std::string frame_graph_serialization{};
         std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
         std::vector<RuntimeCommandEncoderStats> command_encoder_stats{};
+        rendering::FrameGraphCacheStats frame_graph_cache_stats{};
 #endif
         std::string loop_plan_serialization{};
 #if ENGINE_ENABLE_ASSETS

@@ -561,7 +561,9 @@ Frame graph compilation is deterministic and cached:
 `reset()` calls. A deterministic hash derived from resource descriptors and pass wiring drives the cache lookup so identical
 graphs rehydrate immediately while divergent graphs fall back to a full compile. Cache behaviour is observable via
 `FrameGraph::cache_stats()` (for telemetry exports) and controllable via `FrameGraph::clear_cache()` when experiments require a
-fresh baseline.
+fresh baseline. Runtime diagnostics export cache behaviour through the shared telemetry schema: `rendering.frame_graph.cache_hits`
+and `rendering.frame_graph.cache_misses` expose cumulative counters, while `rendering.frame_graph.cache_hit_rate` reports the
+current hit ratio so TL-314 overlays can flag regressions during PM-510 demos.
 
 Vulkan backend benchmarks (from `T-0116`):
 - Simple scene: ~2.0ms GPU time
