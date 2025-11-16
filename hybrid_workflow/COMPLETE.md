@@ -171,6 +171,7 @@ python hybrid_workflow/task_status.py --area rendering
 
 # Owner queues
 python hybrid_workflow/task_status.py --owner docs-devrel
+python hybrid_workflow/task_status.py --owner docs-devrel --owner runtime-lead
 
 # Summary statistics (respects filters)
 python hybrid_workflow/task_status.py --summary

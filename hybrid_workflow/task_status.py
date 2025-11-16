@@ -381,7 +381,7 @@ def filter_tasks(
     priority: Optional[Union[str, Iterable[str]]] = None,
     area: Optional[str] = None,
     size: Optional[str] = None,
-    owner: Optional[str] = None,
+    owner: Optional[Union[str, Iterable[str]]] = None,
     relates_to: Optional[List[str]] = None,
     gates: Optional[List[str]] = None,
     search_terms: Optional[Iterable[str]] = None,
@@ -407,9 +407,9 @@ def filter_tasks(
         size_normalised = size.strip().lower()
         filtered = [t for t in filtered if t.size.lower() == size_normalised]
 
-    if owner:
-        owner_normalised = owner.strip().lower()
-        filtered = [t for t in filtered if t.owner.lower() == owner_normalised]
+    owner_values = {value.lower() for value in _normalise_filter_values(owner)}
+    if owner_values:
+        filtered = [t for t in filtered if t.owner.lower() in owner_values]
 
     if gates:
         required = {gate.lower() for gate in gates if gate}
@@ -467,7 +467,7 @@ def select_next_actions(
     priority: Optional[Union[str, Iterable[str]]] = None,
     area: Optional[str] = None,
     size: Optional[str] = None,
-    owner: Optional[str] = None,
+    owner: Optional[Union[str, Iterable[str]]] = None,
     gates: Optional[List[str]] = None,
     relates_to: Optional[List[str]] = None,
     search_terms: Optional[Iterable[str]] = None,
@@ -610,7 +610,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
     parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
     parser.add_argument('--size', help="Filter by task size (XS, S, M, L, XL)")
-    parser.add_argument('--owner', help="Filter by owner (e.g. docs-devrel, runtime-lead)")
+    parser.add_argument(
+        '--owner',
+        metavar='OWNER',
+        action='append',
+        help=(
+            "Filter by owner (e.g. docs-devrel, runtime-lead). Repeat the flag or "
+            "use comma-separated values to match multiple owners (case-insensitive)."
+        ),
+    )
     parser.add_argument(
         '--gate',
         metavar='GATE',
@@ -735,6 +743,7 @@ def main():
         gates = [gate for group in args.gate for gate in group]
 
     search_terms = _normalise_filter_values(args.search)
+    owner_filter = _normalise_filter_values(args.owner)
 
     blocked_only = True if args.blocked else False if args.unblocked else None
 
@@ -746,7 +755,7 @@ def main():
                 priority=args.priority,
                 area=args.area,
                 size=args.size,
-                owner=args.owner,
+                owner=owner_filter,
                 gates=gates,
                 relates_to=relates_to,
                 search_terms=search_terms,
@@ -762,7 +771,7 @@ def main():
             priority=args.priority,
             area=args.area,
             size=args.size,
-            owner=args.owner,
+            owner=owner_filter,
             relates_to=relates_to,
             gates=gates,
             search_terms=search_terms,
