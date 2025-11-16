@@ -35,6 +35,7 @@
 #include "engine/platform/input/input_state.hpp"
 #include "engine/rendering/backend/opengl/presentation_backend.hpp"
 #include "engine/rendering/camera.hpp"
+#include "engine/rendering/camera_controllers.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/pipeline/research_baseline.hpp"
 #include "engine/runtime/api.hpp"
@@ -240,7 +241,6 @@ namespace
         {
             process_events();
             handle_input();
-            update_camera();
 #if ENGINE_ENABLE_ASSETS
             mesh_cache_.poll();
             point_cloud_cache_.poll();
@@ -348,19 +348,13 @@ namespace
             const float aspect_ratio = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
             camera.set_perspective(1.047f, aspect_ratio, 0.1f, 100.0f);
 
-            // Simple fixed camera for debugging - positioned at (0, 0, 5) looking at origin
-            const engine::math::vec3 camera_pos{0.0f, 0.0f, 5.0f};
-            const engine::math::vec3 target{0.0f, 0.0f, 0.0f};
-            const engine::math::vec3 up{0.0f, 1.0f, 0.0f};
+            // Create trackball controller for intuitive rotation
+            const engine::math::vec3 center{0.0f, 0.0f, 0.0f};
+            trackball_controller_ = std::make_unique<engine::rendering::TrackballCameraController>(
+                camera, center, CAMERA_DISTANCE);
 
-            if (auto result = camera.look_at(camera_pos, target, up); !result)
-            {
-                ENGINE_WARN("Camera look_at failed: {}", result.error().message());
-            }
-
-            ENGINE_INFO("Camera setup: pos=({}, {}, {}), target=({}, {}, {})",
-                       camera_pos[0], camera_pos[1], camera_pos[2],
-                       target[0], target[1], target[2]);
+            ENGINE_INFO("Camera setup with trackball controller - center=({}, {}, {}), distance={}",
+                       center[0], center[1], center[2], CAMERA_DISTANCE);
 #endif
         }
 
@@ -515,28 +509,38 @@ namespace
 
         void focus_camera_on_bounds(const engine::geometry::Aabb& bounds)
         {
+#if ENGINE_ENABLE_RENDERING
+            if (!trackball_controller_)
+            {
+                return;
+            }
+
+            // Calculate appropriate distance to view the entire object
             const auto size = engine::geometry::Size(bounds);
             const float max_extent = std::max({size[0], size[1], size[2], 1.0f});
-            camera_radius_ = std::clamp(max_extent * 1.5f, 1.0f, 50.0f);
+            const float distance = std::clamp(max_extent * 1.5f, 1.0f, 50.0f);
 
-            update_camera();
+            // Set center to bounds center
+            const auto center = engine::geometry::Center(bounds);
+            trackball_controller_->set_center(center);
+            trackball_controller_->set_distance(distance);
+
+            ENGINE_INFO("Focused camera on bounds - center=({}, {}, {}), distance={}",
+                       center[0], center[1], center[2], distance);
+#endif
         }
 
         void handle_input()
         {
-            auto& input_state = input();
-
-            // Debug: Log input state
-            static int frame_count = 0;
-            if (frame_count++ % 60 == 0)
+#if ENGINE_ENABLE_RENDERING
+            if (!trackball_controller_)
             {
-                ENGINE_DEBUG("Input state - Mouse button down: {}, Cursor pos: ({}, {}), Cursor delta: ({}, {}), Scroll delta: ({}, {})",
-                    input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left),
-                    input_state.cursor_position().x, input_state.cursor_position().y,
-                    input_state.cursor_delta().x, input_state.cursor_delta().y,
-                    input_state.scroll_delta().x, input_state.scroll_delta().y);
+                return;
             }
 
+            auto& input_state = input();
+
+            // Trackball rotation with left mouse button
             if (input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left))
             {
                 if (was_dragging_)
@@ -544,73 +548,39 @@ namespace
                     const auto delta = input_state.cursor_delta();
                     if (delta.x != 0.0f || delta.y != 0.0f)
                     {
-                        ENGINE_DEBUG("Applying camera rotation - delta: ({}, {}), yaw: {}, pitch: {}",
-                            delta.x, delta.y, camera_yaw_, camera_pitch_);
-                        camera_yaw_ += delta.x * CAMERA_ROTATE_SPEED;
-                        camera_pitch_ -= delta.y * CAMERA_ROTATE_SPEED;
-                        camera_pitch_ = std::clamp(camera_pitch_, -1.5f, 1.5f);
+                        // Normalize delta to screen space (-1 to 1 range roughly)
+                        // Multiply by sensitivity factor for good feel
+                        const float sensitivity = 2.0f;
+                        const engine::math::vec2 normalized_delta{
+                            delta.x / static_cast<float>(WINDOW_WIDTH) * sensitivity,
+                            -delta.y / static_cast<float>(WINDOW_HEIGHT) * sensitivity // Invert Y for natural feel
+                        };
+
+                        trackball_controller_->rotate(normalized_delta);
                     }
                 }
                 else
                 {
-                    ENGINE_DEBUG("Started dragging");
                     was_dragging_ = true;
                 }
             }
             else
             {
-                if (was_dragging_)
-                {
-                    ENGINE_DEBUG("Stopped dragging");
-                }
                 was_dragging_ = false;
             }
 
+            // Zoom with scroll wheel
             auto scroll = input_state.scroll_delta();
             if (scroll.y != 0.0f)
             {
-                ENGINE_DEBUG("Applying zoom - scroll.y: {}, radius: {}", scroll.y, camera_radius_);
-                camera_radius_ -= scroll.y * CAMERA_ZOOM_SPEED;
-                camera_radius_ = std::clamp(camera_radius_, 1.0f, 50.0f);
+                trackball_controller_->zoom(-scroll.y * CAMERA_ZOOM_SPEED);
             }
 
             if (input_state.was_key_pressed(engine::platform::input::Key::Escape))
             {
                 quit();
             }
-        }
-
-        void update_camera()
-        {
-#if ENGINE_ENABLE_RENDERING
-            auto& registry = scene().registry();
-            if (registry.valid(camera_entity_) && registry.any_of<engine::rendering::Camera>(camera_entity_))
-            {
-                auto& camera = registry.get<engine::rendering::Camera>(camera_entity_);
-                update_camera_position(camera);
-            }
 #endif
-        }
-
-        void update_camera_position(engine::rendering::Camera& camera)
-        {
-            const float cos_pitch = std::cos(camera_pitch_);
-            const float sin_pitch = std::sin(camera_pitch_);
-            const float cos_yaw = std::cos(camera_yaw_);
-            const float sin_yaw = std::sin(camera_yaw_);
-
-            const engine::math::vec3 camera_pos{
-                camera_radius_ * cos_pitch * sin_yaw,
-                camera_radius_ * sin_pitch,
-                camera_radius_ * cos_pitch * cos_yaw};
-
-            const engine::math::vec3 target{0.0f, 0.0f, 0.0f};
-            const engine::math::vec3 up{0.0f, 1.0f, 0.0f};
-
-            if (auto result = camera.look_at(camera_pos, target, up); !result)
-            {
-                ENGINE_WARN("Camera look_at failed: {}", result.error().message());
-            }
         }
 
         void print_fps(double delta_time)
@@ -621,8 +591,7 @@ namespace
             if (fps_time_accumulator_ >= 2.0)
             {
                 const double fps = static_cast<double>(fps_frame_count_) / fps_time_accumulator_;
-                ENGINE_DEBUG("FPS: {:.1f} (Camera: yaw={:.2f}, pitch={:.2f}, radius={:.2f})",
-                    fps, camera_yaw_, camera_pitch_, camera_radius_);
+                ENGINE_DEBUG("FPS: {:.1f}", fps);
                 fps_frame_count_ = 0;
                 fps_time_accumulator_ = 0.0;
             }
@@ -639,13 +608,11 @@ namespace
         std::shared_ptr<engine::rendering::backend::opengl::OpenGLPresentationBackend> backend_{};
         engine::rendering::ResearchBaselineResources baseline_resources_{};
         entt::entity camera_entity_{entt::null};
+        std::unique_ptr<engine::rendering::TrackballCameraController> trackball_controller_{};
 #endif
         std::unordered_map<std::string, entt::entity> render_entities_{};
         engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
         bool opengl_supported_{(ENGINE_PLATFORM_HAS_GLFW != 0) && (ENGINE_RENDERING_HAS_GLAD != 0)};
-        float camera_yaw_{0.0f};
-        float camera_pitch_{0.3f};
-        float camera_radius_{CAMERA_DISTANCE};
         bool was_dragging_{false};
         int fps_frame_count_{0};
         double fps_time_accumulator_{0.0};

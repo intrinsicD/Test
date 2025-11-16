@@ -112,9 +112,45 @@ namespace engine::rendering
         float yaw_{0.0F};
         float pitch_{0.0F};
 
-        static constexpr float min_pitch_{-1.55334306F}; // ~-89 degrees
-        static constexpr float max_pitch_{1.55334306F};  // ~89 degrees
         static constexpr float min_radius_{0.1F};
+
+        void update_camera() noexcept;
+    };
+
+    /// Trackball/Arcball camera controller using quaternion rotation for intuitive manipulation.
+    /// Maps screen space mouse movements directly to sphere rotations (like PMP library).
+    class ENGINE_RENDERING_API TrackballCameraController final : public CameraController
+    {
+    public:
+        TrackballCameraController(Camera& camera, math::vec3 center, float distance) noexcept;
+
+        void set_center(const math::vec3& center) noexcept;
+        [[nodiscard]] math::vec3 center() const noexcept { return center_; }
+
+        void set_distance(float distance) noexcept;
+        [[nodiscard]] float distance() const noexcept { return distance_; }
+
+        /// Rotate trackball based on normalized screen coordinates delta
+        void rotate(const math::vec2& delta) noexcept;
+
+        /// Zoom by changing distance from center
+        void zoom(float delta) noexcept;
+
+        /// Reset to initial orientation
+        void reset() noexcept;
+
+        void update(const CameraControlState& state, float delta_seconds) noexcept override;
+
+    private:
+        math::vec3 center_;
+        float distance_;
+        math::Quaternion<float> rotation_{1.0f, 0.0f, 0.0f, 0.0f}; // Identity quaternion
+
+        static constexpr float min_distance_{0.1F};
+        static constexpr float trackball_size_{0.8F}; // Virtual trackball radius
+
+        /// Project 2D screen point onto virtual sphere surface
+        [[nodiscard]] math::vec3 project_onto_sphere(const math::vec2& point) const noexcept;
 
         void update_camera() noexcept;
     };
@@ -250,14 +286,14 @@ namespace engine::rendering
     inline void OrbitCameraController::set_orientation(float yaw_radians, float pitch_radians) noexcept
     {
         yaw_ = yaw_radians;
-        pitch_ = std::clamp(pitch_radians, min_pitch_, max_pitch_);
+        pitch_ = pitch_radians;
         update_camera();
     }
 
     inline void OrbitCameraController::update(const CameraControlState& state, float delta_seconds) noexcept
     {
         yaw_ += state.rotation[0];
-        pitch_ = std::clamp(pitch_ + state.rotation[1], min_pitch_, max_pitch_);
+        pitch_ += state.rotation[1];  // No clamping - allow continuous rotation
         radius_ = std::max(min_radius_, radius_ + state.zoom);
 
         const float cos_pitch = std::cos(pitch_);
@@ -286,14 +322,155 @@ namespace engine::rendering
         const float cos_yaw = std::cos(yaw_);
         const float sin_yaw = std::sin(yaw_);
 
+        // Calculate camera position using spherical coordinates
         const math::vec3 forward{
             cos_pitch * sin_yaw,
             sin_pitch,
             -cos_pitch * cos_yaw};
-        const math::vec3 right = math::normalize(math::cross(forward, world_up()));
-        const math::vec3 up = math::cross(right, forward);
+
         const math::vec3 position = target_ - forward * radius_;
 
+        // Compute proper up vector to avoid gimbal lock issues
+        // When looking straight up or down, use the yaw direction as reference
+        const math::vec3 right = math::normalize(math::cross(forward, world_up()));
+        const math::vec3 up = math::cross(right, forward);
+
         [[maybe_unused]] auto result = camera().look_at(position, target_, up);
+    }
+
+    // TrackballCameraController implementation
+
+    inline TrackballCameraController::TrackballCameraController(Camera& camera, math::vec3 center,
+                                                               float distance) noexcept
+        : CameraController(camera), center_(center), distance_(distance)
+    {
+        update_camera();
+    }
+
+    inline void TrackballCameraController::set_center(const math::vec3& center) noexcept
+    {
+        center_ = center;
+        update_camera();
+    }
+
+    inline void TrackballCameraController::set_distance(float distance) noexcept
+    {
+        distance_ = std::max(min_distance_, distance);
+        update_camera();
+    }
+
+    inline void TrackballCameraController::rotate(const math::vec2& delta) noexcept
+    {
+        if (math::length_squared(delta) < 1e-8f)
+        {
+            return; // No movement
+        }
+
+        // Map screen coordinates to sphere (trackball projection)
+        const math::vec2 p1{0.0f, 0.0f}; // Previous point (origin since we're using delta)
+        const math::vec2 p2 = delta;
+
+        const math::vec3 v1 = project_onto_sphere(p1);
+        const math::vec3 v2 = project_onto_sphere(p2);
+
+        // Rotation axis is perpendicular to the two vectors
+        const math::vec3 axis = math::cross(v1, v2);
+        const float axis_length = math::length(axis);
+
+        if (axis_length < 1e-8f)
+        {
+            return; // Points are too close
+        }
+
+        // Rotation angle from dot product
+        const float angle = std::asin(std::clamp(axis_length, 0.0f, 1.0f));
+
+        // Create rotation quaternion and compose with existing rotation
+        const math::Quaternion<float> delta_rotation = math::from_angle_axis(angle, axis / axis_length);
+        rotation_ = math::normalize(delta_rotation * rotation_);
+
+        update_camera();
+    }
+
+    inline void TrackballCameraController::zoom(float delta) noexcept
+    {
+        distance_ = std::max(min_distance_, distance_ + delta);
+        update_camera();
+    }
+
+    inline void TrackballCameraController::reset() noexcept
+    {
+        rotation_ = math::Quaternion<float>{1.0f, 0.0f, 0.0f, 0.0f};
+        update_camera();
+    }
+
+    inline void TrackballCameraController::update(const CameraControlState& state, float delta_seconds) noexcept
+    {
+        // Apply rotation from control state
+        if (state.rotation[0] != 0.0f || state.rotation[1] != 0.0f)
+        {
+            const math::vec2 delta{state.rotation[0], state.rotation[1]};
+            rotate(delta);
+        }
+
+        // Apply zoom
+        if (state.zoom != 0.0f)
+        {
+            zoom(state.zoom);
+        }
+
+        // Apply translation (pan the center point)
+        if (state.translation[0] != 0.0f || state.translation[1] != 0.0f || state.translation[2] != 0.0f)
+        {
+            // Get current camera basis vectors
+            const math::mat4 rotation_matrix = math::utils::to_rotation_matrix(rotation_);
+            const math::vec3 right{rotation_matrix[0][0], rotation_matrix[1][0], rotation_matrix[2][0]};
+            const math::vec3 up{rotation_matrix[0][1], rotation_matrix[1][1], rotation_matrix[2][1]};
+            const math::vec3 forward{rotation_matrix[0][2], rotation_matrix[1][2], rotation_matrix[2][2]};
+
+            center_ += right * state.translation[0] * delta_seconds;
+            center_ += up * state.translation[1] * delta_seconds;
+            center_ += forward * state.translation[2] * delta_seconds;
+
+            update_camera();
+        }
+    }
+
+    inline math::vec3 TrackballCameraController::project_onto_sphere(const math::vec2& point) const noexcept
+    {
+        const float r = trackball_size_;
+        const float d = math::length(point);
+
+        if (d < r * 0.70710678118654752440f) // Inside sphere (sqrt(2)/2 * r)
+        {
+            // Project onto sphere
+            const float z = std::sqrt(r * r - d * d);
+            return math::normalize(math::vec3{point[0], point[1], z});
+        }
+        else
+        {
+            // Outside sphere - project onto hyperbolic sheet
+            const float t = r / 1.41421356237309504880f; // r / sqrt(2)
+            const float z = t * t / d;
+            return math::normalize(math::vec3{point[0], point[1], z});
+        }
+    }
+
+    inline void TrackballCameraController::update_camera() noexcept
+    {
+        // Convert quaternion to rotation matrix
+        const math::mat4 rotation_matrix = math::utils::to_rotation_matrix(rotation_);
+
+        // Camera looks down negative Z axis in its local space
+        // Extract the forward direction (negative Z column of rotation matrix)
+        const math::vec3 forward{-rotation_matrix[0][2], -rotation_matrix[1][2], -rotation_matrix[2][2]};
+
+        // Camera position is center + distance along the forward direction
+        const math::vec3 position = center_ - forward * distance_;
+
+        // Extract up vector (Y column of rotation matrix)
+        const math::vec3 up{rotation_matrix[0][1], rotation_matrix[1][1], rotation_matrix[2][1]};
+
+        [[maybe_unused]] auto result = camera().look_at(position, center_, up);
     }
 } // namespace engine::rendering
