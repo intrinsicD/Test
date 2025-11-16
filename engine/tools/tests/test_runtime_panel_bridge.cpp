@@ -4,15 +4,18 @@
 #include "engine/scene/scene.hpp"
 #include "engine/scene/validation.hpp"
 #include "engine/tools/editor/asset_browser_panel.hpp"
+#include "engine/tools/editor/performance_metrics_panel.hpp"
 #include "engine/tools/editor/runtime_panel_bridge.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
 
 namespace
 {
     using engine::runtime::RuntimeDiagnostics;
+    using engine::runtime::RuntimeStageTiming;
     using engine::scene::validation::HierarchyValidationReport;
     using engine::scene::Scene;
     using engine::tools::editor::AssetBrowserPanel;
+    using engine::tools::editor::PerformanceMetricsPanel;
     using engine::tools::editor::RuntimePanelBridge;
     using engine::tools::imgui::PanelRegistry;
     using engine::tools::imgui::PanelRenderContext;
@@ -192,5 +195,54 @@ TEST(RuntimePanelBridge, RegistersAssetBrowserWhenProviderAvailable)
 
     bridge.render_all(0.016);
     EXPECT_GE(provider_invocations, 1U);
+}
+
+TEST(RuntimePanelBridge, RegistersPerformancePanelWhenDiagnosticsAvailable)
+{
+    PanelRegistry registry{};
+    RuntimeDiagnostics diagnostics{};
+    diagnostics.last_tick_ms = 5.0;
+    diagnostics.average_tick_ms = 6.0;
+    diagnostics.max_tick_ms = 8.0;
+    diagnostics.stage_timings.push_back(RuntimeStageTiming{});
+    diagnostics.stage_timings.back().name = "Stage";
+    diagnostics.stage_timings.back().last_ms = 1.0;
+    diagnostics.stage_timings.back().average_ms = 1.5;
+    diagnostics.stage_timings.back().max_ms = 2.5;
+
+    bool benchmark_invoked = false;
+    RuntimePanelBridge::PerformancePanelHooks performance_hooks{};
+    performance_hooks.history_capacity = 4;
+    performance_hooks.benchmark_provider = [&]() {
+        benchmark_invoked = true;
+        std::vector<PerformanceMetricsPanel::BenchmarkEntry> entries;
+        entries.emplace_back(PerformanceMetricsPanel::BenchmarkEntry{
+            "demo",
+            10.0,
+            11.0,
+        });
+        return entries;
+    };
+
+    RuntimePanelBridge bridge(
+        registry,
+        [&]() -> const RuntimeDiagnostics& {
+            return diagnostics;
+        },
+        RuntimePanelBridge::SceneValidationProvider{},
+        RuntimePanelBridge::Renderers{
+            [](const RuntimeDiagnostics&) {},
+            [](bool*) {},
+            [](const HierarchyValidationReport&) {},
+        },
+        RuntimePanelBridge::HierarchyPanelHooks{},
+        RuntimePanelBridge::AssetPanelHooks{},
+        performance_hooks
+    );
+
+    EXPECT_TRUE(registry.contains("runtime.performance_metrics"));
+
+    bridge.render_all(0.0);
+    EXPECT_TRUE(benchmark_invoked);
 }
 
