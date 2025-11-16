@@ -1,7 +1,7 @@
 ---
 id: RG-501
 title: Frame graph compilation cache
-status: new
+status: ready
 priority: P1
 area: rendering
 size: M
@@ -69,6 +69,28 @@ class FrameGraph {
 };
 ```
 
+### Cache Lifecycle
+
+1. **Hashing:** Combine backend capability bits, pass dependency signatures, and transient resource descriptors into a 128-bit
+   hash (two `std::size_t` lanes) using xxHash seeded from the runtime build ID. This prevents collisions across different GPU
+   feature sets or ABI toggles.
+2. **Lookup:** On `reset()`, compute the hash and compare against the cached artifact. A quick pointer/size check guards against
+   stale allocations before deeper verification.
+3. **Validation:** Confirm the cached execution order length matches the live pass count and that each transient resource entry
+   resolves to a currently registered handle. Failures trigger a full compile and cache overwrite.
+4. **Restoration:** When validation succeeds, repopulate execution ordering, begin/end barrier tables, and transient heap
+   reservations directly from the cache without touching the expensive dependency solver.
+5. **Invalidation:** Any mutation to pass metadata, resource lifetime, or backend toggles marks the cache dirty. A diagnostic
+   counter increments so telemetry surfaces invalidation frequency during PM-510 demos.
+
+### Implementation Notes
+
+- Extend `FrameGraph::compile()` with a lightweight `CacheLookupScope` helper so cache probes remain encapsulated and easy to
+  instrument.
+- Store cached barrier vectors in POD arenas owned by the frame graph to avoid heap churn on cache hits.
+- Serialize cache hit/miss counters through the runtime telemetry bridge to unblock TL-314 overlays from surfacing hit-rate
+  regressions.
+
 ### Edge Cases & Failure Modes
 
 - **Graph mutation between frames:** Hash mismatch should trigger full recompilation and overwrite cache.
@@ -107,6 +129,7 @@ class FrameGraph {
 
 ## Steps
 
+0. [x] Scope cache design, hash inputs, and cache lifecycle so the task can progress from `status: new` to `status: ready`.
 1. [ ] Research hashing strategy; document invariants in this file.
 2. [ ] Implement cache structures and hashing within `engine/rendering/src/frame_graph/frame_graph.cpp`.
 3. [ ] Add unit tests in `engine/rendering/tests/frame_graph_tests.cpp` for cache hit/miss coverage.
