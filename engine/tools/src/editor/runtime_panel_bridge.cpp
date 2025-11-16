@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include <spdlog/spdlog.h>
+
 #include "engine/core/telemetry/schema.hpp"
 #include "engine/runtime/api.hpp"
 #include "engine/scene/validation.hpp"
@@ -53,6 +55,11 @@ namespace engine::tools::editor
             {
                 if (sample.descriptor_index >= metric_set.descriptors.size())
                 {
+                    spdlog::warn(
+                        "Telemetry sample referenced descriptor {} but only {} descriptors are available; skipping.",
+                        sample.descriptor_index,
+                        metric_set.descriptors.size()
+                    );
                     continue;
                 }
 

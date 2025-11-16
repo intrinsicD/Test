@@ -42,6 +42,26 @@ def _make_task(
     )
 
 
+def test_parse_frontmatter_reads_file(tmp_path: Path) -> None:
+    task_file = tmp_path / "TL-999-sample.md"
+    task_file.write_text(
+        """---
+id: TL-999
+title: Sample task
+status: ready
+priority: P1
+area: tools
+---
+""",
+        encoding="utf-8",
+    )
+
+    metadata = rhs.parse_frontmatter(task_file)
+
+    assert metadata["id"] == "TL-999"
+    assert metadata["status"] == "ready"
+
+
 def test_filter_tasks_can_match_owner() -> None:
     tasks = [
         _make_task(

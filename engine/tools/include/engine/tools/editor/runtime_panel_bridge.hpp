@@ -80,7 +80,7 @@ namespace engine::tools::editor
                 const runtime::RuntimeDiagnostics&)>;
 
             TelemetryPanelHooks()
-                : history_capacity(120)
+                : history_capacity(180)
             {
             }
 

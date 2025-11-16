@@ -1,6 +1,7 @@
 #include "engine/tools/editor/telemetry_visualization_panel.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <string>
 #include <string_view>
@@ -69,8 +70,10 @@ namespace engine::tools::editor
             float max_value = *max_it;
             if (min_value == max_value)
             {
-                min_value -= 1.0F;
-                max_value += 1.0F;
+                const float magnitude = std::max(std::abs(min_value), 1.0F);
+                const float padding = magnitude * 0.05F;
+                min_value -= padding;
+                max_value += padding;
             }
 
             return ImVec2(min_value, max_value);
@@ -98,17 +101,19 @@ namespace engine::tools::editor
         std::vector<SeriesState> next;
         next.reserve(samples.size());
 
-        for (auto& sample : samples)
+        for (const auto& sample : samples)
         {
-            sample.identifier = normalise_identifier(sample);
+            const std::string normalized_id = normalise_identifier(sample);
+            SeriesSample normalized_sample = sample;
+            normalized_sample.identifier = normalized_id;
 
             SeriesState state{};
-            if (auto it = existing.find(sample.identifier); it != existing.end())
+            if (auto it = existing.find(normalized_id); it != existing.end())
             {
                 state = std::move(it->second);
             }
 
-            state.sample = std::move(sample);
+            state.sample = std::move(normalized_sample);
             state.history.push_back(static_cast<float>(state.sample.value));
             trim_history(state.history);
             state.alert = classify_alert(state.sample.value, state.sample);
