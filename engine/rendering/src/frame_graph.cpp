@@ -702,6 +702,9 @@ namespace engine::rendering
             ENGINE_INFO("FrameGraph: Executing pass '{}' (reads: {}, writes: {})",
                        pass.pass->name(), pass.reads.size(), pass.writes.size());
 
+            // Execute the render pass logic
+            pass.pass->execute(pass_context);
+
             for (const auto handle : pass.reads)
             {
                 signal_release(handle);

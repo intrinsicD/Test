@@ -151,9 +151,9 @@ namespace engine::math
 
         ENGINE_MATH_INLINE const T& operator()(size_type r, size_type c) const noexcept { return columns[c][r]; }
 
-        ENGINE_MATH_INLINE T* data() noexcept { return columns[0].elements; }
+        ENGINE_MATH_INLINE T* data() noexcept { return columns[0].elements.data(); }
 
-        ENGINE_MATH_INLINE const T* data() const noexcept { return columns[0].elements; }
+        ENGINE_MATH_INLINE const T* data() const noexcept { return columns[0].elements.data(); }
     };
 
     template <typename T, std::size_t Rows, std::size_t Cols>

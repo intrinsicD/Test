@@ -138,9 +138,9 @@ namespace engine::math
             return *this;
         }
 
-        ENGINE_MATH_INLINE T* data() noexcept { return elements; }
+        ENGINE_MATH_INLINE T* data() noexcept { return elements.data(); }
 
-        ENGINE_MATH_INLINE const T* data() const noexcept { return elements; }
+        ENGINE_MATH_INLINE const T* data() const noexcept { return elements.data(); }
     };
 
     template <typename T, std::size_t N>
