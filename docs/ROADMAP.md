@@ -65,6 +65,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 - ✅ [`TL-344`](../hybrid_workflow/backlog/archive/TL-344-next-actions-guidance.md) — Next-actions guidance for empty ready queue.
 - ✅ [`TL-345`](../hybrid_workflow/backlog/archive/TL-345-hybrid-status-relates-to-filter.md) — Hybrid status reporter relates_to filter.
 - ✅ [`TL-346`](../hybrid_workflow/backlog/archive/TL-346-next-actions-filter-support.md) — Next-actions filter support.
+- ✅ [`TL-350`](../hybrid_workflow/backlog/archive/TL-350-task-status-link-filter.md) — Task status CLI link filter.
 
 ### Phase 4 — GPU Execution & Tooling Readiness *(Priorities 1–2)*
 | Priority | Backlog | Intent | Owner | Status |

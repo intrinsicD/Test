@@ -138,6 +138,10 @@ python hybrid_workflow/task_status.py --gate tests docs
 # Filter by roadmap bundle
 python hybrid_workflow/task_status.py --relates-to bundle:D
 
+# Filter by reference links
+python hybrid_workflow/task_status.py --link docs/ROADMAP.md
+python hybrid_workflow/task_status.py --link docs/ROADMAP.md --link hybrid_workflow/ROADMAP.md
+
 # Show summary statistics (respects filters)
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --area rendering --summary

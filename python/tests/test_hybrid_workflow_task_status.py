@@ -150,6 +150,26 @@ def test_filter_tasks_gate_filter_requires_all_requested_gates() -> None:
     assert [task.id for task in filtered] == ["A"]
 
 
+def test_filter_tasks_filters_by_links() -> None:
+    tasks = [
+        _make_task(
+            "A",
+            blocked=False,
+            links=["docs/ROADMAP.md", "hybrid_workflow/ROADMAP.md"],
+        ),
+        _make_task(
+            "B",
+            blocked=False,
+            links=["hybrid_workflow/ROADMAP.md"],
+        ),
+        _make_task("C", blocked=False, links=["docs/backlog/archive/DC_040.md"]),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, links=["docs/ROADMAP.md"])
+
+    assert [task.id for task in filtered] == ["A"]
+
+
 def test_filter_tasks_priority_filter_is_case_insensitive() -> None:
     tasks = [
         _make_task("A", blocked=False, priority="P1"),
@@ -253,6 +273,14 @@ def test_build_parser_supports_relates_to_flag() -> None:
     args = parser.parse_args(['--relates-to', 'bundle:A', 'bundle:C'])
 
     assert args.relates_to == [['bundle:A', 'bundle:C']]
+
+
+def test_build_parser_supports_link_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--link', 'docs/ROADMAP.md', '--link', 'hybrid_workflow/ROADMAP.md'])
+
+    assert args.link == ['docs/ROADMAP.md', 'hybrid_workflow/ROADMAP.md']
 
 
 def test_build_parser_supports_gate_flag() -> None:

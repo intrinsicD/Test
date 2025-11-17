@@ -138,6 +138,7 @@ def filter_tasks(
     area: Optional[str] = None,
     size: Optional[str] = None,
     gates: Optional[Sequence[str]] = None,
+    links: Optional[Sequence[str]] = None,
     search_terms: Optional[Sequence[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[TaskMetadata]:
@@ -154,6 +155,7 @@ def filter_tasks(
         owner=owner,
         relates_to=list(relates_to) if relates_to else None,
         gates=list(gates) if gates else None,
+        links=list(links) if links else None,
         search_terms=list(search_terms) if search_terms else None,
         blocked_only=blocked_only,
     )
@@ -183,6 +185,7 @@ def select_next_actions(
     area: Optional[str] = None,
     size: Optional[str] = None,
     gates: Optional[Sequence[str]] = None,
+    links: Optional[Sequence[str]] = None,
     search_terms: Optional[Sequence[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[TaskMetadata]:
@@ -202,6 +205,7 @@ def select_next_actions(
         owner=owner,
         relates_to=list(relates_to) if relates_to else None,
         gates=list(gates) if gates else None,
+        links=list(links) if links else None,
         search_terms=list(search_terms) if search_terms else None,
         blocked_only=blocked_only,
     )
@@ -313,6 +317,16 @@ def parse_args() -> argparse.Namespace:
             "ID, title, owner, area, status, priority, gates, and relates_to (case-insensitive)."
         ),
     )
+    parser.add_argument(
+        "--link",
+        metavar="LINK",
+        action="append",
+        nargs="+",
+        help=(
+            "Require tasks to include specific link metadata entries (case-insensitive). Accepts "
+            "multiple values and matches tasks containing every provided link."
+        ),
+    )
     blocked_group = parser.add_mutually_exclusive_group()
     blocked_group.add_argument(
         "--blocked",
@@ -368,6 +382,10 @@ def main() -> None:
     if args.search:
         search_terms = [term for group in args.search for term in group]
 
+    link_terms: Optional[List[str]] = None
+    if args.link:
+        link_terms = [value for group in args.link for value in group]
+
     blocked_only: Optional[bool] = None
     if args.blocked:
         blocked_only = True
@@ -384,6 +402,7 @@ def main() -> None:
             owner=args.owner,
             relates_to=relates_to_filter,
             gates=gates_filter,
+            links=link_terms,
             search_terms=search_terms,
             blocked_only=blocked_only,
         )
@@ -397,6 +416,7 @@ def main() -> None:
             area=args.area,
             size=args.size,
             gates=gates_filter,
+            links=link_terms,
             search_terms=search_terms,
             blocked_only=blocked_only,
         )
