@@ -10,6 +10,7 @@
 - [x] **T-0119** — Command encoder integration → `hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md`
 - [x] **RG-450** — Modular render pipeline planner → `hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md`
 - [x] **RE-430** — WASD first-person camera controller *(Shipped 2026-05-20; controller + tests landed in rendering module)* → `hybrid_workflow/backlog/archive/RE-430-wasd-camera-controller.md`
+- [ ] **RG-502** — Command buffer pooling & trimming *(Ready — scoped via context ladder review on 2026-05-27; unblocks reduced submission latency telemetry for PM-510 demos)* → `hybrid_workflow/backlog/RG-502-command-buffer-pooling.md`
 
 **Success Criteria:**
 - OpenGL/Vulkan execute frame-graph workloads with deterministic telemetry traces. ✅
@@ -58,6 +59,8 @@ _Current status:_ RG-450 has shipped with descriptor-driven planner execution an
 - [x] **TL-346** — Next-actions filter support → `hybrid_workflow/backlog/archive/TL-346-next-actions-filter-support.md`
 - [x] **TL-348** — Task status CLI JSON output → `hybrid_workflow/backlog/archive/TL-348-task-status-json-output.md`
 - [x] **TL-349** — Task-status search matches blocked_on/link metadata → `hybrid_workflow/backlog/archive/TL-349-task-status-blocked-search.md`
+- [x] **TL-350** — Task status CLI link filter → `hybrid_workflow/backlog/archive/TL-350-task-status-link-filter.md`
+
 
 **Success Criteria:**
 - All active tasks migrated to hybrid workflow format.

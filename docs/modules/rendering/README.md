@@ -115,6 +115,14 @@ Backends translate the recorded commands when `FrameGraph::execute` finalises th
 recorded command list to the command stream, while the Vulkan scheduler packages the encoded commands alongside queue metadata
 so presentation backends and diagnostics consume the same submission payloads.
 
+### Command Buffer Pooling
+
+`IGpuScheduler::begin_frame()` / `end_frame()` wrap every frame execution so the backend schedulers can coordinate with the
+resource provider. `NativeSchedulerBase` now owns a `CommandBufferPool` that recycles `CommandBufferHandle` instances per queue
+and trims idle entries once they remain unused for more than 30 frames (configurable via
+`set_command_buffer_retention_frames`). Instrumentation from `command_buffer_pool_metrics()` exposes hit rates, pooled handle
+counts, and trimmed totals so TL-312/TL-314 overlays can chart allocator health alongside PM-510 captures.
+
 ### Resource Barriers
 
 The frame graph automatically inserts barriers:

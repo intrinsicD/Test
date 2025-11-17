@@ -45,6 +45,16 @@
 #include "engine/scene/components/transform.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/scene/systems/transform_system.hpp"
+#if ENGINE_ENABLE_RENDERING
+#    include <imgui.h>
+#    include "engine/tools/editor/runtime_panel_bridge.hpp"
+#    include "engine/tools/imgui/panel_registry.hpp"
+#    include "engine/tools/imgui_helpers.hpp"
+#    if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+#        include "backends/imgui_impl_glfw.h"
+#        include "backends/imgui_impl_opengl3.h"
+#    endif
+#endif
 
 #ifndef ENGINE_PLATFORM_HAS_GLFW
 #    define ENGINE_PLATFORM_HAS_GLFW 0
@@ -132,6 +142,7 @@ namespace
                       return config;
                   }
 
+                  config.enable_diagnostics = true;
                   config.window_backend = engine::platform::WindowBackend::GLFW;
                   config.target_fps = 0.0;
 #if ENGINE_ENABLE_RENDERING
@@ -203,6 +214,13 @@ namespace
         {
         }
 
+        ~GeometryViewerApp() override
+        {
+#if ENGINE_ENABLE_RENDERING
+            destroy_imgui_context();
+#endif
+        }
+
     protected:
 #if ENGINE_ENABLE_RENDERING
         void configure_runtime_host(engine::runtime::RuntimeHost& host) override
@@ -232,6 +250,8 @@ namespace
             {
                 focus_camera_on_bounds(mesh->bounds);
             }
+
+            setup_panels();
 #endif
 
             ENGINE_INFO("Drag and drop mesh (.obj/.ply/.stl) or point cloud (.ply/.pcd/.xyz) files into the window.");
@@ -246,6 +266,13 @@ namespace
             point_cloud_cache_.poll();
 #endif
             print_fps(delta_time);
+
+#if ENGINE_ENABLE_RENDERING
+            if (backend_ && panel_bridge_ && imgui_context_ != nullptr)
+            {
+                backend_->request_imgui_render(delta_time);
+            }
+#endif
         }
 
         void on_render() override
@@ -557,22 +584,22 @@ namespace
             }
 
             auto& input_state = input();
+            const auto imgui_capture = query_imgui_capture_state();
+            const bool allow_mouse_input = !imgui_capture.mouse;
+            const bool allow_keyboard_input = !imgui_capture.keyboard;
 
-            // Trackball rotation with left mouse button
-            if (input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left))
+            const bool left_mouse_down =
+                input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left);
+            if (allow_mouse_input && left_mouse_down)
             {
                 const auto cursor = input_state.cursor_position();
-                // Normalize cursor to [-1,1] range centered at window center (absolute)
                 const float half = static_cast<float>(std::min(WINDOW_WIDTH, WINDOW_HEIGHT)) * 0.5f;
                 const engine::math::vec2 abs_cursor{
                     (cursor.x - static_cast<float>(WINDOW_WIDTH) * 0.5f) / half,
                     (static_cast<float>(WINDOW_HEIGHT) * 0.5f - cursor.y) / half
                 };
-
-                // Project the trackball center into the same normalized space
-                const engine::math::vec2 projected_center = project_world_point_to_trackball_coords(trackball_controller_->center());
-
-                // Convert absolute cursor into coordinates relative to projected center
+                const engine::math::vec2 projected_center =
+                    project_world_point_to_trackball_coords(trackball_controller_->center());
                 const engine::math::vec2 relative_cursor = abs_cursor - projected_center;
 
                 if (was_dragging_)
@@ -594,26 +621,31 @@ namespace
                 was_dragging_ = false;
             }
 
-            // Zoom with scroll wheel
-            auto scroll = input_state.scroll_delta();
-            if (scroll.y != 0.0f)
+            if (allow_mouse_input)
             {
-                trackball_controller_->zoom(-scroll.y * CAMERA_ZOOM_SPEED);
+                auto scroll = input_state.scroll_delta();
+                if (scroll.y != 0.0f)
+                {
+                    trackball_controller_->zoom(-scroll.y * CAMERA_ZOOM_SPEED);
+                }
             }
 
-            // Toggle cube visibility with 'T' key
-            if (input_state.was_key_pressed(engine::platform::input::Key::T))
+            if (allow_keyboard_input && input_state.was_key_pressed(engine::platform::input::Key::T))
             {
                 toggle_cube();
             }
 
-            // Delete last loaded model with Delete key
-            if (input_state.was_key_pressed(engine::platform::input::Key::Delete))
+            if (allow_keyboard_input && input_state.was_key_pressed(engine::platform::input::Key::Delete))
             {
                 delete_last_model();
             }
 
-            if (input_state.was_key_pressed(engine::platform::input::Key::Escape))
+            if (input_state.was_key_pressed(engine::platform::input::Key::G) && panel_bridge_)
+            {
+                panels_visible_ = !panels_visible_;
+            }
+
+            if (allow_keyboard_input && input_state.was_key_pressed(engine::platform::input::Key::Escape))
             {
                 quit();
             }
@@ -688,6 +720,164 @@ namespace
 #endif
         }
 
+#if ENGINE_ENABLE_RENDERING
+        void setup_panels()
+        {
+            if (!opengl_supported_)
+            {
+                return;
+            }
+
+            if (!imgui_context_)
+            {
+                imgui_context_ = ImGui::CreateContext();
+            }
+
+            // Register ImGui context with the presentation backend so it can render UI into the GL context.
+            if (backend_)
+            {
+                backend_->set_imgui_context_for_rendering(imgui_context_);
+                backend_->set_imgui_render_callback([this](double delta_time) {
+                    render_panels(delta_time);
+                });
+            }
+
+            if (panel_bridge_)
+            {
+                return;
+            }
+
+            using engine::tools::editor::RuntimePanelBridge;
+
+            RuntimePanelBridge::HierarchyPanelHooks hierarchy_hooks{};
+            hierarchy_hooks.scene_provider = [this]() -> engine::scene::Scene* {
+                return &scene();
+            };
+
+            RuntimePanelBridge::AssetPanelHooks asset_hooks{};
+#    if ENGINE_ENABLE_ASSETS
+            asset_hooks.row_provider = [this]() {
+                engine::tools::editor::AssetRegistryFacade facade{};
+                facade.mesh_cache = &mesh_cache_;
+                facade.point_cloud_cache = &point_cloud_cache_;
+                return engine::tools::editor::collect_asset_rows(facade);
+            };
+#    endif
+
+            panel_bridge_ = std::make_unique<RuntimePanelBridge>(
+                panel_registry_,
+                [this]() -> const engine::runtime::RuntimeDiagnostics& {
+                    return runtime_host().diagnostics();
+                },
+                [this]() -> const engine::scene::validation::HierarchyValidationReport* {
+                    return &runtime_host().diagnostics().scene_validation;
+                },
+                RuntimePanelBridge::Renderers{},
+                std::move(hierarchy_hooks),
+                std::move(asset_hooks),
+                RuntimePanelBridge::PerformancePanelHooks{},
+                RuntimePanelBridge::TelemetryPanelHooks{});
+        }
+
+        void render_panels(double delta_time)
+        {
+            if (!panel_bridge_ || imgui_context_ == nullptr)
+            {
+                return;
+            }
+
+            ImGuiContext* previous_context = ImGui::GetCurrentContext();
+            ImGui::SetCurrentContext(imgui_context_);
+            engine::tools::imgui::begin_frame();
+            if (panels_visible_)
+            {
+                panel_bridge_->render_all(delta_time);
+            }
+            engine::tools::imgui::end_frame();
+            ImGui::SetCurrentContext(previous_context);
+        }
+
+        struct ImGuiCaptureState
+        {
+            bool mouse{false};
+            bool keyboard{false};
+        };
+
+        [[nodiscard]] ImGuiCaptureState query_imgui_capture_state() const
+        {
+            ImGuiCaptureState state{};
+            if (!panel_bridge_ || imgui_context_ == nullptr || !panels_visible_)
+            {
+                return state;
+            }
+
+            ImGuiContext* previous_context = ImGui::GetCurrentContext();
+            ImGui::SetCurrentContext(imgui_context_);
+            const ImGuiIO& io = ImGui::GetIO();
+            state.mouse = io.WantCaptureMouse;
+            state.keyboard = io.WantCaptureKeyboard;
+            ImGui::SetCurrentContext(previous_context);
+            return state;
+        }
+
+        void destroy_imgui_context()
+        {
+            panel_bridge_.reset();
+            if (backend_)
+            {
+                backend_->set_imgui_render_callback({});
+                backend_->set_imgui_context_for_rendering(nullptr);
+            }
+            if (imgui_context_ != nullptr)
+            {
+                // Ensure the ImGui context we created is current so backend shutdown reads correct IO data.
+                ImGuiContext* previous_context = ImGui::GetCurrentContext();
+                ImGui::SetCurrentContext(imgui_context_);
+
+                // Only shutdown backends if they were initialized. Check IO backend userdata to be safe.
+                ImGuiIO& io = ImGui::GetIO();
+
+                // Log backend userdata pointers to help debug shutdown ordering issues.
+                ENGINE_INFO("ImGui shutdown: BackendPlatformUserData={}, BackendRendererUserData={}",
+                            (void*)io.BackendPlatformUserData, (void*)io.BackendRendererUserData);
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+                // If a renderer backend is registered, shut it down first as per examples.
+                if (io.BackendRendererUserData != nullptr)
+                {
+                    ENGINE_INFO("Calling ImGui_ImplOpenGL3_Shutdown()...");
+                    ImGui_ImplOpenGL3_Shutdown();
+                    ENGINE_INFO("After ImGui_ImplOpenGL3_Shutdown: BackendRendererUserData={}", (void*)io.BackendRendererUserData);
+                }
+
+                // Then shutdown the platform backend
+                if (io.BackendPlatformUserData != nullptr)
+                {
+                    ENGINE_INFO("Calling ImGui_ImplGlfw_Shutdown()...");
+                    ImGui_ImplGlfw_Shutdown();
+                    ENGINE_INFO("After ImGui_ImplGlfw_Shutdown: BackendPlatformUserData={}", (void*)io.BackendPlatformUserData);
+                }
+
+                // If the platform userdata is still set, log and clear to avoid assertion during ImGui::Shutdown.
+                if (io.BackendPlatformUserData != nullptr || io.BackendRendererUserData != nullptr)
+                {
+                    ENGINE_WARN("ImGui backend userdata not cleared by shutdown functions; forcing cleanup (platform={}, renderer={})",
+                                (void*)io.BackendPlatformUserData, (void*)io.BackendRendererUserData);
+                    io.BackendPlatformUserData = nullptr;
+                    io.BackendRendererUserData = nullptr;
+                    io.BackendPlatformName = nullptr;
+                    // Clear backend flags related to platform/renderer capabilities to be safe.
+                    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
+                }
+#endif
+                // Destroy the context we created for panels
+                ImGui::DestroyContext(imgui_context_);
+                ImGui::SetCurrentContext(previous_context);
+                imgui_context_ = nullptr;
+                ENGINE_INFO("ImGui context destroyed cleanly");
+            }
+        }
+#endif
+
         void print_fps(double delta_time)
         {
             ++fps_frame_count_;
@@ -760,6 +950,12 @@ namespace
         bool cube_visible_{true}; // Toggle state for default cube
         engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
         bool opengl_supported_{(ENGINE_PLATFORM_HAS_GLFW != 0) && (ENGINE_RENDERING_HAS_GLAD != 0)};
+#if ENGINE_ENABLE_RENDERING
+        engine::tools::imgui::PanelRegistry panel_registry_{};
+        std::unique_ptr<engine::tools::editor::RuntimePanelBridge> panel_bridge_{};
+        bool panels_visible_{true};
+        ImGuiContext* imgui_context_{nullptr};
+#endif
         bool was_dragging_{false};
         engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};
         int fps_frame_count_{0};

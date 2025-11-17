@@ -16,6 +16,7 @@ and blocker metadata:
 
    python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY]
                                          [--area AREA] [--owner OWNER]
+                                         [--link LINK]
                                          [--gate GATE ...]
                                          [--relates-to TAG ...]
                                          [--search TERM ...]
@@ -27,7 +28,8 @@ inspect a single record, and ``--format json`` to emit machine-readable
 responses for automation.  Combine ``--blocked`` or ``--unblocked`` with the
 other filters to audit blocker status rapidly.  ``--search`` matches across
 ID, title, owner, area, gates, relates_to, **blocked_on**, and link metadata so
-blocked dependencies are easy to locate.
+blocked dependencies are easy to locate, while ``--link`` restricts results to
+tasks referencing specific documents or tracking links.
 """
 
 import argparse
@@ -381,11 +383,12 @@ def filter_tasks(
     tasks: List[Task],
     status: Optional[Union[str, Iterable[str]]] = None,
     priority: Optional[Union[str, Iterable[str]]] = None,
-    area: Optional[str] = None,
+    area: Optional[Union[str, Iterable[str]]] = None,
     size: Optional[Union[str, Iterable[str]]] = None,
     owner: Optional[Union[str, Iterable[str]]] = None,
     relates_to: Optional[List[str]] = None,
     gates: Optional[List[str]] = None,
+    links: Optional[Union[str, Iterable[str]]] = None,
     search_terms: Optional[Iterable[str]] = None,
     *,
     blocked_only: Optional[bool] = None,
@@ -401,9 +404,9 @@ def filter_tasks(
     if priority_values:
         filtered = [t for t in filtered if t.priority.lower() in priority_values]
 
-    if area:
-        area_normalised = area.strip().lower()
-        filtered = [t for t in filtered if t.area.lower() == area_normalised]
+    area_values = {value.lower() for value in _normalise_filter_values(area)}
+    if area_values:
+        filtered = [t for t in filtered if t.area.lower() in area_values]
 
     size_values = {value.lower() for value in _normalise_filter_values(size)}
     if size_values:
@@ -428,6 +431,14 @@ def filter_tasks(
             t
             for t in filtered
             if relates_lower.intersection({value.lower() for value in t.relates_to})
+        ]
+
+    link_values = {value.lower() for value in _normalise_filter_values(links)}
+    if link_values:
+        filtered = [
+            t
+            for t in filtered
+            if link_values.issubset({value.lower() for value in t.links})
         ]
 
     if search_terms:
@@ -469,11 +480,12 @@ def select_next_actions(
     limit: int,
     *,
     priority: Optional[Union[str, Iterable[str]]] = None,
-    area: Optional[str] = None,
+    area: Optional[Union[str, Iterable[str]]] = None,
     size: Optional[Union[str, Iterable[str]]] = None,
     owner: Optional[Union[str, Iterable[str]]] = None,
     gates: Optional[List[str]] = None,
     relates_to: Optional[List[str]] = None,
+    links: Optional[Union[str, Iterable[str]]] = None,
     search_terms: Optional[Iterable[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
@@ -491,6 +503,7 @@ def select_next_actions(
         owner=owner,
         gates=gates,
         relates_to=relates_to,
+        links=links,
         search_terms=search_terms,
         blocked_only=blocked_only,
     )
@@ -612,7 +625,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
-    parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
+    parser.add_argument(
+        '--area',
+        metavar='AREA',
+        action='append',
+        help=(
+            "Filter by area (rendering, geometry, runtime, etc.). Repeat the flag or "
+            "provide comma-separated values to match multiple areas (case-insensitive)."
+        ),
+    )
     parser.add_argument(
         '--size',
         metavar='SIZE',
@@ -649,6 +670,15 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Filter by roadmap bundle tag in the relates_to metadata. "
             "Provide one or more tags; the filter matches tasks containing any tag."
+        ),
+    )
+    parser.add_argument(
+        '--link',
+        metavar='LINK',
+        action='append',
+        help=(
+            "Require tasks to reference specific link metadata (case-insensitive). Repeat the "
+            "flag or provide comma-separated values to match multiple links."
         ),
     )
     parser.add_argument(
@@ -745,6 +775,7 @@ def main():
     
     # Filter tasks
     status_filter = _normalise_filter_values(args.status)
+    area_filter = _normalise_filter_values(args.area)
 
     relates_to = None
     if args.relates_to:
@@ -755,6 +786,7 @@ def main():
         gates = [gate for group in args.gate for gate in group]
 
     search_terms = _normalise_filter_values(args.search)
+    link_filter = _normalise_filter_values(args.link)
     owner_filter = _normalise_filter_values(args.owner)
 
     blocked_only = True if args.blocked else False if args.unblocked else None
@@ -765,11 +797,12 @@ def main():
                 tasks,
                 args.limit,
                 priority=args.priority,
-                area=args.area,
+                area=area_filter,
                 size=args.size,
                 owner=owner_filter,
                 gates=gates,
                 relates_to=relates_to,
+                links=link_filter,
                 search_terms=search_terms,
                 blocked_only=blocked_only,
             )
@@ -781,11 +814,12 @@ def main():
             tasks,
             status=status_filter,
             priority=args.priority,
-            area=args.area,
+            area=area_filter,
             size=args.size,
             owner=owner_filter,
             relates_to=relates_to,
             gates=gates,
+            links=link_filter,
             search_terms=search_terms,
             blocked_only=blocked_only,
         )

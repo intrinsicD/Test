@@ -467,6 +467,7 @@ namespace engine::platform::windowing
                     case GLFW_KEY_D: return input::Key::D;
                     case GLFW_KEY_Q: return input::Key::Q;
                     case GLFW_KEY_E: return input::Key::E;
+                    case GLFW_KEY_G: return input::Key::G;
                     case GLFW_KEY_T: return input::Key::T;
                     case GLFW_KEY_0: return input::Key::Digit0;
                     case GLFW_KEY_1: return input::Key::Digit1;

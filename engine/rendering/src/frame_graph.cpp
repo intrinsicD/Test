@@ -669,6 +669,7 @@ namespace engine::rendering
         std::uint64_t timeline_value = 0;
 
         context.device_resources.begin_frame();
+        context.scheduler.begin_frame();
 
         for (std::size_t order_index = 0; order_index < execution_order_.size(); ++order_index)
         {
@@ -797,6 +798,7 @@ namespace engine::rendering
             timeline_value = submission_value;
         }
 
+        context.scheduler.end_frame();
         context.device_resources.end_frame();
     }
 

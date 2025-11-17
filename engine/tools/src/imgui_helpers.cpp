@@ -4,12 +4,38 @@
 #include "engine/scene/validation.hpp"
 
 #include <imgui.h>
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#endif
 #include <cstdint>
 
 namespace engine::tools::imgui
 {
     void begin_frame()
     {
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+        // These functions require an ImGui context to be current; callers of our tools UI set their context before calling begin_frame().
+        if (ImGui::GetCurrentContext() != nullptr)
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            // Only call backend new-frame hooks if backends were initialized (they register backend userdata)
+            if (io.BackendPlatformUserData != nullptr && io.BackendRendererUserData != nullptr)
+            {
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplGlfw_NewFrame();
+            }
+            else
+            {
+                // Backends not initialized yet (OpenGL context may not be ready). Provide a safe DisplaySize
+                // to avoid ImGui asserting inside NewFrame. Width/height 1 is minimal but valid.
+                if (io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f)
+                {
+                    io.DisplaySize = ImVec2(1.0f, 1.0f);
+                }
+            }
+        }
+#endif
         ImGui::NewFrame();
     }
 

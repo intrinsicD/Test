@@ -347,16 +347,25 @@ namespace engine::tools::editor
             set_selection(entity);
         }
 
-        if (open && has_children)
+        if (open)
         {
-            model_.for_each_child(entity, [&](entt::entity child) {
-                render_node(child);
-            });
-            ImGui::TreePop();
-        }
-        else if (open)
-        {
-            ImGui::TreePop();
+            if (has_children)
+            {
+                model_.for_each_child(entity, [&](entt::entity child) {
+                    render_node(child);
+                });
+                // TreeNodeEx pushed an ID for nodes with children, so TreePop is required.
+                ImGui::TreePop();
+            }
+            else
+            {
+                // For leaf nodes we set ImGuiTreeNodeFlags_NoTreePushOnOpen, so TreeNodeEx does
+                // not push an ID and we must NOT call TreePop in that case.
+                if ((flags & ImGuiTreeNodeFlags_NoTreePushOnOpen) == 0)
+                {
+                    ImGui::TreePop();
+                }
+            }
         }
     }
 

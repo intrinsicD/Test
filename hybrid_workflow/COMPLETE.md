@@ -173,6 +173,10 @@ python hybrid_workflow/task_status.py --area rendering
 python hybrid_workflow/task_status.py --owner docs-devrel
 python hybrid_workflow/task_status.py --owner docs-devrel --owner runtime-lead
 
+# Filter by reference links
+python hybrid_workflow/task_status.py --link docs/ROADMAP.md
+python hybrid_workflow/task_status.py --link docs/ROADMAP.md --link hybrid_workflow/ROADMAP.md
+
 # Summary statistics (respects filters)
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --priority P1 --summary

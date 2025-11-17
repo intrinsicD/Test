@@ -16,6 +16,14 @@ namespace engine::rendering::backend
     class StubGpuSchedulerBase : public IGpuScheduler
     {
     public:
+        void begin_frame() override
+        {
+        }
+
+        void end_frame() override
+        {
+        }
+
         struct EncoderRecord
         {
             CommandBufferHandle handle{};
