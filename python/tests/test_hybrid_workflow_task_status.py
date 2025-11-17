@@ -184,6 +184,18 @@ def test_filter_tasks_area_filter_is_case_insensitive() -> None:
     assert [task.id for task in filtered] == ["A"]
 
 
+def test_filter_tasks_supports_multiple_area_values() -> None:
+    tasks = [
+        _make_task("A", blocked=False, area="rendering"),
+        _make_task("B", blocked=False, area="tools"),
+        _make_task("C", blocked=False, area="runtime"),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, area=["rendering", "runtime"])
+
+    assert [task.id for task in filtered] == ["A", "C"]
+
+
 def test_build_parser_supports_unblocked_flag() -> None:
     parser = task_status.build_parser()
 
@@ -209,6 +221,14 @@ def test_build_parser_supports_multiple_owner_values() -> None:
     )
 
     assert args.owner == ['docs-devrel,runtime-lead', 'tools-team']
+
+
+def test_build_parser_supports_multiple_area_flags() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--area', 'rendering', '--area', 'runtime'])
+
+    assert args.area == ['rendering', 'runtime']
 
 
 def test_build_parser_supports_size_flag() -> None:

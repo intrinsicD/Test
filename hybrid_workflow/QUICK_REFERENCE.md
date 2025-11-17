@@ -108,6 +108,7 @@ python hybrid_workflow/task_status.py --priority P1
 
 # Filter by area
 python hybrid_workflow/task_status.py --area rendering
+python hybrid_workflow/task_status.py --area rendering --area runtime
 
 # Filter by size
 python hybrid_workflow/task_status.py --size M
