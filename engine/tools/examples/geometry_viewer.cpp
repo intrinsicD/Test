@@ -10,7 +10,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -70,6 +72,9 @@ namespace
     constexpr int WINDOW_WIDTH = 1280;
     constexpr int WINDOW_HEIGHT = 720;
     constexpr float CAMERA_DISTANCE = 5.0f;
+    constexpr float CAMERA_FOV = 1.047f; // ~60 degrees
+    constexpr float CAMERA_NEAR_PLANE = 0.1f;
+    constexpr float CAMERA_FAR_PLANE = 100.0f;
     constexpr float CAMERA_ROTATE_SPEED = 0.005f;
     constexpr float CAMERA_ZOOM_SPEED = 0.1f;
     constexpr std::string_view kProceduralCubeId{"procedural_cube"};
@@ -287,6 +292,32 @@ namespace
         }
 
     private:
+        struct WindowExtent
+        {
+            std::uint32_t width{static_cast<std::uint32_t>(WINDOW_WIDTH)};
+            std::uint32_t height{static_cast<std::uint32_t>(WINDOW_HEIGHT)};
+        };
+
+        [[nodiscard]] float current_window_width() const noexcept
+        {
+            return static_cast<float>(std::max<std::uint32_t>(window_extent_.width, 1U));
+        }
+
+        [[nodiscard]] float current_window_height() const noexcept
+        {
+            return static_cast<float>(std::max<std::uint32_t>(window_extent_.height, 1U));
+        }
+
+        [[nodiscard]] float current_aspect_ratio() const noexcept
+        {
+            const float height = current_window_height();
+            if (height <= std::numeric_limits<float>::epsilon())
+            {
+                return 1.0f;
+            }
+            return current_window_width() / height;
+        }
+
         void setup_backend()
         {
 #if ENGINE_ENABLE_RENDERING
@@ -309,8 +340,8 @@ namespace
 
             engine::rendering::ResearchBaselineOptions options{};
             options.shading_mode = engine::rendering::ResearchShadingMode::Forward;
-            options.width = WINDOW_WIDTH;
-            options.height = WINDOW_HEIGHT;
+            options.width = window_extent_.width;
+            options.height = window_extent_.height;
             baseline_resources_ = engine::rendering::configure_research_baseline(backend_->frame_graph(), options);
             backend_->frame_graph().compile();
             register_default_material();
@@ -373,8 +404,7 @@ namespace
                 engine::math::Transform<float>::Identity();
 
             auto& camera = registry.emplace<engine::rendering::Camera>(camera_entity_);
-            const float aspect_ratio = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
-            camera.set_perspective(1.047f, aspect_ratio, 0.1f, 100.0f);
+            update_camera_projection();
 
             // Create trackball controller for intuitive rotation
             const engine::math::vec3 center{0.0f, 0.0f, 0.0f};
@@ -397,6 +427,13 @@ namespace
                     if (const auto* payload = std::get_if<engine::platform::FileDropEvent>(&event.payload))
                     {
                         handle_file_drop(payload->paths);
+                    }
+                }
+                else if (event.type == engine::platform::EventType::Resized)
+                {
+                    if (const auto* payload = std::get_if<engine::platform::ResizeEvent>(&event.payload))
+                    {
+                        handle_resize_event(*payload);
                     }
                 }
             }
@@ -576,6 +613,38 @@ namespace
 #endif
         }
 
+        void handle_resize_event(const engine::platform::ResizeEvent& payload)
+        {
+            const std::uint32_t clamped_width = std::max<std::uint32_t>(payload.width, 1U);
+            const std::uint32_t clamped_height = std::max<std::uint32_t>(payload.height, 1U);
+
+            if (clamped_width == window_extent_.width && clamped_height == window_extent_.height)
+            {
+                return;
+            }
+
+            window_extent_.width = clamped_width;
+            window_extent_.height = clamped_height;
+            ENGINE_INFO("Window resized to {}x{}", window_extent_.width, window_extent_.height);
+            update_camera_projection();
+        }
+
+        void update_camera_projection()
+        {
+#if ENGINE_ENABLE_RENDERING
+            auto& registry = scene().registry();
+            if (!registry.valid(camera_entity_) || !registry.any_of<engine::rendering::Camera>(camera_entity_))
+            {
+                return;
+            }
+
+            auto& camera = registry.get<engine::rendering::Camera>(camera_entity_);
+            camera.set_perspective(CAMERA_FOV, current_aspect_ratio(), CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
+#else
+            (void)current_aspect_ratio();
+#endif
+        }
+
         void handle_input()
         {
 #if ENGINE_ENABLE_RENDERING
@@ -594,10 +663,13 @@ namespace
             if (allow_mouse_input && left_mouse_down)
             {
                 const auto cursor = input_state.cursor_position();
-                const float half = static_cast<float>(std::min(WINDOW_WIDTH, WINDOW_HEIGHT)) * 0.5f;
+                const float width = current_window_width();
+                const float height = current_window_height();
+                const float min_dimension = std::min(width, height);
+                const float half = std::max(min_dimension * 0.5f, 1.0f);
                 const engine::math::vec2 abs_cursor{
-                    (cursor.x - static_cast<float>(WINDOW_WIDTH) * 0.5f) / half,
-                    (static_cast<float>(WINDOW_HEIGHT) * 0.5f - cursor.y) / half
+                    (cursor.x - width * 0.5f) / half,
+                    (height * 0.5f - cursor.y) / half
                 };
                 const engine::math::vec2 projected_center =
                     project_world_point_to_trackball_coords(trackball_controller_->center());
@@ -793,9 +865,9 @@ namespace
             ImGuiContext* previous_context = ImGui::GetCurrentContext();
             ImGui::SetCurrentContext(imgui_context_);
             engine::tools::imgui::begin_frame();
+            render_widget_menu();
             if (panels_visible_)
             {
-                render_widget_menu();
                 render_active_widgets(delta_time);
             }
             engine::tools::imgui::end_frame();
@@ -811,7 +883,7 @@ namespace
         [[nodiscard]] ImGuiCaptureState query_imgui_capture_state() const
         {
             ImGuiCaptureState state{};
-            if (!panel_bridge_ || imgui_context_ == nullptr || !panels_visible_)
+            if (!panel_bridge_ || imgui_context_ == nullptr)
             {
                 return state;
             }
@@ -906,12 +978,30 @@ namespace
         void render_widget_menu()
         {
             ImGui::SetNextWindowBgAlpha(0.9f);
-            const ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize;
+            ImGui::SetNextWindowPos(ImVec2(16.0f, 16.0f), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowCollapsed(false, ImGuiCond_FirstUseEver);
+            const ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse;
             if (!ImGui::Begin("Geometry Viewer Menu", nullptr, window_flags))
             {
                 ImGui::End();
                 return;
             }
+
+            ImGui::Text("Window: %.0f x %.0f", current_window_width(), current_window_height());
+            bool show_panels = panels_visible_;
+            if (ImGui::Checkbox("Show diagnostics panels", &show_panels))
+            {
+                panels_visible_ = show_panels;
+            }
+            ImGui::SameLine();
+            ImGui::TextDisabled("Press 'G' to toggle");
+
+            if (!panels_visible_)
+            {
+                ImGui::TextDisabled("Diagnostics panels are hidden; enable them above to render overlays.");
+            }
+
+            ImGui::Separator();
 
             if (widget_toggles_.empty())
             {
@@ -922,6 +1012,7 @@ namespace
                 if (ImGui::Button("Show All"))
                 {
                     set_all_widget_visibility(true);
+                    panels_visible_ = true;
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Hide All"))
@@ -953,19 +1044,22 @@ namespace
                 }
             }
 
+            ImGui::Separator();
             float scale = gui_scale_;
             if (ImGui::SliderFloat("UI Scale", &scale, 0.75f, 2.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp))
             {
                 gui_scale_ = scale;
                 apply_imgui_scale();
             }
+            ImGui::SameLine();
+            ImGui::TextDisabled("Applies to menu and panels");
 
             ImGui::End();
         }
 
         void render_active_widgets(double delta_time)
         {
-            if (!panel_bridge_)
+            if (!panel_bridge_ || !panels_visible_)
             {
                 return;
             }
@@ -978,6 +1072,11 @@ namespace
                 {
                     active_identifiers.push_back(widget.identifier);
                 }
+            }
+
+            if (active_identifiers.empty())
+            {
+                return;
             }
 
             panel_bridge_->render_panels(delta_time, active_identifiers);
@@ -1041,7 +1140,16 @@ namespace
 
             ImGuiContext* previous_context = ImGui::GetCurrentContext();
             ImGui::SetCurrentContext(imgui_context_);
-            ImGui::GetIO().FontGlobalScale = gui_scale_;
+            ImGuiIO& io = ImGui::GetIO();
+            ImGuiStyle& style = ImGui::GetStyle();
+            const float previous_scale = std::max(last_applied_gui_scale_, 0.01f);
+            const float ratio = gui_scale_ / previous_scale;
+            if (std::abs(ratio - 1.0f) > std::numeric_limits<float>::epsilon())
+            {
+                style.ScaleAllSizes(ratio);
+            }
+            last_applied_gui_scale_ = gui_scale_;
+            io.FontGlobalScale = gui_scale_;
             ImGui::SetCurrentContext(previous_context);
         }
 #endif
@@ -1085,14 +1193,17 @@ namespace
             const engine::math::vec3 ndc = engine::math::vec3{clip[0] / clip[3], clip[1] / clip[3], clip[2] / clip[3]};
 
             // Convert NDC (-1..1) to pixel coordinates
-            const float px = (ndc[0] * 0.5f + 0.5f) * static_cast<float>(WINDOW_WIDTH);
-            const float py = (1.0f - (ndc[1] * 0.5f + 0.5f)) * static_cast<float>(WINDOW_HEIGHT);
+            const float width = current_window_width();
+            const float height = current_window_height();
+            const float px = (ndc[0] * 0.5f + 0.5f) * width;
+            const float py = (1.0f - (ndc[1] * 0.5f + 0.5f)) * height;
 
             // Convert pixel coords to normalized trackball coords centered at the projected center.
             // We return coordinates in [-1,1] relative to the smaller window dimension.
-            const float half = static_cast<float>(std::min(WINDOW_WIDTH, WINDOW_HEIGHT)) * 0.5f;
-            const float cx = (px - static_cast<float>(WINDOW_WIDTH) * 0.5f) / half;
-            const float cy = (static_cast<float>(WINDOW_HEIGHT) * 0.5f - py) / half;
+            const float min_dimension = std::min(width, height);
+            const float half = std::max(min_dimension * 0.5f, 1.0f);
+            const float cx = (px - width * 0.5f) / half;
+            const float cy = (height * 0.5f - py) / half;
             return engine::math::vec2{cx, cy};
 #else
             (void)world_point;
@@ -1100,6 +1211,7 @@ namespace
 #endif
         }
 
+        WindowExtent window_extent_{};
         std::shared_ptr<ProceduralMeshStorage> mesh_storage_{std::make_shared<ProceduralMeshStorage>()};
         std::shared_ptr<void> mesh_validator_registration_{};
         std::shared_ptr<void> material_validator_registration_{};
@@ -1131,6 +1243,7 @@ namespace
         };
         std::vector<WidgetToggle> widget_toggles_{};
         float gui_scale_{1.25f};
+        float last_applied_gui_scale_{1.0f};
 #endif
         bool was_dragging_{false};
         engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};
