@@ -229,22 +229,21 @@ namespace engine::rendering::backend::opengl
     void OpenGLPresentationBackend::initialize_context_if_needed(void* window_handle)
     {
 #if ENGINE_PLATFORM_HAS_GLFW
-        // If context already initialized for this window, nothing to do
-        if (context_initialized_ && current_window_ == window_handle)
+        if (window_handle == nullptr)
         {
+            ENGINE_WARN("OpenGL presentation backend received a null window handle; skipping context initialization.");
             return;
         }
 
         auto* window = static_cast<GLFWwindow*>(window_handle);
 
-        // Make the OpenGL context current
+        // Ensure the OpenGL context for this window is current before issuing any GL calls.
         glfwMakeContextCurrent(window);
 
-        ENGINE_INFO("OpenGL Presentation Backend: Initializing context");
-
-        // Load OpenGL functions on first initialization
+        // Load OpenGL functions and configure state on first initialization.
         if (!context_initialized_)
         {
+            ENGINE_INFO("OpenGL Presentation Backend: Initializing context");
 #    if ENGINE_RENDERING_HAS_GLAD
             int version = gladLoadGL(reinterpret_cast<GLADloadfunc>(glfwGetProcAddress));
             if (version == 0)
@@ -272,9 +271,18 @@ namespace engine::rendering::backend::opengl
 
         current_window_ = window_handle;
 
-        // Set viewport to match framebuffer size
-        int width, height;
+        // Set viewport to match framebuffer size on every frame so resizing is reflected immediately.
+        int width = 0;
+        int height = 0;
         glfwGetFramebufferSize(window, &width, &height);
+        if (width <= 0)
+        {
+            width = 1;
+        }
+        if (height <= 0)
+        {
+            height = 1;
+        }
 #    if ENGINE_RENDERING_HAS_GLAD
         glViewport(0, 0, width, height);
 #    endif
@@ -302,7 +310,7 @@ namespace engine::rendering::backend::opengl
             ImGui::SetCurrentContext(prev_ctx);
         }
 
-        // If backend initialized (or if an ImGui context is current), update ImGui IO DisplaySize to framebuffer size
+        // Update the ImGui IO display size every frame so layout responds to window resizing.
         if (imgui_context_for_rendering_ != nullptr || ImGui::GetCurrentContext() != nullptr)
         {
             ImGuiContext* save_ctx = ImGui::GetCurrentContext();
