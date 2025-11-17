@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 
 #include "engine/rendering/backend/opengl/render_resource_provider.hpp"
@@ -9,6 +10,9 @@
 #include "engine/rendering/forward_pipeline.hpp"
 #include "engine/rendering/material_system.hpp"
 #include "engine/rendering/presentation_backend.hpp"
+
+// Forward-declare ImGuiContext so this header doesn't need to pull in imgui.h
+struct ImGuiContext;
 
 namespace engine::rendering::backend::opengl
 {
@@ -23,6 +27,14 @@ namespace engine::rendering::backend::opengl
     class OpenGLPresentationBackend final : public PresentationBackend
     {
     public:
+        /// Register an ImGuiContext that will be used to render UI when presenting frames.
+        void set_imgui_context_for_rendering(ImGuiContext* ctx) { imgui_context_for_rendering_ = ctx; }
+        /// Request that the backend run the registered ImGui render callback on the next present.
+        void request_imgui_render(double delta_time) { imgui_render_requested_ = true; imgui_last_delta_ = delta_time; }
+        /// Provide a callback that will be invoked by the backend while the GL context and ImGui
+        /// context are current; the callback should build ImGui windows (i.e. call panel_bridge_->render_all).
+        void set_imgui_render_callback(std::function<void(double)> cb) { imgui_render_callback_ = std::move(cb); }
+
         using MeshResolver = OpenGLRenderResourceProvider::MeshResolver;
         using PointCloudResolver = OpenGLRenderResourceProvider::PointCloudResolver;
 
@@ -30,6 +42,7 @@ namespace engine::rendering::backend::opengl
                                            PointCloudResolver point_cloud_resolver = {},
                                            std::unique_ptr<ForwardPipeline> pipeline = nullptr,
                                            std::uint64_t retention_frames = 0);
+        ~OpenGLPresentationBackend() noexcept;
 
         [[nodiscard]] MaterialSystem& material_system() noexcept { return materials_; }
         [[nodiscard]] const MaterialSystem& material_system() const noexcept { return materials_; }
@@ -60,6 +73,14 @@ namespace engine::rendering::backend::opengl
 
         bool context_initialized_{false};
         void* current_window_{nullptr};
+        // Whether the ImGui GLFW/OpenGL backends have been initialized for the current process/context.
+        bool imgui_backend_initialized_{false};
+        // ImGui context pointer registered by the application for panel rendering.
+        ImGuiContext* imgui_context_for_rendering_{nullptr};
+        // Callback supplied by the application to build UI while the GL context is current.
+        std::function<void(double)> imgui_render_callback_;
+        // Request flag and last delta time passed from the application.
+        bool imgui_render_requested_{false};
+        double imgui_last_delta_{0.0};
     };
 } // namespace engine::rendering::backend::opengl
-

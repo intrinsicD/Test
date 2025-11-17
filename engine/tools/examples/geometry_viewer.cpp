@@ -50,6 +50,10 @@
 #    include "engine/tools/editor/runtime_panel_bridge.hpp"
 #    include "engine/tools/imgui/panel_registry.hpp"
 #    include "engine/tools/imgui_helpers.hpp"
+#    if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+#        include "backends/imgui_impl_glfw.h"
+#        include "backends/imgui_impl_opengl3.h"
+#    endif
 #endif
 
 #ifndef ENGINE_PLATFORM_HAS_GLFW
@@ -726,6 +730,12 @@ namespace
                 imgui_context_ = ImGui::CreateContext();
             }
 
+            // Register ImGui context with the presentation backend so it can render UI into the GL context.
+            if (backend_)
+            {
+                backend_->set_imgui_context_for_rendering(imgui_context_);
+            }
+
             if (panel_bridge_)
             {
                 return;
@@ -783,8 +793,50 @@ namespace
             panel_bridge_.reset();
             if (imgui_context_ != nullptr)
             {
+                // Ensure the ImGui context we created is current so backend shutdown reads correct IO data.
+                ImGuiContext* previous_context = ImGui::GetCurrentContext();
+                ImGui::SetCurrentContext(imgui_context_);
+
+                // Only shutdown backends if they were initialized. Check IO backend userdata to be safe.
+                ImGuiIO& io = ImGui::GetIO();
+
+                // Log backend userdata pointers to help debug shutdown ordering issues.
+                ENGINE_INFO("ImGui shutdown: BackendPlatformUserData={}, BackendRendererUserData={}",
+                            (void*)io.BackendPlatformUserData, (void*)io.BackendRendererUserData);
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+                // If a renderer backend is registered, shut it down first as per examples.
+                if (io.BackendRendererUserData != nullptr)
+                {
+                    ENGINE_INFO("Calling ImGui_ImplOpenGL3_Shutdown()...");
+                    ImGui_ImplOpenGL3_Shutdown();
+                    ENGINE_INFO("After ImGui_ImplOpenGL3_Shutdown: BackendRendererUserData={}", (void*)io.BackendRendererUserData);
+                }
+
+                // Then shutdown the platform backend
+                if (io.BackendPlatformUserData != nullptr)
+                {
+                    ENGINE_INFO("Calling ImGui_ImplGlfw_Shutdown()...");
+                    ImGui_ImplGlfw_Shutdown();
+                    ENGINE_INFO("After ImGui_ImplGlfw_Shutdown: BackendPlatformUserData={}", (void*)io.BackendPlatformUserData);
+                }
+
+                // If the platform userdata is still set, log and clear to avoid assertion during ImGui::Shutdown.
+                if (io.BackendPlatformUserData != nullptr || io.BackendRendererUserData != nullptr)
+                {
+                    ENGINE_WARN("ImGui backend userdata not cleared by shutdown functions; forcing cleanup (platform={}, renderer={})",
+                                (void*)io.BackendPlatformUserData, (void*)io.BackendRendererUserData);
+                    io.BackendPlatformUserData = nullptr;
+                    io.BackendRendererUserData = nullptr;
+                    io.BackendPlatformName = nullptr;
+                    // Clear backend flags related to platform/renderer capabilities to be safe.
+                    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
+                }
+#endif
+                // Destroy the context we created for panels
                 ImGui::DestroyContext(imgui_context_);
+                ImGui::SetCurrentContext(previous_context);
                 imgui_context_ = nullptr;
+                ENGINE_INFO("ImGui context destroyed cleanly");
             }
         }
 #endif
@@ -864,7 +916,7 @@ namespace
 #if ENGINE_ENABLE_RENDERING
         engine::tools::imgui::PanelRegistry panel_registry_{};
         std::unique_ptr<engine::tools::editor::RuntimePanelBridge> panel_bridge_{};
-        bool panels_visible_{false};
+        bool panels_visible_{true};
         ImGuiContext* imgui_context_{nullptr};
 #endif
         bool was_dragging_{false};

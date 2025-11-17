@@ -6,6 +6,13 @@
 #include <string>
 #include <utility>
 
+// Add ImGui backend includes when GLFW/GLAD are enabled
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+#include <imgui.h>
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#endif
+
 // OpenGL headers for context management and rendering
 #ifndef ENGINE_RENDERING_HAS_GLAD
 #    define ENGINE_RENDERING_HAS_GLAD 0
@@ -34,6 +41,41 @@ namespace engine::rendering::backend::opengl
         : submission_(std::move(mesh_resolver), std::move(point_cloud_resolver), retention_frames)
         , pipeline_(std::move(pipeline))
     {
+    }
+
+    OpenGLPresentationBackend::~OpenGLPresentationBackend() noexcept
+    {
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+        // If backends were initialized, attempt to shut them down using the registered ImGui context
+        if (imgui_backend_initialized_)
+        {
+            ImGuiContext* prev = ImGui::GetCurrentContext();
+            if (imgui_context_for_rendering_ != nullptr)
+            {
+                ImGui::SetCurrentContext(imgui_context_for_rendering_);
+            }
+
+            // Renderer first
+            if (ImGui::GetIO().BackendRendererUserData != nullptr)
+            {
+                ImGui_ImplOpenGL3_Shutdown();
+            }
+
+            // Then platform
+            if (ImGui::GetIO().BackendPlatformUserData != nullptr)
+            {
+                ImGui_ImplGlfw_Shutdown();
+            }
+
+            // Clear any lingering userdata to avoid other shutdown assertions
+            ImGui::GetIO().BackendRendererUserData = nullptr;
+            ImGui::GetIO().BackendPlatformUserData = nullptr;
+            ImGui::GetIO().BackendPlatformName = nullptr;
+
+            // Restore previous context
+            ImGui::SetCurrentContext(prev);
+        }
+#endif
     }
 
     void OpenGLPresentationBackend::present(const RuntimePresentationContext& context)
@@ -107,6 +149,63 @@ namespace engine::rendering::backend::opengl
         // Execute frame graph
         frame_graph_.execute(execution_context);
 
+        // If the application registered an ImGui context for rendering, render its draw data here
+        // while the OpenGL context is current.
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+        if (imgui_context_for_rendering_ != nullptr && imgui_backend_initialized_)
+        {
+            ImGuiContext* previous_ctx = ImGui::GetCurrentContext();
+            ImGui::SetCurrentContext(imgui_context_for_rendering_);
+
+            if (ImGui::GetDrawData())
+            {
+                ImDrawData* dd = ImGui::GetDrawData();
+                ENGINE_INFO("ImGui draw data: CmdLists={} TotalVtx={} TotalIdx={}", dd->CmdListsCount, dd->TotalVtxCount, dd->TotalIdxCount);
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+
+            // Handle multi-viewport platform windows if enabled
+            ImGuiIO& io = ImGui::GetIO();
+            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+            }
+
+            ImGui::SetCurrentContext(previous_ctx);
+        }
+#endif
+
+        // If the application requested an ImGui render, call the registered callback while the GL context is current.
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+        if (imgui_render_requested_ && imgui_render_callback_ && imgui_context_for_rendering_)
+        {
+            ImGuiContext* prev_ctx = ImGui::GetCurrentContext();
+            ImGui::SetCurrentContext(imgui_context_for_rendering_);
+
+            // Ensure backends are initialized before invoking the callback (will have been initialized in initialize_context_if_needed)
+            imgui_render_callback_(imgui_last_delta_);
+
+            // Now render draw data
+            if (ImGui::GetDrawData())
+            {
+                ImDrawData* dd = ImGui::GetDrawData();
+                ENGINE_INFO("ImGui draw data (app-callback): CmdLists={} TotalVtx={} TotalIdx={}", dd->CmdListsCount, dd->TotalVtxCount, dd->TotalIdxCount);
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+
+            // Multi-viewport handling if enabled
+            ImGuiIO& io = ImGui::GetIO();
+            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+            }
+
+            ImGui::SetCurrentContext(prev_ctx);
+            imgui_render_requested_ = false;
+        }
+#endif
 
         // Swap buffers to present rendered frame
         swap_buffers(window);
@@ -179,6 +278,43 @@ namespace engine::rendering::backend::opengl
 #    if ENGINE_RENDERING_HAS_GLAD
         glViewport(0, 0, width, height);
 #    endif
+
+        // Initialize ImGui platform/renderer backends if an ImGui context exists and backends aren't initialized.
+        // This allows ImGui_ImplGlfw_NewFrame() to populate io.DisplaySize before ImGui::NewFrame() is called.
+#if ENGINE_PLATFORM_HAS_GLFW && ENGINE_RENDERING_HAS_GLAD
+        if (!imgui_backend_initialized_)
+        {
+            // Prefer to initialize backends using the ImGui context the application registered
+            // so that backend userdata is correctly associated and shutdown will work.
+            ImGuiContext* prev_ctx = ImGui::GetCurrentContext();
+            if (imgui_context_for_rendering_ != nullptr)
+            {
+                ImGui::SetCurrentContext(imgui_context_for_rendering_);
+            }
+
+            // Initialize backends without installing GLFW callbacks (application manages input forwarding)
+            ImGui_ImplGlfw_InitForOpenGL(window, /*install_callbacks=*/false);
+            ImGui_ImplOpenGL3_Init();
+            imgui_backend_initialized_ = true;
+            ENGINE_INFO("  ✓ ImGui GLFW/OpenGL3 backends initialized (registered context)");
+
+            // Restore previous context
+            ImGui::SetCurrentContext(prev_ctx);
+        }
+
+        // If backend initialized (or if an ImGui context is current), update ImGui IO DisplaySize to framebuffer size
+        if (imgui_context_for_rendering_ != nullptr || ImGui::GetCurrentContext() != nullptr)
+        {
+            ImGuiContext* save_ctx = ImGui::GetCurrentContext();
+            if (imgui_context_for_rendering_ != nullptr)
+            {
+                ImGui::SetCurrentContext(imgui_context_for_rendering_);
+            }
+            ImGuiIO& io = ImGui::GetIO();
+            io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+            ImGui::SetCurrentContext(save_ctx);
+        }
+#endif
 #else
         (void)window_handle;
 #endif
@@ -203,4 +339,3 @@ namespace engine::rendering::backend::opengl
 #endif
     }
 } // namespace engine::rendering::backend::opengl
-
