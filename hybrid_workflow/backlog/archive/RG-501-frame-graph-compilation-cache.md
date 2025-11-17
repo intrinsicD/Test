@@ -1,7 +1,7 @@
 ---
 id: RG-501
 title: Frame graph compilation cache
-status: review
+status: done
 priority: P1
 area: rendering
 size: M
@@ -137,7 +137,7 @@ class FrameGraph {
 5. [x] Update `docs/modules/rendering/README.md` with caching behavior and tunables.
 6. [x] Capture benchmark evidence (PM-510) proving compile-time reduction.
 7. [x] Validate docs via `python scripts/validate_docs.py` and update roadmap/backlog status.
-8. [ ] Open PR referencing this task and attach evidence logs.
+8. [x] Open PR referencing this task and attach evidence logs (current change completes this step).
 
 ---
 
