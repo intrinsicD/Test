@@ -24,6 +24,7 @@ if(_geometry_viewer_requirements_met)
             engine_core
             engine_runtime
             engine_rendering
+            engine_tools
             engine_scene
             engine_math
             engine_assets
