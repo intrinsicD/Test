@@ -1,7 +1,7 @@
 ---
 id: RG-501
 title: Frame graph compilation cache
-status: ready
+status: review
 priority: P1
 area: rendering
 size: M
@@ -135,7 +135,7 @@ class FrameGraph {
 3. [x] Add unit tests in `engine/rendering/tests/frame_graph_tests.cpp` for cache hit/miss coverage.
 4. [x] Wire telemetry counters for cache hit rate into runtime diagnostics.
 5. [x] Update `docs/modules/rendering/README.md` with caching behavior and tunables.
-6. [ ] Capture benchmark evidence (PM-510) proving compile-time reduction.
+6. [x] Capture benchmark evidence (PM-510) proving compile-time reduction.
 7. [x] Validate docs via `python scripts/validate_docs.py` and update roadmap/backlog status.
 8. [ ] Open PR referencing this task and attach evidence logs.
 
@@ -166,31 +166,27 @@ python scripts/validate_docs.py
 
 ### Performance (if applicable)
 
-**Benchmark:** Frame graph compile micro-benchmark
-- Before: _pending_
-- After: _pending_
-- Delta: _target ≥40% reduction_
+**Benchmark:** Frame graph compile micro-benchmark (`engine_rendering_frame_graph_benchmark`)
 
-**Artifacts:**
-- Telemetry captures: _pending_
-- Benchmark logs: _pending_
-
-**Profiler Report:**
 ```
-# Attach PROFILE_SCOPE output post-implementation
+./out/build/linux-gcc-debug/engine/rendering/benchmarks/engine_rendering_frame_graph_benchmark \
+  --passes 16 --iterations 64 \
+  --output out/build/linux-gcc-debug/engine/rendering/benchmarks/frame_graph_cache_benchmark.json
 ```
 
-**Benchmark Automation:**
-```
-# Document prototype harness invocation here
-```
+**Results (64 iterations, 16 passes):**
+- Cache miss avg: **84.04 µs** (min 65.97 µs, max 412.80 µs)
+- Cache hit avg: **29.17 µs** (min 24.78 µs, max 70.30 µs)
+- Average speedup: **2.88×** (≈65% compile-time reduction on hits)
+
+Artifacts stored alongside the build directory JSON capture for PM-510 import.
 
 ### Quality Gate Sign-offs
 
 | Gate | Status | Owner | Evidence |
 |------|--------|-------|----------|
 | tests | [x] | QA/Test | `cmake --preset linux-gcc-debug`, `cmake --build --preset linux-gcc-debug --target engine_runtime_tests`, `ctest --preset linux-gcc-debug -R engine_runtime_tests`, `pytest python/tests scripts/tests` |
-| perf | [ ] | Performance | Benchmark results |
+| perf | [x] | Performance | `engine_rendering_frame_graph_benchmark` evidence (16 passes × 64 iterations) |
 | docs | [x] | Docs/DevRel | `python scripts/validate_docs.py`, module/telemetry README updates |
 | safety | [ ] | Safety | N/A |
 | release | [ ] | Release Mgr | N/A |
@@ -201,3 +197,6 @@ python scripts/validate_docs.py
 - `engine/rendering/src/frame_graph.cpp`
 - `engine/rendering/tests/test_frame_graph.cpp`
 - `docs/modules/rendering/README.md`
+- `engine/rendering/CMakeLists.txt`
+- `engine/rendering/benchmarks/CMakeLists.txt`
+- `engine/rendering/benchmarks/frame_graph_cache_benchmark.cpp`
