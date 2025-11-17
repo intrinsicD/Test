@@ -42,12 +42,18 @@ namespace engine::math
     } // namespace detail
 
     template <typename T>
+    ENGINE_MATH_INLINE T pi() noexcept
+    {
+        return T(std::numbers::pi_v<T>);
+    }
+
+    template <typename T>
     ENGINE_MATH_INLINE auto radians(T degrees) noexcept
     {
         using value_type = std::remove_cvref_t<T>;
         using return_type = std::conditional_t<std::is_floating_point_v<value_type>, value_type, double>;
 
         return static_cast<return_type>(degrees) *
-            (std::numbers::pi_v<return_type> / static_cast<return_type>(180));
+            (pi<return_type>() / static_cast<return_type>(180));
     }
 } // namespace engine::math
