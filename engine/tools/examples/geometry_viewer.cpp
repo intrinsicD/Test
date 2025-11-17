@@ -693,6 +693,8 @@ namespace
                 const float half = std::max(min_dimension * 0.5f, 1.0f);
 
                 // Convert the cursor position to normalized trackball coordinates centered on the window.
+                // Keeping the reference frame fixed to the window center avoids the previous "wiggle"
+                // where the projected orbit center moved every frame as the camera rotated.
                 const engine::math::vec2 normalized_cursor{
                     (cursor.x - width * 0.5f) / half,
                     (height * 0.5f - cursor.y) / half
@@ -1123,8 +1125,8 @@ namespace
 
             ImGui::Separator();
             ImGui::TextWrapped(
-                "Rotations appear to wiggle when the orbit center (computed in focus_camera_on_bounds) does not match the "
-                "feature you are inspecting. Update the center above to pivot around the exact point of interest.");
+                "Trackball rotation uses a stable window-centered reference frame. Update the orbit center above to pivot "
+                "around a new feature, or use the focus actions to quickly recenter on geometry of interest.");
 
             ImGui::End();
         }

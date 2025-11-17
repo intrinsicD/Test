@@ -220,6 +220,14 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   - Upload a small procedural checkerboard to a default texture and bind it whenever geometry provides UV coordinates, keeping
     shading consistent even without external material assets.
 
+### Step 12: Stabilize trackball drag reference frame
+
+- `engine/tools/examples/geometry_viewer.cpp`
+  - Anchor the virtual trackball to the window center instead of reprojecting the orbit target every frame, eliminating the
+    "wiggle" caused by a moving reference point.
+  - Remove the unused projection helper and document the new workflow inside the camera widget to steer users toward the focus
+    shortcuts when they need to update the orbit center.
+
 ## Testing
 
 ### Manual Test Cases
