@@ -889,11 +889,9 @@ namespace
             ImGuiContext* previous_context = ImGui::GetCurrentContext();
             ImGui::SetCurrentContext(imgui_context_);
             engine::tools::imgui::begin_frame();
-            render_widget_menu();
-            if (panels_visible_)
-            {
-                render_active_widgets(delta_time);
-            }
+            render_main_menu_bar();
+            render_camera_widget();
+            render_active_widgets(delta_time);
             engine::tools::imgui::end_frame();
             ImGui::SetCurrentContext(previous_context);
         }
@@ -999,88 +997,138 @@ namespace
             }
         }
 
-        void render_widget_menu()
+        void render_main_menu_bar()
         {
-            ImGui::SetNextWindowBgAlpha(0.9f);
-            ImGui::SetNextWindowPos(ImVec2(16.0f, 16.0f), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowCollapsed(false, ImGuiCond_FirstUseEver);
-            const ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse;
-            if (!ImGui::Begin("Geometry Viewer Menu", nullptr, window_flags))
+            if (!panels_visible_)
             {
-                ImGui::End();
                 return;
             }
 
-            ImGui::Text("Window: %.0f x %.0f", current_window_width(), current_window_height());
-            bool show_panels = panels_visible_;
-            if (ImGui::Checkbox("Show diagnostics panels", &show_panels))
+            if (!ImGui::BeginMainMenuBar())
             {
-                panels_visible_ = show_panels;
-            }
-            ImGui::SameLine();
-            ImGui::TextDisabled("Press 'G' to toggle");
-
-            if (!panels_visible_)
-            {
-                ImGui::TextDisabled("Diagnostics panels are hidden; enable them above to render overlays.");
+                return;
             }
 
-            ImGui::Separator();
-
-            if (widget_toggles_.empty())
+            if (ImGui::BeginMenu("Viewer"))
             {
-                ImGui::TextUnformatted("No diagnostics widgets were registered.");
-            }
-            else
-            {
-                if (ImGui::Button("Show All"))
+                bool show_panels = panels_visible_;
+                if (ImGui::MenuItem("Show Diagnostics", "G", &show_panels))
                 {
-                    set_all_widget_visibility(true);
-                    panels_visible_ = true;
+                    panels_visible_ = show_panels;
                 }
-                ImGui::SameLine();
-                if (ImGui::Button("Hide All"))
+                ImGui::TextDisabled("Press 'G' any time to toggle the menu bar.");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Widgets"))
+            {
+                if (widget_toggles_.empty())
                 {
-                    set_all_widget_visibility(false);
+                    ImGui::MenuItem("No registered widgets", nullptr, false, false);
                 }
-
-                ImGui::Separator();
-
-                for (auto& widget : widget_toggles_)
+                else
                 {
-                    bool visible = widget.visible;
-                    if (ImGui::Checkbox(widget.label.c_str(), &visible))
+                    const bool any_visible = std::any_of(
+                        widget_toggles_.begin(),
+                        widget_toggles_.end(),
+                        [](const WidgetToggle& widget) { return widget.visible; }
+                    );
+
+                    if (ImGui::MenuItem("Show All"))
                     {
-                        widget.visible = visible;
+                        set_all_widget_visibility(true);
+                    }
+                    if (ImGui::MenuItem("Hide All", nullptr, false, any_visible))
+                    {
+                        set_all_widget_visibility(false);
+                    }
+                    ImGui::Separator();
+
+                    for (auto& widget : widget_toggles_)
+                    {
+                        bool visible = widget.visible;
+                        if (ImGui::MenuItem(widget.label.c_str(), nullptr, &visible))
+                        {
+                            widget.visible = visible;
+                        }
                     }
                 }
+                ImGui::EndMenu();
+            }
 
-                const bool any_visible = std::any_of(
-                    widget_toggles_.begin(),
-                    widget_toggles_.end(),
-                    [](const WidgetToggle& widget) { return widget.visible; }
-                );
-
-                if (!any_visible)
+            if (ImGui::BeginMenu("Camera"))
+            {
+                ImGui::MenuItem("Camera Widget", nullptr, &camera_widget_visible_);
+                if (trackball_controller_)
                 {
-                    ImGui::Spacing();
-                    ImGui::TextDisabled("No widgets are active. Enable at least one above to show it.");
+                    const auto center = trackball_controller_->center();
+                    ImGui::Text("Orbit Center: %.2f, %.2f, %.2f", center[0], center[1], center[2]);
+                    ImGui::Text("Distance: %.2f", trackball_controller_->distance());
                 }
+                else
+                {
+                    ImGui::TextDisabled("Trackball controller unavailable");
+                }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Display"))
+            {
+                if (ImGui::SliderFloat("UI Scale",
+                        &gui_scale_,
+                        MIN_GUI_SCALE,
+                        MAX_GUI_SCALE,
+                        "%.2fx",
+                        ImGuiSliderFlags_AlwaysClamp))
+                {
+                    gui_scale_ = std::clamp(gui_scale_, MIN_GUI_SCALE, MAX_GUI_SCALE);
+                    apply_imgui_scale();
+                }
+                ImGui::TextDisabled("Applies to menu and diagnostics panels");
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMainMenuBar();
+        }
+
+        void render_camera_widget()
+        {
+            if (!panels_visible_ || !camera_widget_visible_ || !trackball_controller_)
+            {
+                return;
+            }
+
+            bool keep_open = camera_widget_visible_;
+            ImGui::SetNextWindowSize(ImVec2(340.0f, 0.0f), ImGuiCond_FirstUseEver);
+            if (!ImGui::Begin("Camera", &keep_open))
+            {
+                ImGui::End();
+                camera_widget_visible_ = keep_open;
+                return;
+            }
+            camera_widget_visible_ = keep_open;
+
+            auto center = trackball_controller_->center();
+            float center_values[3] = {center[0], center[1], center[2]};
+            if (ImGui::InputFloat3("Orbit Center", center_values, "%.3f"))
+            {
+                trackball_controller_->set_center(engine::math::vec3{center_values[0], center_values[1], center_values[2]});
+            }
+
+            float distance = trackball_controller_->distance();
+            if (ImGui::DragFloat("Distance", &distance, 0.05f, 0.1f, 500.0f, "%.3f"))
+            {
+                trackball_controller_->set_distance(distance);
             }
 
             ImGui::Separator();
-            if (ImGui::SliderFloat("UI Scale",
-                    &gui_scale_,
-                    MIN_GUI_SCALE,
-                    MAX_GUI_SCALE,
-                    "%.2fx",
-                    ImGuiSliderFlags_AlwaysClamp))
-            {
-                gui_scale_ = std::clamp(gui_scale_, MIN_GUI_SCALE, MAX_GUI_SCALE);
-                apply_imgui_scale();
-            }
-            ImGui::SameLine();
-            ImGui::TextDisabled("Applies to menu and panels");
+            ImGui::Text("Field of View: %.1f deg", CAMERA_FOV * 180.0f / engine::math::pi<float>());
+            ImGui::Text("Near/Far Planes: %.2f / %.2f", CAMERA_NEAR_PLANE, camera_far_plane_);
+
+            ImGui::Separator();
+            ImGui::TextWrapped(
+                "Rotations appear to wiggle when the orbit center (computed in focus_camera_on_bounds) does not match the "
+                "feature you are inspecting. Update the center above to pivot around the exact point of interest.");
 
             ImGui::End();
         }
@@ -1360,6 +1408,7 @@ namespace
         };
         std::vector<WidgetToggle> widget_toggles_{};
         float gui_scale_{2.0f};
+        bool camera_widget_visible_{true};
 #endif
         bool was_dragging_{false};
         engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};
