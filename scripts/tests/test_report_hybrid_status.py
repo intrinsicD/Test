@@ -205,6 +205,45 @@ def test_filter_tasks_can_match_area() -> None:
     assert [task.identifier for task in filtered] == ["HW-120"]
 
 
+def test_filter_tasks_can_match_links() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "link-alpha.md",
+            identifier="HW-130",
+            title="Link Alpha",
+            status="ready",
+            priority="P1",
+            owner="docs-devrel",
+            links=("docs/ROADMAP.md",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "link-beta.md",
+            identifier="HW-131",
+            title="Link Beta",
+            status="ready",
+            priority="P1",
+            owner="docs-devrel",
+            links=("hybrid_workflow/ROADMAP.md",),
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        area=None,
+        size=None,
+        gates=None,
+        links=("docs/ROADMAP.md",),
+        search_terms=None,
+        blocked_only=None,
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-130"]
+
+
 def test_filter_tasks_can_match_size() -> None:
     tasks = [
         _make_task(

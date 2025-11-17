@@ -16,6 +16,7 @@ and blocker metadata:
 
    python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY]
                                          [--area AREA] [--owner OWNER]
+                                         [--link LINK]
                                          [--gate GATE ...]
                                          [--relates-to TAG ...]
                                          [--search TERM ...]
@@ -27,7 +28,8 @@ inspect a single record, and ``--format json`` to emit machine-readable
 responses for automation.  Combine ``--blocked`` or ``--unblocked`` with the
 other filters to audit blocker status rapidly.  ``--search`` matches across
 ID, title, owner, area, gates, relates_to, **blocked_on**, and link metadata so
-blocked dependencies are easy to locate.
+blocked dependencies are easy to locate, while ``--link`` restricts results to
+tasks referencing specific documents or tracking links.
 """
 
 import argparse
@@ -386,6 +388,7 @@ def filter_tasks(
     owner: Optional[Union[str, Iterable[str]]] = None,
     relates_to: Optional[List[str]] = None,
     gates: Optional[List[str]] = None,
+    links: Optional[Union[str, Iterable[str]]] = None,
     search_terms: Optional[Iterable[str]] = None,
     *,
     blocked_only: Optional[bool] = None,
@@ -428,6 +431,14 @@ def filter_tasks(
             t
             for t in filtered
             if relates_lower.intersection({value.lower() for value in t.relates_to})
+        ]
+
+    link_values = {value.lower() for value in _normalise_filter_values(links)}
+    if link_values:
+        filtered = [
+            t
+            for t in filtered
+            if link_values.issubset({value.lower() for value in t.links})
         ]
 
     if search_terms:
@@ -474,6 +485,7 @@ def select_next_actions(
     owner: Optional[Union[str, Iterable[str]]] = None,
     gates: Optional[List[str]] = None,
     relates_to: Optional[List[str]] = None,
+    links: Optional[Union[str, Iterable[str]]] = None,
     search_terms: Optional[Iterable[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
@@ -491,6 +503,7 @@ def select_next_actions(
         owner=owner,
         gates=gates,
         relates_to=relates_to,
+        links=links,
         search_terms=search_terms,
         blocked_only=blocked_only,
     )
@@ -660,6 +673,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        '--link',
+        metavar='LINK',
+        action='append',
+        help=(
+            "Require tasks to reference specific link metadata (case-insensitive). Repeat the "
+            "flag or provide comma-separated values to match multiple links."
+        ),
+    )
+    parser.add_argument(
         '--search',
         metavar='TERM',
         action='append',
@@ -764,6 +786,7 @@ def main():
         gates = [gate for group in args.gate for gate in group]
 
     search_terms = _normalise_filter_values(args.search)
+    link_filter = _normalise_filter_values(args.link)
     owner_filter = _normalise_filter_values(args.owner)
 
     blocked_only = True if args.blocked else False if args.unblocked else None
@@ -779,6 +802,7 @@ def main():
                 owner=owner_filter,
                 gates=gates,
                 relates_to=relates_to,
+                links=link_filter,
                 search_terms=search_terms,
                 blocked_only=blocked_only,
             )
@@ -795,6 +819,7 @@ def main():
             owner=owner_filter,
             relates_to=relates_to,
             gates=gates,
+            links=link_filter,
             search_terms=search_terms,
             blocked_only=blocked_only,
         )
