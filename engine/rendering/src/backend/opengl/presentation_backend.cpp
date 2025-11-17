@@ -293,7 +293,7 @@ namespace engine::rendering::backend::opengl
             }
 
             // Initialize backends without installing GLFW callbacks (application manages input forwarding)
-            ImGui_ImplGlfw_InitForOpenGL(window, /*install_callbacks=*/false);
+            ImGui_ImplGlfw_InitForOpenGL(window, /*install_callbacks=*/true);
             ImGui_ImplOpenGL3_Init();
             imgui_backend_initialized_ = true;
             ENGINE_INFO("  ✓ ImGui GLFW/OpenGL3 backends initialized (registered context)");
