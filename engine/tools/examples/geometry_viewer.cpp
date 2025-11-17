@@ -604,6 +604,7 @@ namespace
 
             const auto center = engine::geometry::Center(bounds);
             const float distance = compute_focus_distance(bounds);
+            ensure_camera_depth_range(bounds, distance);
             trackball_controller_->set_center(center);
             trackball_controller_->set_distance(distance);
 
@@ -662,7 +663,7 @@ namespace
             }
 
             auto& camera = registry.get<engine::rendering::Camera>(camera_entity_);
-            camera.set_perspective(CAMERA_FOV, current_aspect_ratio(), CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
+            camera.set_perspective(CAMERA_FOV, current_aspect_ratio(), CAMERA_NEAR_PLANE, camera_far_plane_);
 #else
             (void)current_aspect_ratio();
 #endif
@@ -1270,6 +1271,25 @@ namespace
 #endif
         }
 
+        void ensure_camera_depth_range(const engine::geometry::Aabb& bounds, float focus_distance)
+        {
+#if ENGINE_ENABLE_RENDERING
+            const float radius = std::max(engine::math::length(engine::geometry::Size(bounds)) * 0.5f, 0.0f);
+            constexpr float kRadiusPadding = 1.05f;
+            constexpr float kDistancePadding = 1.0f;
+            const float far_from_focus = focus_distance + radius * kRadiusPadding + kDistancePadding;
+            const float required_far = std::max(far_from_focus, CAMERA_FAR_PLANE);
+            if (std::abs(required_far - camera_far_plane_) > 1e-3f)
+            {
+                camera_far_plane_ = required_far;
+                update_camera_projection();
+            }
+#else
+            (void)bounds;
+            (void)focus_distance;
+#endif
+        }
+
         [[nodiscard]] float compute_focus_distance(const engine::geometry::Aabb& bounds) const
         {
             const auto size = engine::geometry::Size(bounds);
@@ -1314,6 +1334,7 @@ namespace
         engine::rendering::ResearchBaselineResources baseline_resources_{};
         entt::entity camera_entity_{entt::null};
         std::unique_ptr<engine::rendering::TrackballCameraController> trackball_controller_{};
+        float camera_far_plane_{CAMERA_FAR_PLANE};
 #endif
         std::unordered_map<std::string, entt::entity> render_entities_{};
         std::vector<std::string> loaded_models_order_{}; // Track loaded models in creation order (excluding cube)
