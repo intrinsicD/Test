@@ -563,7 +563,20 @@ graphs rehydrate immediately while divergent graphs fall back to a full compile.
 `FrameGraph::cache_stats()` (for telemetry exports) and controllable via `FrameGraph::clear_cache()` when experiments require a
 fresh baseline. Runtime diagnostics export cache behaviour through the shared telemetry schema: `rendering.frame_graph.cache_hits`
 and `rendering.frame_graph.cache_misses` expose cumulative counters, while `rendering.frame_graph.cache_hit_rate` reports the
-current hit ratio so TL-314 overlays can flag regressions during PM-510 demos.
+current hit ratio so TL-314 overlays can flag regressions during PM-510 demos. Build the
+`engine_rendering_frame_graph_benchmark` target (enabled when `BUILD_TESTING=ON`) to capture deterministic cache miss/hit
+latencies. For example:
+
+```bash
+ctest --preset linux-gcc-debug -R rendering_frame_graph_cache_benchmark
+# or run manually for evidence captures
+./build/linux-gcc-debug/engine/rendering/benchmarks/engine_rendering_frame_graph_benchmark \
+    --passes 16 --iterations 64 \
+    --output $(pwd)/artifacts/frame_graph_cache_benchmark.json
+```
+
+The benchmark emits JSON containing per-iteration averages, extremes, and aggregate speedup so PM-510 rehearsals can ingest the
+same artefact that backs the automated regression guard.
 
 Vulkan backend benchmarks (from `T-0116`):
 - Simple scene: ~2.0ms GPU time
