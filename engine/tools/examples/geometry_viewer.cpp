@@ -1159,6 +1159,8 @@ namespace
             }
         }
 
+        std::optional<ImGuiStyle> original_imgui_style_;
+
         void apply_imgui_scale()
         {
             if (!imgui_context_)
@@ -1172,13 +1174,17 @@ namespace
             ImGui::SetCurrentContext(imgui_context_);
             ImGuiIO& io = ImGui::GetIO();
             ImGuiStyle& style = ImGui::GetStyle();
-            const float previous_scale = std::max(last_applied_gui_scale_, 0.01f);
-            const float ratio = gui_scale_ / previous_scale;
-            if (std::abs(ratio - 1.0f) > std::numeric_limits<float>::epsilon())
+
+            // Save the original unscaled style on first call
+            if (!original_imgui_style_.has_value())
             {
-                style.ScaleAllSizes(ratio);
+                original_imgui_style_ = style;
             }
-            last_applied_gui_scale_ = gui_scale_;
+
+            // Always scale from the original baseline, not from current values
+            style = original_imgui_style_.value();
+            style.ScaleAllSizes(gui_scale_);
+
             io.FontGlobalScale = gui_scale_;
             ImGui::SetCurrentContext(previous_context);
         }
@@ -1353,8 +1359,7 @@ namespace
             bool visible{false};
         };
         std::vector<WidgetToggle> widget_toggles_{};
-        float gui_scale_{1.25f};
-        float last_applied_gui_scale_{1.0f};
+        float gui_scale_{2.0f};
 #endif
         bool was_dragging_{false};
         engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};
