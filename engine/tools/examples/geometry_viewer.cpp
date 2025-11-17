@@ -14,6 +14,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -731,6 +732,7 @@ namespace
             if (!imgui_context_)
             {
                 imgui_context_ = ImGui::CreateContext();
+                apply_imgui_scale();
             }
 
             // Register ImGui context with the presentation backend so it can render UI into the GL context.
@@ -777,6 +779,8 @@ namespace
                 std::move(asset_hooks),
                 RuntimePanelBridge::PerformancePanelHooks{},
                 RuntimePanelBridge::TelemetryPanelHooks{});
+
+            refresh_widget_toggles();
         }
 
         void render_panels(double delta_time)
@@ -791,7 +795,8 @@ namespace
             engine::tools::imgui::begin_frame();
             if (panels_visible_)
             {
-                panel_bridge_->render_all(delta_time);
+                render_widget_menu();
+                render_active_widgets(delta_time);
             }
             engine::tools::imgui::end_frame();
             ImGui::SetCurrentContext(previous_context);
@@ -823,6 +828,7 @@ namespace
         void destroy_imgui_context()
         {
             panel_bridge_.reset();
+            widget_toggles_.clear();
             if (backend_)
             {
                 backend_->set_imgui_render_callback({});
@@ -875,6 +881,168 @@ namespace
                 imgui_context_ = nullptr;
                 ENGINE_INFO("ImGui context destroyed cleanly");
             }
+        }
+
+        void refresh_widget_toggles()
+        {
+            widget_toggles_.clear();
+            if (!panel_bridge_)
+            {
+                return;
+            }
+
+            const auto identifiers = panel_bridge_->panel_identifiers();
+            widget_toggles_.reserve(identifiers.size());
+            for (const auto& identifier : identifiers)
+            {
+                WidgetToggle widget{};
+                widget.identifier = identifier;
+                widget.label = std::string(widget_label_for_identifier(widget.identifier));
+                widget.visible = widget_enabled_by_default(widget.identifier);
+                widget_toggles_.push_back(std::move(widget));
+            }
+        }
+
+        void render_widget_menu()
+        {
+            ImGui::SetNextWindowBgAlpha(0.9f);
+            const ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize;
+            if (!ImGui::Begin("Geometry Viewer Menu", nullptr, window_flags))
+            {
+                ImGui::End();
+                return;
+            }
+
+            if (widget_toggles_.empty())
+            {
+                ImGui::TextUnformatted("No diagnostics widgets were registered.");
+            }
+            else
+            {
+                if (ImGui::Button("Show All"))
+                {
+                    set_all_widget_visibility(true);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Hide All"))
+                {
+                    set_all_widget_visibility(false);
+                }
+
+                ImGui::Separator();
+
+                for (auto& widget : widget_toggles_)
+                {
+                    bool visible = widget.visible;
+                    if (ImGui::Checkbox(widget.label.c_str(), &visible))
+                    {
+                        widget.visible = visible;
+                    }
+                }
+
+                const bool any_visible = std::any_of(
+                    widget_toggles_.begin(),
+                    widget_toggles_.end(),
+                    [](const WidgetToggle& widget) { return widget.visible; }
+                );
+
+                if (!any_visible)
+                {
+                    ImGui::Spacing();
+                    ImGui::TextDisabled("No widgets are active. Enable at least one above to show it.");
+                }
+            }
+
+            float scale = gui_scale_;
+            if (ImGui::SliderFloat("UI Scale", &scale, 0.75f, 2.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp))
+            {
+                gui_scale_ = scale;
+                apply_imgui_scale();
+            }
+
+            ImGui::End();
+        }
+
+        void render_active_widgets(double delta_time)
+        {
+            if (!panel_bridge_)
+            {
+                return;
+            }
+
+            std::vector<std::string_view> active_identifiers;
+            active_identifiers.reserve(widget_toggles_.size());
+            for (const auto& widget : widget_toggles_)
+            {
+                if (widget.visible)
+                {
+                    active_identifiers.push_back(widget.identifier);
+                }
+            }
+
+            panel_bridge_->render_panels(delta_time, active_identifiers);
+        }
+
+        static std::string_view widget_label_for_identifier(std::string_view identifier)
+        {
+            using namespace std::string_view_literals;
+            if (identifier == "editor.scene_hierarchy")
+            {
+                return "Scene Hierarchy"sv;
+            }
+            if (identifier == "editor.asset_browser")
+            {
+                return "Asset Browser"sv;
+            }
+            if (identifier == "runtime.diagnostics")
+            {
+                return "Runtime Diagnostics"sv;
+            }
+            if (identifier == "runtime.performance_metrics")
+            {
+                return "Performance Metrics"sv;
+            }
+            if (identifier == "runtime.profiler")
+            {
+                return "Profiler"sv;
+            }
+            if (identifier == "runtime.telemetry")
+            {
+                return "Telemetry"sv;
+            }
+            if (identifier == "runtime.scene_validation")
+            {
+                return "Scene Validation"sv;
+            }
+            return identifier;
+        }
+
+        static bool widget_enabled_by_default(std::string_view identifier)
+        {
+            return identifier == "editor.scene_hierarchy"
+                || identifier == "editor.asset_browser"
+                || identifier == "runtime.diagnostics";
+        }
+
+        void set_all_widget_visibility(bool visible)
+        {
+            for (auto& widget : widget_toggles_)
+            {
+                widget.visible = visible;
+            }
+        }
+
+        void apply_imgui_scale()
+        {
+            if (!imgui_context_)
+            {
+                return;
+            }
+
+            ImGuiContext* previous_context = ImGui::GetCurrentContext();
+            ImGui::SetCurrentContext(imgui_context_);
+            ImGui::GetIO().FontGlobalScale = gui_scale_;
+            ImGui::SetCurrentContext(previous_context);
         }
 #endif
 
@@ -955,6 +1123,14 @@ namespace
         std::unique_ptr<engine::tools::editor::RuntimePanelBridge> panel_bridge_{};
         bool panels_visible_{true};
         ImGuiContext* imgui_context_{nullptr};
+        struct WidgetToggle
+        {
+            std::string identifier;
+            std::string label;
+            bool visible{false};
+        };
+        std::vector<WidgetToggle> widget_toggles_{};
+        float gui_scale_{1.25f};
 #endif
         bool was_dragging_{false};
         engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};

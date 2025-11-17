@@ -3,9 +3,8 @@
 #include "engine/tools/imgui_helpers.hpp"
 #include "engine/tools/profiling/profiler.hpp"
 
-#include <vector>
-
 #include <string>
+#include <vector>
 
 #include <spdlog/spdlog.h>
 
@@ -220,6 +219,53 @@ namespace engine::tools::editor
             return;
         }
 
+        synchronize_panel_state();
+
+        const imgui::PanelRenderContext context{.delta_time = delta_time};
+        registry_->render_all(context);
+    }
+
+    void RuntimePanelBridge::render_panels(
+        double delta_time,
+        const std::vector<std::string_view>& identifiers
+    ) const
+    {
+        if (!registry_)
+        {
+            return;
+        }
+
+        synchronize_panel_state();
+
+        if (identifiers.empty())
+        {
+            return;
+        }
+
+        const imgui::PanelRenderContext context{.delta_time = delta_time};
+        for (std::string_view identifier : identifiers)
+        {
+            registry_->render(identifier, context);
+        }
+    }
+
+    std::vector<std::string> RuntimePanelBridge::panel_identifiers() const
+    {
+        if (!registry_)
+        {
+            return {};
+        }
+
+        return registry_->identifiers();
+    }
+
+    void RuntimePanelBridge::synchronize_panel_state() const
+    {
+        if (!registry_)
+        {
+            return;
+        }
+
         if (hierarchy_panel_)
         {
             if (hierarchy_hooks_.scene_provider)
@@ -299,9 +345,6 @@ namespace engine::tools::editor
                 telemetry_panel_->update_series(std::move(samples));
             }
         }
-
-        const imgui::PanelRenderContext context{.delta_time = delta_time};
-        registry_->render_all(context);
     }
 
     void RuntimePanelBridge::set_profiler_visible(bool visible) noexcept

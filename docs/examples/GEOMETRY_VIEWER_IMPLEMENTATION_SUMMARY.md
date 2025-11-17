@@ -16,7 +16,7 @@ The geometry viewer sample runs on top of `engine::runtime::Application` and exe
 | **Procedural Geometry** | Provides a procedural unit cube stored in an internal cache so the viewer renders content even before streaming external assets. |
 | **Camera Controls** | Orbit camera driven by the unified input system (`engine::platform::input::InputState`). Mouse drag rotates, mouse wheel zooms, `Esc` quits. |
 | **Scene Management** | Uses EnTT-based scene registry with render-geometry components. Bounds-based camera focusing centers new assets immediately after load. |
-| **Diagnostics Panels** | Press `G` to toggle the Hybrid Workflow diagnostics menu wired through `engine::tools::editor::RuntimePanelBridge`, exposing runtime/asset/performance panels registered in the shared `PanelRegistry`.【F:engine/tools/examples/geometry_viewer.cpp†L717-L779】 |
+| **Diagnostics Panels** | Press `G` to open the Geometry Viewer menu, pick which Hybrid Workflow widgets stay active (scene hierarchy/asset browser are enabled by default), and adjust the UI scale slider before the bridge renders the selected overlays via the shared `PanelRegistry`.【F:engine/tools/examples/geometry_viewer.cpp†L724-L964】 |
 
 ---
 
@@ -56,7 +56,7 @@ The viewer depends on platform windowing (GLFW) and OpenGL loaders. When these l
 | Mouse Scroll | Zoom in/out with clamped radius (1.0–50.0 units). |
 | `T` | Toggle visibility of the procedural cube.【F:engine/tools/examples/geometry_viewer.cpp†L624-L676】 |
 | `Delete` | Remove the most recently loaded model (LIFO).【F:engine/tools/examples/geometry_viewer.cpp†L630-L714】 |
-| `G` | Show or hide the diagnostics/panel overlay registered through the hybrid workflow bridge.【F:engine/tools/examples/geometry_viewer.cpp†L636-L779】 |
+| `G` | Open/close the Geometry Viewer menu to choose which diagnostics widgets render and to adjust the UI scale slider before the bridge draws them.【F:engine/tools/examples/geometry_viewer.cpp†L571-L639】【F:engine/tools/examples/geometry_viewer.cpp†L724-L964】 |
 | `Esc` | Exit the application. |
 
 ---

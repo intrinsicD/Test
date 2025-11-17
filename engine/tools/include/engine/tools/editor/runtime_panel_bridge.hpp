@@ -1,10 +1,11 @@
 #pragma once
 
 #include <functional>
-#include <utility>
-
-#include <functional>
 #include <memory>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include <entt/entt.hpp>
 
@@ -102,6 +103,12 @@ namespace engine::tools::editor
         /// Render all registered panels using \p delta_time for the render context.
         void render_all(double delta_time) const;
 
+        /// Render only the panels identified by \p identifiers, preserving deterministic update order.
+        void render_panels(double delta_time, const std::vector<std::string_view>& identifiers) const;
+
+        /// Return the identifiers that were registered with the underlying panel registry.
+        [[nodiscard]] std::vector<std::string> panel_identifiers() const;
+
         /// Control whether the profiler window should be visible on the next render.
         void set_profiler_visible(bool visible) noexcept;
 
@@ -129,6 +136,8 @@ namespace engine::tools::editor
         TelemetryPanelHooks telemetry_hooks_{};
         std::unique_ptr<TelemetryVisualizationPanel> telemetry_panel_{};
         imgui::PanelRegistry::RegistrationHandle telemetry_handle_{};
+
+        void synchronize_panel_state() const;
     };
 } // namespace engine::tools::editor
 
