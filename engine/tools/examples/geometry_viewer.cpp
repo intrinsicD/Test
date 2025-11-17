@@ -268,7 +268,10 @@ namespace
             print_fps(delta_time);
 
 #if ENGINE_ENABLE_RENDERING
-            render_panels(delta_time);
+            if (backend_ && panel_bridge_ && imgui_context_ != nullptr)
+            {
+                backend_->request_imgui_render(delta_time);
+            }
 #endif
         }
 
@@ -581,22 +584,22 @@ namespace
             }
 
             auto& input_state = input();
+            const auto imgui_capture = query_imgui_capture_state();
+            const bool allow_mouse_input = !imgui_capture.mouse;
+            const bool allow_keyboard_input = !imgui_capture.keyboard;
 
-            // Trackball rotation with left mouse button
-            if (input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left))
+            const bool left_mouse_down =
+                input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left);
+            if (allow_mouse_input && left_mouse_down)
             {
                 const auto cursor = input_state.cursor_position();
-                // Normalize cursor to [-1,1] range centered at window center (absolute)
                 const float half = static_cast<float>(std::min(WINDOW_WIDTH, WINDOW_HEIGHT)) * 0.5f;
                 const engine::math::vec2 abs_cursor{
                     (cursor.x - static_cast<float>(WINDOW_WIDTH) * 0.5f) / half,
                     (static_cast<float>(WINDOW_HEIGHT) * 0.5f - cursor.y) / half
                 };
-
-                // Project the trackball center into the same normalized space
-                const engine::math::vec2 projected_center = project_world_point_to_trackball_coords(trackball_controller_->center());
-
-                // Convert absolute cursor into coordinates relative to projected center
+                const engine::math::vec2 projected_center =
+                    project_world_point_to_trackball_coords(trackball_controller_->center());
                 const engine::math::vec2 relative_cursor = abs_cursor - projected_center;
 
                 if (was_dragging_)
@@ -618,21 +621,21 @@ namespace
                 was_dragging_ = false;
             }
 
-            // Zoom with scroll wheel
-            auto scroll = input_state.scroll_delta();
-            if (scroll.y != 0.0f)
+            if (allow_mouse_input)
             {
-                trackball_controller_->zoom(-scroll.y * CAMERA_ZOOM_SPEED);
+                auto scroll = input_state.scroll_delta();
+                if (scroll.y != 0.0f)
+                {
+                    trackball_controller_->zoom(-scroll.y * CAMERA_ZOOM_SPEED);
+                }
             }
 
-            // Toggle cube visibility with 'T' key
-            if (input_state.was_key_pressed(engine::platform::input::Key::T))
+            if (allow_keyboard_input && input_state.was_key_pressed(engine::platform::input::Key::T))
             {
                 toggle_cube();
             }
 
-            // Delete last loaded model with Delete key
-            if (input_state.was_key_pressed(engine::platform::input::Key::Delete))
+            if (allow_keyboard_input && input_state.was_key_pressed(engine::platform::input::Key::Delete))
             {
                 delete_last_model();
             }
@@ -642,7 +645,7 @@ namespace
                 panels_visible_ = !panels_visible_;
             }
 
-            if (input_state.was_key_pressed(engine::platform::input::Key::Escape))
+            if (allow_keyboard_input && input_state.was_key_pressed(engine::platform::input::Key::Escape))
             {
                 quit();
             }
@@ -734,6 +737,9 @@ namespace
             if (backend_)
             {
                 backend_->set_imgui_context_for_rendering(imgui_context_);
+                backend_->set_imgui_render_callback([this](double delta_time) {
+                    render_panels(delta_time);
+                });
             }
 
             if (panel_bridge_)
@@ -775,7 +781,7 @@ namespace
 
         void render_panels(double delta_time)
         {
-            if (!panels_visible_ || !panel_bridge_ || imgui_context_ == nullptr)
+            if (!panel_bridge_ || imgui_context_ == nullptr)
             {
                 return;
             }
@@ -783,14 +789,45 @@ namespace
             ImGuiContext* previous_context = ImGui::GetCurrentContext();
             ImGui::SetCurrentContext(imgui_context_);
             engine::tools::imgui::begin_frame();
-            panel_bridge_->render_all(delta_time);
+            if (panels_visible_)
+            {
+                panel_bridge_->render_all(delta_time);
+            }
             engine::tools::imgui::end_frame();
             ImGui::SetCurrentContext(previous_context);
+        }
+
+        struct ImGuiCaptureState
+        {
+            bool mouse{false};
+            bool keyboard{false};
+        };
+
+        [[nodiscard]] ImGuiCaptureState query_imgui_capture_state() const
+        {
+            ImGuiCaptureState state{};
+            if (!panel_bridge_ || imgui_context_ == nullptr || !panels_visible_)
+            {
+                return state;
+            }
+
+            ImGuiContext* previous_context = ImGui::GetCurrentContext();
+            ImGui::SetCurrentContext(imgui_context_);
+            const ImGuiIO& io = ImGui::GetIO();
+            state.mouse = io.WantCaptureMouse;
+            state.keyboard = io.WantCaptureKeyboard;
+            ImGui::SetCurrentContext(previous_context);
+            return state;
         }
 
         void destroy_imgui_context()
         {
             panel_bridge_.reset();
+            if (backend_)
+            {
+                backend_->set_imgui_render_callback({});
+                backend_->set_imgui_context_for_rendering(nullptr);
+            }
             if (imgui_context_ != nullptr)
             {
                 // Ensure the ImGui context we created is current so backend shutdown reads correct IO data.
