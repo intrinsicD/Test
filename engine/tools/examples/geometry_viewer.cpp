@@ -45,6 +45,12 @@
 #include "engine/scene/components/transform.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/scene/systems/transform_system.hpp"
+#if ENGINE_ENABLE_RENDERING
+#    include <imgui.h>
+#    include "engine/tools/editor/runtime_panel_bridge.hpp"
+#    include "engine/tools/imgui/panel_registry.hpp"
+#    include "engine/tools/imgui_helpers.hpp"
+#endif
 
 #ifndef ENGINE_PLATFORM_HAS_GLFW
 #    define ENGINE_PLATFORM_HAS_GLFW 0
@@ -132,6 +138,7 @@ namespace
                       return config;
                   }
 
+                  config.enable_diagnostics = true;
                   config.window_backend = engine::platform::WindowBackend::GLFW;
                   config.target_fps = 0.0;
 #if ENGINE_ENABLE_RENDERING
@@ -203,6 +210,13 @@ namespace
         {
         }
 
+        ~GeometryViewerApp() override
+        {
+#if ENGINE_ENABLE_RENDERING
+            destroy_imgui_context();
+#endif
+        }
+
     protected:
 #if ENGINE_ENABLE_RENDERING
         void configure_runtime_host(engine::runtime::RuntimeHost& host) override
@@ -232,6 +246,8 @@ namespace
             {
                 focus_camera_on_bounds(mesh->bounds);
             }
+
+            setup_panels();
 #endif
 
             ENGINE_INFO("Drag and drop mesh (.obj/.ply/.stl) or point cloud (.ply/.pcd/.xyz) files into the window.");
@@ -246,6 +262,10 @@ namespace
             point_cloud_cache_.poll();
 #endif
             print_fps(delta_time);
+
+#if ENGINE_ENABLE_RENDERING
+            render_panels(delta_time);
+#endif
         }
 
         void on_render() override
@@ -613,6 +633,11 @@ namespace
                 delete_last_model();
             }
 
+            if (input_state.was_key_pressed(engine::platform::input::Key::G) && panel_bridge_)
+            {
+                panels_visible_ = !panels_visible_;
+            }
+
             if (input_state.was_key_pressed(engine::platform::input::Key::Escape))
             {
                 quit();
@@ -688,6 +713,82 @@ namespace
 #endif
         }
 
+#if ENGINE_ENABLE_RENDERING
+        void setup_panels()
+        {
+            if (!opengl_supported_)
+            {
+                return;
+            }
+
+            if (!imgui_context_)
+            {
+                imgui_context_ = ImGui::CreateContext();
+            }
+
+            if (panel_bridge_)
+            {
+                return;
+            }
+
+            using engine::tools::editor::RuntimePanelBridge;
+
+            RuntimePanelBridge::HierarchyPanelHooks hierarchy_hooks{};
+            hierarchy_hooks.scene_provider = [this]() -> engine::scene::Scene* {
+                return &scene();
+            };
+
+            RuntimePanelBridge::AssetPanelHooks asset_hooks{};
+#    if ENGINE_ENABLE_ASSETS
+            asset_hooks.row_provider = [this]() {
+                engine::tools::editor::AssetRegistryFacade facade{};
+                facade.mesh_cache = &mesh_cache_;
+                facade.point_cloud_cache = &point_cloud_cache_;
+                return engine::tools::editor::collect_asset_rows(facade);
+            };
+#    endif
+
+            panel_bridge_ = std::make_unique<RuntimePanelBridge>(
+                panel_registry_,
+                [this]() -> const engine::runtime::RuntimeDiagnostics& {
+                    return runtime_host().diagnostics();
+                },
+                [this]() -> const engine::scene::validation::HierarchyValidationReport* {
+                    return &runtime_host().diagnostics().scene_validation;
+                },
+                RuntimePanelBridge::Renderers{},
+                std::move(hierarchy_hooks),
+                std::move(asset_hooks),
+                RuntimePanelBridge::PerformancePanelHooks{},
+                RuntimePanelBridge::TelemetryPanelHooks{});
+        }
+
+        void render_panels(double delta_time)
+        {
+            if (!panels_visible_ || !panel_bridge_ || imgui_context_ == nullptr)
+            {
+                return;
+            }
+
+            ImGuiContext* previous_context = ImGui::GetCurrentContext();
+            ImGui::SetCurrentContext(imgui_context_);
+            engine::tools::imgui::begin_frame();
+            panel_bridge_->render_all(delta_time);
+            engine::tools::imgui::end_frame();
+            ImGui::SetCurrentContext(previous_context);
+        }
+
+        void destroy_imgui_context()
+        {
+            panel_bridge_.reset();
+            if (imgui_context_ != nullptr)
+            {
+                ImGui::DestroyContext(imgui_context_);
+                imgui_context_ = nullptr;
+            }
+        }
+#endif
+
         void print_fps(double delta_time)
         {
             ++fps_frame_count_;
@@ -760,6 +861,12 @@ namespace
         bool cube_visible_{true}; // Toggle state for default cube
         engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
         bool opengl_supported_{(ENGINE_PLATFORM_HAS_GLFW != 0) && (ENGINE_RENDERING_HAS_GLAD != 0)};
+#if ENGINE_ENABLE_RENDERING
+        engine::tools::imgui::PanelRegistry panel_registry_{};
+        std::unique_ptr<engine::tools::editor::RuntimePanelBridge> panel_bridge_{};
+        bool panels_visible_{false};
+        ImGuiContext* imgui_context_{nullptr};
+#endif
         bool was_dragging_{false};
         engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};
         int fps_frame_count_{0};

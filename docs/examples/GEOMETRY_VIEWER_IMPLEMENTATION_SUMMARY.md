@@ -16,6 +16,7 @@ The geometry viewer sample runs on top of `engine::runtime::Application` and exe
 | **Procedural Geometry** | Provides a procedural unit cube stored in an internal cache so the viewer renders content even before streaming external assets. |
 | **Camera Controls** | Orbit camera driven by the unified input system (`engine::platform::input::InputState`). Mouse drag rotates, mouse wheel zooms, `Esc` quits. |
 | **Scene Management** | Uses EnTT-based scene registry with render-geometry components. Bounds-based camera focusing centers new assets immediately after load. |
+| **Diagnostics Panels** | Press `G` to toggle the Hybrid Workflow diagnostics menu wired through `engine::tools::editor::RuntimePanelBridge`, exposing runtime/asset/performance panels registered in the shared `PanelRegistry`.【F:engine/tools/examples/geometry_viewer.cpp†L717-L779】 |
 
 ---
 
@@ -53,6 +54,9 @@ The viewer depends on platform windowing (GLFW) and OpenGL loaders. When these l
 |-------|-----------|
 | Left Mouse Drag | Orbit around the origin using spherical coordinates. |
 | Mouse Scroll | Zoom in/out with clamped radius (1.0–50.0 units). |
+| `T` | Toggle visibility of the procedural cube.【F:engine/tools/examples/geometry_viewer.cpp†L624-L676】 |
+| `Delete` | Remove the most recently loaded model (LIFO).【F:engine/tools/examples/geometry_viewer.cpp†L630-L714】 |
+| `G` | Show or hide the diagnostics/panel overlay registered through the hybrid workflow bridge.【F:engine/tools/examples/geometry_viewer.cpp†L636-L779】 |
 | `Esc` | Exit the application. |
 
 ---
