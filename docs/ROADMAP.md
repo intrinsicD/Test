@@ -107,6 +107,7 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
 | [`AI-004`](../hybrid_workflow/backlog/AI-004-kickoff-brief.md) | 0 | In Progress | Kickoff brief coordination; SPRINT-11 complete, final artefacts in progress. |
+| [`RG-502`](../hybrid_workflow/backlog/RG-502-command-buffer-pooling.md) | 1 | Ready | P1 rendering follow-up focused on command buffer pooling; scoped and unblocked after context review. |
 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | 1 | Done | GPU providers for OpenGL/Vulkan ship with runtime presentation integration and telemetry. |
 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | 1 | Done | Planner ships with hot-reload coverage and telemetry exports; monitoring perf delta in PM-510 demos. |
