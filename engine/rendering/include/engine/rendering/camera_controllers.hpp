@@ -114,6 +114,8 @@ namespace engine::rendering
 
         static constexpr float min_radius_{0.1F};
 
+        [[nodiscard]] static math::vec3 compute_orbit_right(const math::vec3& forward) noexcept;
+
         void update_camera() noexcept;
     };
 
@@ -309,8 +311,8 @@ namespace engine::rendering
             cos_pitch * sin_yaw,
             sin_pitch,
             -cos_pitch * cos_yaw};
-        const math::vec3 right = math::normalize(math::cross(forward, world_up()));
-        const math::vec3 up = math::cross(right, forward);
+        const math::vec3 right = compute_orbit_right(forward);
+        const math::vec3 up = math::normalize(math::cross(right, forward));
 
         target_ += right * state.translation[0] * delta_seconds;
         target_ += up * state.translation[1] * delta_seconds;
@@ -336,10 +338,32 @@ namespace engine::rendering
 
         // Compute proper up vector to avoid gimbal lock issues
         // When looking straight up or down, use the yaw direction as reference
-        const math::vec3 right = math::normalize(math::cross(forward, world_up()));
-        const math::vec3 up = math::cross(right, forward);
+        const math::vec3 right = compute_orbit_right(forward);
+        const math::vec3 up = math::normalize(math::cross(right, forward));
 
         [[maybe_unused]] auto result = camera().look_at(position, target_, up);
+    }
+
+    inline math::vec3 OrbitCameraController::compute_orbit_right(const math::vec3& forward) noexcept
+    {
+        constexpr float kMinLengthSq = 1.0e-6F;
+        math::vec3 right = math::cross(forward, world_up());
+        float length_sq = math::length_squared(right);
+
+        if (length_sq <= kMinLengthSq)
+        {
+            const math::vec3 fallback_reference{0.0F, 0.0F, 1.0F};
+            right = math::cross(forward, fallback_reference);
+            length_sq = math::length_squared(right);
+
+            if (length_sq <= kMinLengthSq)
+            {
+                return math::vec3{1.0F, 0.0F, 0.0F};
+            }
+        }
+
+        const float inv_length = 1.0F / std::sqrt(length_sq);
+        return right * inv_length;
     }
 
     // TrackballCameraController implementation

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <cstddef>
 
 #include "engine/rendering/camera.hpp"
@@ -166,6 +167,52 @@ TEST(CameraControllers, OrbitControllerOrbitsAndZooms)
     transform = engine::math::from_matrix(camera.model);
     const float expected_radius = 3.0F;
     EXPECT_NEAR(engine::math::distance(transform.translation, controller.target()), expected_radius, 1.0e-4F);
+}
+
+TEST(CameraControllers, OrbitControllerHandlesPoleRotationsAroundCustomCenter)
+{
+    engine::rendering::Camera camera;
+    const engine::math::vec3 custom_target{2.0F, -3.0F, 4.5F};
+    const float starting_radius = 3.5F;
+    engine::rendering::OrbitCameraController controller(camera, custom_target, starting_radius);
+
+    const float yaw = engine::math::utils::radians(30.0F);
+    const float pitch = engine::math::utils::radians(90.0F);
+    controller.set_orientation(yaw, pitch);
+
+    const float cos_pitch = std::cos(pitch);
+    const float sin_pitch = std::sin(pitch);
+    const float cos_yaw = std::cos(yaw);
+    const float sin_yaw = std::sin(yaw);
+    const engine::math::vec3 forward{
+        cos_pitch * sin_yaw,
+        sin_pitch,
+        -cos_pitch * cos_yaw};
+    const engine::math::vec3 position = controller.target() - forward * controller.radius();
+
+    engine::math::vec3 right = engine::math::cross(forward, engine::math::vec3{0.0F, 1.0F, 0.0F});
+    float length_sq = engine::math::length_squared(right);
+    if (length_sq <= 1.0e-6F)
+    {
+        right = engine::math::cross(forward, engine::math::vec3{0.0F, 0.0F, 1.0F});
+        length_sq = engine::math::length_squared(right);
+        if (length_sq <= 1.0e-6F)
+        {
+            right = engine::math::vec3{1.0F, 0.0F, 0.0F};
+            length_sq = 1.0F;
+        }
+    }
+    right *= 1.0F / std::sqrt(length_sq);
+    const engine::math::vec3 up = engine::math::normalize(engine::math::cross(right, forward));
+
+    const auto transform = engine::math::from_matrix(camera.model);
+    const auto expected_view = engine::math::utils::look_at(position, controller.target(), up);
+    expect_matrix_near(camera.view, expected_view);
+
+    const engine::math::vec4 target_view =
+        camera.view * engine::math::vec4{custom_target[0], custom_target[1], custom_target[2], 1.0F};
+    EXPECT_NEAR(target_view[0], 0.0F, 1.0e-4F);
+    EXPECT_NEAR(target_view[1], 0.0F, 1.0e-4F);
 }
 
 TEST(CameraControllers, WasdControllerMovesForward)
