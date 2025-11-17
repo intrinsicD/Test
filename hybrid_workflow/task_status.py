@@ -381,7 +381,7 @@ def filter_tasks(
     tasks: List[Task],
     status: Optional[Union[str, Iterable[str]]] = None,
     priority: Optional[Union[str, Iterable[str]]] = None,
-    area: Optional[str] = None,
+    area: Optional[Union[str, Iterable[str]]] = None,
     size: Optional[Union[str, Iterable[str]]] = None,
     owner: Optional[Union[str, Iterable[str]]] = None,
     relates_to: Optional[List[str]] = None,
@@ -401,9 +401,9 @@ def filter_tasks(
     if priority_values:
         filtered = [t for t in filtered if t.priority.lower() in priority_values]
 
-    if area:
-        area_normalised = area.strip().lower()
-        filtered = [t for t in filtered if t.area.lower() == area_normalised]
+    area_values = {value.lower() for value in _normalise_filter_values(area)}
+    if area_values:
+        filtered = [t for t in filtered if t.area.lower() in area_values]
 
     size_values = {value.lower() for value in _normalise_filter_values(size)}
     if size_values:
@@ -469,7 +469,7 @@ def select_next_actions(
     limit: int,
     *,
     priority: Optional[Union[str, Iterable[str]]] = None,
-    area: Optional[str] = None,
+    area: Optional[Union[str, Iterable[str]]] = None,
     size: Optional[Union[str, Iterable[str]]] = None,
     owner: Optional[Union[str, Iterable[str]]] = None,
     gates: Optional[List[str]] = None,
@@ -612,7 +612,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument('--priority', help="Filter by priority (P0, P1, P2, P3)")
-    parser.add_argument('--area', help="Filter by area (rendering, geometry, runtime, etc.)")
+    parser.add_argument(
+        '--area',
+        metavar='AREA',
+        action='append',
+        help=(
+            "Filter by area (rendering, geometry, runtime, etc.). Repeat the flag or "
+            "provide comma-separated values to match multiple areas (case-insensitive)."
+        ),
+    )
     parser.add_argument(
         '--size',
         metavar='SIZE',
@@ -745,6 +753,7 @@ def main():
     
     # Filter tasks
     status_filter = _normalise_filter_values(args.status)
+    area_filter = _normalise_filter_values(args.area)
 
     relates_to = None
     if args.relates_to:
@@ -765,7 +774,7 @@ def main():
                 tasks,
                 args.limit,
                 priority=args.priority,
-                area=args.area,
+                area=area_filter,
                 size=args.size,
                 owner=owner_filter,
                 gates=gates,
@@ -781,7 +790,7 @@ def main():
             tasks,
             status=status_filter,
             priority=args.priority,
-            area=args.area,
+            area=area_filter,
             size=args.size,
             owner=owner_filter,
             relates_to=relates_to,
