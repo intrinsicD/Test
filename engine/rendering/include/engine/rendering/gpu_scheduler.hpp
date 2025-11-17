@@ -78,6 +78,12 @@ namespace engine::rendering
     public:
         virtual ~IGpuScheduler() = default;
 
+        /// Notify the scheduler that a new frame is beginning.
+        virtual void begin_frame() = 0;
+
+        /// Notify the scheduler that the current frame has finished submitting work.
+        virtual void end_frame() = 0;
+
         /// Select the queue that should execute \p pass given the preferred queue.
         virtual QueueType select_queue(const RenderPass& pass, QueueType preferred) = 0;
 

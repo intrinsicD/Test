@@ -603,6 +603,14 @@ namespace
     class LocalRecordingScheduler final : public engine::rendering::IGpuScheduler
     {
     public:
+        void begin_frame() override
+        {
+        }
+
+        void end_frame() override
+        {
+        }
+
         engine::rendering::QueueType select_queue(const engine::rendering::RenderPass&,
                                                   engine::rendering::QueueType preferred) override
         {
