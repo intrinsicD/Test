@@ -27,7 +27,7 @@ When both GLFW and GLAD are available the app:
 2. Configures the OpenGL presentation backend and compiles the research baseline frame graph.
 3. Seeds a procedural cube, registers drag-and-drop loaders, and focuses the orbit camera on streamed assets.
 
-Press `G` once the scene is running to toggle the Hybrid Workflow diagnostics menu (runtime diagnostics, profiler, hierarchy, asset browser, telemetry panels) that now render through the shared panel registry, confirming the ImGui surface is wired correctly.【F:engine/tools/examples/geometry_viewer.cpp†L571-L639】【F:engine/tools/examples/geometry_viewer.cpp†L717-L779】
+Press `G` once the scene is running to open the Geometry Viewer menu, pick which diagnostics widgets remain active (scene hierarchy/asset browser stay enabled while profiler, telemetry, etc. start hidden), and tweak the UI scale slider so the overlay matches your display DPI before the bridge renders the selected panels through the shared registry.【F:engine/tools/examples/geometry_viewer.cpp†L571-L639】【F:engine/tools/examples/geometry_viewer.cpp†L724-L964】
 
 If either dependency is missing, the viewer logs a warning and disables OpenGL while keeping the rest of the runtime (input, asset loading, diagnostics) alive so workflow tests can still execute.【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】【F:engine/tools/examples/geometry_viewer.cpp†L265-L283】
 
