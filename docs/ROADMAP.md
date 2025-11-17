@@ -109,7 +109,7 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | 1 | Done | GPU providers for OpenGL/Vulkan ship with runtime presentation integration and telemetry. |
 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | 1 | Done | Planner ships with hot-reload coverage and telemetry exports; monitoring perf delta in PM-510 demos. |
-| [`RG-501`](../hybrid_workflow/backlog/RG-501-frame-graph-compilation-cache.md) | 1 | Ready | Frame graph compilation cache scoped; awaiting engineering window to implement hashing + telemetry work. |
+| [`RG-501`](../hybrid_workflow/backlog/archive/RG-501-frame-graph-compilation-cache.md) | 1 | Done | Frame graph compilation cache shipped with deterministic hashing, telemetry counters, and benchmark evidence (hits average ~29 µs vs. 84 µs misses). |
 | [`TL-310`](../hybrid_workflow/backlog/archive/TL-310-editor-foundations.md) | 2 | Done | Editor harness + registry shipped; TL-311–TL-314 deliver panel follow-ups. |
 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | 2 | Active | Weekly integration demos and documentation syncs keep GPU/runtime/tooling deliverables aligned; latest capture documents modular planner telemetry. |
 | [`TL-312`](../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md) | 2 | In Review | Performance panel now hooks runtime stage timings, profiler data, and benchmark deltas through the panel bridge. |
