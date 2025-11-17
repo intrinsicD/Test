@@ -9,6 +9,7 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -34,6 +35,7 @@
 #include "engine/geometry/point_cloud/point_cloud.hpp"
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/io/geometry_io.hpp"
+#include "engine/math/math.hpp"
 #include "engine/math/transform.hpp"
 #include "engine/platform/input/input_state.hpp"
 #include "engine/rendering/backend/opengl/presentation_backend.hpp"
@@ -77,6 +79,8 @@ namespace
     constexpr float CAMERA_FAR_PLANE = 100.0f;
     constexpr float CAMERA_ROTATE_SPEED = 0.005f;
     constexpr float CAMERA_ZOOM_SPEED = 0.1f;
+    constexpr float MIN_GUI_SCALE = 0.5f;
+    constexpr float MAX_GUI_SCALE = 3.0f;
     constexpr std::string_view kProceduralCubeId{"procedural_cube"};
 
     class ProceduralMeshStorage
@@ -487,12 +491,11 @@ namespace
                 auto descriptor = engine::assets::MeshAssetDescriptor::from_file(path, hint);
                 const auto& asset = mesh_cache_.load(descriptor);
                 auto surface_mesh = engine::geometry::mesh::build_surface_mesh_from_halfedge(asset.mesh.interface);
-                focus_camera_on_bounds(surface_mesh.bounds);
-
                 const std::string model_id = std::string{asset.descriptor.handle.id()};
                 attach_render_geometry(model_id,
                     engine::rendering::components::RenderGeometry::from_mesh(
                         asset.descriptor.handle, default_material_));
+                focus_camera_on_entity_bounds(model_id, surface_mesh.bounds);
 
                 // Track this model for deletion (if not already tracked)
                 if (std::find(loaded_models_order_.begin(), loaded_models_order_.end(), model_id) == loaded_models_order_.end())
@@ -521,12 +524,13 @@ namespace
                 auto descriptor = engine::assets::PointCloudAssetDescriptor::from_file(path, hint);
                 const auto& asset = point_cloud_cache_.load(descriptor);
                 const auto positions = asset.point_cloud.interface.positions();
-                focus_camera_on_bounds(engine::geometry::BoundingAabb(positions));
+                const auto local_bounds = engine::geometry::BoundingAabb(positions);
 
                 const std::string model_id = std::string{asset.descriptor.handle.id()};
                 attach_render_geometry(model_id,
                     engine::rendering::components::RenderGeometry::from_point_cloud(
                         asset.descriptor.handle, default_material_));
+                focus_camera_on_entity_bounds(model_id, local_bounds);
 
                 // Track this model for deletion (if not already tracked)
                 if (std::find(loaded_models_order_.begin(), loaded_models_order_.end(), model_id) == loaded_models_order_.end())
@@ -598,18 +602,38 @@ namespace
                 return;
             }
 
-            // Calculate appropriate distance to view the entire object
-            const auto size = engine::geometry::Size(bounds);
-            const float max_extent = std::max({size[0], size[1], size[2], 1.0f});
-            const float distance = std::clamp(max_extent * 1.5f, 1.0f, 50.0f);
-
-            // Set center to bounds center
             const auto center = engine::geometry::Center(bounds);
+            const float distance = compute_focus_distance(bounds);
+            ensure_camera_depth_range(bounds, distance);
             trackball_controller_->set_center(center);
             trackball_controller_->set_distance(distance);
 
             ENGINE_INFO("Focused camera on bounds - center=({}, {}, {}), distance={}",
                        center[0], center[1], center[2], distance);
+#endif
+        }
+
+        void focus_camera_on_entity_bounds(const std::string& identifier,
+            const engine::geometry::Aabb& local_bounds)
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (!trackball_controller_)
+            {
+                return;
+            }
+
+            const auto world_bounds = [&]() {
+                if (const auto it = render_entities_.find(identifier); it != render_entities_.end())
+                {
+                    return compute_world_bounds(it->second, local_bounds);
+                }
+                return local_bounds;
+            }();
+
+            focus_camera_on_bounds(world_bounds);
+#else
+            (void)identifier;
+            (void)local_bounds;
 #endif
         }
 
@@ -639,7 +663,7 @@ namespace
             }
 
             auto& camera = registry.get<engine::rendering::Camera>(camera_entity_);
-            camera.set_perspective(CAMERA_FOV, current_aspect_ratio(), CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
+            camera.set_perspective(CAMERA_FOV, current_aspect_ratio(), CAMERA_NEAR_PLANE, camera_far_plane_);
 #else
             (void)current_aspect_ratio();
 #endif
@@ -1045,10 +1069,14 @@ namespace
             }
 
             ImGui::Separator();
-            float scale = gui_scale_;
-            if (ImGui::SliderFloat("UI Scale", &scale, 0.75f, 2.0f, "%.2fx", ImGuiSliderFlags_AlwaysClamp))
+            if (ImGui::SliderFloat("UI Scale",
+                    &gui_scale_,
+                    MIN_GUI_SCALE,
+                    MAX_GUI_SCALE,
+                    "%.2fx",
+                    ImGuiSliderFlags_AlwaysClamp))
             {
-                gui_scale_ = scale;
+                gui_scale_ = std::clamp(gui_scale_, MIN_GUI_SCALE, MAX_GUI_SCALE);
                 apply_imgui_scale();
             }
             ImGui::SameLine();
@@ -1138,6 +1166,8 @@ namespace
                 return;
             }
 
+            gui_scale_ = std::clamp(gui_scale_, MIN_GUI_SCALE, MAX_GUI_SCALE);
+
             ImGuiContext* previous_context = ImGui::GetCurrentContext();
             ImGui::SetCurrentContext(imgui_context_);
             ImGuiIO& io = ImGui::GetIO();
@@ -1211,6 +1241,86 @@ namespace
 #endif
         }
 
+        [[nodiscard]] engine::geometry::Aabb compute_world_bounds(entt::entity entity,
+            const engine::geometry::Aabb& local_bounds) const
+        {
+#if ENGINE_ENABLE_RENDERING
+            auto& registry = scene().registry();
+            if (!registry.valid(entity)
+                || !registry.any_of<engine::scene::components::WorldTransform>(entity))
+            {
+                return local_bounds;
+            }
+
+            const auto& world_transform = registry.get<engine::scene::components::WorldTransform>(entity).value;
+            const auto corners = engine::geometry::GetCorners(local_bounds);
+
+            engine::geometry::Aabb world_bounds{};
+            const auto first_point = engine::math::transform_point(world_transform, corners.front());
+            world_bounds.min = first_point;
+            world_bounds.max = first_point;
+            for (std::size_t i = 1; i < corners.size(); ++i)
+            {
+                const auto point = engine::math::transform_point(world_transform, corners[i]);
+                engine::geometry::Merge(world_bounds, point);
+            }
+            return world_bounds;
+#else
+            (void)entity;
+            return local_bounds;
+#endif
+        }
+
+        void ensure_camera_depth_range(const engine::geometry::Aabb& bounds, float focus_distance)
+        {
+#if ENGINE_ENABLE_RENDERING
+            const float radius = std::max(engine::math::length(engine::geometry::Size(bounds)) * 0.5f, 0.0f);
+            constexpr float kRadiusPadding = 1.05f;
+            constexpr float kDistancePadding = 1.0f;
+            const float far_from_focus = focus_distance + radius * kRadiusPadding + kDistancePadding;
+            const float required_far = std::max(far_from_focus, CAMERA_FAR_PLANE);
+            if (std::abs(required_far - camera_far_plane_) > 1e-3f)
+            {
+                camera_far_plane_ = required_far;
+                update_camera_projection();
+            }
+#else
+            (void)bounds;
+            (void)focus_distance;
+#endif
+        }
+
+        [[nodiscard]] float compute_focus_distance(const engine::geometry::Aabb& bounds) const
+        {
+            const auto size = engine::geometry::Size(bounds);
+            const engine::math::vec3 half_size = size * 0.5f;
+
+            const float aspect = std::max(current_aspect_ratio(), 1e-3f);
+            const float vertical_fov = CAMERA_FOV;
+            const float horizontal_fov = 2.0f * std::atan(std::tan(vertical_fov * 0.5f) * aspect);
+
+            const auto axis_distance = [](float half_extent, float fov) {
+                if (half_extent <= std::numeric_limits<float>::epsilon())
+                {
+                    return 0.0f;
+                }
+                const float half_fov = std::max(fov * 0.5f, 1e-3f);
+                return half_extent / std::tan(half_fov);
+            };
+
+            float distance = std::max(axis_distance(half_size[1], vertical_fov),
+                axis_distance(half_size[0], horizontal_fov));
+
+            const float diagonal_radius = std::max(engine::math::length(size) * 0.5f,
+                std::max(half_size[2], 0.0f));
+            distance = std::max(distance, diagonal_radius);
+
+            constexpr float kMargin = 1.15f;
+            constexpr float kMinDistance = 1.0f;
+            distance = std::max(distance * kMargin, kMinDistance);
+            return distance;
+        }
+
         WindowExtent window_extent_{};
         std::shared_ptr<ProceduralMeshStorage> mesh_storage_{std::make_shared<ProceduralMeshStorage>()};
         std::shared_ptr<void> mesh_validator_registration_{};
@@ -1224,6 +1334,7 @@ namespace
         engine::rendering::ResearchBaselineResources baseline_resources_{};
         entt::entity camera_entity_{entt::null};
         std::unique_ptr<engine::rendering::TrackballCameraController> trackball_controller_{};
+        float camera_far_plane_{CAMERA_FAR_PLANE};
 #endif
         std::unordered_map<std::string, entt::entity> render_entities_{};
         std::vector<std::string> loaded_models_order_{}; // Track loaded models in creation order (excluding cube)
@@ -1283,3 +1394,4 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 }
+
