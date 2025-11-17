@@ -19,8 +19,13 @@ if str(_PYTHON_SRC) not in sys.path:
 if str(_TESTS_DIR) not in sys.path:
     sys.path.insert(0, str(_TESTS_DIR))
 
-from engine3g import loader
+import engine3g  # type: ignore
+import engine3g.loader as loader  # type: ignore
 from _helpers import temporary_directory, temporary_env
+
+
+def test_package_reexports_runtime_session() -> None:
+    assert engine3g.runtime_session is loader.runtime_session
 
 
 class _DummyFunction:
