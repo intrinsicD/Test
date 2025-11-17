@@ -1,7 +1,7 @@
 ---
 id: RG-502
 title: Command buffer pooling and trimming
-status: new
+status: ready
 priority: P1
 area: rendering
 size: M
@@ -37,6 +37,17 @@ Adopt a reusable command buffer pool shared across queue types so command encode
 **References:**
 - [`docs/modules/rendering/README.md`](../../docs/modules/rendering/README.md)
 - [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md)
+
+### Context Ladder Review (2026-05-27)
+
+- ✅ `docs/ROADMAP.md` / [`hybrid_workflow/ROADMAP.md`](../ROADMAP.md): confirms RG-502 is the top P1 rendering follow-up once
+  T-0119/T-0120 shipped.
+- ✅ [`docs/modules/rendering/README.md`](../../docs/modules/rendering/README.md): documents scheduler + command encoder
+  invariants we must preserve when layering in pooling.
+- ✅ [`docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md`](../../docs/specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md):
+  constrains how pools integrate with the runtime scheduler + tooling hooks.
+- ✅ `docs/reviews/2025-03-24-AS-320-MATERIAL-PERSISTENCE.MD`: reiterates the need to recycle GPU handles deterministically for
+  telemetry, reinforcing the pool design requirements.
 
 ---
 
