@@ -691,26 +691,22 @@ namespace
                 const float height = current_window_height();
                 const float min_dimension = std::min(width, height);
                 const float half = std::max(min_dimension * 0.5f, 1.0f);
-                const engine::math::vec2 abs_cursor{
+
+                // Convert the cursor position to normalized trackball coordinates centered on the window.
+                const engine::math::vec2 normalized_cursor{
                     (cursor.x - width * 0.5f) / half,
                     (height * 0.5f - cursor.y) / half
                 };
-                const engine::math::vec2 projected_center =
-                    project_world_point_to_trackball_coords(trackball_controller_->center());
-                const engine::math::vec2 relative_cursor = abs_cursor - projected_center;
 
                 if (was_dragging_)
                 {
-                    const engine::math::vec2 prev_abs = last_cursor_pos_;
-                    const engine::math::vec2 prev_rel = prev_abs - projected_center;
-                    const engine::math::vec2 curr_rel = relative_cursor;
-                    trackball_controller_->rotate_from(prev_rel, curr_rel);
-                    last_cursor_pos_ = abs_cursor;
+                    trackball_controller_->rotate_from(last_cursor_pos_, normalized_cursor);
+                    last_cursor_pos_ = normalized_cursor;
                 }
                 else
                 {
                     was_dragging_ = true;
-                    last_cursor_pos_ = abs_cursor;
+                    last_cursor_pos_ = normalized_cursor;
                 }
             }
             else
@@ -1250,49 +1246,6 @@ namespace
                 fps_frame_count_ = 0;
                 fps_time_accumulator_ = 0.0;
             }
-        }
-
-        // Project a world-space point to normalized screen coordinates centered at 0: (-1..1)
-        [[nodiscard]] engine::math::vec2 project_world_point_to_trackball_coords(const engine::math::vec3& world_point) const
-        {
-#if ENGINE_ENABLE_RENDERING
-            if (!trackball_controller_)
-            {
-                return engine::math::vec2{0.0f, 0.0f};
-            }
-            auto& registry = scene().registry();
-            if (!registry.valid(camera_entity_) || !registry.any_of<engine::rendering::Camera>(camera_entity_))
-            {
-                return engine::math::vec2{0.0f, 0.0f};
-            }
-            const auto& cam = registry.get<engine::rendering::Camera>(camera_entity_);
-            const auto vp = cam.view_projection();
-
-            // Convert world_point to clip space
-            const engine::math::vec4 clip = vp * engine::math::vec4{world_point[0], world_point[1], world_point[2], 1.0f};
-            if (clip[3] == 0.0f)
-            {
-                return engine::math::vec2{0.0f, 0.0f};
-            }
-            const engine::math::vec3 ndc = engine::math::vec3{clip[0] / clip[3], clip[1] / clip[3], clip[2] / clip[3]};
-
-            // Convert NDC (-1..1) to pixel coordinates
-            const float width = current_window_width();
-            const float height = current_window_height();
-            const float px = (ndc[0] * 0.5f + 0.5f) * width;
-            const float py = (1.0f - (ndc[1] * 0.5f + 0.5f)) * height;
-
-            // Convert pixel coords to normalized trackball coords centered at the projected center.
-            // We return coordinates in [-1,1] relative to the smaller window dimension.
-            const float min_dimension = std::min(width, height);
-            const float half = std::max(min_dimension * 0.5f, 1.0f);
-            const float cx = (px - width * 0.5f) / half;
-            const float cy = (height * 0.5f - py) / half;
-            return engine::math::vec2{cx, cy};
-#else
-            (void)world_point;
-            return engine::math::vec2{0.0f, 0.0f};
-#endif
         }
 
         [[nodiscard]] engine::geometry::Aabb compute_world_bounds(entt::entity entity,
