@@ -25,7 +25,9 @@ and blocker metadata:
 Invoke ``--summary`` for aggregate statistics, ``--detail`` with a task ID to
 inspect a single record, and ``--format json`` to emit machine-readable
 responses for automation.  Combine ``--blocked`` or ``--unblocked`` with the
-other filters to audit blocker status rapidly.
+other filters to audit blocker status rapidly.  ``--search`` matches across
+ID, title, owner, area, gates, relates_to, **blocked_on**, and link metadata so
+blocked dependencies are easy to locate.
 """
 
 import argparse
@@ -442,6 +444,8 @@ def filter_tasks(
                     task.priority,
                     " ".join(task.relates_to),
                     " ".join(task.gates),
+                    " ".join(task.blocked_on),
+                    " ".join(task.links),
                 ]
                 haystack = " ".join(part for part in haystack_parts if part).lower()
                 return term in haystack

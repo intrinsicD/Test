@@ -30,6 +30,7 @@ def _make_task(
     area: str = "tools",
     size: str = "M",
     gates: list[str] | None = None,
+    links: list[str] | None = None,
 ) -> task_status.Task:
     """Helper to create a task with deterministic defaults for testing."""
     blocked_on = ["dependency"] if blocked else []
@@ -44,6 +45,7 @@ def _make_task(
         gates=gates or [],
         blocked_on=blocked_on,
         relates_to=relates_to or [],
+        links=links or [],
     )
 
 
@@ -338,6 +340,28 @@ def test_filter_tasks_requires_all_search_terms() -> None:
     filtered = task_status.filter_tasks(tasks, search_terms=['docs', 'p1'])
 
     assert [task.id for task in filtered] == ['DOCS-1']
+
+
+def test_filter_tasks_search_matches_blocked_on_metadata() -> None:
+    tasks = [
+        _make_task('BLK-1', blocked=True, status='ready'),
+        _make_task('BLK-2', blocked=False, status='ready'),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, search_terms=['dependency'])
+
+    assert [task.id for task in filtered] == ['BLK-1']
+
+
+def test_filter_tasks_search_matches_links() -> None:
+    tasks = [
+        _make_task('LINK-1', blocked=False, links=['https://tracker/TL-349']),
+        _make_task('LINK-2', blocked=False, links=['https://tracker/TL-999']),
+    ]
+
+    filtered = task_status.filter_tasks(tasks, search_terms=['TL-349'])
+
+    assert [task.id for task in filtered] == ['LINK-1']
 
 
 def test_filter_tasks_supports_multiple_status_values() -> None:
