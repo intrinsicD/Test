@@ -61,16 +61,31 @@ namespace engine::math::utils
         const Vector<T, 3> s = normalize(cross(f, up));
         const Vector<T, 3> u = cross(s, f);
 
-        Matrix<T, 4, 4> result{
-            s[0], u[0], -f[0], T(0),
-            s[1], u[1], -f[1], T(0),
-            s[2], u[2], -f[2], T(0),
-            T(0), T(0), T(0), T(1)
-        };
+        Matrix<T, 4, 4> result{};
 
+        // Row 0: camera right vector components
+        result[0][0] = s[0];
+        result[0][1] = s[1];
+        result[0][2] = s[2];
         result[0][3] = -dot(s, eye);
+
+        // Row 1: camera up vector components
+        result[1][0] = u[0];
+        result[1][1] = u[1];
+        result[1][2] = u[2];
         result[1][3] = -dot(u, eye);
+
+        // Row 2: camera forward vector (negative because we look down -Z)
+        result[2][0] = -f[0];
+        result[2][1] = -f[1];
+        result[2][2] = -f[2];
         result[2][3] = dot(f, eye);
+
+        // Row 3: homogeneous row
+        result[3][0] = T(0);
+        result[3][1] = T(0);
+        result[3][2] = T(0);
+        result[3][3] = T(1);
 
         return result;
     }
