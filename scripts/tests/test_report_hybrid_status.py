@@ -26,6 +26,7 @@ def _make_task(
     size: str = "",
     gates: tuple[str, ...] = (),
     blocked_on: tuple[str, ...] = (),
+    links: tuple[str, ...] = (),
 ) -> rhs.TaskMetadata:
     return rhs.TaskMetadata(
         path=path,
@@ -39,6 +40,7 @@ def _make_task(
         size=size,
         gates=gates,
         blocked_on=blocked_on,
+        links=links,
     )
 
 
@@ -372,6 +374,72 @@ def test_filter_tasks_can_match_search_terms() -> None:
     assert [task.identifier for task in filtered] == ["HW-130"]
 
 
+def test_filter_tasks_search_matches_blocked_on_entries() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "blocked.md",
+            identifier="HW-132",
+            title="Blocked",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            blocked_on=("TL-310",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "clean.md",
+            identifier="HW-133",
+            title="Clean",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        search_terms=("TL-310",),
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-132"]
+
+
+def test_filter_tasks_search_matches_link_metadata() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "links.md",
+            identifier="HW-134",
+            title="Links",
+            status="ready",
+            priority="P2",
+            owner="docs-devrel",
+            links=("https://tracker/TL-349",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "other.md",
+            identifier="HW-135",
+            title="Other",
+            status="ready",
+            priority="P2",
+            owner="docs-devrel",
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        search_terms=("TL-349",),
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-134"]
+
+
 def test_parse_args_supports_relates_to(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         sys,
@@ -480,6 +548,7 @@ def test_render_json_reports_counts_and_tasks() -> None:
             "file": "hybrid_workflow/backlog/example.md",
             "gates": [],
             "id": "HW-201",
+            "links": [],
             "owner": "tools",
             "priority": "P2",
             "relates_to": ["bundle:C"],

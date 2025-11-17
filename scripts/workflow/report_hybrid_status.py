@@ -50,6 +50,7 @@ class TaskMetadata:
     relates_to: Tuple[str, ...] = ()
     gates: Tuple[str, ...] = ()
     blocked_on: Tuple[str, ...] = ()
+    links: Tuple[str, ...] = ()
 
     @property
     def relative_path(self) -> Path:
@@ -70,6 +71,7 @@ class TaskMetadata:
             "blocked_on": list(self.blocked_on),
             "file": str(self.relative_path),
             "relates_to": list(self.relates_to),
+            "links": list(self.links),
         }
 
 
@@ -87,6 +89,7 @@ def _task_from_metadata(task: TaskMetadata) -> hw_task_status.Task:
         gates=list(task.gates),
         relates_to=list(task.relates_to),
         blocked_on=list(task.blocked_on),
+        links=list(task.links),
     )
     hw_task.file_path = task.path
     return hw_task
@@ -110,6 +113,7 @@ def _metadata_from_task(task: hw_task_status.Task) -> TaskMetadata:
         relates_to=tuple(task.relates_to),
         gates=tuple(task.gates),
         blocked_on=tuple(task.blocked_on),
+        links=tuple(task.links),
     )
 
 
