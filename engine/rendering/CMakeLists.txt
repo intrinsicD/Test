@@ -13,6 +13,7 @@ add_library(${target_name}
         src/backend/opengl/runtime_adapter.cpp
         src/backend/vulkan/command_encoder.cpp
         src/backend/vulkan/resource_provider.cpp
+        src/command/command_buffer_pool.cpp
         src/command_encoder.cpp
         src/command_encoder_tracing.cpp
         src/frame_graph.cpp

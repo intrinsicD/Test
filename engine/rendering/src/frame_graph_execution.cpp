@@ -394,6 +394,7 @@ namespace engine::rendering
         std::uint64_t timeline_value = 0;
 
         context.device_resources.begin_frame();
+        context.scheduler.begin_frame();
 
         for (std::size_t pass_index = 0; pass_index < passes_.size(); ++pass_index)
         {
@@ -551,6 +552,7 @@ namespace engine::rendering
             }
         }
 
+        context.scheduler.end_frame();
         context.device_resources.end_frame();
     }
 }

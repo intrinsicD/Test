@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include "engine/rendering/command/command_buffer_pool.hpp"
 #include "engine/rendering/gpu_scheduler.hpp"
 #include "engine/rendering/resources/resource_provider.hpp"
 
@@ -21,25 +22,42 @@ namespace engine::rendering::backend
     public:
         explicit NativeSchedulerBase(resources::IGpuResourceProvider& provider)
             : provider_(provider)
+            , pool_(provider)
         {
+        }
+
+        void set_command_buffer_retention_frames(std::uint64_t frames) noexcept
+        {
+            pool_.set_max_age_frames(frames);
+        }
+
+        [[nodiscard]] CommandBufferPool::Metrics command_buffer_pool_metrics() const noexcept
+        {
+            return pool_.metrics();
+        }
+
+        void begin_frame() override
+        {
+            ++frame_index_;
+            pool_.begin_frame(frame_index_);
+            frame_active_ = true;
+        }
+
+        void end_frame() override
+        {
+            if (!frame_active_)
+            {
+                return;
+            }
+            pool_.end_frame();
+            frame_active_ = false;
         }
 
         CommandBufferHandle request_command_buffer(QueueType queue, std::string_view pass_name) override
         {
-            CommandBufferHandle handle{};
-            if (!recycled_handles_.empty())
-            {
-                handle = recycled_handles_.back();
-                recycled_handles_.pop_back();
-            }
-            else
-            {
-                handle.index = ++next_command_buffer_;
-            }
-
-            auto native = provider_.allocate_command_buffer(queue, pass_name, handle);
-            encoders_.push_back(EncoderRecord{handle, queue, std::string{pass_name}, native});
-            return handle;
+            auto acquired = pool_.acquire(queue, pass_name);
+            encoders_.push_back(EncoderRecord{acquired.handle, queue, std::string{pass_name}, acquired.native});
+            return acquired.handle;
         }
 
         void submit(const GpuSubmitInfo& info) override
@@ -82,11 +100,9 @@ namespace engine::rendering::backend
                                          });
             if (it != encoders_.end())
             {
-                recycled_handles_.push_back(it->handle);
+                pool_.release(it->handle);
                 encoders_.erase(it);
             }
-
-            provider_.recycle_command_buffer(handle);
         }
 
         [[nodiscard]] const std::vector<Submission>& submissions() const noexcept
@@ -118,9 +134,10 @@ namespace engine::rendering::backend
         }
 
         resources::IGpuResourceProvider& provider_;
+        CommandBufferPool pool_;
         std::vector<EncoderRecord> encoders_{};
         std::vector<Submission> submissions_{};
-        std::vector<CommandBufferHandle> recycled_handles_{};
-        std::size_t next_command_buffer_{0};
+        std::uint64_t frame_index_{0};
+        bool frame_active_{false};
     };
 }

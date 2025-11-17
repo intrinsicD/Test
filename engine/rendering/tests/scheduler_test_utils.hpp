@@ -16,6 +16,14 @@ namespace engine::rendering::tests
     class RecordingScheduler final : public IGpuScheduler
     {
     public:
+        void begin_frame() override
+        {
+        }
+
+        void end_frame() override
+        {
+        }
+
         struct Submission
         {
             std::string pass_name;
