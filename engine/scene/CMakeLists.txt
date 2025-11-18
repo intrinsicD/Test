@@ -2,6 +2,8 @@ set(target_name engine_scene)
 
 add_library(${target_name}
         src/api.cpp
+        src/selection/bounding_box_strategy.cpp
+        src/selection/selection_engine.cpp
         src/scene.cpp
         src/scene_graph_validator.cpp
         src/serialization/serializer.cpp
@@ -28,6 +30,7 @@ target_link_libraries(${target_name}
         PUBLIC
         EnTT::EnTT
         engine_core
+        engine_geometry
         engine_math
 )
 

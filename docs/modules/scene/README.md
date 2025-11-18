@@ -217,6 +217,16 @@ visible during PM-510 demo capture and everyday workflows.
 
 See [`DIAGNOSTICS.md`](DIAGNOSTICS.md) for complete validation workflow.
 
+### Shared Selection Engine
+
+Scene-level selection primitives now live alongside the hierarchy data structures so runtime systems, automation harnesses, and
+editor tooling reuse the exact same semantics. [`SelectionEngine`](../../../engine/scene/include/engine/scene/selection/selection_engine.hpp)
+stores an ordered stack of [`SelectionEvent`]s, deduplicates entities (configurable), and broadcasts listener notifications to
+drive overlays. Strategies such as [`BoundingBoxSelectionStrategy`](../../../engine/scene/include/engine/scene/selection/bounding_box_strategy.hpp)
+register with explicit priorities, letting GPU color-picking layers preempt transform-derived fallbacks without wiring a tools
+dependency into the runtime. Editor panels (`SceneHierarchyPanel`) and runtime bridges simply bind to the engine so cursor hits,
+marquee selections, and scripted automation stay synchronized across modules.
+
 ## Serialization
 
 ### Save Scene

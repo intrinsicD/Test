@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "engine/scene/scene.hpp"
+#include "engine/scene/selection/selection_engine.hpp"
 #include "engine/tools/editor/scene_hierarchy_panel.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
 
@@ -13,6 +14,7 @@ namespace
     using engine::tools::editor::SceneHierarchyPanel;
     using engine::tools::editor::register_scene_hierarchy_panel;
     using engine::tools::imgui::PanelRegistry;
+    namespace selection = engine::scene::selection;
 }
 
 TEST(SceneHierarchyPanel, TraversesRootsAndChildrenDeterministically)
@@ -74,5 +76,42 @@ TEST(SceneHierarchyPanel, RegistrationHandleUnregistersPanel)
     }
 
     EXPECT_FALSE(registry.contains("tools.scene_hierarchy"));
+}
+
+TEST(SceneHierarchyPanel, PropagatesSelectionToSelectionEngine)
+{
+    Scene scene{};
+    auto entity = scene.create_entity("Selectable");
+
+    SceneHierarchyPanel panel{};
+    panel.set_scene(&scene);
+
+    selection::SelectionEngine engine{};
+    panel.bind_selection_engine(&engine, selection::SelectionSource::Script);
+    panel.set_selection(entity.id());
+
+    const auto history = engine.ordered_selection();
+    ASSERT_EQ(history.size(), 1U);
+    EXPECT_EQ(history.back().hit.entity, entity.id());
+    EXPECT_EQ(history.back().source, selection::SelectionSource::Script);
+}
+
+TEST(SceneHierarchyPanel, SynchronizesSelectionFromSelectionEngine)
+{
+    Scene scene{};
+    auto entity = scene.create_entity("Synced");
+
+    SceneHierarchyPanel panel{};
+    panel.set_scene(&scene);
+
+    selection::SelectionEngine engine{};
+    panel.bind_selection_engine(&engine, selection::SelectionSource::Cursor);
+
+    selection::SelectionEvent event{};
+    event.hit.entity = entity.id();
+    event.hit.distance = 0.25F;
+    engine.push_selection(event);
+
+    EXPECT_EQ(panel.model().selection(), entity.id());
 }
 
