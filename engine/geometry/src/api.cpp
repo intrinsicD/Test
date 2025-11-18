@@ -13,6 +13,45 @@
 
 namespace engine::geometry
 {
+    namespace
+    {
+        [[nodiscard]] std::array<math::vec3, 8> generate_vertex_normals_from_face_normals(
+            const std::array<math::ivec4, 6>& face_quads,
+            const std::array<math::vec3, 6>& face_normals)
+        {
+            std::array<math::vec3, 8> vertex_normals{};
+
+            for (std::size_t face_idx = 0; face_idx < face_quads.size(); ++face_idx)
+            {
+                const auto& quad = face_quads[face_idx];
+                const auto& face_normal = face_normals[face_idx];
+                for (int corner = 0; corner < 4; ++corner)
+                {
+                    const auto corner_index = static_cast<std::size_t>(quad[corner]);
+                    if (corner_index < vertex_normals.size())
+                    {
+                        vertex_normals[corner_index] += face_normal;
+                    }
+                }
+            }
+
+            for (auto& normal : vertex_normals)
+            {
+                const float length_sq = math::dot(normal, normal);
+                if (length_sq > std::numeric_limits<float>::epsilon())
+                {
+                    normal = math::normalize(normal);
+                }
+                else
+                {
+                    normal = math::vec3{0.0F, 1.0F, 0.0F};
+                }
+            }
+
+            return vertex_normals;
+        }
+    } // namespace
+
     std::string_view module_name() noexcept
     {
         return "geometry";
@@ -56,13 +95,15 @@ namespace engine::geometry
 
         // Face normals for a box
         const std::array<math::vec3, 6> face_normals = {{
-            math::vec3{ 0.0F,  0.0F,  1.0F},  // Front (+Z)
-            math::vec3{ 0.0F,  0.0F, -1.0F},  // Back (-Z)
-            math::vec3{ 1.0F,  0.0F,  0.0F},  // Right (+X)
-            math::vec3{-1.0F,  0.0F,  0.0F},  // Left (-X)
-            math::vec3{ 0.0F,  1.0F,  0.0F},  // Top (+Y)
-            math::vec3{ 0.0F, -1.0F,  0.0F},  // Bottom (-Y)
+            math::vec3{-1.0F,  0.0F,  0.0F},  // -X
+            math::vec3{ 1.0F,  0.0F,  0.0F},  // +X
+            math::vec3{ 0.0F, -1.0F,  0.0F},  // -Y
+            math::vec3{ 0.0F,  1.0F,  0.0F},  // +Y
+            math::vec3{ 0.0F,  0.0F, -1.0F},  // -Z
+            math::vec3{ 0.0F,  0.0F,  1.0F},  // +Z
         }};
+
+        const auto vertex_normals = generate_vertex_normals_from_face_normals(face_quads, face_normals);
 
         // Build mesh from AABB face quads
         std::vector<math::vec2> texture_coordinates{};
@@ -95,9 +136,10 @@ namespace engine::geometry
             // Add 4 vertices for this face
             for (int i = 0; i < 4; ++i)
             {
-                const auto position = corners[quad[i]];
+                const auto corner_index = static_cast<std::size_t>(quad[i]);
+                const auto position = corners[corner_index];
                 mesh.rest_positions.push_back(position);
-                mesh.normals.push_back(normal);
+                mesh.normals.push_back(vertex_normals[corner_index]);
 
                 const float u = (position[u_axis] - box.min[u_axis]) / safe_extent[u_axis];
                 const float v = (position[v_axis] - box.min[v_axis]) / safe_extent[v_axis];
