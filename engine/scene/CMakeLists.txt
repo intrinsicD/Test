@@ -3,6 +3,7 @@ set(target_name engine_scene)
 add_library(${target_name}
         src/api.cpp
         src/selection/bounding_box_strategy.cpp
+        src/selection/primitive_selection.cpp
         src/selection/selection_engine.cpp
         src/scene.cpp
         src/scene_graph_validator.cpp

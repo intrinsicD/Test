@@ -1,11 +1,11 @@
 ---
 id: TL-316
 title: Vertex, edge, and face selection for geometry entities
-status: new
+status: in_progress
 priority: P1
 area: geometry
 size: M
-owner: unassigned
+owner: geometry
 gates: [tests, docs]
 relates_to: [bundle:B]
 blocked_on:
@@ -106,15 +106,27 @@ class PrimitiveSelectionAdapter {
 
 ## Steps
 
-1. [ ] Align with TL-315 selection payload schema for primitive metadata.
+1. [x] Align with TL-315 selection payload schema for primitive metadata.
 2. [ ] Implement primitive adapters for triangle meshes, line graphs, and point clouds.
-3. [ ] Add marquee helpers that return capped primitive sets with streaming iterators.
+3. [x] Add marquee helpers that return capped primitive sets with streaming iterators.
 4. [ ] Surface primitive info through tooling APIs and diagnostics overlays.
 5. [ ] Cover adapters with targeted geometry unit tests and geometry_viewer integration tests.
-6. [ ] Document workflows in geometry + tools READMEs and update roadmap/backlog status.
+6. [x] Document workflows in geometry + tools READMEs and update roadmap/backlog status.
 
 ---
 
 ## Evidence
 
-_Pending implementation; capture canonical build/test commands after development._
+### Test Results
+
+```bash
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug --target engine_scene_tests
+ctest --preset linux-gcc-debug -R engine_scene_tests --output-on-failure
+pytest python/tests scripts/tests
+```
+
+- CMake configure: see linux-gcc-debug preset configure log. 【343f81†L1-L20】
+- Scene tests build succeeded (includes new primitive selection unit tests). 【588ce4†L1-L2】
+- `engine_scene_tests` ctest target passes. 【746e81†L1-L8】
+- Python + maintenance test suites: 288 passed, 3 skipped. 【7ab1ea†L1-L19】

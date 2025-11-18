@@ -131,6 +131,45 @@ for (std::size_t vertex = 0; vertex < summary.vertices.size(); ++vertex)
 vertices that sit on boundaries or detected features. These annotations form the foundation for the `GE-221+` remeshing
 milestones by supplying deterministic feature classification without requiring the halfedge representation at call sites.
 
+## Selection Integration
+
+[`TL-316`](../../../hybrid_workflow/backlog/TL-316-subentity-component-selection.md) expands TL-315’s ordered selection stack
+with primitive-level metadata so tooling can display which mesh vertices, edges, faces, or point samples were targeted. The
+scene module now exposes `PrimitiveHit`, `PrimitiveHitBuffer`, and `PrimitiveSelectionRegistry`
+(`engine/scene/selection/primitive_selection.hpp`) to capture those sub-selections without mutating source geometry. Adapters
+stream hits into bounded buffers, guaranteeing marquee queries respect user-defined caps while still offering chunked iteration
+for overlay rendering.
+
+```cpp
+#include "engine/scene/selection/primitive_selection.hpp"
+
+engine::scene::selection::PrimitiveSelectionRegistry registry;
+auto adapter_id = registry.register_adapter(std::make_unique<MyMeshAdapter>(mesh_cache));
+
+engine::scene::selection::PrimitivePickRequest request{};
+request.hit.entity = entity;
+request.max_results = 256;
+
+const auto primitives = registry.gather_primitives(request);
+for (const auto& hit : primitives.hits())
+{
+    if (hit.primitive == engine::scene::selection::SelectionPrimitive::Vertex)
+    {
+        highlight_vertex(mesh, hit.index0, hit.barycentric);
+    }
+}
+
+for (auto chunk : primitives.chunks())
+{
+    submit_overlay_draw_calls(chunk);
+}
+
+registry.unregister_adapter(adapter_id);
+```
+
+Adapters receive `PrimitivePickRequest` and `MarqueeRequest` structs mirroring TL-315’s selection context, so geometry systems can
+resolve handles lazily and emit deterministic primitive sets for TL-317’s outline renderer and diagnostics panels.
+
 ## Geometric Computations
 
 ### Normals, Bounds, Centroid

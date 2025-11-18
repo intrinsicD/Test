@@ -108,6 +108,13 @@ data exists (BVHs, GPU ID buffers, etc.), while `SelectionContext` packages the 
 strategies share projection logic. The `SceneHierarchyPanel` and `RuntimePanelBridge` bind directly to the selection engine so
 editor clicks, runtime hit tests, and scripted selections all reuse the same ordered stack and change notifications.
 
+`TL-316` layers primitive metadata on top of that stack through
+[`PrimitiveSelectionRegistry`](../../../engine/scene/include/engine/scene/selection/primitive_selection.hpp). Tooling panels can
+register adapters that translate `SelectionHit` events into lists of vertices, edges, faces, or point samples, stream those hits
+into bounded buffers, and iterate them in fixed-size chunks when emitting overlay draw calls. The registry mirrors TL-315’s
+selection context (cursor ray, entity ordering) so TL-317’s outline renderer and diagnostics overlays receive both entity IDs and
+the exact primitive set the user interacted with without mutating mesh buffers.
+
 ## Experiment Sandbox UI
 
 The experiment sandbox provides an ImGui workspace for AI-004 prototyping
