@@ -1,7 +1,7 @@
 ---
 id: RG-502
 title: Command buffer pooling and trimming
-status: ready
+status: done
 priority: P1
 area: rendering
 size: M
@@ -157,6 +157,17 @@ python scripts/validate_docs.py
 | docs | [x] | Docs/DevRel | Rendering README pooling section |
 | safety | [x] | Safety | No new unsafe primitives introduced |
 | release | [x] | Release Mgr | No packaging deltas |
+
+---
+
+## Result
+
+- Command buffer pooling now backs both OpenGL and Vulkan scheduler paths, trimming idle buffers once
+  they exceed the retention window configured via `set_command_buffer_retention_frames()`.
+- Telemetry emitted from `command_buffer_pool_metrics()` feeds TL-312/TL-314 dashboards so PM-510 demos
+  can confirm hit rates and trimming efficiency while comparing CPU allocation costs.
+- Rendering documentation and scheduler tests capture the new behaviour, keeping Bundle A tracking in
+  sync with the shipped implementation.
 
 ### Updated Files
 

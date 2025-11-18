@@ -10,7 +10,7 @@
 - [x] **T-0119** — Command encoder integration → `hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md`
 - [x] **RG-450** — Modular render pipeline planner → `hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md`
 - [x] **RE-430** — WASD first-person camera controller *(Shipped 2026-05-20; controller + tests landed in rendering module)* → `hybrid_workflow/backlog/archive/RE-430-wasd-camera-controller.md`
-- [ ] **RG-502** — Command buffer pooling & trimming *(Ready — scoped via context ladder review on 2026-05-27; unblocks reduced submission latency telemetry for PM-510 demos)* → `hybrid_workflow/backlog/RG-502-command-buffer-pooling.md`
+- [x] **RG-502** — Command buffer pooling & trimming *(Complete — pooling trims idle buffers and exports telemetry for PM-510 captures)* → `hybrid_workflow/backlog/archive/RG-502-command-buffer-pooling.md`
 
 **Success Criteria:**
 - OpenGL/Vulkan execute frame-graph workloads with deterministic telemetry traces. ✅
