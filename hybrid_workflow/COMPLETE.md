@@ -177,6 +177,11 @@ python hybrid_workflow/task_status.py --owner docs-devrel --owner runtime-lead
 python hybrid_workflow/task_status.py --link docs/ROADMAP.md
 python hybrid_workflow/task_status.py --link docs/ROADMAP.md --link hybrid_workflow/ROADMAP.md
 
+# Filter by specific blockers
+python hybrid_workflow/task_status.py --blocked-on TL-310
+python hybrid_workflow/task_status.py --blocked-on TL-310 --blocked-on TL-315
+python -m scripts.workflow.report_hybrid_status --blocked-on TL-310 TL-315
+
 # Summary statistics (respects filters)
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --priority P1 --summary

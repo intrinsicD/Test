@@ -63,6 +63,7 @@ _Current status:_ RG-450 has shipped with descriptor-driven planner execution an
 - [x] **TL-348** — Task status CLI JSON output → `hybrid_workflow/backlog/archive/TL-348-task-status-json-output.md`
 - [x] **TL-349** — Task-status search matches blocked_on/link metadata → `hybrid_workflow/backlog/archive/TL-349-task-status-blocked-search.md`
 - [x] **TL-350** — Task status CLI link filter → `hybrid_workflow/backlog/archive/TL-350-task-status-link-filter.md`
+- [x] **TL-351** — Task status CLI blocked_on filter → `hybrid_workflow/backlog/archive/TL-351-task-status-blocked-on-filter.md`
 
 
 **Success Criteria:**
