@@ -925,3 +925,25 @@ TEST(SurfaceMesh, UnitCubeProvidesPerFaceTextureCoordinates)
         }
     }
 }
+
+TEST(SurfaceMesh, UnitCubeNormalsPointOutwardFromCorners)
+{
+    const auto cube = engine::geometry::make_unit_cube();
+    ASSERT_EQ(cube.positions.size(), cube.normals.size());
+
+    for (std::size_t i = 0; i < cube.positions.size(); ++i)
+    {
+        const auto& position = cube.positions[i];
+        const auto& normal = cube.normals[i];
+
+        engine::math::vec3 expected{
+            position[0] >= 0.0f ? 1.0f : -1.0f,
+            position[1] >= 0.0f ? 1.0f : -1.0f,
+            position[2] >= 0.0f ? 1.0f : -1.0f};
+        expected = engine::math::normalize(expected);
+
+        EXPECT_NEAR(normal[0], expected[0], 1e-4f);
+        EXPECT_NEAR(normal[1], expected[1], 1e-4f);
+        EXPECT_NEAR(normal[2], expected[2], 1e-4f);
+    }
+}
