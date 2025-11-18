@@ -17,6 +17,7 @@ and blocker metadata:
    python hybrid_workflow/task_status.py [--status STATUS] [--priority PRIORITY]
                                          [--area AREA] [--owner OWNER]
                                          [--link LINK]
+                                         [--blocked-on TASK]
                                          [--gate GATE ...]
                                          [--relates-to TAG ...]
                                          [--search TERM ...]
@@ -26,10 +27,11 @@ and blocker metadata:
 Invoke ``--summary`` for aggregate statistics, ``--detail`` with a task ID to
 inspect a single record, and ``--format json`` to emit machine-readable
 responses for automation.  Combine ``--blocked`` or ``--unblocked`` with the
-other filters to audit blocker status rapidly.  ``--search`` matches across
-ID, title, owner, area, gates, relates_to, **blocked_on**, and link metadata so
-blocked dependencies are easy to locate, while ``--link`` restricts results to
-tasks referencing specific documents or tracking links.
+other filters to audit blocker status rapidly.  ``--blocked-on`` limits results
+to tasks that cite specific dependencies in their ``blocked_on`` metadata, while
+``--search`` matches across ID, title, owner, area, gates, relates_to,
+**blocked_on**, and link metadata.  Use ``--link`` when tasks must reference
+specific documents or tracking links.
 """
 
 import argparse
@@ -389,6 +391,7 @@ def filter_tasks(
     relates_to: Optional[List[str]] = None,
     gates: Optional[List[str]] = None,
     links: Optional[Union[str, Iterable[str]]] = None,
+    blocked_on: Optional[Union[str, Iterable[str]]] = None,
     search_terms: Optional[Iterable[str]] = None,
     *,
     blocked_only: Optional[bool] = None,
@@ -441,6 +444,16 @@ def filter_tasks(
             if link_values.issubset({value.lower() for value in t.links})
         ]
 
+    blocked_on_values = {
+        value.lower() for value in _normalise_filter_values(blocked_on)
+    }
+    if blocked_on_values:
+        filtered = [
+            t
+            for t in filtered
+            if blocked_on_values.issubset({value.lower() for value in t.blocked_on})
+        ]
+
     if search_terms:
         normalised_terms = [term.strip().lower() for term in search_terms if term]
 
@@ -486,6 +499,7 @@ def select_next_actions(
     gates: Optional[List[str]] = None,
     relates_to: Optional[List[str]] = None,
     links: Optional[Union[str, Iterable[str]]] = None,
+    blocked_on: Optional[Union[str, Iterable[str]]] = None,
     search_terms: Optional[Iterable[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[Task]:
@@ -504,6 +518,7 @@ def select_next_actions(
         gates=gates,
         relates_to=relates_to,
         links=links,
+        blocked_on=blocked_on,
         search_terms=search_terms,
         blocked_only=blocked_only,
     )
@@ -682,6 +697,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        '--blocked-on',
+        metavar='TASK',
+        action='append',
+        help=(
+            "Require tasks to list specific blocked_on dependencies (case-insensitive). Repeat the "
+            "flag or provide comma-separated values to match multiple dependencies."
+        ),
+    )
+    parser.add_argument(
         '--search',
         metavar='TERM',
         action='append',
@@ -787,6 +811,7 @@ def main():
 
     search_terms = _normalise_filter_values(args.search)
     link_filter = _normalise_filter_values(args.link)
+    blocked_on_filter = _normalise_filter_values(args.blocked_on)
     owner_filter = _normalise_filter_values(args.owner)
 
     blocked_only = True if args.blocked else False if args.unblocked else None
@@ -803,6 +828,7 @@ def main():
                 gates=gates,
                 relates_to=relates_to,
                 links=link_filter,
+                blocked_on=blocked_on_filter,
                 search_terms=search_terms,
                 blocked_only=blocked_only,
             )
@@ -820,6 +846,7 @@ def main():
             relates_to=relates_to,
             gates=gates,
             links=link_filter,
+            blocked_on=blocked_on_filter,
             search_terms=search_terms,
             blocked_only=blocked_only,
         )

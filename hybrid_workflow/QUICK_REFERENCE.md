@@ -137,6 +137,11 @@ python hybrid_workflow/task_status.py --blocked --status in_progress
 python hybrid_workflow/task_status.py --unblocked
 python hybrid_workflow/task_status.py --unblocked --priority P1
 
+# Filter by specific blockers
+python hybrid_workflow/task_status.py --blocked-on TL-310
+python hybrid_workflow/task_status.py --blocked-on TL-310 --blocked-on TL-315
+python -m scripts.workflow.report_hybrid_status --blocked-on TL-310 TL-315
+
 # Show summary (respects filters)
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --status in_progress --summary

@@ -142,6 +142,11 @@ python hybrid_workflow/task_status.py --relates-to bundle:D
 python hybrid_workflow/task_status.py --link docs/ROADMAP.md
 python hybrid_workflow/task_status.py --link docs/ROADMAP.md --link hybrid_workflow/ROADMAP.md
 
+# Filter by specific blockers
+python hybrid_workflow/task_status.py --blocked-on TL-310
+python hybrid_workflow/task_status.py --blocked-on TL-310 --blocked-on TL-315
+python -m scripts.workflow.report_hybrid_status --blocked-on TL-310 TL-315
+
 # Show summary statistics (respects filters)
 python hybrid_workflow/task_status.py --summary
 python hybrid_workflow/task_status.py --area rendering --summary

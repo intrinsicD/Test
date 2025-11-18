@@ -201,6 +201,10 @@ python -m scripts.workflow.report_hybrid_status --format json
 # Filter by roadmap bundle metadata
 python -m scripts.workflow.report_hybrid_status --relates-to bundle:C
 python -m scripts.workflow.report_hybrid_status --relates-to bundle:A bundle:D
+
+# Filter by specific blockers
+python hybrid_workflow/task_status.py --blocked-on TL-310
+python -m scripts.workflow.report_hybrid_status --blocked-on TL-310 TL-315
 ```
 
 ### Task CLI Automation

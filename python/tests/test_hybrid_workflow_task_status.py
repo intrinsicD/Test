@@ -170,6 +170,22 @@ def test_filter_tasks_filters_by_links() -> None:
     assert [task.id for task in filtered] == ["A"]
 
 
+def test_filter_tasks_filters_by_blocked_on_metadata() -> None:
+    tasks = [
+        _make_task("A", blocked=True, status="ready"),
+        _make_task("B", blocked=True, status="ready"),
+        _make_task("C", blocked=True, status="ready"),
+    ]
+
+    tasks[0].blocked_on = ["TL-310", "PM-510"]
+    tasks[1].blocked_on = ["TL-315"]
+    tasks[2].blocked_on = ["tl-310"]
+
+    filtered = task_status.filter_tasks(tasks, blocked_on=["tl-310"])
+
+    assert [task.id for task in filtered] == ["A", "C"]
+
+
 def test_filter_tasks_priority_filter_is_case_insensitive() -> None:
     tasks = [
         _make_task("A", blocked=False, priority="P1"),
@@ -281,6 +297,14 @@ def test_build_parser_supports_link_flag() -> None:
     args = parser.parse_args(['--link', 'docs/ROADMAP.md', '--link', 'hybrid_workflow/ROADMAP.md'])
 
     assert args.link == ['docs/ROADMAP.md', 'hybrid_workflow/ROADMAP.md']
+
+
+def test_build_parser_supports_blocked_on_flag() -> None:
+    parser = task_status.build_parser()
+
+    args = parser.parse_args(['--blocked-on', 'TL-310', '--blocked-on', 'TL-315'])
+
+    assert args.blocked_on == ['TL-310', 'TL-315']
 
 
 def test_build_parser_supports_gate_flag() -> None:

@@ -139,6 +139,7 @@ def filter_tasks(
     size: Optional[str] = None,
     gates: Optional[Sequence[str]] = None,
     links: Optional[Sequence[str]] = None,
+    blocked_on: Optional[Sequence[str]] = None,
     search_terms: Optional[Sequence[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[TaskMetadata]:
@@ -156,6 +157,7 @@ def filter_tasks(
         relates_to=list(relates_to) if relates_to else None,
         gates=list(gates) if gates else None,
         links=list(links) if links else None,
+        blocked_on=list(blocked_on) if blocked_on else None,
         search_terms=list(search_terms) if search_terms else None,
         blocked_only=blocked_only,
     )
@@ -186,6 +188,7 @@ def select_next_actions(
     size: Optional[str] = None,
     gates: Optional[Sequence[str]] = None,
     links: Optional[Sequence[str]] = None,
+    blocked_on: Optional[Sequence[str]] = None,
     search_terms: Optional[Sequence[str]] = None,
     blocked_only: Optional[bool] = None,
 ) -> List[TaskMetadata]:
@@ -206,6 +209,7 @@ def select_next_actions(
         relates_to=list(relates_to) if relates_to else None,
         gates=list(gates) if gates else None,
         links=list(links) if links else None,
+        blocked_on=list(blocked_on) if blocked_on else None,
         search_terms=list(search_terms) if search_terms else None,
         blocked_only=blocked_only,
     )
@@ -327,6 +331,16 @@ def parse_args() -> argparse.Namespace:
             "multiple values and matches tasks containing every provided link."
         ),
     )
+    parser.add_argument(
+        "--blocked-on",
+        metavar="TASK",
+        action="append",
+        nargs="+",
+        help=(
+            "Require tasks to include specific blocked_on dependencies (case-insensitive). Accepts "
+            "multiple values and matches tasks containing every provided dependency."
+        ),
+    )
     blocked_group = parser.add_mutually_exclusive_group()
     blocked_group.add_argument(
         "--blocked",
@@ -386,6 +400,10 @@ def main() -> None:
     if args.link:
         link_terms = [value for group in args.link for value in group]
 
+    blocked_on_terms: Optional[List[str]] = None
+    if args.blocked_on:
+        blocked_on_terms = [value for group in args.blocked_on for value in group]
+
     blocked_only: Optional[bool] = None
     if args.blocked:
         blocked_only = True
@@ -403,6 +421,7 @@ def main() -> None:
             relates_to=relates_to_filter,
             gates=gates_filter,
             links=link_terms,
+            blocked_on=blocked_on_terms,
             search_terms=search_terms,
             blocked_only=blocked_only,
         )
@@ -417,6 +436,7 @@ def main() -> None:
             size=args.size,
             gates=gates_filter,
             links=link_terms,
+            blocked_on=blocked_on_terms,
             search_terms=search_terms,
             blocked_only=blocked_only,
         )

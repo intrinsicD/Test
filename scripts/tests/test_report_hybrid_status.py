@@ -346,6 +346,40 @@ def test_filter_tasks_support_blocked_only_flag() -> None:
     assert [task.identifier for task in filtered] == ["HW-126"]
 
 
+def test_filter_tasks_can_match_blocked_on_dependencies() -> None:
+    tasks = [
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "blocked-dep-alpha.md",
+            identifier="HW-128",
+            title="Blocked Dep Alpha",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            blocked_on=("TL-310",),
+        ),
+        _make_task(
+            path=rhs.REPO_ROOT / "hybrid_workflow" / "backlog" / "blocked-dep-beta.md",
+            identifier="HW-129",
+            title="Blocked Dep Beta",
+            status="ready",
+            priority="P1",
+            owner="runtime-lead",
+            blocked_on=("TL-315",),
+        ),
+    ]
+
+    filtered = rhs.filter_tasks(
+        tasks,
+        status=None,
+        priority=None,
+        owner=None,
+        relates_to=None,
+        blocked_on=("tl-310",),
+    )
+
+    assert [task.identifier for task in filtered] == ["HW-128"]
+
+
 def test_filter_tasks_relates_to_is_case_insensitive() -> None:
     tasks = [
         _make_task(
