@@ -117,3 +117,45 @@ links: []
     output_dir = tmp_path / "output"
     assert (output_dir / "index.html").exists()
     assert (output_dir / "tasks.json").exists()
+
+
+def test_main_supports_output_outside_repo(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    repo_root = tmp_path / "repo"
+    monkeypatch.setattr(dashboard, "REPO_ROOT", repo_root)
+    backlog_root = repo_root / "hybrid_workflow" / "backlog"
+    backlog_root.mkdir(parents=True)
+    monkeypatch.setattr(dashboard, "BACKLOG_ROOT", backlog_root)
+    task_file = backlog_root / "TL-100-sample.md"
+    task_file.write_text(
+        """---
+id: TL-100
+title: Sample task
+status: ready
+priority: P1
+area: tools
+size: M
+owner: agent
+gates: [docs]
+relates_to: [bundle:C]
+blocked_on: []
+links: []
+---
+""",
+        encoding="utf-8",
+    )
+
+    outside_dir = tmp_path / "external" / "dashboard"
+    args = ["--output-dir", str(outside_dir)]
+    monkeypatch.setattr(sys, "argv", ["dashboard"] + args)
+
+    exit_code = dashboard.main()
+
+    assert exit_code == 0
+    assert (outside_dir / "index.html").exists()
+    assert (outside_dir / "tasks.json").exists()
+    captured = capsys.readouterr()
+    assert str(outside_dir) in captured.out
