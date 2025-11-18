@@ -23,6 +23,8 @@ add_library(${target_name}
         src/forward_pipeline.cpp
         src/pipeline/research_baseline_telemetry.cpp
         src/pipeline/research_baseline.cpp
+        src/selection_outline_renderer.cpp
+        src/selection_outline_strategy.cpp
         src/material_system.cpp
         src/resources/recording_gpu_resource_provider.cpp
 )

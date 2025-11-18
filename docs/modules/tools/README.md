@@ -93,6 +93,14 @@ module so runtime systems and editor tooling share the same selection primitives
 while marquee/scripted selections still push events directly into the stack. The engine deduplicates entities by default,
 exposes `ordered_selection()` for tooling overlays, and notifies listeners whenever a new selection is committed.
 
+The Geometry Viewer consumes `SelectionOutlineRenderer` to visualise the selection stack directly inside the viewport. The
+Selection Inspector now exposes the full outline surface (enable/disable, colour/alpha, hybrid thickness tunables, occlusion
+modes, quality preset, and per-strategy override) backed by
+[`OutlineConfig`](../../../engine/scene/include/engine/scene/selection/visualization/outline_config.hpp), so PM-510 rehearsals
+can experiment with JFA-style halos or fast edge detection without recompiling shaders. Because the renderer plugs into the
+research baseline frame graph, future tooling (scene hierarchy overlays, diagnostics) can reuse the same API to draw outlines
+around the entities they manage.
+
 The initial [`BoundingBoxSelectionStrategy`](../../../engine/scene/include/engine/scene/selection/bounding_box_strategy.hpp)
 implements the TL-315 fallback path. It iterates world transforms, derives a conservative axis-aligned bounding box per entity,
 and resolves hits via the existing ray–box intersection helpers. Integrations can inject a `BoundsProvider` when higher-fidelity

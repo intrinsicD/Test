@@ -1,7 +1,7 @@
 ---
 id: TL-317
 title: Outline rendering for selected entities
-status: new
+status: in_progress
 priority: P1
 area: rendering
 size: M
@@ -102,15 +102,17 @@ class SelectionOutlinePass : public FrameGraphPass {
 
 ## Steps
 
-1. [ ] Align with TL-315 selection buffer outputs and identify required render targets.
-2. [ ] Implement outline shader + frame-graph pass supporting ID and depth fallbacks.
-3. [ ] Integrate pass into viewport pipeline (OpenGL/Vulkan) with dynamic enable/disable.
-4. [ ] Expose configuration hooks to tools/editor and default theme colors.
-5. [ ] Add tests + CI screenshots (geometry_viewer) plus documentation updates.
+1. [x] Align with TL-315 selection buffer outputs and identify required render targets.
+2. [x] Implement outline shader + frame-graph pass supporting ID and depth fallbacks.
+3. [x] Integrate pass into viewport pipeline (OpenGL/Vulkan) with dynamic enable/disable.
+4. [x] Expose configuration hooks to tools/editor and default theme colors.
+5. [x] Add tests + CI screenshots (geometry_viewer) plus documentation updates.
 6. [ ] Record profiling evidence and update roadmap/backlog status.
 
 ---
 
 ## Evidence
 
-_Pending implementation; capture canonical build/test commands after development._
+- `cmake --preset linux-gcc-debug` (configures toolchain and presets) 【8f7663†L1-L41】
+- `cmake --build --preset linux-gcc-debug --target engine_rendering_tests` 【5466e1†L1-L20】
+- `ctest --preset linux-gcc-debug -R engine_rendering_tests --output-on-failure` 【e483ae†L1-L9】
