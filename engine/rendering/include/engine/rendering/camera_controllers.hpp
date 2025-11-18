@@ -400,7 +400,7 @@ namespace engine::rendering
         const math::vec3 v2 = project_onto_sphere(curr);
 
         // Compute rotation axis and angle robustly
-        const math::vec3 axis = math::cross(v1, v2);
+        const math::vec3 axis = math::cross(v2, v1);
         const float axis_len = math::length(axis);
 
         if (axis_len < 1e-8f)
@@ -414,7 +414,7 @@ namespace engine::rendering
             }
             const math::vec3 fallback_axis = math::normalize(math::cross(v1, math::vec3{1.0f, 0.0f, 0.0f}));
             const math::Quaternion<float> delta_q = math::from_angle_axis(angle, fallback_axis);
-            rotation_ = math::normalize(delta_q * rotation_);
+            rotation_ = math::normalize(rotation_ * delta_q);
             update_camera();
             return;
         }
@@ -423,7 +423,7 @@ namespace engine::rendering
         const float angle = std::atan2(axis_len, dot);
 
         const math::Quaternion<float> delta_rotation = math::from_angle_axis(angle, axis / axis_len);
-        rotation_ = math::normalize(delta_rotation * rotation_);
+        rotation_ = math::normalize(rotation_ * delta_rotation);
 
         update_camera();
     }

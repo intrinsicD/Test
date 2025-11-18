@@ -73,6 +73,11 @@ namespace engine::math
             }
         }
 
+        ENGINE_MATH_INLINE Quaternion operator-() const noexcept
+        {
+            return Quaternion(-w, -x, -y, -z);
+        }
+
         ENGINE_MATH_INLINE Quaternion& operator+=(const Quaternion& rhs) noexcept
         {
             w += rhs.w;
