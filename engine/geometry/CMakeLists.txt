@@ -4,17 +4,14 @@ add_library(${target_name}
         src/api.cpp
         src/deform/linear_blend_skinning.cpp
         src/graph/graph.cpp
-        # src/graph/graph_io.cpp moved to engine_geometry_io
         src/properties/property_registry.cpp
         src/properties/property_handle.cpp
         src/mesh/halfedge_mesh.cpp
-        # src/mesh/halfedge_mesh_io.cpp moved to engine_geometry_io
         src/mesh/surface_mesh.cpp
         src/mesh/surface_mesh_conversion.cpp
         src/topology/surface_curvature.cpp
         src/topology/surface_topology.cpp
         src/point_cloud/point_cloud.cpp
-        # src/point_cloud/point_cloud_io.cpp moved to engine_geometry_io
         src/remesh/deviation.cpp
         src/remesh/remesh.cpp
         src/remesh/telemetry.cpp

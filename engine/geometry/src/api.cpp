@@ -55,14 +55,16 @@ namespace engine::geometry
         mesh.indices.reserve(36);
 
         // Face normals for a box
-        const std::array<math::vec3, 6> face_normals = {{
-            math::vec3{ 0.0F,  0.0F,  1.0F},  // Front (+Z)
-            math::vec3{ 0.0F,  0.0F, -1.0F},  // Back (-Z)
-            math::vec3{ 1.0F,  0.0F,  0.0F},  // Right (+X)
-            math::vec3{-1.0F,  0.0F,  0.0F},  // Left (-X)
-            math::vec3{ 0.0F,  1.0F,  0.0F},  // Top (+Y)
-            math::vec3{ 0.0F, -1.0F,  0.0F},  // Bottom (-Y)
-        }};
+        const std::array<math::vec3, 6> face_normals = {
+            {
+                math::vec3{-1.0F, 0.0F, 0.0F}, // -X
+                math::vec3{1.0F, 0.0F, 0.0F}, // +X
+                math::vec3{0.0F, -1.0F, 0.0F}, // -Y
+                math::vec3{0.0F, 1.0F, 0.0F}, // +Y
+                math::vec3{0.0F, 0.0F, -1.0F}, // -Z (bottom)
+                math::vec3{0.0F, 0.0F, 1.0F} // +Z (top)
+            }
+        };
 
         // Build mesh from AABB face quads
         std::vector<math::vec2> texture_coordinates{};
@@ -75,14 +77,16 @@ namespace engine::geometry
             std::max(extent[2], std::numeric_limits<float>::epsilon())
         };
 
-        const std::array<std::pair<int, int>, 6> face_axes{{
-            {2, 1}, // -X: u = z, v = y
-            {2, 1}, // +X
-            {0, 2}, // -Y: u = x, v = z
-            {0, 2}, // +Y
-            {0, 1}, // -Z: u = x, v = y
-            {0, 1}  // +Z
-        }};
+        const std::array<std::pair<int, int>, 6> face_axes{
+            {
+                {2, 1}, // -X: u = z, v = y
+                {2, 1}, // +X
+                {0, 2}, // -Y: u = x, v = z
+                {0, 2}, // +Y
+                {0, 1}, // -Z: u = x, v = y
+                {0, 1} // +Z
+            }
+        };
 
         for (std::size_t face_idx = 0; face_idx < face_quads.size(); ++face_idx)
         {
@@ -126,14 +130,11 @@ namespace engine::geometry
         // Create unit AABB centered at origin and reuse mesh_from_aabb()
         Aabb unit_box{
             math::vec3{-0.5F, -0.5F, -0.5F},
-            math::vec3{ 0.5F,  0.5F,  0.5F}
+            math::vec3{0.5F, 0.5F, 0.5F}
         };
 
         return mesh_from_aabb(unit_box);
     }
-
-
-
 } // namespace engine::geometry
 
 extern "C" ENGINE_GEOMETRY_API const char* engine_geometry_module_name() noexcept

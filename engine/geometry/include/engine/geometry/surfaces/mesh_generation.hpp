@@ -1,6 +1,5 @@
 #pragma once
 
-#include "engine/geometry/api.hpp"
 #include "engine/geometry/shapes.hpp"
 
 // Forward declarations

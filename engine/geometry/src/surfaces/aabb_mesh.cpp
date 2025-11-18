@@ -1,3 +1,4 @@
+#include "engine/geometry/api.hpp"
 #include "engine/geometry/surfaces/mesh_generation.hpp"
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/core/log.hpp"
