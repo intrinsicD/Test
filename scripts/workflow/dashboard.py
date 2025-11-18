@@ -387,6 +387,15 @@ def write_outputs(output_dir: Path, html_document: str, payload: Dict[str, objec
     return html_path, json_path
 
 
+def _format_repo_relative(path: Path) -> str:
+    """Return ``path`` relative to the repo when possible, otherwise absolute."""
+
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path.resolve())
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -411,9 +420,9 @@ def main() -> int:
     html_document = render_html(tasks, summary, generated_at, include_archived=args.include_archived)
     payload = build_json_payload(tasks, summary, generated_at, include_archived=args.include_archived)
     html_path, json_path = write_outputs(args.output_dir, html_document, payload)
-    relative_html = html_path.relative_to(REPO_ROOT)
-    relative_json = json_path.relative_to(REPO_ROOT)
-    print(f"Dashboard written to {relative_html} and {relative_json}")
+    html_display = _format_repo_relative(html_path)
+    json_display = _format_repo_relative(json_path)
+    print(f"Dashboard written to {html_display} and {json_display}")
     return 0
 
 
