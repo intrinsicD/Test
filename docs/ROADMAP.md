@@ -74,6 +74,7 @@ Priorities use a numeric scale (**1 = highest urgency**, **5 = lowest**). Each m
 | 1 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | Translate frame-graph work into backend command buffers and submissions. | Rendering Lead | Done |
 | 1 | [`RT-410`](../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) | Deliver stage planner and presentation loop from ADR-0008. | Runtime Lead | Done |
 | 1 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | Build modular render pipeline planner with node reflection, transient resources, and async scheduling. | Rendering Lead | Done |
+| 1 | [`RG-502`](../hybrid_workflow/backlog/archive/RG-502-command-buffer-pooling.md) | Reuse command buffers across queue submissions to cut allocation overhead and surface telemetry for demos. | Rendering Lead | Done |
 | 2 | [`TL-310`](../hybrid_workflow/backlog/archive/TL-310-editor-foundations.md) | Re-enable editor builds and integrate tooling registry with runtime. | Tools Lead | Done (editor harness + registry baseline landed; follow-up panels tracked separately) |
 | 2 | [`PM-510`](../hybrid_workflow/backlog/PM-510-weekly-integration-demos.md) | Maintain weekly cross-module GPU/runtime/tooling integration demos and update documentation/risks. | Agent Orchestrator | Active |
 | 2 | [`TL-311`](../hybrid_workflow/backlog/archive/TL-311-scene-hierarchy-panel.md) | Ship scene hierarchy diagnostics panel to surface entity graph inside editor. | Tools Lead | Done |
@@ -107,7 +108,7 @@ _Note: Bundle D tasks have P0 priority for process/coordination but run in paral
 | Backlog | Priority | Status | Notes |
 | --- | --- | --- | --- |
 | [`AI-004`](../hybrid_workflow/backlog/AI-004-kickoff-brief.md) | 0 | In Progress | Kickoff brief coordination; SPRINT-11 complete, final artefacts in progress. |
-| [`RG-502`](../hybrid_workflow/backlog/RG-502-command-buffer-pooling.md) | 1 | Ready | P1 rendering follow-up focused on command buffer pooling; scoped and unblocked after context review. |
+| [`RG-502`](../hybrid_workflow/backlog/archive/RG-502-command-buffer-pooling.md) | 1 | Done | Command buffer pooling trims idle handles and exports hit-rate telemetry for TL-312/PM-510 evidence. |
 | [`T-0120`](../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) | 1 | Done | GPU providers for OpenGL/Vulkan ship with runtime presentation integration and telemetry. |
 | [`T-0119`](../hybrid_workflow/backlog/archive/T-0119-command-encoder-integration.md) | 1 | Done | Command encoder integration is live; backends now consume encoded passes pending real resource allocation support. |
 | [`RG-450`](../hybrid_workflow/backlog/archive/RG-450-modular-render-pipeline.md) | 1 | Done | Planner ships with hot-reload coverage and telemetry exports; monitoring perf delta in PM-510 demos. |
