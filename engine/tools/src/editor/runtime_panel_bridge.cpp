@@ -155,6 +155,13 @@ namespace engine::tools::editor
             {
                 hierarchy_panel_->synchronize_external_selection(hierarchy_hooks_.selection_provider());
             }
+            if (hierarchy_hooks_.selection_engine)
+            {
+                hierarchy_panel_->bind_selection_engine(
+                    hierarchy_hooks_.selection_engine,
+                    hierarchy_hooks_.selection_source
+                );
+            }
 
             hierarchy_handle_ = register_scene_hierarchy_panel(
                 *registry_,

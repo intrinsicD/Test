@@ -9,6 +9,7 @@
 
 #include <entt/entt.hpp>
 
+#include "engine/scene/selection/selection_engine.hpp"
 #include "engine/scene/validation.hpp"
 #include "engine/tools/imgui/panel_registry.hpp"
 
@@ -24,6 +25,8 @@ namespace engine::tools::imgui
 
 namespace engine::tools::editor
 {
+    namespace selection = engine::scene::selection;
+
     /// Lightweight model that exposes accessors for traversing a scene hierarchy.
     class HierarchyPanelModel
     {
@@ -57,12 +60,16 @@ namespace engine::tools::editor
         using SelectionCallback = std::function<void(entt::entity)>;
 
         SceneHierarchyPanel();
+        ~SceneHierarchyPanel();
         explicit SceneHierarchyPanel(HierarchyPanelModel model);
 
         void set_scene(scene::Scene* scene) noexcept;
         void synchronize_external_selection(entt::entity entity) noexcept;
         void set_selection(entt::entity entity) noexcept;
         void set_selection_callback(SelectionCallback callback);
+        void bind_selection_engine(selection::SelectionEngine* engine,
+                                   selection::SelectionSource source = selection::SelectionSource::Cursor);
+        void unbind_selection_engine();
 
         void render(const imgui::PanelRenderContext& context);
 
@@ -72,6 +79,7 @@ namespace engine::tools::editor
         [[nodiscard]] const HierarchyPanelModel& model() const noexcept;
 
     private:
+        void release_selection_listener() noexcept;
         [[nodiscard]] bool has_scene() const noexcept;
         [[nodiscard]] std::string format_entity_label(entt::entity entity) const;
         void render_roots();
@@ -88,6 +96,10 @@ namespace engine::tools::editor
         std::unordered_map<entt::entity, std::size_t> entity_issue_counts_{};
         std::unordered_set<entt::entity> pending_selection_chain_{};
         bool validation_dirty_{true};
+        selection::SelectionEngine* selection_engine_{nullptr};
+        selection::SelectionEngine::ListenerId selection_listener_id_{0};
+        selection::SelectionSource selection_source_{selection::SelectionSource::Cursor};
+        bool suppress_engine_notifications_{false};
     };
 
     [[nodiscard]] imgui::PanelRegistry::RegistrationHandle register_scene_hierarchy_panel(

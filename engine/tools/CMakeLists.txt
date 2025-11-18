@@ -27,8 +27,10 @@ target_compile_definitions(${target_name}
 
 target_link_libraries(${target_name}
         PUBLIC
+        engine_scene
         engine_core
         engine_runtime
+        engine_geometry
         imgui::imgui
         spdlog::spdlog_header_only
 )

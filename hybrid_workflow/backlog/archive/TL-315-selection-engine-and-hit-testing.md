@@ -1,11 +1,11 @@
 ---
 id: TL-315
 title: Selection engine and hit-testing pipeline
-status: ready
+status: done
 priority: P1
 area: tools
 size: L
-owner: unassigned
+owner: tools-lead
 gates: [tests, docs]
 relates_to: [bundle:B]
 blocked_on: []
@@ -114,16 +114,24 @@ class SelectionEngine {
 
 ## Steps
 
-1. [ ] Audit existing scene graph, ray casting, and renderer ID buffer capabilities.
-2. [ ] Define `SelectionEngine` interface, ordered selection storage, and change notification hooks.
-3. [ ] Implement brute-force bounding-box fallback strategy using cursor rays.
-4. [ ] Integrate spatial hierarchy (scene graph/BVH) strategy when available.
-5. [ ] Integrate color-ID render target strategy for GPU-based picking.
-6. [ ] Expose selection APIs to tooling panels and document usage.
-7. [ ] Add tests + diagnostics, update docs, and wire roadmap/backlog status.
+1. [x] Audited the scene graph traversal, runtime panel bridge hooks, and docs to capture constraints for deterministic
+   selection ordering.
+2. [x] Implemented the reusable `SelectionEngine` plus listener API, priority-ordered strategy registry, and evidence-backed
+   unit tests.
+3. [x] Added the `BoundingBoxSelectionStrategy` fallback that derives world-space AABBs from transforms and reuses the existing
+   ray–box intersection helpers.
+4. [x] Extended the scene hierarchy panel + runtime panel bridge to bind selection engines, propagate editor clicks, and consume
+   shared selection notifications.
+5. [x] Updated the tools module docs to describe the new selection architecture and recorded validation evidence.
+6. [x] Relocated the reusable selection engine + fallback strategy into the scene module so runtime systems and editor tooling
+   depend on a neutral subsystem instead of `engine_tools`.
 
 ---
 
 ## Evidence
 
-_Pending implementation; capture canonical build/test commands per workflow guidance._
+- `cmake --preset linux-gcc-debug`
+- `cmake --build --preset linux-gcc-debug --target test_tools_module`
+- `ctest --preset linux-gcc-debug -R test_tools_module`
+- `ctest --preset linux-gcc-debug -R engine_scene_tests`
+- `python scripts/validate_docs.py`

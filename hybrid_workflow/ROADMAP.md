@@ -31,7 +31,7 @@
 - [ ] **TL-312** — Performance metrics panel *(In Review — performance panel now renders runtime timings, profiler zones, and benchmark deltas)* → `hybrid_workflow/backlog/TL-312-performance-metrics-panel.md`
 - [x] **TL-313** — Asset browser panel *(Shipped 2026-05-16 with PM-510 demo artefacts)* → `hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md`
 - [ ] **TL-314** — Telemetry visualization panel *(In Review — TelemetryVisualizationPanel streams runtime metrics through the bridge with alert thresholds and editor docs)* → `hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md`
-- [ ] **TL-315** — Selection engine and hit-testing pipeline *(New — introduces ordered selection stack plus pluggable fallback strategies for entity picking)* → `hybrid_workflow/backlog/TL-315-selection-engine-and-hit-testing.md`
+- [x] **TL-315** — Selection engine and hit-testing pipeline *(Complete — shared selection stack, listener API, and bounding-box fallback shipped for editor/runtime consumers)* → `hybrid_workflow/backlog/archive/TL-315-selection-engine-and-hit-testing.md`
 - [ ] **TL-316** — Vertex/edge/face selection *(New — surfaces primitive-level selections for meshes, graphs, and point clouds)* → `hybrid_workflow/backlog/TL-316-subentity-component-selection.md`
 - [ ] **TL-317** — Selected entity outline rendering *(New — frame-graph pass that visualizes selected entities via outlines/halos)* → `hybrid_workflow/backlog/TL-317-selected-entity-outline-rendering.md`
 

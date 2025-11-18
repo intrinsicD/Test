@@ -27,6 +27,8 @@ namespace engine::scene::validation
 
 namespace engine::tools::editor
 {
+    namespace selection = engine::scene::selection;
+
     /// Bridge that registers runtime-driven Dear ImGui panels with the shared panel registry.
     class RuntimePanelBridge
     {
@@ -54,6 +56,8 @@ namespace engine::tools::editor
             SceneProvider scene_provider;
             HierarchySelectionProvider selection_provider;
             HierarchySelectionCallback selection_callback;
+            selection::SelectionEngine* selection_engine;
+            selection::SelectionSource selection_source;
         };
 
         struct AssetPanelHooks

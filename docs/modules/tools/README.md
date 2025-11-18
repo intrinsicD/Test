@@ -13,6 +13,9 @@ The tools module provides editor utilities, profiling tools, pipeline automation
 - Execute the performance metrics panel and diagnostics overlays captured in [`TL-312`](../../../hybrid_workflow/backlog/TL-312-performance-metrics-panel.md), [`TL-313`](../../../hybrid_workflow/backlog/archive/TL-313-asset-browser-panel.md), and [`TL-314`](../../../hybrid_workflow/backlog/TL-314-telemetry-visualization-panel.md) on top of the TL-310 foundation; TL-312 and TL-314 implementations are now in review pending acceptance of the editor panels.
 - Implement the panel registry, runtime harness bridge, and ImGui reuse strategy from [`ADR-0008`](../../specs/ADR_0008_RUNTIME_MAIN_LOOP_AND_TOOLING.md).
 - Validate editor flows against GPU-enabled runtime now that [`T-0120`](../../../hybrid_workflow/backlog/archive/T-0120-gpu-resource-provider.md) shipped, and integrate the archived [`RT-410`](../../../hybrid_workflow/backlog/archive/RT-410-runtime-stage-planner.md) synchronisation hooks so tooling telemetry stays aligned with runtime submissions.
+- Drive the shared selection engine across runtime/editor tooling. [`TL-315`](../../../hybrid_workflow/backlog/archive/TL-315-selection-engine-and-hit-testing.md)
+  landed the ordered selection stack, change notifications, and bounding-box hit-testing fallback that future TL-316/TL-317
+  follow-ups will extend with primitive-level selections and overlay rendering.
 
 ## Telemetry Viewer CLI
 
@@ -81,6 +84,21 @@ ImGui::End();
 
 tools::imgui::end_frame();
 ```
+
+## Selection Engine & Hit Testing
+
+[`SelectionEngine`](../../../engine/scene/include/engine/scene/selection/selection_engine.hpp) now lives in the **scene**
+module so runtime systems and editor tooling share the same selection primitives. Strategies implement
+`SelectionStrategy::try_pick` and register with explicit priorities, letting GPU color picking preempt bounding-box fallbacks
+while marquee/scripted selections still push events directly into the stack. The engine deduplicates entities by default,
+exposes `ordered_selection()` for tooling overlays, and notifies listeners whenever a new selection is committed.
+
+The initial [`BoundingBoxSelectionStrategy`](../../../engine/scene/include/engine/scene/selection/bounding_box_strategy.hpp)
+implements the TL-315 fallback path. It iterates world transforms, derives a conservative axis-aligned bounding box per entity,
+and resolves hits via the existing ray–box intersection helpers. Integrations can inject a `BoundsProvider` when higher-fidelity
+data exists (BVHs, GPU ID buffers, etc.), while `SelectionContext` packages the active `scene::Scene` pointer and cursor ray so
+strategies share projection logic. The `SceneHierarchyPanel` and `RuntimePanelBridge` bind directly to the selection engine so
+editor clicks, runtime hit tests, and scripted selections all reuse the same ordered stack and change notifications.
 
 ## Experiment Sandbox UI
 

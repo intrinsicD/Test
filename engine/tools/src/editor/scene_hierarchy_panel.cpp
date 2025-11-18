@@ -1,5 +1,6 @@
 #include "engine/tools/editor/scene_hierarchy_panel.hpp"
 
+#include "engine/math/vector.hpp"
 #include "engine/scene/components/hierarchy.hpp"
 #include "engine/scene/components/name.hpp"
 #include "engine/scene/scene.hpp"
@@ -141,6 +142,11 @@ namespace engine::tools::editor
 
     SceneHierarchyPanel::SceneHierarchyPanel() = default;
 
+    SceneHierarchyPanel::~SceneHierarchyPanel()
+    {
+        unbind_selection_engine();
+    }
+
     SceneHierarchyPanel::SceneHierarchyPanel(HierarchyPanelModel model)
         : model_{std::move(model)}
     {
@@ -180,6 +186,16 @@ namespace engine::tools::editor
             ensure_selection_visible(updated);
         }
 
+        if (selection_engine_ && !suppress_engine_notifications_ && updated != entt::null)
+        {
+            selection::SelectionEvent event{};
+            event.hit.entity = updated;
+            event.hit.position = math::vec3{0.0F, 0.0F, 0.0F};
+            event.hit.distance = 0.0F;
+            event.source = selection_source_;
+            selection_engine_->push_selection(event);
+        }
+
         if (selection_callback_ && updated != previous)
         {
             selection_callback_(updated);
@@ -189,6 +205,48 @@ namespace engine::tools::editor
     void SceneHierarchyPanel::set_selection_callback(SelectionCallback callback)
     {
         selection_callback_ = std::move(callback);
+    }
+
+    void SceneHierarchyPanel::bind_selection_engine(selection::SelectionEngine* engine, selection::SelectionSource source)
+    {
+        if (selection_engine_ == engine && selection_source_ == source)
+        {
+            return;
+        }
+
+        unbind_selection_engine();
+
+        selection_engine_ = engine;
+        selection_source_ = source;
+        if (selection_engine_ == nullptr)
+        {
+            return;
+        }
+
+        selection_listener_id_ = selection_engine_->add_listener([this](const selection::SelectionEvent& event) {
+            if (!event.hit.valid())
+            {
+                return;
+            }
+
+            suppress_engine_notifications_ = true;
+            synchronize_external_selection(event.hit.entity);
+            suppress_engine_notifications_ = false;
+        });
+
+        const auto history = selection_engine_->ordered_selection();
+        if (!history.empty())
+        {
+            suppress_engine_notifications_ = true;
+            synchronize_external_selection(history.back().hit.entity);
+            suppress_engine_notifications_ = false;
+        }
+    }
+
+    void SceneHierarchyPanel::unbind_selection_engine()
+    {
+        release_selection_listener();
+        selection_engine_ = nullptr;
     }
 
     HierarchyPanelModel& SceneHierarchyPanel::model() noexcept
@@ -461,6 +519,15 @@ namespace engine::tools::editor
         std::ostringstream stream;
         stream << "Entity " << static_cast<std::underlying_type_t<entt::entity>>(entity);
         return stream.str();
+    }
+
+    void SceneHierarchyPanel::release_selection_listener() noexcept
+    {
+        if (selection_engine_ != nullptr && selection_listener_id_ != 0)
+        {
+            selection_engine_->remove_listener(selection_listener_id_);
+        }
+        selection_listener_id_ = 0;
     }
 
     imgui::PanelRegistry::RegistrationHandle register_scene_hierarchy_panel(
