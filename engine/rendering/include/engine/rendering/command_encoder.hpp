@@ -25,6 +25,9 @@ namespace engine::rendering
         engine::math::mat4 view_matrix{engine::math::identity_matrix<float, 4>()};
         engine::math::mat4 projection_matrix{engine::math::identity_matrix<float, 4>()};
         engine::math::vec3 camera_position{0.0F, 0.0F, 0.0F};
+        bool has_color_override{false};
+        engine::math::vec3 color_override{1.0F, 1.0F, 1.0F};
+        float alpha_override{1.0F};
     };
 
     /// High-level compute dispatch request emitted by render or compute passes.

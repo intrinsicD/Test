@@ -44,6 +44,7 @@
 #include "engine/rendering/camera_controllers.hpp"
 #include "engine/rendering/components.hpp"
 #include "engine/rendering/pipeline/research_baseline.hpp"
+#include "engine/rendering/selection_outline_renderer.hpp"
 #include "engine/runtime/api.hpp"
 #include "engine/runtime/application.hpp"
 #include "engine/scene/components/hierarchy.hpp"
@@ -254,14 +255,15 @@ namespace
         {
             ENGINE_INFO("=== Initializing Geometry Viewer ===");
 
+#if ENGINE_ENABLE_RENDERING
+            setup_selection();
+#endif
             setup_backend();
             setup_camera();
             setup_procedural_assets();
             setup_scene();
 
 #if ENGINE_ENABLE_RENDERING
-            setup_selection();
-
             if (const auto* mesh = mesh_storage_->find(kProceduralCubeId))
             {
                 focus_camera_on_bounds(mesh->bounds);
@@ -353,6 +355,8 @@ namespace
             options.width = window_extent_.width;
             options.height = window_extent_.height;
             baseline_resources_ = engine::rendering::configure_research_baseline(backend_->frame_graph(), options);
+            outline_renderer_.add_pass(
+                backend_->frame_graph(), baseline_resources_.lighting_output, baseline_resources_.depth);
             backend_->frame_graph().compile();
             register_default_material();
 #endif
@@ -414,6 +418,7 @@ namespace
                 return resolve_entity_bounds(entity);
             });
             selection_engine_.register_strategy(std::move(strategy), 0);
+            outline_renderer_.set_selection_engine(&selection_engine_);
         }
 #endif
 
@@ -1332,6 +1337,126 @@ namespace
                 }
             }
 
+            ImGui::Separator();
+            ImGui::TextUnformatted("Outline Visualization");
+            bool outlines_enabled = outline_renderer_.enabled();
+            if (ImGui::Checkbox("Enable Selection Outlines", &outlines_enabled))
+            {
+                outline_renderer_.set_enabled(outlines_enabled);
+            }
+
+            auto& outline_config = outline_renderer_.config();
+            float outline_color[3] = {
+                outline_config.style.color[0],
+                outline_config.style.color[1],
+                outline_config.style.color[2],
+            };
+            if (ImGui::ColorEdit3("Outline Color", outline_color))
+            {
+                outline_config.style.color = engine::math::vec3{
+                    outline_color[0], outline_color[1], outline_color[2]};
+            }
+            ImGui::SliderFloat("Outline Alpha", &outline_config.style.alpha, 0.1f, 1.0f);
+            ImGui::SliderFloat("Outline Thickness (px)", &outline_config.style.thickness, 1.0f, 12.0f);
+
+            const char* thickness_labels[] = {"Screen", "World", "Depth", "Hybrid"};
+            int thickness_mode = static_cast<int>(outline_config.thickness_mode);
+            if (ImGui::Combo("Thickness Mode", &thickness_mode, thickness_labels, IM_ARRAYSIZE(thickness_labels)))
+            {
+                outline_config.thickness_mode =
+                    static_cast<engine::scene::selection::visualization::ThicknessMode>(thickness_mode);
+            }
+
+            using engine::scene::selection::visualization::ThicknessMode;
+            if (outline_config.thickness_mode == ThicknessMode::WorldSpaceUniform)
+            {
+                ImGui::SliderFloat("World Thickness (m)", &outline_config.world_space_thickness, 0.001f, 0.5f);
+            }
+            if (outline_config.thickness_mode == ThicknessMode::DepthWeighted
+                || outline_config.thickness_mode == ThicknessMode::HybridAdaptive)
+            {
+                ImGui::SliderFloat("Depth Weight", &outline_config.depth_weight_factor, 0.001f, 0.1f);
+            }
+            if (outline_config.thickness_mode == ThicknessMode::HybridAdaptive)
+            {
+                ImGui::SliderFloat("Near Distance", &outline_config.near_distance, 1.0f, 50.0f);
+                ImGui::SliderFloat("Far Distance", &outline_config.far_distance, 10.0f, 200.0f);
+            }
+
+            const char* multi_labels[] = {"Merged", "Distinct", "Color Coded", "Priority", "Grouped"};
+            int multi_mode = static_cast<int>(outline_config.multi_selection_mode);
+            if (ImGui::Combo("Color Strategy", &multi_mode, multi_labels, IM_ARRAYSIZE(multi_labels)))
+            {
+                outline_config.multi_selection_mode =
+                    static_cast<engine::scene::selection::visualization::MultiSelectionMode>(multi_mode);
+            }
+
+            const char* occlusion_labels[] = {"Disabled", "Hidden", "Faded", "X-Ray", "Pulse"};
+            int occlusion_mode = static_cast<int>(outline_config.occlusion_mode);
+            if (ImGui::Combo("Occlusion Mode", &occlusion_mode, occlusion_labels, IM_ARRAYSIZE(occlusion_labels)))
+            {
+                outline_config.occlusion_mode =
+                    static_cast<engine::scene::selection::visualization::OcclusionMode>(occlusion_mode);
+            }
+            if (outline_config.occlusion_mode
+                != engine::scene::selection::visualization::OcclusionMode::Disabled)
+            {
+                ImGui::SliderFloat("Occluded Alpha", &outline_config.occluded_style.alpha, 0.0f, 1.0f);
+                float occluded_color[3] = {
+                    outline_config.occluded_style.color[0],
+                    outline_config.occluded_style.color[1],
+                    outline_config.occluded_style.color[2],
+                };
+                if (ImGui::ColorEdit3("Occluded Color", occluded_color))
+                {
+                    outline_config.occluded_style.color = engine::math::vec3{
+                        occluded_color[0], occluded_color[1], occluded_color[2]};
+                }
+            }
+
+            const char* quality_labels[] = {"Fast", "Balanced", "High", "Ultra"};
+            int quality = static_cast<int>(outline_config.quality);
+            if (ImGui::Combo("Outline Quality", &quality, quality_labels, IM_ARRAYSIZE(quality_labels)))
+            {
+                outline_config.quality =
+                    static_cast<engine::scene::selection::visualization::OutlineQuality>(quality);
+            }
+
+            std::string current_strategy_label;
+            if (!outline_renderer_.strategy_override().empty())
+            {
+                current_strategy_label = outline_renderer_.strategy_override();
+            }
+            else if (!outline_renderer_.strategy_name().empty())
+            {
+                current_strategy_label = std::string{outline_renderer_.strategy_name()};
+            }
+            else
+            {
+                current_strategy_label = "Auto (quality-based)";
+            }
+
+            if (ImGui::BeginCombo("Outline Strategy", current_strategy_label.c_str()))
+            {
+                const bool auto_selected = outline_renderer_.strategy_override().empty();
+                if (ImGui::Selectable("Auto (quality-based)", auto_selected))
+                {
+                    outline_renderer_.set_strategy_override({});
+                }
+
+                for (const auto& strategy_name : engine::rendering::SelectionOutlineRenderer::available_strategies())
+                {
+                    const bool selected = outline_renderer_.strategy_override() == strategy_name;
+                    if (ImGui::Selectable(strategy_name.c_str(), selected))
+                    {
+                        outline_renderer_.set_strategy_override(strategy_name);
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::TextDisabled("Changes apply immediately; outlines are rendered on top of the baseline frame graph.");
+
             ImGui::End();
 #endif
         }
@@ -1658,6 +1783,7 @@ namespace
         float camera_far_plane_{CAMERA_FAR_PLANE};
         std::unordered_map<entt::entity, engine::geometry::Aabb> entity_local_bounds_{};
         engine::scene::selection::SelectionEngine selection_engine_{};
+        engine::rendering::SelectionOutlineRenderer outline_renderer_{};
         engine::tools::imgui::PanelRegistry panel_registry_{};
         std::unique_ptr<engine::tools::editor::RuntimePanelBridge> panel_bridge_{};
         bool panels_visible_{true};

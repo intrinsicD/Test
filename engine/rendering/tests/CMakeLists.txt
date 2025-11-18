@@ -14,6 +14,7 @@ set(ENGINE_RENDERING_TEST_SOURCES
         test_opengl_runtime_adapter.cpp
         test_opengl_render_resource_provider.cpp
         test_opengl_resource_provider.cpp
+        test_selection_outline_renderer.cpp
         test_research_baseline.cpp
         test_backend_adapters.cpp
         test_backend_validation.cpp

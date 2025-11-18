@@ -1,5 +1,6 @@
 #include "engine/rendering/backend/opengl/immediate_command_stream.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <string_view>
@@ -572,9 +573,18 @@ namespace engine::rendering::backend::opengl
 
         if (object_color_uniform_location_ >= 0 && glad_glUniform3f != nullptr)
         {
-            // RED color for debugging
-            glad_glUniform3f(object_color_uniform_location_, 1.0F, 0.0F, 0.0F);
-            ENGINE_INFO("Drawing with red color, model matrix translation: ({}, {}, {})",
+            engine::math::vec3 color{1.0F, 0.0F, 0.0F};
+            float alpha = 1.0F;
+            if (command.has_color_override)
+            {
+                color = command.color_override;
+                alpha = command.alpha_override;
+            }
+            alpha = std::clamp(alpha, 0.0F, 1.0F);
+            const engine::math::vec3 modulated = color * alpha;
+            glad_glUniform3f(object_color_uniform_location_, modulated[0], modulated[1], modulated[2]);
+            ENGINE_INFO("Drawing with color ({:.2f}, {:.2f}, {:.2f}), model translation: ({}, {}, {})",
+                       modulated[0], modulated[1], modulated[2],
                        model_matrix[0][3], model_matrix[1][3], model_matrix[2][3]);
         }
 

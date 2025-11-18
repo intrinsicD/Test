@@ -123,6 +123,31 @@ and trims idle entries once they remain unused for more than 30 frames (configur
 `set_command_buffer_retention_frames`). Instrumentation from `command_buffer_pool_metrics()` exposes hit rates, pooled handle
 counts, and trimmed totals so TL-312/TL-314 overlays can chart allocator health alongside PM-510 captures.
 
+### Selection Outline Passes
+
+[`SelectionOutlineRenderer`](../../../engine/rendering/include/engine/rendering/selection_outline_renderer.hpp) wires the
+scene-selection stack into the frame-graph by installing a dedicated `Selection.Outline` post-process pass. The renderer owns an
+[`OutlineConfig`](../../../engine/scene/include/engine/scene/selection/visualization/outline_config.hpp) and now brokers work to
+pluggable [`SelectionOutlineStrategy`](../../../engine/rendering/include/engine/rendering/selection_outline_strategy.hpp)
+implementations. Strategies are created via
+[`SelectionOutlineStrategyFactory`](../../../engine/rendering/include/engine/rendering/selection_outline_strategy.hpp) based on
+`OutlineQuality` (JumpFlood for balanced/high, EdgeDetection for fast/budget modes) or an explicit override from tooling. Each
+strategy samples the active `selection::SelectionEngine`, resolves the selected entities' `RenderGeometry`, and issues
+inflated halo draws or screen-space passes according to the configured `ThicknessMode`, occlusion policy, and gradient controls.
+The architecture keeps call sites stable while enabling future JFA, stencil, or compute-driven outlines to slot in without
+touching the viewer/runtime glue.
+
+```
+engine::rendering::SelectionOutlineRenderer outlines;
+outlines.set_selection_engine(&selection_engine);
+outlines.add_pass(graph, lighting_output, depth);
+graph.compile();
+```
+
+Geometry Viewer exposes the config through its Selection Inspector panel so PM-510 demos can toggle outlines, occlusion
+treatments, gradient modes, quality, and the active strategy (auto or explicit). Because the renderer centralises presets, tools
+and runtime passes automatically inherit upgrades as more strategies land.
+
 ### Resource Barriers
 
 The frame graph automatically inserts barriers:
