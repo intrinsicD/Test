@@ -1,8 +1,10 @@
 #include "engine/rendering/backend/opengl/render_resource_provider.hpp"
 
+#include <mutex>
 #include <span>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 #if ENGINE_RENDERING_HAS_GLAD
 #    include <glad/gl.h>
@@ -10,12 +12,15 @@
 
 #include "engine/geometry/api.hpp"
 #include "engine/core/log.hpp"
+#include "engine/core/threading/io_thread_pool.hpp"
 #include "engine/geometry/point_cloud/point_cloud.hpp"
 
 namespace engine::rendering::backend::opengl
 {
     namespace
     {
+        constexpr std::size_t kDefaultMaxAsyncMeshUploads = 16U;
+
         [[nodiscard]] bool identifier_empty(std::string_view id) noexcept
         {
             return id.empty();
@@ -37,10 +42,144 @@ namespace engine::rendering::backend::opengl
         }
     } // namespace
 
+    class OpenGLRenderResourceProvider::AsyncMeshLoader
+    {
+    public:
+        AsyncMeshLoader()
+            : pool_(&core::threading::IoThreadPool::instance())
+            , state_(std::make_shared<SharedState>())
+        {
+            state_->max_pending = kDefaultMaxAsyncMeshUploads;
+        }
+
+        bool schedule(const assets::MeshHandle& handle, const MeshResolver& resolver)
+        {
+            if (pool_ == nullptr)
+            {
+                return false;
+            }
+
+            const auto identifier_view = handle.id();
+            if (identifier_view.empty())
+            {
+                return true;
+            }
+            const std::string identifier{identifier_view};
+
+            {
+                std::scoped_lock lock{state_->mutex};
+                if (state_->in_flight.count(identifier) != 0U
+                    || state_->completed_pending.count(identifier) != 0U)
+                {
+                    return true;
+                }
+
+                const auto outstanding = state_->in_flight.size() + state_->completed_pending.size();
+                if (outstanding >= state_->max_pending)
+                {
+                    return false;
+                }
+
+                state_->in_flight.insert(identifier);
+            }
+
+            auto state = state_;
+            auto task = [state, handle, resolver, identifier]()
+            {
+                AsyncResult result{};
+                result.handle = handle;
+                try
+                {
+                    result.mesh = resolver(handle);
+                    if (!result.mesh.has_value())
+                    {
+                        result.error = "resolver returned empty mesh";
+                    }
+                }
+                catch (const std::exception& ex)
+                {
+                    result.error = ex.what();
+                }
+                catch (...)
+                {
+                    result.error = "unknown mesh resolver failure";
+                }
+
+                {
+                    std::scoped_lock lock{state->mutex};
+                    state->completed.emplace_back(std::move(result));
+                    state->completed_pending.insert(identifier);
+                    state->in_flight.erase(identifier);
+                }
+            };
+
+            if (!pool_->enqueue(core::threading::IoTaskPriority::Normal, std::move(task)))
+            {
+                std::scoped_lock lock{state_->mutex};
+                state_->in_flight.erase(identifier);
+                return false;
+            }
+
+            return true;
+        }
+
+        template <typename Callback>
+        void drain(Callback&& callback)
+        {
+            std::vector<AsyncResult> ready;
+            std::vector<std::string> identifiers;
+            {
+                std::scoped_lock lock{state_->mutex};
+                ready.swap(state_->completed);
+                identifiers.reserve(ready.size());
+                for (const auto& result : ready)
+                {
+                    identifiers.emplace_back(result.handle.id());
+                }
+                for (const auto& identifier : identifiers)
+                {
+                    state_->completed_pending.erase(identifier);
+                }
+            }
+
+            for (auto& result : ready)
+            {
+                callback(result.handle, std::move(result.mesh), result.error);
+            }
+        }
+
+        [[nodiscard]] std::size_t pending() const noexcept
+        {
+            std::scoped_lock lock{state_->mutex};
+            return state_->in_flight.size() + state_->completed_pending.size();
+        }
+
+    private:
+        struct AsyncResult
+        {
+            assets::MeshHandle handle{};
+            std::optional<geometry::SurfaceMesh> mesh{};
+            std::string error;
+        };
+
+        struct SharedState
+        {
+            std::size_t max_pending{0};
+            std::mutex mutex;
+            std::vector<AsyncResult> completed;
+            std::unordered_set<std::string> in_flight;
+            std::unordered_set<std::string> completed_pending;
+        };
+
+        core::threading::IoThreadPool* pool_;
+        std::shared_ptr<SharedState> state_;
+    };
+
     OpenGLRenderResourceProvider::OpenGLRenderResourceProvider(MeshResolver mesh_resolver,
                                                                PointCloudResolver point_cloud_resolver)
         : mesh_resolver_(std::move(mesh_resolver))
         , point_cloud_resolver_(std::move(point_cloud_resolver))
+        , async_mesh_loader_(std::make_unique<AsyncMeshLoader>())
     {
         if (!mesh_resolver_)
         {
@@ -68,7 +207,50 @@ namespace engine::rendering::backend::opengl
         {
             return;
         }
+
+        const auto& id = handle.id();
+        if (identifier_empty(id))
+        {
+            return;
+        }
+
+        if (meshes_.find(std::string{id}) != meshes_.end())
+        {
+            return;
+        }
+
+        if (schedule_mesh_async(handle))
+        {
+            return;
+        }
+
         ensure_mesh_loaded(handle);
+    }
+
+    void OpenGLRenderResourceProvider::require_mesh_async(const assets::MeshHandle& handle)
+    {
+        if (handle.empty())
+        {
+            return;
+        }
+
+        const auto& id = handle.id();
+        if (identifier_empty(id))
+        {
+            return;
+        }
+
+        if (meshes_.find(std::string{id}) != meshes_.end())
+        {
+            return;
+        }
+
+        if (!schedule_mesh_async(handle))
+        {
+            ENGINE_WARN(
+                "Async mesh streaming could not schedule '{}'; queue disabled or saturated",
+                id);
+        }
     }
 
     void OpenGLRenderResourceProvider::require_graph(const assets::GraphHandle& handle)
@@ -93,6 +275,55 @@ namespace engine::rendering::backend::opengl
     void OpenGLRenderResourceProvider::require_shader(const assets::ShaderHandle& handle)
     {
         record_handle(shaders_, handle);
+    }
+
+    void OpenGLRenderResourceProvider::flush_pending_uploads()
+    {
+        if (!async_mesh_loader_)
+        {
+            return;
+        }
+
+        async_mesh_loader_->drain(
+            [this](const assets::MeshHandle& handle,
+                   std::optional<geometry::SurfaceMesh> mesh,
+                   const std::string& error)
+            {
+                const auto id_view = handle.id();
+                if (identifier_empty(id_view))
+                {
+                    return;
+                }
+
+                const std::string id{id_view};
+                if (!mesh.has_value())
+                {
+                    ENGINE_WARN("Async mesh streaming failed for '{}': {}", id, error);
+                    return;
+                }
+
+                if (meshes_.find(id) != meshes_.end())
+                {
+                    return;
+                }
+
+                auto surface = prepare_surface_mesh(std::move(*mesh));
+                MeshRecord record{};
+                record.handle = handle;
+                record.positions = std::move(surface.positions);
+                record.normals = std::move(surface.normals);
+                record.texture_coordinates = std::move(surface.texture_coordinates);
+                record.indices = std::move(surface.indices);
+                record.bounds = surface.bounds;
+
+                upload_mesh_to_gpu(record);
+                meshes_.insert_or_assign(id, std::move(record));
+            });
+    }
+
+    std::size_t OpenGLRenderResourceProvider::pending_async_uploads() const noexcept
+    {
+        return async_mesh_loader_ ? async_mesh_loader_->pending() : 0U;
     }
 
     const OpenGLRenderResourceProvider::MeshRecord*
@@ -146,6 +377,27 @@ namespace engine::rendering::backend::opengl
     std::size_t OpenGLRenderResourceProvider::loaded_point_cloud_count() const noexcept
     {
         return point_clouds_.size();
+    }
+
+    bool OpenGLRenderResourceProvider::schedule_mesh_async(const assets::MeshHandle& handle)
+    {
+        if (!async_mesh_loader_)
+        {
+            return false;
+        }
+
+        const auto& id = handle.id();
+        if (identifier_empty(id))
+        {
+            return false;
+        }
+
+        if (meshes_.find(std::string{id}) != meshes_.end())
+        {
+            return true;
+        }
+
+        return async_mesh_loader_->schedule(handle, mesh_resolver_);
     }
 
     void OpenGLRenderResourceProvider::ensure_mesh_loaded(const assets::MeshHandle& handle)

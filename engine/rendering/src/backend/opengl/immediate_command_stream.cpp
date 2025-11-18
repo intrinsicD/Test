@@ -151,6 +151,8 @@ namespace engine::rendering::backend::opengl
             return;
         }
 
+        render_resources_->flush_pending_uploads();
+
         for (const auto& command : *current_commands_)
         {
             if (command.is_draw())

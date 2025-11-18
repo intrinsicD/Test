@@ -361,6 +361,16 @@ for (const auto& barrier : submission.begin_barriers)
   rendering::backend::opengl::OpenGLGpuScheduler scheduler(provider, &stream);
   ```
 
+- The resource provider now integrates with the global IO thread pool to stream mesh uploads off
+  the render thread. `require_mesh` attempts to enqueue asynchronous work via
+  `IoThreadPool::instance()` and falls back to synchronous uploads only when the pool is disabled or
+  saturated, eliminating multi-millisecond stalls observed in PM-510 streaming captures. Hosts can
+  prefetch explicitly with `require_mesh_async()` and should call
+  `flush_pending_uploads()`—already invoked by the immediate command stream at the start of each
+  submission—to promote completed CPU jobs to GPU vertex/index buffers. Inspect
+  `pending_async_uploads()` to wire telemetry overlays (TL-314) that track queue depth and diagnose
+  back-pressure.
+
 - For runtime hosts and samples that need a pre-wired submission stack, use
   `rendering::backend::opengl::OpenGLRuntimeSubmission`. The adapter owns the
   render resource provider, immediate command stream, GPU resource provider,
