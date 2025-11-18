@@ -1,8 +1,11 @@
 #include <cmath>
+#include <chrono>
+#include <thread>
 
 #include <gtest/gtest.h>
 
 #include "engine/rendering/backend/opengl/render_resource_provider.hpp"
+#include "engine/core/threading/io_thread_pool.hpp"
 
 #include "engine/geometry/api.hpp"
 
@@ -103,4 +106,44 @@ TEST(OpenGLRenderResourceProvider, ThrowsWhenResolverFails)
 
     EXPECT_THROW(provider.require_mesh(handle), std::runtime_error);
     EXPECT_EQ(provider.loaded_mesh_count(), 0U);
+}
+
+TEST(OpenGLRenderResourceProvider, AsyncMeshUploadFlushesSuccessfully)
+{
+    using engine::core::threading::IoThreadPool;
+    IoThreadPool::instance().configure({.worker_count = 1, .queue_capacity = 4, .enable = true});
+
+    auto resolver = [](const MeshHandle& handle) -> std::optional<SurfaceMesh>
+    {
+        EXPECT_EQ(handle.id(), "async.mesh");
+        SurfaceMesh mesh;
+        mesh.positions = {vec3{0.0F, 0.0F, 0.0F}, vec3{0.0F, 1.0F, 0.0F}, vec3{1.0F, 0.0F, 0.0F}};
+        mesh.indices = {0U, 1U, 2U};
+        return mesh;
+    };
+
+    Provider provider(resolver);
+    MeshHandle handle{std::string{"async.mesh"}};
+
+    provider.require_mesh_async(handle);
+
+    bool uploaded = false;
+    for (int attempt = 0; attempt < 50; ++attempt)
+    {
+        provider.flush_pending_uploads();
+        if (provider.mesh(handle) != nullptr)
+        {
+            uploaded = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    EXPECT_TRUE(uploaded);
+    const auto* record = provider.mesh(handle);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(provider.loaded_mesh_count(), 1U);
+    EXPECT_EQ(provider.pending_async_uploads(), 0U);
+
+    IoThreadPool::instance().shutdown();
 }

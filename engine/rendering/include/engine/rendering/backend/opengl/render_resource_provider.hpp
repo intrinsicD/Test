@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -58,10 +59,14 @@ namespace engine::rendering::backend::opengl
         ~OpenGLRenderResourceProvider() override;
 
         void require_mesh(const assets::MeshHandle& handle) override;
+        void require_mesh_async(const assets::MeshHandle& handle);
         void require_graph(const assets::GraphHandle& handle) override;
         void require_point_cloud(const assets::PointCloudHandle& handle) override;
         void require_material(const assets::MaterialHandle& handle) override;
         void require_shader(const assets::ShaderHandle& handle) override;
+
+        void flush_pending_uploads();
+        [[nodiscard]] std::size_t pending_async_uploads() const noexcept;
 
         [[nodiscard]] const MeshRecord* mesh(const assets::MeshHandle& handle) const noexcept;
         [[nodiscard]] std::size_t loaded_mesh_count() const noexcept;
@@ -96,7 +101,11 @@ namespace engine::rendering::backend::opengl
         std::size_t mesh_gpu_uploads_{0};
         std::size_t point_cloud_gpu_uploads_{0};
 
+        class AsyncMeshLoader;
+        std::unique_ptr<AsyncMeshLoader> async_mesh_loader_{};
+
         void ensure_mesh_loaded(const assets::MeshHandle& handle);
+        bool schedule_mesh_async(const assets::MeshHandle& handle);
         [[nodiscard]] static geometry::SurfaceMesh
         prepare_surface_mesh(geometry::SurfaceMesh mesh);
         void upload_mesh_to_gpu(MeshRecord& record);
