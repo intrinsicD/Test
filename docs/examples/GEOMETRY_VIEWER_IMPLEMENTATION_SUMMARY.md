@@ -17,6 +17,7 @@ The geometry viewer sample runs on top of `engine::runtime::Application` and exe
 | **Camera Controls** | Orbit camera driven by the unified input system (`engine::platform::input::InputState`). Mouse drag rotates, mouse wheel zooms, `Esc` quits. |
 | **Scene Management** | Uses EnTT-based scene registry with render-geometry components. Bounds-based camera focusing centers new assets immediately after load. |
 | **Diagnostics Panels** | Press `G` to open the Geometry Viewer menu, pick which Hybrid Workflow widgets stay active (scene hierarchy/asset browser are enabled by default), and tune the 0.5×–3.0× UI scale slider before the bridge renders the selected overlays via the shared `PanelRegistry`.【F:engine/tools/examples/geometry_viewer.cpp†L881-L910】【F:engine/tools/examples/geometry_viewer.cpp†L1001-L1085】 |
+| **Selection & Inspection** | Left-click picking feeds the shared `engine::scene::selection::SelectionEngine`, keeps the hierarchy panel synchronized, and exposes hit metadata (entity name, world position, distance, and source) through the in-app Selection Inspector widget.【F:engine/tools/examples/geometry_viewer.cpp†L672-L748】【F:engine/tools/examples/geometry_viewer.cpp†L1145-L1265】 |
 
 ---
 
@@ -53,6 +54,7 @@ The viewer depends on platform windowing (GLFW) and OpenGL loaders. When these l
 | Input | Behaviour |
 |-------|-----------|
 | Left Mouse Drag | Orbit around the origin using spherical coordinates. |
+| Left Mouse Click (no drag) | Select the nearest entity under the cursor, update the hierarchy panel, and review hit details inside the Selection Inspector (Widgets → Selection Inspector).【F:engine/tools/examples/geometry_viewer.cpp†L672-L748】【F:engine/tools/examples/geometry_viewer.cpp†L1080-L1109】 |
 | Mouse Scroll | Zoom in/out with clamped radius (1.0–50.0 units). |
 | `T` | Toggle visibility of the procedural cube.【F:engine/tools/examples/geometry_viewer.cpp†L624-L676】 |
 | `Delete` | Remove the most recently loaded model (LIFO).【F:engine/tools/examples/geometry_viewer.cpp†L630-L714】 |

@@ -36,6 +36,7 @@
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/io/geometry_io.hpp"
 #include "engine/math/math.hpp"
+#include "engine/math/matrix.hpp"
 #include "engine/math/transform.hpp"
 #include "engine/platform/input/input_state.hpp"
 #include "engine/rendering/backend/opengl/presentation_backend.hpp"
@@ -48,6 +49,8 @@
 #include "engine/scene/components/hierarchy.hpp"
 #include "engine/scene/components/name.hpp"
 #include "engine/scene/components/transform.hpp"
+#include "engine/scene/selection/bounding_box_strategy.hpp"
+#include "engine/scene/selection/selection_engine.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/scene/systems/transform_system.hpp"
 #if ENGINE_ENABLE_RENDERING
@@ -78,10 +81,11 @@ namespace
     constexpr float CAMERA_NEAR_PLANE = 0.1f;
     constexpr float CAMERA_FAR_PLANE = 100.0f;
     constexpr float CAMERA_ROTATE_SPEED = 0.005f;
-    constexpr float CAMERA_ZOOM_SPEED = 0.1f;
-    constexpr float MIN_GUI_SCALE = 0.5f;
-    constexpr float MAX_GUI_SCALE = 3.0f;
-    constexpr std::string_view kProceduralCubeId{"procedural_cube"};
+      constexpr float CAMERA_ZOOM_SPEED = 0.1f;
+      constexpr float MIN_GUI_SCALE = 0.5f;
+      constexpr float MAX_GUI_SCALE = 3.0f;
+      constexpr float SELECTION_DRAG_THRESHOLD_PX = 6.0f;
+      constexpr std::string_view kProceduralCubeId{"procedural_cube"};
 
     class ProceduralMeshStorage
     {
@@ -256,6 +260,8 @@ namespace
             setup_scene();
 
 #if ENGINE_ENABLE_RENDERING
+            setup_selection();
+
             if (const auto* mesh = mesh_storage_->find(kProceduralCubeId))
             {
                 focus_camera_on_bounds(mesh->bounds);
@@ -385,15 +391,31 @@ namespace
             ENGINE_INFO("setup_scene() called");
 #if ENGINE_ENABLE_RENDERING && ENGINE_ENABLE_ASSETS
             ENGINE_INFO("  ENGINE_ENABLE_RENDERING=1, ENGINE_ENABLE_ASSETS=1");
-            attach_render_geometry(std::string{kProceduralCubeId},
-                engine::rendering::components::RenderGeometry::from_mesh(
-                    engine::assets::MeshHandle{std::string{kProceduralCubeId}}, default_material_));
+            if (const auto* cube_mesh = mesh_storage_->find(kProceduralCubeId))
+            {
+                attach_render_geometry(std::string{kProceduralCubeId},
+                    engine::rendering::components::RenderGeometry::from_mesh(
+                        engine::assets::MeshHandle{std::string{kProceduralCubeId}}, default_material_),
+                    cube_mesh->bounds);
+            }
             ENGINE_INFO("  Attached cube render geometry");
 #else
             ENGINE_WARN("  ENGINE_ENABLE_RENDERING={}, ENGINE_ENABLE_ASSETS={}",
                        ENGINE_ENABLE_RENDERING, ENGINE_ENABLE_ASSETS);
 #endif
         }
+
+#if ENGINE_ENABLE_RENDERING
+        void setup_selection()
+        {
+            auto strategy = std::make_unique<engine::scene::selection::BoundingBoxSelectionStrategy>();
+            strategy->set_bounds_provider([this](engine::scene::Scene&, entt::entity entity)
+                -> std::optional<engine::geometry::Aabb> {
+                return resolve_entity_bounds(entity);
+            });
+            selection_engine_.register_strategy(std::move(strategy), 0);
+        }
+#endif
 
         void setup_camera()
         {
@@ -494,7 +516,8 @@ namespace
                 const std::string model_id = std::string{asset.descriptor.handle.id()};
                 attach_render_geometry(model_id,
                     engine::rendering::components::RenderGeometry::from_mesh(
-                        asset.descriptor.handle, default_material_));
+                        asset.descriptor.handle, default_material_),
+                    surface_mesh.bounds);
                 focus_camera_on_entity_bounds(model_id, surface_mesh.bounds);
 
                 // Track this model for deletion (if not already tracked)
@@ -529,7 +552,8 @@ namespace
                 const std::string model_id = std::string{asset.descriptor.handle.id()};
                 attach_render_geometry(model_id,
                     engine::rendering::components::RenderGeometry::from_point_cloud(
-                        asset.descriptor.handle, default_material_));
+                        asset.descriptor.handle, default_material_),
+                    local_bounds);
                 focus_camera_on_entity_bounds(model_id, local_bounds);
 
                 // Track this model for deletion (if not already tracked)
@@ -552,7 +576,8 @@ namespace
         }
 
         void attach_render_geometry(const std::string& identifier,
-            engine::rendering::components::RenderGeometry geometry)
+            engine::rendering::components::RenderGeometry geometry,
+            std::optional<engine::geometry::Aabb> local_bounds = std::nullopt)
         {
 #if ENGINE_ENABLE_RENDERING
             auto& registry = scene().registry();
@@ -575,9 +600,19 @@ namespace
 
             registry.emplace_or_replace<engine::rendering::components::RenderGeometry>(entity, std::move(geometry));
             engine::scene::systems::mark_transform_dirty(registry, entity);
+
+            if (local_bounds)
+            {
+                entity_local_bounds_[entity] = *local_bounds;
+            }
+            else
+            {
+                entity_local_bounds_.erase(entity);
+            }
 #else
             (void)identifier;
             (void)geometry;
+            (void)local_bounds;
 #endif
         }
 
@@ -684,6 +719,17 @@ namespace
 
             const bool left_mouse_down =
                 input_state.is_mouse_button_down(engine::platform::input::MouseButton::Left);
+            const bool left_mouse_pressed =
+                input_state.was_mouse_button_pressed(engine::platform::input::MouseButton::Left);
+            const bool left_mouse_released =
+                input_state.was_mouse_button_released(engine::platform::input::MouseButton::Left);
+
+            if (allow_mouse_input && left_mouse_pressed)
+            {
+                selection_click_origin_ = input_state.cursor_position();
+                selection_drag_threshold_exceeded_ = false;
+            }
+
             if (allow_mouse_input && left_mouse_down)
             {
                 const auto cursor = input_state.cursor_position();
@@ -710,10 +756,34 @@ namespace
                     was_dragging_ = true;
                     last_cursor_pos_ = normalized_cursor;
                 }
+
+                if (!selection_drag_threshold_exceeded_)
+                {
+                    const float dx = cursor.x - selection_click_origin_.x;
+                    const float dy = cursor.y - selection_click_origin_.y;
+                    const float drag_sq = dx * dx + dy * dy;
+                    if (drag_sq >= SELECTION_DRAG_THRESHOLD_PX * SELECTION_DRAG_THRESHOLD_PX)
+                    {
+                        selection_drag_threshold_exceeded_ = true;
+                    }
+                }
             }
             else
             {
                 was_dragging_ = false;
+            }
+
+            if (allow_mouse_input && left_mouse_released)
+            {
+                if (!selection_drag_threshold_exceeded_)
+                {
+                    try_select_entity_under_cursor(input_state.cursor_position());
+                }
+                selection_drag_threshold_exceeded_ = false;
+            }
+            else if (!allow_mouse_input)
+            {
+                selection_drag_threshold_exceeded_ = false;
             }
 
             if (allow_mouse_input)
@@ -747,6 +817,29 @@ namespace
 #endif
         }
 
+        void try_select_entity_under_cursor(const engine::platform::input::Vector2& cursor)
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (!opengl_supported_)
+            {
+                return;
+            }
+
+            auto ray = build_cursor_ray(cursor);
+            if (!ray)
+            {
+                return;
+            }
+
+            engine::scene::selection::SelectionContext context{};
+            context.scene = &scene();
+            context.cursor_ray = *ray;
+            (void)selection_engine_.pick(context, engine::scene::selection::SelectionSource::Cursor);
+#else
+            (void)cursor;
+#endif
+        }
+
         void toggle_cube()
         {
 #if ENGINE_ENABLE_RENDERING
@@ -758,15 +851,21 @@ namespace
             if (const auto it = render_entities_.find(cube_id); it != render_entities_.end())
             {
                 const auto entity = it->second;
-                if (cube_visible_)
-                {
-                    // Re-attach the cube geometry
-                    attach_render_geometry(cube_id,
-                        engine::rendering::components::RenderGeometry::from_mesh(
-                            engine::assets::MeshHandle{cube_id}, default_material_));
-                    ENGINE_INFO("Cube visible");
-                }
-                else
+                    if (cube_visible_)
+                    {
+                        // Re-attach the cube geometry
+                        std::optional<engine::geometry::Aabb> cube_bounds{};
+                        if (const auto* mesh = mesh_storage_->find(kProceduralCubeId))
+                        {
+                            cube_bounds = mesh->bounds;
+                        }
+                        attach_render_geometry(cube_id,
+                            engine::rendering::components::RenderGeometry::from_mesh(
+                                engine::assets::MeshHandle{cube_id}, default_material_),
+                            cube_bounds);
+                        ENGINE_INFO("Cube visible");
+                    }
+                    else
                 {
                     // Remove the render geometry component (keeps entity but makes it invisible)
                     if (registry.valid(entity) && registry.any_of<engine::rendering::components::RenderGeometry>(entity))
@@ -800,6 +899,8 @@ namespace
                 {
                     registry.destroy(entity);
                 }
+                entity_local_bounds_.erase(entity);
+                prune_selection_history(entity);
                 render_entities_.erase(it);
                 ENGINE_INFO("Deleted model: {}", model_id);
             }
@@ -812,6 +913,43 @@ namespace
                     focus_camera_on_bounds(mesh->bounds);
                 }
             }
+#endif
+        }
+
+        void prune_selection_history(entt::entity entity)
+        {
+#if ENGINE_ENABLE_RENDERING
+            const auto history = selection_engine_.ordered_selection();
+            if (history.empty())
+            {
+                return;
+            }
+
+            bool removed = false;
+            std::vector<engine::scene::selection::SelectionEvent> survivors;
+            survivors.reserve(history.size());
+            for (const auto& event : history)
+            {
+                if (event.hit.entity == entity)
+                {
+                    removed = true;
+                    continue;
+                }
+                survivors.push_back(event);
+            }
+
+            if (!removed)
+            {
+                return;
+            }
+
+            selection_engine_.clear_selection();
+            for (const auto& event : survivors)
+            {
+                selection_engine_.push_selection(event);
+            }
+#else
+            (void)entity;
 #endif
         }
 
@@ -849,6 +987,16 @@ namespace
             hierarchy_hooks.scene_provider = [this]() -> engine::scene::Scene* {
                 return &scene();
             };
+            hierarchy_hooks.selection_provider = [this]() -> entt::entity {
+                const auto selection = selection_engine_.ordered_selection();
+                if (selection.empty())
+                {
+                    return entt::null;
+                }
+                return selection.back().hit.entity;
+            };
+            hierarchy_hooks.selection_engine = &selection_engine_;
+            hierarchy_hooks.selection_source = engine::scene::selection::SelectionSource::Script;
 
             RuntimePanelBridge::AssetPanelHooks asset_hooks{};
 #    if ENGINE_ENABLE_ASSETS
@@ -886,11 +1034,12 @@ namespace
 
             ImGuiContext* previous_context = ImGui::GetCurrentContext();
             ImGui::SetCurrentContext(imgui_context_);
-            engine::tools::imgui::begin_frame();
-            render_main_menu_bar();
-            render_camera_widget();
-            render_active_widgets(delta_time);
-            engine::tools::imgui::end_frame();
+              engine::tools::imgui::begin_frame();
+              render_main_menu_bar();
+              render_camera_widget();
+              render_selection_widget();
+              render_active_widgets(delta_time);
+              engine::tools::imgui::end_frame();
             ImGui::SetCurrentContext(previous_context);
         }
 
@@ -1042,17 +1191,19 @@ namespace
                     }
                     ImGui::Separator();
 
-                    for (auto& widget : widget_toggles_)
-                    {
-                        bool visible = widget.visible;
-                        if (ImGui::MenuItem(widget.label.c_str(), nullptr, &visible))
-                        {
-                            widget.visible = visible;
-                        }
-                    }
-                }
-                ImGui::EndMenu();
-            }
+                      for (auto& widget : widget_toggles_)
+                      {
+                          bool visible = widget.visible;
+                          if (ImGui::MenuItem(widget.label.c_str(), nullptr, &visible))
+                          {
+                              widget.visible = visible;
+                          }
+                      }
+                      ImGui::Separator();
+                      ImGui::MenuItem("Selection Inspector", nullptr, &selection_widget_visible_);
+                  }
+                  ImGui::EndMenu();
+              }
 
             if (ImGui::BeginMenu("Camera"))
             {
@@ -1130,6 +1281,96 @@ namespace
 
             ImGui::End();
         }
+
+        void render_selection_widget()
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (!panels_visible_ || !selection_widget_visible_)
+            {
+                return;
+            }
+
+            bool keep_open = selection_widget_visible_;
+            ImGui::SetNextWindowSize(ImVec2(360.0f, 0.0f), ImGuiCond_FirstUseEver);
+            if (!ImGui::Begin("Selection Inspector", &keep_open))
+            {
+                ImGui::End();
+                selection_widget_visible_ = keep_open;
+                return;
+            }
+            selection_widget_visible_ = keep_open;
+
+            const auto history = selection_engine_.ordered_selection();
+            if (history.empty())
+            {
+                ImGui::TextDisabled("No entities selected.");
+            }
+            else
+            {
+                if (ImGui::Button("Clear Selection"))
+                {
+                    selection_engine_.clear_selection();
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("%zu item(s)", history.size());
+                ImGui::Separator();
+
+                for (auto it = history.rbegin(); it != history.rend(); ++it)
+                {
+                    const auto label = describe_selection(*it);
+                    ImGui::TextUnformatted(label.c_str());
+                    const auto& hit = it->hit;
+                    const auto entity_id = (hit.entity != entt::null)
+                        ? static_cast<std::uint32_t>(hit.entity)
+                        : 0U;
+                    ImGui::TextDisabled("Entity #%u • Source: %s • Distance: %.2f",
+                        entity_id,
+                        selection_source_label(it->source),
+                        hit.distance);
+                    ImGui::TextDisabled("Hit Position: (%.2f, %.2f, %.2f)", hit.position[0], hit.position[1], hit.position[2]);
+                    ImGui::Separator();
+                }
+            }
+
+            ImGui::End();
+#endif
+        }
+
+#if ENGINE_ENABLE_RENDERING
+        [[nodiscard]] std::string describe_selection(const engine::scene::selection::SelectionEvent& event) const
+        {
+            auto& registry = scene().registry();
+            if (registry.valid(event.hit.entity))
+            {
+                if (const auto* name = registry.try_get<engine::scene::components::Name>(event.hit.entity);
+                    name != nullptr && !name->value.empty())
+                {
+                    return name->value;
+                }
+            }
+
+            if (event.hit.entity != entt::null)
+            {
+                return std::string{"Entity #"} + std::to_string(static_cast<std::uint32_t>(event.hit.entity));
+            }
+
+            return std::string{"<none>"};
+        }
+
+        [[nodiscard]] const char* selection_source_label(engine::scene::selection::SelectionSource source) const noexcept
+        {
+            switch (source)
+            {
+            case engine::scene::selection::SelectionSource::Cursor:
+                return "Cursor";
+            case engine::scene::selection::SelectionSource::Marquee:
+                return "Marquee";
+            case engine::scene::selection::SelectionSource::Script:
+                return "Script";
+            }
+            return "Unknown";
+        }
+#endif
 
         void render_active_widgets(double delta_time)
         {
@@ -1250,6 +1491,66 @@ namespace
             }
         }
 
+        [[nodiscard]] std::optional<engine::geometry::Ray> build_cursor_ray(
+            const engine::platform::input::Vector2& cursor) const
+        {
+#if ENGINE_ENABLE_RENDERING
+            auto& registry = scene().registry();
+            if (!registry.valid(camera_entity_)
+                || !registry.any_of<engine::rendering::Camera>(camera_entity_))
+            {
+                return std::nullopt;
+            }
+
+            const auto& camera = registry.get<engine::rendering::Camera>(camera_entity_);
+            const auto inverse_vp = engine::math::try_inverse(camera.view_projection());
+            if (!inverse_vp)
+            {
+                return std::nullopt;
+            }
+
+            const float width = current_window_width();
+            const float height = current_window_height();
+            if (width <= std::numeric_limits<float>::epsilon() || height <= std::numeric_limits<float>::epsilon())
+            {
+                return std::nullopt;
+            }
+
+            const float ndc_x = (2.0f * cursor.x / width) - 1.0f;
+            const float ndc_y = 1.0f - (2.0f * cursor.y / height);
+            const engine::math::vec4 near_clip{ndc_x, ndc_y, -1.0f, 1.0f};
+            const engine::math::vec4 far_clip{ndc_x, ndc_y, 1.0f, 1.0f};
+            const auto inv = *inverse_vp;
+            auto near_world = inv * near_clip;
+            auto far_world = inv * far_clip;
+            if (std::abs(near_world[3]) > std::numeric_limits<float>::epsilon())
+            {
+                near_world /= near_world[3];
+            }
+            if (std::abs(far_world[3]) > std::numeric_limits<float>::epsilon())
+            {
+                far_world /= far_world[3];
+            }
+
+            engine::geometry::Ray ray{};
+            ray.origin = engine::math::vec3{near_world[0], near_world[1], near_world[2]};
+            engine::math::vec3 direction{
+                far_world[0] - ray.origin[0],
+                far_world[1] - ray.origin[1],
+                far_world[2] - ray.origin[2]
+            };
+            if (engine::math::length_squared(direction) <= std::numeric_limits<float>::epsilon())
+            {
+                return std::nullopt;
+            }
+            ray.direction = engine::math::normalize(direction);
+            return ray;
+#else
+            (void)cursor;
+            return std::nullopt;
+#endif
+        }
+
         [[nodiscard]] engine::geometry::Aabb compute_world_bounds(entt::entity entity,
             const engine::geometry::Aabb& local_bounds) const
         {
@@ -1279,6 +1580,17 @@ namespace
             return local_bounds;
 #endif
         }
+
+#if ENGINE_ENABLE_RENDERING
+        [[nodiscard]] std::optional<engine::geometry::Aabb> resolve_entity_bounds(entt::entity entity) const
+        {
+            if (const auto it = entity_local_bounds_.find(entity); it != entity_local_bounds_.end())
+            {
+                return compute_world_bounds(entity, it->second);
+            }
+            return std::nullopt;
+        }
+#endif
 
         void ensure_camera_depth_range(const engine::geometry::Aabb& bounds, float focus_distance)
         {
@@ -1344,13 +1656,8 @@ namespace
         entt::entity camera_entity_{entt::null};
         std::unique_ptr<engine::rendering::TrackballCameraController> trackball_controller_{};
         float camera_far_plane_{CAMERA_FAR_PLANE};
-#endif
-        std::unordered_map<std::string, entt::entity> render_entities_{};
-        std::vector<std::string> loaded_models_order_{}; // Track loaded models in creation order (excluding cube)
-        bool cube_visible_{true}; // Toggle state for default cube
-        engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
-        bool opengl_supported_{(ENGINE_PLATFORM_HAS_GLFW != 0) && (ENGINE_RENDERING_HAS_GLAD != 0)};
-#if ENGINE_ENABLE_RENDERING
+        std::unordered_map<entt::entity, engine::geometry::Aabb> entity_local_bounds_{};
+        engine::scene::selection::SelectionEngine selection_engine_{};
         engine::tools::imgui::PanelRegistry panel_registry_{};
         std::unique_ptr<engine::tools::editor::RuntimePanelBridge> panel_bridge_{};
         bool panels_visible_{true};
@@ -1364,7 +1671,15 @@ namespace
         std::vector<WidgetToggle> widget_toggles_{};
         float gui_scale_{2.0f};
         bool camera_widget_visible_{true};
+        bool selection_widget_visible_{true};
+        engine::platform::input::Vector2 selection_click_origin_{};
+        bool selection_drag_threshold_exceeded_{false};
 #endif
+        std::unordered_map<std::string, entt::entity> render_entities_{};
+        std::vector<std::string> loaded_models_order_{}; // Track loaded models in creation order (excluding cube)
+        bool cube_visible_{true}; // Toggle state for default cube
+        engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
+        bool opengl_supported_{(ENGINE_PLATFORM_HAS_GLFW != 0) && (ENGINE_RENDERING_HAS_GLAD != 0)};
         bool was_dragging_{false};
         engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};
         int fps_frame_count_{0};
