@@ -1,7 +1,7 @@
 ---
 id: TL-315
 title: Selection engine and hit-testing pipeline
-status: new
+status: ready
 priority: P1
 area: tools
 size: L
