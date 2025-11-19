@@ -26,10 +26,12 @@ namespace engine::rendering::backend::opengl
     public:
         using MeshResolver = OpenGLRenderResourceProvider::MeshResolver;
         using PointCloudResolver = OpenGLRenderResourceProvider::PointCloudResolver;
+        using GraphResolver = OpenGLRenderResourceProvider::GraphResolver;
 
         explicit OpenGLRuntimeSubmission(MeshResolver mesh_resolver,
                                          PointCloudResolver point_cloud_resolver = {},
-                                         std::uint64_t retention_frames = 0);
+                                         std::uint64_t retention_frames = 0,
+                                         GraphResolver graph_resolver = {});
 
         void set_retention_frames(std::uint64_t frames) noexcept;
         [[nodiscard]] std::uint64_t retention_frames() const noexcept;

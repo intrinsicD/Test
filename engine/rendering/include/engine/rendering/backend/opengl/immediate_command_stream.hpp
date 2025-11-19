@@ -77,6 +77,7 @@ namespace engine::rendering::backend::opengl
         void execute_draw_command(const GeometryDrawCommand& command);
         void execute_mesh_draw(const GeometryDrawCommand& command);
         void execute_point_cloud_draw(const GeometryDrawCommand& command);
+        void execute_graph_draw(const GeometryDrawCommand& command);
         void execute_compute_dispatch(const ComputeDispatchCommand& command);
         bool ensure_shader_program();
         unsigned int compile_shader(unsigned int type, const char* source);

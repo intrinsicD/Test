@@ -9,6 +9,7 @@ add_library(${target_name}
         src/mesh/halfedge_mesh.cpp
         src/mesh/surface_mesh.cpp
         src/mesh/surface_mesh_conversion.cpp
+        src/mesh/wireframe_graph.cpp
         src/topology/surface_curvature.cpp
         src/topology/surface_topology.cpp
         src/point_cloud/point_cloud.cpp

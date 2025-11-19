@@ -10,9 +10,10 @@
 #    include <glad/gl.h>
 #endif
 
-#include "engine/geometry/api.hpp"
 #include "engine/core/log.hpp"
 #include "engine/core/threading/io_thread_pool.hpp"
+#include "engine/geometry/api.hpp"
+#include "engine/geometry/shapes/aabb.hpp"
 #include "engine/geometry/point_cloud/point_cloud.hpp"
 
 namespace engine::rendering::backend::opengl
@@ -176,9 +177,11 @@ namespace engine::rendering::backend::opengl
     };
 
     OpenGLRenderResourceProvider::OpenGLRenderResourceProvider(MeshResolver mesh_resolver,
-                                                               PointCloudResolver point_cloud_resolver)
+                                                               PointCloudResolver point_cloud_resolver,
+                                                               GraphResolver graph_resolver)
         : mesh_resolver_(std::move(mesh_resolver))
         , point_cloud_resolver_(std::move(point_cloud_resolver))
+        , graph_resolver_(std::move(graph_resolver))
         , async_mesh_loader_(std::make_unique<AsyncMeshLoader>())
     {
         if (!mesh_resolver_)
@@ -198,6 +201,11 @@ namespace engine::rendering::backend::opengl
         for (auto& [_, record] : point_clouds_)
         {
             destroy_point_cloud_gpu_resources(record);
+        }
+
+        for (auto& [_, record] : graphs_)
+        {
+            destroy_graph_gpu_resources(record);
         }
     }
 
@@ -255,7 +263,11 @@ namespace engine::rendering::backend::opengl
 
     void OpenGLRenderResourceProvider::require_graph(const assets::GraphHandle& handle)
     {
-        record_handle(graphs_, handle);
+        if (handle.empty())
+        {
+            return;
+        }
+        ensure_graph_loaded(handle);
     }
 
     void OpenGLRenderResourceProvider::require_point_cloud(const assets::PointCloudHandle& handle)
@@ -377,6 +389,25 @@ namespace engine::rendering::backend::opengl
     std::size_t OpenGLRenderResourceProvider::loaded_point_cloud_count() const noexcept
     {
         return point_clouds_.size();
+    }
+
+    const OpenGLRenderResourceProvider::GraphRecord*
+    OpenGLRenderResourceProvider::graph(const assets::GraphHandle& handle) const noexcept
+    {
+        if (handle.empty())
+        {
+            return nullptr;
+        }
+        const auto& id = handle.id();
+        if (identifier_empty(id))
+        {
+            return nullptr;
+        }
+        if (const auto it = graphs_.find(id); it != graphs_.end())
+        {
+            return &it->second;
+        }
+        return nullptr;
     }
 
     bool OpenGLRenderResourceProvider::schedule_mesh_async(const assets::MeshHandle& handle)
@@ -678,4 +709,133 @@ namespace engine::rendering::backend::opengl
 #endif
         record.gpu_uploaded = false;
     }
-}
+
+    void OpenGLRenderResourceProvider::ensure_graph_loaded(const assets::GraphHandle& handle)
+    {
+        const auto& id = handle.id();
+        if (identifier_empty(id))
+        {
+            throw std::invalid_argument("Graph handle identifier cannot be empty");
+        }
+
+        if (graphs_.find(id) != graphs_.end())
+        {
+            return;
+        }
+
+        if (!graph_resolver_)
+        {
+            throw std::runtime_error("OpenGLRenderResourceProvider requires a graph resolver to load graphs");
+        }
+
+        auto resolved = graph_resolver_(handle);
+        if (!resolved.has_value())
+        {
+            throw std::runtime_error("OpenGLRenderResourceProvider could not resolve graph: " + id);
+        }
+
+        geometry::Graph graph = prepare_graph(std::move(*resolved));
+
+        GraphRecord record{};
+        record.handle = handle;
+        const auto positions = graph.interface.positions();
+        record.positions.assign(positions.begin(), positions.end());
+        if (!record.positions.empty())
+        {
+            record.bounds = geometry::BoundingAabb(std::span{record.positions});
+        }
+
+        record.indices.reserve(graph.interface.edge_count() * 2U);
+        for (auto edge : graph.interface.edges())
+        {
+            if (graph.interface.is_deleted(edge))
+            {
+                continue;
+            }
+            const auto v0 = graph.interface.vertex(edge, 0);
+            const auto v1 = graph.interface.vertex(edge, 1);
+            if (!graph.interface.is_valid(v0) || !graph.interface.is_valid(v1))
+            {
+                continue;
+            }
+            record.indices.push_back(static_cast<std::uint32_t>(v0.index()));
+            record.indices.push_back(static_cast<std::uint32_t>(v1.index()));
+        }
+
+        upload_graph_to_gpu(record);
+        graphs_.insert_or_assign(id, std::move(record));
+    }
+
+    geometry::Graph OpenGLRenderResourceProvider::prepare_graph(geometry::Graph graph)
+    {
+        return graph;
+    }
+
+    void OpenGLRenderResourceProvider::upload_graph_to_gpu(GraphRecord& record)
+    {
+#if ENGINE_RENDERING_HAS_GLAD
+        const bool has_gl = glad_glGenVertexArrays != nullptr && glad_glBindVertexArray != nullptr
+            && glad_glGenBuffers != nullptr && glad_glBindBuffer != nullptr
+            && glad_glBufferData != nullptr && glad_glEnableVertexAttribArray != nullptr
+            && glad_glVertexAttribPointer != nullptr;
+
+        if (!has_gl || record.positions.empty())
+        {
+            return;
+        }
+
+        glad_glGenVertexArrays(1, &record.vertex_array);
+        glad_glBindVertexArray(record.vertex_array);
+
+        glad_glGenBuffers(1, &record.position_buffer);
+        glad_glBindBuffer(GL_ARRAY_BUFFER, record.position_buffer);
+        glad_glBufferData(GL_ARRAY_BUFFER,
+                          static_cast<GLsizeiptr>(record.positions.size() * sizeof(math::vec3)),
+                          reinterpret_cast<const void*>(record.positions.data()),
+                          GL_STATIC_DRAW);
+        glad_glEnableVertexAttribArray(0);
+        glad_glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(math::vec3), nullptr);
+
+        if (!record.indices.empty())
+        {
+            glad_glGenBuffers(1, &record.index_buffer);
+            glad_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, record.index_buffer);
+            glad_glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                              static_cast<GLsizeiptr>(record.indices.size() * sizeof(std::uint32_t)),
+                              reinterpret_cast<const void*>(record.indices.data()),
+                              GL_STATIC_DRAW);
+        }
+
+        glad_glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glad_glBindVertexArray(0);
+
+        record.gpu_uploaded = true;
+#else
+        static_cast<void>(record);
+#endif
+    }
+
+    void OpenGLRenderResourceProvider::destroy_graph_gpu_resources(GraphRecord& record) noexcept
+    {
+#if ENGINE_RENDERING_HAS_GLAD
+        if (record.index_buffer != 0U && glad_glDeleteBuffers != nullptr)
+        {
+            glad_glDeleteBuffers(1, &record.index_buffer);
+            record.index_buffer = 0U;
+        }
+        if (record.position_buffer != 0U && glad_glDeleteBuffers != nullptr)
+        {
+            glad_glDeleteBuffers(1, &record.position_buffer);
+            record.position_buffer = 0U;
+        }
+        if (record.vertex_array != 0U && glad_glDeleteVertexArrays != nullptr)
+        {
+            glad_glDeleteVertexArrays(1, &record.vertex_array);
+            record.vertex_array = 0U;
+        }
+#else
+        static_cast<void>(record);
+#endif
+        record.gpu_uploaded = false;
+    }
+} // namespace engine::rendering::backend::opengl

@@ -37,8 +37,12 @@ namespace engine::rendering::backend::opengl
     OpenGLPresentationBackend::OpenGLPresentationBackend(MeshResolver mesh_resolver,
                                                          PointCloudResolver point_cloud_resolver,
                                                          std::unique_ptr<ForwardPipeline> pipeline,
-                                                         std::uint64_t retention_frames)
-        : submission_(std::move(mesh_resolver), std::move(point_cloud_resolver), retention_frames)
+                                                         std::uint64_t retention_frames,
+                                                         GraphResolver graph_resolver)
+        : submission_(std::move(mesh_resolver),
+                      std::move(point_cloud_resolver),
+                      retention_frames,
+                      std::move(graph_resolver))
         , pipeline_(std::move(pipeline))
     {
     }

@@ -7,6 +7,7 @@ add_executable(engine_geometry_tests
         test_graph_io.cpp
         test_surface_mesh_conversion.cpp
         test_surface_mesh_io.cpp
+        test_wireframe_graph.cpp
         test_surface_curvature.cpp
         test_surface_topology.cpp
         test_point_cloud.cpp

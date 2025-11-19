@@ -37,11 +37,13 @@ namespace engine::rendering::backend::opengl
 
         using MeshResolver = OpenGLRenderResourceProvider::MeshResolver;
         using PointCloudResolver = OpenGLRenderResourceProvider::PointCloudResolver;
+        using GraphResolver = OpenGLRenderResourceProvider::GraphResolver;
 
         explicit OpenGLPresentationBackend(MeshResolver mesh_resolver,
                                            PointCloudResolver point_cloud_resolver = {},
                                            std::unique_ptr<ForwardPipeline> pipeline = nullptr,
-                                           std::uint64_t retention_frames = 0);
+                                           std::uint64_t retention_frames = 0,
+                                           GraphResolver graph_resolver = {});
         ~OpenGLPresentationBackend() noexcept;
 
         [[nodiscard]] MaterialSystem& material_system() noexcept { return materials_; }

@@ -148,6 +148,12 @@ Geometry Viewer exposes the config through its Selection Inspector panel so PM-5
 treatments, gradient modes, quality, and the active strategy (auto or explicit). Because the renderer centralises presets, tools
 and runtime passes automatically inherit upgrades as more strategies land.
 
+### Graph and wireframe resources
+
+`OpenGLRenderResourceProvider` now mirrors the mesh/point-cloud path for graphs by accepting a `GraphResolver`, caching uploaded
+edge lists, and exposing `GraphRecord`s to passes that consume `GraphHandle`s. The presentation backend forwards the resolver
+through its constructor so applications can stream analytic graphs or mesh-derived wireframes without recompiling the backend.【F:engine/rendering/include/engine/rendering/backend/opengl/render_resource_provider.hpp†L34-L148】【F:engine/rendering/include/engine/rendering/backend/opengl/presentation_backend.hpp†L33-L69】 Geometry Viewer exercises this path by caching a graph for every mesh and instantiating graph-backed `RenderGeometry` entities whenever the wireframe overlay is enabled, giving research scenes a hotkey (`F`) for edge-only visualization that stays synchronized with transform hierarchies.【F:engine/tools/examples/geometry_viewer.cpp†L562-L820】【F:engine/tools/examples/geometry_viewer.cpp†L988-L1107】
+
 ### Resource Barriers
 
 The frame graph automatically inserts barriers:

@@ -32,6 +32,7 @@
 #include "engine/geometry/api.hpp"
 #include "engine/geometry/mesh/surface_mesh.hpp"
 #include "engine/geometry/mesh/surface_mesh_conversion.hpp"
+#include "engine/geometry/mesh/wireframe_graph.hpp"
 #include "engine/geometry/point_cloud/point_cloud.hpp"
 #include "engine/geometry/shapes/aabb.hpp"
 #include "engine/io/geometry_io.hpp"
@@ -121,6 +122,41 @@ namespace
 
     private:
         std::unordered_map<std::string, engine::geometry::SurfaceMesh> meshes_{};
+    };
+
+    class ProceduralGraphStorage
+    {
+    public:
+        void store(std::string identifier, engine::geometry::Graph graph)
+        {
+            graphs_.insert_or_assign(std::move(identifier), std::move(graph));
+        }
+
+        [[nodiscard]] bool contains(std::string_view identifier) const
+        {
+            return graphs_.find(std::string{identifier}) != graphs_.end();
+        }
+
+        [[nodiscard]] std::optional<engine::geometry::Graph> get(std::string_view identifier) const
+        {
+            if (const auto it = graphs_.find(std::string{identifier}); it != graphs_.end())
+            {
+                return it->second;
+            }
+            return std::nullopt;
+        }
+
+        [[nodiscard]] const engine::geometry::Graph* find(std::string_view identifier) const
+        {
+            if (const auto it = graphs_.find(std::string{identifier}); it != graphs_.end())
+            {
+                return &it->second;
+            }
+            return nullptr;
+        }
+
+    private:
+        std::unordered_map<std::string, engine::geometry::Graph> graphs_{};
     };
 
     class GeometryViewerApp : public engine::runtime::Application
@@ -218,8 +254,26 @@ namespace
                           return std::nullopt;
                       };
 
+                      auto graph_resolver = [this](const engine::assets::GraphHandle& handle)
+                          -> std::optional<engine::geometry::Graph> {
+                          if (handle.empty() || !graph_storage_)
+                          {
+                              return std::nullopt;
+                          }
+
+                          if (auto graph = graph_storage_->get(handle.id()))
+                          {
+                              return graph;
+                          }
+                          return std::nullopt;
+                      };
+
                       auto backend = std::make_shared<engine::rendering::backend::opengl::OpenGLPresentationBackend>(
-                          std::move(mesh_resolver), std::move(point_cloud_resolver));
+                          std::move(mesh_resolver),
+                          std::move(point_cloud_resolver),
+                          nullptr,
+                          0,
+                          std::move(graph_resolver));
                       backend_ = backend;
                       return backend;
                   };
@@ -366,7 +420,9 @@ namespace
         {
 #if ENGINE_ENABLE_RENDERING
             auto cube_mesh = engine::geometry::make_unit_cube();
-            mesh_storage_->store(std::string{kProceduralCubeId}, std::move(cube_mesh));
+            const std::string cube_id{std::string{kProceduralCubeId}};
+            cache_wireframe_graph(cube_id, cube_mesh);
+            mesh_storage_->store(cube_id, std::move(cube_mesh));
 
 #    if ENGINE_ENABLE_ASSETS
             material_validator_registration_ =
@@ -380,6 +436,16 @@ namespace
             mesh_validator_registration_ =
                 engine::assets::HandleValidatorRegistry::instance().register_mesh_validator(
                     [storage = mesh_storage_](const engine::assets::MeshHandle& handle) {
+                        if (!storage || handle.empty())
+                        {
+                            return false;
+                        }
+                        return storage->contains(handle.id());
+                    });
+
+            graph_validator_registration_ =
+                engine::assets::HandleValidatorRegistry::instance().register_graph_validator(
+                    [storage = graph_storage_](const engine::assets::GraphHandle& handle) {
                         if (!storage || handle.empty())
                         {
                             return false;
@@ -519,6 +585,7 @@ namespace
                 const auto& asset = mesh_cache_.load(descriptor);
                 auto surface_mesh = engine::geometry::mesh::build_surface_mesh_from_halfedge(asset.mesh.interface);
                 const std::string model_id = std::string{asset.descriptor.handle.id()};
+                cache_wireframe_graph(model_id, surface_mesh);
                 attach_render_geometry(model_id,
                     engine::rendering::components::RenderGeometry::from_mesh(
                         asset.descriptor.handle, default_material_),
@@ -614,10 +681,159 @@ namespace
             {
                 entity_local_bounds_.erase(entity);
             }
+
+            attach_wireframe_geometry_if_needed(identifier);
 #else
             (void)identifier;
             (void)geometry;
             (void)local_bounds;
+#endif
+        }
+
+        [[nodiscard]] static std::string make_wireframe_identifier(std::string_view identifier)
+        {
+            std::string result{identifier};
+            result += ".wireframe";
+            return result;
+        }
+
+        void cache_wireframe_graph(const std::string& identifier, const engine::geometry::SurfaceMesh& mesh)
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (!graph_storage_)
+            {
+                return;
+            }
+
+            try
+            {
+                auto graph = engine::geometry::mesh::build_wireframe_graph(mesh);
+                graph_storage_->store(make_wireframe_identifier(identifier), std::move(graph));
+            }
+            catch (const std::exception& ex)
+            {
+                ENGINE_WARN("Failed to build wireframe graph for '{}': {}", identifier, ex.what());
+            }
+#else
+            (void)identifier;
+            (void)mesh;
+#endif
+        }
+
+        void attach_wireframe_geometry_if_needed(const std::string& identifier)
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (wireframe_enabled_)
+            {
+                attach_wireframe_geometry(identifier);
+            }
+#else
+            (void)identifier;
+#endif
+        }
+
+        void attach_wireframe_geometry(const std::string& identifier)
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (!wireframe_enabled_ || !graph_storage_)
+            {
+                return;
+            }
+
+            const auto graph_id = make_wireframe_identifier(identifier);
+            if (!graph_storage_->contains(graph_id))
+            {
+                return;
+            }
+
+            auto& registry = scene().registry();
+            entt::entity overlay = entt::null;
+            if (const auto it = wireframe_entities_.find(identifier); it == wireframe_entities_.end())
+            {
+                overlay = registry.create();
+                wireframe_entities_.emplace(identifier, overlay);
+                registry.emplace<engine::scene::components::Name>(overlay).value = graph_id;
+                registry.emplace<engine::scene::components::Hierarchy>(overlay);
+                registry.emplace<engine::scene::components::LocalTransform>(overlay);
+                registry.emplace<engine::scene::components::WorldTransform>(overlay);
+            }
+            else
+            {
+                overlay = it->second;
+            }
+
+            registry.emplace_or_replace<engine::rendering::components::RenderGeometry>(
+                overlay,
+                engine::rendering::components::RenderGeometry::from_graph(
+                    engine::assets::GraphHandle{graph_id},
+                    default_material_));
+
+            if (const auto base_it = render_entities_.find(identifier); base_it != render_entities_.end())
+            {
+                engine::scene::systems::set_parent(registry, overlay, base_it->second, true);
+                if (const auto bounds_it = entity_local_bounds_.find(base_it->second);
+                    bounds_it != entity_local_bounds_.end())
+                {
+                    entity_local_bounds_[overlay] = bounds_it->second;
+                }
+            }
+#else
+            (void)identifier;
+#endif
+        }
+
+        void remove_wireframe_overlay(const std::string& identifier)
+        {
+#if ENGINE_ENABLE_RENDERING
+            if (const auto it = wireframe_entities_.find(identifier); it != wireframe_entities_.end())
+            {
+                auto& registry = scene().registry();
+                const auto entity = it->second;
+                if (registry.valid(entity))
+                {
+                    registry.destroy(entity);
+                }
+                entity_local_bounds_.erase(entity);
+                wireframe_entities_.erase(it);
+            }
+#else
+            (void)identifier;
+#endif
+        }
+
+        void remove_all_wireframe_overlays()
+        {
+#if ENGINE_ENABLE_RENDERING
+            auto& registry = scene().registry();
+            for (const auto& [_, entity] : wireframe_entities_)
+            {
+                if (registry.valid(entity))
+                {
+                    registry.destroy(entity);
+                }
+                entity_local_bounds_.erase(entity);
+            }
+            wireframe_entities_.clear();
+#endif
+        }
+
+        void toggle_wireframe_mode()
+        {
+#if ENGINE_ENABLE_RENDERING
+            wireframe_enabled_ = !wireframe_enabled_;
+            if (wireframe_enabled_)
+            {
+                for (const auto& [identifier, _] : render_entities_)
+                {
+                    attach_wireframe_geometry(identifier);
+                }
+                ENGINE_INFO("Wireframe overlay enabled");
+            }
+            else
+            {
+                remove_all_wireframe_overlays();
+                ENGINE_INFO("Wireframe overlay disabled");
+            }
 #endif
         }
 
@@ -810,6 +1026,11 @@ namespace
                 delete_last_model();
             }
 
+            if (allow_keyboard_input && input_state.was_key_pressed(engine::platform::input::Key::F))
+            {
+                toggle_wireframe_mode();
+            }
+
             if (input_state.was_key_pressed(engine::platform::input::Key::G) && panel_bridge_)
             {
                 panels_visible_ = !panels_visible_;
@@ -878,6 +1099,7 @@ namespace
                         registry.remove<engine::rendering::components::RenderGeometry>(entity);
                         ENGINE_INFO("Cube hidden");
                     }
+                    remove_wireframe_overlay(cube_id);
                 }
             }
 #endif
@@ -895,6 +1117,7 @@ namespace
             // Get the last loaded model (LIFO - stack order)
             const std::string model_id = loaded_models_order_.back();
             loaded_models_order_.pop_back();
+            remove_wireframe_overlay(model_id);
 
             auto& registry = scene().registry();
             if (const auto it = render_entities_.find(model_id); it != render_entities_.end())
@@ -1769,8 +1992,10 @@ namespace
 
         WindowExtent window_extent_{};
         std::shared_ptr<ProceduralMeshStorage> mesh_storage_{std::make_shared<ProceduralMeshStorage>()};
+        std::shared_ptr<ProceduralGraphStorage> graph_storage_{std::make_shared<ProceduralGraphStorage>()};
         std::shared_ptr<void> mesh_validator_registration_{};
         std::shared_ptr<void> material_validator_registration_{};
+        std::shared_ptr<void> graph_validator_registration_{};
 #if ENGINE_ENABLE_ASSETS
         engine::assets::MeshCache mesh_cache_{};
         engine::assets::PointCloudCache point_cloud_cache_{};
@@ -1802,6 +2027,7 @@ namespace
         bool selection_drag_threshold_exceeded_{false};
 #endif
         std::unordered_map<std::string, entt::entity> render_entities_{};
+        std::unordered_map<std::string, entt::entity> wireframe_entities_{};
         std::vector<std::string> loaded_models_order_{}; // Track loaded models in creation order (excluding cube)
         bool cube_visible_{true}; // Toggle state for default cube
         engine::assets::MaterialHandle default_material_{std::string{"geometry_viewer.material.default"}};
@@ -1810,6 +2036,7 @@ namespace
         engine::math::vec2 last_cursor_pos_{0.0f, 0.0f};
         int fps_frame_count_{0};
         double fps_time_accumulator_{0.0};
+        bool wireframe_enabled_{false};
     };
 } // namespace
 

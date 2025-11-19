@@ -198,6 +198,13 @@ namespace engine::rendering::backend::opengl
                     execute_mesh_draw(command);
                 }
             }
+            else if constexpr (std::is_same_v<Handle, assets::GraphHandle>)
+            {
+                if (!geometry_handle.empty())
+                {
+                    execute_graph_draw(command);
+                }
+            }
             else if constexpr (std::is_same_v<Handle, assets::PointCloudHandle>)
             {
                 if (!geometry_handle.empty())
@@ -256,6 +263,62 @@ namespace engine::rendering::backend::opengl
         {
             const auto vertex_count = static_cast<GLsizei>(record->positions.size());
             glad_glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+        }
+
+        if (glad_glBindVertexArray != nullptr)
+        {
+            glad_glBindVertexArray(0);
+        }
+#else
+        static_cast<void>(command);
+#endif
+    }
+
+    void OpenGLImmediateCommandStream::execute_graph_draw(const GeometryDrawCommand& command)
+    {
+        if (render_resources_ == nullptr)
+        {
+            return;
+        }
+
+        const auto handle = std::get<assets::GraphHandle>(command.geometry);
+        render_resources_->require_graph(handle);
+
+        const auto* record = render_resources_->graph(handle);
+        if (record == nullptr)
+        {
+            return;
+        }
+
+        ++draw_calls_;
+
+#if ENGINE_RENDERING_HAS_GLAD
+        if (!ensure_shader_program())
+        {
+            return;
+        }
+
+        upload_draw_uniforms(command, false);
+
+        if (record->vertex_array != 0U && glad_glBindVertexArray != nullptr)
+        {
+            glad_glBindVertexArray(record->vertex_array);
+        }
+
+        if (!record->indices.empty() && record->index_buffer != 0U && glad_glDrawElements != nullptr)
+        {
+            if (glad_glLineWidth != nullptr)
+            {
+                glad_glLineWidth(1.5F);
+            }
+            glad_glDrawElements(GL_LINES,
+                                static_cast<GLsizei>(record->indices.size()),
+                                GL_UNSIGNED_INT,
+                                nullptr);
+        }
+        else if (!record->positions.empty() && glad_glDrawArrays != nullptr)
+        {
+            glad_glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(record->positions.size()));
         }
 
         if (glad_glBindVertexArray != nullptr)

@@ -90,6 +90,16 @@ namespace
                         {
                             return std::nullopt;
                         }
+                    },
+                    [](const engine::assets::PointCloudHandle&) -> std::optional<engine::geometry::PointCloud>
+                    {
+                        return std::nullopt;
+                    },
+                    nullptr,
+                    0,
+                    [](const engine::assets::GraphHandle&) -> std::optional<engine::geometry::Graph>
+                    {
+                        return std::nullopt;
                     });
                 return backend_instance;
             }
