@@ -170,6 +170,7 @@ TEST(ForwardPipeline, RequestsResourcesForVisibleRenderables)
         device_provider,
         scheduler,
         command_encoders,
+        nullptr,
         graph,
         nullptr,
     };

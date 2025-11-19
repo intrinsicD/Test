@@ -46,6 +46,11 @@ namespace engine::tools::editor
         benchmark_entries_ = std::move(entries);
     }
 
+    void PerformanceMetricsPanel::set_gpu_pass_timings(std::vector<GpuPassTimingRow> rows)
+    {
+        gpu_pass_timings_ = std::move(rows);
+    }
+
     const std::vector<float>& PerformanceMetricsPanel::frame_history() const noexcept
     {
         return frame_history_;
@@ -59,6 +64,11 @@ namespace engine::tools::editor
     const PerformanceMetricsPanel::FrameSample& PerformanceMetricsPanel::latest_sample() const noexcept
     {
         return latest_sample_;
+    }
+
+    const std::vector<PerformanceMetricsPanel::GpuPassTimingRow>& PerformanceMetricsPanel::gpu_pass_timings() const noexcept
+    {
+        return gpu_pass_timings_;
     }
 
     void PerformanceMetricsPanel::render(const imgui::PanelRenderContext&)
@@ -174,6 +184,43 @@ namespace engine::tools::editor
         else
         {
             ImGui::TextUnformatted("Profiler data unavailable. Ensure PROFILE_SCOPE() emits zones.");
+        }
+
+        ImGui::Separator();
+        if (!gpu_pass_timings_.empty())
+        {
+            if (ImGui::BeginTable("GpuPassTimings",
+                                  5,
+                                  ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
+            {
+                ImGui::TableSetupColumn("Pass");
+                ImGui::TableSetupColumn("Queue");
+                ImGui::TableSetupColumn("Duration (ms)");
+                ImGui::TableSetupColumn("Begin (ns)");
+                ImGui::TableSetupColumn("End (ns)");
+                ImGui::TableHeadersRow();
+
+                for (const auto& row : gpu_pass_timings_)
+                {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(row.name.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(row.queue.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.3f", row.duration_ms);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%" PRIu64, row.timestamp_begin_ns);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%" PRIu64, row.timestamp_end_ns);
+                }
+
+                ImGui::EndTable();
+            }
+        }
+        else
+        {
+            ImGui::TextUnformatted("GPU timestamp telemetry unavailable. Ensure runtime profiling is enabled.");
         }
 
         ImGui::Separator();

@@ -298,6 +298,15 @@ def test_diagnostics_to_dict_roundtrip() -> None:
                 telemetry.RuntimeAnimationDispatchTotal(label="cpu", duration_ms=0.5)
             ],
         ),
+        gpu_passes=[
+            telemetry.RuntimeGpuPassStat(
+                name="ForwardGeometry",
+                queue="Graphics",
+                duration_ms=0.42,
+                timestamp_begin_ns=10,
+                timestamp_end_ns=20,
+            )
+        ],
     )
     payload = telemetry._diagnostics_to_dict(snapshot)
     assert payload["initialize_count"] == 1
@@ -323,6 +332,7 @@ def test_diagnostics_to_dict_roundtrip() -> None:
     assert payload["subsystems"][0]["last_initialize_failure_message"] == "configuration missing"
     assert payload["command_encoders"][0]["pass_name"] == "ForwardGeometry"
     assert payload["command_encoders"][0]["draw_count"] == 2
+    assert payload["gpu_passes"][0]["duration_ms"] == pytest.approx(0.42)
     assert payload["animation"]["clip_track_count"] == 1
     assert payload["animation"]["category_totals"][0]["label"] == "animation"
 

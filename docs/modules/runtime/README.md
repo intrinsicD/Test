@@ -354,6 +354,7 @@ if (diag.scene_validation.has_cycles) {
 - **Timing data**: `last_*_ms`, `max_*_ms`, `average_tick_ms` plus per-stage timing (`RuntimeStageTiming`, including each stage's `phase` and `thread_affinity`) and aggregated per-phase totals exposed through `RuntimeDiagnostics::phase_timings`
 - **Streaming telemetry**: Worker health, queue depth, completion/failure rates (see [`ASYNC_STREAMING_INTEGRATION.md`](ASYNC_STREAMING_INTEGRATION.md))
 - **GPU resource telemetry**: Buffer/texture/auxiliary usage gauges (`rendering.resources.*`) sourced from the active GPU resource provider so tooling can monitor residency alongside frame-graph execution.
+- **GPU pass timings**: `RuntimeDiagnostics::gpu_pass_timings` records per-pass begin/end timestamps and durations captured via the GPU profiler (`RG-504`), enabling TL-312/TL-314 panels to correlate frame-graph scheduling with GPU execution.
 - **Frame graph cache telemetry**: `rendering.frame_graph.cache_hits`, `rendering.frame_graph.cache_misses`, and `rendering.frame_graph.cache_hit_rate` expose cache efficiency so TL-314 overlays can flag compile spikes when the deterministic hash diverges.
 - **Animation telemetry**: Clip/pose metadata plus dispatcher aggregates grouped by animation category and queue, exposed via `RuntimeDiagnostics::animation` and mirrored through the C API for tooling.
 - **Scene validation**: Cycle detection, depth analysis, alert levels (see [`DIAGNOSTICS.md`](DIAGNOSTICS.md))

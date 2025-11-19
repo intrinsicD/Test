@@ -105,6 +105,13 @@ stage assigned to a `RuntimeLoopPhase`. Use these aggregates to quantify how
 much frame time is consumed by simulation versus presentation without scanning
 individual stage entries.
 
+### GPU Pass Timings
+When rendering is enabled, `RuntimeDiagnostics::gpu_pass_timings` captures begin/end timestamps and durations (in milliseconds)
+for every frame-graph pass executed during the most recent render submission. Each entry mirrors the pass name, queue selection,
+command-buffer handle, and nanosecond timestamps so tooling panels (TL-312/TL-314) can correlate CPU scheduling with the GPU
+timeline. The diagnostics bridge exposes the same data via the C API helpers `engine_runtime_diagnostic_gpu_pass_*`, and the
+hybrid workflow panels render the table automatically when the GPU profiler is enabled (`RG-504`).
+
 ### Subsystem Timings
 `subsystem_timings` aggregates initialise/tick/shutdown durations for every
 registered subsystem plugin. Entries persist while the subsystem stays loaded so

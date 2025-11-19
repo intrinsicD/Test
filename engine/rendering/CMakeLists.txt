@@ -20,6 +20,7 @@ add_library(${target_name}
         src/frame_graph_execution.cpp
         src/frame_graph_planner.cpp
         src/frame_graph_registry.cpp
+        src/gpu_profiler.cpp
         src/forward_pipeline.cpp
         src/pipeline/research_baseline_telemetry.cpp
         src/pipeline/research_baseline.cpp

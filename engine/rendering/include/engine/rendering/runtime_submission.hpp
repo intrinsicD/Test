@@ -31,19 +31,20 @@ namespace engine::rendering
         resources::IGpuResourceProvider& device_resources;
         IGpuScheduler& scheduler;
         CommandEncoderProvider& encoders;
+        GpuProfiler* profiler{nullptr};
         FrameGraph& frame_graph;
         ForwardPipeline* pipeline{nullptr};
 
         [[nodiscard]] RenderExecutionContext make_execution_context(scene::Scene& scene) const noexcept
         {
-            return RenderExecutionContext{
+            return RenderExecutionContext(
                 resources,
                 materials,
                 RenderView{scene},
                 scheduler,
                 device_resources,
                 encoders,
-            };
+                profiler);
         }
     };
 } // namespace engine::rendering

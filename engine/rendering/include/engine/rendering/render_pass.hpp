@@ -22,6 +22,7 @@ namespace engine::rendering
     class MaterialSystem;
     class CommandEncoder;
     class CommandEncoderProvider;
+    class GpuProfiler;
 
     /// High-level lifecycle stage associated with a render pass.
     enum class PassPhase
@@ -125,6 +126,24 @@ namespace engine::rendering
         IGpuScheduler& scheduler;
         resources::IGpuResourceProvider& device_resources;
         CommandEncoderProvider& encoders;
+        GpuProfiler* profiler{nullptr};
+
+        RenderExecutionContext(RenderResourceProvider& resource_provider,
+                               MaterialSystem& material_system,
+                               RenderView render_view,
+                               IGpuScheduler& render_scheduler,
+                               resources::IGpuResourceProvider& gpu_resources,
+                               CommandEncoderProvider& encoder_provider,
+                               GpuProfiler* profiler_ptr = nullptr) noexcept
+            : resources(resource_provider)
+            , materials(material_system)
+            , view(render_view)
+            , scheduler(render_scheduler)
+            , device_resources(gpu_resources)
+            , encoders(encoder_provider)
+            , profiler(profiler_ptr)
+        {
+        }
     };
 
     /**
