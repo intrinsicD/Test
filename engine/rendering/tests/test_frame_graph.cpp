@@ -217,6 +217,66 @@ TEST(FrameGraph, SchedulesPassesBasedOnDependencies)
     EXPECT_EQ(order[2], "Lighting");
 }
 
+TEST(FrameGraph, AllowsSequentialWritesToSameResource)
+{
+    engine::rendering::FrameGraph graph;
+    const auto color = graph.create_resource(make_color_resource("Color"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "FirstWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "SecondWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    ASSERT_NO_THROW(graph.compile());
+    const auto order = graph.execution_order();
+    ASSERT_EQ(order.size(), 2U);
+    EXPECT_EQ(graph.pass_name(order[0]), "FirstWrite");
+    EXPECT_EQ(graph.pass_name(order[1]), "SecondWrite");
+}
+
+TEST(FrameGraph, OrdersReadersBetweenSequentialWrites)
+{
+    engine::rendering::FrameGraph graph;
+    const auto color = graph.create_resource(make_color_resource("Color"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "FirstWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "ReadColor",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.read(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "SecondWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    graph.compile();
+    const auto order = graph.execution_order();
+    ASSERT_EQ(order.size(), 3U);
+    EXPECT_EQ(graph.pass_name(order[0]), "FirstWrite");
+    EXPECT_EQ(graph.pass_name(order[1]), "ReadColor");
+    EXPECT_EQ(graph.pass_name(order[2]), "SecondWrite");
+}
+
 TEST(FrameGraph, ReusesCompilationCacheAcrossReset)
 {
     engine::rendering::FrameGraph graph;
@@ -765,7 +825,7 @@ TEST(FrameGraph, RejectsDuplicateResourceNames)
     EXPECT_THROW(graph.create_resource("Color", engine::rendering::ResourceLifetime::Transient), std::invalid_argument);
 }
 
-TEST(FrameGraph, PreventsMultipleWritersForResource)
+TEST(FrameGraph, AllowsMultipleWritersForResource)
 {
     engine::rendering::FrameGraph graph;
     const auto handle = graph.create_resource(make_color_resource("Color"));
@@ -777,14 +837,14 @@ TEST(FrameGraph, PreventsMultipleWritersForResource)
         {
         }));
 
-    EXPECT_THROW(
-        graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
-            "WriterB",
-            [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(handle); },
-            [](engine::rendering::FrameGraphPassExecutionContext&)
-            {
-            })),
-        std::logic_error);
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "WriterB",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(handle); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    EXPECT_NO_THROW(graph.compile());
 }
 
 TEST(FrameGraph, DetectsCyclesDuringCompile)

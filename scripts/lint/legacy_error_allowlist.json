@@ -324,7 +324,6 @@
     "throw std::logic_error{": 1,
     "throw std::logic_error{\"FrameGraph contains cyclic dependencies\"};": 1,
     "throw std::logic_error{\"FrameGraph pass references invalid resource handle\"};": 1,
-    "throw std::logic_error{\"FrameGraph resource already has a writer\"};": 1,
     "throw std::logic_error{\"FrameGraph resource missing debug name\"};": 1,
     "throw std::logic_error{\"FrameGraph::serialize requires a compiled graph\"};": 1,
     "throw std::out_of_range{\"FrameGraph::pass_name invalid pass index\"};": 1,

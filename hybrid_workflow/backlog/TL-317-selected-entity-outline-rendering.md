@@ -108,11 +108,12 @@ class SelectionOutlinePass : public FrameGraphPass {
 4. [x] Expose configuration hooks to tools/editor and default theme colors.
 5. [x] Add tests + CI screenshots (geometry_viewer) plus documentation updates.
 6. [ ] Record profiling evidence and update roadmap/backlog status.
+7. [x] Remove frame-graph single-writer limitation so SelectionOutlineRenderer can composite outlines after the lighting pass without crashing Geometry Viewer.
 
 ---
 
 ## Evidence
 
-- `cmake --preset linux-gcc-debug` (configures toolchain and presets) 【8f7663†L1-L41】
-- `cmake --build --preset linux-gcc-debug --target engine_rendering_tests` 【5466e1†L1-L20】
-- `ctest --preset linux-gcc-debug -R engine_rendering_tests --output-on-failure` 【e483ae†L1-L9】
+- `cmake --preset linux-gcc-debug` (configures toolchain and presets) 【c17638†L1-L16】
+- `cmake --build --preset linux-gcc-debug --target engine_rendering_tests` 【6ff06a†L1-L6】
+- `ctest --preset linux-gcc-debug -R engine_rendering_tests --output-on-failure` 【02f45a†L1-L9】
