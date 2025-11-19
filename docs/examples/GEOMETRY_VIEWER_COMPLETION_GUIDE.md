@@ -31,6 +31,10 @@ Press `G` once the scene is running to open the Geometry Viewer menu, pick which
 
 Left-click without dragging to run the shared selection pipeline: the `SelectionEngine` computes a hit using bounding-box picking, synchronizes the scene hierarchy panel, and surfaces the hit position/distance in the Selection Inspector (enable it under **Widgets → Selection Inspector**).【F:engine/tools/examples/geometry_viewer.cpp†L672-L748】【F:engine/tools/examples/geometry_viewer.cpp†L1080-L1265】
 
+### Wireframe overlay mode
+
+Tap `F` to toggle a wireframe pass that draws every mesh as a graph overlay. The viewer builds a persistent `GraphHandle` for each mesh, caches the line-list graph derived from the surface topology, and attaches the overlay entity whenever wireframe mode is enabled so selection bounds and transforms stay in sync with the base renderable.【F:engine/tools/examples/geometry_viewer.cpp†L681-L820】【F:engine/tools/examples/geometry_viewer.cpp†L988-L1107】 The overlay is also wired into asset lifecycle hooks: new meshes cache graphs as they stream in, while deleted models or the procedural cube automatically drop their overlays so the render graph never references stale handles.【F:engine/tools/examples/geometry_viewer.cpp†L562-L617】【F:engine/tools/examples/geometry_viewer.cpp†L1024-L1107】
+
 If either dependency is missing, the viewer logs a warning and disables OpenGL while keeping the rest of the runtime (input, asset loading, diagnostics) alive so workflow tests can still execute.【F:engine/tools/examples/geometry_viewer.cpp†L61-L109】【F:engine/tools/examples/geometry_viewer.cpp†L265-L283】
 
 ## 3. Bringing Up Rendering Locally
