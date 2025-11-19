@@ -2,6 +2,11 @@
 
 #include <string_view>
 
+#include "graph_asset.hpp"
+#include "material_asset.hpp"
+#include "mesh_asset.hpp"
+#include "shader_asset.hpp"
+
 #if defined(_WIN32)
 #  if defined(ENGINE_ASSETS_EXPORTS)
 #    define ENGINE_ASSETS_API __declspec(dllexport)

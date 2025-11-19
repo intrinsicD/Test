@@ -53,6 +53,7 @@
 #include "engine/scene/components/transform.hpp"
 #include "engine/scene/selection/bounding_box_strategy.hpp"
 #include "engine/scene/selection/selection_engine.hpp"
+#include "engine/scene/systems/hierarchy_system.hpp"
 #include "engine/scene/scene.hpp"
 #include "engine/scene/systems/transform_system.hpp"
 #if ENGINE_ENABLE_RENDERING
@@ -83,11 +84,11 @@ namespace
     constexpr float CAMERA_NEAR_PLANE = 0.1f;
     constexpr float CAMERA_FAR_PLANE = 100.0f;
     constexpr float CAMERA_ROTATE_SPEED = 0.005f;
-      constexpr float CAMERA_ZOOM_SPEED = 0.1f;
-      constexpr float MIN_GUI_SCALE = 0.5f;
-      constexpr float MAX_GUI_SCALE = 3.0f;
-      constexpr float SELECTION_DRAG_THRESHOLD_PX = 6.0f;
-      constexpr std::string_view kProceduralCubeId{"procedural_cube"};
+    constexpr float CAMERA_ZOOM_SPEED = 0.1f;
+    constexpr float MIN_GUI_SCALE = 0.5f;
+    constexpr float MAX_GUI_SCALE = 3.0f;
+    constexpr float SELECTION_DRAG_THRESHOLD_PX = 6.0f;
+    constexpr std::string_view kProceduralCubeId{"procedural_cube"};
 
     class ProceduralMeshStorage
     {
@@ -163,123 +164,128 @@ namespace
     {
     public:
         GeometryViewerApp()
-            : engine::runtime::Application([this]() {
-                  engine::runtime::ApplicationConfig config{};
-                  config.window = {
-                      .title = "Geometry Viewer - Research Baseline",
-                      .width = WINDOW_WIDTH,
-                      .height = WINDOW_HEIGHT,
-                      .visible = true,
-                      .resizable = true,
-                      .capability_requirements = {.require_native_surface = true}
-                  };
-                  const bool opengl_available = (ENGINE_PLATFORM_HAS_GLFW != 0)
-                      && (ENGINE_RENDERING_HAS_GLAD != 0);
-                  opengl_supported_ = opengl_available;
+            : engine::runtime::Application([this]()
+            {
+                engine::runtime::ApplicationConfig config{};
+                config.window = {
+                    .title = "Geometry Viewer - Research Baseline",
+                    .width = WINDOW_WIDTH,
+                    .height = WINDOW_HEIGHT,
+                    .visible = true,
+                    .resizable = true,
+                    .capability_requirements = {.require_native_surface = true}
+                };
+                const bool opengl_available = (ENGINE_PLATFORM_HAS_GLFW != 0)
+                    && (ENGINE_RENDERING_HAS_GLAD != 0);
+                opengl_supported_ = opengl_available;
 
-                  if (!opengl_available)
-                  {
-                      config.window_backend = engine::platform::WindowBackend::Mock;
+                if (!opengl_available)
+                {
+                    config.window_backend = engine::platform::WindowBackend::Mock;
 #if ENGINE_ENABLE_RENDERING
-                      config.rendering.enable = false;
-                      config.rendering.backend =
-                          engine::runtime::ApplicationConfig::RenderingConfig::Backend::Mock;
-                      config.rendering.backend_factory = {};
+                    config.rendering.enable = false;
+                    config.rendering.backend =
+                        engine::runtime::ApplicationConfig::RenderingConfig::Backend::Mock;
+                    config.rendering.backend_factory = {};
 #endif
-                      ENGINE_WARN(
-                          "OpenGL presentation disabled — GLFW target or GLAD loader not available. "
-                          "Viewer will run in headless mock mode. Install system X11/Xrandr headers "
-                          "and reconfigure to enable full rendering.");
-                      return config;
-                  }
+                    ENGINE_WARN(
+                        "OpenGL presentation disabled — GLFW target or GLAD loader not available. "
+                        "Viewer will run in headless mock mode. Install system X11/Xrandr headers "
+                        "and reconfigure to enable full rendering.");
+                    return config;
+                }
 
-                  config.enable_diagnostics = true;
-                  config.window_backend = engine::platform::WindowBackend::GLFW;
-                  config.target_fps = 0.0;
+                config.enable_diagnostics = true;
+                config.window_backend = engine::platform::WindowBackend::GLFW;
+                config.target_fps = 0.0;
 #if ENGINE_ENABLE_RENDERING
-                  config.rendering.enable = true;
-                  config.rendering.backend = engine::runtime::ApplicationConfig::RenderingConfig::Backend::OpenGL;
-                  config.rendering.backend_factory = [this]() {
-                      auto mesh_resolver = [this](const engine::assets::MeshHandle& handle)
-                          -> std::optional<engine::geometry::SurfaceMesh> {
-                          if (handle.empty())
-                          {
-                              return std::nullopt;
-                          }
+                config.rendering.enable = true;
+                config.rendering.backend = engine::runtime::ApplicationConfig::RenderingConfig::Backend::OpenGL;
+                config.rendering.backend_factory = [this]()
+                {
+                    auto mesh_resolver = [this](const engine::assets::MeshHandle& handle)
+                        -> std::optional<engine::geometry::SurfaceMesh>
+                    {
+                        if (handle.empty())
+                        {
+                            return std::nullopt;
+                        }
 
 #    if ENGINE_ENABLE_ASSETS
-                          if (mesh_cache_.contains(handle))
-                          {
-                              try
-                              {
-                                  const auto& asset = mesh_cache_.get(handle);
-                                  return engine::geometry::mesh::build_surface_mesh_from_halfedge(
-                                      asset.mesh.interface);
-                              }
-                              catch (const std::exception& ex)
-                              {
-                                  ENGINE_WARN("Failed to resolve mesh '{}' from cache: {}", handle.id(), ex.what());
-                              }
-                          }
+                        if (mesh_cache_.contains(handle))
+                        {
+                            try
+                            {
+                                const auto& asset = mesh_cache_.get(handle);
+                                return engine::geometry::mesh::build_surface_mesh_from_halfedge(
+                                    asset.mesh.interface);
+                            }
+                            catch (const std::exception& ex)
+                            {
+                                ENGINE_WARN("Failed to resolve mesh '{}' from cache: {}", handle.id(), ex.what());
+                            }
+                        }
 #    endif
 
-                          if (mesh_storage_)
-                          {
-                              if (auto mesh = mesh_storage_->get(handle.id()))
-                              {
-                                  return mesh;
-                              }
-                          }
-                          return std::nullopt;
-                      };
+                        if (mesh_storage_)
+                        {
+                            if (auto mesh = mesh_storage_->get(handle.id()))
+                            {
+                                return mesh;
+                            }
+                        }
+                        return std::nullopt;
+                    };
 
-                      auto point_cloud_resolver = [this](const engine::assets::PointCloudHandle& handle)
-                          -> std::optional<engine::geometry::PointCloud> {
-                          if (handle.empty())
-                          {
-                              return std::nullopt;
-                          }
+                    auto point_cloud_resolver = [this](const engine::assets::PointCloudHandle& handle)
+                        -> std::optional<engine::geometry::PointCloud>
+                    {
+                        if (handle.empty())
+                        {
+                            return std::nullopt;
+                        }
 
 #    if ENGINE_ENABLE_ASSETS
-                          try
-                          {
-                              return point_cloud_cache_.get(handle).point_cloud;
-                          }
-                          catch (const std::exception& ex)
-                          {
-                              ENGINE_WARN(
-                                  "Failed to resolve point cloud '{}' from cache: {}", handle.id(), ex.what());
-                          }
+                        try
+                        {
+                            return point_cloud_cache_.get(handle).point_cloud;
+                        }
+                        catch (const std::exception& ex)
+                        {
+                            ENGINE_WARN(
+                                "Failed to resolve point cloud '{}' from cache: {}", handle.id(), ex.what());
+                        }
 #    endif
-                          return std::nullopt;
-                      };
+                        return std::nullopt;
+                    };
 
-                      auto graph_resolver = [this](const engine::assets::GraphHandle& handle)
-                          -> std::optional<engine::geometry::Graph> {
-                          if (handle.empty() || !graph_storage_)
-                          {
-                              return std::nullopt;
-                          }
+                    auto graph_resolver = [this](const engine::assets::GraphHandle& handle)
+                        -> std::optional<engine::geometry::Graph>
+                    {
+                        if (handle.empty() || !graph_storage_)
+                        {
+                            return std::nullopt;
+                        }
 
-                          if (auto graph = graph_storage_->get(handle.id()))
-                          {
-                              return graph;
-                          }
-                          return std::nullopt;
-                      };
+                        if (auto graph = graph_storage_->get(handle.id()))
+                        {
+                            return graph;
+                        }
+                        return std::nullopt;
+                    };
 
-                      auto backend = std::make_shared<engine::rendering::backend::opengl::OpenGLPresentationBackend>(
-                          std::move(mesh_resolver),
-                          std::move(point_cloud_resolver),
-                          nullptr,
-                          0,
-                          std::move(graph_resolver));
-                      backend_ = backend;
-                      return backend;
-                  };
+                    auto backend = std::make_shared<engine::rendering::backend::opengl::OpenGLPresentationBackend>(
+                        std::move(mesh_resolver),
+                        std::move(point_cloud_resolver),
+                        nullptr,
+                        0,
+                        std::move(graph_resolver));
+                    backend_ = backend;
+                    return backend;
+                };
 #endif
-                  return config;
-              }())
+                return config;
+            }())
         {
         }
 
@@ -427,7 +433,8 @@ namespace
 #    if ENGINE_ENABLE_ASSETS
             material_validator_registration_ =
                 engine::assets::HandleValidatorRegistry::instance().register_material_validator(
-                    [handle = default_material_](const engine::assets::MaterialHandle& candidate) {
+                    [handle = default_material_](const engine::assets::MaterialHandle& candidate)
+                    {
                         return !candidate.empty() && candidate.id() == handle.id();
                     });
 #    endif
@@ -435,7 +442,8 @@ namespace
 #    if ENGINE_ENABLE_ASSETS
             mesh_validator_registration_ =
                 engine::assets::HandleValidatorRegistry::instance().register_mesh_validator(
-                    [storage = mesh_storage_](const engine::assets::MeshHandle& handle) {
+                    [storage = mesh_storage_](const engine::assets::MeshHandle& handle)
+                    {
                         if (!storage || handle.empty())
                         {
                             return false;
@@ -445,7 +453,8 @@ namespace
 
             graph_validator_registration_ =
                 engine::assets::HandleValidatorRegistry::instance().register_graph_validator(
-                    [storage = graph_storage_](const engine::assets::GraphHandle& handle) {
+                    [storage = graph_storage_](const engine::assets::GraphHandle& handle)
+                    {
                         if (!storage || handle.empty())
                         {
                             return false;
@@ -464,14 +473,15 @@ namespace
             if (const auto* cube_mesh = mesh_storage_->find(kProceduralCubeId))
             {
                 attach_render_geometry(std::string{kProceduralCubeId},
-                    engine::rendering::components::RenderGeometry::from_mesh(
-                        engine::assets::MeshHandle{std::string{kProceduralCubeId}}, default_material_),
-                    cube_mesh->bounds);
+                                       engine::rendering::components::RenderGeometry::from_mesh(
+                                           engine::assets::MeshHandle{std::string{kProceduralCubeId}},
+                                           default_material_),
+                                       cube_mesh->bounds);
             }
             ENGINE_INFO("  Attached cube render geometry");
 #else
             ENGINE_WARN("  ENGINE_ENABLE_RENDERING={}, ENGINE_ENABLE_ASSETS={}",
-                       ENGINE_ENABLE_RENDERING, ENGINE_ENABLE_ASSETS);
+                        ENGINE_ENABLE_RENDERING, ENGINE_ENABLE_ASSETS);
 #endif
         }
 
@@ -480,9 +490,10 @@ namespace
         {
             auto strategy = std::make_unique<engine::scene::selection::BoundingBoxSelectionStrategy>();
             strategy->set_bounds_provider([this](engine::scene::Scene&, entt::entity entity)
-                -> std::optional<engine::geometry::Aabb> {
-                return resolve_entity_bounds(entity);
-            });
+                -> std::optional<engine::geometry::Aabb>
+                {
+                    return resolve_entity_bounds(entity);
+                });
             selection_engine_.register_strategy(std::move(strategy), 0);
             outline_renderer_.set_selection_engine(&selection_engine_);
         }
@@ -509,7 +520,7 @@ namespace
                 camera, center, CAMERA_DISTANCE);
 
             ENGINE_INFO("Camera setup with trackball controller - center=({}, {}, {}), distance={}",
-                       center[0], center[1], center[2], CAMERA_DISTANCE);
+                        center[0], center[1], center[2], CAMERA_DISTANCE);
 #endif
         }
 
@@ -587,13 +598,14 @@ namespace
                 const std::string model_id = std::string{asset.descriptor.handle.id()};
                 cache_wireframe_graph(model_id, surface_mesh);
                 attach_render_geometry(model_id,
-                    engine::rendering::components::RenderGeometry::from_mesh(
-                        asset.descriptor.handle, default_material_),
-                    surface_mesh.bounds);
+                                       engine::rendering::components::RenderGeometry::from_mesh(
+                                           asset.descriptor.handle, default_material_),
+                                       surface_mesh.bounds);
                 focus_camera_on_entity_bounds(model_id, surface_mesh.bounds);
 
                 // Track this model for deletion (if not already tracked)
-                if (std::find(loaded_models_order_.begin(), loaded_models_order_.end(), model_id) == loaded_models_order_.end())
+                if (std::find(loaded_models_order_.begin(), loaded_models_order_.end(), model_id) ==
+                    loaded_models_order_.end())
                 {
                     loaded_models_order_.push_back(model_id);
                 }
@@ -623,13 +635,14 @@ namespace
 
                 const std::string model_id = std::string{asset.descriptor.handle.id()};
                 attach_render_geometry(model_id,
-                    engine::rendering::components::RenderGeometry::from_point_cloud(
-                        asset.descriptor.handle, default_material_),
-                    local_bounds);
+                                       engine::rendering::components::RenderGeometry::from_point_cloud(
+                                           asset.descriptor.handle, default_material_),
+                                       local_bounds);
                 focus_camera_on_entity_bounds(model_id, local_bounds);
 
                 // Track this model for deletion (if not already tracked)
-                if (std::find(loaded_models_order_.begin(), loaded_models_order_.end(), model_id) == loaded_models_order_.end())
+                if (std::find(loaded_models_order_.begin(), loaded_models_order_.end(), model_id) ==
+                    loaded_models_order_.end())
                 {
                     loaded_models_order_.push_back(model_id);
                 }
@@ -648,8 +661,8 @@ namespace
         }
 
         void attach_render_geometry(const std::string& identifier,
-            engine::rendering::components::RenderGeometry geometry,
-            std::optional<engine::geometry::Aabb> local_bounds = std::nullopt)
+                                    engine::rendering::components::RenderGeometry geometry,
+                                    std::optional<engine::geometry::Aabb> local_bounds = std::nullopt)
         {
 #if ENGINE_ENABLE_RENDERING
             auto& registry = scene().registry();
@@ -865,12 +878,12 @@ namespace
             trackball_controller_->set_distance(distance);
 
             ENGINE_INFO("Focused camera on bounds - center=({}, {}, {}), distance={}",
-                       center[0], center[1], center[2], distance);
+                        center[0], center[1], center[2], distance);
 #endif
         }
 
         void focus_camera_on_entity_bounds(const std::string& identifier,
-            const engine::geometry::Aabb& local_bounds)
+                                           const engine::geometry::Aabb& local_bounds)
         {
 #if ENGINE_ENABLE_RENDERING
             if (!trackball_controller_)
@@ -878,7 +891,8 @@ namespace
                 return;
             }
 
-            const auto world_bounds = [&]() {
+            const auto world_bounds = [&]()
+            {
                 if (const auto it = render_entities_.find(identifier); it != render_entities_.end())
                 {
                     return compute_world_bounds(it->second, local_bounds);
@@ -1077,24 +1091,25 @@ namespace
             if (const auto it = render_entities_.find(cube_id); it != render_entities_.end())
             {
                 const auto entity = it->second;
-                    if (cube_visible_)
+                if (cube_visible_)
+                {
+                    // Re-attach the cube geometry
+                    std::optional<engine::geometry::Aabb> cube_bounds{};
+                    if (const auto* mesh = mesh_storage_->find(kProceduralCubeId))
                     {
-                        // Re-attach the cube geometry
-                        std::optional<engine::geometry::Aabb> cube_bounds{};
-                        if (const auto* mesh = mesh_storage_->find(kProceduralCubeId))
-                        {
-                            cube_bounds = mesh->bounds;
-                        }
-                        attach_render_geometry(cube_id,
-                            engine::rendering::components::RenderGeometry::from_mesh(
-                                engine::assets::MeshHandle{cube_id}, default_material_),
-                            cube_bounds);
-                        ENGINE_INFO("Cube visible");
+                        cube_bounds = mesh->bounds;
                     }
-                    else
+                    attach_render_geometry(cube_id,
+                                           engine::rendering::components::RenderGeometry::from_mesh(
+                                               engine::assets::MeshHandle{cube_id}, default_material_),
+                                           cube_bounds);
+                    ENGINE_INFO("Cube visible");
+                }
+                else
                 {
                     // Remove the render geometry component (keeps entity but makes it invisible)
-                    if (registry.valid(entity) && registry.any_of<engine::rendering::components::RenderGeometry>(entity))
+                    if (registry.valid(entity) && registry.any_of<
+                        engine::rendering::components::RenderGeometry>(entity))
                     {
                         registry.remove<engine::rendering::components::RenderGeometry>(entity);
                         ENGINE_INFO("Cube hidden");
@@ -1199,7 +1214,8 @@ namespace
             if (backend_)
             {
                 backend_->set_imgui_context_for_rendering(imgui_context_);
-                backend_->set_imgui_render_callback([this](double delta_time) {
+                backend_->set_imgui_render_callback([this](double delta_time)
+                {
                     render_panels(delta_time);
                 });
             }
@@ -1212,10 +1228,12 @@ namespace
             using engine::tools::editor::RuntimePanelBridge;
 
             RuntimePanelBridge::HierarchyPanelHooks hierarchy_hooks{};
-            hierarchy_hooks.scene_provider = [this]() -> engine::scene::Scene* {
+            hierarchy_hooks.scene_provider = [this]() -> engine::scene::Scene*
+            {
                 return &scene();
             };
-            hierarchy_hooks.selection_provider = [this]() -> entt::entity {
+            hierarchy_hooks.selection_provider = [this]() -> entt::entity
+            {
                 const auto selection = selection_engine_.ordered_selection();
                 if (selection.empty())
                 {
@@ -1228,7 +1246,8 @@ namespace
 
             RuntimePanelBridge::AssetPanelHooks asset_hooks{};
 #    if ENGINE_ENABLE_ASSETS
-            asset_hooks.row_provider = [this]() {
+            asset_hooks.row_provider = [this]()
+            {
                 engine::tools::editor::AssetRegistryFacade facade{};
                 facade.mesh_cache = &mesh_cache_;
                 facade.point_cloud_cache = &point_cloud_cache_;
@@ -1238,10 +1257,12 @@ namespace
 
             panel_bridge_ = std::make_unique<RuntimePanelBridge>(
                 panel_registry_,
-                [this]() -> const engine::runtime::RuntimeDiagnostics& {
+                [this]() -> const engine::runtime::RuntimeDiagnostics&
+                {
                     return runtime_host().diagnostics();
                 },
-                [this]() -> const engine::scene::validation::HierarchyValidationReport* {
+                [this]() -> const engine::scene::validation::HierarchyValidationReport*
+                {
                     return &runtime_host().diagnostics().scene_validation;
                 },
                 RuntimePanelBridge::Renderers{},
@@ -1262,12 +1283,12 @@ namespace
 
             ImGuiContext* previous_context = ImGui::GetCurrentContext();
             ImGui::SetCurrentContext(imgui_context_);
-              engine::tools::imgui::begin_frame();
-              render_main_menu_bar();
-              render_camera_widget();
-              render_selection_widget();
-              render_active_widgets(delta_time);
-              engine::tools::imgui::end_frame();
+            engine::tools::imgui::begin_frame();
+            render_main_menu_bar();
+            render_camera_widget();
+            render_selection_widget();
+            render_active_widgets(delta_time);
+            engine::tools::imgui::end_frame();
             ImGui::SetCurrentContext(previous_context);
         }
 
@@ -1321,7 +1342,8 @@ namespace
                 {
                     ENGINE_INFO("Calling ImGui_ImplOpenGL3_Shutdown()...");
                     ImGui_ImplOpenGL3_Shutdown();
-                    ENGINE_INFO("After ImGui_ImplOpenGL3_Shutdown: BackendRendererUserData={}", (void*)io.BackendRendererUserData);
+                    ENGINE_INFO("After ImGui_ImplOpenGL3_Shutdown: BackendRendererUserData={}",
+                                (void*)io.BackendRendererUserData);
                 }
 
                 // Then shutdown the platform backend
@@ -1329,19 +1351,23 @@ namespace
                 {
                     ENGINE_INFO("Calling ImGui_ImplGlfw_Shutdown()...");
                     ImGui_ImplGlfw_Shutdown();
-                    ENGINE_INFO("After ImGui_ImplGlfw_Shutdown: BackendPlatformUserData={}", (void*)io.BackendPlatformUserData);
+                    ENGINE_INFO("After ImGui_ImplGlfw_Shutdown: BackendPlatformUserData={}",
+                                (void*)io.BackendPlatformUserData);
                 }
 
                 // If the platform userdata is still set, log and clear to avoid assertion during ImGui::Shutdown.
                 if (io.BackendPlatformUserData != nullptr || io.BackendRendererUserData != nullptr)
                 {
-                    ENGINE_WARN("ImGui backend userdata not cleared by shutdown functions; forcing cleanup (platform={}, renderer={})",
-                                (void*)io.BackendPlatformUserData, (void*)io.BackendRendererUserData);
+                    ENGINE_WARN(
+                        "ImGui backend userdata not cleared by shutdown functions; forcing cleanup (platform={}, renderer={})",
+                        (void*)io.BackendPlatformUserData, (void*)io.BackendRendererUserData);
                     io.BackendPlatformUserData = nullptr;
                     io.BackendRendererUserData = nullptr;
                     io.BackendPlatformName = nullptr;
                     // Clear backend flags related to platform/renderer capabilities to be safe.
-                    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
+                    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos |
+                        ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports |
+                        ImGuiBackendFlags_HasMouseHoveredViewport);
                 }
 #endif
                 // Destroy the context we created for panels
@@ -1419,19 +1445,19 @@ namespace
                     }
                     ImGui::Separator();
 
-                      for (auto& widget : widget_toggles_)
-                      {
-                          bool visible = widget.visible;
-                          if (ImGui::MenuItem(widget.label.c_str(), nullptr, &visible))
-                          {
-                              widget.visible = visible;
-                          }
-                      }
-                      ImGui::Separator();
-                      ImGui::MenuItem("Selection Inspector", nullptr, &selection_widget_visible_);
-                  }
-                  ImGui::EndMenu();
-              }
+                    for (auto& widget : widget_toggles_)
+                    {
+                        bool visible = widget.visible;
+                        if (ImGui::MenuItem(widget.label.c_str(), nullptr, &visible))
+                        {
+                            widget.visible = visible;
+                        }
+                    }
+                    ImGui::Separator();
+                    ImGui::MenuItem("Selection Inspector", nullptr, &selection_widget_visible_);
+                }
+                ImGui::EndMenu();
+            }
 
             if (ImGui::BeginMenu("Camera"))
             {
@@ -1452,11 +1478,11 @@ namespace
             if (ImGui::BeginMenu("Display"))
             {
                 if (ImGui::SliderFloat("UI Scale",
-                        &gui_scale_,
-                        MIN_GUI_SCALE,
-                        MAX_GUI_SCALE,
-                        "%.2fx",
-                        ImGuiSliderFlags_AlwaysClamp))
+                                       &gui_scale_,
+                                       MIN_GUI_SCALE,
+                                       MAX_GUI_SCALE,
+                                       "%.2fx",
+                                       ImGuiSliderFlags_AlwaysClamp))
                 {
                     gui_scale_ = std::clamp(gui_scale_, MIN_GUI_SCALE, MAX_GUI_SCALE);
                     apply_imgui_scale();
@@ -1489,7 +1515,9 @@ namespace
             float center_values[3] = {center[0], center[1], center[2]};
             if (ImGui::InputFloat3("Orbit Center", center_values, "%.3f"))
             {
-                trackball_controller_->set_center(engine::math::vec3{center_values[0], center_values[1], center_values[2]});
+                trackball_controller_->set_center(engine::math::vec3{
+                    center_values[0], center_values[1], center_values[2]
+                });
             }
 
             float distance = trackball_controller_->distance();
@@ -1549,13 +1577,14 @@ namespace
                     ImGui::TextUnformatted(label.c_str());
                     const auto& hit = it->hit;
                     const auto entity_id = (hit.entity != entt::null)
-                        ? static_cast<std::uint32_t>(hit.entity)
-                        : 0U;
+                                               ? static_cast<std::uint32_t>(hit.entity)
+                                               : 0U;
                     ImGui::TextDisabled("Entity #%u • Source: %s • Distance: %.2f",
-                        entity_id,
-                        selection_source_label(it->source),
-                        hit.distance);
-                    ImGui::TextDisabled("Hit Position: (%.2f, %.2f, %.2f)", hit.position[0], hit.position[1], hit.position[2]);
+                                        entity_id,
+                                        selection_source_label(it->source),
+                                        hit.distance);
+                    ImGui::TextDisabled("Hit Position: (%.2f, %.2f, %.2f)", hit.position[0], hit.position[1],
+                                        hit.position[2]);
                     ImGui::Separator();
                 }
             }
@@ -1577,7 +1606,8 @@ namespace
             if (ImGui::ColorEdit3("Outline Color", outline_color))
             {
                 outline_config.style.color = engine::math::vec3{
-                    outline_color[0], outline_color[1], outline_color[2]};
+                    outline_color[0], outline_color[1], outline_color[2]
+                };
             }
             ImGui::SliderFloat("Outline Alpha", &outline_config.style.alpha, 0.1f, 1.0f);
             ImGui::SliderFloat("Outline Thickness (px)", &outline_config.style.thickness, 1.0f, 12.0f);
@@ -1633,7 +1663,8 @@ namespace
                 if (ImGui::ColorEdit3("Occluded Color", occluded_color))
                 {
                     outline_config.occluded_style.color = engine::math::vec3{
-                        occluded_color[0], occluded_color[1], occluded_color[2]};
+                        occluded_color[0], occluded_color[1], occluded_color[2]
+                    };
                 }
             }
 
@@ -1705,7 +1736,8 @@ namespace
             return std::string{"<none>"};
         }
 
-        [[nodiscard]] const char* selection_source_label(engine::scene::selection::SelectionSource source) const noexcept
+        [[nodiscard]] const char* selection_source_label(
+            engine::scene::selection::SelectionSource source) const noexcept
         {
             switch (source)
             {
@@ -1900,7 +1932,7 @@ namespace
         }
 
         [[nodiscard]] engine::geometry::Aabb compute_world_bounds(entt::entity entity,
-            const engine::geometry::Aabb& local_bounds) const
+                                                                  const engine::geometry::Aabb& local_bounds) const
         {
 #if ENGINE_ENABLE_RENDERING
             auto& registry = scene().registry();
@@ -1968,7 +2000,8 @@ namespace
             const float vertical_fov = CAMERA_FOV;
             const float horizontal_fov = 2.0f * std::atan(std::tan(vertical_fov * 0.5f) * aspect);
 
-            const auto axis_distance = [](float half_extent, float fov) {
+            const auto axis_distance = [](float half_extent, float fov)
+            {
                 if (half_extent <= std::numeric_limits<float>::epsilon())
                 {
                     return 0.0f;
@@ -1978,10 +2011,10 @@ namespace
             };
 
             float distance = std::max(axis_distance(half_size[1], vertical_fov),
-                axis_distance(half_size[0], horizontal_fov));
+                                      axis_distance(half_size[0], horizontal_fov));
 
             const float diagonal_radius = std::max(engine::math::length(size) * 0.5f,
-                std::max(half_size[2], 0.0f));
+                                                   std::max(half_size[2], 0.0f));
             distance = std::max(distance, diagonal_radius);
 
             constexpr float kMargin = 1.15f;
@@ -2013,12 +2046,14 @@ namespace
         std::unique_ptr<engine::tools::editor::RuntimePanelBridge> panel_bridge_{};
         bool panels_visible_{true};
         ImGuiContext* imgui_context_{nullptr};
+
         struct WidgetToggle
         {
             std::string identifier;
             std::string label;
             bool visible{false};
         };
+
         std::vector<WidgetToggle> widget_toggles_{};
         float gui_scale_{2.0f};
         bool camera_widget_visible_{true};
@@ -2071,4 +2106,3 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 }
-

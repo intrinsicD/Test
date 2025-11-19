@@ -24,12 +24,12 @@ namespace engine::geometry::surfaces
 
         // Face normals for a box
         const std::array<math::vec3, 6> face_normals = {{
-            math::vec3{ 0.0F,  0.0F,  1.0F},  // Front (+Z)
-            math::vec3{ 0.0F,  0.0F, -1.0F},  // Back (-Z)
-            math::vec3{ 1.0F,  0.0F,  0.0F},  // Right (+X)
-            math::vec3{-1.0F,  0.0F,  0.0F},  // Left (-X)
-            math::vec3{ 0.0F,  1.0F,  0.0F},  // Top (+Y)
-            math::vec3{ 0.0F, -1.0F,  0.0F},  // Bottom (-Y)
+            math::vec3{1.0F,  0.0F,  0.0F},  // -X
+            math::vec3{- 1.0F,  0.0F,  0.0F},  // +X
+            math::vec3{ 0.0F, 1.0F,  0.0F},  // -Y
+            math::vec3{ 0.0F,  -1.0F,  0.0F},  // +Y
+            math::vec3{ 0.0F,  0.0F, 1.0F},  // -Z
+            math::vec3{ 0.0F,  0.0F,  -1.0F},  // +Z
         }};
 
         // Build mesh from AABB face quads

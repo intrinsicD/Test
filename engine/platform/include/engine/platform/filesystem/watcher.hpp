@@ -6,9 +6,7 @@
 #include <filesystem>
 #include <functional>
 #include <mutex>
-#include <stdexcept>
 #include <unordered_map>
-#include <vector>
 
 namespace engine::platform::filesystem
 {

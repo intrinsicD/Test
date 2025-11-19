@@ -38,6 +38,7 @@ namespace engine::platform::input
         E,
         G,
         T,
+        F,
         Digit0,
         Digit1,
         Digit2,

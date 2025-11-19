@@ -83,13 +83,13 @@ namespace engine::assets
     [[nodiscard]] std::uint32_t compute_max_mip_levels(TextureDimensions extent) noexcept;
 
     class TextureCache : public detail::AssetCacheLifecycle<
-                             TextureCache,
-                             TextureAsset,
-                             TextureAssetDescriptor,
-                             TextureHandle,
-                             TextureHandleTag,
-                             std::function<void(const TextureAsset&)>,
-                             true>
+            TextureCache,
+            TextureAsset,
+            TextureAssetDescriptor,
+            TextureHandle,
+            TextureHandleTag,
+            std::function<void(const TextureAsset&)>,
+            true>
     {
     public:
         using Base = detail::AssetCacheLifecycle<
