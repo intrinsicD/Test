@@ -255,6 +255,15 @@ namespace engine::rendering
         if (std::find(resource.readers.begin(), resource.readers.end(), pass_index_) == resource.readers.end())
         {
             resource.readers.push_back(pass_index_);
+            resource.reader_dependencies.push_back(resource.writer);
+        }
+        if (!resource.writer_history.empty())
+        {
+            if (std::find(resource.readers_since_last_write.begin(), resource.readers_since_last_write.end(), pass_index_)
+                == resource.readers_since_last_write.end())
+            {
+                resource.readers_since_last_write.push_back(pass_index_);
+            }
         }
 
         return handle;
@@ -274,10 +283,32 @@ namespace engine::rendering
         }
 
         auto& resource = graph_.resources_[handle.index];
-        if (resource.writer != std::numeric_limits<std::size_t>::max() && resource.writer != pass_index_)
+        const bool first_writer = resource.writer_history.empty();
+        const bool is_new_writer = first_writer || resource.writer_history.back() != pass_index_;
+        if (is_new_writer)
         {
-            throw std::logic_error{"FrameGraph resource already has a writer"};
+            resource.writer_history.push_back(pass_index_);
         }
+
+        if (first_writer)
+        {
+            for (auto& dependency : resource.reader_dependencies)
+            {
+                if (dependency == std::numeric_limits<std::size_t>::max())
+                {
+                    dependency = pass_index_;
+                }
+            }
+        }
+
+        for (const auto reader : resource.readers_since_last_write)
+        {
+            if (reader != pass_index_)
+            {
+                resource.reader_to_writer_edges.emplace_back(reader, pass_index_);
+            }
+        }
+        resource.readers_since_last_write.clear();
         resource.writer = pass_index_;
 
         return handle;
@@ -534,12 +565,28 @@ namespace engine::rendering
         for (std::size_t resource_index = 0; resource_index < resources_.size(); ++resource_index)
         {
             auto& resource = resources_[resource_index];
-            if (resource.writer != std::numeric_limits<std::size_t>::max())
+            for (std::size_t writer_index = 1; writer_index < resource.writer_history.size(); ++writer_index)
             {
-                for (std::size_t reader : resource.readers)
+                const auto predecessor = resource.writer_history[writer_index - 1];
+                const auto successor = resource.writer_history[writer_index];
+                adjacency[predecessor].push_back(successor);
+            }
+
+            for (std::size_t reader_index = 0; reader_index < resource.readers.size(); ++reader_index)
+            {
+                const auto reader = resource.readers[reader_index];
+                const auto dependency = reader_index < resource.reader_dependencies.size()
+                    ? resource.reader_dependencies[reader_index]
+                    : resource.writer;
+                if (dependency != std::numeric_limits<std::size_t>::max())
                 {
-                    adjacency[resource.writer].push_back(reader);
+                    adjacency[dependency].push_back(reader);
                 }
+            }
+
+            for (const auto& edge : resource.reader_to_writer_edges)
+            {
+                adjacency[edge.first].push_back(edge.second);
             }
         }
 

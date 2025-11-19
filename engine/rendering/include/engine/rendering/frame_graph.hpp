@@ -9,6 +9,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "engine/rendering/render_pass.hpp"
@@ -163,6 +164,10 @@ namespace engine::rendering
             std::uint64_t size_bytes{0};
             std::size_t writer{std::numeric_limits<std::size_t>::max()};
             std::vector<std::size_t> readers;
+            std::vector<std::size_t> reader_dependencies;
+            std::vector<std::size_t> writer_history;
+            std::vector<std::pair<std::size_t, std::size_t>> reader_to_writer_edges;
+            std::vector<std::size_t> readers_since_last_write;
             std::size_t first_use{std::numeric_limits<std::size_t>::max()};
             std::size_t last_use{std::numeric_limits<std::size_t>::max()};
         };
