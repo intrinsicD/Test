@@ -926,24 +926,30 @@ TEST(SurfaceMesh, UnitCubeProvidesPerFaceTextureCoordinates)
     }
 }
 
-TEST(SurfaceMesh, UnitCubeNormalsPointOutwardFromCorners)
+TEST(SurfaceMesh, UnitCubeNormalsMatchFaceNormals)
 {
     const auto cube = engine::geometry::make_unit_cube();
     ASSERT_EQ(cube.positions.size(), cube.normals.size());
+    ASSERT_EQ(cube.normals.size(), 24U);
 
-    for (std::size_t i = 0; i < cube.positions.size(); ++i)
+    const std::array<engine::math::vec3, 6> expected_face_normals = {{
+        engine::math::vec3{-1.0f, 0.0f, 0.0f},
+        engine::math::vec3{1.0f, 0.0f, 0.0f},
+        engine::math::vec3{0.0f, -1.0f, 0.0f},
+        engine::math::vec3{0.0f, 1.0f, 0.0f},
+        engine::math::vec3{0.0f, 0.0f, -1.0f},
+        engine::math::vec3{0.0f, 0.0f, 1.0f},
+    }};
+
+    for (std::size_t face = 0; face < expected_face_normals.size(); ++face)
     {
-        const auto& position = cube.positions[i];
-        const auto& normal = cube.normals[i];
-
-        engine::math::vec3 expected{
-            position[0] >= 0.0f ? 1.0f : -1.0f,
-            position[1] >= 0.0f ? 1.0f : -1.0f,
-            position[2] >= 0.0f ? 1.0f : -1.0f};
-        expected = engine::math::normalize(expected);
-
-        EXPECT_NEAR(normal[0], expected[0], 1e-4f);
-        EXPECT_NEAR(normal[1], expected[1], 1e-4f);
-        EXPECT_NEAR(normal[2], expected[2], 1e-4f);
+        const auto& expected = expected_face_normals[face];
+        for (std::size_t corner = 0; corner < 4; ++corner)
+        {
+            const auto& normal = cube.normals[face * 4U + corner];
+            EXPECT_NEAR(normal[0], expected[0], 1e-4f);
+            EXPECT_NEAR(normal[1], expected[1], 1e-4f);
+            EXPECT_NEAR(normal[2], expected[2], 1e-4f);
+        }
     }
 }
