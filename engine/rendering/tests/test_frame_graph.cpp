@@ -277,6 +277,53 @@ TEST(FrameGraph, OrdersReadersBetweenSequentialWrites)
     EXPECT_EQ(graph.pass_name(order[2]), "SecondWrite");
 }
 
+TEST(FrameGraph, OrdersReadersRegisteredBeforeFirstWriterBetweenSequentialWrites)
+{
+    engine::rendering::FrameGraph graph;
+    const auto color = graph.create_resource(make_color_resource("Color"));
+    const auto aux = graph.create_resource(make_color_resource("Aux"));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "EarlyReader",
+        [=](engine::rendering::FrameGraphPassBuilder& builder)
+        {
+            builder.read(color);
+            builder.read(aux);
+        },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "FirstWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "SecondWrite",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(color); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    graph.add_pass(std::make_unique<engine::rendering::CallbackRenderPass>(
+        "ProduceAux",
+        [=](engine::rendering::FrameGraphPassBuilder& builder) { builder.write(aux); },
+        [](engine::rendering::FrameGraphPassExecutionContext&)
+        {
+        }));
+
+    graph.compile();
+    const auto order = graph.execution_order();
+    ASSERT_EQ(order.size(), 4U);
+    EXPECT_EQ(graph.pass_name(order[0]), "FirstWrite");
+    EXPECT_EQ(graph.pass_name(order[1]), "ProduceAux");
+    EXPECT_EQ(graph.pass_name(order[2]), "EarlyReader");
+    EXPECT_EQ(graph.pass_name(order[3]), "SecondWrite");
+}
+
 TEST(FrameGraph, ReusesCompilationCacheAcrossReset)
 {
     engine::rendering::FrameGraph graph;
