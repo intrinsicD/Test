@@ -1,4 +1,5 @@
 set(ENGINE_RENDERING_TEST_SOURCES
+        test_barrier_optimizer.cpp
         command_scheduler_tests.cpp
         test_module.cpp
         test_frame_graph.cpp

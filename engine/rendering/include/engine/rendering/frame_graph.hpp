@@ -12,8 +12,9 @@
 #include <utility>
 #include <vector>
 
-#include "engine/rendering/render_pass.hpp"
+#include "engine/rendering/barrier_optimizer.hpp"
 #include "engine/rendering/frame_graph_types.hpp"
+#include "engine/rendering/render_pass.hpp"
 #include "engine/rendering/resources/synchronization.hpp"
 
 namespace engine::rendering
@@ -89,6 +90,39 @@ namespace engine::rendering
         std::string pass_name;
     };
 
+    struct BarrierStatistics
+    {
+        std::uint64_t begin_before{0};
+        std::uint64_t begin_after{0};
+        std::uint64_t end_before{0};
+        std::uint64_t end_after{0};
+
+        [[nodiscard]] std::uint64_t begin_eliminated() const noexcept
+        {
+            return begin_before - begin_after;
+        }
+
+        [[nodiscard]] std::uint64_t end_eliminated() const noexcept
+        {
+            return end_before - end_after;
+        }
+
+        [[nodiscard]] std::uint64_t total_before() const noexcept
+        {
+            return begin_before + end_before;
+        }
+
+        [[nodiscard]] std::uint64_t total_after() const noexcept
+        {
+            return begin_after + end_after;
+        }
+
+        [[nodiscard]] std::uint64_t total_eliminated() const noexcept
+        {
+            return total_before() - total_after();
+        }
+    };
+
     inline std::ostream& operator<<(std::ostream& os, ResourceEvent::Type type)
     {
         switch (type)
@@ -126,6 +160,7 @@ namespace engine::rendering
 
         [[nodiscard]] const std::vector<std::size_t>& execution_order() const noexcept;
         [[nodiscard]] const std::vector<ResourceEvent>& resource_events() const noexcept;
+        [[nodiscard]] const BarrierStatistics& barrier_statistics() const noexcept;
         [[nodiscard]] FrameGraphResourceInfo resource_info(FrameGraphResourceHandle handle) const;
         [[nodiscard]] std::span<const FrameGraphResourceHandle> pass_reads(std::size_t pass_index);
         [[nodiscard]] std::span<const FrameGraphResourceHandle> pass_writes(std::size_t pass_index);
@@ -185,6 +220,8 @@ namespace engine::rendering
         std::vector<ResourceEvent> resource_events_;
         std::vector<std::vector<resources::Barrier>> pass_begin_barriers_;
         std::vector<std::vector<resources::Barrier>> pass_end_barriers_;
+        BarrierOptimizer barrier_optimizer_{};
+        BarrierStatistics barrier_statistics_{};
         bool compiled_{false};
         std::optional<CompilationCache> compilation_cache_{};
         std::uint64_t cache_hits_{0};
