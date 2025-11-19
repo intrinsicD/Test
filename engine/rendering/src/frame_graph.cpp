@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "engine/rendering/barrier_optimizer.hpp"
 #include "engine/rendering/command_encoder.hpp"
 
 namespace engine::rendering
@@ -373,6 +374,7 @@ namespace engine::rendering
         passes_.clear();
         execution_order_.clear();
         resource_events_.clear();
+        barrier_statistics_ = {};
         pass_begin_barriers_.clear();
         pass_end_barriers_.clear();
         compiled_ = false;
@@ -710,6 +712,7 @@ namespace engine::rendering
         }
 
         resource_events_.clear();
+        barrier_statistics_ = {};
         std::vector<bool> alive(resources_.size(), false);
         resources::TimelineSemaphore frame_semaphore{"FrameGraphTimeline", 0};
         resources::Fence frame_fence{"FrameGraphFence", 0};
@@ -823,6 +826,16 @@ namespace engine::rendering
                 barrier.source_stage = queue_stage;
             }
 
+            barrier_statistics_.begin_before += begin_barriers.size();
+            auto optimized_begin = barrier_optimizer_.optimize(std::move(begin_barriers));
+            barrier_statistics_.begin_after += optimized_begin.barriers.size();
+            begin_barriers = std::move(optimized_begin.barriers);
+
+            barrier_statistics_.end_before += end_barriers.size();
+            auto optimized_end = barrier_optimizer_.optimize(std::move(end_barriers));
+            barrier_statistics_.end_after += optimized_end.barriers.size();
+            end_barriers = std::move(optimized_end.barriers);
+
             GpuSubmitInfo submit_info{};
             submit_info.pass_name = pass.pass->name();
             submit_info.queue = queue;
@@ -857,6 +870,11 @@ namespace engine::rendering
     const std::vector<ResourceEvent>& FrameGraph::resource_events() const noexcept
     {
         return resource_events_;
+    }
+
+    const BarrierStatistics& FrameGraph::barrier_statistics() const noexcept
+    {
+        return barrier_statistics_;
     }
 
     FrameGraphResourceInfo FrameGraph::resource_info(FrameGraphResourceHandle handle) const

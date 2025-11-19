@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include "engine/geometry/api.hpp"
+#include "engine/geometry/surfaces/mesh_generation.hpp"
 
 int main()
 {
@@ -41,7 +42,7 @@ int main()
         engine::math::vec3{0.0f, 0.0f, 0.0f},   // min
         engine::math::vec3{2.0f, 1.0f, 0.5f}    // max (2x1x0.5 box)
     };
-    auto custom_mesh = engine::geometry::surface_mesh_from(custom_box);
+    auto custom_mesh = engine::geometry::surfaces::surface_mesh_from(custom_box);
     std::cout << "  ✓ Custom box (2x1x0.5): " << custom_mesh.positions.size() << " vertices\n";
     
     // Step 4: You can also create other procedural shapes

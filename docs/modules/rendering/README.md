@@ -163,6 +163,15 @@ builder.add_pass("pass_b").reads(texture);
 // No manual synchronization required
 ```
 
+Barrier emission is intentionally conservative, so the runtime executes every
+pass through the `BarrierOptimizer`
+(`engine/rendering/include/engine/rendering/barrier_optimizer.hpp`) before
+submitting GPU work. The optimizer removes redundant transitions (for example
+when a resource is already in the requested access state) and merges compatible
+barriers without violating hazard ordering. `FrameGraph::barrier_statistics()`
+exposes before/after counts so TL-312 can display the number of eliminated
+begin/end barriers alongside PM-510 telemetry captures.
+
 ## Research Baseline Preset
 
 The research initiative behind `RE-610` introduces a reusable frame-graph preset

@@ -26,6 +26,7 @@ add_library(${target_name}
         src/selection_outline_renderer.cpp
         src/selection_outline_strategy.cpp
         src/material_system.cpp
+        src/resources/barrier_optimizer.cpp
         src/resources/recording_gpu_resource_provider.cpp
 )
 
