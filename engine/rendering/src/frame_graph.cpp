@@ -291,13 +291,29 @@ namespace engine::rendering
             resource.writer_history.push_back(pass_index_);
         }
 
+        std::vector<std::size_t> pending_first_writer_readers;
         if (first_writer)
         {
-            for (auto& dependency : resource.reader_dependencies)
+            for (std::size_t reader_index = 0; reader_index < resource.reader_dependencies.size(); ++reader_index)
             {
+                auto& dependency = resource.reader_dependencies[reader_index];
                 if (dependency == std::numeric_limits<std::size_t>::max())
                 {
                     dependency = pass_index_;
+                    if (reader_index < resource.readers.size())
+                    {
+                        const auto reader = resource.readers[reader_index];
+                        const bool already_tracked = std::find(resource.readers_since_last_write.begin(),
+                                                              resource.readers_since_last_write.end(),
+                                                              reader)
+                            != resource.readers_since_last_write.end()
+                            || std::find(pending_first_writer_readers.begin(), pending_first_writer_readers.end(), reader)
+                                != pending_first_writer_readers.end();
+                        if (!already_tracked)
+                        {
+                            pending_first_writer_readers.push_back(reader);
+                        }
+                    }
                 }
             }
         }
@@ -310,6 +326,12 @@ namespace engine::rendering
             }
         }
         resource.readers_since_last_write.clear();
+        if (!pending_first_writer_readers.empty())
+        {
+            resource.readers_since_last_write.insert(resource.readers_since_last_write.end(),
+                                                     pending_first_writer_readers.begin(),
+                                                     pending_first_writer_readers.end());
+        }
         resource.writer = pass_index_;
 
         return handle;
