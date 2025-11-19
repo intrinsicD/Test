@@ -48,15 +48,26 @@ namespace engine::tools::editor
             double current_ms{0.0};
         };
 
+        struct GpuPassTimingRow
+        {
+            std::string name{};
+            std::string queue{};
+            double duration_ms{0.0};
+            std::uint64_t timestamp_begin_ns{0};
+            std::uint64_t timestamp_end_ns{0};
+        };
+
         void set_history_capacity(std::size_t capacity) noexcept;
         void push_frame_sample(const FrameSample& sample);
         void set_stage_timings(std::vector<StageTimingRow> rows);
         void set_profiler_entries(std::vector<ProfilerEntryRow> rows);
         void set_benchmark_entries(std::vector<BenchmarkEntry> entries);
+        void set_gpu_pass_timings(std::vector<GpuPassTimingRow> rows);
 
         [[nodiscard]] const std::vector<float>& frame_history() const noexcept;
         [[nodiscard]] bool has_frame_sample() const noexcept;
         [[nodiscard]] const FrameSample& latest_sample() const noexcept;
+        [[nodiscard]] const std::vector<GpuPassTimingRow>& gpu_pass_timings() const noexcept;
 
         void render(const imgui::PanelRenderContext& context);
 
@@ -71,5 +82,6 @@ namespace engine::tools::editor
         std::vector<StageTimingRow> stage_timings_{};
         std::vector<ProfilerEntryRow> profiler_entries_{};
         std::vector<BenchmarkEntry> benchmark_entries_{};
+        std::vector<GpuPassTimingRow> gpu_pass_timings_{};
     };
 }

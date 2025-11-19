@@ -16,6 +16,7 @@
 
 #include "engine/rendering/barrier_optimizer.hpp"
 #include "engine/rendering/command_encoder.hpp"
+#include "engine/rendering/gpu_profiler.hpp"
 
 namespace engine::rendering
 {
@@ -742,6 +743,10 @@ namespace engine::rendering
 
         context.device_resources.begin_frame();
         context.scheduler.begin_frame();
+        if (context.profiler != nullptr)
+        {
+            context.profiler->begin_frame(context.device_resources.api());
+        }
 
         for (std::size_t order_index = 0; order_index < execution_order_.size(); ++order_index)
         {
@@ -804,6 +809,10 @@ namespace engine::rendering
                        pass.pass->name(), pass.reads.size(), pass.writes.size());
 
             // Execute the render pass logic
+            if (context.profiler != nullptr)
+            {
+                context.profiler->begin_pass(pass.pass->name(), queue, command_buffer);
+            }
             pass.pass->execute(pass_context);
 
             for (const auto handle : pass.reads)
@@ -876,12 +885,20 @@ namespace engine::rendering
             submit_info.fence_value = submission_value;
 
             context.scheduler.submit(submit_info);
+            if (context.profiler != nullptr)
+            {
+                context.profiler->end_pass(command_buffer);
+            }
             context.scheduler.recycle(command_buffer);
             timeline_value = submission_value;
         }
 
         context.scheduler.end_frame();
         context.device_resources.end_frame();
+        if (context.profiler != nullptr)
+        {
+            context.profiler->end_frame();
+        }
     }
 
     const std::vector<std::size_t>& FrameGraph::execution_order() const noexcept

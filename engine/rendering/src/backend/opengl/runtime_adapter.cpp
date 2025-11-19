@@ -35,6 +35,7 @@ namespace engine::rendering::backend::opengl
             device_resources,
             scheduler,
             command_encoders,
+            nullptr,
             frame_graph,
             pipeline,
         };

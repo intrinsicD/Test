@@ -386,6 +386,9 @@ for (const auto& barrier : submission.begin_barriers)
   command encoder provider, and scheduler, exposing a convenience helper for
   constructing `RuntimeSubmissionContext` instances without threading each
   dependency manually.
+- `RuntimeSubmissionContext` now carries an optional `GpuProfiler*` pointer. When populated (see `RG-504`), the frame-graph
+  automatically inserts begin/end samples for every pass and streams the results into `RuntimeDiagnostics::gpu_pass_timings`,
+  enabling TL-312/TL-314 panels to correlate GPU execution with the CPU scheduler.
 - `rendering::backend::opengl::OpenGLPresentationBackend` builds on the runtime
   submission adapter by implementing the `rendering::PresentationBackend`
   interface. Provide a mesh resolver callback and register materials with the

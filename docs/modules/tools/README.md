@@ -430,8 +430,9 @@ The tools module is guarded by the `ENGINE_ENABLE_TOOLS` CMake cache entry. Repo
   panels with the shared registry and exposes a single `render_all()` entry point for the editor harness. Consumers provide
   cache adapters through `AssetPanelHooks` so the bridge refreshes asset metadata every frame while respecting feature toggles.
 - `engine::tools::editor::PerformanceMetricsPanel` captures frame-time history, aggregates runtime stage timings, surfaces
-  profiler zones, and compares benchmark baselines so PM-510 demos document regressions directly from the editor UI. The bridge
-  wires the panel automatically and exposes `PerformancePanelHooks` for benchmark deltas/history tuning.
+  profiler zones, renders GPU pass timings sourced from `RuntimeDiagnostics::gpu_pass_timings`, and compares benchmark baselines
+  so PM-510 demos document regressions directly from the editor UI. The bridge wires the panel automatically and exposes
+  `PerformancePanelHooks` for benchmark deltas/history tuning.
 - `engine::tools::editor::TelemetryVisualizationPanel` streams runtime telemetry series directly into Dear ImGui, preserves a
   rolling history, and highlights warning/critical thresholds so demos can snapshot health without leaving the editor. Hook it
   up through `RuntimePanelBridge::TelemetryPanelHooks` by passing a `TelemetryPanelHooks` instance to the

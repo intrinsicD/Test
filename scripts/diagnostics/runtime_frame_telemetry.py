@@ -109,6 +109,17 @@ class RuntimeCommandEncoderStat:
 
 
 @dataclass
+class RuntimeGpuPassStat:
+    """Per-pass GPU timestamp telemetry emitted by RuntimeDiagnostics."""
+
+    name: str
+    queue: str
+    duration_ms: float
+    timestamp_begin_ns: int
+    timestamp_end_ns: int
+
+
+@dataclass
 class RuntimePhaseMetric:
     """Aggregated execution timings for each runtime loop phase."""
 
@@ -317,6 +328,7 @@ class RuntimeDiagnosticsSnapshot:
     scene_validation: Optional[SceneValidationSnapshot] = None
     metrics: Optional[RuntimeMetricsSnapshot] = None
     animation: Optional[RuntimeAnimationTelemetry] = None
+    gpu_passes: List[RuntimeGpuPassStat] = field(default_factory=list)
 
 
 _STREAMING_GEOMETRY_ERROR_CAPACITY_FALLBACK = 5
@@ -1042,6 +1054,49 @@ class RuntimeBindings:
 
         return stats
 
+    def _collect_gpu_pass_stats(self) -> List[RuntimeGpuPassStat]:
+        if not hasattr(self._lib, "engine_runtime_diagnostic_gpu_pass_count"):
+            return []
+
+        try:
+            count = int(self._lib.engine_runtime_diagnostic_gpu_pass_count())
+        except Exception:
+            return []
+
+        stats: List[RuntimeGpuPassStat] = []
+        for index in range(count):
+            name_ptr = None
+            queue_ptr = None
+            try:
+                name_ptr = self._lib.engine_runtime_diagnostic_gpu_pass_name(index)
+                queue_ptr = self._lib.engine_runtime_diagnostic_gpu_pass_queue(index)
+            except Exception:
+                pass
+
+            name = name_ptr.decode("utf-8") if name_ptr else ""
+            queue = queue_ptr.decode("utf-8") if queue_ptr else ""
+            duration_ms = 0.0
+            begin_ns = 0
+            end_ns = 0
+            try:
+                duration_ms = float(self._lib.engine_runtime_diagnostic_gpu_pass_duration_ms(index))
+                begin_ns = int(self._lib.engine_runtime_diagnostic_gpu_pass_begin_ns(index))
+                end_ns = int(self._lib.engine_runtime_diagnostic_gpu_pass_end_ns(index))
+            except Exception:
+                pass
+
+            stats.append(
+                RuntimeGpuPassStat(
+                    name=name,
+                    queue=queue,
+                    duration_ms=duration_ms,
+                    timestamp_begin_ns=begin_ns,
+                    timestamp_end_ns=end_ns,
+                )
+            )
+
+        return stats
+
     def diagnostics_snapshot(self) -> Optional[RuntimeDiagnosticsSnapshot]:
         if not self._has_diagnostics:
             return None
@@ -1064,6 +1119,7 @@ class RuntimeBindings:
             stages=self._collect_stage_metrics(),
             subsystems=self._collect_subsystem_metrics(),
             command_encoders=self._collect_command_encoder_stats(),
+            gpu_passes=self._collect_gpu_pass_stats(),
             streaming=self.streaming_metrics(),
             hot_reload=self._collect_hot_reload_metrics(),
             scene_validation=self._collect_scene_validation(),
@@ -1506,6 +1562,16 @@ def _diagnostics_to_dict(snapshot: RuntimeDiagnosticsSnapshot) -> Dict[str, obje
             }
             for stat in snapshot.command_encoders
         ],
+        "gpu_passes": [
+            {
+                "name": stat.name,
+                "queue": stat.queue,
+                "duration_ms": stat.duration_ms,
+                "timestamp_begin_ns": stat.timestamp_begin_ns,
+                "timestamp_end_ns": stat.timestamp_end_ns,
+            }
+            for stat in snapshot.gpu_passes
+        ],
         "scene_validation": _scene_validation_to_dict(snapshot.scene_validation),
         "metrics": _metrics_to_dict(snapshot.metrics),
         "animation": _animation_to_dict(snapshot.animation),
@@ -1899,6 +1965,17 @@ def _print_summary(
                     f"buffer={encoder.command_buffer:>3} "
                     f"draws={encoder.draw_count:>3} "
                     f"dispatches={encoder.dispatch_count:>3}"
+                )
+        if diagnostics.gpu_passes:
+            print("  gpu passes:")
+            for gpu_pass in diagnostics.gpu_passes:
+                print(
+                    "    "
+                    f"{gpu_pass.name:<24} "
+                    f"queue={gpu_pass.queue:<9} "
+                    f"duration={gpu_pass.duration_ms:8.3f} ms "
+                    f"begin={gpu_pass.timestamp_begin_ns:>8} "
+                    f"end={gpu_pass.timestamp_end_ns:>8}"
                 )
         if diagnostics.metrics is not None:
             _print_metric_summary(diagnostics.metrics, metric_prefixes)

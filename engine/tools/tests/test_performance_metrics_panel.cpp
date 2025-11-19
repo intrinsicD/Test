@@ -47,3 +47,25 @@ TEST(PerformanceMetricsPanel, StoresLatestSample)
     EXPECT_DOUBLE_EQ(latest.average_ms, 7.0);
     EXPECT_DOUBLE_EQ(latest.max_ms, 9.0);
 }
+
+TEST(PerformanceMetricsPanel, StoresGpuPassRows)
+{
+    PerformanceMetricsPanel panel{};
+    std::vector<PerformanceMetricsPanel::GpuPassTimingRow> rows;
+    rows.emplace_back(PerformanceMetricsPanel::GpuPassTimingRow{
+        .name = "ForwardGeometry",
+        .queue = "Graphics",
+        .duration_ms = 0.5,
+        .timestamp_begin_ns = 10,
+        .timestamp_end_ns = 20,
+    });
+
+    panel.set_gpu_pass_timings(rows);
+    const auto& stored = panel.gpu_pass_timings();
+    ASSERT_EQ(stored.size(), 1U);
+    EXPECT_EQ(stored[0].name, "ForwardGeometry");
+    EXPECT_EQ(stored[0].queue, "Graphics");
+    EXPECT_DOUBLE_EQ(stored[0].duration_ms, 0.5);
+    EXPECT_EQ(stored[0].timestamp_begin_ns, 10U);
+    EXPECT_EQ(stored[0].timestamp_end_ns, 20U);
+}

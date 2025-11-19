@@ -32,6 +32,7 @@
 #if ENGINE_ENABLE_RENDERING
 #    include "engine/rendering/components.hpp"
 #    include "engine/rendering/frame_graph.hpp"
+#    include "engine/rendering/gpu_profiler.hpp"
 #    include "engine/rendering/gpu_scheduler.hpp"
 #    include "engine/rendering/presentation_backend.hpp"
 #    include "engine/rendering/runtime_submission.hpp"
@@ -260,6 +261,7 @@ namespace engine::runtime
         std::vector<engine::rendering::ResourceEvent> frame_graph_events{};
         std::vector<RuntimeCommandEncoderStats> command_encoder_stats{};
         rendering::FrameGraphCacheStats frame_graph_cache_stats{};
+        std::vector<rendering::GpuProfiler::PassTiming> gpu_pass_timings{};
 #endif
         std::string loop_plan_serialization{};
 #if ENGINE_ENABLE_ASSETS
@@ -574,4 +576,10 @@ extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_command_en
     std::size_t index) noexcept;
 extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_command_encoder_dispatch_count(
     std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_gpu_pass_count() noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_gpu_pass_name(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API const char* engine_runtime_diagnostic_gpu_pass_queue(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API double engine_runtime_diagnostic_gpu_pass_duration_ms(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_gpu_pass_begin_ns(std::size_t index) noexcept;
+extern "C" ENGINE_RUNTIME_API std::uint64_t engine_runtime_diagnostic_gpu_pass_end_ns(std::size_t index) noexcept;
 #endif

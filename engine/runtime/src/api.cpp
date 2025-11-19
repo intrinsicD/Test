@@ -493,6 +493,7 @@ namespace engine::runtime
         rendering::ForwardPipeline forward_pipeline{};
         rendering::ResearchBaselineOptions research_options{};
         std::shared_ptr<rendering::PresentationBackend> presentation_backend{};
+        rendering::GpuProfiler gpu_profiler{};
 #endif
 #if ENGINE_ENABLE_ASSETS
         assets::MeshCache* mesh_cache{nullptr};
@@ -2919,11 +2920,13 @@ namespace engine::runtime
             context.device_resources,
             context.scheduler,
             tracer,
+            context.profiler != nullptr ? context.profiler : &impl_->gpu_profiler,
             context.frame_graph,
             pipeline,
         };
 
         pipeline->render(impl_->scene, traced_context);
+        auto gpu_timings = impl_->gpu_profiler.consume_pass_timings();
         auto trace_records = tracer.consume_records();
         std::vector<RuntimeCommandEncoderStats> encoder_stats{};
         encoder_stats.reserve(trace_records.size());
@@ -2943,6 +2946,7 @@ namespace engine::runtime
         const auto& events = context.frame_graph.resource_events();
         impl_->diagnostics.frame_graph_events.assign(events.begin(), events.end());
         impl_->diagnostics.frame_graph_cache_stats = context.frame_graph.cache_stats();
+        impl_->diagnostics.gpu_pass_timings = std::move(gpu_timings);
     }
 
     void submit_render_graph(RuntimeHost& host, rendering::RuntimeSubmissionContext& context)
@@ -4474,6 +4478,108 @@ engine_runtime_diagnostic_command_encoder_dispatch_count(std::size_t index) noex
             return 0U;
         }
         return stats[index].dispatch_count;
+    }
+    catch (...)
+    {
+        return 0U;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API std::size_t engine_runtime_diagnostic_gpu_pass_count() noexcept
+{
+    try
+    {
+        return engine::runtime::diagnostics().gpu_pass_timings.size();
+    }
+    catch (...)
+    {
+        return 0U;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_gpu_pass_name(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& passes = engine::runtime::diagnostics().gpu_pass_timings;
+        if (index >= passes.size())
+        {
+            return nullptr;
+        }
+        return passes[index].pass_name.c_str();
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API const char*
+engine_runtime_diagnostic_gpu_pass_queue(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& passes = engine::runtime::diagnostics().gpu_pass_timings;
+        if (index >= passes.size())
+        {
+            return nullptr;
+        }
+        return queue_type_to_cstr(passes[index].queue);
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API double
+engine_runtime_diagnostic_gpu_pass_duration_ms(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& passes = engine::runtime::diagnostics().gpu_pass_timings;
+        if (index >= passes.size())
+        {
+            return 0.0;
+        }
+        return passes[index].gpu_time_ms;
+    }
+    catch (...)
+    {
+        return 0.0;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t
+engine_runtime_diagnostic_gpu_pass_begin_ns(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& passes = engine::runtime::diagnostics().gpu_pass_timings;
+        if (index >= passes.size())
+        {
+            return 0U;
+        }
+        return passes[index].timestamp_begin_ns;
+    }
+    catch (...)
+    {
+        return 0U;
+    }
+}
+
+extern "C" ENGINE_RUNTIME_API std::uint64_t
+engine_runtime_diagnostic_gpu_pass_end_ns(std::size_t index) noexcept
+{
+    try
+    {
+        const auto& passes = engine::runtime::diagnostics().gpu_pass_timings;
+        if (index >= passes.size())
+        {
+            return 0U;
+        }
+        return passes[index].timestamp_end_ns;
     }
     catch (...)
     {

@@ -229,6 +229,7 @@ namespace engine::rendering
             device_provider,
             scheduler,
             encoders,
+            nullptr,
             frame_graph,
             nullptr,
         };

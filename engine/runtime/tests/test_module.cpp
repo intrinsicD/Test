@@ -479,6 +479,7 @@ namespace
                 device,
                 scheduler,
                 encoders,
+                nullptr,
                 frame_graph,
                 &capture_->pipeline,
             };
@@ -1100,8 +1101,8 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler)
         device_provider,
         scheduler,
         command_encoders,
-        graph,
         nullptr,
+        graph,
     };
 
     host.submit_render_graph(context);
@@ -1251,8 +1252,8 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughVulkanScheduler)
         measurement_device,
         measurement_scheduler,
         measurement_encoders,
-        measurement_graph,
         nullptr,
+        measurement_graph,
     };
 
     constexpr int iterations = 50;
@@ -1333,6 +1334,7 @@ TEST(RuntimeHost, SubmitsRenderGraphThroughOpenGLScheduler)
         device_provider,
         scheduler,
         command_encoders,
+        nullptr,
         graph,
         &pipeline,
     };

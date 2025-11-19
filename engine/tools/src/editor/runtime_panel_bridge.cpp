@@ -3,6 +3,7 @@
 #include "engine/tools/imgui_helpers.hpp"
 #include "engine/tools/profiling/profiler.hpp"
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -326,6 +327,22 @@ namespace engine::tools::editor
                     });
                 }
                 performance_panel_->set_profiler_entries(std::move(profiler_rows));
+
+                std::vector<PerformanceMetricsPanel::GpuPassTimingRow> gpu_rows;
+                gpu_rows.reserve(diagnostics.gpu_pass_timings.size());
+                for (const auto& pass : diagnostics.gpu_pass_timings)
+                {
+                    std::ostringstream queue_label;
+                    queue_label << pass.queue;
+                    PerformanceMetricsPanel::GpuPassTimingRow row{};
+                    row.name = pass.pass_name;
+                    row.queue = queue_label.str();
+                    row.duration_ms = pass.gpu_time_ms;
+                    row.timestamp_begin_ns = pass.timestamp_begin_ns;
+                    row.timestamp_end_ns = pass.timestamp_end_ns;
+                    gpu_rows.push_back(std::move(row));
+                }
+                performance_panel_->set_gpu_pass_timings(std::move(gpu_rows));
 
                 if (performance_hooks_.benchmark_provider)
                 {

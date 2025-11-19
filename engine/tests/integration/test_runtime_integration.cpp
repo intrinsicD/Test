@@ -227,8 +227,8 @@ namespace
             device,
             scheduler,
             encoders,
-            graph,
             nullptr,
+            graph,
         };
 
         host.submit_render_graph(context);
@@ -632,8 +632,8 @@ TEST(EngineIntegration, RuntimeSubmitsFrameGraphThroughVulkanScheduler)
         device,
         scheduler,
         encoders,
-        graph,
         nullptr,
+        graph,
     };
 
     host.submit_render_graph(context);
