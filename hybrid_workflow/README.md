@@ -198,6 +198,9 @@ python -m scripts.workflow.report_hybrid_status
 # Machine-readable summary
 python -m scripts.workflow.report_hybrid_status --format json
 
+# Refresh root TODO.md (active) and DONE.md (completed history)
+python -m scripts.workflow.sync_todo_done
+
 # Filter by roadmap bundle metadata
 python -m scripts.workflow.report_hybrid_status --relates-to bundle:C
 python -m scripts.workflow.report_hybrid_status --relates-to bundle:A bundle:D
